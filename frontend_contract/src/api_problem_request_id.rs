@@ -5,7 +5,7 @@
     Default,
     PartialEq,
     Eq,
-    proc_macro_newtype::BoundedStringWrapper,
+    proc_macro_newtype_bounded_string_wrapper::BoundedStringWrapper,
     serde::Deserialize,
     serde::Serialize,
     utoipa::ToSchema,

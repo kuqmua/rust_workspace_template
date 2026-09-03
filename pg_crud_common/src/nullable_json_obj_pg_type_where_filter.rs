@@ -8,7 +8,7 @@
     utoipa::ToSchema,
     schemars::JsonSchema,
     proc_macro_optimal_memory_layout::OptimalMemoryLayout,
-    proc_macro_newtype::FromInner,
+    proc_macro_newtype_from_inner::FromInner,
 )]
 #[serde(from = "Option<crate::not_empty_unique_vec::NotEmptyUniqueVec<T>>")]
 pub struct NullableJsonObjPgTypeWhereFilter<

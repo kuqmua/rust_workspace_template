@@ -8,8 +8,8 @@
     Debug,
     Eq,
     PartialEq,
-    proc_macro_newtype::AsRefTarget,
-    proc_macro_newtype::IntoInnerFrom,
+    proc_macro_newtype_as_ref_target::AsRefTarget,
+    proc_macro_newtype_into_inner_from::IntoInnerFrom,
 )]
 pub struct PgBoundedVec<T, const MIN: usize, const MAX: usize>(Vec<T>);
 

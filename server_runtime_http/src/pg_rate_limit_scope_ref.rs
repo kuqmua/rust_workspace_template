@@ -5,7 +5,7 @@
     Debug,
     Eq,
     PartialEq,
-    proc_macro_newtype::GetInner,
+    proc_macro_newtype_get_inner::GetInner,
 )]
 #[accessor(pub(crate))]
 pub struct PgRateLimitScopeRef<'value_lt>(&'value_lt str);

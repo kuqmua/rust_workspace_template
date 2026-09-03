@@ -4,9 +4,9 @@
     Debug,
     Eq,
     PartialEq,
-    proc_macro_newtype::DerefTarget,
-    proc_macro_newtype::IntoInner,
-    proc_macro_newtype::IntoIterator,
+    proc_macro_newtype_deref_target::DerefTarget,
+    proc_macro_newtype_into_inner::IntoInner,
+    proc_macro_newtype_into_iterator::IntoIterator,
 )]
 pub struct BoundedVec<T, const MIN: usize, const MAX: usize>(Vec<T>);
 impl<T, const MIN: usize, const MAX: usize> BoundedVec<T, MIN, MAX> {

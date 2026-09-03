@@ -5,11 +5,11 @@
     Default,
     PartialEq,
     Eq,
-    proc_macro_newtype::BoundedStringWrapper,
-    proc_macro_newtype::AsRefStr,
-    proc_macro_newtype::DerefTarget,
-    proc_macro_newtype::Display,
-    proc_macro_newtype::IntoInner,
+    proc_macro_newtype_bounded_string_wrapper::BoundedStringWrapper,
+    proc_macro_newtype_as_ref_str::AsRefStr,
+    proc_macro_newtype_deref_target::DerefTarget,
+    proc_macro_newtype_display::Display,
+    proc_macro_newtype_into_inner::IntoInner,
 )]
 #[bounded_string(
     max = crate::error_text_max_len::ERROR_TEXT_MAX_LEN,

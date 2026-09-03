@@ -9,6 +9,7 @@ license.workspace = true
 edition.workspace = true
 [dependencies]
 git-version = { workspace = true }
-proc_macro_constants_str = { workspace = true }
+proc_macro_define_git_info_constants = { workspace = true }
+proc_macro_define_str_constants = { workspace = true }
 [lints]
 workspace = true

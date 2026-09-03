@@ -15,7 +15,15 @@ categories = ["web-programming"]
 test-utils = []
 
 [dependencies]
-proc_macro_naming = { workspace = true }
+proc_macro_location_bang = { workspace = true }
+proc_macro_location_derive_location = { workspace = true }
+proc_macro_newtype_get_inner = { workspace = true }
+proc_macro_newtype_from_inner = { workspace = true }
+proc_macro_newtype_into_inner_from = { workspace = true }
+proc_macro_newtype_as_ref_inner = { workspace = true }
+proc_macro_generate_pg_table_derive_generate_pg_table = { workspace = true }
+proc_macro_frontend_contract_derive_unit_enum_catalog = { workspace = true }
+proc_macro_naming_enum_with_unit_fields_to_snake_case_str = { workspace = true }
 constants_usize = { workspace = true }
 constants_u64 = { workspace = true }
 constants_i64 = { workspace = true }
@@ -27,18 +35,32 @@ bounded_types = { workspace = true }
 config_lib = { workspace = true }
 futures = { workspace = true }
 frontend_contract = { workspace = true }
-proc_macro_frontend_contract = { workspace = true }
+proc_macro_frontend_contract_endpoint_registry = { workspace = true }
+proc_macro_frontend_contract_route_openapi = { workspace = true }
+proc_macro_frontend_contract_route_registry = { workspace = true }
+proc_macro_frontend_contract_api_operation_error = { workspace = true }
+proc_macro_frontend_contract_route_error = { workspace = true }
+proc_macro_frontend_contract_route_operation = { workspace = true }
 proc_macro_getters = { workspace = true }
 proc_macro_new = { workspace = true }
-proc_macro_generate_pg_table = { workspace = true }
+proc_macro_generate_pg_table_generate_pg_table_config = { workspace = true }
 git_info = { workspace = true }
 http = { workspace = true }
 jsonwebtoken = { workspace = true }
 location_lib = { workspace = true }
-proc_macro_location_bang = { workspace = true }
-proc_macro_location = { workspace = true }
 metrics = { workspace = true }
-proc_macro_newtype = { workspace = true }
+proc_macro_newtype_as_ref_owned = { workspace = true }
+proc_macro_newtype_as_ref_str = { workspace = true }
+proc_macro_newtype_as_ref_target = { workspace = true }
+proc_macro_newtype_debug_redacted = { workspace = true }
+proc_macro_newtype_debug_transparent = { workspace = true }
+proc_macro_newtype_deref_inner = { workspace = true }
+proc_macro_newtype_deref_mut_inner = { workspace = true }
+proc_macro_newtype_display = { workspace = true }
+proc_macro_newtype_into_inner = { workspace = true }
+proc_macro_newtype_enum_from_str = { workspace = true }
+proc_macro_newtype_utoipa_schema = { workspace = true }
+proc_macro_newtype_bounded_string_wrapper = { workspace = true }
 proc_macro_optimal_memory_layout = { workspace = true }
 pg_crud_common = { workspace = true, features = ["test-utils"] }
 pg_table = { workspace = true, features = ["test-utils"] }

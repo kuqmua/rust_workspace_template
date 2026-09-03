@@ -1,4 +1,10 @@
 #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
 #[cfg(not(target_arch = "wasm32"))]
-#[derive(Clone, Copy, Debug, proc_macro_newtype::FromInner, proc_macro_newtype::IntoInnerFrom)]
+#[derive(
+    Clone,
+    Copy,
+    Debug,
+    proc_macro_newtype_from_inner::FromInner,
+    proc_macro_newtype_into_inner_from::IntoInnerFrom,
+)]
 pub struct AxumMethodFilter(axum::routing::MethodFilter);

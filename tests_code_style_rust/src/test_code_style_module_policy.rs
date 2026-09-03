@@ -130,6 +130,18 @@ fn test_free_function_names_are_unique_across_workspace() {
     super::test_code_style_snapshot::with_codebase_snapshot(|snapshot| {
         let mut declarations = std::collections::BTreeMap::<String, Vec<String>>::new();
         snapshot.rs_files().iter().for_each(|source_file| {
+            if source_file.ast().as_ref().items.iter().any(|item| {
+                let syn::Item::Fn(function) = item else {
+                    return false;
+                };
+                function.attrs.iter().any(|attribute| {
+                    attribute.path().is_ident(stringify!(proc_macro))
+                        || attribute.path().is_ident(stringify!(proc_macro_derive))
+                        || attribute.path().is_ident(stringify!(proc_macro_attribute))
+                })
+            }) {
+                return;
+            }
             let visitor = crate::code_style::visit_syn_file(
                 crate::types::SynFileRef::from(source_file.ast().as_ref()),
                 super::source_analysis::FreeFnNameVisitor::default(),

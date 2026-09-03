@@ -5,8 +5,8 @@
     Debug,
     Eq,
     PartialEq,
-    proc_macro_newtype::Display,
-    proc_macro_newtype::FromInner,
+    proc_macro_newtype_display::Display,
+    proc_macro_newtype_from_inner::FromInner,
     proc_macro_getters::Getters,
 )]
 pub struct AdminCleanupRows(u64);

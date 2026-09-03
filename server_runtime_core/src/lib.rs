@@ -28,6 +28,7 @@ pub mod execution_plan_tests;
 pub mod execution_report;
 pub mod generation;
 pub mod generation_atomic_u64;
+pub mod generation_begin_error;
 pub mod generation_commit;
 pub mod generation_gate;
 pub mod idempotency_response_resource_budget_provider;

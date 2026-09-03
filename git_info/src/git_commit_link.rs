@@ -4,9 +4,9 @@
     PartialEq,
     Eq,
     proc_macro_optimal_memory_layout::OptimalMemoryLayout,
-    proc_macro_newtype::AsRefStr,
-    proc_macro_newtype::PartialEqInner,
-    proc_macro_newtype::TryFrom,
+    proc_macro_newtype_as_ref_str::AsRefStr,
+    proc_macro_newtype_partial_eq_inner::PartialEqInner,
+    proc_macro_newtype_try_from::TryFrom,
 )]
 #[try_from(
     error = crate::git_info_string_try_from_string_error::GitInfoStringTryFromStringError,

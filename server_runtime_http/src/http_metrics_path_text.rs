@@ -5,8 +5,8 @@
     Eq,
     Hash,
     PartialEq,
-    proc_macro_newtype::BorrowStr,
-    proc_macro_newtype::DerefInner,
+    proc_macro_newtype_borrow_str::BorrowStr,
+    proc_macro_newtype_deref_inner::DerefInner,
 )]
 pub(super) struct HttpMetricsPathText(String);
 

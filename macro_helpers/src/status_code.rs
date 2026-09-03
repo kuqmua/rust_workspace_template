@@ -15,11 +15,11 @@
     Clone,
     Copy,
     Hash,
-    proc_macro_naming::AsRefStrEnumWithUnitFieldsToUpperCamelCaseStr,
-    proc_macro_naming::AsRefStrEnumWithUnitFieldsToSnakeCaseStr,
-    proc_macro_naming::EnumWithUnitFieldsToSnakeCaseStr,
-    proc_macro_naming::EnumWithUnitFieldsToUpperCamelCaseStr,
-    proc_macro_naming::EnumWithUnitFieldsToUpperSnakeCaseStr,
+    proc_macro_naming_as_ref_str_enum_with_unit_fields_to_upper_camel_case_str::AsRefStrEnumWithUnitFieldsToUpperCamelCaseStr,
+    proc_macro_naming_as_ref_str_enum_with_unit_fields_to_snake_case_str::AsRefStrEnumWithUnitFieldsToSnakeCaseStr,
+    proc_macro_naming_enum_with_unit_fields_to_snake_case_str::EnumWithUnitFieldsToSnakeCaseStr,
+    proc_macro_naming_enum_with_unit_fields_to_upper_camel_case_str::EnumWithUnitFieldsToUpperCamelCaseStr,
+    proc_macro_naming_enum_with_unit_fields_to_upper_snake_case_str::EnumWithUnitFieldsToUpperSnakeCaseStr,
     proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub enum StatusCode {

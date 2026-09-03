@@ -1,4 +1,5 @@
 #![allow(
+    unused_crate_dependencies,
     unused_imports,
     unreachable_pub,
     clippy::arbitrary_source_item_ordering,
@@ -9,7 +10,7 @@
     clippy::module_name_repetitions,
     clippy::must_use_candidate,
     private_interfaces,
-    reason = "Leptos component names intentionally mirror their owner modules and generated view functions are consumed by view macros; generated component constructors have framework-defined public visibility while their CSR-only props stay crate-private; root-owned frontend modules retain the signal, generated-view, test-leaf, and compatibility lint contracts previously scoped across their nested owner modules"
+    reason = "Leptos component names intentionally mirror their owner modules and generated view functions are consumed by view macros; split derive-only proc-macro dependencies trigger rustc's unused dependency lint despite direct derive usage; generated component constructors have framework-defined public visibility while their CSR-only props stay crate-private; root-owned frontend modules retain the signal, generated-view, test-leaf, and compatibility lint contracts previously scoped across their nested owner modules"
 )]
 
 pub mod admin_alert;

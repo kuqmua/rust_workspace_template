@@ -6,7 +6,7 @@
     serde::Serialize,
     serde::Deserialize,
     thiserror::Error,
-    proc_macro_location::Location,
+    proc_macro_location_derive_location::Location,
     schemars::JsonSchema,
     proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]

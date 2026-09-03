@@ -8,13 +8,22 @@ pub struct GenerationGate {
 }
 
 impl GenerationGate {
-    #[must_use]
-    pub fn begin(&self) -> crate::generation::Generation {
-        crate::generation::Generation::from(
-            self.current
-                .fetch_add(1u64, std::sync::atomic::Ordering::AcqRel)
-                .saturating_add(1u64),
-        )
+    pub fn begin(
+        &self,
+    ) -> Result<crate::generation::Generation, crate::generation_begin_error::GenerationBeginError>
+    {
+        self.current
+            .try_update(
+                std::sync::atomic::Ordering::AcqRel,
+                std::sync::atomic::Ordering::Acquire,
+                |current| current.checked_add(1u64),
+            )
+            .map(|previous| crate::generation::Generation::from(previous.saturating_add(1u64)))
+            .map_err(|current| {
+                crate::generation_begin_error::GenerationBeginError::Overflow(
+                    crate::generation::Generation::from(current),
+                )
+            })
     }
 
     #[must_use]
@@ -34,8 +43,8 @@ mod tests {
     #[test]
     fn test_only_latest_generation_can_commit() {
         let gate = super::GenerationGate::default();
-        let first = gate.begin();
-        let second = gate.begin();
+        let first = gate.begin().expect(constants_str::DIAGNOSTIC_7DE09116);
+        let second = gate.begin().expect(constants_str::DIAGNOSTIC_E1C98AA1);
         assert_eq!(
             gate.classify(first),
             crate::generation_commit::GenerationCommit::Stale
@@ -43,6 +52,27 @@ mod tests {
         assert_eq!(
             gate.classify(second),
             crate::generation_commit::GenerationCommit::Current
+        );
+    }
+
+    #[test]
+    fn test_generation_overflow_does_not_reuse_an_identifier() {
+        let gate = super::GenerationGate {
+            current: crate::generation_atomic_u64::GenerationAtomicU64::from(
+                std::sync::atomic::AtomicU64::new(u64::MAX),
+            ),
+        };
+        assert_eq!(
+            gate.begin(),
+            Err(
+                crate::generation_begin_error::GenerationBeginError::Overflow(
+                    crate::generation::Generation::from(u64::MAX)
+                )
+            )
+        );
+        assert_eq!(
+            gate.current.load(std::sync::atomic::Ordering::Acquire),
+            u64::MAX
         );
     }
 }

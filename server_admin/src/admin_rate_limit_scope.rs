@@ -3,7 +3,7 @@
     Debug,
     Clone,
     Copy,
-    proc_macro_naming::EnumWithUnitFieldsToSnakeCaseStr,
+    proc_macro_naming_enum_with_unit_fields_to_snake_case_str::EnumWithUnitFieldsToSnakeCaseStr,
 )]
 pub(crate) enum AdminRateLimitScope {
     AuditExport,

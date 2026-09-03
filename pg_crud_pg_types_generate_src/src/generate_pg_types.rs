@@ -1,7 +1,7 @@
 #[derive(
     proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Debug,
-    proc_macro_newtype::DerefTarget,
+    proc_macro_newtype_deref_target::DerefTarget,
     serde::Deserialize,
 )]
 #[serde(try_from = "Vec<crate::pg_type_catalog_kind::PgTypeCatalogKind>")]

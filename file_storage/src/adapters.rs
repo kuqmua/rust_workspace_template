@@ -11,55 +11,54 @@ impl crate::safe_file_storage::SafeFileStorage {
         crate::stale_staging_cleanup_report::StaleStagingCleanupReport,
         crate::file_storage_error::FileStorageError,
     > {
-        let directory = self
-            .root()
-            .get()
-            .join(file_storage_staging_area.directory_name().get());
-        self.ensure_directory_not_symlink(directory.as_path().into())
-            .await?;
-        let mut entries = tokio::fs::read_dir(directory)
-            .await
-            .map_err(|error| crate::file_storage_error::FileStorageError::Io(error.into()))?;
-        let mut report = crate::stale_staging_cleanup_report::StaleStagingCleanupReport::default();
-        while report.scanned().get() < stale_staging_cleanup_configuration.maximum_scanned().get()
-            && report.removed().get() < stale_staging_cleanup_configuration.maximum_removed().get()
-        {
-            let Some(entry) = entries
-                .next_entry()
-                .await
-                .map_err(|error| crate::file_storage_error::FileStorageError::Io(error.into()))?
-            else {
-                break;
-            };
-            report.record_scanned();
-            let file_type = entry
-                .file_type()
-                .await
+        self.run_capability_operation(move |root| {
+            let directory_name = file_storage_staging_area.directory_name();
+            Self::ensure_capability_directory(&root, directory_name)?;
+            let mut entries = root
+                .read_dir(directory_name.get())
                 .map_err(|error| crate::file_storage_error::FileStorageError::Io(error.into()))?;
-            if file_type.is_dir() || file_type.is_symlink() {
-                continue;
-            }
-            let metadata = entry
-                .metadata()
-                .await
-                .map_err(|error| crate::file_storage_error::FileStorageError::Io(error.into()))?;
-            let Ok(modified) = metadata.modified() else {
-                continue;
-            };
-            if modified > stale_staging_cleanup_configuration.stale_before().get() {
-                continue;
-            }
-            match tokio::fs::remove_file(entry.path()).await {
-                Ok(()) => report.record_removed(),
-                Err(error) if error.kind() == std::io::ErrorKind::NotFound => {}
-                Err(error) => {
-                    return Err(crate::file_storage_error::FileStorageError::Io(
-                        error.into(),
-                    ));
+            let mut report =
+                crate::stale_staging_cleanup_report::StaleStagingCleanupReport::default();
+            while report.scanned().get()
+                < stale_staging_cleanup_configuration.maximum_scanned().get()
+                && report.removed().get()
+                    < stale_staging_cleanup_configuration.maximum_removed().get()
+            {
+                let Some(entry_result) = entries.next() else {
+                    break;
+                };
+                let entry = entry_result.map_err(|error| {
+                    crate::file_storage_error::FileStorageError::Io(error.into())
+                })?;
+                report.record_scanned();
+                let file_type = entry.file_type().map_err(|error| {
+                    crate::file_storage_error::FileStorageError::Io(error.into())
+                })?;
+                if file_type.is_dir() || file_type.is_symlink() {
+                    continue;
+                }
+                let metadata = entry.metadata().map_err(|error| {
+                    crate::file_storage_error::FileStorageError::Io(error.into())
+                })?;
+                let Ok(modified) = metadata.modified() else {
+                    continue;
+                };
+                if modified.into_std() > stale_staging_cleanup_configuration.stale_before().get() {
+                    continue;
+                }
+                match entry.remove_file() {
+                    Ok(()) => report.record_removed(),
+                    Err(error) if error.kind() == std::io::ErrorKind::NotFound => {}
+                    Err(error) => {
+                        return Err(crate::file_storage_error::FileStorageError::Io(
+                            error.into(),
+                        ));
+                    }
                 }
             }
-        }
-        Ok(report)
+            Ok(report)
+        })
+        .await
     }
     pub async fn atomic_replace(
         &self,
@@ -70,66 +69,110 @@ impl crate::safe_file_storage::SafeFileStorage {
     ) -> Result<(), crate::file_storage_error::FileStorageError> {
         self.stage_upload(std_storage_operation_id, std_file_bytes)
             .await?;
-        let staging_path = self
-            .root()
-            .get()
-            .join(constants_str::FILE_UPLOAD_STAGING_DIRECTORY)
-            .join(std_storage_operation_id.as_ref());
-        if atomic_replace_durability
-            == crate::atomic_replace_durability::AtomicReplaceDurability::SyncAll
-        {
-            let file = tokio::fs::OpenOptions::new()
-                .write(true)
-                .open(&staging_path)
-                .await
-                .map_err(|error| crate::file_storage_error::FileStorageError::Io(error.into()))?;
-            file.sync_all()
-                .await
-                .map_err(|error| crate::file_storage_error::FileStorageError::Io(error.into()))?;
-        }
-        self.ensure_destination_parent(storage_relative_path_buf)
-            .await?;
-        let destination_path = self.root().get().join(storage_relative_path_buf.as_ref());
-        match tokio::fs::symlink_metadata(&destination_path).await {
-            Ok(metadata) if metadata.file_type().is_symlink() => {
-                return Err(crate::file_storage_error::FileStorageError::Symlink);
+        let operation_id = std_storage_operation_id.clone();
+        let relative_path = storage_relative_path_buf.clone();
+        self.run_capability_operation(move |root| {
+            let staging_path = std::path::Path::new(constants_str::FILE_UPLOAD_STAGING_DIRECTORY)
+                .join(operation_id.as_ref());
+            let replace_result = (|| {
+                Self::ensure_capability_directory(
+                    &root,
+                    constants_str::FILE_UPLOAD_STAGING_DIRECTORY.into(),
+                )?;
+                if atomic_replace_durability
+                    == crate::atomic_replace_durability::AtomicReplaceDurability::SyncAll
+                {
+                    let file = root.open(&staging_path).map_err(|error| {
+                        crate::file_storage_error::FileStorageError::Io(error.into())
+                    })?;
+                    file.sync_all().map_err(|error| {
+                        crate::file_storage_error::FileStorageError::Io(error.into())
+                    })?;
+                }
+                Self::ensure_capability_destination_parent(&root, &relative_path)?;
+                match root.symlink_metadata(relative_path.as_ref()) {
+                    Ok(metadata) if metadata.file_type().is_symlink() => {
+                        return Err(crate::file_storage_error::FileStorageError::Symlink);
+                    }
+                    Ok(metadata) if !metadata.is_file() => {
+                        return Err(crate::file_storage_error::FileStorageError::SourceNotRegular);
+                    }
+                    Ok(_) => {}
+                    Err(error) if error.kind() == std::io::ErrorKind::NotFound => {}
+                    Err(error) => {
+                        return Err(crate::file_storage_error::FileStorageError::Io(
+                            error.into(),
+                        ));
+                    }
+                }
+                root.rename(&staging_path, &root, relative_path.as_ref())
+                    .map_err(|error| {
+                        crate::file_storage_error::FileStorageError::Io(error.into())
+                    })?;
+                if atomic_replace_durability
+                    == crate::atomic_replace_durability::AtomicReplaceDurability::SyncAll
+                {
+                    let destination_parent = relative_path
+                        .as_ref()
+                        .parent()
+                        .unwrap_or_else(|| std::path::Path::new(constants_str::DOT));
+                    let directory = root.open_dir(destination_parent).map_err(|error| {
+                        crate::file_storage_error::FileStorageError::Io(error.into())
+                    })?;
+                    directory.into_std_file().sync_all().map_err(|error| {
+                        crate::file_storage_error::FileStorageError::Io(error.into())
+                    })?;
+                }
+                Ok(())
+            })();
+            if let Err(operation_error) = replace_result {
+                return match root.remove_file(&staging_path) {
+                    Ok(()) => Err(operation_error),
+                    Err(cleanup) if cleanup.kind() == std::io::ErrorKind::NotFound => {
+                        Err(operation_error)
+                    }
+                    Err(cleanup) => Err(crate::file_storage_error::FileStorageError::Io(
+                        cleanup.into(),
+                    )),
+                };
             }
-            Ok(metadata) if !metadata.is_file() => {
-                return Err(crate::file_storage_error::FileStorageError::SourceNotRegular);
-            }
-            Ok(_) => {}
-            Err(error) if error.kind() == std::io::ErrorKind::NotFound => {}
-            Err(error) => {
-                return Err(crate::file_storage_error::FileStorageError::Io(
-                    error.into(),
-                ));
-            }
-        }
-        if let Err(replace) = tokio::fs::rename(&staging_path, destination_path).await {
-            return match tokio::fs::remove_file(staging_path).await {
-                Ok(()) => Err(crate::file_storage_error::FileStorageError::Io(
-                    replace.into(),
-                )),
-                Err(cleanup) => Err(
-                    crate::file_storage_error::FileStorageError::AtomicReplaceAndCleanup {
-                        cleanup: cleanup.into(),
-                        replace: replace.into(),
-                    },
-                ),
-            };
-        }
-        Ok(())
+            Ok(())
+        })
+        .await
     }
 
     pub async fn prepare(&self) -> Result<(), crate::file_storage_error::FileStorageError> {
         tokio::fs::create_dir_all(self.root().get())
             .await
             .map_err(|error| crate::file_storage_error::FileStorageError::Io(error.into()))?;
-        self.ensure_directory_not_symlink(self.root()).await?;
-        self.prepare_staging_directory(constants_str::FILE_UPLOAD_STAGING_DIRECTORY.into())
-            .await?;
-        self.prepare_staging_directory(constants_str::FILE_DELETE_STAGING_DIRECTORY.into())
-            .await
+        self.run_capability_operation(|root| {
+            [
+                constants_str::FILE_UPLOAD_STAGING_DIRECTORY,
+                constants_str::FILE_DELETE_STAGING_DIRECTORY,
+            ]
+            .into_iter()
+            .try_for_each(|directory_name| {
+                match root.symlink_metadata(directory_name) {
+                    Ok(metadata) if metadata.is_dir() && !metadata.file_type().is_symlink() => {}
+                    Ok(_metadata) => {
+                        return Err(crate::file_storage_error::FileStorageError::Symlink);
+                    }
+                    Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
+                        root.create_dir(directory_name).map_err(|create_error| {
+                            crate::file_storage_error::FileStorageError::Io(create_error.into())
+                        })?;
+                        Self::ensure_capability_directory(&root, directory_name.into())?;
+                    }
+                    Err(error) => {
+                        return Err(crate::file_storage_error::FileStorageError::Io(
+                            error.into(),
+                        ));
+                    }
+                }
+                Ok(())
+            })
+        })
+        .await
     }
 
     pub async fn stage_upload(
@@ -137,29 +180,42 @@ impl crate::safe_file_storage::SafeFileStorage {
         std_storage_operation_id: &crate::std_storage_operation_id::StdStorageOperationId,
         std_file_bytes: &crate::std_file_bytes::StdFileBytes,
     ) -> Result<(), crate::file_storage_error::FileStorageError> {
-        let staging_path = self
-            .root()
-            .get()
-            .join(constants_str::FILE_UPLOAD_STAGING_DIRECTORY)
-            .join(std_storage_operation_id.as_ref());
-        let mut file = tokio::fs::OpenOptions::new()
-            .create_new(true)
-            .write(true)
-            .open(staging_path)
-            .await
-            .map_err(|error| {
+        let operation_id = std_storage_operation_id.clone();
+        let file_bytes = std_file_bytes.clone();
+        self.run_capability_operation(move |root| {
+            Self::ensure_capability_directory(
+                &root,
+                constants_str::FILE_UPLOAD_STAGING_DIRECTORY.into(),
+            )?;
+            let staging_path = std::path::Path::new(constants_str::FILE_UPLOAD_STAGING_DIRECTORY)
+                .join(operation_id.as_ref());
+            let mut options = cap_std::fs::OpenOptions::new();
+            let _configured_options = options.create_new(true).write(true);
+            let mut file = root.open_with(&staging_path, &options).map_err(|error| {
                 if error.kind() == std::io::ErrorKind::AlreadyExists {
                     crate::file_storage_error::FileStorageError::StagingEntryExists
                 } else {
                     crate::file_storage_error::FileStorageError::Io(error.into())
                 }
             })?;
-        tokio::io::AsyncWriteExt::write_all(&mut file, std_file_bytes.as_ref())
-            .await
-            .map_err(|error| crate::file_storage_error::FileStorageError::Io(error.into()))?;
-        tokio::io::AsyncWriteExt::flush(&mut file)
-            .await
-            .map_err(|error| crate::file_storage_error::FileStorageError::Io(error.into()))
+            let write_result = std::io::Write::write_all(&mut file, file_bytes.as_ref())
+                .and_then(|()| std::io::Write::flush(&mut file))
+                .map_err(|error| crate::file_storage_error::FileStorageError::Io(error.into()));
+            drop(file);
+            if let Err(write_error) = write_result {
+                return match root.remove_file(&staging_path) {
+                    Ok(()) => Err(write_error),
+                    Err(cleanup) if cleanup.kind() == std::io::ErrorKind::NotFound => {
+                        Err(write_error)
+                    }
+                    Err(cleanup) => Err(crate::file_storage_error::FileStorageError::Io(
+                        cleanup.into(),
+                    )),
+                };
+            }
+            Ok(())
+        })
+        .await
     }
 
     pub async fn commit_upload(
@@ -191,26 +247,30 @@ impl crate::safe_file_storage::SafeFileStorage {
         std_storage_operation_id: &crate::std_storage_operation_id::StdStorageOperationId,
         storage_relative_path_buf: &crate::storage_relative_path_buf::StorageRelativePathBuf,
     ) -> Result<(), crate::file_storage_error::FileStorageError> {
-        let source_path = self.root().get().join(storage_relative_path_buf.as_ref());
-        let metadata = tokio::fs::symlink_metadata(source_path.as_path())
-            .await
-            .map_err(|error| crate::file_storage_error::FileStorageError::Io(error.into()))?;
-        if !metadata.is_file() || metadata.file_type().is_symlink() {
-            return Err(if metadata.file_type().is_symlink() {
-                crate::file_storage_error::FileStorageError::Symlink
-            } else {
-                crate::file_storage_error::FileStorageError::SourceNotRegular
-            });
-        }
-        tokio::fs::rename(
-            source_path,
-            self.root()
-                .get()
-                .join(constants_str::FILE_DELETE_STAGING_DIRECTORY)
-                .join(std_storage_operation_id.as_ref()),
-        )
+        let operation_id = std_storage_operation_id.clone();
+        let relative_path = storage_relative_path_buf.clone();
+        self.run_capability_operation(move |root| {
+            Self::ensure_capability_destination_parent(&root, &relative_path)?;
+            Self::ensure_capability_directory(
+                &root,
+                constants_str::FILE_DELETE_STAGING_DIRECTORY.into(),
+            )?;
+            let metadata = root
+                .symlink_metadata(relative_path.as_ref())
+                .map_err(|error| crate::file_storage_error::FileStorageError::Io(error.into()))?;
+            if !metadata.is_file() || metadata.file_type().is_symlink() {
+                return Err(if metadata.file_type().is_symlink() {
+                    crate::file_storage_error::FileStorageError::Symlink
+                } else {
+                    crate::file_storage_error::FileStorageError::SourceNotRegular
+                });
+            }
+            let staged_path = std::path::Path::new(constants_str::FILE_DELETE_STAGING_DIRECTORY)
+                .join(operation_id.as_ref());
+            root.rename(relative_path.as_ref(), &root, staged_path)
+                .map_err(|error| crate::file_storage_error::FileStorageError::Io(error.into()))
+        })
         .await
-        .map_err(|error| crate::file_storage_error::FileStorageError::Io(error.into()))
     }
 
     pub async fn rollback_delete(
@@ -240,70 +300,66 @@ impl crate::safe_file_storage::SafeFileStorage {
     async fn remove_staged(
         &self,
         std_storage_operation_id: &crate::std_storage_operation_id::StdStorageOperationId,
-        storage_directory_name_ref: crate::storage_directory_name_ref::StorageDirectoryNameRef<'_>,
+        storage_directory_name_ref: crate::storage_directory_name_ref::StorageDirectoryNameRef<
+            'static,
+        >,
     ) -> Result<(), crate::file_storage_error::FileStorageError> {
-        tokio::fs::remove_file(
-            self.root()
-                .get()
-                .join(storage_directory_name_ref.get())
-                .join(std_storage_operation_id.as_ref()),
-        )
+        let operation_id = std_storage_operation_id.clone();
+        let storage_directory_name = storage_directory_name_ref.get();
+        self.run_capability_operation(move |root| {
+            Self::ensure_capability_directory(&root, storage_directory_name.into())?;
+            root.remove_file(
+                std::path::Path::new(storage_directory_name).join(operation_id.as_ref()),
+            )
+            .map_err(|error| crate::file_storage_error::FileStorageError::Io(error.into()))
+        })
         .await
-        .map_err(|error| crate::file_storage_error::FileStorageError::Io(error.into()))
     }
 
     async fn rename_staged(
         &self,
         std_storage_operation_id: &crate::std_storage_operation_id::StdStorageOperationId,
         storage_relative_path_buf: &crate::storage_relative_path_buf::StorageRelativePathBuf,
-        storage_directory_name_ref: crate::storage_directory_name_ref::StorageDirectoryNameRef<'_>,
+        storage_directory_name_ref: crate::storage_directory_name_ref::StorageDirectoryNameRef<
+            'static,
+        >,
     ) -> Result<(), crate::file_storage_error::FileStorageError> {
-        let destination_path = self.root().get().join(storage_relative_path_buf.as_ref());
-        self.ensure_destination_parent(storage_relative_path_buf)
-            .await?;
-        match tokio::fs::symlink_metadata(destination_path.as_path()).await {
-            Ok(metadata) if metadata.file_type().is_symlink() => {
-                return Err(crate::file_storage_error::FileStorageError::Symlink);
+        let operation_id = std_storage_operation_id.clone();
+        let relative_path = storage_relative_path_buf.clone();
+        let storage_directory_name = storage_directory_name_ref.get();
+        self.run_capability_operation(move |root| {
+            Self::ensure_capability_directory(&root, storage_directory_name.into())?;
+            Self::ensure_capability_destination_parent(&root, &relative_path)?;
+            match root.symlink_metadata(relative_path.as_ref()) {
+                Ok(metadata) if metadata.file_type().is_symlink() => {
+                    return Err(crate::file_storage_error::FileStorageError::Symlink);
+                }
+                Ok(_metadata) => {
+                    return Err(crate::file_storage_error::FileStorageError::DestinationExists);
+                }
+                Err(error) if error.kind() == std::io::ErrorKind::NotFound => {}
+                Err(error) => {
+                    return Err(crate::file_storage_error::FileStorageError::Io(
+                        error.into(),
+                    ));
+                }
             }
-            Ok(_metadata) => {
-                return Err(crate::file_storage_error::FileStorageError::DestinationExists);
-            }
-            Err(error) if error.kind() == std::io::ErrorKind::NotFound => {}
-            Err(error) => {
-                return Err(crate::file_storage_error::FileStorageError::Io(
-                    error.into(),
-                ));
-            }
-        }
-        tokio::fs::rename(
-            self.root()
-                .get()
-                .join(storage_directory_name_ref.get())
-                .join(std_storage_operation_id.as_ref()),
-            destination_path,
-        )
+            root.rename(
+                std::path::Path::new(storage_directory_name).join(operation_id.as_ref()),
+                &root,
+                relative_path.as_ref(),
+            )
+            .map_err(|error| crate::file_storage_error::FileStorageError::Io(error.into()))
+        })
         .await
-        .map_err(|error| crate::file_storage_error::FileStorageError::Io(error.into()))
     }
 
-    async fn prepare_staging_directory(
-        &self,
+    fn ensure_capability_directory(
+        root: &cap_std::fs::Dir,
         storage_directory_name_ref: crate::storage_directory_name_ref::StorageDirectoryNameRef<'_>,
     ) -> Result<(), crate::file_storage_error::FileStorageError> {
-        let path = self.root().get().join(storage_directory_name_ref.get());
-        tokio::fs::create_dir_all(&path)
-            .await
-            .map_err(|error| crate::file_storage_error::FileStorageError::Io(error.into()))?;
-        self.ensure_directory_not_symlink(path.as_path().into())
-            .await
-    }
-
-    async fn ensure_directory_not_symlink(
-        &self,
-        storage_path_ref: crate::storage_path_ref::StoragePathRef<'_>,
-    ) -> Result<(), crate::file_storage_error::FileStorageError> {
-        let metadata = tokio::fs::symlink_metadata(storage_path_ref.get())
-            .await
+        let metadata = root
+            .symlink_metadata(storage_directory_name_ref.get())
             .map_err(|error| crate::file_storage_error::FileStorageError::Io(error.into()))?;
         if metadata.is_dir() && !metadata.file_type().is_symlink() {
             Ok(())
@@ -312,11 +368,11 @@ impl crate::safe_file_storage::SafeFileStorage {
         }
     }
 
-    async fn ensure_destination_parent(
-        &self,
+    fn ensure_capability_destination_parent(
+        root: &cap_std::fs::Dir,
         storage_relative_path_buf: &crate::storage_relative_path_buf::StorageRelativePathBuf,
     ) -> Result<(), crate::file_storage_error::FileStorageError> {
-        let mut current = self.root().get().to_path_buf();
+        let mut current = std::path::PathBuf::new();
         let mut components = storage_relative_path_buf
             .as_ref()
             .parent()
@@ -329,17 +385,19 @@ impl crate::safe_file_storage::SafeFileStorage {
         )]
         while let Some(component) = components.next() {
             current.push(component.as_os_str());
-            match tokio::fs::symlink_metadata(&current).await {
+            match root.symlink_metadata(&current) {
                 Ok(metadata) if metadata.is_dir() && !metadata.file_type().is_symlink() => {}
                 Ok(_metadata) => return Err(crate::file_storage_error::FileStorageError::Symlink),
                 Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
-                    tokio::fs::create_dir(&current)
-                        .await
-                        .map_err(|create_error| {
-                            crate::file_storage_error::FileStorageError::Io(create_error.into())
-                        })?;
-                    self.ensure_directory_not_symlink(current.as_path().into())
-                        .await?;
+                    root.create_dir(&current).map_err(|create_error| {
+                        crate::file_storage_error::FileStorageError::Io(create_error.into())
+                    })?;
+                    let metadata = root.symlink_metadata(&current).map_err(|metadata_error| {
+                        crate::file_storage_error::FileStorageError::Io(metadata_error.into())
+                    })?;
+                    if !metadata.is_dir() || metadata.file_type().is_symlink() {
+                        return Err(crate::file_storage_error::FileStorageError::Symlink);
+                    }
                 }
                 Err(error) => {
                     return Err(crate::file_storage_error::FileStorageError::Io(
@@ -349,6 +407,33 @@ impl crate::safe_file_storage::SafeFileStorage {
             }
         }
         Ok(())
+    }
+
+    async fn run_capability_operation<T, F>(
+        &self,
+        operation: F,
+    ) -> Result<T, crate::file_storage_error::FileStorageError>
+    where
+        T: Send + 'static,
+        F: FnOnce(cap_std::fs::Dir) -> Result<T, crate::file_storage_error::FileStorageError>
+            + Send
+            + 'static,
+    {
+        let root_path = self.root().get().to_path_buf();
+        tokio::task::spawn_blocking(move || {
+            let metadata = std::fs::symlink_metadata(&root_path)
+                .map_err(|error| crate::file_storage_error::FileStorageError::Io(error.into()))?;
+            if !metadata.is_dir() || metadata.file_type().is_symlink() {
+                return Err(crate::file_storage_error::FileStorageError::Symlink);
+            }
+            let root = cap_std::fs::Dir::open_ambient_dir(root_path, cap_std::ambient_authority())
+                .map_err(|error| crate::file_storage_error::FileStorageError::Io(error.into()))?;
+            operation(root)
+        })
+        .await
+        .map_err(|error| {
+            crate::file_storage_error::FileStorageError::Io(std::io::Error::other(error).into())
+        })?
     }
 }
 

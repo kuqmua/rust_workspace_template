@@ -5,10 +5,10 @@
     Debug,
     PartialEq,
     Eq,
-    proc_macro_newtype::Display,
-    proc_macro_newtype::FromGetter,
-    proc_macro_newtype::IntoInnerFrom,
-    proc_macro_newtype::TryFrom,
+    proc_macro_newtype_display::Display,
+    proc_macro_newtype_from_getter::FromGetter,
+    proc_macro_newtype_into_inner_from::IntoInnerFrom,
+    proc_macro_newtype_try_from::TryFrom,
 )]
 #[from_getter(source = crate::known_http_status::KnownHttpStatus, getter = get)]
 #[try_from(error = crate::http_status_try_from_u16_error::HttpStatusTryFromU16Error, validator = |value: &u16| {

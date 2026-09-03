@@ -1,10 +1,10 @@
-#[proc_macro_location::errors_with_location]
+#[proc_macro_location_errors_with_location::errors_with_location]
 #[derive(
     Debug,
     serde::Serialize,
     serde::Deserialize,
     thiserror::Error,
-    proc_macro_location::Location,
+    proc_macro_location_derive_location::Location,
     proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub enum PaginationStartsWithOneTryNewError {

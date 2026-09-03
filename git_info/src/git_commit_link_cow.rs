@@ -6,9 +6,9 @@
     serde_derive::Deserialize,
     serde_derive::Serialize,
     proc_macro_optimal_memory_layout::OptimalMemoryLayout,
-    proc_macro_newtype::AsRefStr,
-    proc_macro_newtype::Display,
-    proc_macro_newtype::IntoInnerFrom,
+    proc_macro_newtype_as_ref_str::AsRefStr,
+    proc_macro_newtype_display::Display,
+    proc_macro_newtype_into_inner_from::IntoInnerFrom,
 )]
 #[serde(try_from = "String")]
 pub struct GitCommitLinkCow(std::borrow::Cow<'static, str>);

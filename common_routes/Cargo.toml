@@ -9,6 +9,11 @@ license.workspace = true
 edition.workspace = true
 
 [dependencies]
+proc_macro_frontend_contract_derive_typed_route = { workspace = true }
+proc_macro_newtype_get_inner = { workspace = true }
+proc_macro_newtype_from_inner = { workspace = true }
+proc_macro_newtype_into_inner_from = { workspace = true }
+proc_macro_frontend_contract_derive_route_catalog = { workspace = true }
 proc_macro_getters = { workspace = true }
 constants_usize = { workspace = true }
 bounded_types = { workspace = true }
@@ -20,10 +25,12 @@ sqlx = { workspace = true }
 utoipa = { workspace = true }
 app_state = { workspace = true }
 frontend_contract = { workspace = true }
-proc_macro_frontend_contract = { workspace = true }
+proc_macro_frontend_contract_route_openapi = { workspace = true }
+proc_macro_frontend_contract_route_registry = { workspace = true }
 git_info = { workspace = true }
 proc_macro_optimal_memory_layout = { workspace = true }
-proc_macro_newtype = { workspace = true }
+proc_macro_newtype_deref_inner = { workspace = true }
+proc_macro_newtype_utoipa_schema = { workspace = true }
 to_err_string = { workspace = true }
 thiserror = { workspace = true }
 [dev-dependencies]

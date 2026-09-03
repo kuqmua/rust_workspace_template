@@ -13,8 +13,8 @@
     PartialEq,
     Eq,
     proc_macro_optimal_memory_layout::OptimalMemoryLayout,
-    proc_macro_newtype::EnumFromStr,
-    proc_macro_naming::EnumWithUnitFieldsToSnakeCaseStr,
+    proc_macro_newtype_enum_from_str::EnumFromStr,
+    proc_macro_naming_enum_with_unit_fields_to_snake_case_str::EnumWithUnitFieldsToSnakeCaseStr,
 )]
 #[strum(serialize_all = "snake_case")]
 pub enum TracingLevel {

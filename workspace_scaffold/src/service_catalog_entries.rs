@@ -2,7 +2,7 @@
     proc_macro_getters::Getters,
     proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Debug,
-    proc_macro_newtype::FromInner,
+    proc_macro_newtype_from_inner::FromInner,
 )]
 pub(super) struct ServiceCatalogEntries(
     bounded_types::bounded_vec::BoundedVec<

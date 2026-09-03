@@ -5,8 +5,8 @@
     Debug,
     Eq,
     PartialEq,
-    proc_macro_newtype::DerefInner,
-    proc_macro_newtype::TryFrom,
+    proc_macro_newtype_deref_inner::DerefInner,
+    proc_macro_newtype_try_from::TryFrom,
 )]
 #[try_from(
     error = frontend_contract::http_status_try_from_u16_error::HttpStatusTryFromU16Error,

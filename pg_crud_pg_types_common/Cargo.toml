@@ -9,6 +9,10 @@ license.workspace = true
 edition.workspace = true
 
 [dependencies]
+proc_macro_newtype_get_inner = { workspace = true }
+proc_macro_newtype_from_inner = { workspace = true }
+proc_macro_newtype_into_inner_from = { workspace = true }
+proc_macro_location_derive_location = { workspace = true }
 constants_str = { workspace = true }
 serde = { workspace = true }
 utoipa = { workspace = true }
@@ -17,9 +21,10 @@ schemars = { workspace = true }
 pg_crud_common = { workspace = true, features = ["test-utils"] }
 location_lib = { workspace = true }
 proc_macro_location_bang = { workspace = true }
-proc_macro_location = { workspace = true }
+proc_macro_location_errors_with_location = { workspace = true }
 proc_macro_optimal_memory_layout = { workspace = true }
-proc_macro_newtype = { workspace = true }
+proc_macro_newtype_display = { workspace = true }
+proc_macro_newtype_to_err_string = { workspace = true }
 to_err_string = { workspace = true }
 
 [dev-dependencies]

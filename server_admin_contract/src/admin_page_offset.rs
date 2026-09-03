@@ -8,9 +8,9 @@
     Eq,
     serde::Serialize,
     utoipa::ToSchema,
-    proc_macro_newtype::Display,
-    proc_macro_newtype::FromInner,
-    proc_macro_newtype::IntoInnerFrom,
+    proc_macro_newtype_display::Display,
+    proc_macro_newtype_from_inner::FromInner,
+    proc_macro_newtype_into_inner_from::IntoInnerFrom,
 )]
 pub struct AdminPageOffset(u32);
 impl<'de> serde::Deserialize<'de> for AdminPageOffset {

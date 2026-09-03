@@ -2,8 +2,8 @@
     proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Debug,
     Clone,
-    proc_macro_newtype::BoundedStringWrapper,
-    proc_macro_newtype::Display,
+    proc_macro_newtype_bounded_string_wrapper::BoundedStringWrapper,
+    proc_macro_newtype_display::Display,
 )]
 #[bounded_string(max = crate::is_nl_prefix_str_max_len::IS_NL_PREFIX_STR_MAX_LEN, description = "is nullable prefix string" )]
 pub struct IsNullablePrefixStr(

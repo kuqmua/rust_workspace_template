@@ -5,7 +5,7 @@
     Copy,
     PartialEq,
     Eq,
-    proc_macro_newtype_foundation::FromInner,
-    proc_macro_newtype_foundation::GetInner,
+    proc_macro_newtype_foundation_foundation_from_inner::FromInner,
+    proc_macro_newtype_foundation_foundation_get_inner::GetInner,
 )]
 pub struct StdUniqueOptionSetIsEmpty(bool);

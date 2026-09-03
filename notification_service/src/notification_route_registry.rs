@@ -1,4 +1,4 @@
-proc_macro_frontend_contract::endpoint_registry! {
+proc_macro_frontend_contract_endpoint_registry::endpoint_registry! {
     pub(super);
     state = crate::notification_state::NotificationState;
     (

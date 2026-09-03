@@ -54,8 +54,8 @@ pub fn emit_generate_pg_table(
         Debug,
         Clone,
         Copy,
-        proc_macro_naming::AsRefStrEnumWithUnitFieldsToUpperCamelCaseStr,
-        proc_macro_naming::AsRefStrEnumWithUnitFieldsToSnakeCaseStr,
+        proc_macro_naming_as_ref_str_enum_with_unit_fields_to_upper_camel_case_str::AsRefStrEnumWithUnitFieldsToUpperCamelCaseStr,
+        proc_macro_naming_as_ref_str_enum_with_unit_fields_to_snake_case_str::AsRefStrEnumWithUnitFieldsToSnakeCaseStr,
         proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     )]
     enum Operation {
@@ -209,7 +209,7 @@ pub fn emit_generate_pg_table(
     #[derive(
         Clone,
         Copy,
-        proc_macro_naming::AsRefStrEnumWithUnitFieldsToSnakeCaseStr,
+        proc_macro_naming_as_ref_str_enum_with_unit_fields_to_snake_case_str::AsRefStrEnumWithUnitFieldsToSnakeCaseStr,
         proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     )]
     enum OperationHttpMethod {
@@ -438,9 +438,9 @@ pub fn emit_generate_pg_table(
         proc_macro_optimal_memory_layout::OptimalMemoryLayout,
         Debug,
         Clone,
-        proc_macro_newtype::AsRefStr,
-        proc_macro_newtype::Display,
-        proc_macro_newtype::BoundedStringWrapper,
+        proc_macro_newtype_as_ref_str::AsRefStr,
+        proc_macro_newtype_display::Display,
+        proc_macro_newtype_bounded_string_wrapper::BoundedStringWrapper,
     )]
     #[bounded_string(max = GENERATE_PG_TABLE_MAX_IDENTIFIER_LEN, serde)]
     struct GeneratePgTableDbColumn(
@@ -454,9 +454,9 @@ pub fn emit_generate_pg_table(
         proc_macro_optimal_memory_layout::OptimalMemoryLayout,
         Debug,
         Clone,
-        proc_macro_newtype::AsRefStr,
-        proc_macro_newtype::Display,
-        proc_macro_newtype::BoundedStringWrapper,
+        proc_macro_newtype_as_ref_str::AsRefStr,
+        proc_macro_newtype_display::Display,
+        proc_macro_newtype_bounded_string_wrapper::BoundedStringWrapper,
     )]
     #[bounded_string(max = GENERATE_PG_TABLE_MAX_IDENTIFIER_LEN, min = constants_usize::ONE, serde)]
     struct GeneratePgTableExcludeField(
@@ -508,7 +508,7 @@ pub fn emit_generate_pg_table(
         serde::Deserialize,
     )]
     #[serde(from = "usize")]
-    #[derive(proc_macro_newtype::FromInner)]
+    #[derive(proc_macro_newtype_from_inner::FromInner)]
     struct StdBulkItemsMax(usize);
 
     #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Debug, serde::Deserialize)]
@@ -572,8 +572,8 @@ pub fn emit_generate_pg_table(
     }
     #[derive(
         proc_macro_optimal_memory_layout::OptimalMemoryLayout,
-        proc_macro_newtype::FromInner,
-        proc_macro_newtype::IntoInner,
+        proc_macro_newtype_from_inner::FromInner,
+        proc_macro_newtype_into_inner::IntoInner,
     )]
     struct ProcMacro2GeneratePgTableTestsTokenStream(proc_macro2::TokenStream);
 
@@ -583,7 +583,8 @@ pub fn emit_generate_pg_table(
         }
     }
     #[derive(
-        proc_macro_optimal_memory_layout::OptimalMemoryLayout, proc_macro_newtype::FromInner,
+        proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+        proc_macro_newtype_from_inner::FromInner,
     )]
     struct ProcMacro2GeneratePgTableCommonTokenStream(proc_macro2::TokenStream);
 
@@ -594,8 +595,8 @@ pub fn emit_generate_pg_table(
     }
     #[derive(
         proc_macro_optimal_memory_layout::OptimalMemoryLayout,
-        proc_macro_newtype::FromInner,
-        proc_macro_newtype::IntoInner,
+        proc_macro_newtype_from_inner::FromInner,
+        proc_macro_newtype_into_inner::IntoInner,
     )]
     struct ProcMacro2GeneratePgTableWholeTokenStream(proc_macro2::TokenStream);
 
@@ -606,8 +607,8 @@ pub fn emit_generate_pg_table(
     }
     #[derive(
         proc_macro_optimal_memory_layout::OptimalMemoryLayout,
-        proc_macro_newtype::FromInner,
-        proc_macro_newtype::GetInner,
+        proc_macro_newtype_from_inner::FromInner,
+        proc_macro_newtype_get_inner::GetInner,
     )]
     #[borrow]
     struct SynGeneratePgTableDeriveInput(syn::DeriveInput);
@@ -682,8 +683,8 @@ pub fn emit_generate_pg_table(
         proc_macro_optimal_memory_layout::OptimalMemoryLayout,
         Clone,
         Copy,
-        proc_macro_newtype::FromInner,
-        proc_macro_newtype::GetInner,
+        proc_macro_newtype_from_inner::FromInner,
+        proc_macro_newtype_get_inner::GetInner,
     )]
     struct GeneratePgTableFieldIndex(usize);
 
@@ -699,8 +700,8 @@ pub fn emit_generate_pg_table(
         proc_macro_optimal_memory_layout::OptimalMemoryLayout,
         Clone,
         Copy,
-        proc_macro_newtype::FromInner,
-        proc_macro_newtype::GetInner,
+        proc_macro_newtype_from_inner::FromInner,
+        proc_macro_newtype_get_inner::GetInner,
     )]
     struct SynGeneratePgTableFieldRef<'field_lt>(&'field_lt syn::Field);
 
@@ -708,8 +709,8 @@ pub fn emit_generate_pg_table(
         proc_macro_optimal_memory_layout::OptimalMemoryLayout,
         Clone,
         Copy,
-        proc_macro_newtype::FromInner,
-        proc_macro_newtype::GetInner,
+        proc_macro_newtype_from_inner::FromInner,
+        proc_macro_newtype_get_inner::GetInner,
     )]
     struct SynGeneratePgTableIdentifierRef<'identifier_lt>(&'identifier_lt syn::Ident);
 
@@ -717,8 +718,8 @@ pub fn emit_generate_pg_table(
         proc_macro_optimal_memory_layout::OptimalMemoryLayout,
         Clone,
         Copy,
-        proc_macro_newtype::FromInner,
-        proc_macro_newtype::GetInner,
+        proc_macro_newtype_from_inner::FromInner,
+        proc_macro_newtype_get_inner::GetInner,
     )]
     struct SynGeneratePgTableTypeRef<'type_lt>(&'type_lt syn::Type);
 
@@ -726,8 +727,8 @@ pub fn emit_generate_pg_table(
         proc_macro_optimal_memory_layout::OptimalMemoryLayout,
         Clone,
         Copy,
-        proc_macro_newtype::FromInner,
-        proc_macro_newtype::GetInner,
+        proc_macro_newtype_from_inner::FromInner,
+        proc_macro_newtype_get_inner::GetInner,
     )]
     struct GeneratePgTableVariantLocationAttr(
         Option<macro_helpers::location_field_attr::LocationFieldAttr>,
@@ -737,8 +738,8 @@ pub fn emit_generate_pg_table(
         proc_macro_optimal_memory_layout::OptimalMemoryLayout,
         Clone,
         Copy,
-        proc_macro_newtype::FromInner,
-        proc_macro_newtype::GetInner,
+        proc_macro_newtype_from_inner::FromInner,
+        proc_macro_newtype_get_inner::GetInner,
     )]
     struct GeneratePgTablePrimaryKeyAttrName<'name_lt>(&'name_lt str);
 

@@ -1,5 +1,5 @@
 #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
-#[derive(proc_macro_frontend_contract::RouteFamily)]
+#[derive(proc_macro_frontend_contract_derive_route_family::RouteFamily)]
 struct MissingAttributeRouteFamily;
 
 fn main() {

@@ -5,7 +5,7 @@
     Debug,
     Eq,
     PartialEq,
-    proc_macro_newtype::GetInner,
+    proc_macro_newtype_get_inner::GetInner,
 )]
 pub struct StdStaleStagingEntryLimit(usize);
 impl TryFrom<usize> for StdStaleStagingEntryLimit {

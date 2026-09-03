@@ -3,7 +3,7 @@
     Clone,
     Eq,
     PartialEq,
-    proc_macro_newtype::DisplayConst,
+    proc_macro_newtype_display_const::DisplayConst,
 )]
 #[display_const(constants_str::REDACTED_ALT_3)]
 pub struct BoundedSecretText(String);

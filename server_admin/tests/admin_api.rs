@@ -3633,45 +3633,58 @@ mod test_schema {
     proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Copy,
-    proc_macro_newtype::FromInner,
+    proc_macro_newtype_from_inner::FromInner,
 )]
 struct StdAdminApiTestStrRef<'value_lt>(&'value_lt str);
-#[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, proc_macro_newtype::FromInner)]
+#[derive(
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout, proc_macro_newtype_from_inner::FromInner,
+)]
 struct AxumAdminApiTestRouter(axum::Router);
-#[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, proc_macro_newtype::FromInner)]
+#[derive(
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout, proc_macro_newtype_from_inner::FromInner,
+)]
 struct SqlxAdminApiTestPool(sqlx::PgPool);
-#[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, proc_macro_newtype::FromInner)]
+#[derive(
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout, proc_macro_newtype_from_inner::FromInner,
+)]
 struct SqlxAdminHtmlTestTransaction(sqlx::Transaction<'static, sqlx::Postgres>);
-#[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, proc_macro_newtype::FromInner)]
+#[derive(
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout, proc_macro_newtype_from_inner::FromInner,
+)]
 struct HttpAdminApiTestMethod(http::Method);
-#[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, proc_macro_newtype::FromInner)]
+#[derive(
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout, proc_macro_newtype_from_inner::FromInner,
+)]
 struct HttpAdminApiTestRequest(http::Request<axum::body::Body>);
 #[derive(
     proc_macro_optimal_memory_layout::OptimalMemoryLayout,
-    proc_macro_newtype::DerefInner,
-    proc_macro_newtype::FromInner,
+    proc_macro_newtype_deref_inner::DerefInner,
+    proc_macro_newtype_from_inner::FromInner,
 )]
 struct HttpAdminHtmlTestResponse(http::Response<axum::body::Body>);
 #[derive(
     proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Copy,
-    proc_macro_newtype::FromInner,
+    proc_macro_newtype_from_inner::FromInner,
 )]
 struct HttpAdminApiTestResponseRef<'value_lt>(&'value_lt http::Response<axum::body::Body>);
 #[derive(
-    proc_macro_optimal_memory_layout::OptimalMemoryLayout, proc_macro_newtype::BoundedStringWrapper,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_newtype_bounded_string_wrapper::BoundedStringWrapper,
 )]
 #[bounded_string(max = 16384)]
-#[derive(proc_macro_newtype::Display)]
+#[derive(proc_macro_newtype_display::Display)]
 struct StdAdminApiTestCookie(bounded_types::bounded_string::BoundedString<0usize, 16384, false>);
 #[derive(
-    proc_macro_optimal_memory_layout::OptimalMemoryLayout, proc_macro_newtype::BoundedStringWrapper,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_newtype_bounded_string_wrapper::BoundedStringWrapper,
 )]
 #[bounded_string(max = 1_048_576)]
 struct AdminHtmlTestBody(bounded_types::bounded_string::BoundedString<0usize, 1_048_576, false>);
 #[derive(
-    proc_macro_optimal_memory_layout::OptimalMemoryLayout, proc_macro_newtype::BoundedStringWrapper,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_newtype_bounded_string_wrapper::BoundedStringWrapper,
 )]
 #[bounded_string(max = 65_536)]
 struct AdminHtmlTestFormBody(bounded_types::bounded_string::BoundedString<0usize, 65_536, false>);

@@ -4,7 +4,7 @@
     Debug,
     Eq,
     PartialEq,
-    proc_macro_newtype::AsRefTarget,
+    proc_macro_newtype_as_ref_target::AsRefTarget,
 )]
 pub struct FileStorageRootPathBuf(std::path::PathBuf);
 impl TryFrom<std::path::PathBuf> for FileStorageRootPathBuf {

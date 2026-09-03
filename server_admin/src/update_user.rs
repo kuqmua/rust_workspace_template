@@ -1,4 +1,4 @@
-#[proc_macro_frontend_contract::route_error(AdminHtmlUpdateUserError)]
+#[proc_macro_frontend_contract_route_error::route_error(AdminHtmlUpdateUserError)]
 #[allow(
     clippy::single_call_fn,
     reason = "update user remains a named owner because its boundary role is clearer and directly testable"

@@ -12,7 +12,7 @@
     proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 #[serde(try_from = "crate::pagination_starts_with_zero_raw::PaginationStartsWithZeroRaw")]
-#[derive(proc_macro_newtype::FromInner)]
+#[derive(proc_macro_newtype_from_inner::FromInner)]
 pub struct PaginationStartsWithZero(crate::pagination_base::PaginationBase);
 
 impl PaginationStartsWithZero {

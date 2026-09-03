@@ -72,7 +72,7 @@ fn test_cors_allow_origin_parsing_returns_value() {
 }
 #[test]
 fn test_cors_allow_origin_parsing_returns_error_for_empty_string() {
-    proc_macro_config_lib::assert_empty_parse_err_matches!(
+    proc_macro_config_lib_assert_empty_parse_err_matches::assert_empty_parse_err_matches!(
         crate::domain_types::CorsAllowOrigin,
         crate::domain_types::TryFromStdEnvVarOkCorsAllowOriginError::IsEmpty { .. }
     );
@@ -86,7 +86,7 @@ fn test_database_url_parsing_returns_value_for_non_empty_input() {
 }
 #[test]
 fn test_database_url_parsing_returns_error_for_empty_string() {
-    proc_macro_config_lib::assert_empty_parse_err_matches!(
+    proc_macro_config_lib_assert_empty_parse_err_matches::assert_empty_parse_err_matches!(
         crate::domain_types::DatabaseUrl,
         crate::domain_types::TryFromStdEnvVarOkDatabaseUrlError::IsEmpty { .. }
     );
@@ -120,7 +120,7 @@ fn test_mongo_url_parsing_returns_value_for_non_empty_input() {
 }
 #[test]
 fn test_mongo_url_parsing_returns_error_for_empty_string() {
-    proc_macro_config_lib::assert_empty_parse_err_matches!(
+    proc_macro_config_lib_assert_empty_parse_err_matches::assert_empty_parse_err_matches!(
         crate::domain_types::MongoUrl,
         crate::domain_types::TryFromStdEnvVarOkMongoUrlError::IsEmpty { .. }
     );
@@ -134,7 +134,7 @@ fn test_redis_url_parsing_returns_value_for_non_empty_input() {
 }
 #[test]
 fn test_redis_url_parsing_returns_error_for_empty_string() {
-    proc_macro_config_lib::assert_empty_parse_err_matches!(
+    proc_macro_config_lib_assert_empty_parse_err_matches::assert_empty_parse_err_matches!(
         crate::domain_types::RedisUrl,
         crate::domain_types::TryFromStdEnvVarOkRedisUrlError::IsEmpty { .. }
     );
@@ -150,7 +150,7 @@ fn test_source_place_type_parsing_is_case_insensitive() {
 }
 #[test]
 fn test_source_place_type_parsing_returns_error_for_unknown_value() {
-    proc_macro_config_lib::assert_parse_err_matches!(
+    proc_macro_config_lib_assert_parse_err_matches::assert_parse_err_matches!(
         crate::domain_types::SourcePlaceType,
         constants_str::BAD,
         crate::domain_types::TryFromStdEnvVarOkSourcePlaceTypeError::AppStateSourcePlaceTypeParsing { .. }
@@ -167,7 +167,7 @@ fn test_tracing_level_parsing_is_case_insensitive() {
 }
 #[test]
 fn test_tracing_level_parsing_returns_error_for_unknown_value() {
-    proc_macro_config_lib::assert_parse_err_matches!(
+    proc_macro_config_lib_assert_parse_err_matches::assert_parse_err_matches!(
         crate::domain_types::TracingLevel,
         constants_str::BAD,
         crate::domain_types::TryFromStdEnvVarOkTracingLevelError::AppStateTracingLevelParsing { .. }
@@ -181,7 +181,7 @@ fn test_enable_api_git_commit_check_parsing_returns_bool() {
 }
 #[test]
 fn test_enable_api_git_commit_check_parsing_returns_error_for_invalid_bool() {
-    proc_macro_config_lib::assert_parse_err_matches!(
+    proc_macro_config_lib_assert_parse_err_matches::assert_parse_err_matches!(
         crate::domain_types::EnableApiGitCommitCheck,
         constants_str::TRUTHY,
         crate::domain_types::TryFromStdEnvVarOkEnableApiGitCommitCheckError::BoolParsing { .. }
@@ -198,7 +198,7 @@ fn test_maximum_size_of_http_body_in_bytes_parsing_returns_usize() {
 }
 #[test]
 fn test_maximum_size_of_http_body_in_bytes_parsing_returns_error_for_invalid_number() {
-    proc_macro_config_lib::assert_parse_err_matches!(
+    proc_macro_config_lib_assert_parse_err_matches::assert_parse_err_matches!(
         crate::maximum_size_of_http_body_in_bytes::MaximumSizeOfHttpBodyInBytes,
         constants_str::VALUE_1K,
         crate::try_from_std_env_var_ok_maximum_size_of_http_body_in_bytes_error::TryFromStdEnvVarOkMaximumSizeOfHttpBodyInBytesError::UsizeParsing { .. }
@@ -206,7 +206,7 @@ fn test_maximum_size_of_http_body_in_bytes_parsing_returns_error_for_invalid_num
 }
 #[test]
 fn test_maximum_size_of_http_body_in_bytes_parsing_returns_error_for_zero() {
-    proc_macro_config_lib::assert_parse_err_matches!(
+    proc_macro_config_lib_assert_parse_err_matches::assert_parse_err_matches!(
         crate::maximum_size_of_http_body_in_bytes::MaximumSizeOfHttpBodyInBytes,
         constants_str::VALUE_0,
         crate::try_from_std_env_var_ok_maximum_size_of_http_body_in_bytes_error::TryFromStdEnvVarOkMaximumSizeOfHttpBodyInBytesError::MaximumSizeOfHttpBodyInBytes { .. }
@@ -221,7 +221,7 @@ fn test_pg_pool_max_connections_parsing_returns_u32() {
 }
 #[test]
 fn test_pg_pool_max_connections_parsing_returns_error_for_invalid_number() {
-    proc_macro_config_lib::assert_parse_err_matches!(
+    proc_macro_config_lib_assert_parse_err_matches::assert_parse_err_matches!(
         crate::pg_pool_max_connections::PgPoolMaxConnections,
         constants_str::BAD,
         crate::try_from_std_env_var_ok_pg_pool_max_connections_error::TryFromStdEnvVarOkPgPoolMaxConnectionsError::U32Parsing { .. }
@@ -229,7 +229,7 @@ fn test_pg_pool_max_connections_parsing_returns_error_for_invalid_number() {
 }
 #[test]
 fn test_pg_pool_max_connections_parsing_returns_error_for_zero() {
-    proc_macro_config_lib::assert_parse_err_matches!(
+    proc_macro_config_lib_assert_parse_err_matches::assert_parse_err_matches!(
         crate::pg_pool_max_connections::PgPoolMaxConnections,
         constants_str::VALUE_0,
         crate::try_from_std_env_var_ok_pg_pool_max_connections_error::TryFromStdEnvVarOkPgPoolMaxConnectionsError::PgPoolMaxConnections { .. }
@@ -237,7 +237,7 @@ fn test_pg_pool_max_connections_parsing_returns_error_for_zero() {
 }
 #[test]
 fn test_non_empty_string_parser_returns_error_for_empty_value() {
-    proc_macro_config_lib::assert_empty_parse_err_matches!(
+    proc_macro_config_lib_assert_empty_parse_err_matches::assert_empty_parse_err_matches!(
         crate::domain_types::StartingCheckLink,
         crate::domain_types::TryFromStdEnvVarOkStartingCheckLinkError::IsEmpty { .. }
     );
@@ -273,7 +273,7 @@ fn test_timezone_parsing_returns_timezone_for_valid_offset() {
 }
 #[test]
 fn test_timezone_parsing_returns_i32_error_for_non_number() {
-    proc_macro_config_lib::assert_parse_err_matches!(
+    proc_macro_config_lib_assert_parse_err_matches::assert_parse_err_matches!(
         crate::chrono_timezone::ChronoTimezone,
         constants_str::NAN,
         crate::try_from_std_env_var_ok_timezone_error::TryFromStdEnvVarOkTimezoneError::I32Parsing { .. }

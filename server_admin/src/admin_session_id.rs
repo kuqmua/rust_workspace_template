@@ -8,7 +8,7 @@
     serde::Serialize,
     serde::Deserialize,
     utoipa::ToSchema,
-    proc_macro_newtype::FromInner,
+    proc_macro_newtype_from_inner::FromInner,
 )]
 #[serde(from = "server_admin_core::uuid_admin_value::UuidAdminValue")]
 #[derive(proc_macro_getters::Getters)]

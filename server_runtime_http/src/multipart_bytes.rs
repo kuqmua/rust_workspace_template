@@ -4,7 +4,7 @@
     Debug,
     Eq,
     PartialEq,
-    proc_macro_newtype::AsRefTarget,
+    proc_macro_newtype_as_ref_target::AsRefTarget,
 )]
 pub struct MultipartBytes(bounded_types::bounded_vec::BoundedVec<u8, 0, 16_777_216>);
 

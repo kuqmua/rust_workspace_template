@@ -4,8 +4,8 @@
     Debug,
     Eq,
     PartialEq,
-    proc_macro_newtype::AsRefStr,
-    proc_macro_newtype::TryFrom,
+    proc_macro_newtype_as_ref_str::AsRefStr,
+    proc_macro_newtype_try_from::TryFrom,
 )]
 #[try_from(error = crate::database_url_error::DatabaseUrlError, validator = |value: &str| {
     if value.trim().is_empty() {

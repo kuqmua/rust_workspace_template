@@ -3,8 +3,8 @@
     Debug,
     Eq,
     PartialEq,
-    proc_macro_newtype::AsRefStr,
-    proc_macro_newtype::TryFrom,
+    proc_macro_newtype_as_ref_str::AsRefStr,
+    proc_macro_newtype_try_from::TryFrom,
 )]
 #[try_from(error = crate::init_string_error::InitStringError, validator = |value: &str| {
     if value.len() > usize::try_from(isize::MAX).unwrap_or(usize::MAX) { Err(crate::init_string_error::InitStringError::Invalid) } else { Ok(()) }

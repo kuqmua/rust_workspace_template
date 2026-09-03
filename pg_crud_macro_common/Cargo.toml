@@ -9,6 +9,10 @@ license.workspace = true
 edition.workspace = true
 
 [dependencies]
+proc_macro_newtype_get_inner = { workspace = true }
+proc_macro_newtype_from_inner = { workspace = true }
+proc_macro_newtype_into_inner_from = { workspace = true }
+proc_macro_newtype_as_ref_inner = { workspace = true }
 bounded_types = { workspace = true }
 constants_str = { workspace = true }
 proc_macro_getters = { workspace = true }
@@ -19,7 +23,9 @@ serde = { workspace = true }
 strum = { workspace = true }
 strum_macros = { workspace = true }
 naming = { workspace = true }
-proc_macro_newtype = { workspace = true }
+proc_macro_newtype_as_ref_str = { workspace = true }
+proc_macro_newtype_display = { workspace = true }
+proc_macro_newtype_bounded_string_wrapper = { workspace = true }
 token_patterns = { workspace = true }
 generate_quotes = { workspace = true }
 macro_helpers = { workspace = true }

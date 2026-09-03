@@ -5,7 +5,7 @@
     Debug,
     Eq,
     PartialEq,
-    proc_macro_newtype::DerefInner,
+    proc_macro_newtype_deref_inner::DerefInner,
 )]
 pub struct LeaseStaleTimeoutDuration(std::time::Duration);
 impl TryFrom<std::time::Duration> for LeaseStaleTimeoutDuration {

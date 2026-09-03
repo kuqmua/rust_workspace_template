@@ -4,8 +4,8 @@
     Debug,
     PartialEq,
     Eq,
-    proc_macro_newtype::AsRefStr,
-    proc_macro_newtype::BoundedStringWrapper,
+    proc_macro_newtype_as_ref_str::AsRefStr,
+    proc_macro_newtype_bounded_string_wrapper::BoundedStringWrapper,
 )]
 #[bounded_string(max = 20usize, min = constants_usize::ONE)]
 pub struct TransportIfMatch(

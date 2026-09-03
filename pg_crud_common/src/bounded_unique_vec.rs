@@ -9,7 +9,7 @@
     Eq,
     PartialEq,
     serde::Serialize,
-    proc_macro_newtype::AsRefTarget,
+    proc_macro_newtype_as_ref_target::AsRefTarget,
 )]
 #[serde(transparent)]
 pub struct BoundedUniqueVec<T, const MIN: usize, const MAX: usize>(Vec<T>);

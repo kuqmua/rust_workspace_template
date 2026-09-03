@@ -9,11 +9,19 @@ license.workspace = true
 edition.workspace = true
 
 [dependencies]
+proc_macro_newtype_get_inner = { workspace = true }
+proc_macro_newtype_from_inner = { workspace = true }
+proc_macro_newtype_into_inner_from = { workspace = true }
 bounded_types = { workspace = true }
 proc_macro_getters = { workspace = true }
 proc_macro_new = { workspace = true }
 constants_usize = { workspace = true }
-proc_macro_newtype = { workspace = true }
+proc_macro_newtype_as_ref_str = { workspace = true }
+proc_macro_newtype_deref_inner = { workspace = true }
+proc_macro_newtype_display = { workspace = true }
+proc_macro_newtype_into_inner = { workspace = true }
+proc_macro_newtype_into_iterator = { workspace = true }
+proc_macro_newtype_bounded_string_wrapper = { workspace = true }
 constants_str = { workspace = true }
 proc-macro2 = { workspace = true }
 quote = { workspace = true }
@@ -27,7 +35,8 @@ macro_helpers = { workspace = true }
 pg_crud_common = { workspace = true }
 naming = { workspace = true }
 naming_common = { workspace = true }
-proc_macro_naming = { workspace = true }
+proc_macro_naming_as_ref_str_enum_with_unit_fields_to_upper_camel_case_str = { workspace = true }
+proc_macro_naming_as_ref_str_enum_with_unit_fields_to_snake_case_str = { workspace = true }
 token_patterns = { workspace = true }
 workspace_macro_helpers = { workspace = true }
 pg_crud_macro_common = { workspace = true }

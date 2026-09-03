@@ -3,7 +3,7 @@
     Clone,
     Copy,
     Debug,
-    proc_macro_newtype::FromInner,
+    proc_macro_newtype_from_inner::FromInner,
 )]
 pub(crate) struct NotificationExitCode(std::process::ExitCode);
 impl std::process::Termination for NotificationExitCode {

@@ -1,4 +1,4 @@
-#[proc_macro_frontend_contract::route_openapi(tag = "service")]
+#[proc_macro_frontend_contract_route_openapi::route_openapi(tag = "service")]
 #[allow(
     clippy::single_call_fn,
     reason = "route registry owns this Axum handler"

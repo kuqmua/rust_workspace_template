@@ -4,8 +4,8 @@
     Debug,
     Eq,
     PartialEq,
-    proc_macro_newtype::BoundedStringWrapper,
-    proc_macro_newtype::Display,
+    proc_macro_newtype_bounded_string_wrapper::BoundedStringWrapper,
+    proc_macro_newtype_display::Display,
 )]
 #[bounded_string(max = constants_usize::VALUE_4_096)]
 pub struct SanitizedDatabaseTarget(

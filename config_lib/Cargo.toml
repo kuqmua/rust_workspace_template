@@ -10,7 +10,11 @@ edition.workspace = true
 
 
 [dependencies]
-proc_macro_naming = { workspace = true }
+proc_macro_newtype_from_inner = { workspace = true }
+proc_macro_newtype_into_inner_from = { workspace = true }
+proc_macro_newtype_as_ref_inner = { workspace = true }
+proc_macro_config_lib_impl_try_from_parse_string_error = { workspace = true }
+proc_macro_naming_enum_with_unit_fields_to_snake_case_str = { workspace = true }
 proc_macro_getters = { workspace = true }
 bounded_types = { workspace = true }
 secrecy = { workspace = true }
@@ -22,12 +26,24 @@ thiserror = { workspace = true }
 tracing = { workspace = true }
 to_err_string = { workspace = true }
 dotenv = { workspace = true }
-proc_macro_generate_accessor_traits_for_struct_fields = { workspace = true }
+proc_macro_generate_accessor_traits_for_struct_fields_generate_accessor_trait = { workspace = true }
 proc_macro_optimal_memory_layout = { workspace = true }
-proc_macro_config_lib = { workspace = true }
+proc_macro_config_lib_impl_try_from_non_empty_string = { workspace = true }
+proc_macro_config_lib_impl_try_from_secret_url = { workspace = true }
+proc_macro_config_lib_impl_try_from_parse = { workspace = true }
 constants_str = { workspace = true }
 constants_usize = { workspace = true }
-proc_macro_newtype = { workspace = true }
+proc_macro_newtype_as_ref_owned = { workspace = true }
+proc_macro_newtype_debug_redacted = { workspace = true }
+proc_macro_newtype_debug_transparent = { workspace = true }
+proc_macro_newtype_deref_inner = { workspace = true }
+proc_macro_newtype_display = { workspace = true }
+proc_macro_newtype_enum_from_str = { workspace = true }
+proc_macro_newtype_bounded_string_wrapper = { workspace = true }
+
+[dev-dependencies]
+proc_macro_config_lib_assert_empty_parse_err_matches = { workspace = true }
+proc_macro_config_lib_assert_parse_err_matches = { workspace = true }
 
 [lints]
 workspace = true

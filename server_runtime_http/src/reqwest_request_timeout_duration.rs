@@ -3,7 +3,7 @@
     Clone,
     Copy,
     Debug,
-    proc_macro_newtype::DerefInner,
+    proc_macro_newtype_deref_inner::DerefInner,
 )]
 pub struct ReqwestRequestTimeoutDuration(std::time::Duration);
 impl TryFrom<std::time::Duration> for ReqwestRequestTimeoutDuration {

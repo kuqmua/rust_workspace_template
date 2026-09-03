@@ -15,18 +15,24 @@ name = "notification_service"
 path = "src/main.rs"
 
 [dependencies]
+proc_macro_newtype_get_inner = { workspace = true }
+proc_macro_newtype_from_inner = { workspace = true }
 proc_macro_optimal_memory_layout = { workspace = true }
 app_state = { workspace = true }
 axum = { workspace = true }
 common_routes = { workspace = true }
 config_lib = { workspace = true }
 frontend_contract = { workspace = true }
-proc_macro_frontend_contract = { workspace = true }
+proc_macro_frontend_contract_endpoint_registry = { workspace = true }
+proc_macro_frontend_contract_route_openapi = { workspace = true }
+proc_macro_frontend_contract_route_registry = { workspace = true }
+proc_macro_frontend_contract_route_operation = { workspace = true }
 proc_macro_getters = { workspace = true }
 git_info = { workspace = true }
 http = { workspace = true }
 metrics-exporter-prometheus = { workspace = true }
-proc_macro_newtype = { workspace = true }
+proc_macro_newtype_display = { workspace = true }
+proc_macro_newtype_into_inner = { workspace = true }
 notification_service_config = { workspace = true }
 notification_service_contract = { workspace = true }
 secrecy = { workspace = true }

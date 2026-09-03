@@ -5,8 +5,8 @@
     Debug,
     PartialEq,
     Eq,
-    proc_macro_frontend_contract::UnitEnumCatalog,
-    proc_macro_frontend_contract::UnitEnumIndex,
+    proc_macro_frontend_contract_derive_unit_enum_catalog::UnitEnumCatalog,
+    proc_macro_frontend_contract_derive_unit_enum_index::UnitEnumIndex,
 )]
 pub enum AdminSetting {
     DefaultRoute,

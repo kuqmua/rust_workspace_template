@@ -4,9 +4,9 @@
     Clone,
     PartialEq,
     Eq,
-    proc_macro_newtype::AsRefTarget,
-    proc_macro_newtype::DerefTarget,
-    proc_macro_newtype::FromInner,
+    proc_macro_newtype_as_ref_target::AsRefTarget,
+    proc_macro_newtype_deref_target::DerefTarget,
+    proc_macro_newtype_from_inner::FromInner,
 )]
 pub struct BytesBodyBytes(bytes::Bytes);
 

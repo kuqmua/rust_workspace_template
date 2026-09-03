@@ -12,6 +12,7 @@ edition.workspace = true
 proc-macro = true
 
 [dependencies]
+proc_macro_newtype_from_inner = { workspace = true }
 bounded_types = { workspace = true }
 constants_str = { workspace = true }
 proc-macro2 = { workspace = true }
@@ -20,6 +21,7 @@ serde_json = { workspace = true }
 naming = { workspace = true }
 naming_common = { workspace = true }
 proc_macro_optimal_memory_layout = { workspace = true }
-proc_macro_newtype = { workspace = true }
+proc_macro_newtype_as_ref_str = { workspace = true }
+proc_macro_newtype_bounded_string_wrapper = { workspace = true }
 [lints]
 workspace = true

@@ -11,7 +11,7 @@
     serde::Serialize,
     serde::Deserialize,
     utoipa::ToSchema,
-    proc_macro_newtype::FromInner,
+    proc_macro_newtype_from_inner::FromInner,
 )]
 #[serde(try_from = "i64")]
 pub struct AdminRoleRecordId(server_admin_contract::positive_non_zero_i64::PositiveNonZeroI64);

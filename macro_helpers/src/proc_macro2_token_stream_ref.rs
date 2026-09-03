@@ -3,7 +3,7 @@
     Debug,
     Clone,
     Copy,
-    proc_macro_newtype::AsRefInner,
-    proc_macro_newtype::FromInner,
+    proc_macro_newtype_as_ref_inner::AsRefInner,
+    proc_macro_newtype_from_inner::FromInner,
 )]
 pub struct ProcMacro2TokenStreamRef<'ts_lt>(&'ts_lt proc_macro2::TokenStream);

@@ -8,8 +8,8 @@
     serde::Deserialize,
     schemars::JsonSchema,
     proc_macro_optimal_memory_layout::OptimalMemoryLayout,
-    proc_macro_newtype::FromInner,
-    proc_macro_newtype::IntoInnerFrom,
+    proc_macro_newtype_from_inner::FromInner,
+    proc_macro_newtype_into_inner_from::IntoInnerFrom,
 )]
 #[serde(from = "std::time::Duration")]
 pub struct LocationDuration(std::time::Duration);

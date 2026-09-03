@@ -10,6 +10,11 @@ edition.workspace = true
 
 [dev-dependencies]
 proc_macro_getters = { workspace = true }
+proc_macro_frontend_contract_derive_contract_struct_api = { workspace = true }
+proc_macro_frontend_contract_derive_page_catalog = { workspace = true }
+proc_macro_frontend_contract_derive_route_catalog = { workspace = true }
+proc_macro_frontend_contract_derive_route_family = { workspace = true }
+proc_macro_frontend_contract_route_openapi = { workspace = true }
 proc_macro_new = { workspace = true }
 constants_usize = { workspace = true }
 constants_u32 = { workspace = true }
@@ -24,12 +29,29 @@ proc_macro_optimal_memory_layout = { workspace = true }
 rayon = { workspace = true }
 cargo_metadata = { workspace = true }
 macro_helpers = { workspace = true }
-proc_macro_newtype = { workspace = true }
+proc_macro_newtype_as_ref_owned = { workspace = true }
+proc_macro_newtype_as_ref_str = { workspace = true }
+proc_macro_newtype_as_ref_target = { workspace = true }
+proc_macro_newtype_borrow_path = { workspace = true }
+proc_macro_newtype_deref_inner = { workspace = true }
+proc_macro_newtype_deref_mut_inner = { workspace = true }
+proc_macro_newtype_deref_mut_target = { workspace = true }
+proc_macro_newtype_deref_target = { workspace = true }
+proc_macro_newtype_into_iterator = { workspace = true }
+proc_macro_newtype_not_inner = { workspace = true }
+proc_macro_newtype_try_from = { workspace = true }
+proc_macro_newtype_wire_enum = { workspace = true }
 frontend_contract = { workspace = true }
-proc_macro_frontend_contract = { workspace = true }
 common_routes = { workspace = true }
 serde = { workspace = true }
 trybuild = { workspace = true }
 thiserror = { workspace = true }
+[dependencies]
+proc_macro_newtype_get_inner = { workspace = true }
+proc_macro_newtype_from_inner = { workspace = true }
+proc_macro_newtype_into_inner_from = { workspace = true }
+proc_macro_newtype_display_const = { workspace = true }
+proc_macro_newtype_as_ref_inner = { workspace = true }
+
 [lints]
 workspace = true

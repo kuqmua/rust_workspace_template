@@ -1,4 +1,4 @@
-#[proc_macro_frontend_contract::route_error(AdminVersionPageError)]
+#[proc_macro_frontend_contract_route_error::route_error(AdminVersionPageError)]
 #[allow(
     clippy::single_call_fn,
     reason = "version remains a named owner because its boundary role is clearer and directly testable"

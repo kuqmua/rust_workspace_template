@@ -1,5 +1,5 @@
 #[derive(proc_macro_getters::Getters, proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
-#[derive(proc_macro_newtype::FromInner)]
+#[derive(proc_macro_newtype_from_inner::FromInner)]
 struct DomainId(u32);
 #[derive(proc_macro_getters::Getters, proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
 struct DomainName(String);
@@ -45,7 +45,7 @@ enum DomainEvent {
     Created(DomainEntity),
 }
 #[derive(proc_macro_getters::Getters, proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
-#[derive(proc_macro_newtype::FromInner)]
+#[derive(proc_macro_newtype_from_inner::FromInner)]
 struct DomainEvents(Vec<DomainEvent>);
 fn make_domain_entity(domain_id: DomainId, domain_name: DomainName) -> DomainEntity {
     DomainEntity { domain_id, domain_name }

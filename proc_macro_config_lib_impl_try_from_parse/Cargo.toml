@@ -1,0 +1,17 @@
+[package]
+name = "proc_macro_config_lib_impl_try_from_parse"
+version.workspace = true
+publish.workspace = true
+description.workspace = true
+repository.workspace = true
+license.workspace = true
+edition.workspace = true
+
+[lib]
+proc-macro = true
+
+[dependencies]
+proc_macro_config_lib_shared = { workspace = true }
+
+[lints]
+workspace = true

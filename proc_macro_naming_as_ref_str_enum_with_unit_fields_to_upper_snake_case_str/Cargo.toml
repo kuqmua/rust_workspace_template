@@ -1,0 +1,17 @@
+[package]
+name = "proc_macro_naming_as_ref_str_enum_with_unit_fields_to_upper_snake_case_str"
+version.workspace = true
+publish.workspace = true
+description.workspace = true
+repository.workspace = true
+license.workspace = true
+edition.workspace = true
+
+[lib]
+proc-macro = true
+
+[dependencies]
+proc_macro_naming_shared = { workspace = true }
+
+[lints]
+workspace = true

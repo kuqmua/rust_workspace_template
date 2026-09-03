@@ -11,6 +11,10 @@ categories = ["web-programming"]
 edition.workspace = true
 
 [dependencies]
+proc_macro_newtype_get_inner = { workspace = true }
+proc_macro_newtype_from_inner = { workspace = true }
+proc_macro_newtype_into_inner_from = { workspace = true }
+proc_macro_newtype_as_ref_inner = { workspace = true }
 proc_macro_getters = { workspace = true }
 proc_macro_new = { workspace = true }
 constants_i32 = { workspace = true }
@@ -19,7 +23,14 @@ constants_usize = { workspace = true }
 constants_u8 = { workspace = true }
 constants_u64 = { workspace = true }
 proc_macro_optimal_memory_layout = { workspace = true }
-proc_macro_newtype = { workspace = true }
+proc_macro_newtype_as_ref_owned = { workspace = true }
+proc_macro_newtype_as_ref_str = { workspace = true }
+proc_macro_newtype_as_ref_target = { workspace = true }
+proc_macro_newtype_borrow_str = { workspace = true }
+proc_macro_newtype_deref_inner = { workspace = true }
+proc_macro_newtype_deref_mut_inner = { workspace = true }
+proc_macro_newtype_display = { workspace = true }
+proc_macro_newtype_into_inner = { workspace = true }
 server_observability = { workspace = true }
 constants_str = { workspace = true }
 text_policy = { workspace = true }

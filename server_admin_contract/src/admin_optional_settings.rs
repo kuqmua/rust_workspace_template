@@ -5,8 +5,8 @@
     serde::Deserialize,
     serde::Serialize,
     utoipa::ToSchema,
-    proc_macro_newtype::AsRefTarget,
-    proc_macro_newtype::FromInner,
+    proc_macro_newtype_as_ref_target::AsRefTarget,
+    proc_macro_newtype_from_inner::FromInner,
 )]
 #[serde(
     from = "crate::admin_bounded_vec::AdminBoundedVec<crate::admin_optional_setting::AdminOptionalSetting>"

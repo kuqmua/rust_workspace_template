@@ -4,8 +4,8 @@
     Debug,
     PartialEq,
     Eq,
-    proc_macro_newtype::AsRefStr,
-    proc_macro_newtype::Display,
+    proc_macro_newtype_as_ref_str::AsRefStr,
+    proc_macro_newtype_display::Display,
 )]
 pub struct AdminDataTableFrontendPath(Box<str>);
 impl From<crate::admin_data_table::AdminDataTable> for AdminDataTableFrontendPath {

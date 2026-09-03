@@ -10,7 +10,7 @@
     serde::Serialize,
     serde::Deserialize,
     proc_macro_optimal_memory_layout::OptimalMemoryLayout,
-    proc_macro_newtype::EnumFromStr,
+    proc_macro_newtype_enum_from_str::EnumFromStr,
 )]
 #[strum(serialize_all = "snake_case")]
 pub enum SourcePlaceType {

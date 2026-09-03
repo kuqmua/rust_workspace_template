@@ -2,7 +2,7 @@
     clippy::single_call_fn,
     reason = "notification open api remains a named owner because its boundary role is clearer and directly testable"
 )]
-#[proc_macro_frontend_contract::route_operation]
+#[proc_macro_frontend_contract_route_operation::route_operation]
 pub(super) async fn notification_open_api()
 -> crate::axum_notification_response::AxumNotificationResponse {
     let mut document = super::notification_api_route_registry::open_api();

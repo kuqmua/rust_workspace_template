@@ -1,7 +1,8 @@
 #![allow(
+    unused_crate_dependencies,
     clippy::shadow_reuse,
     clippy::wildcard_imports,
-    reason = "root-owned validator stages retain test-helper conversion naming and share the compatibility-facade vocabulary previously supplied by nested owner modules"
+    reason = "root-owned validator stages retain test-helper conversion naming and share the compatibility-facade vocabulary previously supplied by nested owner modules; split derive-only proc-macro dependencies trigger rustc's unused dependency lint despite direct derive usage"
 )]
 
 #[cfg(test)]

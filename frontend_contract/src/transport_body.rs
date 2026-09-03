@@ -4,7 +4,7 @@
     Debug,
     PartialEq,
     Eq,
-    proc_macro_newtype::AsRefTarget,
+    proc_macro_newtype_as_ref_target::AsRefTarget,
 )]
 pub struct TransportBody(
     bounded_types::bounded_vec::BoundedVec<u8, 0, { constants_usize::VALUE_16_777_216 }>,

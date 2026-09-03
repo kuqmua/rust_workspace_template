@@ -4,7 +4,7 @@
     Debug,
     Eq,
     PartialEq,
-    proc_macro_newtype::IntoInner,
+    proc_macro_newtype_into_inner::IntoInner,
 )]
 
 pub struct BoundedHashMap<K: Eq + std::hash::Hash, V, const MAX: usize>(

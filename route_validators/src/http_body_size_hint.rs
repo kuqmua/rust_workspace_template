@@ -3,7 +3,7 @@
     Debug,
     Clone,
     Copy,
-    proc_macro_newtype::FromInner,
+    proc_macro_newtype_from_inner::FromInner,
 )]
 pub struct HttpBodySizeHint(http_body::SizeHint);
 

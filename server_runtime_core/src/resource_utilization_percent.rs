@@ -7,8 +7,8 @@
     PartialEq,
     Ord,
     PartialOrd,
-    proc_macro_newtype::GetInner,
-    proc_macro_newtype::TryFrom,
+    proc_macro_newtype_get_inner::GetInner,
+    proc_macro_newtype_try_from::TryFrom,
 )]
 #[try_from(
     error = crate::resource_utilization_percent_try_from_u8_error::ResourceUtilizationPercentTryFromU8Error,

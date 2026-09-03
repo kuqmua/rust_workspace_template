@@ -7,7 +7,7 @@
     Eq,
     serde::Serialize,
     serde::Deserialize,
-    proc_macro_newtype::FromInner,
+    proc_macro_newtype_from_inner::FromInner,
 )]
 #[serde(from = "u64")]
 #[derive(proc_macro_getters::Getters)]

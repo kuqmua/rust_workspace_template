@@ -13,5 +13,5 @@ proc_macro_generate_derive_token_stream_builder::generate_derive_token_stream_bu
     "utoipa::ToSchema",
     "schemars::JsonSchema",
     "thiserror::Error",
-    "proc_macro_location::Location"
+    "proc_macro_location_derive_location::Location"
 ]);

@@ -11,13 +11,16 @@ categories = ["web-programming"]
 edition.workspace = true
 
 [dependencies]
+proc_macro_frontend_contract_derive_typed_route = { workspace = true }
+proc_macro_newtype_from_inner = { workspace = true }
+proc_macro_newtype_into_inner_from = { workspace = true }
 proc_macro_getters = { workspace = true }
 proc_macro_new = { workspace = true }
 constants_str = { workspace = true }
 proc_macro_optimal_memory_layout = { workspace = true }
 frontend_contract = { workspace = true }
-proc_macro_frontend_contract = { workspace = true }
-proc_macro_newtype = { workspace = true }
+proc_macro_frontend_contract_derive_route_catalog = { workspace = true }
+proc_macro_newtype_as_ref_str = { workspace = true }
 serde = { workspace = true }
 thiserror = { workspace = true }
 utoipa = { workspace = true }

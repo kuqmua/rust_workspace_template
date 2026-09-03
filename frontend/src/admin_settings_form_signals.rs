@@ -8,7 +8,7 @@
     Clone,
     Copy,
     Debug,
-    proc_macro_newtype::FromInner,
+    proc_macro_newtype_from_inner::FromInner,
 )]
 pub(crate) struct AdminSettingsFormSignals(
     [crate::leptos_admin_input_signal::LeptosAdminInputSignal;

@@ -4,8 +4,8 @@
     Copy,
     Eq,
     PartialEq,
-    proc_macro_newtype::AsRefInner,
-    proc_macro_newtype::FromInner,
+    proc_macro_newtype_as_ref_inner::AsRefInner,
+    proc_macro_newtype_from_inner::FromInner,
 )]
 pub struct HttpBearerTokenRef<'value_lt>(&'value_lt str);
 

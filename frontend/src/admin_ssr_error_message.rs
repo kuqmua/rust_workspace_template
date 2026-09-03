@@ -4,7 +4,7 @@
     Debug,
     Eq,
     PartialEq,
-    proc_macro_newtype::Display,
+    proc_macro_newtype_display::Display,
 )]
 pub struct AdminSsrErrorMessage(to_err_string::error_text::ErrorText);
 impl TryFrom<String> for AdminSsrErrorMessage {

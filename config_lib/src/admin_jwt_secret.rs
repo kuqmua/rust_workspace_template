@@ -1,9 +1,9 @@
 #[derive(
     proc_macro_optimal_memory_layout::OptimalMemoryLayout,
-    proc_macro_generate_accessor_traits_for_struct_fields::GenerateAccessorTrait,
-    proc_macro_newtype::AsRefOwned,
-    proc_macro_newtype::DebugRedacted,
-    proc_macro_newtype::FromInner,
+    proc_macro_generate_accessor_traits_for_struct_fields_generate_accessor_trait::GenerateAccessorTrait,
+    proc_macro_newtype_as_ref_owned::AsRefOwned,
+    proc_macro_newtype_debug_redacted::DebugRedacted,
+    proc_macro_newtype_from_inner::FromInner,
 )]
 pub struct AdminJwtSecret(
     bounded_types::bounded_vec::BoundedVec<

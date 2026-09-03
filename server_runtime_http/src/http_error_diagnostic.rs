@@ -47,7 +47,8 @@ impl HttpErrorDiagnostic {
         error: &(dyn std::error::Error + 'static),
     ) -> crate::std_http_error_chain::StdHttpErrorChain {
         #[derive(
-            proc_macro_optimal_memory_layout::OptimalMemoryLayout, proc_macro_newtype::FromInner,
+            proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+            proc_macro_newtype_from_inner::FromInner,
         )]
         struct ErrorChain<'error_lt>(&'error_lt (dyn std::error::Error + 'static));
         impl std::fmt::Display for ErrorChain<'_> {

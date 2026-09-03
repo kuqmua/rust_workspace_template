@@ -4,7 +4,7 @@
     Debug,
     Eq,
     PartialEq,
-    proc_macro_newtype::GetInner,
+    proc_macro_newtype_get_inner::GetInner,
 )]
 #[accessor(pub(crate))]
 #[borrow]

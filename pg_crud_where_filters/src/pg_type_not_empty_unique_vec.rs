@@ -7,8 +7,8 @@
     serde::Serialize,
     schemars::JsonSchema,
     proc_macro_optimal_memory_layout::OptimalMemoryLayout,
-    proc_macro_newtype::AsSlice,
-    proc_macro_newtype::IntoInnerFrom,
+    proc_macro_newtype_as_slice::AsSlice,
+    proc_macro_newtype_into_inner_from::IntoInnerFrom,
 )]
 pub struct PgTypeNotEmptyUniqueVec<T>(Vec<T>);
 impl<T> From<[T; 1]> for PgTypeNotEmptyUniqueVec<T> {

@@ -1,5 +1,7 @@
 #[derive(
-    Clone, proc_macro_optimal_memory_layout::OptimalMemoryLayout, proc_macro_newtype::FromInner,
+    Clone,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_newtype_from_inner::FromInner,
 )]
 pub struct ArcCommonRoutesAppState(
     std::sync::Arc<dyn crate::common_routes_parameters::CommonRoutesParameters>,

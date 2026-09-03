@@ -6,7 +6,7 @@
     Eq,
     PartialEq,
     schemars::JsonSchema,
-    proc_macro_newtype::UtoipaSchema,
+    proc_macro_newtype_utoipa_schema::UtoipaSchema,
 )]
 #[serde(untagged)]
 #[utoipa_schema(Value)]

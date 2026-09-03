@@ -4,7 +4,7 @@
     Clone,
     PartialEq,
     Eq,
-    proc_macro_newtype::AsRefOwned,
+    proc_macro_newtype_as_ref_owned::AsRefOwned,
 )]
 pub struct ContentSecurityPolicy(String);
 

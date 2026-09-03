@@ -1,4 +1,4 @@
-proc_macro_frontend_contract::route_registry! {
+proc_macro_frontend_contract_route_registry::route_registry! {
     #[openapi(tags((name = "service", description = "Service operational routes")))]
     pub(super);
     state = crate::arc_common_routes_app_state::ArcCommonRoutesAppState,

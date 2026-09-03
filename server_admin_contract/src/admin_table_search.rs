@@ -3,8 +3,8 @@
     Clone,
     Debug,
     Default,
-    proc_macro_newtype::BoundedStringWrapper,
-    proc_macro_newtype::AsRefStr,
+    proc_macro_newtype_bounded_string_wrapper::BoundedStringWrapper,
+    proc_macro_newtype_as_ref_str::AsRefStr,
 )]
 #[bounded_string(
     max = 128usize,

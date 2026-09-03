@@ -2,8 +2,8 @@
     proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Debug,
     Clone,
-    proc_macro_newtype::DerefTarget,
-    proc_macro_newtype::Display,
+    proc_macro_newtype_deref_target::DerefTarget,
+    proc_macro_newtype_display::Display,
 )]
 pub struct PgTableQueryString(String);
 

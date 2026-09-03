@@ -119,19 +119,30 @@ mod tests {
         ignore = "compiler subprocess validation is covered by the native Clippy gate"
     )]
     fn test_pg_types_generate_clippy() {
+        let fixture_dependencies = constants_str::DEPENDENCIES_NEWLINE_CHRONO_WORKSPACE_TRUE_NEWLINE_UUID_WORKSPACE_TRUE_NEWLINE_SQLX_WORKSPACE
+            .replace(
+                constants_str::LOCATION_MONOLITHIC_WORKSPACE_DEPENDENCY,
+                constants_str::LOCATION_DERIVE_WORKSPACE_DEPENDENCY,
+            )
+            .replace(
+                constants_str::NEWTYPE_MONOLITHIC_WORKSPACE_DEPENDENCY,
+                constants_str::NEWTYPE_SPLIT_WORKSPACE_DEPENDENCIES,
+            );
         macro_clippy_check_test_common::clippy_check(
             constants_str::GENERATE_PG_TYPES_TEST_CNT,
             constants_str::PG_CRUD_PG_TYPES,
-            constants_str::DEPENDENCIES_NEWLINE_CHRONO_WORKSPACE_TRUE_NEWLINE_UUID_WORKSPACE_TRUE_NEWLINE_SQLX_WORKSPACE,
+            fixture_dependencies.as_str(),
             &generate_pg_types_src::generate_pg_types_tokens::generate_pg_types_tokens(
-                macro_helpers::proc_macro2_token_stream_ref::ProcMacro2TokenStreamRef::from(&quote::quote! {
-                    {
-                        "pg_table_cols_write_into_file": "False",
-                        "whole_write_into_file": "False",
-                        "generate_secret_text": true,
-                        "variant": "All"
-                    }
-                }),
+                macro_helpers::proc_macro2_token_stream_ref::ProcMacro2TokenStreamRef::from(
+                    &quote::quote! {
+                        {
+                            "pg_table_cols_write_into_file": "False",
+                            "whole_write_into_file": "False",
+                            "generate_secret_text": true,
+                            "variant": "All"
+                        }
+                    },
+                ),
             )
             .to_string(),
         );

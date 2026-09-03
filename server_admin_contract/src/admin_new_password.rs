@@ -3,10 +3,10 @@
     Clone,
     PartialEq,
     Eq,
-    proc_macro_newtype::AsRefOwned,
-    proc_macro_newtype::BoundedStringWrapper,
-    proc_macro_newtype::DebugRedacted,
-    proc_macro_newtype::IntoInner,
+    proc_macro_newtype_as_ref_owned::AsRefOwned,
+    proc_macro_newtype_bounded_string_wrapper::BoundedStringWrapper,
+    proc_macro_newtype_debug_redacted::DebugRedacted,
+    proc_macro_newtype_into_inner::IntoInner,
 )]
 #[bounded_string(max = crate::identity::ADMIN_PASSWORD_MAX_CHARS, min = crate::identity::ADMIN_NEW_PASSWORD_MIN_CHARS, chars, serde, utoipa, write_only, validator = crate::identity::ADMIN_NEW_PASSWORD_IS_VALID, description = "new administrator password")]
 pub struct AdminNewPassword(

@@ -949,7 +949,7 @@ pub fn emit_generate_where_filters(
         quote::quote! {compile_error!("text search schema requires text value shape");}
     } else {
         quote::quote! {
-            #[derive(Debug, Clone, Copy, PartialEq, Eq, proc_macro_newtype::IntoInnerFrom)]
+            #[derive(Debug, Clone, Copy, PartialEq, Eq, proc_macro_newtype_into_inner_from::IntoInnerFrom)]
             pub struct TextSearchMaximumInputBytes(usize);
             #[derive(Debug, Clone, Copy, PartialEq, Eq)]
             pub struct TextSearchPolicy {
@@ -970,7 +970,7 @@ pub fn emit_generate_where_filters(
                 EndsWith,
                 StartsWith,
             }
-            #[derive(Debug, Clone, PartialEq, Eq, proc_macro_newtype::AsRefStr, proc_macro_newtype::IntoInnerFrom)]
+            #[derive(Debug, Clone, PartialEq, Eq, proc_macro_newtype_as_ref_str::AsRefStr, proc_macro_newtype_into_inner_from::IntoInnerFrom)]
             pub struct TextSearchPattern(String);
             #[derive(Debug, Clone, Copy, PartialEq, Eq, thiserror::Error)]
             pub enum TextSearchValueError {

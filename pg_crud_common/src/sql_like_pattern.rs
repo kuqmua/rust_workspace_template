@@ -6,7 +6,7 @@
     PartialEq,
     serde::Deserialize,
     serde::Serialize,
-    proc_macro_newtype::AsRefStr,
+    proc_macro_newtype_as_ref_str::AsRefStr,
 )]
 #[serde(try_from = "String")]
 pub struct SqlLikePattern(String);

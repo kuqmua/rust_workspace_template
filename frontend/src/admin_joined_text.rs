@@ -1,8 +1,8 @@
 #[derive(
     proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Debug,
-    proc_macro_newtype::AsRefStr,
-    proc_macro_newtype::IntoInnerFrom,
+    proc_macro_newtype_as_ref_str::AsRefStr,
+    proc_macro_newtype_into_inner_from::IntoInnerFrom,
 )]
 pub(crate) struct AdminJoinedText(String);
 

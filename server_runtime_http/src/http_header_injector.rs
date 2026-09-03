@@ -1,4 +1,6 @@
-#[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, proc_macro_newtype::FromInner)]
+#[derive(
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout, proc_macro_newtype_from_inner::FromInner,
+)]
 pub(super) struct HttpHeaderInjector<'headers_lt>(&'headers_lt mut http::HeaderMap);
 
 impl opentelemetry::propagation::Injector for HttpHeaderInjector<'_> {

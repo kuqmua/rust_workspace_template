@@ -5,7 +5,7 @@
     Debug,
     Eq,
     PartialEq,
-    proc_macro_newtype::AsRefInner,
-    proc_macro_newtype::FromInner,
+    proc_macro_newtype_as_ref_inner::AsRefInner,
+    proc_macro_newtype_from_inner::FromInner,
 )]
 pub(crate) struct SqlSortOrderText(&'static str);

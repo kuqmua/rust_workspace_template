@@ -4,6 +4,6 @@
     Clone,
     Copy,
     Debug,
-    proc_macro_newtype::FromInner,
+    proc_macro_newtype_from_inner::FromInner,
 )]
 pub struct DbSchemaNameRef<'value_lt>(&'value_lt str);

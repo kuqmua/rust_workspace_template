@@ -1,0 +1,32 @@
+[package]
+name = "proc_macro_newtype_shared"
+version.workspace = true
+publish.workspace = true
+description.workspace = true
+repository.workspace = true
+
+license.workspace = true
+edition.workspace = true
+[dependencies]
+proc_macro_newtype_foundation_foundation_as_ref_inner = { workspace = true }
+proc_macro_newtype_foundation_foundation_to_tokens = { workspace = true }
+constants_usize = { workspace = true }
+proc_macro_optimal_memory_layout = { workspace = true }
+constants_str = { workspace = true }
+proc_macro_getters = { workspace = true }
+proc_macro_new = { workspace = true }
+proc_macro_newtype_foundation_foundation_from_inner = { workspace = true }
+proc_macro_newtype_foundation_foundation_get_inner = { workspace = true }
+proc-macro2 = { workspace = true }
+quote = { workspace = true }
+syn = { workspace = true }
+workspace_macro_helpers = { workspace = true }
+
+[dev-dependencies]
+bounded_types = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+utoipa = { workspace = true }
+
+[lints]
+workspace = true

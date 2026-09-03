@@ -4,7 +4,7 @@
     Debug,
     Eq,
     PartialEq,
-    proc_macro_newtype::Display,
+    proc_macro_newtype_display::Display,
 )]
 pub struct RequestId(String);
 

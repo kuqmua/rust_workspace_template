@@ -1,3 +1,8 @@
+#![allow(
+    unused_crate_dependencies,
+    reason = "this support crate intentionally exposes its implementation only with the test-utils feature, so its feature-scoped dependencies are unused in the empty default build"
+)]
+
 #[cfg(feature = "test-utils")]
 pub mod generated_crate_phase;
 #[cfg(feature = "test-utils")]
@@ -266,7 +271,8 @@ categories = ["category"]
 mod tests {
     static TEST_SEQ: std::sync::atomic::AtomicUsize = std::sync::atomic::AtomicUsize::new(0);
     #[derive(
-        proc_macro_optimal_memory_layout::OptimalMemoryLayout, proc_macro_newtype::FromInner,
+        proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+        proc_macro_newtype_from_inner::FromInner,
     )]
     struct TmpDirPathBuf(std::path::PathBuf);
 

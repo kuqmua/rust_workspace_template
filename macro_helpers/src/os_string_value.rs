@@ -1,5 +1,7 @@
 #[derive(
-    proc_macro_optimal_memory_layout::OptimalMemoryLayout, Debug, proc_macro_newtype::DerefInner,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+    Debug,
+    proc_macro_newtype_deref_inner::DerefInner,
 )]
 pub(super) struct OsStringValue(std::ffi::OsString);
 impl From<&str> for OsStringValue {

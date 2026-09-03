@@ -1,8 +1,8 @@
 #[derive(
     proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Debug,
-    proc_macro_newtype::DerefInner,
-    proc_macro_newtype::DerefMutInner,
-    proc_macro_newtype::FromInner,
+    proc_macro_newtype_deref_inner::DerefInner,
+    proc_macro_newtype_deref_mut_inner::DerefMutInner,
+    proc_macro_newtype_from_inner::FromInner,
 )]
 pub(super) struct ToolProcessCommand(std::process::Command);

@@ -15,7 +15,7 @@ mod tests {
         serde::Serialize,
     )]
     #[serde(from = "u64")]
-    #[derive(proc_macro_newtype::FromInner)]
+    #[derive(proc_macro_newtype_from_inner::FromInner)]
     struct Request(u64);
 
     #[derive(
@@ -28,7 +28,7 @@ mod tests {
         serde::Serialize,
     )]
     #[serde(from = "u64")]
-    #[derive(proc_macro_newtype::FromInner)]
+    #[derive(proc_macro_newtype_from_inner::FromInner)]
     struct Response(u64);
 
     #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout)]

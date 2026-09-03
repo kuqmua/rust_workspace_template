@@ -8,6 +8,9 @@ repository.workspace = true
 license.workspace = true
 edition.workspace = true
 [dependencies]
+proc_macro_newtype_get_inner = { workspace = true }
+proc_macro_newtype_from_inner = { workspace = true }
+proc_macro_newtype_into_inner_from = { workspace = true }
 constants_usize = { workspace = true }
 constants_u64 = { workspace = true }
 constants_u128 = { workspace = true }
@@ -23,7 +26,11 @@ frontend_contract = { workspace = true }
 proc_macro_getters = { workspace = true }
 proc_macro_new = { workspace = true }
 macro_helpers = { workspace = true, features = ["test-utils"] }
-proc_macro_newtype = { workspace = true }
+proc_macro_newtype_as_ref_owned = { workspace = true }
+proc_macro_newtype_as_ref_str = { workspace = true }
+proc_macro_newtype_deref_inner = { workspace = true }
+proc_macro_newtype_display = { workspace = true }
+proc_macro_newtype_bounded_string_wrapper = { workspace = true }
 pg_crud_common = { workspace = true }
 quote = { workspace = true }
 server_admin_contract = { workspace = true }

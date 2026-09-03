@@ -6,7 +6,7 @@
     Eq,
     PartialEq,
     sqlx::Type,
-    proc_macro_newtype::Display,
+    proc_macro_newtype_display::Display,
 )]
 #[sqlx(transparent)]
 pub struct PgTableRevision(i64);

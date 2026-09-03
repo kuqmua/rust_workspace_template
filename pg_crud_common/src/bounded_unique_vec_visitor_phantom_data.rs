@@ -1,4 +1,6 @@
-#[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, proc_macro_newtype::FromInner)]
+#[derive(
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout, proc_macro_newtype_from_inner::FromInner,
+)]
 pub(super) struct BoundedUniqueVecVisitorPhantomData<T, const MIN: usize, const MAX: usize>(
     std::marker::PhantomData<T>,
 );

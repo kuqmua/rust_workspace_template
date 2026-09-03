@@ -1,8 +1,8 @@
 #[derive(
     proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Debug,
-    proc_macro_newtype::BoundedStringWrapper,
-    proc_macro_newtype::AsRefStr,
+    proc_macro_newtype_bounded_string_wrapper::BoundedStringWrapper,
+    proc_macro_newtype_as_ref_str::AsRefStr,
 )]
 #[bounded_string(max = constants_usize::VALUE_1_048_576)]
 pub(super) struct SummaryText(

@@ -5,7 +5,7 @@
     Default,
     Eq,
     PartialEq,
-    proc_macro_newtype::FromInner,
+    proc_macro_newtype_from_inner::FromInner,
 )]
 pub struct FilterBindPlan(Vec<crate::pg_filter_bind_value::PgFilterBindValue>);
 impl FilterBindPlan {

@@ -7,7 +7,7 @@ pub(crate) fn generate_pg_table_measure_input_token_stream(
         quote::quote! {
             #allow_clippy_arbitrary_src_item_ordering
             #[derive(Debug, Clone, Copy, proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
-            #[proc_macro_generate_pg_table::generate_pg_table_config{{
+            #[proc_macro_generate_pg_table_generate_pg_table_config::generate_pg_table_config{{
                 "cm_write_into_file": "False",
                 "co_write_into_file": "False",
                 "rm_write_into_file": "False",
@@ -20,7 +20,7 @@ pub(crate) fn generate_pg_table_measure_input_token_stream(
                 "common_write_into_file": "False",
                 "whole_write_into_file": "False"
             }}]
-            #[proc_macro_generate_pg_table::common_error_variants{
+            #[proc_macro_generate_pg_table_common_error_variants::common_error_variants{
                 enum CommonErrorVariants {
                     CheckCommit {
                         #[eo_location]
@@ -29,15 +29,15 @@ pub(crate) fn generate_pg_table_measure_input_token_stream(
                     },
                 }
             }]
-            #[proc_macro_generate_pg_table::cm_logic{}]
-            #[proc_macro_generate_pg_table::co_logic{}]
-            #[proc_macro_generate_pg_table::rm_logic{}]
-            #[proc_macro_generate_pg_table::ro_logic{}]
-            #[proc_macro_generate_pg_table::um_logic{}]
-            #[proc_macro_generate_pg_table::uo_logic{}]
-            #[proc_macro_generate_pg_table::dm_logic{}]
-            #[proc_macro_generate_pg_table::dlo_logic{}]
-            #[proc_macro_generate_pg_table::common_logic{}]
+            #[proc_macro_generate_pg_table_cm_logic::cm_logic{}]
+            #[proc_macro_generate_pg_table_co_logic::co_logic{}]
+            #[proc_macro_generate_pg_table_rm_logic::rm_logic{}]
+            #[proc_macro_generate_pg_table_ro_logic::ro_logic{}]
+            #[proc_macro_generate_pg_table_um_logic::um_logic{}]
+            #[proc_macro_generate_pg_table_uo_logic::uo_logic{}]
+            #[proc_macro_generate_pg_table_dm_logic::dm_logic{}]
+            #[proc_macro_generate_pg_table_dlo_logic::dlo_logic{}]
+            #[proc_macro_generate_pg_table_common_logic::common_logic{}]
             pub struct TableExample {
                 #[generate_pg_table_primary_key]
                 primary_key_column: pg_types_text_misc::generate_pg_types_mod::SqlxTypesUuidUuidAsNonNullUuidV4InitializationByPg,

@@ -1,4 +1,4 @@
-#[proc_macro_frontend_contract::route_error(AdminHtmlSignOutError)]
+#[proc_macro_frontend_contract_route_error::route_error(AdminHtmlSignOutError)]
 #[allow(
     clippy::single_call_fn,
     reason = "sign out remains a named owner because its boundary role is clearer and directly testable"

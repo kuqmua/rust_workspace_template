@@ -1,4 +1,4 @@
-proc_macro_frontend_contract::route_registry! {
+proc_macro_frontend_contract_route_registry::route_registry! {
     #[openapi()]
     pub(super);
     state = crate::notification_state::NotificationState,

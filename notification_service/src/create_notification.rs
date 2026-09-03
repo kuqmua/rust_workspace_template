@@ -2,7 +2,7 @@
     clippy::single_call_fn,
     reason = "create notification remains a named owner because its boundary role is clearer and directly testable"
 )]
-#[proc_macro_frontend_contract::route_openapi()]
+#[proc_macro_frontend_contract_route_openapi::route_openapi()]
 pub(super) async fn create_notification(
     notification_axum_state: crate::notification_axum_state::NotificationAxumState,
     notification_axum_json: crate::notification_axum_json::NotificationAxumJson,

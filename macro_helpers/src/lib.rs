@@ -1,9 +1,10 @@
 #![allow(
+    unused_crate_dependencies,
     unused_imports,
     clippy::arbitrary_source_item_ordering,
     clippy::module_name_repetitions,
     clippy::wildcard_imports,
-    reason = "root-owned modules retain the vocabulary and compatibility namespaces previously inherited from nested owner modules"
+    reason = "root-owned modules retain the vocabulary and compatibility namespaces previously inherited from nested owner modules; a split derive-only proc-macro dependency triggers rustc's unused dependency lint despite direct derive usage"
 )]
 
 #[cfg(test)]

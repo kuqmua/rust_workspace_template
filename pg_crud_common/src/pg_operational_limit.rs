@@ -8,7 +8,7 @@
     PartialEq,
     Ord,
     PartialOrd,
-    proc_macro_newtype::FromInner,
+    proc_macro_newtype_from_inner::FromInner,
 )]
 pub struct PgOperationalLimit(std::num::NonZeroU64);
 

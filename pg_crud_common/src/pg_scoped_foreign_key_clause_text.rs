@@ -2,7 +2,7 @@
     proc_macro_getters::Getters,
     proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Debug,
-    proc_macro_newtype::IntoInner,
+    proc_macro_newtype_into_inner::IntoInner,
 )]
 #[getters(get_mut)]
 pub(super) struct PgScopedForeignKeyClauseText(String);

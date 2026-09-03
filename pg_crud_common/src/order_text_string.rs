@@ -4,7 +4,7 @@
     PartialEq,
     Eq,
     proc_macro_optimal_memory_layout::OptimalMemoryLayout,
-    proc_macro_newtype::Display,
+    proc_macro_newtype_display::Display,
 )]
 pub(crate) struct OrderTextString(String);
 

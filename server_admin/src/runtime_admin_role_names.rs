@@ -3,10 +3,10 @@
     Clone,
     Debug,
     serde::Serialize,
-    proc_macro_newtype::UtoipaSchema,
-    proc_macro_newtype::AsRefTarget,
-    proc_macro_newtype::FromInner,
-    proc_macro_newtype::IntoInnerFrom,
+    proc_macro_newtype_utoipa_schema::UtoipaSchema,
+    proc_macro_newtype_as_ref_target::AsRefTarget,
+    proc_macro_newtype_from_inner::FromInner,
+    proc_macro_newtype_into_inner_from::IntoInnerFrom,
 )]
 #[serde(transparent)]
 #[derive(proc_macro_getters::Getters)]

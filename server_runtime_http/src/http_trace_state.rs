@@ -4,7 +4,7 @@
     Debug,
     Eq,
     PartialEq,
-    proc_macro_newtype::AsRefStr,
+    proc_macro_newtype_as_ref_str::AsRefStr,
 )]
 pub struct HttpTraceState(String);
 

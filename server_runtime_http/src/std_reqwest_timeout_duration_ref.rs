@@ -3,7 +3,7 @@
     Clone,
     Copy,
     Debug,
-    proc_macro_newtype::FromInner,
+    proc_macro_newtype_from_inner::FromInner,
 )]
 pub(super) struct StdReqwestTimeoutDurationRef<'value_lt>(&'value_lt std::time::Duration);
 impl StdReqwestTimeoutDurationRef<'_> {

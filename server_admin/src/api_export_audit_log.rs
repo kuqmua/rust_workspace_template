@@ -1,4 +1,4 @@
-#[proc_macro_frontend_contract::route_openapi(
+#[proc_macro_frontend_contract_route_openapi::route_openapi(
     params(crate::admin_audit_query::AdminAuditQuery),
     tag = "admin_audit"
 )]

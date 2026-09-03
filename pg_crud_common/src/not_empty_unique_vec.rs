@@ -11,10 +11,10 @@
     serde::Serialize,
     schemars::JsonSchema,
     proc_macro_optimal_memory_layout::OptimalMemoryLayout,
-    proc_macro_newtype::DefaultInner,
-    proc_macro_newtype::IntoVec,
-    proc_macro_newtype::FromInner,
-    proc_macro_newtype::IntoInnerFrom,
+    proc_macro_newtype_default_inner::DefaultInner,
+    proc_macro_newtype_into_vec::IntoVec,
+    proc_macro_newtype_from_inner::FromInner,
+    proc_macro_newtype_into_inner_from::IntoInnerFrom,
 )]
 pub struct NotEmptyUniqueVec<T>(Vec<T>);
 impl<T: utoipa::PartialSchema> utoipa::__dev::ComposeSchema for NotEmptyUniqueVec<T> {
@@ -206,7 +206,7 @@ mod test_tests_not_empty_unique_vec {
         Debug,
         PartialEq,
         Eq,
-        proc_macro_newtype::FromInner,
+        proc_macro_newtype_from_inner::FromInner,
     )]
     struct NonClone(u8);
     #[test]

@@ -3,7 +3,7 @@
     Clone,
     Copy,
     Debug,
-    proc_macro_naming::EnumWithUnitFieldsToUpperSnakeCaseStr,
+    proc_macro_naming_enum_with_unit_fields_to_upper_snake_case_str::EnumWithUnitFieldsToUpperSnakeCaseStr,
 )]
 pub(crate) enum AdminMutationMethod {
     Delete,

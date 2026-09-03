@@ -8,9 +8,16 @@ license.workspace = true
 edition.workspace = true
 
 [dependencies]
+proc_macro_newtype_get_inner = { workspace = true }
+proc_macro_newtype_from_inner = { workspace = true }
+proc_macro_newtype_as_ref_inner = { workspace = true }
 bounded_types = { workspace = true }
 proc_macro_optimal_memory_layout = { workspace = true }
-proc_macro_newtype = { workspace = true }
+proc_macro_newtype_as_ref_owned = { workspace = true }
+proc_macro_newtype_deref_inner = { workspace = true }
+proc_macro_newtype_display = { workspace = true }
+proc_macro_newtype_into_inner = { workspace = true }
+proc_macro_newtype_bounded_string_wrapper = { workspace = true }
 secrecy = { workspace = true }
 serde = { workspace = true }
 server_admin_contract = { workspace = true }

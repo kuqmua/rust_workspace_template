@@ -4,7 +4,7 @@
     Debug,
     Eq,
     PartialEq,
-    proc_macro_newtype::GetInner,
+    proc_macro_newtype_get_inner::GetInner,
 )]
 #[borrow]
 pub struct PgBoundedBTreeMap<K, V, const MAX: usize>(std::collections::BTreeMap<K, V>);

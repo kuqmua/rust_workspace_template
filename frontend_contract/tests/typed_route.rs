@@ -56,7 +56,7 @@ mod tests {
 
     #[derive(
         proc_macro_optimal_memory_layout::OptimalMemoryLayout,
-        proc_macro_frontend_contract::TypedRoute,
+        proc_macro_frontend_contract_derive_typed_route::TypedRoute,
     )]
     #[typed_route(
         authentication = frontend_contract::authentication_requirement::AuthenticationRequirement::Public,
@@ -81,7 +81,7 @@ mod tests {
 
     #[derive(
         proc_macro_optimal_memory_layout::OptimalMemoryLayout,
-        proc_macro_frontend_contract::RouteFamily,
+        proc_macro_frontend_contract_derive_route_family::RouteFamily,
     )]
     #[route_family(TestRoute)]
     struct TestRouteFamily;
@@ -93,7 +93,7 @@ mod tests {
         Debug,
         Eq,
         PartialEq,
-        proc_macro_frontend_contract::RouteCatalog,
+        proc_macro_frontend_contract_derive_route_catalog::RouteCatalog,
     )]
     #[route_catalog(family = TestCatalogFamily, body_limit = 1024usize)]
     enum TestCatalog {

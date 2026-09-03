@@ -1,7 +1,7 @@
 #[derive(
     proc_macro_optimal_memory_layout::OptimalMemoryLayout,
-    proc_macro_newtype::AsMut,
-    proc_macro_newtype::FromInner,
+    proc_macro_newtype_as_mut::AsMut,
+    proc_macro_newtype_from_inner::FromInner,
 )]
 pub struct UtoipaOpenApiRefMut<'value_lt>(&'value_lt mut utoipa::openapi::OpenApi);
 impl std::fmt::Debug for UtoipaOpenApiRefMut<'_> {

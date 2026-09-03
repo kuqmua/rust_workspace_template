@@ -102,10 +102,19 @@ mod tests {
         ignore = "compiler subprocess validation is covered by the native Clippy gate"
     )]
     fn test_where_filters_generate_clippy() {
+        let fixture_dependencies = constants_str::DEPENDENCIES_NEWLINE_SQLX_WORKSPACE_TRUE_NEWLINE_SERDE_WORKSPACE_TRUE_NEWLINE_SCHEMARS_WORKSPACE
+            .replace(
+                constants_str::LOCATION_MONOLITHIC_WORKSPACE_DEPENDENCY,
+                constants_str::LOCATION_DERIVE_WORKSPACE_DEPENDENCY,
+            )
+            .replace(
+                constants_str::NEWTYPE_MONOLITHIC_WORKSPACE_DEPENDENCY,
+                constants_str::NEWTYPE_SPLIT_WORKSPACE_DEPENDENCIES,
+            );
         macro_clippy_check_test_common::clippy_check(
             constants_str::GENERATE_WHERE_FLTS_TEST_CNT,
             constants_str::PG_CRUD_WHERE_FILTERS,
-            constants_str::DEPENDENCIES_NEWLINE_SQLX_WORKSPACE_TRUE_NEWLINE_SERDE_WORKSPACE_TRUE_NEWLINE_SCHEMARS_WORKSPACE,
+            fixture_dependencies.as_str(),
             &format!(
                 "#![allow(dead_code, reason = \"lib declares fixture or generated API members exercised outside ordinary reachability analysis\")]\n#![allow(unreachable_pub, reason = \"lib declares fixture or generated API members exercised outside ordinary reachability analysis\")]\n#![allow(unused_imports, reason = \"lib declares fixture or generated API members exercised outside ordinary reachability analysis\")]\n#[allow(clippy::wildcard_imports, reason = \"lib declares fixture or generated API members exercised outside ordinary reachability analysis\")]\nuse where_filters::domain_types::*;\nuse where_filters::between;\nuse where_filters::encode_format;\nuse where_filters::pg_type_not_empty_unique_vec;\nuse where_filters::regex_case;\nuse where_filters::regex_regex;\n{}",
                 generate_where_filters_src::generate_where_filters_source::generate_where_filters_source(

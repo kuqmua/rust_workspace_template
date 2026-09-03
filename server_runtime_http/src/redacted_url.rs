@@ -7,7 +7,7 @@
     Clone,
     Eq,
     PartialEq,
-    proc_macro_newtype::FromInner,
+    proc_macro_newtype_from_inner::FromInner,
 )]
 pub struct RedactedUrl(
     Option<text_policy::required_nul_free_bounded_text::RequiredNulFreeBoundedText>,

@@ -1,4 +1,4 @@
-#[proc_macro_frontend_contract::route_openapi(
+#[proc_macro_frontend_contract_route_openapi::route_openapi(
     params(server_admin_contract::admin_table_query::AdminTableQuery),
     tag = "admin_auth"
 )]

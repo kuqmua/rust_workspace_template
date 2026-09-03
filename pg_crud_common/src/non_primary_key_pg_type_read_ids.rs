@@ -8,7 +8,7 @@
     proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 #[serde(from = "crate::explicit_value::ExplicitValue<Option<()>>")]
-#[derive(proc_macro_newtype::FromInner)]
+#[derive(proc_macro_newtype_from_inner::FromInner)]
 pub struct NonPrimaryKeyPgTypeReadIds(crate::explicit_value::ExplicitValue<Option<()>>);
 
 impl utoipa::PartialSchema for NonPrimaryKeyPgTypeReadIds {

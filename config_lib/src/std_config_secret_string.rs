@@ -3,10 +3,10 @@
     Clone,
     PartialEq,
     Eq,
-    proc_macro_newtype::AsRefOwned,
-    proc_macro_newtype::BoundedStringWrapper,
-    proc_macro_newtype::DebugRedacted,
-    proc_macro_newtype::DerefInner,
+    proc_macro_newtype_as_ref_owned::AsRefOwned,
+    proc_macro_newtype_bounded_string_wrapper::BoundedStringWrapper,
+    proc_macro_newtype_debug_redacted::DebugRedacted,
+    proc_macro_newtype_deref_inner::DerefInner,
 )]
 #[bounded_string(max = 1_048_576, description = "configuration secret text")]
 pub struct StdConfigSecretString(

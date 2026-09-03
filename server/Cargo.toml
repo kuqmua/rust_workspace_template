@@ -11,6 +11,9 @@ license.workspace = true
 
 
 [dependencies]
+proc_macro_newtype_get_inner = { workspace = true }
+proc_macro_newtype_from_inner = { workspace = true }
+proc_macro_newtype_into_inner_from = { workspace = true }
 constants_usize = { workspace = true }
 proc_macro_optimal_memory_layout = { workspace = true }
 constants_str = { workspace = true }
@@ -18,7 +21,7 @@ axum = { workspace = true }
 tower = { workspace = true }
 tower-http = { workspace = true }
 metrics-exporter-prometheus = { workspace = true }
-proc_macro_newtype = { workspace = true }
+proc_macro_newtype_deref_target = { workspace = true }
 num_cpus = { workspace = true }
 sqlx = { workspace = true }
 tokio = { workspace = true }

@@ -5,8 +5,8 @@
     Copy,
     PartialEq,
     Eq,
-    proc_macro_newtype::DerefInner,
-    proc_macro_newtype::FromInner,
+    proc_macro_newtype_deref_inner::DerefInner,
+    proc_macro_newtype_from_inner::FromInner,
 )]
 pub struct ProductionMode(bool);
 impl crate::try_from_std_env_var_ok::TryFromStdEnvVarOk for ProductionMode {

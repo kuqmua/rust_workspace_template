@@ -2,7 +2,7 @@
     clippy::single_call_fn,
     reason = "metrics remains a named owner because its boundary role is clearer and directly testable"
 )]
-#[proc_macro_frontend_contract::route_operation]
+#[proc_macro_frontend_contract_route_operation::route_operation]
 pub(super) async fn metrics(
     notification_axum_state: crate::notification_axum_state::NotificationAxumState,
 ) -> Result<

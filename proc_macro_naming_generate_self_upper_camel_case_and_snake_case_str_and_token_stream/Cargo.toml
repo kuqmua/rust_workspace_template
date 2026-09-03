@@ -1,0 +1,17 @@
+[package]
+name = "proc_macro_naming_generate_self_upper_camel_case_and_snake_case_str_and_token_stream"
+version.workspace = true
+publish.workspace = true
+description.workspace = true
+repository.workspace = true
+license.workspace = true
+edition.workspace = true
+
+[lib]
+proc-macro = true
+
+[dependencies]
+proc_macro_naming_shared = { workspace = true }
+
+[lints]
+workspace = true

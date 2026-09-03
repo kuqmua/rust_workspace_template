@@ -5,8 +5,8 @@
     Default,
     PartialEq,
     Eq,
-    proc_macro_newtype::AsRefStr,
-    proc_macro_newtype::Display,
+    proc_macro_newtype_as_ref_str::AsRefStr,
+    proc_macro_newtype_display::Display,
 )]
 pub struct AdminRoutePath(Box<str>);
 impl TryFrom<String> for AdminRoutePath {

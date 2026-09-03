@@ -9,7 +9,8 @@ license.workspace = true
 edition.workspace = true
 
 [dependencies]
-proc_macro_naming = { workspace = true }
+proc_macro_newtype_from_inner = { workspace = true }
+proc_macro_naming_enum_with_unit_fields_to_snake_case_str = { workspace = true }
 constants_usize = { workspace = true }
 constants_i32 = { workspace = true }
 proc_macro_optimal_memory_layout = { workspace = true }
@@ -20,7 +21,6 @@ macro_helpers = { workspace = true, optional = true }
 server_runtime_http = { workspace = true, optional = true }
 
 [dev-dependencies]
-proc_macro_newtype = { workspace = true }
 
 [features]
 test-utils = [

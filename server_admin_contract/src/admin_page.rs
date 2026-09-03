@@ -5,7 +5,7 @@
     Copy,
     PartialEq,
     Eq,
-    proc_macro_frontend_contract::PageCatalog,
+    proc_macro_frontend_contract_derive_page_catalog::PageCatalog,
 )]
 #[page_catalog(
     spec = crate::admin_page_spec::AdminPageSpec,

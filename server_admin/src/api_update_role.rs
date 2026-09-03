@@ -1,4 +1,4 @@
-#[proc_macro_frontend_contract::route_openapi(tag = "admin_roles")]
+#[proc_macro_frontend_contract_route_openapi::route_openapi(tag = "admin_roles")]
 #[allow(
     clippy::single_call_fn,
     reason = "typed route registration requires a named endpoint function"

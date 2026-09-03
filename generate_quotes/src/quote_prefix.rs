@@ -3,7 +3,7 @@
     Debug,
     Clone,
     Copy,
-    proc_macro_newtype::FromInner,
-    proc_macro_newtype::IntoInnerFrom,
+    proc_macro_newtype_from_inner::FromInner,
+    proc_macro_newtype_into_inner_from::IntoInnerFrom,
 )]
 pub(super) struct QuotePrefix(&'static str);

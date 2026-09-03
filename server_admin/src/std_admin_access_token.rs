@@ -7,9 +7,9 @@
     Clone,
     PartialEq,
     Eq,
-    proc_macro_newtype::BoundedStringWrapper,
-    proc_macro_newtype::AsRefOwned,
-    proc_macro_newtype::IntoInner,
+    proc_macro_newtype_bounded_string_wrapper::BoundedStringWrapper,
+    proc_macro_newtype_as_ref_owned::AsRefOwned,
+    proc_macro_newtype_into_inner::IntoInner,
 )]
 #[bounded_string(max = 8192, description = "administrator access token")]
 pub struct StdAdminAccessToken(bounded_types::bounded_string::BoundedString<0usize, 8192, false>);

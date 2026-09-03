@@ -3,7 +3,7 @@
     Debug,
     Clone,
     Default,
-    proc_macro_newtype::FromInner,
+    proc_macro_newtype_from_inner::FromInner,
 )]
 pub struct ProcMacro2GeneratedRustTokenStreamVec(
     Vec<macro_helpers::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream>,

@@ -1,4 +1,4 @@
-#[proc_macro_frontend_contract::route_operation]
+#[proc_macro_frontend_contract_route_operation::route_operation]
 #[allow(
     clippy::single_call_fn,
     reason = "root remains a named owner because its boundary role is clearer and directly testable"

@@ -5,7 +5,7 @@
     PartialEq,
     Eq,
     serde::Serialize,
-    proc_macro_newtype::UtoipaSchema,
+    proc_macro_newtype_utoipa_schema::UtoipaSchema,
 )]
 #[utoipa_schema(bounded_types::bounded_vec::BoundedVec<crate::health_component::HealthComponent, { constants_usize::ZERO }, { crate::health_components_max_len::HEALTH_COMPONENTS_MAX_LEN }>)]
 pub struct HealthComponents(Vec<crate::health_component::HealthComponent>);

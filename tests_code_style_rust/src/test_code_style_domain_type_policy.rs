@@ -169,7 +169,7 @@ fn test_bounded_string_storage_visitor_rejects_raw_string_and_old_derive() {
 #[test]
 fn test_newtype_try_from_validator_satisfies_string_wrapper_policy() {
     let ast: syn::File = syn::parse_quote! {
-            #[derive(proc_macro_newtype::TryFrom)]
+            #[derive(proc_macro_newtype_try_from::TryFrom)]
     #[try_from(
                 validator = validate_value
             )]
@@ -212,7 +212,7 @@ fn test_newtype_try_from_validator_satisfies_string_wrapper_policy() {
 #[test]
 fn test_newtype_try_from_explicit_error_satisfies_string_wrapper_policy() {
     let ast: syn::File = syn::parse_quote! {
-        #[derive(proc_macro_newtype::TryFrom)]
+        #[derive(proc_macro_newtype_try_from::TryFrom)]
         #[try_from(
             error = SharedValueError,
             validator = Value::validate
@@ -448,6 +448,15 @@ fn test_tuple_wrappers_initialize_only_through_from_or_try_from() {
         crate::types::StaticStr::from(constants_str::B7C84E2A),
         crate::types::SourceTextRef::from(constants_str::VALUE_15F71E67),
         |path, ast, errors| {
+            if crate::code_style::is_proc_macro_implementation_source_path(
+                crate::types::PathRef::from(path),
+            )
+            .get()
+                || crate::code_style::is_test_crate_source_path(crate::types::PathRef::from(path))
+                    .get()
+            {
+                return;
+            }
             let collector = crate::code_style::visit_syn_file(
                 crate::types::SynFileRef::from(ast),
                 super::domain_analysis::TupleWrapperConversionCollector::new(

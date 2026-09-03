@@ -10,7 +10,7 @@ async fn delegate(delegate_input: DelegateInput) -> Result<(), DelegateError> {
 #[derive(Debug)]
 struct DelegateError;
 
-#[proc_macro_frontend_contract::route_openapi(delegate = delegate, tag = "fixture")]
+#[proc_macro_frontend_contract_route_openapi::route_openapi(delegate = delegate, tag = "fixture")]
 async fn invalid_delegate(delegate_input: DelegateInput) -> Result<(), DelegateError> {
     delegate(delegate_input).await
 }

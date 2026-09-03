@@ -1,5 +1,7 @@
 #[derive(
-    proc_macro_optimal_memory_layout::OptimalMemoryLayout, Debug, proc_macro_newtype::CloneFields,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+    Debug,
+    proc_macro_newtype_clone_fields::CloneFields,
 )]
 pub struct AsyncRunHistory<RunReport> {
     maximum_len:

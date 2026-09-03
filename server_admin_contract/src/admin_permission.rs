@@ -5,7 +5,7 @@
     Copy,
     PartialEq,
     Eq,
-    proc_macro_newtype::WireEnum,
+    proc_macro_newtype_wire_enum::WireEnum,
     utoipa::ToSchema,
 )]
 #[wire_enum(

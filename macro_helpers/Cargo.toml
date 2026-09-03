@@ -9,6 +9,10 @@ repository.workspace = true
 license.workspace = true
 
 [dependencies]
+proc_macro_newtype_from_inner = { workspace = true }
+proc_macro_newtype_to_tokens = { workspace = true }
+proc_macro_newtype_into_inner_from = { workspace = true }
+proc_macro_newtype_as_ref_inner = { workspace = true }
 bounded_types = { workspace = true }
 constants_usize = { workspace = true }
 constants_u8 = { workspace = true }
@@ -28,8 +32,20 @@ proc_macro_getters = { workspace = true }
 proc_macro_new = { workspace = true }
 naming = { workspace = true }
 naming_common = { workspace = true }
-proc_macro_naming = { workspace = true }
-proc_macro_newtype = { workspace = true }
+proc_macro_naming_as_ref_str_enum_with_unit_fields_to_upper_camel_case_str = { workspace = true }
+proc_macro_naming_as_ref_str_enum_with_unit_fields_to_snake_case_str = { workspace = true }
+proc_macro_naming_enum_with_unit_fields_to_snake_case_str = { workspace = true }
+proc_macro_naming_enum_with_unit_fields_to_upper_camel_case_str = { workspace = true }
+proc_macro_naming_enum_with_unit_fields_to_upper_snake_case_str = { workspace = true }
+proc_macro_newtype_as_ref_owned = { workspace = true }
+proc_macro_newtype_as_ref_str = { workspace = true }
+proc_macro_newtype_as_ref_target = { workspace = true }
+proc_macro_newtype_deref_inner = { workspace = true }
+proc_macro_newtype_deref_mut_inner = { workspace = true }
+proc_macro_newtype_deref_target = { workspace = true }
+proc_macro_newtype_display = { workspace = true }
+proc_macro_newtype_not_inner = { workspace = true }
+proc_macro_newtype_bounded_string_wrapper = { workspace = true }
 proc_macro_generate_derive_token_stream_builder = { workspace = true }
 proc_macro_optimal_memory_layout = { workspace = true }
 

@@ -4,10 +4,10 @@
     Clone,
     PartialEq,
     Eq,
-    proc_macro_newtype::BoundedStringWrapper,
-    proc_macro_newtype::AsRefStr,
-    proc_macro_newtype::Display,
-    proc_macro_newtype::IntoInner,
+    proc_macro_newtype_bounded_string_wrapper::BoundedStringWrapper,
+    proc_macro_newtype_as_ref_str::AsRefStr,
+    proc_macro_newtype_display::Display,
+    proc_macro_newtype_into_inner::IntoInner,
 )]
 #[bounded_string(max = crate::case_string_max_len::CASE_STRING_MAX_LEN)]
 pub(super) struct CaseString(

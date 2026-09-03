@@ -5,7 +5,7 @@
     Debug,
     PartialEq,
     Eq,
-    proc_macro_frontend_contract::RouteCatalog,
+    proc_macro_frontend_contract_derive_route_catalog::RouteCatalog,
 )]
 #[route_catalog(
     family = AdminAuthenticationRouteFamily,

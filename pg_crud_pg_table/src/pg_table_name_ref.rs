@@ -3,8 +3,8 @@
     Debug,
     Clone,
     Copy,
-    proc_macro_newtype::AsRefInner,
-    proc_macro_newtype::Display,
+    proc_macro_newtype_as_ref_inner::AsRefInner,
+    proc_macro_newtype_display::Display,
 )]
 pub struct PgTableNameRef<'lt>(&'lt str);
 impl<'lt, T> From<&'lt T> for PgTableNameRef<'lt>

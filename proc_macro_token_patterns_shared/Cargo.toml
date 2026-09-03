@@ -1,0 +1,19 @@
+[package]
+name = "proc_macro_token_patterns_shared"
+version.workspace = true
+publish.workspace = true
+description.workspace = true
+repository.workspace = true
+
+license.workspace = true
+edition.workspace = true
+[dependencies]
+proc_macro_newtype_from_inner = { workspace = true }
+proc_macro_newtype_into_inner_from = { workspace = true }
+proc_macro_optimal_memory_layout = { workspace = true }
+constants_str = { workspace = true }
+proc-macro2 = { workspace = true }
+quote = { workspace = true }
+workspace_macro_helpers = { workspace = true }
+[lints]
+workspace = true

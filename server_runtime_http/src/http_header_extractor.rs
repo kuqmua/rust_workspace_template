@@ -2,7 +2,7 @@
     proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Copy,
-    proc_macro_newtype::FromInner,
+    proc_macro_newtype_from_inner::FromInner,
 )]
 pub(super) struct HttpHeaderExtractor<'headers_lt>(&'headers_lt http::HeaderMap);
 

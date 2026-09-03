@@ -9,8 +9,8 @@
     Debug,
     Eq,
     PartialEq,
-    proc_macro_newtype::IntoInnerFrom,
-    proc_macro_newtype::TryFrom,
+    proc_macro_newtype_into_inner_from::IntoInnerFrom,
+    proc_macro_newtype_try_from::TryFrom,
 )]
 #[try_from(
     error = crate::pg_table_idempotency_response_status_try_from_u16_error::PgTableIdempotencyResponseStatusTryFromU16Error,

@@ -82,6 +82,60 @@ fn test_proc_macro_crate_names_use_macro_prefix_and_matching_directory() {
 }
 
 #[test]
+fn test_proc_macro_lib_has_exactly_one_entrypoint_function() {
+    super::test_code_style_snapshot::with_codebase_snapshot(|snapshot| {
+        let workspace_names = snapshot.workspace_crate_names();
+        let violations = snapshot
+            .workspace_metadata()
+            .get()
+            .packages
+            .iter()
+            .filter(|package| workspace_names.as_ref().contains(package.name.as_str()))
+            .flat_map(|package| {
+                package.targets.iter().filter(|target| {
+                    target
+                        .kind
+                        .iter()
+                        .any(|kind| kind == &cargo_metadata::TargetKind::ProcMacro)
+                })
+            })
+            .filter_map(|target| {
+                let source = std::fs::read_to_string(target.src_path.as_std_path())
+                    .expect(constants_str::DIAGNOSTIC_71EDED83);
+                let file = syn::parse_file(&source).expect(constants_str::DIAGNOSTIC_748AB1BF);
+                let functions = file
+                    .items
+                    .iter()
+                    .filter(|item| matches!(item, syn::Item::Fn(_)))
+                    .count();
+                let entrypoints = file
+                    .items
+                    .iter()
+                    .filter(|item| {
+                        let syn::Item::Fn(function) = item else {
+                            return false;
+                        };
+                        function.attrs.iter().any(|attribute| {
+                            attribute.path().is_ident(stringify!(proc_macro))
+                                || attribute.path().is_ident(stringify!(proc_macro_derive))
+                                || attribute.path().is_ident(stringify!(proc_macro_attribute))
+                        })
+                    })
+                    .count();
+                (functions != 1usize || entrypoints != 1usize).then(|| {
+                    format!(
+                        "{}: proc-macro lib.rs must contain exactly one top-level function and that function must be its macro entrypoint; found {} functions and {entrypoints} entrypoints",
+                        target.src_path,
+                        functions
+                    )
+                })
+            })
+            .collect::<Vec<String>>();
+        assert!(violations.is_empty(), "5d4f708c {violations:#?}");
+    });
+}
+
+#[test]
 fn test_all_crates_have_publish_false() {
     crate::code_style::assert_crate_manifest_cargo_policy(
         crate::types::StaticStr::from(constants_str::F2A8C5D3),
@@ -642,6 +696,10 @@ fn test_source_modules_with_public_logic_own_unit_tests() {
                     && !crate::code_style::is_test_crate_source_path(crate::types::PathRef::from(
                         path,
                     ))
+                    .get()
+                    && !crate::code_style::is_proc_macro_implementation_source_path(
+                        crate::types::PathRef::from(path),
+                    )
                     .get()
                     && !proc_macro_entrypoints
                         .iter()

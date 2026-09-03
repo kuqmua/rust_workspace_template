@@ -4,7 +4,7 @@
     Clone,
     PartialEq,
     Eq,
-    proc_macro_newtype::Display,
+    proc_macro_newtype_display::Display,
 )]
 pub struct EnvVarName(String);
 impl From<crate::config_lib_string_wrapper_try_from_string_error::ConfigLibStringWrapperTryFromStringError> for EnvVarName {

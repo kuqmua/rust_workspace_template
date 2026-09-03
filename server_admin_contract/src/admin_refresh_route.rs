@@ -3,7 +3,7 @@
     Clone,
     Copy,
     Debug,
-    proc_macro_frontend_contract::TypedRoute,
+    proc_macro_frontend_contract_derive_typed_route::TypedRoute,
 )]
 #[typed_route(
     authentication = frontend_contract::authentication_requirement::AuthenticationRequirement::Public,

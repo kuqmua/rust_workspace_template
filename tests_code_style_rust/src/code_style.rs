@@ -997,10 +997,11 @@ pub(crate) fn string_wrapper_names(
 pub(crate) fn domain_type_policy_should_check_path(
     path_ref: crate::types::PathRef<'_>,
 ) -> crate::types::AnalyzerBool {
-    if path_ref
-        .as_ref()
-        .components()
-        .any(|component| component.as_os_str() == constants_str::BENCHES)
+    if is_proc_macro_implementation_source_path(path_ref).get()
+        || path_ref
+            .as_ref()
+            .components()
+            .any(|component| component.as_os_str() == constants_str::BENCHES)
         || path_ref
             .as_ref()
             .to_string_lossy()
@@ -1569,15 +1570,43 @@ pub(crate) fn is_runtime_policy_source_path(
     else {
         return crate::types::AnalyzerBool::default();
     };
-    let is_proc_macro = parsed
+    crate::types::AnalyzerBool::from(
+        !is_proc_macro_implementation_manifest(crate::types::TomlTableRef::from(parsed.as_ref()))
+            .get()
+            && !is_test_crate(crate::types::TomlTableRef::from(parsed.as_ref())).get(),
+    )
+}
+pub(crate) fn is_proc_macro_implementation_source_path(
+    path_ref: crate::types::PathRef<'_>,
+) -> crate::types::AnalyzerBool {
+    let Some(cargo_toml_path) = nearest_cargo_toml_path(path_ref) else {
+        return crate::types::AnalyzerBool::default();
+    };
+    let Some(parsed) = read_toml_table(crate::types::PathRef::from(cargo_toml_path.as_ref()))
+    else {
+        return crate::types::AnalyzerBool::default();
+    };
+    is_proc_macro_implementation_manifest(crate::types::TomlTableRef::from(parsed.as_ref()))
+}
+fn is_proc_macro_implementation_manifest(
+    toml_table_ref: crate::types::TomlTableRef<'_>,
+) -> crate::types::AnalyzerBool {
+    let is_proc_macro = toml_table_ref
         .as_ref()
         .get(constants_str::LIB)
         .and_then(toml::Value::as_table)
         .and_then(|lib| lib.get(constants_str::PROC_MACRO))
         == Some(&toml::Value::Boolean(true));
-    crate::types::AnalyzerBool::from(
-        !is_proc_macro && !is_test_crate(crate::types::TomlTableRef::from(parsed.as_ref())).get(),
-    )
+    let is_proc_macro_shared = toml_table_ref
+        .as_ref()
+        .get(constants_str::PACKAGE)
+        .and_then(|package| package.get(constants_str::NAME))
+        .and_then(toml::Value::as_str)
+        .is_some_and(|name| {
+            name.starts_with(constants_str::PROC_MACRO_CRATE_PREFIX)
+                && name.ends_with(constants_str::PROC_MACRO_SHARED_SUFFIX)
+        });
+    crate::types::AnalyzerBool::from(is_proc_macro || is_proc_macro_shared)
 }
 pub(crate) fn nearest_cargo_toml_path(
     path_ref: crate::types::PathRef<'_>,

@@ -10,7 +10,7 @@
     serde::Deserialize,
     schemars::JsonSchema,
     proc_macro_optimal_memory_layout::OptimalMemoryLayout,
-    proc_macro_newtype::FromGetter,
+    proc_macro_newtype_from_getter::FromGetter,
 )]
 #[from_getter(source = std::num::NonZeroI32, getter = get)]
 #[serde(try_from = "i32")]

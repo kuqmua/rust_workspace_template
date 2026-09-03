@@ -5,8 +5,8 @@
     Copy,
     PartialEq,
     Eq,
-    proc_macro_newtype::ToErrStringAsRefStr,
-    proc_macro_newtype::FromInner,
+    proc_macro_newtype_to_err_string_as_ref_str::ToErrStringAsRefStr,
+    proc_macro_newtype_from_inner::FromInner,
 )]
 pub struct CommitNotEqMessage(&'static str);
 

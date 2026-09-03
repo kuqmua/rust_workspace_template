@@ -6,7 +6,7 @@
     Debug,
     Eq,
     PartialEq,
-    proc_macro_newtype::FromGetter,
+    proc_macro_newtype_from_getter::FromGetter,
 )]
 #[from_getter(source = crate::pagination_offset::PaginationOffset, getter = get)]
 pub struct ListOffset(i64);

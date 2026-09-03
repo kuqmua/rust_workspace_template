@@ -18,6 +18,20 @@ macro_clippy_check_test_common = { workspace = true, features = ["test-utils"] }
 token_patterns = { workspace = true }
 proc_macro_optimal_memory_layout = { workspace = true }
 serde = { workspace = true }
+proc_macro_generate_pg_table_uo_logic = { workspace = true }
+proc_macro_generate_pg_table_cm_logic = { workspace = true }
+proc_macro_generate_pg_table_common_logic = { workspace = true }
+proc_macro_generate_pg_table_um_logic = { workspace = true }
+proc_macro_generate_pg_table_ro_logic = { workspace = true }
+proc_macro_generate_pg_table_rm_logic = { workspace = true }
+proc_macro_generate_pg_table_dlo_logic = { workspace = true }
+proc_macro_generate_pg_table_generate_pg_table_config = { workspace = true }
+proc_macro_generate_pg_table_dm_logic = { workspace = true }
+proc_macro_generate_pg_table_common_error_variants = { workspace = true }
+proc_macro_generate_pg_table_co_logic = { workspace = true }
+
+[dependencies]
+
 [lints]
 workspace = true
 

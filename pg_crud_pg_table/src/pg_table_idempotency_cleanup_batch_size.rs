@@ -10,7 +10,7 @@
     Debug,
     Eq,
     PartialEq,
-    proc_macro_newtype::GetInner,
+    proc_macro_newtype_get_inner::GetInner,
 )]
 pub struct PgTableIdempotencyCleanupBatchSize(std::num::NonZeroI64);
 impl TryFrom<i64> for PgTableIdempotencyCleanupBatchSize {

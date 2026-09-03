@@ -5,10 +5,10 @@
     Default,
     PartialEq,
     Eq,
-    proc_macro_newtype::FromInner,
+    proc_macro_newtype_from_inner::FromInner,
     serde::Deserialize,
     serde::Serialize,
-    proc_macro_newtype::UtoipaSchema,
+    proc_macro_newtype_utoipa_schema::UtoipaSchema,
 )]
 #[serde(
     from = "bounded_types::bounded_vec::BoundedVec<crate::api_problem_violation::ApiProblemViolation, { constants_usize::ZERO }, 128usize>"

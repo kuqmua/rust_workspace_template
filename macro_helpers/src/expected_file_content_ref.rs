@@ -3,9 +3,9 @@
     Debug,
     Clone,
     Copy,
-    proc_macro_newtype::AsRefStr,
-    proc_macro_newtype::FromInner,
-    proc_macro_newtype::IntoInnerFrom,
+    proc_macro_newtype_as_ref_str::AsRefStr,
+    proc_macro_newtype_from_inner::FromInner,
+    proc_macro_newtype_into_inner_from::IntoInnerFrom,
 )]
 pub(crate) struct ExpectedFileContentRef<'content_lt>(&'content_lt str);
 

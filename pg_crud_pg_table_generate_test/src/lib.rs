@@ -1,3 +1,8 @@
+#![allow(
+    unused_crate_dependencies,
+    reason = "split proc-macro crates are dependencies of generated fixture crates represented as token streams in this test support crate"
+)]
+
 #[cfg(test)]
 mod tests {
     #[derive(
@@ -13,20 +18,20 @@ mod tests {
     fn table_input(token_stream: &proc_macro2::TokenStream) -> proc_macro2::TokenStream {
         quote::quote! {
             #[derive(Debug, Clone, Copy, proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
-            #[proc_macro_generate_pg_table::generate_pg_table_config{{
+            #[proc_macro_generate_pg_table_generate_pg_table_config::generate_pg_table_config{{
                 "tests_write_into_file": "False",
                 "common_write_into_file": "False",
                 "whole_write_into_file": "False"
             }}]
-            #[proc_macro_generate_pg_table::cm_logic{}]
-            #[proc_macro_generate_pg_table::co_logic{}]
-            #[proc_macro_generate_pg_table::rm_logic{}]
-            #[proc_macro_generate_pg_table::ro_logic{}]
-            #[proc_macro_generate_pg_table::um_logic{}]
-            #[proc_macro_generate_pg_table::uo_logic{}]
-            #[proc_macro_generate_pg_table::dm_logic{}]
-            #[proc_macro_generate_pg_table::dlo_logic{}]
-            #[proc_macro_generate_pg_table::common_logic{}]
+            #[proc_macro_generate_pg_table_cm_logic::cm_logic{}]
+            #[proc_macro_generate_pg_table_co_logic::co_logic{}]
+            #[proc_macro_generate_pg_table_rm_logic::rm_logic{}]
+            #[proc_macro_generate_pg_table_ro_logic::ro_logic{}]
+            #[proc_macro_generate_pg_table_um_logic::um_logic{}]
+            #[proc_macro_generate_pg_table_uo_logic::uo_logic{}]
+            #[proc_macro_generate_pg_table_dm_logic::dm_logic{}]
+            #[proc_macro_generate_pg_table_dlo_logic::dlo_logic{}]
+            #[proc_macro_generate_pg_table_common_logic::common_logic{}]
             pub struct TableExample {
                 #[generate_pg_table_primary_key]
                 primary_key_column: pg_types_text_misc::generate_pg_types_mod::SqlxTypesUuidUuidAsNonNullUuidV4InitializationByPg,
@@ -100,10 +105,19 @@ mod tests {
         ignore = "compiler subprocess validation is covered by the native Clippy gate"
     )]
     fn test_pg_table_generate_clippy() {
+        let fixture_dependencies = constants_str::DEPENDENCIES_NEWLINE_APP_STATE_WORKSPACE_TRUE_NEWLINE_AXUM_WORKSPACE_TRUE_NEWLINE_FUTURES
+            .replace(
+                constants_str::PG_TABLE_MONOLITHIC_WORKSPACE_DEPENDENCY,
+                constants_str::PG_TABLE_SPLIT_WORKSPACE_DEPENDENCIES,
+            )
+            .replace(
+                constants_str::LOCATION_MONOLITHIC_WORKSPACE_DEPENDENCY,
+                constants_str::LOCATION_DERIVE_WORKSPACE_DEPENDENCY,
+            );
         macro_clippy_check_test_common::clippy_check(
             constants_str::GENERATE_PG_TABLE_TEST_CNT,
             constants_str::PG_CRUD_PG_TABLE,
-            constants_str::DEPENDENCIES_NEWLINE_APP_STATE_WORKSPACE_TRUE_NEWLINE_AXUM_WORKSPACE_TRUE_NEWLINE_FUTURES,
+            fixture_dependencies.as_str(),
             &{
                 #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
                 enum AddGeneratePgTablePrimaryKey {
@@ -126,7 +140,7 @@ mod tests {
                             reason = "the compile-only macro fixture validates generated contracts without reading its source model"
                         )]
                         #[derive(Debug, Clone, Copy, proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
-                        #[proc_macro_generate_pg_table::generate_pg_table_config{{
+                        #[proc_macro_generate_pg_table_generate_pg_table_config::generate_pg_table_config{{
                             "cm_write_into_file": "False",
                             "co_write_into_file": "False",
                             "rm_write_into_file": "False",
@@ -139,7 +153,7 @@ mod tests {
                             "common_write_into_file": "False",
                             "whole_write_into_file": "False"
                         }}]
-                        #[proc_macro_generate_pg_table::common_error_variants{
+                        #[proc_macro_generate_pg_table_common_error_variants::common_error_variants{
                             enum CommonErrorVariants {
                                 CheckCommit {
                                     #[eo_location]
@@ -148,15 +162,15 @@ mod tests {
                                 },
                             }
                         }]
-                        #[proc_macro_generate_pg_table::cm_logic{}]
-                        #[proc_macro_generate_pg_table::co_logic{}]
-                        #[proc_macro_generate_pg_table::rm_logic{}]
-                        #[proc_macro_generate_pg_table::ro_logic{}]
-                        #[proc_macro_generate_pg_table::um_logic{}]
-                        #[proc_macro_generate_pg_table::uo_logic{}]
-                        #[proc_macro_generate_pg_table::dm_logic{}]
-                        #[proc_macro_generate_pg_table::dlo_logic{}]
-                        #[proc_macro_generate_pg_table::common_logic{}]
+                        #[proc_macro_generate_pg_table_cm_logic::cm_logic{}]
+                        #[proc_macro_generate_pg_table_co_logic::co_logic{}]
+                        #[proc_macro_generate_pg_table_rm_logic::rm_logic{}]
+                        #[proc_macro_generate_pg_table_ro_logic::ro_logic{}]
+                        #[proc_macro_generate_pg_table_um_logic::um_logic{}]
+                        #[proc_macro_generate_pg_table_uo_logic::uo_logic{}]
+                        #[proc_macro_generate_pg_table_dm_logic::dm_logic{}]
+                        #[proc_macro_generate_pg_table_dlo_logic::dlo_logic{}]
+                        #[proc_macro_generate_pg_table_common_logic::common_logic{}]
                         pub struct TableExample {
                             #maybe_generate_pg_table_primary_key_token_stream
                             primary_key_column:

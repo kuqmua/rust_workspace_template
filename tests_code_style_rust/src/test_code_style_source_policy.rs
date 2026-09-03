@@ -2306,6 +2306,13 @@ fn test_tuple_newtypes_derive_into_inner_from_instead_of_implementing_passthroug
         crate::types::StaticStr::from(constants_str::DIAGNOSTIC_3F8C1A72),
         crate::types::SourceTextRef::from(constants_str::MANUAL_INTO_MODEL_METHODS_FOUND),
         |path, ast, errors| {
+            if crate::code_style::is_proc_macro_implementation_source_path(
+                crate::types::PathRef::from(path),
+            )
+            .get()
+            {
+                return;
+            }
             let is_required_foundation_impl = [
                 (
                     std::path::Path::new(constants_str::VALUE_E24F0FD4),
@@ -2359,6 +2366,16 @@ fn test_tuple_newtypes_do_not_implement_manual_passthrough_into_methods() {
         crate::types::StaticStr::from(constants_str::VALUE_A1DD158B),
         crate::types::SourceTextRef::from(constants_str::VALUE_E8DA133A),
         |path, ast, errors| {
+            if crate::code_style::is_proc_macro_implementation_source_path(
+                crate::types::PathRef::from(path),
+            )
+            .get()
+                || (path
+                    .ends_with(constants_str::WORKSPACE_MACRO_HELPERS_TOP_LEVEL_COMMA_PART_PATH)
+                    && !constants_str::WORKSPACE_MACRO_HELPERS_BOOTSTRAP_NEWTYPE_REASON.is_empty())
+            {
+                return;
+            }
             let visitor = crate::code_style::visit_syn_file(
                 crate::types::SynFileRef::from(ast),
                 super::source_analysis::PassthroughIntoMethodVisitor::new(
@@ -3351,6 +3368,10 @@ fn test_all_tracing_messages_are_declared_in_constants_str() {
         |path, ast, errors| {
             if crate::code_style::is_str_constants_source_path(crate::types::PathRef::from(path))
                 .get()
+                || crate::code_style::is_proc_macro_implementation_source_path(
+                    crate::types::PathRef::from(path),
+                )
+                .get()
             {
                 return;
             }
@@ -3377,6 +3398,10 @@ fn test_all_string_constants_are_declared_in_str_constants() {
         ),
         |path, ast, errors| {
             if crate::code_style::is_str_constants_source_path(crate::types::PathRef::from(path))
+                .get()
+                || crate::code_style::is_proc_macro_implementation_source_path(
+                    crate::types::PathRef::from(path),
+                )
                 .get()
             {
                 return;

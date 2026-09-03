@@ -1,13 +1,16 @@
-proc_macro_config_lib::impl_try_from_non_empty_string!(
+proc_macro_config_lib_impl_try_from_non_empty_string::impl_try_from_non_empty_string!(
     CorsAllowOrigin,
     TryFromStdEnvVarOkCorsAllowOriginError
 );
-proc_macro_config_lib::impl_try_from_non_empty_string!(
+proc_macro_config_lib_impl_try_from_non_empty_string::impl_try_from_non_empty_string!(
     TrustedProxyRangesText,
     TryFromStdEnvVarOkTrustedProxyRangesTextError
 );
-proc_macro_config_lib::impl_try_from_secret_url!(DatabaseUrl, TryFromStdEnvVarOkDatabaseUrlError);
-proc_macro_config_lib::impl_try_from_parse!(
+proc_macro_config_lib_impl_try_from_secret_url::impl_try_from_secret_url!(
+    DatabaseUrl,
+    TryFromStdEnvVarOkDatabaseUrlError
+);
+proc_macro_config_lib_impl_try_from_parse::impl_try_from_parse!(
     EnableApiGitCommitCheck,
     TryFromStdEnvVarOkEnableApiGitCommitCheckError,
     bool,
@@ -17,10 +20,16 @@ proc_macro_config_lib::impl_try_from_parse!(
     Clone,
     Copy
 );
-proc_macro_config_lib::impl_try_from_secret_url!(MongoUrl, TryFromStdEnvVarOkMongoUrlError);
+proc_macro_config_lib_impl_try_from_secret_url::impl_try_from_secret_url!(
+    MongoUrl,
+    TryFromStdEnvVarOkMongoUrlError
+);
 
-proc_macro_config_lib::impl_try_from_secret_url!(RedisUrl, TryFromStdEnvVarOkRedisUrlError);
-proc_macro_config_lib::impl_try_from_parse!(
+proc_macro_config_lib_impl_try_from_secret_url::impl_try_from_secret_url!(
+    RedisUrl,
+    TryFromStdEnvVarOkRedisUrlError
+);
+proc_macro_config_lib_impl_try_from_parse::impl_try_from_parse!(
     ServiceSocketAddress,
     TryFromStdEnvVarOkServiceSocketAddressError,
     std::net::SocketAddr,
@@ -30,14 +39,14 @@ proc_macro_config_lib::impl_try_from_parse!(
     Clone,
     Copy
 );
-proc_macro_config_lib::impl_try_from_parse_string_error!(
+proc_macro_config_lib_impl_try_from_parse_string_error::impl_try_from_parse_string_error!(
     SourcePlaceType,
     TryFromStdEnvVarOkSourcePlaceTypeError,
     crate::source_place_type::SourcePlaceType,
     AppStateSourcePlaceTypeParsing,
     app_state_source_place_type_parsing
 );
-proc_macro_config_lib::impl_try_from_non_empty_string!(
+proc_macro_config_lib_impl_try_from_non_empty_string::impl_try_from_non_empty_string!(
     StartingCheckLink,
     TryFromStdEnvVarOkStartingCheckLinkError
 );
@@ -55,7 +64,7 @@ impl crate::try_from_std_env_var_ok::TryFromStdEnvVarOk for crate::tracing_forma
         )
     }
 }
-proc_macro_config_lib::impl_try_from_parse_string_error!(
+proc_macro_config_lib_impl_try_from_parse_string_error::impl_try_from_parse_string_error!(
     TracingLevel,
     TryFromStdEnvVarOkTracingLevelError,
     crate::tracing_level::TracingLevel,

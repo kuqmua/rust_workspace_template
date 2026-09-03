@@ -1732,7 +1732,7 @@ impl<'ast> syn::visit::Visit<'ast> for ConstDisplayImplVisitor {
         if is_display_impl && writes_constant {
             let start = syn::spanned::Spanned::span(item_impl).start();
             self.errors.push(format!(
-                "constant Display implementation at {}:{}; derive proc_macro_newtype::DisplayConst instead",
+                "constant Display implementation at {}:{}; derive proc_macro_newtype_display_const::DisplayConst instead",
                 start.line, start.column
             ));
         }
@@ -1749,7 +1749,7 @@ impl<'ast> syn::visit::Visit<'ast> for ManualNotImplVisitor {
         if is_not_impl {
             let start = syn::spanned::Spanned::span(item_impl).start();
             self.errors.push(format!(
-                "manual Not implementation at {}:{}; derive proc_macro_newtype::NotInner instead",
+                "manual Not implementation at {}:{}; derive proc_macro_newtype_not_inner::NotInner instead",
                 start.line, start.column
             ));
         }

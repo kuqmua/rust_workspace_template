@@ -1,4 +1,6 @@
-#[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, proc_macro_newtype::FromInner)]
+#[derive(
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout, proc_macro_newtype_from_inner::FromInner,
+)]
 pub(super) struct BoundedHashMapVisitorPhantomData<K, V, const MAX: usize>(
     std::marker::PhantomData<(K, V)>,
 );

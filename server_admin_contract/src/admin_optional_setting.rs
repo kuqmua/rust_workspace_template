@@ -9,7 +9,7 @@
     serde::Serialize,
     serde::Deserialize,
     utoipa::ToSchema,
-    proc_macro_frontend_contract::UnitEnumCatalog,
+    proc_macro_frontend_contract_derive_unit_enum_catalog::UnitEnumCatalog,
 )]
 #[serde(rename_all = "snake_case")]
 pub enum AdminOptionalSetting {

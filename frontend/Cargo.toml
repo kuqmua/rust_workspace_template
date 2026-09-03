@@ -15,14 +15,20 @@ categories = ["web-programming"]
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
+proc_macro_newtype_from_inner = { workspace = true }
+proc_macro_newtype_into_inner_from = { workspace = true }
 proc_macro_getters = { workspace = true }
-proc_macro_naming = { workspace = true }
+proc_macro_naming_enum_with_unit_fields_to_snake_case_str = { workspace = true }
+proc_macro_naming_enum_with_unit_fields_to_upper_snake_case_str = { workspace = true }
 bounded_types = { workspace = true }
 constants_usize = { workspace = true }
 constants_u32 = { workspace = true }
 frontend_contract = { workspace = true }
 proc_macro_optimal_memory_layout = { workspace = true }
-proc_macro_newtype = { workspace = true }
+proc_macro_newtype_as_ref_str = { workspace = true }
+proc_macro_newtype_display = { workspace = true }
+proc_macro_newtype_into_inner = { workspace = true }
+proc_macro_newtype_bounded_string_wrapper = { workspace = true }
 server_admin_contract = { workspace = true }
 singlestage = { workspace = true }
 constants_str = { workspace = true }

@@ -4,8 +4,8 @@
     Debug,
     PartialEq,
     Eq,
-    proc_macro_newtype::AsRefTarget,
-    proc_macro_newtype::FromInner,
+    proc_macro_newtype_as_ref_target::AsRefTarget,
+    proc_macro_newtype_from_inner::FromInner,
 )]
 pub struct FieldContracts(
     bounded_types::bounded_vec::BoundedVec<crate::field_contract::FieldContract, 0, { usize::MAX }>,

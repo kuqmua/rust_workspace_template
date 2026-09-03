@@ -4,10 +4,10 @@
     PartialEq,
     Eq,
     proc_macro_optimal_memory_layout::OptimalMemoryLayout,
-    proc_macro_newtype::AsRefStr,
-    proc_macro_newtype::DerefTarget,
-    proc_macro_newtype::Display,
-    proc_macro_newtype::IntoInner,
+    proc_macro_newtype_as_ref_str::AsRefStr,
+    proc_macro_newtype_deref_target::DerefTarget,
+    proc_macro_newtype_display::Display,
+    proc_macro_newtype_into_inner::IntoInner,
 )]
 pub struct QueryPartFragment(String);
 impl

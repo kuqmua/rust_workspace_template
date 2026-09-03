@@ -5,8 +5,8 @@ const SOURCE_TEXT_MAX_LEN: usize = 16 * 1024 * 1024;
     Clone,
     Copy,
     Default,
-    proc_macro_newtype::FromInner,
-    proc_macro_newtype::GetInner,
+    proc_macro_newtype_from_inner::FromInner,
+    proc_macro_newtype_get_inner::GetInner,
 )]
 pub(super) struct AnalyzerCount(usize);
 impl AnalyzerCount {
@@ -23,8 +23,8 @@ impl AnalyzerCount {
     Clone,
     Copy,
     Default,
-    proc_macro_newtype::FromInner,
-    proc_macro_newtype::GetInner,
+    proc_macro_newtype_from_inner::FromInner,
+    proc_macro_newtype_get_inner::GetInner,
 )]
 pub(super) struct AnalyzerBool(bool);
 impl AnalyzerBool {
@@ -38,16 +38,16 @@ impl AnalyzerBool {
     Debug,
     Clone,
     Copy,
-    proc_macro_newtype::FromInner,
-    proc_macro_newtype::GetInner,
+    proc_macro_newtype_from_inner::FromInner,
+    proc_macro_newtype_get_inner::GetInner,
 )]
 pub(super) struct CargoTomlFileIndex(usize);
 #[derive(
     proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Debug,
     Clone,
-    proc_macro_newtype::AsRefOwned,
-    proc_macro_newtype::FromInner,
+    proc_macro_newtype_as_ref_owned::AsRefOwned,
+    proc_macro_newtype_from_inner::FromInner,
 )]
 pub(super) struct CargoMetadata(cargo_metadata::Metadata);
 #[derive(
@@ -55,17 +55,17 @@ pub(super) struct CargoMetadata(cargo_metadata::Metadata);
     Debug,
     Clone,
     Copy,
-    proc_macro_newtype::AsRefInner,
-    proc_macro_newtype::FromInner,
-    proc_macro_newtype::GetInner,
+    proc_macro_newtype_as_ref_inner::AsRefInner,
+    proc_macro_newtype_from_inner::FromInner,
+    proc_macro_newtype_get_inner::GetInner,
 )]
 pub(super) struct CargoMetadataRef<'metadata_lt>(&'metadata_lt cargo_metadata::Metadata);
 #[derive(
     proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Debug,
     Clone,
-    proc_macro_newtype::AsRefOwned,
-    proc_macro_newtype::FromInner,
+    proc_macro_newtype_as_ref_owned::AsRefOwned,
+    proc_macro_newtype_from_inner::FromInner,
 )]
 pub(super) struct CargoPackageIdRefHashSet<'metadata_lt>(
     std::collections::HashSet<&'metadata_lt cargo_metadata::PackageId>,
@@ -76,8 +76,8 @@ pub(super) struct CargoPackageIdRefHashSet<'metadata_lt>(
     Debug,
     Clone,
     Copy,
-    proc_macro_newtype::FromInner,
-    proc_macro_newtype::GetInner,
+    proc_macro_newtype_from_inner::FromInner,
+    proc_macro_newtype_get_inner::GetInner,
 )]
 pub(super) struct StaticStr(&'static str);
 #[derive(
@@ -86,8 +86,8 @@ pub(super) struct StaticStr(&'static str);
     Debug,
     Clone,
     Copy,
-    proc_macro_newtype::FromInner,
-    proc_macro_newtype::GetInner,
+    proc_macro_newtype_from_inner::FromInner,
+    proc_macro_newtype_get_inner::GetInner,
 )]
 pub(super) struct StaticStrSliceRef<'text_lt>(&'text_lt [&'text_lt str]);
 #[derive(
@@ -95,9 +95,9 @@ pub(super) struct StaticStrSliceRef<'text_lt>(&'text_lt [&'text_lt str]);
     Debug,
     Clone,
     Copy,
-    proc_macro_newtype::AsRefInner,
-    proc_macro_newtype::FromInner,
-    proc_macro_newtype::GetInner,
+    proc_macro_newtype_as_ref_inner::AsRefInner,
+    proc_macro_newtype_from_inner::FromInner,
+    proc_macro_newtype_get_inner::GetInner,
 )]
 pub(super) struct SourceTextRef<'text_lt>(&'text_lt str);
 #[derive(
@@ -105,8 +105,8 @@ pub(super) struct SourceTextRef<'text_lt>(&'text_lt str);
     Debug,
     Clone,
     Copy,
-    proc_macro_newtype::AsRefInner,
-    proc_macro_newtype::FromInner,
+    proc_macro_newtype_as_ref_inner::AsRefInner,
+    proc_macro_newtype_from_inner::FromInner,
 )]
 pub(super) struct SourceTextRefHashSet<'text_lt>(
     &'text_lt std::collections::HashSet<&'text_lt str>,
@@ -115,8 +115,8 @@ pub(super) struct SourceTextRefHashSet<'text_lt>(
     proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Debug,
     Clone,
-    proc_macro_newtype::AsRefOwned,
-    proc_macro_newtype::FromInner,
+    proc_macro_newtype_as_ref_owned::AsRefOwned,
+    proc_macro_newtype_from_inner::FromInner,
 )]
 pub(super) struct SourceTextHashSet<'text_lt>(std::collections::HashSet<&'text_lt str>);
 #[derive(
@@ -124,8 +124,8 @@ pub(super) struct SourceTextHashSet<'text_lt>(std::collections::HashSet<&'text_l
     Debug,
     Clone,
     Copy,
-    proc_macro_newtype::AsRefInner,
-    proc_macro_newtype::FromInner,
+    proc_macro_newtype_as_ref_inner::AsRefInner,
+    proc_macro_newtype_from_inner::FromInner,
 )]
 pub(super) struct SynBlockRef<'block_lt>(&'block_lt syn::Block);
 #[derive(
@@ -133,18 +133,18 @@ pub(super) struct SynBlockRef<'block_lt>(&'block_lt syn::Block);
     Debug,
     Clone,
     Default,
-    proc_macro_newtype::DerefInner,
-    proc_macro_newtype::DerefMutInner,
-    proc_macro_newtype::FromInner,
-    proc_macro_newtype::IntoIterator,
+    proc_macro_newtype_deref_inner::DerefInner,
+    proc_macro_newtype_deref_mut_inner::DerefMutInner,
+    proc_macro_newtype_from_inner::FromInner,
+    proc_macro_newtype_into_iterator::IntoIterator,
 )]
 pub(super) struct DiagnosticMessages(Vec<String>);
 #[derive(
     proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Debug,
-    proc_macro_newtype::DerefMutTarget,
-    proc_macro_newtype::DerefTarget,
-    proc_macro_newtype::FromInner,
+    proc_macro_newtype_deref_mut_target::DerefMutTarget,
+    proc_macro_newtype_deref_target::DerefTarget,
+    proc_macro_newtype_from_inner::FromInner,
 )]
 pub(super) struct DiagnosticMessagesMutRef<'msgs_lt>(&'msgs_lt mut Vec<String>);
 impl<'msgs_lt> From<&'msgs_lt mut SourceTextList> for DiagnosticMessagesMutRef<'msgs_lt> {
@@ -157,7 +157,7 @@ impl<'msgs_lt> From<&'msgs_lt mut SourceTextList> for DiagnosticMessagesMutRef<'
     proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Debug,
     Clone,
-    proc_macro_newtype::AsRefStr,
+    proc_macro_newtype_as_ref_str::AsRefStr,
 )]
 pub(super) struct SourceText(Box<str>);
 #[derive(
@@ -192,10 +192,10 @@ impl From<SourceText> for String {
     Debug,
     Clone,
     Default,
-    proc_macro_newtype::DerefInner,
-    proc_macro_newtype::DerefMutInner,
-    proc_macro_newtype::FromInner,
-    proc_macro_newtype::IntoIterator,
+    proc_macro_newtype_deref_inner::DerefInner,
+    proc_macro_newtype_deref_mut_inner::DerefMutInner,
+    proc_macro_newtype_from_inner::FromInner,
+    proc_macro_newtype_into_iterator::IntoIterator,
 )]
 pub(super) struct SourceTextList(Vec<String>);
 #[derive(
@@ -203,9 +203,9 @@ pub(super) struct SourceTextList(Vec<String>);
     Debug,
     Clone,
     Copy,
-    proc_macro_newtype::AsRefInner,
-    proc_macro_newtype::FromInner,
-    proc_macro_newtype::GetInner,
+    proc_macro_newtype_as_ref_inner::AsRefInner,
+    proc_macro_newtype_from_inner::FromInner,
+    proc_macro_newtype_get_inner::GetInner,
 )]
 pub(super) struct SourceTextListRef<'text_lt>(&'text_lt [String]);
 #[derive(
@@ -213,11 +213,11 @@ pub(super) struct SourceTextListRef<'text_lt>(&'text_lt [String]);
     Debug,
     Clone,
     Default,
-    proc_macro_newtype::AsRefOwned,
-    proc_macro_newtype::DerefInner,
-    proc_macro_newtype::DerefMutInner,
-    proc_macro_newtype::FromInner,
-    proc_macro_newtype::IntoIterator,
+    proc_macro_newtype_as_ref_owned::AsRefOwned,
+    proc_macro_newtype_deref_inner::DerefInner,
+    proc_macro_newtype_deref_mut_inner::DerefMutInner,
+    proc_macro_newtype_from_inner::FromInner,
+    proc_macro_newtype_into_iterator::IntoIterator,
 )]
 pub(super) struct SourceTextBTreeSet(std::collections::BTreeSet<String>);
 #[derive(
@@ -229,7 +229,7 @@ pub(super) struct SourceTextBTreeSet(std::collections::BTreeSet<String>);
     Eq,
     PartialOrd,
     Ord,
-    proc_macro_newtype::FromInner,
+    proc_macro_newtype_from_inner::FromInner,
 )]
 pub(super) struct FunctionBodyHash(u64);
 #[derive(
@@ -237,18 +237,18 @@ pub(super) struct FunctionBodyHash(u64);
     Debug,
     Clone,
     Copy,
-    proc_macro_newtype::AsRefInner,
-    proc_macro_newtype::DerefTarget,
-    proc_macro_newtype::FromInner,
+    proc_macro_newtype_as_ref_inner::AsRefInner,
+    proc_macro_newtype_deref_target::DerefTarget,
+    proc_macro_newtype_from_inner::FromInner,
 )]
 pub(super) struct RegexRegexRef<'regex_lt>(&'regex_lt regex::Regex);
 #[derive(
     proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Debug,
     Default,
-    proc_macro_newtype::DerefInner,
-    proc_macro_newtype::FromInner,
-    proc_macro_newtype::IntoInnerFrom,
+    proc_macro_newtype_deref_inner::DerefInner,
+    proc_macro_newtype_from_inner::FromInner,
+    proc_macro_newtype_into_inner_from::IntoInnerFrom,
 )]
 pub(super) struct FunctionBodyLocationsBTreeMap(
     std::collections::BTreeMap<FunctionBodyHash, SourceTextList>,
@@ -256,9 +256,9 @@ pub(super) struct FunctionBodyLocationsBTreeMap(
 #[derive(
     proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Debug,
-    proc_macro_newtype::DerefMutTarget,
-    proc_macro_newtype::DerefTarget,
-    proc_macro_newtype::FromInner,
+    proc_macro_newtype_deref_mut_target::DerefMutTarget,
+    proc_macro_newtype_deref_target::DerefTarget,
+    proc_macro_newtype_from_inner::FromInner,
 )]
 pub(super) struct FunctionBodyLocationsBTreeMapMutRef<'map_lt>(
     &'map_lt mut std::collections::BTreeMap<FunctionBodyHash, SourceTextList>,
@@ -277,8 +277,8 @@ impl<'map_lt> From<&'map_lt mut FunctionBodyLocationsBTreeMap>
     Debug,
     Clone,
     Copy,
-    proc_macro_newtype::AsRefInner,
-    proc_macro_newtype::FromInner,
+    proc_macro_newtype_as_ref_inner::AsRefInner,
+    proc_macro_newtype_from_inner::FromInner,
 )]
 pub(super) struct SourceTextBTreeSetRef<'text_lt>(&'text_lt std::collections::BTreeSet<String>);
 #[derive(
@@ -289,10 +289,10 @@ pub(super) struct SourceTextBTreeSetRef<'text_lt>(&'text_lt std::collections::BT
     Eq,
     PartialOrd,
     Ord,
-    proc_macro_newtype::AsRefTarget,
-    proc_macro_newtype::BorrowPath,
-    proc_macro_newtype::DerefTarget,
-    proc_macro_newtype::FromInner,
+    proc_macro_newtype_as_ref_target::AsRefTarget,
+    proc_macro_newtype_borrow_path::BorrowPath,
+    proc_macro_newtype_deref_target::DerefTarget,
+    proc_macro_newtype_from_inner::FromInner,
 )]
 pub(super) struct OwnedPathBuf(std::path::PathBuf);
 #[derive(
@@ -300,16 +300,16 @@ pub(super) struct OwnedPathBuf(std::path::PathBuf);
     Debug,
     Clone,
     Copy,
-    proc_macro_newtype::AsRefInner,
-    proc_macro_newtype::FromInner,
+    proc_macro_newtype_as_ref_inner::AsRefInner,
+    proc_macro_newtype_from_inner::FromInner,
 )]
 pub(super) struct PathRef<'path_lt>(&'path_lt std::path::Path);
 #[derive(
     proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Debug,
     Clone,
-    proc_macro_newtype::AsRefOwned,
-    proc_macro_newtype::FromInner,
+    proc_macro_newtype_as_ref_owned::AsRefOwned,
+    proc_macro_newtype_from_inner::FromInner,
 )]
 pub(super) struct SynFile(syn::File);
 #[derive(
@@ -317,8 +317,8 @@ pub(super) struct SynFile(syn::File);
     Debug,
     Clone,
     Copy,
-    proc_macro_newtype::AsRefInner,
-    proc_macro_newtype::FromInner,
+    proc_macro_newtype_as_ref_inner::AsRefInner,
+    proc_macro_newtype_from_inner::FromInner,
 )]
 pub(super) struct SynFileRef<'syn_lt>(&'syn_lt syn::File);
 #[derive(
@@ -326,8 +326,8 @@ pub(super) struct SynFileRef<'syn_lt>(&'syn_lt syn::File);
     Debug,
     Clone,
     Copy,
-    proc_macro_newtype::AsRefInner,
-    proc_macro_newtype::FromInner,
+    proc_macro_newtype_as_ref_inner::AsRefInner,
+    proc_macro_newtype_from_inner::FromInner,
 )]
 pub(super) struct SynAttributeRef<'syn_lt>(&'syn_lt syn::Attribute);
 #[derive(
@@ -335,8 +335,8 @@ pub(super) struct SynAttributeRef<'syn_lt>(&'syn_lt syn::Attribute);
     Debug,
     Clone,
     Copy,
-    proc_macro_newtype::AsRefInner,
-    proc_macro_newtype::FromInner,
+    proc_macro_newtype_as_ref_inner::AsRefInner,
+    proc_macro_newtype_from_inner::FromInner,
 )]
 pub(super) struct SynAttributeListRef<'syn_lt>(&'syn_lt [syn::Attribute]);
 #[derive(
@@ -344,9 +344,9 @@ pub(super) struct SynAttributeListRef<'syn_lt>(&'syn_lt [syn::Attribute]);
     Debug,
     Clone,
     Copy,
-    proc_macro_newtype::AsRefInner,
-    proc_macro_newtype::FromInner,
-    proc_macro_newtype::GetInner,
+    proc_macro_newtype_as_ref_inner::AsRefInner,
+    proc_macro_newtype_from_inner::FromInner,
+    proc_macro_newtype_get_inner::GetInner,
 )]
 pub(super) struct SynExprCallRef<'syn_lt>(&'syn_lt syn::ExprCall);
 #[derive(
@@ -354,8 +354,8 @@ pub(super) struct SynExprCallRef<'syn_lt>(&'syn_lt syn::ExprCall);
     Debug,
     Clone,
     Copy,
-    proc_macro_newtype::AsRefInner,
-    proc_macro_newtype::FromInner,
+    proc_macro_newtype_as_ref_inner::AsRefInner,
+    proc_macro_newtype_from_inner::FromInner,
 )]
 pub(super) struct SynFieldsRef<'syn_lt>(&'syn_lt syn::Fields);
 #[derive(
@@ -363,8 +363,8 @@ pub(super) struct SynFieldsRef<'syn_lt>(&'syn_lt syn::Fields);
     Debug,
     Clone,
     Copy,
-    proc_macro_newtype::AsRefInner,
-    proc_macro_newtype::FromInner,
+    proc_macro_newtype_as_ref_inner::AsRefInner,
+    proc_macro_newtype_from_inner::FromInner,
 )]
 pub(super) struct SynGenericsRef<'syn_lt>(&'syn_lt syn::Generics);
 #[derive(
@@ -372,8 +372,8 @@ pub(super) struct SynGenericsRef<'syn_lt>(&'syn_lt syn::Generics);
     Debug,
     Clone,
     Copy,
-    proc_macro_newtype::AsRefInner,
-    proc_macro_newtype::FromInner,
+    proc_macro_newtype_as_ref_inner::AsRefInner,
+    proc_macro_newtype_from_inner::FromInner,
 )]
 pub(super) struct SynItemImplRef<'syn_lt>(&'syn_lt syn::ItemImpl);
 #[derive(
@@ -381,8 +381,8 @@ pub(super) struct SynItemImplRef<'syn_lt>(&'syn_lt syn::ItemImpl);
     Debug,
     Clone,
     Copy,
-    proc_macro_newtype::AsRefInner,
-    proc_macro_newtype::FromInner,
+    proc_macro_newtype_as_ref_inner::AsRefInner,
+    proc_macro_newtype_from_inner::FromInner,
 )]
 pub(super) struct SynItemFnRef<'syn_lt>(&'syn_lt syn::ItemFn);
 #[derive(
@@ -390,8 +390,8 @@ pub(super) struct SynItemFnRef<'syn_lt>(&'syn_lt syn::ItemFn);
     Debug,
     Clone,
     Copy,
-    proc_macro_newtype::AsRefInner,
-    proc_macro_newtype::FromInner,
+    proc_macro_newtype_as_ref_inner::AsRefInner,
+    proc_macro_newtype_from_inner::FromInner,
 )]
 pub(super) struct SynItemRef<'syn_lt>(&'syn_lt syn::Item);
 #[derive(
@@ -399,8 +399,8 @@ pub(super) struct SynItemRef<'syn_lt>(&'syn_lt syn::Item);
     Debug,
     Clone,
     Copy,
-    proc_macro_newtype::AsRefInner,
-    proc_macro_newtype::FromInner,
+    proc_macro_newtype_as_ref_inner::AsRefInner,
+    proc_macro_newtype_from_inner::FromInner,
 )]
 pub(super) struct SynItemStructRef<'syn_lt>(&'syn_lt syn::ItemStruct);
 #[derive(
@@ -408,9 +408,9 @@ pub(super) struct SynItemStructRef<'syn_lt>(&'syn_lt syn::ItemStruct);
     Debug,
     Clone,
     Copy,
-    proc_macro_newtype::AsRefInner,
-    proc_macro_newtype::FromInner,
-    proc_macro_newtype::GetInner,
+    proc_macro_newtype_as_ref_inner::AsRefInner,
+    proc_macro_newtype_from_inner::FromInner,
+    proc_macro_newtype_get_inner::GetInner,
 )]
 pub(super) struct SynPathArgumentsRef<'syn_lt>(&'syn_lt syn::PathArguments);
 #[derive(
@@ -418,9 +418,9 @@ pub(super) struct SynPathArgumentsRef<'syn_lt>(&'syn_lt syn::PathArguments);
     Debug,
     Clone,
     Copy,
-    proc_macro_newtype::AsRefInner,
-    proc_macro_newtype::FromInner,
-    proc_macro_newtype::GetInner,
+    proc_macro_newtype_as_ref_inner::AsRefInner,
+    proc_macro_newtype_from_inner::FromInner,
+    proc_macro_newtype_get_inner::GetInner,
 )]
 pub(super) struct SynPathSegmentRef<'syn_lt>(&'syn_lt syn::PathSegment);
 #[derive(
@@ -428,8 +428,8 @@ pub(super) struct SynPathSegmentRef<'syn_lt>(&'syn_lt syn::PathSegment);
     Debug,
     Clone,
     Copy,
-    proc_macro_newtype::AsRefInner,
-    proc_macro_newtype::FromInner,
+    proc_macro_newtype_as_ref_inner::AsRefInner,
+    proc_macro_newtype_from_inner::FromInner,
 )]
 pub(super) struct SynPathRef<'syn_lt>(&'syn_lt syn::Path);
 #[derive(
@@ -437,8 +437,8 @@ pub(super) struct SynPathRef<'syn_lt>(&'syn_lt syn::Path);
     Debug,
     Clone,
     Copy,
-    proc_macro_newtype::AsRefInner,
-    proc_macro_newtype::FromInner,
+    proc_macro_newtype_as_ref_inner::AsRefInner,
+    proc_macro_newtype_from_inner::FromInner,
 )]
 pub(super) struct SynSignatureRef<'syn_lt>(&'syn_lt syn::Signature);
 #[derive(
@@ -446,9 +446,9 @@ pub(super) struct SynSignatureRef<'syn_lt>(&'syn_lt syn::Signature);
     Debug,
     Clone,
     Copy,
-    proc_macro_newtype::AsRefInner,
-    proc_macro_newtype::FromInner,
-    proc_macro_newtype::GetInner,
+    proc_macro_newtype_as_ref_inner::AsRefInner,
+    proc_macro_newtype_from_inner::FromInner,
+    proc_macro_newtype_get_inner::GetInner,
 )]
 pub(super) struct SynTypePathRef<'syn_lt>(&'syn_lt syn::TypePath);
 #[derive(
@@ -456,9 +456,9 @@ pub(super) struct SynTypePathRef<'syn_lt>(&'syn_lt syn::TypePath);
     Debug,
     Clone,
     Copy,
-    proc_macro_newtype::AsRefInner,
-    proc_macro_newtype::FromInner,
-    proc_macro_newtype::GetInner,
+    proc_macro_newtype_as_ref_inner::AsRefInner,
+    proc_macro_newtype_from_inner::FromInner,
+    proc_macro_newtype_get_inner::GetInner,
 )]
 pub(super) struct SynTypeRef<'syn_lt>(&'syn_lt syn::Type);
 #[derive(
@@ -466,8 +466,8 @@ pub(super) struct SynTypeRef<'syn_lt>(&'syn_lt syn::Type);
     Debug,
     Clone,
     Copy,
-    proc_macro_newtype::AsRefInner,
-    proc_macro_newtype::FromInner,
+    proc_macro_newtype_as_ref_inner::AsRefInner,
+    proc_macro_newtype_from_inner::FromInner,
 )]
 pub(super) struct SynUseTreeRef<'syn_lt>(&'syn_lt syn::UseTree);
 #[derive(
@@ -475,17 +475,17 @@ pub(super) struct SynUseTreeRef<'syn_lt>(&'syn_lt syn::UseTree);
     Debug,
     Clone,
     Copy,
-    proc_macro_newtype::AsRefInner,
-    proc_macro_newtype::FromInner,
+    proc_macro_newtype_as_ref_inner::AsRefInner,
+    proc_macro_newtype_from_inner::FromInner,
 )]
 pub(super) struct SynIdentifierRef<'syn_lt>(&'syn_lt syn::Ident);
 #[derive(
     proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Debug,
     Clone,
-    proc_macro_newtype::AsRefOwned,
-    proc_macro_newtype::FromInner,
-    proc_macro_newtype::IntoInnerFrom,
+    proc_macro_newtype_as_ref_owned::AsRefOwned,
+    proc_macro_newtype_from_inner::FromInner,
+    proc_macro_newtype_into_inner_from::IntoInnerFrom,
 )]
 pub(super) struct TomlTable(toml::Table);
 #[derive(
@@ -493,9 +493,9 @@ pub(super) struct TomlTable(toml::Table);
     Debug,
     Clone,
     Copy,
-    proc_macro_newtype::AsRefInner,
-    proc_macro_newtype::FromInner,
-    proc_macro_newtype::GetInner,
+    proc_macro_newtype_as_ref_inner::AsRefInner,
+    proc_macro_newtype_from_inner::FromInner,
+    proc_macro_newtype_get_inner::GetInner,
 )]
 pub(super) struct TomlTableRef<'toml_lt>(&'toml_lt toml::value::Table);
 #[derive(
@@ -503,15 +503,15 @@ pub(super) struct TomlTableRef<'toml_lt>(&'toml_lt toml::value::Table);
     Debug,
     Clone,
     Copy,
-    proc_macro_newtype::AsRefInner,
-    proc_macro_newtype::FromInner,
-    proc_macro_newtype::GetInner,
+    proc_macro_newtype_as_ref_inner::AsRefInner,
+    proc_macro_newtype_from_inner::FromInner,
+    proc_macro_newtype_get_inner::GetInner,
 )]
 pub(super) struct TomlValueRef<'toml_lt>(&'toml_lt toml::Value);
 #[derive(
     proc_macro_getters::Getters,
     proc_macro_optimal_memory_layout::OptimalMemoryLayout,
-    proc_macro_newtype::FromInner,
-    proc_macro_newtype::IntoIterator,
+    proc_macro_newtype_from_inner::FromInner,
+    proc_macro_newtype_into_iterator::IntoIterator,
 )]
 pub(super) struct WalkdirWalkDir(walkdir::WalkDir);

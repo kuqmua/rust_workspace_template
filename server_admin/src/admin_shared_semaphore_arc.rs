@@ -2,7 +2,7 @@
     proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Debug,
-    proc_macro_newtype::FromInner,
+    proc_macro_newtype_from_inner::FromInner,
     proc_macro_getters::Getters,
 )]
 pub struct AdminSharedSemaphoreArc(std::sync::Arc<tokio::sync::Semaphore>);

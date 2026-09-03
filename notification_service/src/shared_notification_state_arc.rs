@@ -1,5 +1,7 @@
 #[derive(
-    proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, proc_macro_newtype::FromInner,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    proc_macro_newtype_from_inner::FromInner,
 )]
 pub(crate) struct SharedNotificationStateArc(
     std::sync::Arc<crate::notification_state::NotificationState>,

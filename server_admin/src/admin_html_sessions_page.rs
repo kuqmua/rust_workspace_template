@@ -1,4 +1,4 @@
-#[proc_macro_frontend_contract::route_error(AdminSessionsPageError)]
+#[proc_macro_frontend_contract_route_error::route_error(AdminSessionsPageError)]
 #[allow(
     clippy::single_call_fn,
     reason = "admin html sessions page remains a named owner because its boundary role is clearer and directly testable"

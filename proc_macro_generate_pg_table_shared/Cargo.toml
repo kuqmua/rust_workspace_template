@@ -1,0 +1,18 @@
+[package]
+edition.workspace = true
+name = "proc_macro_generate_pg_table_shared"
+version.workspace = true
+publish.workspace = true
+description.workspace = true
+repository.workspace = true
+
+license.workspace = true
+
+
+[dependencies]
+constants_str = { workspace = true }
+generate_pg_table_src = { workspace = true }
+macro_helpers = { workspace = true }
+proc-macro2 = { workspace = true }
+[lints]
+workspace = true

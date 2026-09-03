@@ -7,10 +7,10 @@
     Debug,
     Clone,
     Copy,
-    proc_macro_generate_pg_table::GeneratePgTable,
+    proc_macro_generate_pg_table_derive_generate_pg_table::GeneratePgTable,
     proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
-#[proc_macro_generate_pg_table::generate_pg_table_config{{
+#[proc_macro_generate_pg_table_generate_pg_table_config::generate_pg_table_config{{
     "api_mode": "ReadOnly",
     "db_table_name": "role_permissions",
     "create_exclude_fields": ["created_at"],

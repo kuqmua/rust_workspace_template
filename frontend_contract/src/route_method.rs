@@ -5,7 +5,7 @@
     Debug,
     Eq,
     PartialEq,
-    proc_macro_naming::EnumWithUnitFieldsToUpperSnakeCaseStr,
+    proc_macro_naming_enum_with_unit_fields_to_upper_snake_case_str::EnumWithUnitFieldsToUpperSnakeCaseStr,
 )]
 pub enum RouteMethod {
     Connect,

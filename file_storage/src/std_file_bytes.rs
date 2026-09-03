@@ -4,7 +4,7 @@
     Debug,
     Eq,
     PartialEq,
-    proc_macro_newtype::AsRefTarget,
+    proc_macro_newtype_as_ref_target::AsRefTarget,
 )]
 pub struct StdFileBytes(
     bounded_types::bounded_vec::BoundedVec<u8, 0, { crate::domain_types::MAXIMUM_FILE_BYTES }>,

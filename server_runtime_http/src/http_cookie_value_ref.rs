@@ -4,9 +4,9 @@
     Copy,
     Eq,
     PartialEq,
-    proc_macro_newtype::AsRefInner,
-    proc_macro_newtype::FromInner,
-    proc_macro_newtype::IntoInnerFrom,
+    proc_macro_newtype_as_ref_inner::AsRefInner,
+    proc_macro_newtype_from_inner::FromInner,
+    proc_macro_newtype_into_inner_from::IntoInnerFrom,
 )]
 pub struct HttpCookieValueRef<'value_lt>(&'value_lt str);
 

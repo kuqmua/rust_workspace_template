@@ -1,0 +1,17 @@
+[package]
+name = "proc_macro_generate_accessor_traits_for_struct_fields_generate_accessor_traits_for_struct_fields"
+version.workspace = true
+publish.workspace = true
+description.workspace = true
+repository.workspace = true
+license.workspace = true
+edition.workspace = true
+
+[lib]
+proc-macro = true
+
+[dependencies]
+proc_macro_generate_accessor_traits_for_struct_fields_shared = { workspace = true }
+
+[lints]
+workspace = true

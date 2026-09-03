@@ -9,8 +9,8 @@
     Debug,
     Eq,
     PartialEq,
-    proc_macro_newtype::GetInner,
-    proc_macro_newtype::TryFrom,
+    proc_macro_newtype_get_inner::GetInner,
+    proc_macro_newtype_try_from::TryFrom,
 )]
 #[try_from(
     error = crate::pg_table_idempotency_cleanup_value_try_from_i64_error::PgTableIdempotencyCleanupValueTryFromI64Error,

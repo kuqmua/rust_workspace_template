@@ -2,8 +2,8 @@
     proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Clone,
     Debug,
-    proc_macro_newtype::BoundedStringWrapper,
-    proc_macro_newtype::AsRefStr,
+    proc_macro_newtype_bounded_string_wrapper::BoundedStringWrapper,
+    proc_macro_newtype_as_ref_str::AsRefStr,
 )]
 #[bounded_string(max = constants_usize::VALUE_8_192, chars, serde, utoipa, validator = |value: &String| { let path = crate::admin_page_path_ref::AdminPagePathRef::from(value.as_str()); crate::admin_page::AdminPage::from_path(path).is_some() || crate::admin_data_table::AdminDataTable::from_frontend_path(path).is_some() }, description = "administrator default route")]
 pub struct AdminDefaultRoute(

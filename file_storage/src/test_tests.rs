@@ -236,6 +236,64 @@ async fn test_staged_upload_delete_and_rollback_preserve_transaction_boundaries(
             .expect(constants_str::DIAGNOSTIC_571084E8),
         [4u8, 5u8],
     );
+    let failed_relative_path = crate::storage_relative_path_buf::StorageRelativePathBuf::try_from(
+        std::path::PathBuf::from(constants_str::TEST_DISK_CACHE_OLD_PATH),
+    )
+    .expect(constants_str::DIAGNOSTIC_49FAEC3B);
+    tokio::fs::create_dir(root_path.join(failed_relative_path.as_ref()))
+        .await
+        .expect(constants_str::DIAGNOSTIC_5734F460);
+    let failed_operation_id = crate::std_storage_operation_id::StdStorageOperationId::try_from(
+        String::from(constants_str::TEST_STALE_STAGING_SECOND_OPERATION_ID),
+    )
+    .expect(constants_str::DIAGNOSTIC_55012796);
+    assert!(
+        storage
+            .atomic_replace(
+                &failed_operation_id,
+                &failed_relative_path,
+                &replacement_bytes,
+                crate::atomic_replace_durability::AtomicReplaceDurability::SyncAll,
+            )
+            .await
+            .is_err()
+    );
+    assert!(
+        !root_path
+            .join(constants_str::FILE_UPLOAD_STAGING_DIRECTORY)
+            .join(failed_operation_id.as_ref())
+            .exists()
+    );
+    #[cfg(unix)]
+    let () = {
+        let outside_path = root_path.with_extension(constants_str::TEST_FILE_STORAGE_OPERATION_ID);
+        match tokio::fs::remove_dir_all(&outside_path).await {
+            Ok(()) => {}
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound => {}
+            Err(error) => std::panic::panic_any(error),
+        }
+        tokio::fs::create_dir(&outside_path)
+            .await
+            .expect(constants_str::DIAGNOSTIC_E394BE93);
+        tokio::fs::remove_dir(root_path.join(constants_str::FILE_UPLOAD_STAGING_DIRECTORY))
+            .await
+            .expect(constants_str::DIAGNOSTIC_9AE571ED);
+        std::os::unix::fs::symlink(
+            &outside_path,
+            root_path.join(constants_str::FILE_UPLOAD_STAGING_DIRECTORY),
+        )
+        .expect(constants_str::DIAGNOSTIC_5574E967);
+        assert!(matches!(
+            storage
+                .stage_upload(&failed_operation_id, &replacement_bytes)
+                .await,
+            Err(crate::file_storage_error::FileStorageError::Symlink)
+        ));
+        assert!(!outside_path.join(failed_operation_id.as_ref()).exists());
+        tokio::fs::remove_dir_all(outside_path)
+            .await
+            .expect(constants_str::DIAGNOSTIC_7352F192);
+    };
     tokio::fs::remove_dir_all(root_path)
         .await
         .expect(constants_str::DIAGNOSTIC_9A69203B);

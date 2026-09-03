@@ -9,7 +9,7 @@
     Debug,
     Eq,
     PartialEq,
-    proc_macro_newtype::IntoInnerFrom,
+    proc_macro_newtype_into_inner_from::IntoInnerFrom,
 )]
 pub struct ListTotal(i64);
 

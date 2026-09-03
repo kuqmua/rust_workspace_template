@@ -5,7 +5,7 @@
     Debug,
     PartialEq,
     PartialOrd,
-    proc_macro_newtype::IntoInnerFrom,
+    proc_macro_newtype_into_inner_from::IntoInnerFrom,
 )]
 pub struct FiniteF64(f64);
 

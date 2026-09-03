@@ -4,8 +4,8 @@
     Clone,
     PartialEq,
     Eq,
-    proc_macro_newtype::DerefInner,
-    proc_macro_newtype::IntoInnerFrom,
+    proc_macro_newtype_deref_inner::DerefInner,
+    proc_macro_newtype_into_inner_from::IntoInnerFrom,
 )]
 pub struct StdEnvVarOk(String);
 impl From<crate::config_lib_string_wrapper_try_from_string_error::ConfigLibStringWrapperTryFromStringError> for StdEnvVarOk {

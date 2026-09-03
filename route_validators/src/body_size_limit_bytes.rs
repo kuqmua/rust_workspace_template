@@ -8,8 +8,8 @@
     serde::Serialize,
     serde::Deserialize,
     utoipa::ToSchema,
-    proc_macro_newtype::FromInner,
-    proc_macro_newtype::ToErrString,
+    proc_macro_newtype_from_inner::FromInner,
+    proc_macro_newtype_to_err_string::ToErrString,
 )]
 #[serde(from = "usize")]
 pub struct BodySizeLimitBytes(usize);

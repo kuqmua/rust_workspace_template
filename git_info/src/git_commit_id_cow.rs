@@ -4,8 +4,8 @@
     PartialEq,
     Eq,
     proc_macro_optimal_memory_layout::OptimalMemoryLayout,
-    proc_macro_newtype::AsRefStr,
-    proc_macro_newtype::IntoInnerFrom,
+    proc_macro_newtype_as_ref_str::AsRefStr,
+    proc_macro_newtype_into_inner_from::IntoInnerFrom,
 )]
 pub struct GitCommitIdCow<'commit_lt>(std::borrow::Cow<'commit_lt, str>);
 impl<'commit_lt> TryFrom<std::borrow::Cow<'commit_lt, str>> for GitCommitIdCow<'commit_lt> {

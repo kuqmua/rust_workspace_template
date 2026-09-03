@@ -51,26 +51,134 @@ members = [
   "pg_crud_where_filters_generate_test",
   "prepare_pg_databases",
   "proc_macro_bool_enum_to_tokens",
-  "proc_macro_config_lib",
-  "proc_macro_constants_str",
-  "proc_macro_frontend_contract",
-  "proc_macro_generate_accessor_traits_for_struct_fields",
+  "proc_macro_config_lib_assert_empty_parse_err_matches",
+  "proc_macro_config_lib_assert_parse_err_matches",
+  "proc_macro_config_lib_assert_parse_ok_matches",
+  "proc_macro_config_lib_impl_try_from_non_empty_string",
+  "proc_macro_config_lib_impl_try_from_parse",
+  "proc_macro_config_lib_impl_try_from_parse_string_error",
+  "proc_macro_config_lib_impl_try_from_secret_url",
+  "proc_macro_config_lib_shared",
+  "proc_macro_constants_str_shared",
+  "proc_macro_define_git_info_constants",
+  "proc_macro_define_str_constants",
+  "proc_macro_frontend_contract_api_operation_error",
+  "proc_macro_frontend_contract_derive_contract_struct_api",
+  "proc_macro_frontend_contract_derive_page_catalog",
+  "proc_macro_frontend_contract_derive_route_catalog",
+  "proc_macro_frontend_contract_derive_route_family",
+  "proc_macro_frontend_contract_derive_typed_route",
+  "proc_macro_frontend_contract_derive_unit_enum_catalog",
+  "proc_macro_frontend_contract_derive_unit_enum_index",
+  "proc_macro_frontend_contract_endpoint_registry",
+  "proc_macro_frontend_contract_route_error",
+  "proc_macro_frontend_contract_route_openapi",
+  "proc_macro_frontend_contract_route_operation",
+  "proc_macro_frontend_contract_route_registry",
+  "proc_macro_frontend_contract_shared",
+  "proc_macro_generate_accessor_traits_for_struct_fields_generate_accessor_trait",
+  "proc_macro_generate_accessor_traits_for_struct_fields_generate_accessor_traits_for_struct_fields",
+  "proc_macro_generate_accessor_traits_for_struct_fields_shared",
   "proc_macro_generate_derive_token_stream_builder",
-  "proc_macro_generate_pg_table",
+  "proc_macro_generate_pg_table_cm_error_variants",
+  "proc_macro_generate_pg_table_cm_logic",
+  "proc_macro_generate_pg_table_co_error_variants",
+  "proc_macro_generate_pg_table_co_logic",
+  "proc_macro_generate_pg_table_common_error_variants",
+  "proc_macro_generate_pg_table_common_logic",
+  "proc_macro_generate_pg_table_derive_generate_pg_table",
+  "proc_macro_generate_pg_table_dlo_error_variants",
+  "proc_macro_generate_pg_table_dlo_logic",
+  "proc_macro_generate_pg_table_dm_error_variants",
+  "proc_macro_generate_pg_table_dm_logic",
+  "proc_macro_generate_pg_table_generate_pg_table_config",
+  "proc_macro_generate_pg_table_rm_error_variants",
+  "proc_macro_generate_pg_table_rm_logic",
+  "proc_macro_generate_pg_table_ro_error_variants",
+  "proc_macro_generate_pg_table_ro_logic",
+  "proc_macro_generate_pg_table_shared",
+  "proc_macro_generate_pg_table_um_error_variants",
+  "proc_macro_generate_pg_table_um_logic",
+  "proc_macro_generate_pg_table_uo_error_variants",
+  "proc_macro_generate_pg_table_uo_logic",
   "proc_macro_generate_pg_types",
   "proc_macro_generate_where_filters",
   "proc_macro_getters",
   "proc_macro_impl_cfg_accessor",
-  "proc_macro_location",
   "proc_macro_location_bang",
-  "proc_macro_naming",
+  "proc_macro_location_derive_location",
+  "proc_macro_location_errors_with_location",
+  "proc_macro_location_shared",
+  "proc_macro_naming_as_ref_str_enum_with_unit_fields_to_snake_case_str",
+  "proc_macro_naming_as_ref_str_enum_with_unit_fields_to_upper_camel_case_str",
+  "proc_macro_naming_as_ref_str_enum_with_unit_fields_to_upper_snake_case_str",
   "proc_macro_naming_common",
+  "proc_macro_naming_enum_with_unit_fields_to_snake_case_str",
+  "proc_macro_naming_enum_with_unit_fields_to_upper_camel_case_str",
+  "proc_macro_naming_enum_with_unit_fields_to_upper_snake_case_str",
+  "proc_macro_naming_generate_self_upper_camel_case_and_snake_case_str_and_token_stream",
+  "proc_macro_naming_generate_upper_camel_case_and_snake_case_str_and_token_stream",
+  "proc_macro_naming_shared",
   "proc_macro_new",
-  "proc_macro_newtype",
-  "proc_macro_newtype_foundation",
+  "proc_macro_newtype_accessor",
+  "proc_macro_newtype_as_mut",
+  "proc_macro_newtype_as_ref",
+  "proc_macro_newtype_as_ref_inner",
+  "proc_macro_newtype_as_ref_owned",
+  "proc_macro_newtype_as_ref_str",
+  "proc_macro_newtype_as_ref_target",
+  "proc_macro_newtype_as_slice",
+  "proc_macro_newtype_borrow_inner",
+  "proc_macro_newtype_borrow_owned",
+  "proc_macro_newtype_borrow_path",
+  "proc_macro_newtype_borrow_str",
+  "proc_macro_newtype_bounded_string_wrapper",
+  "proc_macro_newtype_clone_fields",
+  "proc_macro_newtype_clone_inner",
+  "proc_macro_newtype_debug_display",
+  "proc_macro_newtype_debug_redacted",
+  "proc_macro_newtype_debug_transparent",
+  "proc_macro_newtype_default_inner",
+  "proc_macro_newtype_deref_inner",
+  "proc_macro_newtype_deref_mut_inner",
+  "proc_macro_newtype_deref_mut_target",
+  "proc_macro_newtype_deref_target",
+  "proc_macro_newtype_display",
+  "proc_macro_newtype_display_const",
+  "proc_macro_newtype_enum_from_str",
+  "proc_macro_newtype_foundation_foundation_as_ref_inner",
+  "proc_macro_newtype_foundation_foundation_from_inner",
+  "proc_macro_newtype_foundation_foundation_get_inner",
+  "proc_macro_newtype_foundation_foundation_to_tokens",
+  "proc_macro_newtype_foundation_shared",
+  "proc_macro_newtype_from_getter",
+  "proc_macro_newtype_from_inner",
+  "proc_macro_newtype_get_inner",
+  "proc_macro_newtype_into_inner",
+  "proc_macro_newtype_into_inner_from",
+  "proc_macro_newtype_into_iterator",
+  "proc_macro_newtype_into_vec",
+  "proc_macro_newtype_not_inner",
+  "proc_macro_newtype_partial_eq_inner",
+  "proc_macro_newtype_shared",
+  "proc_macro_newtype_tests",
+  "proc_macro_newtype_to_err_string",
+  "proc_macro_newtype_to_err_string_as_ref_str",
+  "proc_macro_newtype_to_err_string_debug",
+  "proc_macro_newtype_to_tokens",
+  "proc_macro_newtype_try_from",
+  "proc_macro_newtype_utoipa_schema",
+  "proc_macro_newtype_wire_enum",
   "proc_macro_optimal_memory_layout",
-  "proc_macro_to_err_string",
-  "proc_macro_token_patterns",
+  "proc_macro_to_err_string_impl_to_err_string_as_ref_str",
+  "proc_macro_to_err_string_impl_to_err_string_const",
+  "proc_macro_to_err_string_impl_to_err_string_with",
+  "proc_macro_to_err_string_shared",
+  "proc_macro_token_patterns_shared",
+  "proc_macro_token_patterns_tp",
+  "proc_macro_token_patterns_tp_batch",
+  "proc_macro_token_patterns_tp_parts",
+  "proc_macro_token_patterns_ts_path_fn",
   "proc_macro_trait_alias",
   "proc_macro_try_from_env",
   "route_validators",
@@ -135,6 +243,7 @@ regex = { version = "=1.13.1", default-features = false, features = [
 convert_case = { version = "=0.12.0", default-features = false }
 atomic-write-file = { version = "=0.3.1", default-features = false }
 base16ct = { version = "=1.0.0", default-features = false, features = ["alloc"] }
+cap-std = { version = "=4.0.3", default-features = false }
 cookie = { version = "=0.18.2", default-features = false }
 geojson = { version = "=1.0.0", default-features = false }
 ipnet = { version = "=2.12.1", default-features = false, features = ["std"] }
@@ -317,16 +426,58 @@ app_state = { path = "./app_state" }
 bounded_types = { path = "./bounded_types" }
 common_routes = { path = "./common_routes" }
 config_lib = { path = "./config_lib" }
-proc_macro_config_lib = { path = "./proc_macro_config_lib" }
+proc_macro_config_lib_shared = { path = "./proc_macro_config_lib_shared" }
+proc_macro_config_lib_impl_try_from_non_empty_string = { path = "./proc_macro_config_lib_impl_try_from_non_empty_string" }
+proc_macro_config_lib_impl_try_from_secret_url = { path = "./proc_macro_config_lib_impl_try_from_secret_url" }
+proc_macro_config_lib_impl_try_from_parse = { path = "./proc_macro_config_lib_impl_try_from_parse" }
+proc_macro_config_lib_impl_try_from_parse_string_error = { path = "./proc_macro_config_lib_impl_try_from_parse_string_error" }
+proc_macro_config_lib_assert_parse_ok_matches = { path = "./proc_macro_config_lib_assert_parse_ok_matches" }
+proc_macro_config_lib_assert_parse_err_matches = { path = "./proc_macro_config_lib_assert_parse_err_matches" }
+proc_macro_config_lib_assert_empty_parse_err_matches = { path = "./proc_macro_config_lib_assert_empty_parse_err_matches" }
 file_storage = { path = "./file_storage" }
 frontend_contract = { path = "./frontend_contract" }
 frontend_contract_validation = { path = "./frontend_contract_validation" }
-proc_macro_frontend_contract = { path = "./proc_macro_frontend_contract" }
+proc_macro_frontend_contract_shared = { path = "./proc_macro_frontend_contract_shared" }
+proc_macro_frontend_contract_endpoint_registry = { path = "./proc_macro_frontend_contract_endpoint_registry" }
+proc_macro_frontend_contract_route_openapi = { path = "./proc_macro_frontend_contract_route_openapi" }
+proc_macro_frontend_contract_derive_contract_struct_api = { path = "./proc_macro_frontend_contract_derive_contract_struct_api" }
+proc_macro_frontend_contract_route_registry = { path = "./proc_macro_frontend_contract_route_registry" }
+proc_macro_frontend_contract_api_operation_error = { path = "./proc_macro_frontend_contract_api_operation_error" }
+proc_macro_frontend_contract_route_error = { path = "./proc_macro_frontend_contract_route_error" }
+proc_macro_frontend_contract_route_operation = { path = "./proc_macro_frontend_contract_route_operation" }
+proc_macro_frontend_contract_derive_route_catalog = { path = "./proc_macro_frontend_contract_derive_route_catalog" }
+proc_macro_frontend_contract_derive_unit_enum_catalog = { path = "./proc_macro_frontend_contract_derive_unit_enum_catalog" }
+proc_macro_frontend_contract_derive_unit_enum_index = { path = "./proc_macro_frontend_contract_derive_unit_enum_index" }
+proc_macro_frontend_contract_derive_page_catalog = { path = "./proc_macro_frontend_contract_derive_page_catalog" }
+proc_macro_frontend_contract_derive_route_family = { path = "./proc_macro_frontend_contract_derive_route_family" }
+proc_macro_frontend_contract_derive_typed_route = { path = "./proc_macro_frontend_contract_derive_typed_route" }
 proc_macro_generate_derive_token_stream_builder = { path = "./proc_macro_generate_derive_token_stream_builder" }
-proc_macro_generate_accessor_traits_for_struct_fields = { path = "./proc_macro_generate_accessor_traits_for_struct_fields" }
+proc_macro_generate_accessor_traits_for_struct_fields_shared = { path = "./proc_macro_generate_accessor_traits_for_struct_fields_shared" }
+proc_macro_generate_accessor_traits_for_struct_fields_generate_accessor_traits_for_struct_fields = { path = "./proc_macro_generate_accessor_traits_for_struct_fields_generate_accessor_traits_for_struct_fields" }
+proc_macro_generate_accessor_traits_for_struct_fields_generate_accessor_trait = { path = "./proc_macro_generate_accessor_traits_for_struct_fields_generate_accessor_trait" }
 proc_macro_getters = { path = "./proc_macro_getters" }
 proc_macro_new = { path = "./proc_macro_new" }
-proc_macro_generate_pg_table = { path = "./proc_macro_generate_pg_table" }
+proc_macro_generate_pg_table_shared = { path = "./proc_macro_generate_pg_table_shared" }
+proc_macro_generate_pg_table_generate_pg_table_config = { path = "./proc_macro_generate_pg_table_generate_pg_table_config" }
+proc_macro_generate_pg_table_cm_error_variants = { path = "./proc_macro_generate_pg_table_cm_error_variants" }
+proc_macro_generate_pg_table_co_error_variants = { path = "./proc_macro_generate_pg_table_co_error_variants" }
+proc_macro_generate_pg_table_ro_error_variants = { path = "./proc_macro_generate_pg_table_ro_error_variants" }
+proc_macro_generate_pg_table_rm_error_variants = { path = "./proc_macro_generate_pg_table_rm_error_variants" }
+proc_macro_generate_pg_table_uo_error_variants = { path = "./proc_macro_generate_pg_table_uo_error_variants" }
+proc_macro_generate_pg_table_um_error_variants = { path = "./proc_macro_generate_pg_table_um_error_variants" }
+proc_macro_generate_pg_table_dlo_error_variants = { path = "./proc_macro_generate_pg_table_dlo_error_variants" }
+proc_macro_generate_pg_table_dm_error_variants = { path = "./proc_macro_generate_pg_table_dm_error_variants" }
+proc_macro_generate_pg_table_common_error_variants = { path = "./proc_macro_generate_pg_table_common_error_variants" }
+proc_macro_generate_pg_table_cm_logic = { path = "./proc_macro_generate_pg_table_cm_logic" }
+proc_macro_generate_pg_table_co_logic = { path = "./proc_macro_generate_pg_table_co_logic" }
+proc_macro_generate_pg_table_rm_logic = { path = "./proc_macro_generate_pg_table_rm_logic" }
+proc_macro_generate_pg_table_ro_logic = { path = "./proc_macro_generate_pg_table_ro_logic" }
+proc_macro_generate_pg_table_um_logic = { path = "./proc_macro_generate_pg_table_um_logic" }
+proc_macro_generate_pg_table_uo_logic = { path = "./proc_macro_generate_pg_table_uo_logic" }
+proc_macro_generate_pg_table_dm_logic = { path = "./proc_macro_generate_pg_table_dm_logic" }
+proc_macro_generate_pg_table_dlo_logic = { path = "./proc_macro_generate_pg_table_dlo_logic" }
+proc_macro_generate_pg_table_common_logic = { path = "./proc_macro_generate_pg_table_common_logic" }
+proc_macro_generate_pg_table_derive_generate_pg_table = { path = "./proc_macro_generate_pg_table_derive_generate_pg_table" }
 generate_pg_table_src = { path = "./pg_crud_pg_table_generate_src", default-features = false }
 proc_macro_generate_pg_types = { path = "./proc_macro_generate_pg_types" }
 generate_pg_types_src = { path = "./pg_crud_pg_types_generate_src", default-features = false }
@@ -337,15 +488,71 @@ git_info = { path = "./git_info" }
 init_env_files = { path = "./init_env_files" }
 location_lib = { path = "./location_lib" }
 proc_macro_location_bang = { path = "./proc_macro_location_bang" }
-proc_macro_location = { path = "./proc_macro_location" }
+proc_macro_location_shared = { path = "./proc_macro_location_shared" }
+proc_macro_location_errors_with_location = { path = "./proc_macro_location_errors_with_location" }
+proc_macro_location_derive_location = { path = "./proc_macro_location_derive_location" }
 macro_clippy_check_test_common = { path = "./macro_clippy_check_test_common", default-features = false }
 macro_helpers = { path = "./macro_helpers" }
 naming = { path = "./naming" }
 naming_common = { path = "./naming_naming_common" }
 proc_macro_naming_common = { path = "./proc_macro_naming_common" }
-proc_macro_naming = { path = "./proc_macro_naming" }
-proc_macro_newtype = { path = "./proc_macro_newtype" }
-proc_macro_newtype_foundation = { path = "./proc_macro_newtype_foundation" }
+proc_macro_naming_shared = { path = "./proc_macro_naming_shared" }
+proc_macro_naming_generate_upper_camel_case_and_snake_case_str_and_token_stream = { path = "./proc_macro_naming_generate_upper_camel_case_and_snake_case_str_and_token_stream" }
+proc_macro_naming_generate_self_upper_camel_case_and_snake_case_str_and_token_stream = { path = "./proc_macro_naming_generate_self_upper_camel_case_and_snake_case_str_and_token_stream" }
+proc_macro_naming_as_ref_str_enum_with_unit_fields_to_upper_camel_case_str = { path = "./proc_macro_naming_as_ref_str_enum_with_unit_fields_to_upper_camel_case_str" }
+proc_macro_naming_as_ref_str_enum_with_unit_fields_to_snake_case_str = { path = "./proc_macro_naming_as_ref_str_enum_with_unit_fields_to_snake_case_str" }
+proc_macro_naming_as_ref_str_enum_with_unit_fields_to_upper_snake_case_str = { path = "./proc_macro_naming_as_ref_str_enum_with_unit_fields_to_upper_snake_case_str" }
+proc_macro_naming_enum_with_unit_fields_to_snake_case_str = { path = "./proc_macro_naming_enum_with_unit_fields_to_snake_case_str" }
+proc_macro_naming_enum_with_unit_fields_to_upper_camel_case_str = { path = "./proc_macro_naming_enum_with_unit_fields_to_upper_camel_case_str" }
+proc_macro_naming_enum_with_unit_fields_to_upper_snake_case_str = { path = "./proc_macro_naming_enum_with_unit_fields_to_upper_snake_case_str" }
+proc_macro_newtype_shared = { path = "./proc_macro_newtype_shared" }
+proc_macro_newtype_as_mut = { path = "./proc_macro_newtype_as_mut" }
+proc_macro_newtype_as_ref = { path = "./proc_macro_newtype_as_ref" }
+proc_macro_newtype_as_ref_inner = { path = "./proc_macro_newtype_as_ref_inner" }
+proc_macro_newtype_as_ref_owned = { path = "./proc_macro_newtype_as_ref_owned" }
+proc_macro_newtype_as_ref_str = { path = "./proc_macro_newtype_as_ref_str" }
+proc_macro_newtype_as_ref_target = { path = "./proc_macro_newtype_as_ref_target" }
+proc_macro_newtype_as_slice = { path = "./proc_macro_newtype_as_slice" }
+proc_macro_newtype_borrow_inner = { path = "./proc_macro_newtype_borrow_inner" }
+proc_macro_newtype_borrow_owned = { path = "./proc_macro_newtype_borrow_owned" }
+proc_macro_newtype_borrow_path = { path = "./proc_macro_newtype_borrow_path" }
+proc_macro_newtype_borrow_str = { path = "./proc_macro_newtype_borrow_str" }
+proc_macro_newtype_clone_inner = { path = "./proc_macro_newtype_clone_inner" }
+proc_macro_newtype_clone_fields = { path = "./proc_macro_newtype_clone_fields" }
+proc_macro_newtype_debug_redacted = { path = "./proc_macro_newtype_debug_redacted" }
+proc_macro_newtype_debug_transparent = { path = "./proc_macro_newtype_debug_transparent" }
+proc_macro_newtype_deref_inner = { path = "./proc_macro_newtype_deref_inner" }
+proc_macro_newtype_deref_mut_inner = { path = "./proc_macro_newtype_deref_mut_inner" }
+proc_macro_newtype_deref_mut_target = { path = "./proc_macro_newtype_deref_mut_target" }
+proc_macro_newtype_deref_target = { path = "./proc_macro_newtype_deref_target" }
+proc_macro_newtype_display = { path = "./proc_macro_newtype_display" }
+proc_macro_newtype_default_inner = { path = "./proc_macro_newtype_default_inner" }
+proc_macro_newtype_debug_display = { path = "./proc_macro_newtype_debug_display" }
+proc_macro_newtype_display_const = { path = "./proc_macro_newtype_display_const" }
+proc_macro_newtype_from_inner = { path = "./proc_macro_newtype_from_inner" }
+proc_macro_newtype_from_getter = { path = "./proc_macro_newtype_from_getter" }
+proc_macro_newtype_accessor = { path = "./proc_macro_newtype_accessor" }
+proc_macro_newtype_get_inner = { path = "./proc_macro_newtype_get_inner" }
+proc_macro_newtype_into_inner = { path = "./proc_macro_newtype_into_inner" }
+proc_macro_newtype_into_inner_from = { path = "./proc_macro_newtype_into_inner_from" }
+proc_macro_newtype_into_iterator = { path = "./proc_macro_newtype_into_iterator" }
+proc_macro_newtype_into_vec = { path = "./proc_macro_newtype_into_vec" }
+proc_macro_newtype_not_inner = { path = "./proc_macro_newtype_not_inner" }
+proc_macro_newtype_partial_eq_inner = { path = "./proc_macro_newtype_partial_eq_inner" }
+proc_macro_newtype_to_tokens = { path = "./proc_macro_newtype_to_tokens" }
+proc_macro_newtype_to_err_string = { path = "./proc_macro_newtype_to_err_string" }
+proc_macro_newtype_to_err_string_as_ref_str = { path = "./proc_macro_newtype_to_err_string_as_ref_str" }
+proc_macro_newtype_to_err_string_debug = { path = "./proc_macro_newtype_to_err_string_debug" }
+proc_macro_newtype_try_from = { path = "./proc_macro_newtype_try_from" }
+proc_macro_newtype_enum_from_str = { path = "./proc_macro_newtype_enum_from_str" }
+proc_macro_newtype_utoipa_schema = { path = "./proc_macro_newtype_utoipa_schema" }
+proc_macro_newtype_wire_enum = { path = "./proc_macro_newtype_wire_enum" }
+proc_macro_newtype_bounded_string_wrapper = { path = "./proc_macro_newtype_bounded_string_wrapper" }
+proc_macro_newtype_foundation_shared = { path = "./proc_macro_newtype_foundation_shared" }
+proc_macro_newtype_foundation_foundation_as_ref_inner = { path = "./proc_macro_newtype_foundation_foundation_as_ref_inner" }
+proc_macro_newtype_foundation_foundation_from_inner = { path = "./proc_macro_newtype_foundation_foundation_from_inner" }
+proc_macro_newtype_foundation_foundation_get_inner = { path = "./proc_macro_newtype_foundation_foundation_get_inner" }
+proc_macro_newtype_foundation_foundation_to_tokens = { path = "./proc_macro_newtype_foundation_foundation_to_tokens" }
 notification_service = { path = "./notification_service" }
 notification_service_config = { path = "./notification_service_config" }
 notification_service_contract = { path = "./notification_service_contract" }
@@ -380,11 +587,20 @@ dev_identity_creation_planner = { path = "./dev_identity_creation_planner" }
 prepare_pg_databases = { path = "./prepare_pg_databases" }
 external_service_emulators = { path = "./external_service_emulators" }
 constants_str = { path = "./constants_str" }
-proc_macro_constants_str = { path = "./proc_macro_constants_str" }
+proc_macro_constants_str_shared = { path = "./proc_macro_constants_str_shared" }
+proc_macro_define_git_info_constants = { path = "./proc_macro_define_git_info_constants" }
+proc_macro_define_str_constants = { path = "./proc_macro_define_str_constants" }
 to_err_string = { path = "./to_err_string" }
-proc_macro_to_err_string = { path = "./proc_macro_to_err_string" }
+proc_macro_to_err_string_shared = { path = "./proc_macro_to_err_string_shared" }
+proc_macro_to_err_string_impl_to_err_string_with = { path = "./proc_macro_to_err_string_impl_to_err_string_with" }
+proc_macro_to_err_string_impl_to_err_string_const = { path = "./proc_macro_to_err_string_impl_to_err_string_const" }
+proc_macro_to_err_string_impl_to_err_string_as_ref_str = { path = "./proc_macro_to_err_string_impl_to_err_string_as_ref_str" }
 token_patterns = { path = "./token_patterns", default-features = false }
-proc_macro_token_patterns = { path = "./proc_macro_token_patterns" }
+proc_macro_token_patterns_shared = { path = "./proc_macro_token_patterns_shared" }
+proc_macro_token_patterns_tp = { path = "./proc_macro_token_patterns_tp" }
+proc_macro_token_patterns_tp_parts = { path = "./proc_macro_token_patterns_tp_parts" }
+proc_macro_token_patterns_ts_path_fn = { path = "./proc_macro_token_patterns_ts_path_fn" }
+proc_macro_token_patterns_tp_batch = { path = "./proc_macro_token_patterns_tp_batch" }
 constants_u128 = { path = "./constants_u128" }
 constants_u16 = { path = "./constants_u16" }
 constants_u32 = { path = "./constants_u32" }

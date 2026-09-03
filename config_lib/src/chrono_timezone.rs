@@ -4,9 +4,9 @@
     Copy,
     PartialEq,
     Eq,
-    proc_macro_generate_accessor_traits_for_struct_fields::GenerateAccessorTrait,
+    proc_macro_generate_accessor_traits_for_struct_fields_generate_accessor_trait::GenerateAccessorTrait,
     proc_macro_optimal_memory_layout::OptimalMemoryLayout,
-    proc_macro_newtype::DerefInner,
+    proc_macro_newtype_deref_inner::DerefInner,
 )]
 pub struct ChronoTimezone(chrono::FixedOffset);
 impl TryFrom<chrono::FixedOffset> for ChronoTimezone {

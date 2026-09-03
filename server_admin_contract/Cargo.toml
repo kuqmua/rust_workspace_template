@@ -12,7 +12,12 @@ keywords = ["admin", "contract"]
 categories = ["web-programming"]
 
 [dependencies]
-proc_macro_naming = { workspace = true }
+proc_macro_frontend_contract_derive_typed_route = { workspace = true }
+proc_macro_newtype_get_inner = { workspace = true }
+proc_macro_newtype_from_inner = { workspace = true }
+proc_macro_newtype_into_inner_from = { workspace = true }
+proc_macro_newtype_as_ref_inner = { workspace = true }
+proc_macro_naming_enum_with_unit_fields_to_snake_case_str = { workspace = true }
 proc_macro_getters = { workspace = true }
 proc_macro_new = { workspace = true }
 constants_usize = { workspace = true }
@@ -20,8 +25,20 @@ proc_macro_optimal_memory_layout = { workspace = true }
 bounded_types = { workspace = true }
 constants_str = { workspace = true }
 frontend_contract = { workspace = true }
-proc_macro_frontend_contract = { workspace = true }
-proc_macro_newtype = { workspace = true }
+proc_macro_frontend_contract_derive_contract_struct_api = { workspace = true }
+proc_macro_frontend_contract_derive_route_catalog = { workspace = true }
+proc_macro_frontend_contract_derive_unit_enum_catalog = { workspace = true }
+proc_macro_frontend_contract_derive_unit_enum_index = { workspace = true }
+proc_macro_frontend_contract_derive_page_catalog = { workspace = true }
+proc_macro_newtype_as_ref_owned = { workspace = true }
+proc_macro_newtype_as_ref_str = { workspace = true }
+proc_macro_newtype_as_ref_target = { workspace = true }
+proc_macro_newtype_debug_redacted = { workspace = true }
+proc_macro_newtype_deref_target = { workspace = true }
+proc_macro_newtype_display = { workspace = true }
+proc_macro_newtype_into_inner = { workspace = true }
+proc_macro_newtype_wire_enum = { workspace = true }
+proc_macro_newtype_bounded_string_wrapper = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 strum_macros = { workspace = true }

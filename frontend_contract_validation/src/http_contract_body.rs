@@ -4,7 +4,7 @@
     Debug,
     Eq,
     PartialEq,
-    proc_macro_newtype::DerefInner,
+    proc_macro_newtype_deref_inner::DerefInner,
 )]
 pub struct HttpContractBody(
     bounded_types::bounded_vec::BoundedVec<u8, 0, { constants_usize::VALUE_16_777_216 }>,

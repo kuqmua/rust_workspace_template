@@ -8,11 +8,18 @@ license.workspace = true
 edition.workspace = true
 
 [dependencies]
+proc_macro_newtype_get_inner = { workspace = true }
+proc_macro_newtype_from_inner = { workspace = true }
 constants_usize = { workspace = true }
 proc_macro_optimal_memory_layout = { workspace = true }
 bounded_types = { workspace = true }
 frontend_contract = { workspace = true }
-proc_macro_newtype = { workspace = true }
+proc_macro_newtype_as_ref_str = { workspace = true }
+proc_macro_newtype_as_ref_target = { workspace = true }
+proc_macro_newtype_deref_inner = { workspace = true }
+proc_macro_newtype_debug_display = { workspace = true }
+proc_macro_newtype_try_from = { workspace = true }
+proc_macro_newtype_bounded_string_wrapper = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 constants_str = { workspace = true }

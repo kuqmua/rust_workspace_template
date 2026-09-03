@@ -3,8 +3,8 @@
     Debug,
     Clone,
     Copy,
-    proc_macro_newtype::AsRefStr,
-    proc_macro_newtype::FromInner,
+    proc_macro_newtype_as_ref_str::AsRefStr,
+    proc_macro_newtype_from_inner::FromInner,
 )]
 pub(crate) struct ExpectedFileContent<'content_lt>(&'content_lt str);
 

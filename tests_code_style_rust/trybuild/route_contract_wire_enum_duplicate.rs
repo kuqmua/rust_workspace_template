@@ -1,5 +1,5 @@
 #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
-#[derive(proc_macro_newtype::WireEnum)]
+#[derive(proc_macro_newtype_wire_enum::WireEnum)]
 #[wire_enum(ref_type = str, error_message = "invalid value")]
 enum DuplicateWireValue {
     #[wire("same")]

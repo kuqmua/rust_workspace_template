@@ -193,7 +193,7 @@ impl StringWrapperFromVisitor<'_> {
                 })
         }) {
             self.errors.push(format!(
-                        "string wrapper `{}` derives `proc_macro_newtype::FromInner`; derive `proc_macro_newtype::TryFrom` with a length check instead",
+                        "string wrapper `{}` derives `proc_macro_newtype_from_inner::FromInner`; derive `proc_macro_newtype_try_from::TryFrom` with a length check instead",
                         item_ref.ident
                     ));
         }

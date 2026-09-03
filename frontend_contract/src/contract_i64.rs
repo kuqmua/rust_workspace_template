@@ -5,7 +5,7 @@
     Debug,
     PartialEq,
     Eq,
-    proc_macro_newtype::FromInner,
+    proc_macro_newtype_from_inner::FromInner,
 )]
 pub struct ContractI64(i64);
 impl ContractI64 {

@@ -5,9 +5,9 @@
     serde::Serialize,
     serde::Deserialize,
     utoipa::ToSchema,
-    proc_macro_newtype::AsRefOwned,
-    proc_macro_newtype::Display,
-    proc_macro_newtype::IntoInnerFrom,
+    proc_macro_newtype_as_ref_owned::AsRefOwned,
+    proc_macro_newtype_display::Display,
+    proc_macro_newtype_into_inner_from::IntoInnerFrom,
 )]
 #[serde(try_from = "serde_json::Value", into = "serde_json::Value")]
 pub struct SerdeJsonAdminAuditDetails(serde_json::Value);

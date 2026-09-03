@@ -4,11 +4,11 @@
     Clone,
     PartialEq,
     Eq,
-    proc_macro_generate_accessor_traits_for_struct_fields::GenerateAccessorTrait,
+    proc_macro_generate_accessor_traits_for_struct_fields_generate_accessor_trait::GenerateAccessorTrait,
     serde::Deserialize,
     serde::Serialize,
-    proc_macro_newtype::BoundedStringWrapper,
-    proc_macro_newtype::AsRefOwned,
+    proc_macro_newtype_bounded_string_wrapper::BoundedStringWrapper,
+    proc_macro_newtype_as_ref_owned::AsRefOwned,
 )]
 #[bounded_string(max = 256, description = "administrator token audience")]
 #[serde(try_from = "String")]

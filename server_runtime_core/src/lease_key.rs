@@ -5,7 +5,7 @@
     Eq,
     Hash,
     PartialEq,
-    proc_macro_newtype::AsRefStr,
+    proc_macro_newtype_as_ref_str::AsRefStr,
 )]
 pub struct LeaseKey(String);
 impl TryFrom<String> for LeaseKey {

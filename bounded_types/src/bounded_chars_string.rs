@@ -7,9 +7,9 @@
     Ord,
     PartialEq,
     PartialOrd,
-    proc_macro_newtype::DerefInner,
-    proc_macro_newtype::Display,
-    proc_macro_newtype::IntoInner,
+    proc_macro_newtype_deref_inner::DerefInner,
+    proc_macro_newtype_display::Display,
+    proc_macro_newtype_into_inner::IntoInner,
 )]
 pub struct BoundedCharsString<const MIN: usize, const MAX: usize>(String);
 

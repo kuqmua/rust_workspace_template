@@ -3,7 +3,7 @@
     Clone,
     Copy,
     Debug,
-    proc_macro_newtype::AsRefStr,
-    proc_macro_newtype::FromInner,
+    proc_macro_newtype_as_ref_str::AsRefStr,
+    proc_macro_newtype_from_inner::FromInner,
 )]
 pub(super) struct TextRef<'text_lt>(&'text_lt str);

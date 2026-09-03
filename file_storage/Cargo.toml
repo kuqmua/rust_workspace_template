@@ -11,13 +11,19 @@ categories = ["filesystem"]
 edition.workspace = true
 
 [dependencies]
+proc_macro_newtype_get_inner = { workspace = true }
+proc_macro_newtype_from_inner = { workspace = true }
+proc_macro_newtype_into_inner_from = { workspace = true }
 proc_macro_getters = { workspace = true }
 proc_macro_new = { workspace = true }
 constants_usize = { workspace = true }
 constants_u64 = { workspace = true }
 proc_macro_optimal_memory_layout = { workspace = true }
 bounded_types = { workspace = true }
-proc_macro_newtype = { workspace = true }
+cap-std = { workspace = true }
+proc_macro_newtype_as_ref_str = { workspace = true }
+proc_macro_newtype_as_ref_target = { workspace = true }
+proc_macro_newtype_display = { workspace = true }
 constants_str = { workspace = true }
 text_policy = { workspace = true }
 thiserror = { workspace = true }
