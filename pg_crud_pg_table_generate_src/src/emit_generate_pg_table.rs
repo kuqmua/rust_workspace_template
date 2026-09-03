@@ -59,14 +59,14 @@ pub fn emit_generate_pg_table(
         proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     )]
     enum Operation {
-        Cm,
-        Co,
-        Rm,
-        Ro,
-        Um,
-        Uo,
-        Dm,
-        Dlo,
+        CreateMany,
+        CreateOne,
+        ReadMany,
+        ReadOne,
+        UpdateMany,
+        UpdateOne,
+        DeleteMany,
+        DeleteOne,
     }
     #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
     struct OperationAttrs {
@@ -76,35 +76,35 @@ pub fn emit_generate_pg_table(
     impl Operation {
         const fn attrs(self) -> OperationAttrs {
             match self {
-                Self::Cm => OperationAttrs {
+                Self::CreateMany => OperationAttrs {
                     error_variants: GeneratePgTableAttr::CmErrorVariants,
                     logic: GeneratePgTableAttr::CmLogic,
                 },
-                Self::Co => OperationAttrs {
+                Self::CreateOne => OperationAttrs {
                     error_variants: GeneratePgTableAttr::CoErrorVariants,
                     logic: GeneratePgTableAttr::CoLogic,
                 },
-                Self::Rm => OperationAttrs {
+                Self::ReadMany => OperationAttrs {
                     error_variants: GeneratePgTableAttr::RmErrorVariants,
                     logic: GeneratePgTableAttr::RmLogic,
                 },
-                Self::Ro => OperationAttrs {
+                Self::ReadOne => OperationAttrs {
                     error_variants: GeneratePgTableAttr::RoErrorVariants,
                     logic: GeneratePgTableAttr::RoLogic,
                 },
-                Self::Um => OperationAttrs {
+                Self::UpdateMany => OperationAttrs {
                     error_variants: GeneratePgTableAttr::UmErrorVariants,
                     logic: GeneratePgTableAttr::UmLogic,
                 },
-                Self::Uo => OperationAttrs {
+                Self::UpdateOne => OperationAttrs {
                     error_variants: GeneratePgTableAttr::UoErrorVariants,
                     logic: GeneratePgTableAttr::UoLogic,
                 },
-                Self::Dm => OperationAttrs {
+                Self::DeleteMany => OperationAttrs {
                     error_variants: GeneratePgTableAttr::DmErrorVariants,
                     logic: GeneratePgTableAttr::DmLogic,
                 },
-                Self::Dlo => OperationAttrs {
+                Self::DeleteOne => OperationAttrs {
                     error_variants: GeneratePgTableAttr::DloErrorVariants,
                     logic: GeneratePgTableAttr::DloLogic,
                 },
@@ -112,17 +112,24 @@ pub fn emit_generate_pg_table(
         }
         const fn desirable_status_code(self) -> macro_helpers::status_code::StatusCode {
             match self {
-                Self::Cm | Self::Co => macro_helpers::status_code::StatusCode::Created201,
-                Self::Rm | Self::Ro | Self::Um | Self::Uo | Self::Dm | Self::Dlo => {
-                    macro_helpers::status_code::StatusCode::Ok200
+                Self::CreateMany | Self::CreateOne => {
+                    macro_helpers::status_code::StatusCode::Created201
                 }
+                Self::ReadMany
+                | Self::ReadOne
+                | Self::UpdateMany
+                | Self::UpdateOne
+                | Self::DeleteMany
+                | Self::DeleteOne => macro_helpers::status_code::StatusCode::Ok200,
             }
         }
         const fn http_method(self) -> OperationHttpMethod {
             match self {
-                Self::Cm | Self::Co | Self::Rm | Self::Ro => OperationHttpMethod::Post,
-                Self::Um | Self::Uo => OperationHttpMethod::Patch,
-                Self::Dm | Self::Dlo => OperationHttpMethod::Delete,
+                Self::CreateMany | Self::CreateOne | Self::ReadMany | Self::ReadOne => {
+                    OperationHttpMethod::Post
+                }
+                Self::UpdateMany | Self::UpdateOne => OperationHttpMethod::Patch,
+                Self::DeleteMany | Self::DeleteOne => OperationHttpMethod::Delete,
             }
         }
         fn operation_error_with_serde_snake_case(
@@ -136,7 +143,7 @@ pub fn emit_generate_pg_table(
             naming::parameter::SelfPayloadExampleSnakeCase::from_display(&self)
         }
         fn self_snake_case_str(self) -> String {
-            naming_common::domain_types::AsRefStrToSnakeCaseStr::case(&self)
+            self.to_string().to_lowercase()
         }
         fn self_snake_case_token_stream(self) -> proc_macro2::TokenStream {
             let identifier = quote::format_ident!("{}", self.self_snake_case_str());
@@ -145,7 +152,12 @@ pub fn emit_generate_pg_table(
         const fn supports_idempotency(self) -> bool {
             matches!(
                 self,
-                Self::Cm | Self::Co | Self::Um | Self::Uo | Self::Dm | Self::Dlo
+                Self::CreateMany
+                    | Self::CreateOne
+                    | Self::UpdateMany
+                    | Self::UpdateOne
+                    | Self::DeleteMany
+                    | Self::DeleteOne
             )
         }
     }
@@ -155,14 +167,14 @@ pub fn emit_generate_pg_table(
                 formatter,
                 "{}",
                 match &self {
-                    Self::Cm => "Cm",
-                    Self::Co => "Co",
-                    Self::Rm => "Rm",
-                    Self::Ro => "Ro",
-                    Self::Um => "Um",
-                    Self::Uo => "Uo",
-                    Self::Dm => "Dm",
-                    Self::Dlo => "Dlo",
+                    Self::CreateMany => "Cm",
+                    Self::CreateOne => "Co",
+                    Self::ReadMany => "Rm",
+                    Self::ReadOne => "Ro",
+                    Self::UpdateMany => "Um",
+                    Self::UpdateOne => "Uo",
+                    Self::DeleteMany => "Dm",
+                    Self::DeleteOne => "Dlo",
                 }
             )
         }
@@ -170,34 +182,34 @@ pub fn emit_generate_pg_table(
     impl From<&CreateOrUpdateOrDm> for Operation {
         fn from(create_or_update_or_dm: &CreateOrUpdateOrDm) -> Self {
             match &create_or_update_or_dm {
-                CreateOrUpdateOrDm::Create => Self::Cm,
-                CreateOrUpdateOrDm::Update => Self::Um,
-                CreateOrUpdateOrDm::Delete => Self::Dm,
+                CreateOrUpdateOrDm::Create => Self::CreateMany,
+                CreateOrUpdateOrDm::Update => Self::UpdateMany,
+                CreateOrUpdateOrDm::Delete => Self::DeleteMany,
             }
         }
     }
     impl From<&RmOrDm> for Operation {
         fn from(rm_or_dm: &RmOrDm) -> Self {
             match &rm_or_dm {
-                RmOrDm::Rm => Self::Rm,
-                RmOrDm::Dm => Self::Dm,
+                RmOrDm::Rm => Self::ReadMany,
+                RmOrDm::Dm => Self::DeleteMany,
             }
         }
     }
     impl From<&RmOrRo> for Operation {
         fn from(rm_or_ro: &RmOrRo) -> Self {
             match &rm_or_ro {
-                RmOrRo::Rm => Self::Rm,
-                RmOrRo::Ro => Self::Ro,
+                RmOrRo::Rm => Self::ReadMany,
+                RmOrRo::Ro => Self::ReadOne,
             }
         }
     }
     impl From<&CreateOrUpdateOrDlo> for Operation {
         fn from(create_or_update_or_dlo: &CreateOrUpdateOrDlo) -> Self {
             match &create_or_update_or_dlo {
-                CreateOrUpdateOrDlo::Create => Self::Co,
-                CreateOrUpdateOrDlo::Update => Self::Uo,
-                CreateOrUpdateOrDlo::Delete => Self::Dlo,
+                CreateOrUpdateOrDlo::Create => Self::CreateOne,
+                CreateOrUpdateOrDlo::Update => Self::UpdateOne,
+                CreateOrUpdateOrDlo::Delete => Self::DeleteOne,
             }
         }
     }
@@ -238,14 +250,14 @@ pub fn emit_generate_pg_table(
         >
     {
         const ALL: [Self; 8] = [
-            Self::from_operation(Operation::Cm),
-            Self::from_operation(Operation::Co),
-            Self::from_operation(Operation::Rm),
-            Self::from_operation(Operation::Ro),
-            Self::from_operation(Operation::Um),
-            Self::from_operation(Operation::Uo),
-            Self::from_operation(Operation::Dm),
-            Self::from_operation(Operation::Dlo),
+            Self::from_operation(Operation::CreateMany),
+            Self::from_operation(Operation::CreateOne),
+            Self::from_operation(Operation::ReadMany),
+            Self::from_operation(Operation::ReadOne),
+            Self::from_operation(Operation::UpdateMany),
+            Self::from_operation(Operation::UpdateOne),
+            Self::from_operation(Operation::DeleteMany),
+            Self::from_operation(Operation::DeleteOne),
         ];
         const fn from_operation(operation: Operation) -> Self {
             Self::new(
@@ -257,34 +269,34 @@ pub fn emit_generate_pg_table(
                 },
                 operation,
                 match operation {
-                    Operation::Cm => PgTableOperationKind::CreateMany,
-                    Operation::Co => PgTableOperationKind::CreateOne,
-                    Operation::Dm => PgTableOperationKind::DeleteMany,
-                    Operation::Dlo => PgTableOperationKind::DeleteOne,
-                    Operation::Rm => PgTableOperationKind::ReadMany,
-                    Operation::Ro => PgTableOperationKind::ReadOne,
-                    Operation::Um => PgTableOperationKind::UpdateMany,
-                    Operation::Uo => PgTableOperationKind::UpdateOne,
+                    Operation::CreateMany => PgTableOperationKind::CreateMany,
+                    Operation::CreateOne => PgTableOperationKind::CreateOne,
+                    Operation::DeleteMany => PgTableOperationKind::DeleteMany,
+                    Operation::DeleteOne => PgTableOperationKind::DeleteOne,
+                    Operation::ReadMany => PgTableOperationKind::ReadMany,
+                    Operation::ReadOne => PgTableOperationKind::ReadOne,
+                    Operation::UpdateMany => PgTableOperationKind::UpdateMany,
+                    Operation::UpdateOne => PgTableOperationKind::UpdateOne,
                 },
                 match operation {
-                    Operation::Uo => crate::optimistic_concurrency_capability::OptimisticConcurrencyCapability::Enabled,
-                    Operation::Cm
-                    | Operation::Co
-                    | Operation::Dm
-                    | Operation::Dlo
-                    | Operation::Rm
-                    | Operation::Ro
-                    | Operation::Um => crate::optimistic_concurrency_capability::OptimisticConcurrencyCapability::Disabled,
+                    Operation::UpdateOne => crate::optimistic_concurrency_capability::OptimisticConcurrencyCapability::Enabled,
+                    Operation::CreateMany
+                    | Operation::CreateOne
+                    | Operation::DeleteMany
+                    | Operation::DeleteOne
+                    | Operation::ReadMany
+                    | Operation::ReadOne
+                    | Operation::UpdateMany => crate::optimistic_concurrency_capability::OptimisticConcurrencyCapability::Disabled,
                 },
                 match operation {
-                    Operation::Cm | Operation::Co => {
+                    Operation::CreateMany | Operation::CreateOne => {
                         constants_str::PG_CRUD_CREATE_PERMISSION_ACTION
                     }
-                    Operation::Rm | Operation::Ro => constants_str::PG_CRUD_READ_PERMISSION_ACTION,
-                    Operation::Um | Operation::Uo => {
+                    Operation::ReadMany | Operation::ReadOne => constants_str::PG_CRUD_READ_PERMISSION_ACTION,
+                    Operation::UpdateMany | Operation::UpdateOne => {
                         constants_str::PG_CRUD_UPDATE_PERMISSION_ACTION
                     }
-                    Operation::Dm | Operation::Dlo => {
+                    Operation::DeleteMany | Operation::DeleteOne => {
                         constants_str::PG_CRUD_DELETE_PERMISSION_ACTION
                     }
                 },
@@ -1623,33 +1635,39 @@ pub fn emit_generate_pg_table(
     let optimistic_revision_field_identifier = optimistic_revision_field_index
         .and_then(|field_index| fields.get(field_index))
         .map(|field| field.get_identifier().clone());
-    let operation_is_enabled =
-        |operation: &Operation| match generate_pg_table_input_model.config.api_mode {
-            GeneratePgTableApiMode::Crud => {
-                optimistic_revision_field_index.is_none() || !matches!(operation, Operation::Um)
-            }
-            GeneratePgTableApiMode::AppendOnly => matches!(
+    let operation_is_enabled = |operation: &Operation| match generate_pg_table_input_model
+        .config
+        .api_mode
+    {
+        GeneratePgTableApiMode::Crud => {
+            optimistic_revision_field_index.is_none() || !matches!(operation, Operation::UpdateMany)
+        }
+        GeneratePgTableApiMode::AppendOnly => matches!(
+            operation,
+            Operation::CreateMany | Operation::CreateOne | Operation::ReadMany | Operation::ReadOne
+        ),
+        GeneratePgTableApiMode::CreateReadDelete => {
+            matches!(
                 operation,
-                Operation::Cm | Operation::Co | Operation::Rm | Operation::Ro
-            ),
-            GeneratePgTableApiMode::CreateReadDelete => {
-                matches!(
-                    operation,
-                    Operation::Cm
-                        | Operation::Co
-                        | Operation::Rm
-                        | Operation::Ro
-                        | Operation::Dm
-                        | Operation::Dlo
-                )
-            }
-            GeneratePgTableApiMode::ReadOnly => matches!(operation, Operation::Rm | Operation::Ro),
-            GeneratePgTableApiMode::ReadUpdate => {
-                matches!(operation, Operation::Rm | Operation::Ro | Operation::Uo)
-                    || (optimistic_revision_field_index.is_none()
-                        && matches!(operation, Operation::Um))
-            }
-        };
+                Operation::CreateMany
+                    | Operation::CreateOne
+                    | Operation::ReadMany
+                    | Operation::ReadOne
+                    | Operation::DeleteMany
+                    | Operation::DeleteOne
+            )
+        }
+        GeneratePgTableApiMode::ReadOnly => {
+            matches!(operation, Operation::ReadMany | Operation::ReadOne)
+        }
+        GeneratePgTableApiMode::ReadUpdate => {
+            matches!(
+                operation,
+                Operation::ReadMany | Operation::ReadOne | Operation::UpdateOne
+            ) || (optimistic_revision_field_index.is_none()
+                && matches!(operation, Operation::UpdateMany))
+        }
+    };
     let mut frontend_field_order = frontend_fields
         .iter()
         .enumerate()
@@ -1702,21 +1720,21 @@ pub fn emit_generate_pg_table(
             };
             let creatable_token_stream = if *field_index != primary_key_field_index.get()
                 && !create_field_is_excluded(field)
-                && (operation_is_enabled(&Operation::Cm) || operation_is_enabled(&Operation::Co))
+                && (operation_is_enabled(&Operation::CreateMany) || operation_is_enabled(&Operation::CreateOne))
             {
                 quote::quote! {frontend_contract::field_capability::FieldCapability::Enabled}
             } else {
                 quote::quote! {frontend_contract::field_capability::FieldCapability::Disabled}
             };
             let readable_token_stream = if !read_field_is_excluded(field)
-                && (operation_is_enabled(&Operation::Rm) || operation_is_enabled(&Operation::Ro))
+                && (operation_is_enabled(&Operation::ReadMany) || operation_is_enabled(&Operation::ReadOne))
             {
                 quote::quote! {frontend_contract::field_capability::FieldCapability::Enabled}
             } else {
                 quote::quote! {frontend_contract::field_capability::FieldCapability::Disabled}
             };
             let updatable_token_stream = if *field_index != primary_key_field_index.get()
-                && (operation_is_enabled(&Operation::Um) || operation_is_enabled(&Operation::Uo))
+                && (operation_is_enabled(&Operation::UpdateMany) || operation_is_enabled(&Operation::UpdateOne))
             {
                 quote::quote! {frontend_contract::field_capability::FieldCapability::Enabled}
             } else {
@@ -3555,7 +3573,7 @@ enum WrapIntoOptional {
         quote::quote! {#identifier_try_operation_error}
     };
     let identifier_try_rm_error_upper_camel_case =
-        generate_identifier_try_operation_error_upper_camel_case(&Operation::Rm);
+        generate_identifier_try_operation_error_upper_camel_case(&Operation::ReadMany);
     let generate_identifier_operation_error_with_serde_upper_camel_case =
         |operation: &Operation| {
             generate_identifier_operation_suffix_token_stream(
@@ -4659,14 +4677,14 @@ enum WrapIntoOptional {
         };
     let generate_identifier_operation_payload_upper_camel_case =
         |operation: &Operation| match &operation {
-            Operation::Co => quote::quote! {#identifier_create_upper_camel_case},
-            Operation::Uo => quote::quote! {#identifier_update_upper_camel_case},
-            Operation::Cm
-            | Operation::Rm
-            | Operation::Ro
-            | Operation::Um
-            | Operation::Dm
-            | Operation::Dlo => generate_identifier_operation_suffix_token_stream(
+            Operation::CreateOne => quote::quote! {#identifier_create_upper_camel_case},
+            Operation::UpdateOne => quote::quote! {#identifier_update_upper_camel_case},
+            Operation::CreateMany
+            | Operation::ReadMany
+            | Operation::ReadOne
+            | Operation::UpdateMany
+            | Operation::DeleteMany
+            | Operation::DeleteOne => generate_identifier_operation_suffix_token_stream(
                 operation,
                 &PayloadUpperCamelCase.to_string(),
             ),
@@ -4678,12 +4696,16 @@ enum WrapIntoOptional {
     let generate_operation_result_type_token_stream =
         |operation: &Operation| -> &dyn quote::ToTokens {
             match operation {
-                Operation::Rm => &vec_struct_opts_identifier_token_stream,
-                Operation::Ro => &identifier_read_upper_camel_case,
-                Operation::Dm => &vec_primary_key_field_type_read_token_stream,
-                Operation::Dlo => &primary_key_field_type_as_pg_type_read_upper_camel_case,
-                Operation::Co | Operation::Uo => &identifier_read_ids_upper_camel_case,
-                Operation::Cm | Operation::Um => &vec_identifier_read_ids_token_stream,
+                Operation::ReadMany => &vec_struct_opts_identifier_token_stream,
+                Operation::ReadOne => &identifier_read_upper_camel_case,
+                Operation::DeleteMany => &vec_primary_key_field_type_read_token_stream,
+                Operation::DeleteOne => &primary_key_field_type_as_pg_type_read_upper_camel_case,
+                Operation::CreateOne | Operation::UpdateOne => {
+                    &identifier_read_ids_upper_camel_case
+                }
+                Operation::CreateMany | Operation::UpdateMany => {
+                    &vec_identifier_read_ids_token_stream
+                }
             }
         };
     let primary_key_field_type_origin_token_stream = if let syn::Type::Path(type_path) =
@@ -5158,15 +5180,15 @@ enum WrapIntoOptional {
                     .saturating_add(4usize),
             );
             accumulator.extend_from_slice(common_route_syn_variants.as_slice());
-            if let Operation::Rm | Operation::Ro = &operation {
+            if let Operation::ReadMany | Operation::ReadOne = &operation {
                 accumulator.push(GeneratePgTableVariantEmissionRef::Syn(
                     not_unique_field_syn_variant.variant(),
                 ));
             }
-            if let Operation::Cm | Operation::Rm | Operation::Ro | Operation::Co | Operation::Um | Operation::Uo | Operation::Dm = &operation {
+            if let Operation::CreateMany | Operation::ReadMany | Operation::ReadOne | Operation::CreateOne | Operation::UpdateMany | Operation::UpdateOne | Operation::DeleteMany = &operation {
                 accumulator.push(GeneratePgTableVariantEmissionRef::Syn(query_part_syn_variant.variant()));
             }
-            if let Operation::Cm | Operation::Dlo | Operation::Co | Operation::Um | Operation::Uo | Operation::Dm = &operation {
+            if let Operation::CreateMany | Operation::DeleteOne | Operation::CreateOne | Operation::UpdateMany | Operation::UpdateOne | Operation::DeleteMany = &operation {
                 accumulator.push(GeneratePgTableVariantEmissionRef::Syn(
                     row_and_rollback_syn_variant.variant(),
                 ));
@@ -5623,23 +5645,23 @@ enum WrapIntoOptional {
                         };
                     };
                     match &operation {
-                        Operation::Cm => quote::quote! {
+                        Operation::CreateMany => quote::quote! {
                             #parameters_logic_ts0
                             #bulk_reservation_token_stream
                         },
-                        Operation::Co
-                        | Operation::Rm
-                        | Operation::Ro
-                        | Operation::Dm
-                        | Operation::Dlo => parameters_logic_ts0,
-                        Operation::Um => quote::quote! {
+                        Operation::CreateOne
+                        | Operation::ReadMany
+                        | Operation::ReadOne
+                        | Operation::DeleteMany
+                        | Operation::DeleteOne => parameters_logic_ts0,
+                        Operation::UpdateMany => quote::quote! {
                             #parameters_logic_ts0
                             #bulk_reservation_token_stream
                             let #UpdateForQueryVecSnakeCase = #ParametersSnakeCase.#PayloadSnakeCase.into_vec().into_iter()
                             .map(#identifier_update_for_query_upper_camel_case::#FromHSnakeCase)
                             .collect::<Vec<#identifier_update_for_query_upper_camel_case>>();
                         },
-                        Operation::Uo => quote::quote! {
+                        Operation::UpdateOne => quote::quote! {
                             #parameters_logic_ts0
                             let #UpdateForQuerySnakeCase = #identifier_update_for_query_upper_camel_case::#FromHSnakeCase(#ParametersSnakeCase.#PayloadSnakeCase);
                         },
@@ -5706,7 +5728,7 @@ enum WrapIntoOptional {
                     let generate_select_only_updated_ids_query_part_token_stream =
                         |ts: &dyn quote::ToTokens| quote::quote! {#ts.#SelectOnlyUpdatedIdsQueryPartSnakeCase(&mut #IncrementSnakeCase)};
                     match &operation {
-                        Operation::Cm => {
+                        Operation::CreateMany => {
                             let if_write_is_err_token_stream = generate_if_write_is_err_short_token_stream(&quote::quote! {
                                 accumulator_8a58994e,
                                 "({v_f4fdd10d}),"
@@ -5736,7 +5758,7 @@ enum WrapIntoOptional {
                                 pg_table::pg_table_sql_fragment_ref::PgTableSqlFragmentRef::from(&#select_only_ids_query_part_token_stream)
                             )}
                         }
-                        Operation::Co => {
+                        Operation::CreateOne => {
                             let ts = generate_match_ok_err_update_token_stream(
                                 &quote::quote! {#ParametersSnakeCase.#PayloadSnakeCase.#CreateQueryPartSnakeCase(&mut 0)},
                                 &quote::quote! {v_3267d57d},
@@ -5750,7 +5772,7 @@ enum WrapIntoOptional {
                                 )
                             }
                         }
-                        Operation::Rm => {
+                        Operation::ReadMany => {
                             let select_query_part_parameters_payload_select_token_stream =
                                 generate_select_query_part_parameters_payload_select_token_stream(operation);
                             let extra_parameters_initialization_token_stream = generate_read_or_dm_extra_parameters_initialization_token_stream(
@@ -5834,7 +5856,7 @@ enum WrapIntoOptional {
                                 })
                             )}
                         }
-                        Operation::Ro => {
+                        Operation::ReadOne => {
                             let select_query_part_parameters_payload_select_token_stream =
                                 generate_select_query_part_parameters_payload_select_token_stream(operation);
                             let ts = generate_match_ok_err_update_token_stream(
@@ -5852,7 +5874,7 @@ enum WrapIntoOptional {
                                 pg_table::pg_table_sql_fragment_ref::PgTableSqlFragmentRef::from(&#ts)
                             )}
                         }
-                        Operation::Um => {
+                        Operation::UpdateMany => {
                             let generate_match_update_query_part_primary_key_operation_token_stream =
                                 |ts: &dyn quote::ToTokens| generate_match_update_query_part_primary_key_token_stream(operation, &ts);
                             let ts0 = generate_accumulator_string_pop_accumulator_token_stream(
@@ -5958,7 +5980,7 @@ enum WrapIntoOptional {
                                 }
                             }
                         }
-                        Operation::Uo => {
+                        Operation::UpdateOne => {
                             let extra_parameters_modification_token_stream = generate_fields_named_without_primary_key_without_comma_token_stream(
                                 &|element: &macro_helpers::syn_field::SynField| {
                                     let field = element.get_identifier();
@@ -6035,7 +6057,7 @@ enum WrapIntoOptional {
                                 }
                             }
                         }
-                        Operation::Dm => {
+                        Operation::DeleteMany => {
                             let extra_parameters_initialization_token_stream = generate_read_or_dm_extra_parameters_initialization_token_stream(
                                 &RmOrDm::Dm,
                             );
@@ -6048,7 +6070,7 @@ enum WrapIntoOptional {
                                 pg_table::pg_table_sql_fragment_ref::PgTableSqlFragmentRef::from(Self::#PrimaryKeySnakeCase()),
                             )}
                         }
-                        Operation::Dlo => quote::quote! {pg_table::generate_dlo_query_string::generate_dlo_query_string(
+                        Operation::DeleteOne => quote::quote! {pg_table::generate_dlo_query_string::generate_dlo_query_string(
                             pg_table::pg_table_name_ref::PgTableNameRef::from(#TableSnakeCase),
                             pg_table::pg_table_sql_fragment_ref::PgTableSqlFragmentRef::from(Self::#PrimaryKeySnakeCase()),
                         )},
@@ -6065,7 +6087,7 @@ enum WrapIntoOptional {
                             generate_match_query_bind_or_err_token_stream(&ts0, &ts1, &operation_error_initialization_try_bind_token_stream)
                         };
                     match &operation {
-                        Operation::Cm => {
+                        Operation::CreateMany => {
                             let ts = generate_match_query_bind_or_err_short_token_stream(
                                 &quote::quote! {element_7f862135.#CreateQueryBindSnakeCase(#import_token_stream sqlx_postgres_query::SqlxPostgresQuery::from(#QuerySnakeCase)).map(#import_token_stream sqlx_postgres_query::SqlxPostgresQuery::into_inner).map_err(|error| error.to_string())},
                                 &quote::quote! {v_011a3eb4},
@@ -6076,11 +6098,11 @@ enum WrapIntoOptional {
                                 }
                             }
                         }
-                        Operation::Co => generate_match_query_bind_or_err_short_token_stream(
+                        Operation::CreateOne => generate_match_query_bind_or_err_short_token_stream(
                             &quote::quote! {#ParametersSnakeCase.#PayloadSnakeCase.#CreateQueryBindSnakeCase(#import_token_stream sqlx_postgres_query::SqlxPostgresQuery::from(#QuerySnakeCase)).map(#import_token_stream sqlx_postgres_query::SqlxPostgresQuery::into_inner).map_err(|error| error.to_string())},
                             &quote::quote! {v_06f852cd},
                         ),
-                        Operation::Rm => {
+                        Operation::ReadMany => {
                             let query_pg_type_where_filter_query_bind_parameters_payload_where_query_token_stream = generate_query_pg_type_where_filter_query_bind_parameters_payload_where_query_token_stream(operation);
                             let ts = generate_match_query_bind_or_err_short_token_stream(
                                 &quote::quote! {#pg_crud_pg_type_where_filter_query_bind_token_stream(
@@ -6094,14 +6116,14 @@ enum WrapIntoOptional {
                                 #ts
                             }
                         }
-                        Operation::Ro => generate_match_query_bind_or_err_short_token_stream(
+                        Operation::ReadOne => generate_match_query_bind_or_err_short_token_stream(
                             &quote::quote! {#pg_crud_pg_type_where_filter_query_bind_token_stream(
                                 #ParametersSnakeCase.#PayloadSnakeCase.#primary_key_field_identifier,
                                 #import_token_stream sqlx_postgres_query::SqlxPostgresQuery::from(#QuerySnakeCase)
                             ).map(#import_token_stream sqlx_postgres_query::SqlxPostgresQuery::into_inner).map_err(|error| error.to_string())},
                             &quote::quote! {v_80ee6983},
                         ),
-                        Operation::Um => {
+                        Operation::UpdateMany => {
                             let fields_named_without_primary_key_update_assign_token_stream =
                                 generate_fields_named_without_primary_key_without_comma_token_stream(&|element: &macro_helpers::syn_field::SynField| {
                                     generate_for_element_in_update_for_query_vec_field_token_stream(
@@ -6162,7 +6184,7 @@ enum WrapIntoOptional {
                                 #binded_query_select_only_updated_ids_query_bind_token_stream
                             }
                         }
-                        Operation::Uo => {
+                        Operation::UpdateOne => {
                             let generate_binded_query_token_stream =
                                 |var_name, method_name| {
                                     generate_fields_named_without_primary_key_without_comma_token_stream(&|element: &macro_helpers::syn_field::SynField| {
@@ -6218,12 +6240,12 @@ enum WrapIntoOptional {
                                 #binded_optimistic_revision_token_stream
                             }
                         }
-                        Operation::Dm => {
+                        Operation::DeleteMany => {
                             generate_query_pg_type_where_filter_query_bind_parameters_payload_where_query_token_stream(
                                 operation,
                             )
                         }
-                        Operation::Dlo => generate_match_query_bind_or_err_short_token_stream(
+                        Operation::DeleteOne => generate_match_query_bind_or_err_short_token_stream(
                             &quote::quote! {#import_token_stream pg_type_where_filter::PgTypeWhereFilter::query_bind(
                                 #ParametersSnakeCase.#PayloadSnakeCase.#primary_key_field_identifier,
                                 #import_token_stream sqlx_postgres_query::SqlxPostgresQuery::from(#QuerySnakeCase)
@@ -6319,15 +6341,15 @@ enum WrapIntoOptional {
                             })
                         };
                     match &operation {
-                        Operation::Cm => wrap_into_pg_transaction_begin_commit_token_stream(
+                        Operation::CreateMany => wrap_into_pg_transaction_begin_commit_token_stream(
                             operation,
                             &generate_create_update_dm_fetch_token_stream(&CreateOrUpdateOrDm::Create),
                         ),
-                        Operation::Co => wrap_into_pg_transaction_begin_commit_token_stream(
+                        Operation::CreateOne => wrap_into_pg_transaction_begin_commit_token_stream(
                             operation,
                             &generate_create_update_dlo_fetch_token_stream(&CreateOrUpdateOrDlo::Create),
                         ),
-                        Operation::Rm => {
+                        Operation::ReadMany => {
                             let fetch_token_stream = generate_fetch_token_stream(
                                 &ExecutorAcquireSnakeCase,
                                 &{
@@ -6345,16 +6367,16 @@ enum WrapIntoOptional {
                                 #fetch_token_stream
                             }}
                         },
-                        Operation::Ro => generate_fetch_one_token_stream(
+                        Operation::ReadOne => generate_fetch_one_token_stream(
                             &ExecutorAcquireSnakeCase,
                             &generate_match_identifier_read_try_from_sqlx_pg_pg_row_with_not_empty_unique_vec_identifier_select_token_stream(&RmOrRo::Ro),
                             &generate_operation_error_initialization_eprintln_res_token_stream(operation, &pg_syn_variant, std::panic::Location::caller()),
                         ),
-                        Operation::Um => wrap_into_pg_transaction_begin_commit_token_stream(
+                        Operation::UpdateMany => wrap_into_pg_transaction_begin_commit_token_stream(
                             operation,
                             &generate_create_update_dm_fetch_token_stream(&CreateOrUpdateOrDm::Update),
                         ),
-                        Operation::Uo => {
+                        Operation::UpdateOne => {
                             if optimistic_concurrency_enabled {
                                 let rollback_error_token_stream = generate_match_pg_transaction_rollback_await_token_stream(
                                     operation,
@@ -6404,11 +6426,11 @@ enum WrapIntoOptional {
                                 )
                             }
                         }
-                        Operation::Dm => wrap_into_pg_transaction_begin_commit_token_stream(
+                        Operation::DeleteMany => wrap_into_pg_transaction_begin_commit_token_stream(
                             operation,
                             &generate_create_update_dm_fetch_token_stream(&CreateOrUpdateOrDm::Delete),
                         ),
-                        Operation::Dlo => wrap_into_pg_transaction_begin_commit_token_stream(
+                        Operation::DeleteOne => wrap_into_pg_transaction_begin_commit_token_stream(
                             operation,
                             &generate_create_update_dlo_fetch_token_stream(&CreateOrUpdateOrDlo::Delete),
                         ),
@@ -6524,17 +6546,17 @@ enum WrapIntoOptional {
                         let identifier_operation_payload_upper_camel_case = generate_identifier_operation_payload_upper_camel_case(operation);
                         let identifier_operation_payload_token_stream = {
                             let (derive_clone, derive_copy) = match operation {
-                                Operation::Cm
-                                | Operation::Co
-                                | Operation::Rm
-                                | Operation::Ro
-                                | Operation::Um
-                                | Operation::Uo
-                                | Operation::Dm => (
+                                Operation::CreateMany
+                                | Operation::CreateOne
+                                | Operation::ReadMany
+                                | Operation::ReadOne
+                                | Operation::UpdateMany
+                                | Operation::UpdateOne
+                                | Operation::DeleteMany => (
                                     macro_helpers::derive_token_stream_builder::DClone::False,
                                     macro_helpers::derive_token_stream_builder::DCopy::False,
                                 ),
-                                Operation::Dlo => (
+                                Operation::DeleteOne => (
                                     macro_helpers::derive_token_stream_builder::DClone::True,
                                     macro_helpers::derive_token_stream_builder::DCopy::False,
                                 ),
@@ -6545,7 +6567,7 @@ enum WrapIntoOptional {
                                 .d_clone_if(derive_clone)
                                 .d_copy_if(derive_copy)
                                 .d_serde_serialize();
-                            let payload_builder = if matches!(operation, Operation::Cm)
+                            let payload_builder = if matches!(operation, Operation::CreateMany)
                                 && generate_pg_table_input_model.config.cm_max_items.is_some()
                             {
                                 payload_builder_without_deserialize
@@ -6553,14 +6575,14 @@ enum WrapIntoOptional {
                                 payload_builder_without_deserialize.d_serde_deserialize()
                             };
                             let accessor_constructor_derives = match operation {
-                                Operation::Cm => proc_macro2::TokenStream::new(),
-                                Operation::Co
-                                | Operation::Rm
-                                | Operation::Ro
-                                | Operation::Um
-                                | Operation::Uo
-                                | Operation::Dm
-                                | Operation::Dlo => quote::quote! {
+                                Operation::CreateMany => proc_macro2::TokenStream::new(),
+                                Operation::CreateOne
+                                | Operation::ReadMany
+                                | Operation::ReadOne
+                                | Operation::UpdateMany
+                                | Operation::UpdateOne
+                                | Operation::DeleteMany
+                                | Operation::DeleteOne => quote::quote! {
                                     #[derive(proc_macro_getters::Getters, proc_macro_new::New)]
                                 },
                             };
@@ -6586,7 +6608,7 @@ enum WrapIntoOptional {
                         }
                     };
                 match &operation {
-                    Operation::Cm => {
+                    Operation::CreateMany => {
                         let identifier_operation_payload_upper_camel_case = generate_identifier_operation_payload_upper_camel_case(operation);
                         let vec_identifier_create_token_stream =
                             pg_crud_macro_common::generate_vec_tokens_declaration_token_stream::generate_vec_tokens_declaration_token_stream(&identifier_create_upper_camel_case);
@@ -6633,7 +6655,7 @@ enum WrapIntoOptional {
                             }
                         }
                     }
-                    Operation::Rm => generate_parameters_payload_and_default_token_stream(
+                    Operation::ReadMany => generate_parameters_payload_and_default_token_stream(
                         &quote::quote! {{
                             #pub_where_optional_identifier_where_token_stream,
                             #[schema(inline)]
@@ -6659,7 +6681,7 @@ enum WrapIntoOptional {
                             }}
                         },
                     ),
-                    Operation::Ro => generate_parameters_payload_and_default_token_stream(
+                    Operation::ReadOne => generate_parameters_payload_and_default_token_stream(
                         &{
                             let primary_key_field_token_stream =
                                 generate_primary_key_field_token_stream(
@@ -6679,7 +6701,7 @@ enum WrapIntoOptional {
                             }}
                         },
                     ),
-                    Operation::Um => {
+                    Operation::UpdateMany => {
                         let identifier_operation_payload_upper_camel_case = generate_identifier_operation_payload_upper_camel_case(operation);
                         let vec_identifier_update_token_stream = pg_crud_macro_common::generate_vec_tokens_declaration_token_stream::generate_vec_tokens_declaration_token_stream(&identifier_update_upper_camel_case);
                         let vec_identifier_update_schema_token_stream = generate_pg_table_input_model.config.um_max_items.map_or_else(
@@ -6782,11 +6804,11 @@ enum WrapIntoOptional {
                             #impl_pg_crud_default_some_one_element_for_operation_payload_token_stream
                         }
                     },
-                    Operation::Dm => generate_parameters_payload_and_default_token_stream(
+                    Operation::DeleteMany => generate_parameters_payload_and_default_token_stream(
                         &quote::quote! {{#pub_where_optional_identifier_where_token_stream}},
                         &quote::quote! {{#where_many_pg_crud_default_some_one_element_call_token_stream}},
                     ),
-                    Operation::Dlo => generate_parameters_payload_and_default_token_stream(
+                    Operation::DeleteOne => generate_parameters_payload_and_default_token_stream(
                         &{
                             let ts = generate_primary_key_field_token_stream(
                                 &naming::parameter::SelfReadUpperCamelCase::from_type_last_segment(primary_key_field_type),
@@ -6798,21 +6820,21 @@ enum WrapIntoOptional {
                             quote::quote! {{#ts}}
                         },
                     ),
-                    Operation::Co | Operation::Uo => proc_macro2::TokenStream::new(),
+                    Operation::CreateOne | Operation::UpdateOne => proc_macro2::TokenStream::new(),
                 }
             };
             let parameters_token_stream = {
                 let (derive_clone, derive_copy) = match operation {
-                    Operation::Co | Operation::Dlo => (
+                    Operation::CreateOne | Operation::DeleteOne => (
                         macro_helpers::derive_token_stream_builder::DClone::True,
                         macro_helpers::derive_token_stream_builder::DCopy::False,
                     ),
-                    Operation::Cm
-                    | Operation::Rm
-                    | Operation::Ro
-                    | Operation::Um
-                    | Operation::Uo
-                    | Operation::Dm => (
+                    Operation::CreateMany
+                    | Operation::ReadMany
+                    | Operation::ReadOne
+                    | Operation::UpdateMany
+                    | Operation::UpdateOne
+                    | Operation::DeleteMany => (
                         macro_helpers::derive_token_stream_builder::DClone::False,
                         macro_helpers::derive_token_stream_builder::DCopy::False,
                     ),
@@ -6997,7 +7019,7 @@ enum WrapIntoOptional {
                         .build_enum(&proc_macro2::TokenStream::new(), &generate_identifier_try_operation_error_upper_camel_case(operation), &proc_macro2::TokenStream::new(), &{
                         let mut syn_variants = Vec::with_capacity(common_http_req_syn_variants.len().saturating_add(constants_usize::ONE));
                         syn_variants.extend_from_slice(common_http_req_syn_variants.as_slice());
-                        if let Operation::Rm | Operation::Ro = &operation {
+                        if let Operation::ReadMany | Operation::ReadOne = &operation {
                             syn_variants.push(GeneratePgTableVariantEmissionRef::Syn(not_unique_field_syn_variant.variant()));
                         }
                         let identifier_operation_error_with_serde_upper_camel_case =
@@ -7668,7 +7690,7 @@ enum WrapIntoOptional {
                 identifier_snake_case_string,
                 operation.self_snake_case_str()
             );
-            let normalize_default_filter_token_stream = if matches!(operation, Operation::Rm | Operation::Dm) {
+            let normalize_default_filter_token_stream = if matches!(operation, Operation::ReadMany | Operation::DeleteMany) {
                 quote::quote! {
                     serialized.as_object_mut().expect("58c97ca7 collect_refs invariant must hold").insert(
                         "where_many".to_owned(),
@@ -7678,7 +7700,7 @@ enum WrapIntoOptional {
             } else {
                 proc_macro2::TokenStream::new()
             };
-            let mut_token_stream = matches!(operation, Operation::Rm | Operation::Dm).then(|| quote::quote! { mut });
+            let mut_token_stream = matches!(operation, Operation::ReadMany | Operation::DeleteMany).then(|| quote::quote! { mut });
             quote::quote! {
                 #[test]
                 fn #test_identifier() {
@@ -7691,7 +7713,7 @@ enum WrapIntoOptional {
                 }
             }
         });
-        let unknown_field_tests_token_stream = [Operation::Rm, Operation::Ro, Operation::Dm, Operation::Dlo].into_iter().map(|operation| {
+        let unknown_field_tests_token_stream = [Operation::ReadMany, Operation::ReadOne, Operation::DeleteMany, Operation::DeleteOne].into_iter().map(|operation| {
             let payload_type_token_stream = generate_identifier_operation_payload_upper_camel_case(&operation);
             let test_identifier = quote::format_ident!(
                 "{}_{}_payload_rejects_unknown_field",
@@ -7722,7 +7744,7 @@ enum WrapIntoOptional {
         let route_open_api_parity_test_identifier =
             quote::format_ident!("{}_route_open_api_parity", identifier_snake_case_string);
         let identifier_rm_payload_upper_camel_case =
-            generate_identifier_operation_payload_upper_camel_case(&Operation::Rm);
+            generate_identifier_operation_payload_upper_camel_case(&Operation::ReadMany);
         let route_open_api_parity_assertions_token_stream = crate::operation_descriptor::OperationDescriptor::ALL
             .iter()
             .filter(|operation_descriptor| operation_is_enabled(operation_descriptor.get_operation()))
@@ -7766,8 +7788,8 @@ enum WrapIntoOptional {
             }
         });
         let bulk_limit_tests_token_stream = [
-            (Operation::Cm, generate_pg_table_input_model.config.cm_max_items),
-            (Operation::Um, generate_pg_table_input_model.config.um_max_items),
+            (Operation::CreateMany, generate_pg_table_input_model.config.cm_max_items),
+            (Operation::UpdateMany, generate_pg_table_input_model.config.um_max_items),
         ]
         .into_iter()
         .filter_map(|(operation, optional_limit)| {
@@ -7979,21 +8001,21 @@ enum WrapIntoOptional {
                 &naming_common::domain_types::DisplayToSnakeCaseStr::case(&identifier),
             );
         let identifier_cm_parameters_upper_camel_case =
-            generate_identifier_operation_parameters_upper_camel_case(&Operation::Cm);
+            generate_identifier_operation_parameters_upper_camel_case(&Operation::CreateMany);
         let identifier_rm_parameters_upper_camel_case =
-            generate_identifier_operation_parameters_upper_camel_case(&Operation::Rm);
+            generate_identifier_operation_parameters_upper_camel_case(&Operation::ReadMany);
         let identifier_cm_payload_upper_camel_case =
-            generate_identifier_operation_payload_upper_camel_case(&Operation::Cm);
+            generate_identifier_operation_payload_upper_camel_case(&Operation::CreateMany);
         let identifier_rm_payload_upper_camel_case =
-            generate_identifier_operation_payload_upper_camel_case(&Operation::Rm);
+            generate_identifier_operation_payload_upper_camel_case(&Operation::ReadMany);
         let identifier_co_parameters_upper_camel_case =
-            generate_identifier_operation_parameters_upper_camel_case(&Operation::Co);
+            generate_identifier_operation_parameters_upper_camel_case(&Operation::CreateOne);
         let identifier_ro_parameters_upper_camel_case =
-            generate_identifier_operation_parameters_upper_camel_case(&Operation::Ro);
+            generate_identifier_operation_parameters_upper_camel_case(&Operation::ReadOne);
         let identifier_ro_payload_upper_camel_case =
-            generate_identifier_operation_payload_upper_camel_case(&Operation::Ro);
+            generate_identifier_operation_payload_upper_camel_case(&Operation::ReadOne);
         let identifier_uo_parameters_upper_camel_case =
-            generate_identifier_operation_parameters_upper_camel_case(&Operation::Uo);
+            generate_identifier_operation_parameters_upper_camel_case(&Operation::UpdateOne);
         let config_path_token_stream = quote::quote! {server_config::server_config::ServerConfig};
         let undrscr_unused_token_stream = quote::quote! {_unused};
 
