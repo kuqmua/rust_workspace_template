@@ -8,4 +8,4 @@
     proc_macro_newtype_from_inner::FromInner,
     proc_macro_getters::Getters,
 )]
-pub struct RuntimeAdminPasswordHashConcurrency(std::num::NonZeroUsize);
+pub struct RuntimeAdminPasswordHashConcurrency(#[getters(copy)] std::num::NonZeroUsize);

@@ -7,12 +7,8 @@ pub struct AdminGeneratedAuthLayer {
 impl From<crate::shared_admin_auth_svc_state_arc::SharedAdminAuthSvcStateArc>
     for AdminGeneratedAuthLayer
 {
-    fn from(
-        shared_admin_auth_svc_state_arc: crate::shared_admin_auth_svc_state_arc::SharedAdminAuthSvcStateArc,
-    ) -> Self {
-        Self {
-            state: shared_admin_auth_svc_state_arc,
-        }
+    fn from(value: crate::shared_admin_auth_svc_state_arc::SharedAdminAuthSvcStateArc) -> Self {
+        Self { state: value }
     }
 }
 impl<Service> tower::Layer<Service> for AdminGeneratedAuthLayer {

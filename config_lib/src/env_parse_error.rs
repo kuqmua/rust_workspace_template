@@ -20,7 +20,7 @@ pub(super) enum EnvParseError {
     },
 }
 impl From<crate::config_lib_string_wrapper_try_from_string_error::ConfigLibStringWrapperTryFromStringError> for EnvParseError {
-    fn from(config_lib_string_wrapper_try_from_string_error: crate::config_lib_string_wrapper_try_from_string_error::ConfigLibStringWrapperTryFromStringError) -> Self {
-        Self::ValueTooLong { source: config_lib_string_wrapper_try_from_string_error }
+    fn from(value: crate::config_lib_string_wrapper_try_from_string_error::ConfigLibStringWrapperTryFromStringError) -> Self {
+        Self::ValueTooLong { source: value }
     }
 }

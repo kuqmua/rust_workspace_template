@@ -14,7 +14,7 @@ pub struct RouteMetadataList(
 );
 impl TryFrom<Vec<crate::route_metadata::RouteMetadata>> for RouteMetadataList {
     type Error = bounded_types::bounded_value_error::BoundedValueError;
-    fn try_from(vec: Vec<crate::route_metadata::RouteMetadata>) -> Result<Self, Self::Error> {
-        bounded_types::bounded_vec::BoundedVec::try_from_collection_vec(vec).map(Self::from)
+    fn try_from(value: Vec<crate::route_metadata::RouteMetadata>) -> Result<Self, Self::Error> {
+        bounded_types::bounded_vec::BoundedVec::try_from_collection_vec(value).map(Self::from)
     }
 }

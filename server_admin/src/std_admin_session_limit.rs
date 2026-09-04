@@ -12,8 +12,8 @@ pub struct StdAdminSessionLimit(std::num::NonZeroUsize);
 impl TryFrom<usize> for StdAdminSessionLimit {
     type Error = crate::admin_auth_positive_value_error::AdminAuthPositiveValueError;
 
-    fn try_from(usize: usize) -> Result<Self, Self::Error> {
-        std::num::NonZeroUsize::new(usize)
+    fn try_from(value: usize) -> Result<Self, Self::Error> {
+        std::num::NonZeroUsize::new(value)
             .map(Self::from)
             .ok_or(crate::admin_auth_positive_value_error::AdminAuthPositiveValueError::Zero)
     }

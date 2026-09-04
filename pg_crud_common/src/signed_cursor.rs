@@ -15,11 +15,11 @@ impl SignedCursor {
 impl TryFrom<String> for SignedCursor {
     type Error = crate::signed_cursor_error::SignedCursorError;
 
-    fn try_from(string: String) -> Result<Self, Self::Error> {
-        if string.is_empty() || string.len() > Self::MAXIMUM_LENGTH {
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        if value.is_empty() || value.len() > Self::MAXIMUM_LENGTH {
             Err(crate::signed_cursor_error::SignedCursorError::Empty)
         } else {
-            Ok(Self(string))
+            Ok(Self(value))
         }
     }
 }

@@ -4,8 +4,8 @@ pub(crate) enum AdminHtmlFormKeyError {
     TooLong,
 }
 impl From<bounded_types::bounded_string_error::BoundedStringError> for AdminHtmlFormKeyError {
-    fn from(bounded_string_error: bounded_types::bounded_string_error::BoundedStringError) -> Self {
-        let _: bounded_types::bounded_string_error::BoundedStringError = bounded_string_error;
+    fn from(value: bounded_types::bounded_string_error::BoundedStringError) -> Self {
+        let _: bounded_types::bounded_string_error::BoundedStringError = value;
         Self::TooLong
     }
 }

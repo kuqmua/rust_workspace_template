@@ -6,11 +6,11 @@ pub struct HttpCspBuilder(String);
 impl TryFrom<String> for HttpCspBuilder {
     type Error = crate::http_csp_maximum_bytes_error::HttpCspMaximumBytesError;
 
-    fn try_from(string: String) -> Result<Self, Self::Error> {
-        if string.len() > constants_usize::VALUE_4_096 {
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        if value.len() > constants_usize::VALUE_4_096 {
             return Err(crate::http_csp_maximum_bytes_error::HttpCspMaximumBytesError::TooLarge);
         }
-        Ok(Self(string))
+        Ok(Self(value))
     }
 }
 

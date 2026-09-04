@@ -8,21 +8,21 @@
 pub struct PgTableQueryString(String);
 
 impl From<crate::pg_table_string_wrapper_try_from_string_error::PgTableStringWrapperTryFromStringError> for PgTableQueryString {
-    fn from(pg_table_string_wrapper_try_from_string_error: crate::pg_table_string_wrapper_try_from_string_error::PgTableStringWrapperTryFromStringError) -> Self {
-        Self(pg_table_string_wrapper_try_from_string_error.to_string())
+    fn from(value: crate::pg_table_string_wrapper_try_from_string_error::PgTableStringWrapperTryFromStringError) -> Self {
+        Self(value.to_string())
     }
 }
 
 impl TryFrom<String> for PgTableQueryString {
     type Error = crate::pg_table_string_wrapper_try_from_string_error::PgTableStringWrapperTryFromStringError;
 
-    fn try_from(string: String) -> Result<Self, Self::Error> {
-        if string.len() > crate::pg_tbl_string_wrapper_max_len::PG_TBL_STRING_WRAPPER_MAX_LEN {
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        if value.len() > crate::pg_tbl_string_wrapper_max_len::PG_TBL_STRING_WRAPPER_MAX_LEN {
             return Err(Self::Error::TooLong {
-                len: string.len(),
+                len: value.len(),
                 max: crate::pg_tbl_string_wrapper_max_len::PG_TBL_STRING_WRAPPER_MAX_LEN,
             });
         }
-        Ok(Self(string))
+        Ok(Self(value))
     }
 }

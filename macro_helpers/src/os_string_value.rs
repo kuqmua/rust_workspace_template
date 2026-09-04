@@ -5,7 +5,7 @@
 )]
 pub(super) struct OsStringValue(std::ffi::OsString);
 impl From<&str> for OsStringValue {
-    fn from(str: &str) -> Self {
-        Self(std::ffi::OsString::from(str))
+    fn from(value: &str) -> Self {
+        Self(std::ffi::OsString::from(value))
     }
 }

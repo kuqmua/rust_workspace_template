@@ -33,8 +33,8 @@ impl std::str::FromStr for LocationFieldAttr {
 impl TryFrom<&syn::Field> for LocationFieldAttr {
     type Error = String;
 
-    fn try_from(field: &syn::Field) -> Result<Self, Self::Error> {
-        let mut supported_attrs = field.attrs.iter().filter_map(|element| {
+    fn try_from(value: &syn::Field) -> Result<Self, Self::Error> {
+        let mut supported_attrs = value.attrs.iter().filter_map(|element| {
             if element.path().segments.len() != 1 {
                 return None;
             }

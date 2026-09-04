@@ -8,8 +8,8 @@ pub struct SecrecySecretBoxString(
 );
 impl TryFrom<String> for SecrecySecretBoxString {
     type Error = crate::std_config_secret_string::StdConfigSecretStringTryFromStringError;
-    fn try_from(string: String) -> Result<Self, Self::Error> {
-        crate::std_config_secret_string::StdConfigSecretString::try_from(string)
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        crate::std_config_secret_string::StdConfigSecretString::try_from(value)
             .map(|bounded| Self::from(secrecy::SecretBox::new(Box::new(bounded))))
     }
 }

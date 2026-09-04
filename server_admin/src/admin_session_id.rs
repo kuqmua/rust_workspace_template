@@ -12,4 +12,4 @@
 )]
 #[serde(from = "server_admin_core::uuid_admin_value::UuidAdminValue")]
 #[derive(proc_macro_getters::Getters)]
-pub struct AdminSessionId(server_admin_core::uuid_admin_value::UuidAdminValue);
+pub struct AdminSessionId(#[getters(copy)] server_admin_core::uuid_admin_value::UuidAdminValue);

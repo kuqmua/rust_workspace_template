@@ -10,10 +10,10 @@
 pub struct LeaseId(String);
 impl TryFrom<String> for LeaseId {
     type Error = crate::lease_text_error::LeaseTextError;
-    fn try_from(string: String) -> Result<Self, Self::Error> {
+    fn try_from(value: String) -> Result<Self, Self::Error> {
         crate::validate_lease_text::validate_lease_text(crate::lease_text_ref::LeaseTextRef::from(
-            string.as_str(),
+            value.as_str(),
         ))
-        .map(|()| Self(string))
+        .map(|()| Self(value))
     }
 }

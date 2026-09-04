@@ -9,12 +9,12 @@
 pub struct FileStorageRootPathBuf(std::path::PathBuf);
 impl TryFrom<std::path::PathBuf> for FileStorageRootPathBuf {
     type Error = crate::file_storage_path_error::FileStoragePathError;
-    fn try_from(path_buf: std::path::PathBuf) -> Result<Self, Self::Error> {
-        if path_buf.as_os_str().as_encoded_bytes().len() > crate::domain_types::MAXIMUM_PATH_BYTES {
+    fn try_from(value: std::path::PathBuf) -> Result<Self, Self::Error> {
+        if value.as_os_str().as_encoded_bytes().len() > crate::domain_types::MAXIMUM_PATH_BYTES {
             return Err(crate::file_storage_path_error::FileStoragePathError::PathTooLong);
         }
-        if path_buf.is_absolute() {
-            Ok(Self(path_buf))
+        if value.is_absolute() {
+            Ok(Self(value))
         } else {
             Err(crate::file_storage_path_error::FileStoragePathError::RootMustBeAbsolute)
         }

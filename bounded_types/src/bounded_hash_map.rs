@@ -114,11 +114,11 @@ impl<K: Eq + std::hash::Hash, V, const MAX: usize> TryFrom<std::collections::Has
 {
     type Error = crate::bounded_value_error::BoundedValueError;
 
-    fn try_from(hash_map: std::collections::HashMap<K, V>) -> Result<Self, Self::Error> {
+    fn try_from(value: std::collections::HashMap<K, V>) -> Result<Self, Self::Error> {
         crate::validate_len::validate_len::<0, MAX>(crate::bounded_len::BoundedLen::from(
-            hash_map.len(),
+            value.len(),
         ))
-        .map(|()| Self(hash_map))
+        .map(|()| Self(value))
     }
 }
 impl<K: Eq + std::hash::Hash + serde::Serialize, V: serde::Serialize, const MAX: usize>

@@ -72,12 +72,9 @@ impl TryFrom<crate::pagination_starts_with_zero_raw::PaginationStartsWithZeroRaw
         crate::pagination_starts_with_zero_try_new_error::PaginationStartsWithZeroTryNewError;
 
     fn try_from(
-        pagination_starts_with_zero_raw: crate::pagination_starts_with_zero_raw::PaginationStartsWithZeroRaw,
+        value: crate::pagination_starts_with_zero_raw::PaginationStartsWithZeroRaw,
     ) -> Result<Self, Self::Error> {
-        Self::try_new(
-            *pagination_starts_with_zero_raw.get_limit(),
-            *pagination_starts_with_zero_raw.get_offset(),
-        )
+        Self::try_new(*value.get_limit(), *value.get_offset())
     }
 }
 

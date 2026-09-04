@@ -7,11 +7,9 @@ impl From<crate::shared_http_metrics_path_cache_arc::SharedHttpMetricsPathCacheA
     for HttpMetricsTowerLayer
 {
     fn from(
-        shared_http_metrics_path_cache_arc: crate::shared_http_metrics_path_cache_arc::SharedHttpMetricsPathCacheArc,
+        value: crate::shared_http_metrics_path_cache_arc::SharedHttpMetricsPathCacheArc,
     ) -> Self {
-        Self {
-            paths: shared_http_metrics_path_cache_arc,
-        }
+        Self { paths: value }
     }
 }
 

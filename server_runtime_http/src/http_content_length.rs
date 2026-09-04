@@ -11,28 +11,28 @@ pub struct HttpContentLength(String);
 impl TryFrom<String> for HttpContentLength {
     type Error = crate::http_content_length_error::HttpContentLengthError;
 
-    fn try_from(string: String) -> Result<Self, Self::Error> {
-        if string.len() > constants_usize::TWENTY {
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        if value.len() > constants_usize::TWENTY {
             return Err(Self::Error::TooLong);
         }
-        if string.is_empty() {
+        if value.is_empty() {
             return Err(Self::Error::Empty);
         }
-        if !string.bytes().all(|byte| byte.is_ascii_digit()) {
+        if !value.bytes().all(|byte| byte.is_ascii_digit()) {
             return Err(Self::Error::InvalidSymbol);
         }
-        let _parsed = string
+        let _parsed = value
             .parse::<u64>()
             .map_err(|_error| Self::Error::OutOfRange)?;
-        Ok(Self(string))
+        Ok(Self(value))
     }
 }
 
 impl TryFrom<HttpContentLength> for u64 {
     type Error = crate::http_content_length_error::HttpContentLengthError;
 
-    fn try_from(http_content_length: HttpContentLength) -> Result<Self, Self::Error> {
-        http_content_length
+    fn try_from(value: HttpContentLength) -> Result<Self, Self::Error> {
+        value
             .0
             .parse::<Self>()
             .map_err(|_error| Self::Error::OutOfRange)

@@ -11,8 +11,8 @@ pub struct ContentSecurityPolicy(String);
 impl TryFrom<String> for ContentSecurityPolicy {
     type Error = crate::content_security_policy_error::ContentSecurityPolicyError;
 
-    fn try_from(string: String) -> Result<Self, Self::Error> {
-        let trimmed = string.trim();
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        let trimmed = value.trim();
         if trimmed.is_empty() {
             Err(Self::Error::Empty)
         } else if trimmed.len() > constants_usize::VALUE_4_096 || trimmed.contains(['\r', '\n']) {

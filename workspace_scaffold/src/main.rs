@@ -28,7 +28,6 @@ pub mod service_catalog_draft;
 pub mod service_catalog_entries;
 pub mod service_catalog_entries_ref;
 pub mod service_catalog_entry;
-#[cfg(test)]
 pub mod service_catalog_parse;
 pub mod service_catalog_render_release_entries;
 pub mod service_catalog_string_value;

@@ -180,8 +180,8 @@ pub fn emit_generate_pg_table(
         }
     }
     impl From<&CreateOrUpdateOrDm> for Operation {
-        fn from(create_or_update_or_dm: &CreateOrUpdateOrDm) -> Self {
-            match &create_or_update_or_dm {
+        fn from(value: &CreateOrUpdateOrDm) -> Self {
+            match &value {
                 CreateOrUpdateOrDm::Create => Self::CreateMany,
                 CreateOrUpdateOrDm::Update => Self::UpdateMany,
                 CreateOrUpdateOrDm::Delete => Self::DeleteMany,
@@ -189,24 +189,24 @@ pub fn emit_generate_pg_table(
         }
     }
     impl From<&RmOrDm> for Operation {
-        fn from(rm_or_dm: &RmOrDm) -> Self {
-            match &rm_or_dm {
+        fn from(value: &RmOrDm) -> Self {
+            match &value {
                 RmOrDm::Rm => Self::ReadMany,
                 RmOrDm::Dm => Self::DeleteMany,
             }
         }
     }
     impl From<&RmOrRo> for Operation {
-        fn from(rm_or_ro: &RmOrRo) -> Self {
-            match &rm_or_ro {
+        fn from(value: &RmOrRo) -> Self {
+            match &value {
                 RmOrRo::Rm => Self::ReadMany,
                 RmOrRo::Ro => Self::ReadOne,
             }
         }
     }
     impl From<&CreateOrUpdateOrDlo> for Operation {
-        fn from(create_or_update_or_dlo: &CreateOrUpdateOrDlo) -> Self {
-            match &create_or_update_or_dlo {
+        fn from(value: &CreateOrUpdateOrDlo) -> Self {
+            match &value {
                 CreateOrUpdateOrDlo::Create => Self::CreateOne,
                 CreateOrUpdateOrDlo::Update => Self::UpdateOne,
                 CreateOrUpdateOrDlo::Delete => Self::DeleteOne,
@@ -552,25 +552,25 @@ pub fn emit_generate_pg_table(
     );
     impl TryFrom<Vec<GeneratePgTableDbColumn>> for UsizeGeneratePgTableDbColumns {
         type Error = pg_crud_common::bounded_vec_error::BoundedVecError;
-        fn try_from(vec: Vec<GeneratePgTableDbColumn>) -> Result<Self, Self::Error> {
+        fn try_from(value: Vec<GeneratePgTableDbColumn>) -> Result<Self, Self::Error> {
             Ok(Self(
-                pg_crud_common::pg_bounded_vec::PgBoundedVec::try_from(vec)?,
+                pg_crud_common::pg_bounded_vec::PgBoundedVec::try_from(value)?,
             ))
         }
     }
     impl TryFrom<Vec<GeneratePgTableExcludeField>> for UsizeCreateExcludeFields {
         type Error = pg_crud_common::bounded_vec_error::BoundedVecError;
-        fn try_from(vec: Vec<GeneratePgTableExcludeField>) -> Result<Self, Self::Error> {
+        fn try_from(value: Vec<GeneratePgTableExcludeField>) -> Result<Self, Self::Error> {
             Ok(Self(
-                pg_crud_common::pg_bounded_vec::PgBoundedVec::try_from(vec)?,
+                pg_crud_common::pg_bounded_vec::PgBoundedVec::try_from(value)?,
             ))
         }
     }
     impl TryFrom<Vec<GeneratePgTableExcludeField>> for UsizeReadExcludeFields {
         type Error = pg_crud_common::bounded_vec_error::BoundedVecError;
-        fn try_from(vec: Vec<GeneratePgTableExcludeField>) -> Result<Self, Self::Error> {
+        fn try_from(value: Vec<GeneratePgTableExcludeField>) -> Result<Self, Self::Error> {
             Ok(Self(
-                pg_crud_common::pg_bounded_vec::PgBoundedVec::try_from(vec)?,
+                pg_crud_common::pg_bounded_vec::PgBoundedVec::try_from(value)?,
             ))
         }
     }

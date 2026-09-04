@@ -6,12 +6,8 @@ pub struct MockNotificationInbox {
 impl From<crate::tokio_mock_notification_receiver::TokioMockNotificationReceiver>
     for MockNotificationInbox
 {
-    fn from(
-        tokio_mock_notification_receiver: crate::tokio_mock_notification_receiver::TokioMockNotificationReceiver,
-    ) -> Self {
-        Self {
-            receiver: tokio_mock_notification_receiver,
-        }
+    fn from(value: crate::tokio_mock_notification_receiver::TokioMockNotificationReceiver) -> Self {
+        Self { receiver: value }
     }
 }
 

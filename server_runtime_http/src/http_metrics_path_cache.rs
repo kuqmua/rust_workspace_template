@@ -48,18 +48,14 @@ impl HttpMetricsPathCache {
 impl From<crate::http_metrics_path_cache_maximum::HttpMetricsPathCacheMaximum>
     for HttpMetricsPathCache
 {
-    fn from(
-        http_metrics_path_cache_maximum: crate::http_metrics_path_cache_maximum::HttpMetricsPathCacheMaximum,
-    ) -> Self {
+    fn from(value: crate::http_metrics_path_cache_maximum::HttpMetricsPathCacheMaximum) -> Self {
         Self {
             entries: crate::http_metrics_path_entries_rw_lock::HttpMetricsPathEntriesRwLock::from(
                 std::sync::RwLock::new(std::collections::HashMap::with_capacity(
-                    http_metrics_path_cache_maximum
-                        .get()
-                        .min(constants_usize::VALUE_4_096),
+                    value.get().min(constants_usize::VALUE_4_096),
                 )),
             ),
-            maximum: http_metrics_path_cache_maximum,
+            maximum: value,
             unmatched: crate::metrics_shared_string::MetricsSharedString::from(
                 metrics::SharedString::const_str(constants_str::HTTP_METRICS_UNMATCHED_PATH),
             ),

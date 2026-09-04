@@ -25,14 +25,14 @@ struct ConstantParts(Vec<ConstantPart>);
 
 impl TryFrom<Vec<ConstantPart>> for ConstantParts {
     type Error = syn::Error;
-    fn try_from(vec: Vec<ConstantPart>) -> Result<Self, Self::Error> {
-        if vec.len() > COLLECTION_MAX_LEN {
+    fn try_from(value: Vec<ConstantPart>) -> Result<Self, Self::Error> {
+        if value.len() > COLLECTION_MAX_LEN {
             Err(syn::Error::new(
                 proc_macro2::Span::call_site(),
                 stringify!(c93f714a too many constant parts),
             ))
         } else {
-            Ok(Self(vec))
+            Ok(Self(value))
         }
     }
 }
@@ -67,14 +67,14 @@ struct Constants(Vec<Constant>);
 
 impl TryFrom<Vec<Constant>> for Constants {
     type Error = syn::Error;
-    fn try_from(vec: Vec<Constant>) -> Result<Self, Self::Error> {
-        if vec.len() > COLLECTION_MAX_LEN {
+    fn try_from(value: Vec<Constant>) -> Result<Self, Self::Error> {
+        if value.len() > COLLECTION_MAX_LEN {
             Err(syn::Error::new(
                 proc_macro2::Span::call_site(),
                 stringify!(2bd1b963 too many constants),
             ))
         } else {
-            Ok(Self(vec))
+            Ok(Self(value))
         }
     }
 }
@@ -96,9 +96,9 @@ struct RustFragments(Vec<RustFragment>);
 
 impl TryFrom<Vec<RustFragment>> for RustFragments {
     type Error = syn::Error;
-    fn try_from(vec: Vec<RustFragment>) -> Result<Self, Self::Error> {
-        if vec.len() <= COLLECTION_MAX_LEN {
-            return Ok(Self(vec));
+    fn try_from(value: Vec<RustFragment>) -> Result<Self, Self::Error> {
+        if value.len() <= COLLECTION_MAX_LEN {
+            return Ok(Self(value));
         }
         Err(syn::Error::new(
             proc_macro2::Span::call_site(),
@@ -116,14 +116,14 @@ struct Fragments(Vec<Fragment>);
 )]
 impl TryFrom<Vec<Fragment>> for Fragments {
     type Error = syn::Error;
-    fn try_from(vec: Vec<Fragment>) -> Result<Self, Self::Error> {
-        if vec.len() > COLLECTION_MAX_LEN {
+    fn try_from(value: Vec<Fragment>) -> Result<Self, Self::Error> {
+        if value.len() > COLLECTION_MAX_LEN {
             Err(syn::Error::new(
                 proc_macro2::Span::call_site(),
                 concat!("883ea6b2 too many fragments"),
             ))
         } else {
-            Ok(Self(vec))
+            Ok(Self(value))
         }
     }
 }
@@ -132,8 +132,8 @@ impl TryFrom<Vec<Fragment>> for Fragments {
 struct SynIdent(syn::Ident);
 
 impl From<syn::Ident> for SynIdent {
-    fn from(ident: syn::Ident) -> Self {
-        Self(ident)
+    fn from(value: syn::Ident) -> Self {
+        Self(value)
     }
 }
 
@@ -147,8 +147,8 @@ impl syn::parse::Parse for SynIdent {
 struct SynLitStr(syn::LitStr);
 
 impl From<syn::LitStr> for SynLitStr {
-    fn from(lit_str: syn::LitStr) -> Self {
-        Self(lit_str)
+    fn from(value: syn::LitStr) -> Self {
+        Self(value)
     }
 }
 
@@ -162,8 +162,8 @@ impl syn::parse::Parse for SynLitStr {
 struct SynVisibility(syn::Visibility);
 
 impl From<syn::Visibility> for SynVisibility {
-    fn from(visibility: syn::Visibility) -> Self {
-        Self(visibility)
+    fn from(value: syn::Visibility) -> Self {
+        Self(value)
     }
 }
 
@@ -261,26 +261,22 @@ impl syn::parse::Parse for DefineStrConstantsInput {
 }
 
 impl From<DefineStrConstantsInput> for proc_macro2::TokenStream {
-    fn from(define_str_constants_input: DefineStrConstantsInput) -> Self {
+    fn from(value: DefineStrConstantsInput) -> Self {
         let generated = (|| {
-            let fragments = define_str_constants_input
-                .fragments
-                .0
-                .into_iter()
-                .try_fold(
-                    std::collections::BTreeMap::new(),
-                    |mut fragments, fragment| {
-                        let name = fragment.name.0.to_string();
-                        if fragments.insert(name, fragment.value.0.value()).is_some() {
-                            Err(syn::Error::new(
-                                fragment.name.0.span(),
-                                stringify!(5bbbde57 duplicate string fragment),
-                            ))
-                        } else {
-                            Ok(fragments)
-                        }
-                    },
-                )?;
+            let fragments = value.fragments.0.into_iter().try_fold(
+                std::collections::BTreeMap::new(),
+                |mut fragments, fragment| {
+                    let name = fragment.name.0.to_string();
+                    if fragments.insert(name, fragment.value.0.value()).is_some() {
+                        Err(syn::Error::new(
+                            fragment.name.0.span(),
+                            stringify!(5bbbde57 duplicate string fragment),
+                        ))
+                    } else {
+                        Ok(fragments)
+                    }
+                },
+            )?;
             let mut fragment_values = std::collections::HashSet::with_capacity(fragments.len());
             fragments.iter().try_for_each(|(name, fragment_value)| {
                 if fragment_value.is_empty()
@@ -312,16 +308,14 @@ impl From<DefineStrConstantsInput> for proc_macro2::TokenStream {
                         let _: Option<usize> = use_counts.insert(name.clone(), 0usize);
                         use_counts
                     });
-            let mut rust_fragment_use_counts =
-                define_str_constants_input.rust_fragments.0.iter().fold(
-                    std::collections::BTreeMap::new(),
-                    |mut use_counts, fragment| {
-                        let _: Option<usize> =
-                            use_counts.insert(fragment.name.0.to_string(), 0usize);
-                        use_counts
-                    },
-                );
-            let rust_fragments = define_str_constants_input.rust_fragments.0.into_iter().try_fold(
+            let mut rust_fragment_use_counts = value.rust_fragments.0.iter().fold(
+                std::collections::BTreeMap::new(),
+                |mut use_counts, fragment| {
+                    let _: Option<usize> = use_counts.insert(fragment.name.0.to_string(), 0usize);
+                    use_counts
+                },
+            );
+            let rust_fragments = value.rust_fragments.0.into_iter().try_fold(
                 std::collections::BTreeMap::new(),
                 |mut rust_fragments, fragment| {
                     let name = fragment.name.0.to_string();
@@ -375,16 +369,12 @@ impl From<DefineStrConstantsInput> for proc_macro2::TokenStream {
                 .values()
                 .cloned()
                 .collect::<std::collections::HashSet<_>>();
-            let constant_count = define_str_constants_input
+            let constant_count = value
                 .constants
                 .0
                 .len()
-                .saturating_add(define_str_constants_input.rust_constants.0.len());
-            let mut constants = define_str_constants_input
-                .rust_constants
-                .0
-                .into_iter()
-                .chain(define_str_constants_input.constants.0);
+                .saturating_add(value.rust_constants.0.len());
+            let mut constants = value.rust_constants.0.into_iter().chain(value.constants.0);
             let (_, _, generated) = constants.try_fold(
                 (
                     std::collections::HashSet::with_capacity(constant_count),

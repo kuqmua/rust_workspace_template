@@ -1,3 +1,7 @@
+#[allow(
+    clippy::single_call_fn,
+    reason = "data filter remains named because its complete filter contract is covered by focused unit tests"
+)]
 pub(crate) fn data_filter(
     admin_data_table: server_admin_contract::admin_data_table::AdminDataTable,
     admin_data_table_filter_query: &server_admin_contract::admin_data_table_filter_query::AdminDataTableFilterQuery,

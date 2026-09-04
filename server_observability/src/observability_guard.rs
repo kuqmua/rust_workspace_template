@@ -21,10 +21,10 @@ impl From<Option<crate::opentelemetry_sdk_tracer_provider::OpentelemetrySdkTrace
     for ObservabilityGuard
 {
     fn from(
-        option: Option<crate::opentelemetry_sdk_tracer_provider::OpentelemetrySdkTracerProvider>,
+        value: Option<crate::opentelemetry_sdk_tracer_provider::OpentelemetrySdkTracerProvider>,
     ) -> Self {
         Self {
-            tracer_provider: option,
+            tracer_provider: value,
         }
     }
 }

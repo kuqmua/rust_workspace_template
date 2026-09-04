@@ -15,10 +15,9 @@ impl From<server_admin_contract::admin_id_try_from_i64_error::AdminIdTryFromI64E
     for AdminAuthPositiveValueError
 {
     fn from(
-        admin_id_try_from_i64_error: server_admin_contract::admin_id_try_from_i64_error::AdminIdTryFromI64Error,
+        value: server_admin_contract::admin_id_try_from_i64_error::AdminIdTryFromI64Error,
     ) -> Self {
-        let _: server_admin_contract::admin_id_try_from_i64_error::AdminIdTryFromI64Error =
-            admin_id_try_from_i64_error;
+        let _: server_admin_contract::admin_id_try_from_i64_error::AdminIdTryFromI64Error = value;
         Self::Zero
     }
 }

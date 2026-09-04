@@ -6,9 +6,7 @@ pub(crate) struct AdminSettingsFormValues(
 impl From<&server_admin_contract::admin_settings_view::AdminSettingsView>
     for AdminSettingsFormValues
 {
-    fn from(
-        admin_settings_view: &server_admin_contract::admin_settings_view::AdminSettingsView,
-    ) -> Self {
+    fn from(value: &server_admin_contract::admin_settings_view::AdminSettingsView) -> Self {
         fn optional<Value>(
             option: Option<&Value>,
         ) -> super::admin_setting_input_value::AdminSettingInputValue
@@ -26,7 +24,7 @@ impl From<&server_admin_contract::admin_settings_view::AdminSettingsView>
             server_admin_contract::admin_setting::AdminSetting::ALL.map(|setting| match setting {
                 server_admin_contract::admin_setting::AdminSetting::DefaultRoute => {
                     super::admin_setting_input_value::AdminSettingInputValue::from(
-                        admin_settings_view
+                        value
                             .default_admin_route()
                             .as_ref()
                             .to_owned()
@@ -34,31 +32,27 @@ impl From<&server_admin_contract::admin_settings_view::AdminSettingsView>
                     )
                 }
                 server_admin_contract::admin_setting::AdminSetting::MainLogo => {
-                    optional(admin_settings_view.main_logo())
+                    optional(value.main_logo())
                 }
                 server_admin_contract::admin_setting::AdminSetting::OrganizationContacts => {
-                    optional(admin_settings_view.organization_contacts())
+                    optional(value.organization_contacts())
                 }
                 server_admin_contract::admin_setting::AdminSetting::OrganizationName => {
-                    optional(admin_settings_view.organization_name())
+                    optional(value.organization_name())
                 }
                 server_admin_contract::admin_setting::AdminSetting::PrimaryColor => {
-                    optional(admin_settings_view.primary_color())
+                    optional(value.primary_color())
                 }
                 server_admin_contract::admin_setting::AdminSetting::SiteName => {
                     super::admin_setting_input_value::AdminSettingInputValue::from(
-                        admin_settings_view
-                            .site_name()
-                            .as_ref()
-                            .to_owned()
-                            .into_boxed_str(),
+                        value.site_name().as_ref().to_owned().into_boxed_str(),
                     )
                 }
                 server_admin_contract::admin_setting::AdminSetting::SupportUrl => {
-                    optional(admin_settings_view.support_url())
+                    optional(value.support_url())
                 }
                 server_admin_contract::admin_setting::AdminSetting::TabTitle => {
-                    optional(admin_settings_view.tab_title())
+                    optional(value.tab_title())
                 }
             }),
         )

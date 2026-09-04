@@ -9,7 +9,7 @@
 pub(super) struct PgTableCompileErrorMessage<'message_lt>(&'message_lt str);
 
 impl<'message_lt> From<&'message_lt String> for PgTableCompileErrorMessage<'message_lt> {
-    fn from(string: &'message_lt String) -> Self {
-        Self(string.as_str())
+    fn from(value: &'message_lt String) -> Self {
+        Self(value.as_str())
     }
 }

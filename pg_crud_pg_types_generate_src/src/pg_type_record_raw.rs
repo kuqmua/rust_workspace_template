@@ -10,28 +10,26 @@ pub(super) struct PgTypeRecordRaw {
 }
 impl TryFrom<PgTypeRecordRaw> for crate::pg_type_record::PgTypeRecord {
     type Error = String;
-    fn try_from(pg_type_record_raw: PgTypeRecordRaw) -> Result<Self, Self::Error> {
+    fn try_from(value: PgTypeRecordRaw) -> Result<Self, Self::Error> {
         let cant_supp_nullable_variants_message = constants_str::CANT_SUPPORT_NULLABLE_VARIANTS;
-        match &pg_type_record_raw.pg_type.pg_type_can_be_nullable() {
+        match &value.pg_type.pg_type_can_be_nullable() {
             crate::can_be_nullable::CanBeNullable::False => {
                 if matches!(
-                    &pg_type_record_raw.is_nullable,
+                    &value.is_nullable,
                     pg_crud_macro_common::is_nullable::IsNullable::True
                 ) {
-                    return Err(format!(
-                        "{cant_supp_nullable_variants_message}{pg_type_record_raw:#?}"
-                    ));
+                    return Err(format!("{cant_supp_nullable_variants_message}{value:#?}"));
                 }
                 Ok(Self::new(
-                    pg_type_record_raw.pg_type,
-                    pg_type_record_raw.is_nullable,
-                    pg_type_record_raw.pg_type_pattern,
+                    value.pg_type,
+                    value.is_nullable,
+                    value.pg_type_pattern,
                 ))
             }
             crate::can_be_nullable::CanBeNullable::True => Ok(Self::new(
-                pg_type_record_raw.pg_type,
-                pg_type_record_raw.is_nullable,
-                pg_type_record_raw.pg_type_pattern,
+                value.pg_type,
+                value.is_nullable,
+                value.pg_type_pattern,
             )),
         }
     }

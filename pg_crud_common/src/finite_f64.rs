@@ -12,11 +12,11 @@ pub struct FiniteF64(f64);
 impl TryFrom<f64> for FiniteF64 {
     type Error = crate::finite_f64_error::FiniteF64Error;
 
-    fn try_from(f64: f64) -> Result<Self, Self::Error> {
-        if !f64.is_finite() {
+    fn try_from(value: f64) -> Result<Self, Self::Error> {
+        if !value.is_finite() {
             return Err(crate::finite_f64_error::FiniteF64Error::NotFinite);
         }
-        Ok(Self(f64))
+        Ok(Self(value))
     }
 }
 

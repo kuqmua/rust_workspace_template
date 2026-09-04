@@ -17,20 +17,20 @@
 pub struct UnsignedPartOfI32(i32);
 
 impl From<u16> for UnsignedPartOfI32 {
-    fn from(u16: u16) -> Self {
-        Self(i32::from(u16))
+    fn from(value: u16) -> Self {
+        Self(i32::from(value))
     }
 }
 
 impl TryFrom<i32> for UnsignedPartOfI32 {
     type Error = crate::unsigned_part_of_i32_try_from_i32_error::UnsignedPartOfI32TryFromI32Error;
 
-    fn try_from(i32: i32) -> Result<Self, Self::Error> {
-        if i32 >= 0 {
-            Ok(Self(i32))
+    fn try_from(value: i32) -> Result<Self, Self::Error> {
+        if value >= 0 {
+            Ok(Self(value))
         } else {
             Err(Self::Error::LessThanZero {
-                v: crate::unsigned_part_of_i32_raw::UnsignedPartOfI32Raw::from(i32),
+                v: crate::unsigned_part_of_i32_raw::UnsignedPartOfI32Raw::from(value),
                 location: proc_macro_location_bang::location!(),
             })
         }

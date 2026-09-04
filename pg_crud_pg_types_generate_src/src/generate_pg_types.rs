@@ -11,12 +11,12 @@ impl TryFrom<Vec<crate::pg_type_catalog_kind::PgTypeCatalogKind>> for GeneratePg
     type Error = crate::generate_pg_types_length_error::GeneratePgTypesLengthError;
 
     fn try_from(
-        vec: Vec<crate::pg_type_catalog_kind::PgTypeCatalogKind>,
+        value: Vec<crate::pg_type_catalog_kind::PgTypeCatalogKind>,
     ) -> Result<Self, Self::Error> {
-        if vec.len() > crate::generate_pg_types_max_len::GENERATE_PG_TYPES_MAX_LEN {
+        if value.len() > crate::generate_pg_types_max_len::GENERATE_PG_TYPES_MAX_LEN {
             Err(crate::generate_pg_types_length_error::GeneratePgTypesLengthError::TooLarge)
         } else {
-            Ok(Self(vec))
+            Ok(Self(value))
         }
     }
 }

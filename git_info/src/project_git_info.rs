@@ -18,10 +18,8 @@ pub struct ProjectGitInfo<'commit_lt> {
 impl<'commit_lt> From<crate::git_commit_id_ref::GitCommitIdRef<'commit_lt>>
     for ProjectGitInfo<'commit_lt>
 {
-    fn from(git_commit_id_ref: crate::git_commit_id_ref::GitCommitIdRef<'commit_lt>) -> Self {
-        Self {
-            commit: git_commit_id_ref,
-        }
+    fn from(value: crate::git_commit_id_ref::GitCommitIdRef<'commit_lt>) -> Self {
+        Self { commit: value }
     }
 }
 impl AsRef<str> for ProjectGitInfo<'_> {

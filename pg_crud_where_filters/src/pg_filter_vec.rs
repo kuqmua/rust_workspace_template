@@ -116,9 +116,9 @@ impl<
 }
 impl<T, const LENGTH: usize> TryFrom<Vec<T>> for PgFilterVec<T, LENGTH> {
     type Error = crate::bounded_vec_try_new_error::BoundedVecTryNewError;
-    fn try_from(vec: Vec<T>) -> Result<Self, Self::Error> {
-        let len = vec.len();
-        bounded_types::bounded_vec::BoundedVec::<T, LENGTH, LENGTH>::try_from(vec)
+    fn try_from(value: Vec<T>) -> Result<Self, Self::Error> {
+        let len = value.len();
+        bounded_types::bounded_vec::BoundedVec::<T, LENGTH, LENGTH>::try_from(value)
             .map(bounded_types::bounded_vec::BoundedVec::into_inner)
             .map(Self)
             .map_err(|_error| {

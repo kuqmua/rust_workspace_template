@@ -12,8 +12,8 @@ pub struct StdAdminAccessTtlSeconds(std::num::NonZeroU64);
 impl TryFrom<u64> for StdAdminAccessTtlSeconds {
     type Error = crate::admin_auth_positive_value_error::AdminAuthPositiveValueError;
 
-    fn try_from(u64: u64) -> Result<Self, Self::Error> {
-        std::num::NonZeroU64::new(u64)
+    fn try_from(value: u64) -> Result<Self, Self::Error> {
+        std::num::NonZeroU64::new(value)
             .map(Self::from)
             .ok_or(crate::admin_auth_positive_value_error::AdminAuthPositiveValueError::Zero)
     }

@@ -17,8 +17,8 @@ pub struct SynchronizationPayload(
 impl TryFrom<Vec<u8>> for SynchronizationPayload {
     type Error = crate::synchronization_payload_too_large::SynchronizationPayloadTooLarge;
 
-    fn try_from(vec: Vec<u8>) -> Result<Self, Self::Error> {
-        bounded_types::bounded_vec::BoundedVec::try_from(vec)
+    fn try_from(value: Vec<u8>) -> Result<Self, Self::Error> {
+        bounded_types::bounded_vec::BoundedVec::try_from(value)
             .map(Self)
             .map_err(crate::synchronization_payload_too_large::SynchronizationPayloadTooLarge::from)
     }

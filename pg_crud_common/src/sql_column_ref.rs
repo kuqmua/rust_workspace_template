@@ -9,8 +9,8 @@ impl<'column_lt, T> From<&'column_lt T> for SqlColumnRef<'column_lt>
 where
     T: std::fmt::Display,
 {
-    fn from(t: &'column_lt T) -> Self {
-        Self(t)
+    fn from(value: &'column_lt T) -> Self {
+        Self(value)
     }
 }
 impl std::fmt::Debug for SqlColumnRef<'_> {

@@ -11,18 +11,16 @@
 pub struct ChronoTimezone(chrono::FixedOffset);
 impl TryFrom<chrono::FixedOffset> for ChronoTimezone {
     type Error = crate::chrono_fixed_offset_error::ChronoFixedOffsetError;
-    fn try_from(fixed_offset: chrono::FixedOffset) -> Result<Self, Self::Error> {
+    fn try_from(value: chrono::FixedOffset) -> Result<Self, Self::Error> {
         crate::parse_east_fixed_offset::parse_east_fixed_offset(
-            crate::timezone_seconds::TimezoneSeconds::from(fixed_offset.local_minus_utc()),
+            crate::timezone_seconds::TimezoneSeconds::from(value.local_minus_utc()),
         )
     }
 }
 impl TryFrom<crate::timezone_seconds::TimezoneSeconds> for ChronoTimezone {
     type Error = crate::chrono_fixed_offset_error::ChronoFixedOffsetError;
-    fn try_from(
-        timezone_seconds: crate::timezone_seconds::TimezoneSeconds,
-    ) -> Result<Self, Self::Error> {
-        chrono::FixedOffset::east_opt(*timezone_seconds)
+    fn try_from(value: crate::timezone_seconds::TimezoneSeconds) -> Result<Self, Self::Error> {
+        chrono::FixedOffset::east_opt(*value)
             .map(Self)
             .ok_or_else(|| {
                 crate::chrono_fixed_offset_error::ChronoFixedOffsetError::from(

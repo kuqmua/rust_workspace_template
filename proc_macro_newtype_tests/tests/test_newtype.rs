@@ -52,17 +52,17 @@ mod tests {
                 }
             }
             impl From<ErrorTextTryFromStringError> for ErrorText {
-                fn from(error_text_try_from_string_error: ErrorTextTryFromStringError) -> Self {
-                    Self(error_text_try_from_string_error.to_string())
+                fn from(value: ErrorTextTryFromStringError) -> Self {
+                    Self(value.to_string())
                 }
             }
             impl TryFrom<String> for ErrorText {
                 type Error = ErrorTextTryFromStringError;
-                fn try_from(string: String) -> Result<Self, Self::Error> {
-                    if string.len() > 1024 {
+                fn try_from(value: String) -> Result<Self, Self::Error> {
+                    if value.len() > 1024 {
                         return Err(Self::Error::TooLong);
                     }
-                    Ok(Self(string))
+                    Ok(Self(value))
                 }
             }
             impl AsRef<str> for ErrorText {

@@ -35,7 +35,7 @@ impl<AppStateTy> From<std::sync::Arc<AppStateTy>> for ArcCommonRoutesAppState
 where
     AppStateTy: crate::common_routes_parameters::CommonRoutesParameters + 'static,
 {
-    fn from(arc: std::sync::Arc<AppStateTy>) -> Self {
-        Self(arc)
+    fn from(value: std::sync::Arc<AppStateTy>) -> Self {
+        Self(value)
     }
 }

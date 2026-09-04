@@ -11,12 +11,12 @@ pub struct GeoJsonDocumentText(String);
 impl TryFrom<String> for GeoJsonDocumentText {
     type Error = crate::geo_json_validation_error::GeoJsonValidationError;
 
-    fn try_from(string: String) -> Result<Self, Self::Error> {
-        if string.len() > constants_usize::VALUE_16_777_216 {
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        if value.len() > constants_usize::VALUE_16_777_216 {
             return Err(crate::geo_json_validation_error::GeoJsonValidationError::TooLarge);
         }
         let json_document =
-            serde_json::from_str::<serde_json::Value>(string.as_str()).map_err(|error| {
+            serde_json::from_str::<serde_json::Value>(value.as_str()).map_err(|error| {
                 crate::geo_json_validation_error::GeoJsonValidationError::SerdeJson(
                     crate::serde_json_geo_json_error::SerdeJsonGeoJsonError::from(error),
                 )
@@ -27,6 +27,6 @@ impl TryFrom<String> for GeoJsonDocumentText {
             return Err(crate::geo_json_validation_error::GeoJsonValidationError::Document);
         };
         crate::geo_json_validation::GeoJsonValidation::validate_geo_json(&geo_json_document)?;
-        Ok(Self(string))
+        Ok(Self(value))
     }
 }

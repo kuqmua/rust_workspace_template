@@ -19,20 +19,20 @@ impl std::fmt::Display for DomainNameTryFromStringError {
     }
 }
 impl From<DomainNameTryFromStringError> for DomainName {
-    fn from(domain_name_try_from_string_error: DomainNameTryFromStringError) -> Self {
-        Self(domain_name_try_from_string_error.to_string())
+    fn from(value: DomainNameTryFromStringError) -> Self {
+        Self(value.to_string())
     }
 }
 impl TryFrom<String> for DomainName {
     type Error = DomainNameTryFromStringError;
-    fn try_from(string: String) -> Result<Self, Self::Error> {
-        if string.len() > DOMAIN_NAME_MAX_LEN {
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        if value.len() > DOMAIN_NAME_MAX_LEN {
             return Err(Self::Error::TooLong {
-                len: string.len(),
+                len: value.len(),
                 max: DOMAIN_NAME_MAX_LEN,
             });
         }
-        Ok(Self(string))
+        Ok(Self(value))
     }
 }
 #[derive(proc_macro_getters::Getters, proc_macro_optimal_memory_layout::OptimalMemoryLayout)]

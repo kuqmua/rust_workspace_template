@@ -10,10 +10,10 @@ impl HttpCookieName {
 impl TryFrom<String> for HttpCookieName {
     type Error = crate::http_secure_cookie_error::HttpSecureCookieError;
 
-    fn try_from(string: String) -> Result<Self, Self::Error> {
-        let valid = !string.is_empty()
-            && string.len() <= constants_usize::VALUE_8_192
-            && string.bytes().all(|byte| {
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        let valid = !value.is_empty()
+            && value.len() <= constants_usize::VALUE_8_192
+            && value.bytes().all(|byte| {
                 byte.is_ascii_alphanumeric()
                     || matches!(
                         byte,
@@ -34,7 +34,7 @@ impl TryFrom<String> for HttpCookieName {
                     )
             });
         if valid {
-            Ok(Self(string))
+            Ok(Self(value))
         } else {
             Err(crate::http_secure_cookie_error::HttpSecureCookieError::InvalidName)
         }

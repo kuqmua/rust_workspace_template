@@ -160,13 +160,13 @@ impl crate::admin_error::AdminError {
     }
 }
 impl From<sqlx::Error> for crate::admin_error::AdminError {
-    fn from(error: sqlx::Error) -> Self {
-        Self::postgresql(crate::sqlx_admin_error::SqlxAdminError::from(error))
+    fn from(value: sqlx::Error) -> Self {
+        Self::postgresql(crate::sqlx_admin_error::SqlxAdminError::from(value))
     }
 }
 impl From<crate::sqlx_admin_error::SqlxAdminError> for crate::admin_error::AdminError {
-    fn from(sqlx_admin_error: crate::sqlx_admin_error::SqlxAdminError) -> Self {
-        Self::postgresql(sqlx_admin_error)
+    fn from(value: crate::sqlx_admin_error::SqlxAdminError) -> Self {
+        Self::postgresql(value)
     }
 }
 impl axum::response::IntoResponse for crate::admin_error::AdminError {

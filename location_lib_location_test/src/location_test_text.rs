@@ -21,7 +21,7 @@ pub struct LocationTestText(
 );
 
 impl From<&'static str> for LocationTestText {
-    fn from(str: &'static str) -> Self {
-        Self::try_from(String::from(str)).unwrap_or_else(Self::from)
+    fn from(value: &'static str) -> Self {
+        Self::try_from(String::from(value)).unwrap_or_else(Self::from)
     }
 }

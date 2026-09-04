@@ -11,7 +11,7 @@
 })]
 pub(crate) struct EnvContent(String);
 impl From<server_runtime_http::bounded_text::BoundedText> for EnvContent {
-    fn from(bounded_text: server_runtime_http::bounded_text::BoundedText) -> Self {
-        Self(bounded_text.into_inner())
+    fn from(value: server_runtime_http::bounded_text::BoundedText) -> Self {
+        Self(value.into_inner())
     }
 }

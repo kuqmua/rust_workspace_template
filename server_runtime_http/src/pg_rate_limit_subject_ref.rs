@@ -13,8 +13,8 @@ pub struct PgRateLimitSubjectRef<'value_lt>(&'value_lt str);
 impl<'value_lt> TryFrom<&'value_lt str> for PgRateLimitSubjectRef<'value_lt> {
     type Error = crate::pg_rate_limit_validation_error::PgRateLimitValidationError;
 
-    fn try_from(str: &'value_lt str) -> Result<Self, Self::Error> {
-        crate::pg_rate_limit_scope_ref::PgRateLimitScopeRef::try_from(str)
+    fn try_from(value: &'value_lt str) -> Result<Self, Self::Error> {
+        crate::pg_rate_limit_scope_ref::PgRateLimitScopeRef::try_from(value)
             .map(|scope| Self(scope.get()))
     }
 }

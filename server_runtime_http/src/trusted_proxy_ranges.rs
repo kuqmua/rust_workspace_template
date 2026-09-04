@@ -13,9 +13,9 @@ impl TryFrom<Vec<crate::trusted_proxy_range::TrustedProxyRange>> for TrustedProx
     type Error = crate::trusted_proxy_ranges_error::TrustedProxyRangesError;
 
     fn try_from(
-        vec: Vec<crate::trusted_proxy_range::TrustedProxyRange>,
+        value: Vec<crate::trusted_proxy_range::TrustedProxyRange>,
     ) -> Result<Self, Self::Error> {
-        bounded_types::bounded_vec::BoundedVec::try_from(vec)
+        bounded_types::bounded_vec::BoundedVec::try_from(value)
             .map(Self)
             .map_err(crate::trusted_proxy_ranges_error::TrustedProxyRangesError::from)
     }

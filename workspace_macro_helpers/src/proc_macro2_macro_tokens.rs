@@ -3,13 +3,13 @@
 #[derive(Debug, Clone, Default)]
 pub struct ProcMacro2MacroTokens(Vec<proc_macro2::TokenTree>);
 impl From<proc_macro2::TokenStream> for ProcMacro2MacroTokens {
-    fn from(token_stream: proc_macro2::TokenStream) -> Self {
-        Self(token_stream.into_iter().collect())
+    fn from(value: proc_macro2::TokenStream) -> Self {
+        Self(value.into_iter().collect())
     }
 }
 impl From<ProcMacro2MacroTokens> for proc_macro2::TokenStream {
-    fn from(proc_macro2_macro_tokens: ProcMacro2MacroTokens) -> Self {
-        proc_macro2_macro_tokens.0.into_iter().collect()
+    fn from(value: ProcMacro2MacroTokens) -> Self {
+        value.0.into_iter().collect()
     }
 }
 impl ProcMacro2MacroTokens {

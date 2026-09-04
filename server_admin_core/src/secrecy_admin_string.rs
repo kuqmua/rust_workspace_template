@@ -13,8 +13,8 @@ impl std::fmt::Debug for SecrecyAdminString {
 impl TryFrom<String> for SecrecyAdminString {
     type Error = crate::std_admin_string::StdAdminStringTryFromStringError;
 
-    fn try_from(string: String) -> Result<Self, Self::Error> {
-        crate::std_admin_string::StdAdminString::try_from(string)
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        crate::std_admin_string::StdAdminString::try_from(value)
             .map(|bounded| Self::from(secrecy::SecretBox::new(Box::new(bounded))))
     }
 }

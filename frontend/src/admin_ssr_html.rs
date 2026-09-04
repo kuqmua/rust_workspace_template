@@ -10,21 +10,21 @@
 pub struct AdminSsrHtml(String);
 impl TryFrom<String> for AdminSsrHtml {
     type Error = crate::admin_ssr_html_try_from_string_error::AdminSsrHtmlTryFromStringError;
-    fn try_from(string: String) -> Result<Self, Self::Error> {
-        if string.len() > constants_usize::VALUE_16_777_216 {
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        if value.len() > constants_usize::VALUE_16_777_216 {
             return Err(
                 crate::admin_ssr_html_try_from_string_error::AdminSsrHtmlTryFromStringError::TooLarge,
             );
         }
-        Ok(Self(string))
+        Ok(Self(value))
     }
 }
 impl From<crate::admin_ssr_html_try_from_string_error::AdminSsrHtmlTryFromStringError>
     for AdminSsrHtml
 {
     fn from(
-        admin_ssr_html_try_from_string_error: crate::admin_ssr_html_try_from_string_error::AdminSsrHtmlTryFromStringError,
+        value: crate::admin_ssr_html_try_from_string_error::AdminSsrHtmlTryFromStringError,
     ) -> Self {
-        Self(admin_ssr_html_try_from_string_error.to_string())
+        Self(value.to_string())
     }
 }

@@ -1402,7 +1402,7 @@ fn test_ignored_map_err_bindings_match_reviewed_inventory() {
         ),
         (
             constants_str::CODE_STYLE_SERVER_ADMIN_OWNER,
-            (110usize, constants_str::CODE_STYLE_MAP_ERR_OWNER_REASON),
+            (105usize, constants_str::CODE_STYLE_MAP_ERR_OWNER_REASON),
         ),
         (
             constants_str::CODE_STYLE_SERVER_ADMIN_CONTRACT_OWNER,
@@ -1422,7 +1422,7 @@ fn test_ignored_map_err_bindings_match_reviewed_inventory() {
         ),
         (
             constants_str::CODE_STYLE_WORKSPACE_SCAFFOLD_OWNER,
-            (16usize, constants_str::CODE_STYLE_MAP_ERR_OWNER_REASON),
+            (9usize, constants_str::CODE_STYLE_MAP_ERR_OWNER_REASON),
         ),
         (
             constants_str::CODE_STYLE_WORKSPACE_TEST_RUNNER_OWNER,

@@ -10,11 +10,11 @@ impl HttpOriginAuthorityText {
 impl TryFrom<String> for HttpOriginAuthorityText {
     type Error = crate::allowed_origin_error::AllowedOriginError;
 
-    fn try_from(string: String) -> Result<Self, Self::Error> {
-        if string.is_empty() || string.len() > 512usize || string.contains('@') {
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        if value.is_empty() || value.len() > 512usize || value.contains('@') {
             return Err(crate::allowed_origin_error::AllowedOriginError::Invalid);
         }
-        let authority = match http::uri::Authority::try_from(string) {
+        let authority = match http::uri::Authority::try_from(value) {
             Ok(authority) => authority,
             Err(_error) => return Err(crate::allowed_origin_error::AllowedOriginError::Invalid),
         };

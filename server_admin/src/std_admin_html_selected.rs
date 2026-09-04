@@ -27,12 +27,12 @@ impl
 {
     type Error = crate::std_admin_html_selected_error::StdAdminHtmlSelectedError;
     fn try_from(
-        b_tree_map: std::collections::BTreeMap<
+        value: std::collections::BTreeMap<
             crate::admin_html_form_key::AdminHtmlFormKey,
             crate::admin_html_form_text::AdminHtmlFormText,
         >,
     ) -> Result<Self, Self::Error> {
-        bounded_types::bounded_b_tree_map::BoundedBTreeMap::try_from(b_tree_map)
+        bounded_types::bounded_b_tree_map::BoundedBTreeMap::try_from(value)
             .map(Self)
             .map_err(crate::std_admin_html_selected_error::StdAdminHtmlSelectedError::from)
     }

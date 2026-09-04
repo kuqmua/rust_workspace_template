@@ -41,13 +41,13 @@ impl std::fmt::Debug for NotificationApiToken {
 impl TryFrom<String> for NotificationApiToken {
     type Error = crate::notification_api_token_error::NotificationApiTokenError;
 
-    fn try_from(string: String) -> Result<Self, Self::Error> {
-        if string.is_empty() {
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        if value.is_empty() {
             Err(Self::Error::Empty)
-        } else if string.len() > constants_usize::VALUE_4_096 {
+        } else if value.len() > constants_usize::VALUE_4_096 {
             Err(Self::Error::TooLong)
         } else {
-            Ok(Self(string))
+            Ok(Self(value))
         }
     }
 }

@@ -17,8 +17,8 @@
 pub struct AdminRoleRecordId(server_admin_contract::positive_non_zero_i64::PositiveNonZeroI64);
 impl TryFrom<i64> for AdminRoleRecordId {
     type Error = crate::admin_entity_id_try_from_i64_error::AdminEntityIdTryFromI64Error;
-    fn try_from(i64: i64) -> Result<Self, Self::Error> {
-        crate::admin_entity_id_from_i64::admin_entity_id_from_i64(i64).map(Self)
+    fn try_from(value: i64) -> Result<Self, Self::Error> {
+        crate::admin_entity_id_from_i64::admin_entity_id_from_i64(value).map(Self)
     }
 }
 impl AdminRoleRecordId {

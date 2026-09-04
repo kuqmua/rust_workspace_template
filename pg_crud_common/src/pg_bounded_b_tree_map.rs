@@ -14,8 +14,8 @@ impl<K: Ord, V, const MAX: usize> TryFrom<std::collections::BTreeMap<K, V>>
 {
     type Error = super::bounded_b_tree_map_error::BoundedBTreeMapError;
 
-    fn try_from(b_tree_map: std::collections::BTreeMap<K, V>) -> Result<Self, Self::Error> {
-        bounded_types::bounded_b_tree_map::BoundedBTreeMap::<K, V, MAX>::try_from(b_tree_map)
+    fn try_from(value: std::collections::BTreeMap<K, V>) -> Result<Self, Self::Error> {
+        bounded_types::bounded_b_tree_map::BoundedBTreeMap::<K, V, MAX>::try_from(value)
             .map(bounded_types::bounded_b_tree_map::BoundedBTreeMap::into_inner)
             .map(Self)
             .map_err(|_error| {

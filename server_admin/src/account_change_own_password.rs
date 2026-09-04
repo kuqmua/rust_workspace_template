@@ -119,10 +119,8 @@ pub(crate) async fn account_change_own_password(
         .map_err(crate::sqlx_admin_error::SqlxAdminError::from)
         .map_err(crate::admin_error::AdminError::from)
         .map(drop)?;
-    crate::record_audit_success_in_connection::record_audit_success_in_connection(
-        crate::sqlx_admin_repository_connection_mut_ref::SqlxAdminRepositoryConnectionMutRef::from(
-            &mut *tx,
-        ),
+    crate::finalize_audited_transaction::finalize_audited_transaction(
+        crate::sqlx_admin_transaction::SqlxAdminTransaction::from(tx),
         crate::admin_audit_success_ref::AdminAuditSuccessRef::new(
             crate::admin_audit_action::AdminAuditAction::Update,
             actor.get_login(),
@@ -132,9 +130,6 @@ pub(crate) async fn account_change_own_password(
         ),
     )
     .await?;
-    tx.commit()
-        .await
-        .map_err(crate::admin_error::AdminError::from)?;
     Ok(crate::axum_admin_response::AxumAdminResponse::from(
         axum::response::IntoResponse::into_response(http::StatusCode::NO_CONTENT),
     ))

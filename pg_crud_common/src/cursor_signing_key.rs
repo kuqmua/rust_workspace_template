@@ -20,8 +20,8 @@ impl std::fmt::Debug for CursorSigningKey {
 impl TryFrom<Vec<u8>> for CursorSigningKey {
     type Error = crate::cursor_signing_key_error::CursorSigningKeyError;
 
-    fn try_from(vec: Vec<u8>) -> Result<Self, Self::Error> {
-        bounded_types::bounded_vec::BoundedVec::try_from(vec)
+    fn try_from(value: Vec<u8>) -> Result<Self, Self::Error> {
+        bounded_types::bounded_vec::BoundedVec::try_from(value)
             .map(Self)
             .map_err(|_error| crate::cursor_signing_key_error::CursorSigningKeyError::InvalidLength)
     }

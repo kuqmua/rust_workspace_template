@@ -6,15 +6,15 @@ pub(crate) struct SnakeIdentifier(String);
 impl TryFrom<String> for SnakeIdentifier {
     type Error =
         crate::snake_identifierifier_try_from_string_error::SnakeIdentifierifierTryFromStringError;
-    fn try_from(string: String) -> Result<Self, Self::Error> {
-        if string.len() > crate::snake_ident_max_len::SNAKE_IDENT_MAX_LEN {
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        if value.len() > crate::snake_ident_max_len::SNAKE_IDENT_MAX_LEN {
             return Err(
                 crate::snake_identifierifier_try_from_string_error::SnakeIdentifierifierTryFromStringError::from(
-                    crate::snake_identifierifier_len::SnakeIdentifierifierLen::from(string.len()),
+                    crate::snake_identifierifier_len::SnakeIdentifierifierLen::from(value.len()),
                 ),
             );
         }
-        Ok(Self(string))
+        Ok(Self(value))
     }
 }
 impl AsRef<str> for SnakeIdentifier {

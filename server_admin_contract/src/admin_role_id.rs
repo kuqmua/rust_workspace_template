@@ -17,13 +17,13 @@
 pub struct AdminRoleId(crate::positive_non_zero_i64::PositiveNonZeroI64);
 impl TryFrom<i64> for AdminRoleId {
     type Error = super::admin_id_try_from_i64_error::AdminIdTryFromI64Error;
-    fn try_from(i64: i64) -> Result<Self, Self::Error> {
-        crate::positive_non_zero_i64::PositiveNonZeroI64::try_from(i64).map(Self)
+    fn try_from(value: i64) -> Result<Self, Self::Error> {
+        crate::positive_non_zero_i64::PositiveNonZeroI64::try_from(value).map(Self)
     }
 }
 impl From<AdminRoleId> for i64 {
-    fn from(admin_role_id: AdminRoleId) -> Self {
-        admin_role_id.0.get()
+    fn from(value: AdminRoleId) -> Self {
+        value.0.get()
     }
 }
 impl AdminRoleId {

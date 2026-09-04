@@ -32,8 +32,8 @@ pub(super) enum PgTypeName {
     TimestampTzRange,
 }
 impl From<&crate::pg_type_catalog_kind::PgTypeCatalogKind> for PgTypeName {
-    fn from(pg_type_catalog_kind: &crate::pg_type_catalog_kind::PgTypeCatalogKind) -> Self {
-        match &pg_type_catalog_kind {
+    fn from(value: &crate::pg_type_catalog_kind::PgTypeCatalogKind) -> Self {
+        match &value {
                 crate::pg_type_catalog_kind::PgTypeCatalogKind::I16AsInt2 => Self::Int2,
                 crate::pg_type_catalog_kind::PgTypeCatalogKind::I32AsInt4 => Self::Int4,
                 crate::pg_type_catalog_kind::PgTypeCatalogKind::I64AsInt8 => Self::Int8,

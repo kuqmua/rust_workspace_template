@@ -1,10 +1,8 @@
 impl From<server_admin_core::std_admin_string::StdAdminStringTryFromStringError>
     for crate::admin_secret_text_error::AdminSecretTextError
 {
-    fn from(
-        std_admin_string_try_from_string_error: server_admin_core::std_admin_string::StdAdminStringTryFromStringError,
-    ) -> Self {
-        match std_admin_string_try_from_string_error {
+    fn from(value: server_admin_core::std_admin_string::StdAdminStringTryFromStringError) -> Self {
+        match value {
             server_admin_core::std_admin_string::StdAdminStringTryFromStringError::InvalidBounds {
                 ..
             } => Self::InvalidBounds,
@@ -28,9 +26,9 @@ impl TryFrom<Vec<server_admin_contract::admin_permission::AdminPermission>>
 {
     type Error = crate::admin_auth_collection_error::AdminAuthCollectionError;
     fn try_from(
-        vec: Vec<server_admin_contract::admin_permission::AdminPermission>,
+        value: Vec<server_admin_contract::admin_permission::AdminPermission>,
     ) -> Result<Self, Self::Error> {
-        bounded_types::bounded_vec::BoundedVec::try_from(vec)
+        bounded_types::bounded_vec::BoundedVec::try_from(value)
             .map(Self::from)
             .map_err(crate::admin_auth_collection_error::AdminAuthCollectionError::from)
     }
@@ -40,9 +38,9 @@ impl TryFrom<Vec<server_admin_contract::admin_role_name::AdminRoleName>>
 {
     type Error = crate::admin_auth_collection_error::AdminAuthCollectionError;
     fn try_from(
-        vec: Vec<server_admin_contract::admin_role_name::AdminRoleName>,
+        value: Vec<server_admin_contract::admin_role_name::AdminRoleName>,
     ) -> Result<Self, Self::Error> {
-        bounded_types::bounded_vec::BoundedVec::try_from(vec)
+        bounded_types::bounded_vec::BoundedVec::try_from(value)
             .map(Self::from)
             .map_err(crate::admin_auth_collection_error::AdminAuthCollectionError::from)
     }
@@ -50,8 +48,8 @@ impl TryFrom<Vec<server_admin_contract::admin_role_name::AdminRoleName>>
 impl From<bounded_types::bounded_value_error::BoundedValueError>
     for crate::admin_auth_collection_error::AdminAuthCollectionError
 {
-    fn from(bounded_value_error: bounded_types::bounded_value_error::BoundedValueError) -> Self {
-        let _: bounded_types::bounded_value_error::BoundedValueError = bounded_value_error;
+    fn from(value: bounded_types::bounded_value_error::BoundedValueError) -> Self {
+        let _: bounded_types::bounded_value_error::BoundedValueError = value;
         Self::TooLarge
     }
 }
@@ -59,20 +57,18 @@ impl From<server_admin_core::admin_entity_id_try_from_i64_error::AdminEntityIdTr
     for crate::sqlx_admin_error::SqlxAdminError
 {
     fn from(
-        admin_entity_id_try_from_i64_error: server_admin_core::admin_entity_id_try_from_i64_error::AdminEntityIdTryFromI64Error,
+        value: server_admin_core::admin_entity_id_try_from_i64_error::AdminEntityIdTryFromI64Error,
     ) -> Self {
-        Self::from(sqlx::Error::Decode(Box::new(
-            admin_entity_id_try_from_i64_error,
-        )))
+        Self::from(sqlx::Error::Decode(Box::new(value)))
     }
 }
 impl From<server_admin_contract::admin_id_try_from_i64_error::AdminIdTryFromI64Error>
     for crate::sqlx_admin_error::SqlxAdminError
 {
     fn from(
-        admin_id_try_from_i64_error: server_admin_contract::admin_id_try_from_i64_error::AdminIdTryFromI64Error,
+        value: server_admin_contract::admin_id_try_from_i64_error::AdminIdTryFromI64Error,
     ) -> Self {
-        Self::from(sqlx::Error::Decode(Box::new(admin_id_try_from_i64_error)))
+        Self::from(sqlx::Error::Decode(Box::new(value)))
     }
 }
 impl utoipa::PartialSchema for crate::runtime_admin_password::RuntimeAdminPassword {
@@ -97,15 +93,15 @@ impl utoipa::ToSchema for crate::runtime_admin_password::RuntimeAdminPassword {
 }
 impl TryFrom<String> for crate::runtime_admin_password::RuntimeAdminPassword {
     type Error = crate::admin_password_try_from_string_error::AdminPasswordTryFromStringError;
-    fn try_from(string: String) -> Result<Self, Self::Error> {
-        let len = string.chars().count();
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        let len = value.chars().count();
         if !(server_admin_contract::identity::ADMIN_PASSWORD_MIN_CHARS
             ..=server_admin_contract::identity::ADMIN_PASSWORD_MAX_CHARS)
             .contains(&len)
         {
             return Err(crate::admin_password_try_from_string_error::AdminPasswordTryFromStringError::InvalidLength);
         }
-        server_admin_core::secrecy_admin_string::SecrecyAdminString::try_from(string)
+        server_admin_core::secrecy_admin_string::SecrecyAdminString::try_from(value)
             .map(Self::from)
             .map_err(|error| match error {
                 server_admin_core::std_admin_string::StdAdminStringTryFromStringError::InvalidBounds { .. }
@@ -227,21 +223,6 @@ impl crate::admin_cookie_kind::AdminCookieKind {
         })
     }
 }
-impl crate::runtime_admin_password_hash_concurrency::RuntimeAdminPasswordHashConcurrency {
-    pub(crate) const fn get(self) -> std::num::NonZeroUsize {
-        *self.get_inner()
-    }
-}
-impl crate::admin_unix_token_stream::AdminUnixTokenStream {
-    pub(crate) const fn get(self) -> u64 {
-        *self.get_inner()
-    }
-}
-impl crate::admin_session_id::AdminSessionId {
-    pub(crate) const fn get(self) -> server_admin_core::uuid_admin_value::UuidAdminValue {
-        *self.get_inner()
-    }
-}
 #[allow(
     clippy::multiple_inherent_impl,
     reason = "semaphore acquisition stays with the security-owned wrapper while hashing behavior stays in the password module"
@@ -267,10 +248,8 @@ impl crate::admin_password_hasher::AdminPasswordHasher {
 impl From<crate::std_admin_access_token::StdAdminAccessTokenTryFromStringError>
     for crate::admin_secret_text_error::AdminSecretTextError
 {
-    fn from(
-        std_admin_access_token_try_from_string_error: crate::std_admin_access_token::StdAdminAccessTokenTryFromStringError,
-    ) -> Self {
-        match std_admin_access_token_try_from_string_error {
+    fn from(value: crate::std_admin_access_token::StdAdminAccessTokenTryFromStringError) -> Self {
+        match value {
             crate::std_admin_access_token::StdAdminAccessTokenTryFromStringError::ContainsNul => Self::ContainsNul,
             crate::std_admin_access_token::StdAdminAccessTokenTryFromStringError::InvalidBounds { .. } => Self::InvalidBounds,
             crate::std_admin_access_token::StdAdminAccessTokenTryFromStringError::InvalidValue => Self::InvalidValue,

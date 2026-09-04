@@ -17,10 +17,8 @@ pub enum AdminAuditDetailsTooLarge {
 }
 
 impl From<crate::admin_audit_details_bytes::AdminAuditDetailsBytes> for AdminAuditDetailsTooLarge {
-    fn from(
-        admin_audit_details_bytes: crate::admin_audit_details_bytes::AdminAuditDetailsBytes,
-    ) -> Self {
-        Self::TooLarge(admin_audit_details_bytes)
+    fn from(value: crate::admin_audit_details_bytes::AdminAuditDetailsBytes) -> Self {
+        Self::TooLarge(value)
     }
 }
 

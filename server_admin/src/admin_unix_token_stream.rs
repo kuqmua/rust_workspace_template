@@ -11,4 +11,4 @@
 )]
 #[serde(from = "u64")]
 #[derive(proc_macro_getters::Getters)]
-pub struct AdminUnixTokenStream(u64);
+pub struct AdminUnixTokenStream(#[getters(copy)] u64);

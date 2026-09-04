@@ -125,7 +125,45 @@ pub fn getters(token_stream: proc_macro::TokenStream) -> proc_macro::TokenStream
                     }
                 };
                 let field_type = &field.ty;
-                let immutable = if copy {
+                let is_single_tuple_field = field.ident.is_none();
+                let reference_name = if is_single_tuple_field {
+                    quote::format_ident!("get_ref")
+                } else {
+                    quote::format_ident!("get_ref_{}", field_name.to_string().trim_start_matches("get_"))
+                };
+                let value_name = if is_single_tuple_field {
+                    quote::format_ident!("get_value")
+                } else {
+                    quote::format_ident!("get_value_{}", field_name.to_string().trim_start_matches("get_"))
+                };
+                let reference = if let syn::Type::Path(type_path) = field_type
+                    && type_path.qself.is_none()
+                    && type_path.path.segments.len() == constants_usize::ONE
+                    && let Some(option_segment) = type_path.path.segments.first()
+                    && option_segment.ident == constants_str::OPTION_TYPE
+                    && let syn::PathArguments::AngleBracketed(arguments) = &option_segment.arguments
+                    && let Some(syn::GenericArgument::Type(inner_type)) = arguments.args.first()
+                {
+                    quote::quote! {
+                        #visibility const fn #reference_name(&self) -> Option<&#inner_type> {
+                            self.#field_member.as_ref()
+                        }
+                    }
+                } else {
+                    quote::quote! {
+                        #visibility const fn #reference_name(&self) -> &#field_type {
+                            &self.#field_member
+                        }
+                    }
+                };
+                let value = copy.then(|| {
+                    quote::quote! {
+                        #visibility const fn #value_name(&self) -> #field_type {
+                            self.#field_member
+                        }
+                    }
+                });
+                let compatibility = if copy && !is_single_tuple_field {
                     quote::quote! {
                         #visibility const fn #field_name(&self) -> #field_type {
                             self.#field_member
@@ -151,6 +189,13 @@ pub fn getters(token_stream: proc_macro::TokenStream) -> proc_macro::TokenStream
                         }
                     }
                 };
+                let tuple_copy_compatibility = (copy && is_single_tuple_field).then(|| {
+                    quote::quote! {
+                        #visibility const fn get(self) -> #field_type {
+                            self.#field_member
+                        }
+                    }
+                });
                 let mutable = (container_get_mut || get_mut).then(|| {
                     let mutable_name = quote::format_ident!("{}_mut", field_name);
                     quote::quote! {
@@ -159,7 +204,7 @@ pub fn getters(token_stream: proc_macro::TokenStream) -> proc_macro::TokenStream
                         }
                     }
                 });
-                Ok(quote::quote!(#immutable #mutable))
+                Ok(quote::quote!(#reference #value #compatibility #tuple_copy_compatibility #mutable))
             })
             .collect::<syn::Result<Vec<_>>>()?;
         Ok(quote::quote! {

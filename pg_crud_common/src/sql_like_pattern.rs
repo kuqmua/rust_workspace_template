@@ -14,11 +14,11 @@ pub struct SqlLikePattern(String);
 impl TryFrom<String> for SqlLikePattern {
     type Error = crate::sql_like_pattern_error::SqlLikePatternError;
 
-    fn try_from(string: String) -> Result<Self, Self::Error> {
-        if string.len() > crate::pg_crud_string_wrapper_max_len::PG_CRUD_STRING_WRAPPER_MAX_LEN {
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        if value.len() > crate::pg_crud_string_wrapper_max_len::PG_CRUD_STRING_WRAPPER_MAX_LEN {
             Err(crate::sql_like_pattern_error::SqlLikePatternError::TooLong)
         } else {
-            Ok(Self(string))
+            Ok(Self(value))
         }
     }
 }

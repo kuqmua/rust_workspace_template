@@ -14,8 +14,8 @@ pub struct AdminFilterOperationKey(
     bounded_types::bounded_string::BoundedString<0usize, 63usize, false>,
 );
 impl From<frontend_contract::filter_operation::FilterOperation> for AdminFilterOperationKey {
-    fn from(filter_operation: frontend_contract::filter_operation::FilterOperation) -> Self {
-        let formatted = format!("{filter_operation:?}");
+    fn from(value: frontend_contract::filter_operation::FilterOperation) -> Self {
+        let formatted = format!("{value:?}");
         let mut key = String::with_capacity(formatted.len().saturating_mul(2usize));
         formatted
             .chars()

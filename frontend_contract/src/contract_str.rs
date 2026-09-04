@@ -11,7 +11,7 @@
 )]
 pub struct ContractStr(&'static str);
 impl From<ContractStr> for String {
-    fn from(contract_str: ContractStr) -> Self {
-        Self::from(contract_str.0)
+    fn from(value: ContractStr) -> Self {
+        Self::from(value.0)
     }
 }

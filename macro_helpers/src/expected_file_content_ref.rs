@@ -10,7 +10,7 @@
 pub(crate) struct ExpectedFileContentRef<'content_lt>(&'content_lt str);
 
 impl<'content_lt> From<&'content_lt String> for ExpectedFileContentRef<'content_lt> {
-    fn from(string: &'content_lt String) -> Self {
-        Self(string.as_str())
+    fn from(value: &'content_lt String) -> Self {
+        Self(value.as_str())
     }
 }

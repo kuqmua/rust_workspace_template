@@ -11,11 +11,11 @@ pub struct PgPoolMaxConnections(u32);
 impl TryFrom<u32> for PgPoolMaxConnections {
     type Error =
         crate::pg_pool_max_connections_try_from_u32_error::PgPoolMaxConnectionsTryFromU32Error;
-    fn try_from(u32: u32) -> Result<Self, Self::Error> {
-        if u32 == 0 {
+    fn try_from(value: u32) -> Result<Self, Self::Error> {
+        if value == 0 {
             Err(Self::Error::IsZero)
         } else {
-            Ok(Self(u32))
+            Ok(Self(value))
         }
     }
 }

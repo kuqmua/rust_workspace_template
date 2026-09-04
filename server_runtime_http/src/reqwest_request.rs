@@ -31,9 +31,9 @@ impl TryFrom<crate::reqwest_request_builder::ReqwestRequestBuilder> for ReqwestR
     type Error = crate::reqwest_error::ReqwestError;
 
     fn try_from(
-        reqwest_request_builder: crate::reqwest_request_builder::ReqwestRequestBuilder,
+        value: crate::reqwest_request_builder::ReqwestRequestBuilder,
     ) -> Result<Self, Self::Error> {
-        reqwest::RequestBuilder::from(reqwest_request_builder)
+        reqwest::RequestBuilder::from(value)
             .build()
             .map(Self)
             .map_err(crate::reqwest_error::ReqwestError::from)

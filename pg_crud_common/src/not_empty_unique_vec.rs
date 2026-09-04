@@ -63,9 +63,9 @@ impl<T: PartialEq> TryFrom<crate::duplicate_candidates::DuplicateCandidates<T>>
 {
     type Error = crate::not_empty_unique_vec_try_new_error::NotEmptyUniqueVecTryNewError<T>;
     fn try_from(
-        duplicate_candidates: crate::duplicate_candidates::DuplicateCandidates<T>,
+        value: crate::duplicate_candidates::DuplicateCandidates<T>,
     ) -> Result<Self, Self::Error> {
-        Self::try_new(duplicate_candidates)
+        Self::try_new(value)
     }
 }
 impl<T: Eq + std::hash::Hash> NotEmptyUniqueVec<T> {

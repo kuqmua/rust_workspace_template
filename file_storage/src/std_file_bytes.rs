@@ -11,8 +11,8 @@ pub struct StdFileBytes(
 );
 impl TryFrom<Vec<u8>> for StdFileBytes {
     type Error = crate::file_storage_path_error::FileStoragePathError;
-    fn try_from(vec: Vec<u8>) -> Result<Self, Self::Error> {
-        match bounded_types::bounded_vec::BoundedVec::try_from(vec) {
+    fn try_from(value: Vec<u8>) -> Result<Self, Self::Error> {
+        match bounded_types::bounded_vec::BoundedVec::try_from(value) {
             Ok(bounded) => Ok(Self(bounded)),
             Err(_error) => Err(crate::file_storage_path_error::FileStoragePathError::FileTooLarge),
         }

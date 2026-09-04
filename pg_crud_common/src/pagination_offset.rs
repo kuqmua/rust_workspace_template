@@ -19,7 +19,7 @@
 #[serde(from = "i64")]
 pub struct PaginationOffset(i64);
 impl From<i32> for PaginationOffset {
-    fn from(i32: i32) -> Self {
-        Self(i32.into())
+    fn from(value: i32) -> Self {
+        Self(value.into())
     }
 }

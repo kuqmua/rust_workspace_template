@@ -20,8 +20,8 @@ impl secrecy::zeroize::Zeroize for StdAdminString {
     }
 }
 impl From<crate::admin_resource_text::AdminResourceText> for StdAdminString {
-    fn from(admin_resource_text: crate::admin_resource_text::AdminResourceText) -> Self {
-        let text = match admin_resource_text {
+    fn from(value: crate::admin_resource_text::AdminResourceText) -> Self {
+        let text = match value {
             crate::admin_resource_text::AdminResourceText::PositiveI64(positive_i64) => {
                 positive_i64.get().to_string()
             }

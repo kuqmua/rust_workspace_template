@@ -29,6 +29,13 @@ struct EmptyModuleVisitor {
 #[derive(
     proc_macro_getters::Getters, Default, proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
+struct ConversionInputNameVisitor {
+    violations: crate::types::DiagnosticMessages,
+}
+
+#[derive(
+    proc_macro_getters::Getters, Default, proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+)]
 struct EmptyFunctionBodyVisitor {
     violations: crate::types::DiagnosticMessages,
 }
@@ -131,6 +138,48 @@ impl<'ast_lt> syn::visit::Visit<'ast_lt> for EmptyModuleVisitor {
     }
 }
 
+impl<'ast_lt> syn::visit::Visit<'ast_lt> for ConversionInputNameVisitor {
+    fn visit_item_impl(&mut self, item_impl: &'ast_lt syn::ItemImpl) {
+        let Some(trait_identifier) = item_impl
+            .trait_
+            .as_ref()
+            .and_then(|(path, _)| path.segments.last())
+            .map(|segment| &segment.ident)
+        else {
+            syn::visit::visit_item_impl(self, item_impl);
+            return;
+        };
+        if trait_identifier != constants_str::FROM_ALT_3
+            && trait_identifier != constants_str::TRYFROM
+        {
+            syn::visit::visit_item_impl(self, item_impl);
+            return;
+        }
+        item_impl.items.iter().for_each(|item| {
+            let syn::ImplItem::Fn(function) = item else {
+                return;
+            };
+            if function.sig.ident != constants_str::CODE_STYLE_FROM_FN_IDENTIFIER
+                && function.sig.ident != constants_str::NEWTYPE_TRY_FROM
+            {
+                return;
+            }
+            let Some(syn::FnArg::Typed(argument)) = function.sig.inputs.first() else {
+                return;
+            };
+            if !matches!(argument.pat.as_ref(), syn::Pat::Ident(identifier) if identifier.ident == constants_str::CODE_STYLE_VALUE_IDENTIFIER)
+            {
+                self.violations.push(format!(
+                    "line {}: {} input parameter must be named `value`",
+                    syn::spanned::Spanned::span(argument).start().line,
+                    trait_identifier
+                ));
+            }
+        });
+        syn::visit::visit_item_impl(self, item_impl);
+    }
+}
+
 impl<'ast_lt> syn::visit::Visit<'ast_lt> for ModuleWideSingleCallAllowVisitor {
     fn visit_attribute(&mut self, attribute: &'ast_lt syn::Attribute) {
         if matches!(&attribute.style, syn::AttrStyle::Inner(_))
@@ -189,7 +238,26 @@ impl<'ast_lt> syn::visit::Visit<'ast_lt> for HandwrittenFieldGetterVisitor {
                 let directly_returns_named_field = returned_field.is_some_and(|member| {
                     matches!(member, syn::Member::Named(field) if field == &method.sig.ident)
                 });
-                if has_getter_prefix || directly_returns_named_field {
+                let copies_generated_inner_getter = method.sig.ident == constants_str::GET_ALT
+                    && method.block.stmts.len() == constants_usize::ONE
+                    && method.block.stmts.first().is_some_and(|statement| {
+                        let syn::Stmt::Expr(syn::Expr::Unary(unary), None) = statement else {
+                            return false;
+                        };
+                        let syn::UnOp::Deref(_) = unary.op else {
+                            return false;
+                        };
+                        let syn::Expr::MethodCall(method_call) = unary.expr.as_ref() else {
+                            return false;
+                        };
+                        method_call.method == constants_str::GET_INNER
+                            && method_call.args.is_empty()
+                            && matches!(method_call.receiver.as_ref(), syn::Expr::Path(receiver) if receiver.path.is_ident(constants_str::SELF_ALT))
+                    });
+                if has_getter_prefix
+                    || directly_returns_named_field
+                    || copies_generated_inner_getter
+                {
                     self.violations.push(method.sig.ident.to_string());
                 }
             });
@@ -283,6 +351,55 @@ fn test_empty_module_policy_rejects_a_source_file_without_items() {
 }
 
 #[test]
+fn test_from_and_try_from_input_parameters_are_named_value() {
+    super::test_code_style_snapshot::with_codebase_snapshot(|snapshot| {
+        let violations = snapshot
+            .rs_files()
+            .iter()
+            .flat_map(|source_file| {
+                let mut visitor = ConversionInputNameVisitor::default();
+                syn::visit::Visit::visit_file(&mut visitor, source_file.ast().as_ref());
+                visitor
+                    .get_violations()
+                    .clone()
+                    .into_iter()
+                    .map(|violation| {
+                        format!("{}:{violation}", source_file.path().as_ref().display())
+                    })
+            })
+            .collect::<Vec<String>>();
+        crate::code_style::assert_joined_errors_empty(
+            crate::types::SourceTextListRef::from(violations.as_slice()),
+            crate::types::StaticStr::from(
+                constants_str::FROM_AND_TRY_FROM_INPUT_PARAMETERS_MUST_BE_NAMED_VALUE,
+            ),
+        );
+    });
+}
+
+#[test]
+fn test_from_and_try_from_input_parameter_policy_rejects_nonstandard_names() {
+    let ast: syn::File = syn::parse_quote! {
+        impl From<u8> for Example {
+            fn from(input: u8) -> Self {
+                Self(input)
+            }
+        }
+        impl TryFrom<u16> for Example {
+            type Error = Error;
+            fn try_from(raw: u16) -> Result<Self, Self::Error> {
+                Ok(Self(raw))
+            }
+        }
+    };
+    let visitor = crate::code_style::visit_syn_file(
+        crate::types::SynFileRef::from(&ast),
+        ConversionInputNameVisitor::default(),
+    );
+    assert_eq!(visitor.get_violations().len(), constants_usize::TWO);
+}
+
+#[test]
 fn test_single_call_fn_is_never_allowed_for_a_whole_module() {
     super::test_code_style_snapshot::with_codebase_snapshot(|snapshot| {
         let violations = snapshot
@@ -328,6 +445,23 @@ fn test_field_getters_are_generated() {
             .collect::<Vec<String>>();
         assert!(violations.is_empty(), "{violations:#?}");
     });
+}
+
+#[test]
+fn test_field_getter_policy_rejects_copying_a_generated_inner_getter() {
+    let ast: syn::File = syn::parse_quote! {
+        struct Example(u64);
+        impl Example {
+            const fn get(self) -> u64 {
+                *self.get_inner()
+            }
+        }
+    };
+    let visitor = crate::code_style::visit_syn_file(
+        crate::types::SynFileRef::from(&ast),
+        HandwrittenFieldGetterVisitor::default(),
+    );
+    assert_eq!(visitor.get_violations().len(), constants_usize::ONE);
 }
 
 #[test]

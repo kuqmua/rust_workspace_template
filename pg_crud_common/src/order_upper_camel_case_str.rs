@@ -13,11 +13,9 @@ impl
     for OrderUpperCamelCaseStr
 {
     fn from(
-        pg_crud_string_wrapper_try_from_string_error: crate::pg_crud_string_wrapper_try_from_string_error::PgCrudStringWrapperTryFromStringError,
+        value: crate::pg_crud_string_wrapper_try_from_string_error::PgCrudStringWrapperTryFromStringError,
     ) -> Self {
-        Self(crate::order_text_string::OrderTextString::from(
-            pg_crud_string_wrapper_try_from_string_error,
-        ))
+        Self(crate::order_text_string::OrderTextString::from(value))
     }
 }
 
@@ -25,7 +23,7 @@ impl TryFrom<String> for OrderUpperCamelCaseStr {
     type Error =
         crate::pg_crud_string_wrapper_try_from_string_error::PgCrudStringWrapperTryFromStringError;
 
-    fn try_from(string: String) -> Result<Self, Self::Error> {
-        crate::order_text_string::OrderTextString::try_from(string).map(Self)
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        crate::order_text_string::OrderTextString::try_from(value).map(Self)
     }
 }

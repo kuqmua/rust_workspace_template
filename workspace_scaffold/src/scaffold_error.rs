@@ -28,7 +28,7 @@ pub(crate) enum ScaffoldError {
     ServicePort,
 }
 impl From<std::io::Error> for ScaffoldError {
-    fn from(error: std::io::Error) -> Self {
-        Self::Io(crate::scaffold_io_error::ScaffoldIoError::from(error))
+    fn from(value: std::io::Error) -> Self {
+        Self::Io(crate::scaffold_io_error::ScaffoldIoError::from(value))
     }
 }

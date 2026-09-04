@@ -148,8 +148,8 @@ pub(super) struct DiagnosticMessages(Vec<String>);
 )]
 pub(super) struct DiagnosticMessagesMutRef<'msgs_lt>(&'msgs_lt mut Vec<String>);
 impl<'msgs_lt> From<&'msgs_lt mut SourceTextList> for DiagnosticMessagesMutRef<'msgs_lt> {
-    fn from(source_text_list: &'msgs_lt mut SourceTextList) -> Self {
-        Self(&mut source_text_list.0)
+    fn from(value: &'msgs_lt mut SourceTextList) -> Self {
+        Self(&mut value.0)
     }
 }
 #[derive(
@@ -173,18 +173,18 @@ pub(super) enum SourceTextTryFromStringError {
 }
 impl TryFrom<String> for SourceText {
     type Error = SourceTextTryFromStringError;
-    fn try_from(string: String) -> Result<Self, Self::Error> {
-        if string.len() > SOURCE_TEXT_MAX_LEN {
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        if value.len() > SOURCE_TEXT_MAX_LEN {
             return Err(SourceTextTryFromStringError::TooLong {
-                len: AnalyzerCount::from(string.len()),
+                len: AnalyzerCount::from(value.len()),
             });
         }
-        Ok(Self(string.into_boxed_str()))
+        Ok(Self(value.into_boxed_str()))
     }
 }
 impl From<SourceText> for String {
-    fn from(source_text: SourceText) -> Self {
-        source_text.0.into_string()
+    fn from(value: SourceText) -> Self {
+        value.0.into_string()
     }
 }
 #[derive(
@@ -266,10 +266,8 @@ pub(super) struct FunctionBodyLocationsBTreeMapMutRef<'map_lt>(
 impl<'map_lt> From<&'map_lt mut FunctionBodyLocationsBTreeMap>
     for FunctionBodyLocationsBTreeMapMutRef<'map_lt>
 {
-    fn from(
-        function_body_locations_b_tree_map: &'map_lt mut FunctionBodyLocationsBTreeMap,
-    ) -> Self {
-        Self(&mut function_body_locations_b_tree_map.0)
+    fn from(value: &'map_lt mut FunctionBodyLocationsBTreeMap) -> Self {
+        Self(&mut value.0)
     }
 }
 #[derive(

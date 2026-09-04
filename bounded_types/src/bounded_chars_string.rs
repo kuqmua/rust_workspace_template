@@ -35,8 +35,8 @@ impl<const MIN: usize, const MAX: usize> AsRef<str> for BoundedCharsString<MIN, 
 impl<const MIN: usize, const MAX: usize> TryFrom<String> for BoundedCharsString<MIN, MAX> {
     type Error = crate::bounded_value_error::BoundedValueError;
 
-    fn try_from(string: String) -> Result<Self, Self::Error> {
-        Self::validate_str(string.as_str()).map(|()| Self(string))
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        Self::validate_str(value.as_str()).map(|()| Self(value))
     }
 }
 

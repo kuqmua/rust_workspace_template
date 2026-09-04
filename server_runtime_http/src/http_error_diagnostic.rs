@@ -101,8 +101,8 @@ impl HttpErrorDiagnostic {
 }
 
 impl From<&HttpErrorDiagnostic> for crate::http_error_telemetry::HttpErrorTelemetry {
-    fn from(http_error_diagnostic: &HttpErrorDiagnostic) -> Self {
-        http_error_diagnostic.telemetry
+    fn from(value: &HttpErrorDiagnostic) -> Self {
+        value.telemetry
     }
 }
 #[cfg(test)]

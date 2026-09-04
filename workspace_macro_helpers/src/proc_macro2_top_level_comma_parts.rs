@@ -4,14 +4,14 @@
 pub struct ProcMacro2TopLevelCommaParts(Vec<proc_macro2::TokenStream>);
 impl TryFrom<Vec<proc_macro2::TokenStream>> for ProcMacro2TopLevelCommaParts {
     type Error = syn::Error;
-    fn try_from(vec: Vec<proc_macro2::TokenStream>) -> Result<Self, Self::Error> {
-        if vec.len() > crate::collection_max_len::COLLECTION_MAX_LEN {
+    fn try_from(value: Vec<proc_macro2::TokenStream>) -> Result<Self, Self::Error> {
+        if value.len() > crate::collection_max_len::COLLECTION_MAX_LEN {
             Err(syn::Error::new(
                 proc_macro2::Span::call_site(),
                 stringify!(e54c7219 too many top-level comma parts),
             ))
         } else {
-            Ok(Self(vec))
+            Ok(Self(value))
         }
     }
 }

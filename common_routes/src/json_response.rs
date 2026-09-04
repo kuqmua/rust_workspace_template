@@ -3,10 +3,8 @@ pub(crate) struct JsonResponse<T> {
     payload: crate::axum_json_payload::AxumJsonPayload<T>,
 }
 impl<T> From<crate::axum_json_payload::AxumJsonPayload<T>> for JsonResponse<T> {
-    fn from(axum_json_payload: crate::axum_json_payload::AxumJsonPayload<T>) -> Self {
-        Self {
-            payload: axum_json_payload,
-        }
+    fn from(value: crate::axum_json_payload::AxumJsonPayload<T>) -> Self {
+        Self { payload: value }
     }
 }
 impl<T> AsRef<crate::axum_json_payload::AxumJsonPayload<T>> for JsonResponse<T> {

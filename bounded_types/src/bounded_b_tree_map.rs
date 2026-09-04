@@ -107,11 +107,11 @@ impl<K: Ord, V, const MAX: usize> TryFrom<std::collections::BTreeMap<K, V>>
 {
     type Error = crate::bounded_value_error::BoundedValueError;
 
-    fn try_from(b_tree_map: std::collections::BTreeMap<K, V>) -> Result<Self, Self::Error> {
+    fn try_from(value: std::collections::BTreeMap<K, V>) -> Result<Self, Self::Error> {
         crate::validate_len::validate_len::<0, MAX>(crate::bounded_len::BoundedLen::from(
-            b_tree_map.len(),
+            value.len(),
         ))
-        .map(|()| Self(b_tree_map))
+        .map(|()| Self(value))
     }
 }
 impl<K: Ord + serde::Serialize, V: serde::Serialize, const MAX: usize> serde::Serialize

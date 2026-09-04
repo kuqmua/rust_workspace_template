@@ -11,13 +11,13 @@ pub struct HttpTraceState(String);
 impl TryFrom<String> for HttpTraceState {
     type Error = crate::http_trace_state_error::HttpTraceStateError;
 
-    fn try_from(string: String) -> Result<Self, Self::Error> {
-        if string.is_empty()
-            || string.len() > 512usize
-            || !string.bytes().all(|byte| (0x20u8..=0x7eu8).contains(&byte))
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        if value.is_empty()
+            || value.len() > 512usize
+            || !value.bytes().all(|byte| (0x20u8..=0x7eu8).contains(&byte))
         {
             return Err(crate::http_trace_state_error::HttpTraceStateError::Invalid);
         }
-        Ok(Self(string))
+        Ok(Self(value))
     }
 }

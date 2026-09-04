@@ -5,10 +5,10 @@ pub struct SecurityHeadersLayer {
 }
 
 impl From<crate::forwarded_proto_trust::ForwardedProtoTrust> for SecurityHeadersLayer {
-    fn from(forwarded_proto_trust: crate::forwarded_proto_trust::ForwardedProtoTrust) -> Self {
+    fn from(value: crate::forwarded_proto_trust::ForwardedProtoTrust) -> Self {
         Self {
             content_security_policy: None,
-            forwarded_proto_trust,
+            forwarded_proto_trust: value,
         }
     }
 }

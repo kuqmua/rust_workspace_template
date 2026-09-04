@@ -6,9 +6,9 @@ pub struct SqlxPostgresQueryBindError {
 }
 
 impl From<sqlx::error::BoxDynError> for SqlxPostgresQueryBindError {
-    fn from(box_dyn_error: sqlx::error::BoxDynError) -> Self {
+    fn from(value: sqlx::error::BoxDynError) -> Self {
         Self {
-            source: crate::sqlx_box_dyn_error::SqlxBoxDynError::from(box_dyn_error),
+            source: crate::sqlx_box_dyn_error::SqlxBoxDynError::from(value),
         }
     }
 }

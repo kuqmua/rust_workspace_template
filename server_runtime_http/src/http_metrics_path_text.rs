@@ -13,11 +13,11 @@ pub(super) struct HttpMetricsPathText(String);
 impl TryFrom<String> for HttpMetricsPathText {
     type Error = crate::http_metrics_path_text_error::HttpMetricsPathTextError;
 
-    fn try_from(string: String) -> Result<Self, Self::Error> {
-        if string.is_empty() || string.len() > constants_usize::VALUE_8_192 {
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        if value.is_empty() || value.len() > constants_usize::VALUE_8_192 {
             Err(crate::http_metrics_path_text_error::HttpMetricsPathTextError)
         } else {
-            Ok(Self(string))
+            Ok(Self(value))
         }
     }
 }

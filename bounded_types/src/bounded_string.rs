@@ -175,8 +175,8 @@ impl<const MINIMUM_LENGTH: usize, const MAXIMUM_LENGTH: usize, const COUNT_CHARS
 {
     type Error = crate::bounded_string_error::BoundedStringError;
 
-    fn try_from(string: String) -> Result<Self, Self::Error> {
-        let actual_length = Self::value_len(string.as_str());
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        let actual_length = Self::value_len(value.as_str());
         if actual_length < MINIMUM_LENGTH {
             return Err(
                 crate::bounded_string_error::BoundedStringError::BelowMinimum {
@@ -193,15 +193,15 @@ impl<const MINIMUM_LENGTH: usize, const MAXIMUM_LENGTH: usize, const COUNT_CHARS
                 },
             );
         }
-        Ok(Self::from_prevalidated(string))
+        Ok(Self::from_prevalidated(value))
     }
 }
 
 impl<const MINIMUM_LENGTH: usize, const MAXIMUM_LENGTH: usize, const COUNT_CHARS: bool>
     From<BoundedString<MINIMUM_LENGTH, MAXIMUM_LENGTH, COUNT_CHARS>> for String
 {
-    fn from(bounded_string: BoundedString<MINIMUM_LENGTH, MAXIMUM_LENGTH, COUNT_CHARS>) -> Self {
-        bounded_string.into_string()
+    fn from(value: BoundedString<MINIMUM_LENGTH, MAXIMUM_LENGTH, COUNT_CHARS>) -> Self {
+        value.into_string()
     }
 }
 

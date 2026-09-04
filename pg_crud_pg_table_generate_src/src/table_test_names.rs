@@ -13,8 +13,8 @@ pub(super) struct TableTestNames<'value_lt>(
 impl<'value_lt> TryFrom<Vec<&'value_lt str>> for TableTestNames<'value_lt> {
     type Error = bounded_types::bounded_value_error::BoundedValueError;
 
-    fn try_from(vec: Vec<&'value_lt str>) -> Result<Self, Self::Error> {
-        bounded_types::bounded_vec::BoundedVec::try_from(vec).map(Self::from)
+    fn try_from(value: Vec<&'value_lt str>) -> Result<Self, Self::Error> {
+        bounded_types::bounded_vec::BoundedVec::try_from(value).map(Self::from)
     }
 }
 

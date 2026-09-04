@@ -1,3 +1,7 @@
+#[allow(
+    clippy::single_call_fn,
+    reason = "service catalog parse remains named because catalog validation has focused unit tests"
+)]
 pub(super) fn service_catalog_parse(
     scaffold_text_ref: crate::scaffold_text_ref::ScaffoldTextRef<'_>,
 ) -> Result<

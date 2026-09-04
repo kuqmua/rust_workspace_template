@@ -11,11 +11,11 @@ pub struct MaximumSizeOfHttpBodyInBytes(usize);
 impl TryFrom<usize> for MaximumSizeOfHttpBodyInBytes {
     type Error = crate::maximum_size_of_http_body_in_bytes_try_from_usize_error::MaximumSizeOfHttpBodyInBytesTryFromUsizeError;
 
-    fn try_from(usize: usize) -> Result<Self, Self::Error> {
-        if usize == constants_usize::ZERO {
+    fn try_from(value: usize) -> Result<Self, Self::Error> {
+        if value == constants_usize::ZERO {
             Err(Self::Error::IsZero)
         } else {
-            Ok(Self(usize))
+            Ok(Self(value))
         }
     }
 }

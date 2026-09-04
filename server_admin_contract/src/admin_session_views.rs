@@ -18,9 +18,9 @@ pub struct AdminSessionViews(
 impl TryFrom<Vec<crate::admin_session_view::AdminSessionView>> for AdminSessionViews {
     type Error = crate::admin_collection_error::AdminCollectionError;
     fn try_from(
-        vec: Vec<crate::admin_session_view::AdminSessionView>,
+        value: Vec<crate::admin_session_view::AdminSessionView>,
     ) -> Result<Self, Self::Error> {
-        crate::admin_bounded_vec::AdminBoundedVec::try_from(vec).map(Self)
+        crate::admin_bounded_vec::AdminBoundedVec::try_from(value).map(Self)
     }
 }
 impl AdminSessionViews {

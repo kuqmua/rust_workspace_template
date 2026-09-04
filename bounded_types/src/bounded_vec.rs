@@ -85,11 +85,11 @@ impl<T, const MAX: usize> From<[T; 0]> for BoundedVec<T, 0, MAX> {
 impl<T, const MIN: usize, const MAX: usize> TryFrom<Vec<T>> for BoundedVec<T, MIN, MAX> {
     type Error = crate::bounded_value_error::BoundedValueError;
 
-    fn try_from(vec: Vec<T>) -> Result<Self, Self::Error> {
+    fn try_from(value: Vec<T>) -> Result<Self, Self::Error> {
         crate::validate_len::validate_len::<MIN, MAX>(crate::bounded_len::BoundedLen::from(
-            vec.len(),
+            value.len(),
         ))
-        .map(|()| Self(vec))
+        .map(|()| Self(value))
     }
 }
 impl<T, const MIN: usize, const MAX: usize> AsRef<[T]> for BoundedVec<T, MIN, MAX> {

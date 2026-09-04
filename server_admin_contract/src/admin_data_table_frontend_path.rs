@@ -9,12 +9,12 @@
 )]
 pub struct AdminDataTableFrontendPath(Box<str>);
 impl From<crate::admin_data_table::AdminDataTable> for AdminDataTableFrontendPath {
-    fn from(admin_data_table: crate::admin_data_table::AdminDataTable) -> Self {
+    fn from(value: crate::admin_data_table::AdminDataTable) -> Self {
         Self(
             format!(
                 "{}/{}",
                 crate::admin_frontend_path::AdminFrontendPath::Root.get(),
-                admin_data_table
+                value
             )
             .into_boxed_str(),
         )

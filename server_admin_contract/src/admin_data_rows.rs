@@ -15,8 +15,8 @@ pub struct AdminDataRows(
 );
 impl TryFrom<Vec<crate::admin_data_row::AdminDataRow>> for AdminDataRows {
     type Error = crate::admin_collection_error::AdminCollectionError;
-    fn try_from(vec: Vec<crate::admin_data_row::AdminDataRow>) -> Result<Self, Self::Error> {
-        crate::admin_bounded_vec::AdminBoundedVec::try_from(vec).map(Self)
+    fn try_from(value: Vec<crate::admin_data_row::AdminDataRow>) -> Result<Self, Self::Error> {
+        crate::admin_bounded_vec::AdminBoundedVec::try_from(value).map(Self)
     }
 }
 impl AdminDataRows {

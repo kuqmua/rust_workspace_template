@@ -16,13 +16,13 @@ impl std::fmt::Debug for HttpCookieValue {
 impl TryFrom<String> for HttpCookieValue {
     type Error = crate::http_secure_cookie_error::HttpSecureCookieError;
 
-    fn try_from(string: String) -> Result<Self, Self::Error> {
-        let valid = string.len() <= constants_usize::VALUE_8_192
-            && string.bytes().all(
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        let valid = value.len() <= constants_usize::VALUE_8_192
+            && value.bytes().all(
                 |byte| matches!(byte, 0x21 | 0x23..=0x2b | 0x2d..=0x3a | 0x3c..=0x5b | 0x5d..=0x7e),
             );
         if valid {
-            Ok(Self(string))
+            Ok(Self(value))
         } else {
             Err(crate::http_secure_cookie_error::HttpSecureCookieError::InvalidValue)
         }

@@ -4,9 +4,9 @@ pub struct PgFilterText(String);
 impl TryFrom<String> for PgFilterText {
     type Error = crate::pg_filter_text_error::PgFilterTextError;
 
-    fn try_from(string: String) -> Result<Self, Self::Error> {
-        (string.len() <= constants_usize::VALUE_1_048_576)
-            .then_some(Self(string))
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        (value.len() <= constants_usize::VALUE_1_048_576)
+            .then_some(Self(value))
             .ok_or(crate::pg_filter_text_error::PgFilterTextError::TooLarge)
     }
 }

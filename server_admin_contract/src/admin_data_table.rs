@@ -209,7 +209,7 @@ impl std::fmt::Display for AdminDataTable {
 
 impl TryFrom<String> for AdminDataTable {
     type Error = AdminDataTableTryFromStrError;
-    fn try_from(string: String) -> Result<Self, Self::Error> {
-        Self::try_from(string.as_str())
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        Self::try_from(value.as_str())
     }
 }

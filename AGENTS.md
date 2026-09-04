@@ -10,6 +10,7 @@
 - Avoid memory leaks via static state.
 - Use enums and `thiserror` for errors.
 - Use repository domain wrapper types in struct fields, enum fields, function parameters, method parameters, and return values; initialize raw values through `From` or `TryFrom`.
+- Name function and method parameters after their types, except that the sole input parameter of `From::from` and `TryFrom::try_from` implementations must be named `value`.
 - Store bounded text in `bounded_types::bounded_string::BoundedString`; a struct using
   `#[bounded_string]` must not store a raw `String` or derive the removed `proc_macro_newtype::BoundedString`.
 - Use a single async runtime across workspace; do not mix async runtimes.

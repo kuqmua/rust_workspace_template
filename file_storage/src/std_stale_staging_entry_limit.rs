@@ -11,11 +11,11 @@ pub struct StdStaleStagingEntryLimit(usize);
 impl TryFrom<usize> for StdStaleStagingEntryLimit {
     type Error =
         crate::stale_staging_cleanup_configuration_error::StaleStagingCleanupConfigurationError;
-    fn try_from(usize: usize) -> Result<Self, Self::Error> {
-        if usize == constants_usize::ZERO || usize > 10_000usize {
+    fn try_from(value: usize) -> Result<Self, Self::Error> {
+        if value == constants_usize::ZERO || value > 10_000usize {
             Err(crate::stale_staging_cleanup_configuration_error::StaleStagingCleanupConfigurationError::InvalidLimit)
         } else {
-            Ok(Self(usize))
+            Ok(Self(value))
         }
     }
 }

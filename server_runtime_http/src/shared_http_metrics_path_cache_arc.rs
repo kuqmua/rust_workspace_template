@@ -9,7 +9,7 @@ pub(super) struct SharedHttpMetricsPathCacheArc(
 );
 
 impl From<crate::http_metrics_path_cache::HttpMetricsPathCache> for SharedHttpMetricsPathCacheArc {
-    fn from(http_metrics_path_cache: crate::http_metrics_path_cache::HttpMetricsPathCache) -> Self {
-        Self(std::sync::Arc::from(http_metrics_path_cache))
+    fn from(value: crate::http_metrics_path_cache::HttpMetricsPathCache) -> Self {
+        Self(std::sync::Arc::from(value))
     }
 }

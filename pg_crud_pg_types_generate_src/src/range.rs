@@ -13,9 +13,9 @@ pub(super) enum Range {
 impl TryFrom<&crate::pg_type_catalog_kind::PgTypeCatalogKind> for Range {
     type Error = ();
     fn try_from(
-        pg_type_catalog_kind: &crate::pg_type_catalog_kind::PgTypeCatalogKind,
+        value: &crate::pg_type_catalog_kind::PgTypeCatalogKind,
     ) -> Result<Self, Self::Error> {
-        match &pg_type_catalog_kind {
+        match &value {
                 crate::pg_type_catalog_kind::PgTypeCatalogKind::I16AsInt2
                 | crate::pg_type_catalog_kind::PgTypeCatalogKind::I32AsInt4
                 | crate::pg_type_catalog_kind::PgTypeCatalogKind::I64AsInt8

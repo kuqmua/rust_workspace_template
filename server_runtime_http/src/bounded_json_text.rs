@@ -43,8 +43,8 @@ impl BoundedJsonText {
 impl TryFrom<String> for BoundedJsonText {
     type Error = crate::bounded_json_read_error::BoundedJsonReadError;
 
-    fn try_from(string: String) -> Result<Self, Self::Error> {
-        if string.len() > constants_usize::VALUE_16_777_216 {
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        if value.len() > constants_usize::VALUE_16_777_216 {
             return Err(crate::bounded_json_read_error::BoundedJsonReadError::Read(
                 crate::bounded_read_error::BoundedReadError::ExceedsMaximum {
                     maximum_bytes: crate::bounded_read_maximum_bytes::BoundedReadMaximumBytes::from(
@@ -54,11 +54,11 @@ impl TryFrom<String> for BoundedJsonText {
             ));
         }
         let _validated_value =
-            serde_json::from_str::<serde_json::Value>(string.as_str()).map_err(|error| {
+            serde_json::from_str::<serde_json::Value>(value.as_str()).map_err(|error| {
                 crate::bounded_json_read_error::BoundedJsonReadError::SerdeJson(
                     crate::serde_json_error::SerdeJsonError::from(error),
                 )
             })?;
-        Ok(Self(string))
+        Ok(Self(value))
     }
 }

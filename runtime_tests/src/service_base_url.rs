@@ -11,18 +11,18 @@ pub struct ServiceBaseUrl(String);
 impl TryFrom<String> for ServiceBaseUrl {
     type Error = crate::service_base_url_error::ServiceBaseUrlError;
 
-    fn try_from(mut string: String) -> Result<Self, Self::Error> {
-        if string.len() > constants_usize::VALUE_8_192 {
+    fn try_from(mut value: String) -> Result<Self, Self::Error> {
+        if value.len() > constants_usize::VALUE_8_192 {
             return Err(crate::service_base_url_error::ServiceBaseUrlError::Length);
         }
-        while string.ends_with('/') {
-            let _removed = string.pop();
+        while value.ends_with('/') {
+            let _removed = value.pop();
         }
-        let parsed = match reqwest::Url::parse(string.as_str()) {
+        let parsed = match reqwest::Url::parse(value.as_str()) {
             Ok(parsed) => parsed,
             Err(_error)
-                if string.starts_with(constants_str::VALUE_8C8DAC95)
-                    || string.starts_with(constants_str::VALUE_66DFEEED) =>
+                if value.starts_with(constants_str::VALUE_8C8DAC95)
+                    || value.starts_with(constants_str::VALUE_66DFEEED) =>
             {
                 return Err(crate::service_base_url_error::ServiceBaseUrlError::Host);
             }
@@ -37,6 +37,6 @@ impl TryFrom<String> for ServiceBaseUrl {
         if parsed.query().is_some() || parsed.fragment().is_some() {
             return Err(crate::service_base_url_error::ServiceBaseUrlError::Suffix);
         }
-        Ok(Self(string))
+        Ok(Self(value))
     }
 }

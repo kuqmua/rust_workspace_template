@@ -23,7 +23,7 @@ mod tests {
     #[derive(
         proc_macro_getters::Getters, proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     )]
-    struct TupleField(u64);
+    struct TupleField(#[getters(copy)] u64);
 
     #[derive(
         proc_macro_getters::Getters, proc_macro_optimal_memory_layout::OptimalMemoryLayout,
@@ -50,11 +50,11 @@ mod tests {
     impl TryFrom<u64> for TupleField {
         type Error = TupleFieldError;
 
-        fn try_from(u64: u64) -> Result<Self, Self::Error> {
-            if u64 == 0 {
+        fn try_from(value: u64) -> Result<Self, Self::Error> {
+            if value == 0 {
                 Err(TupleFieldError::Zero)
             } else {
-                Ok(Self(u64))
+                Ok(Self(value))
             }
         }
     }
@@ -68,26 +68,28 @@ mod tests {
             optional: Some(3),
             value: 5,
         };
-        assert_eq!(named.get_optional(), Some(&3));
+        assert_eq!(named.get_ref_optional(), Some(&3));
         *named.get_value_mut() = 8;
-        assert_eq!(*named.get_value(), 8);
+        assert_eq!(*named.get_ref_value(), 8);
         assert_eq!(
             *PascalCaseField {
                 RouteTypeUpperCamelCase: 13,
             }
-            .get_route_type_upper_camel_case(),
+            .get_ref_route_type_upper_camel_case(),
             13
         );
         let tuple = match TupleField::try_from(21) {
             Ok(value) => value,
             Err(TupleFieldError::Zero) => return,
         };
-        assert_eq!(*tuple.get_inner(), 21);
+        assert_eq!(*tuple.get_ref(), 21);
+        assert_eq!(tuple.get_value(), 21);
         let bare = BareFields {
             count: 34,
             text: String::from(constants_str::A_ALT),
         };
-        assert_eq!(bare.count(), 34);
+        assert_eq!(*bare.get_ref_count(), 34);
+        assert_eq!(bare.get_value_count(), 34);
         assert_eq!(bare.text_len(), constants_usize::ONE);
     }
 

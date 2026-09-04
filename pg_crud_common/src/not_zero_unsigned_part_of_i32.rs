@@ -15,8 +15,8 @@
 pub struct NotZeroUnsignedPartOfI32(std::num::NonZeroI32);
 
 impl From<std::num::NonZeroU16> for NotZeroUnsignedPartOfI32 {
-    fn from(non_zero_u16: std::num::NonZeroU16) -> Self {
-        Self::from(std::num::NonZeroI32::from(non_zero_u16))
+    fn from(value: std::num::NonZeroU16) -> Self {
+        Self::from(std::num::NonZeroI32::from(value))
     }
 }
 
@@ -35,9 +35,9 @@ impl utoipa::ToSchema for NotZeroUnsignedPartOfI32 {}
 impl TryFrom<i32> for NotZeroUnsignedPartOfI32 {
     type Error = crate::not_zero_unsigned_part_of_i32_try_from_i32_error::NotZeroUnsignedPartOfI32TryFromI32Error;
 
-    fn try_from(i32: i32) -> Result<Self, Self::Error> {
+    fn try_from(value: i32) -> Result<Self, Self::Error> {
         let unsigned =
-            crate::unsigned_part_of_i32::UnsignedPartOfI32::try_from(i32).map_err(|error| {
+            crate::unsigned_part_of_i32::UnsignedPartOfI32::try_from(value).map_err(|error| {
                 Self::Error::UnsignedPartOfI32TryFromI32Error {
                     v: error,
                     location: proc_macro_location_bang::location!(),

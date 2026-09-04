@@ -12,9 +12,7 @@ pub enum BoundedBTreeMapError {
     TooLarge(super::std_bounded_b_tree_map_len::StdBoundedBTreeMapLen),
 }
 impl From<super::std_bounded_b_tree_map_len::StdBoundedBTreeMapLen> for BoundedBTreeMapError {
-    fn from(
-        std_bounded_b_tree_map_len: super::std_bounded_b_tree_map_len::StdBoundedBTreeMapLen,
-    ) -> Self {
-        Self::TooLarge(std_bounded_b_tree_map_len)
+    fn from(value: super::std_bounded_b_tree_map_len::StdBoundedBTreeMapLen) -> Self {
+        Self::TooLarge(value)
     }
 }

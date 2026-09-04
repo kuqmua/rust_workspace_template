@@ -28,8 +28,8 @@ impl<T, const MIN: usize, const MAX: usize> PgBoundedVec<T, MIN, MAX> {
 impl<T, const MIN: usize, const MAX: usize> TryFrom<Vec<T>> for PgBoundedVec<T, MIN, MAX> {
     type Error = crate::bounded_vec_error::BoundedVecError;
 
-    fn try_from(vec: Vec<T>) -> Result<Self, Self::Error> {
-        bounded_types::bounded_vec::BoundedVec::<T, MIN, MAX>::try_from(vec)
+    fn try_from(value: Vec<T>) -> Result<Self, Self::Error> {
+        bounded_types::bounded_vec::BoundedVec::<T, MIN, MAX>::try_from(value)
             .map(|bounded| Self(bounded.into_inner()))
             .map_err(crate::bounded_vec_error::BoundedVecError::from)
     }

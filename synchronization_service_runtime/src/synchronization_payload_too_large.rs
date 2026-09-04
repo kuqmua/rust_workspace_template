@@ -15,8 +15,8 @@ pub enum SynchronizationPayloadTooLarge {
 impl From<bounded_types::bounded_value_error::BoundedValueError>
     for SynchronizationPayloadTooLarge
 {
-    fn from(bounded_value_error: bounded_types::bounded_value_error::BoundedValueError) -> Self {
-        let _: bounded_types::bounded_value_error::BoundedValueError = bounded_value_error;
+    fn from(value: bounded_types::bounded_value_error::BoundedValueError) -> Self {
+        let _: bounded_types::bounded_value_error::BoundedValueError = value;
         Self::TooLarge
     }
 }

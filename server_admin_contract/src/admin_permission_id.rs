@@ -17,13 +17,13 @@
 pub struct AdminPermissionId(crate::positive_non_zero_i64::PositiveNonZeroI64);
 impl TryFrom<i64> for AdminPermissionId {
     type Error = super::admin_id_try_from_i64_error::AdminIdTryFromI64Error;
-    fn try_from(i64: i64) -> Result<Self, Self::Error> {
-        crate::positive_non_zero_i64::PositiveNonZeroI64::try_from(i64).map(Self)
+    fn try_from(value: i64) -> Result<Self, Self::Error> {
+        crate::positive_non_zero_i64::PositiveNonZeroI64::try_from(value).map(Self)
     }
 }
 impl From<AdminPermissionId> for i64 {
-    fn from(admin_permission_id: AdminPermissionId) -> Self {
-        admin_permission_id.0.get()
+    fn from(value: AdminPermissionId) -> Self {
+        value.0.get()
     }
 }
 impl AdminPermissionId {

@@ -18,8 +18,8 @@ impl CleanupBatchSize {
 impl TryFrom<u64> for CleanupBatchSize {
     type Error = crate::cleanup_batch_size_error::CleanupBatchSizeError;
 
-    fn try_from(u64: u64) -> Result<Self, Self::Error> {
-        std::num::NonZeroU64::new(u64)
+    fn try_from(value: u64) -> Result<Self, Self::Error> {
+        std::num::NonZeroU64::new(value)
             .map(Self::from)
             .ok_or(crate::cleanup_batch_size_error::CleanupBatchSizeError::Zero)
     }

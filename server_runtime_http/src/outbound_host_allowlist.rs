@@ -11,11 +11,11 @@ impl TryFrom<Vec<crate::outbound_allowed_host::OutboundAllowedHost>> for Outboun
     type Error = crate::outbound_host_allowlist_error::OutboundHostAllowlistError;
 
     fn try_from(
-        mut vec: Vec<crate::outbound_allowed_host::OutboundAllowedHost>,
+        mut value: Vec<crate::outbound_allowed_host::OutboundAllowedHost>,
     ) -> Result<Self, Self::Error> {
-        vec.sort();
-        vec.dedup();
-        bounded_types::bounded_vec::BoundedVec::try_from(vec)
+        value.sort();
+        value.dedup();
+        bounded_types::bounded_vec::BoundedVec::try_from(value)
             .map(Self)
             .map_err(|error| match error {
                 bounded_types::bounded_value_error::BoundedValueError::BelowMin { .. } => {

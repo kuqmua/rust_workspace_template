@@ -28,12 +28,12 @@ impl From<[crate::health_component::HealthComponent; 2]> for HealthComponents {
 impl TryFrom<Vec<crate::health_component::HealthComponent>> for HealthComponents {
     type Error = crate::health_components_error::HealthComponentsError;
 
-    fn try_from(vec: Vec<crate::health_component::HealthComponent>) -> Result<Self, Self::Error> {
+    fn try_from(value: Vec<crate::health_component::HealthComponent>) -> Result<Self, Self::Error> {
         bounded_types::bounded_vec::BoundedVec::<
             crate::health_component::HealthComponent,
             { constants_usize::ZERO },
             { crate::health_components_max_len::HEALTH_COMPONENTS_MAX_LEN },
-        >::try_from(vec)
+        >::try_from(value)
         .map(bounded_types::bounded_vec::BoundedVec::into_inner)
         .map(Self)
         .map_err(|_error| crate::health_components_error::HealthComponentsError::TooMany)

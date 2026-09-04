@@ -16,18 +16,18 @@ pub struct ListTotal(i64);
 impl TryFrom<i64> for ListTotal {
     type Error = crate::list_total_error::ListTotalError;
 
-    fn try_from(i64: i64) -> Result<Self, Self::Error> {
-        if i64 < constants_i64::ZERO {
+    fn try_from(value: i64) -> Result<Self, Self::Error> {
+        if value < constants_i64::ZERO {
             Err(crate::list_total_error::ListTotalError::Negative)
         } else {
-            Ok(Self(i64))
+            Ok(Self(value))
         }
     }
 }
 
 impl From<u32> for ListTotal {
-    fn from(u32: u32) -> Self {
-        Self(i64::from(u32))
+    fn from(value: u32) -> Self {
+        Self(i64::from(value))
     }
 }
 #[cfg(test)]

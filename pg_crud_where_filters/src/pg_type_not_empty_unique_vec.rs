@@ -39,8 +39,8 @@ impl<T: utoipa::ToSchema> utoipa::ToSchema for PgTypeNotEmptyUniqueVec<T> {
 impl<T: PartialEq> TryFrom<Vec<T>> for PgTypeNotEmptyUniqueVec<T> {
     type Error =
         pg_crud_common::not_empty_unique_vec_try_new_error::NotEmptyUniqueVecTryNewError<T>;
-    fn try_from(vec: Vec<T>) -> Result<Self, Self::Error> {
-        pg_crud_common::not_empty_unique_vec::NotEmptyUniqueVec::try_new(vec.into())
+    fn try_from(value: Vec<T>) -> Result<Self, Self::Error> {
+        pg_crud_common::not_empty_unique_vec::NotEmptyUniqueVec::try_new(value.into())
             .map(pg_crud_common::not_empty_unique_vec::NotEmptyUniqueVec::into_vec)
             .map(Self)
     }
