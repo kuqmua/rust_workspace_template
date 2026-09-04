@@ -1,12 +1,12 @@
 #[derive(Debug, Clone, Copy, proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
-pub(crate) enum RustOrClippy {
+pub(crate) enum RustOrClippy<'slice_lt> {
     Clippy,
-    Rust,
+    Rust(crate::types::StaticStrSliceRef<'slice_lt>),
 }
-impl RustOrClippy {
+impl RustOrClippy<'_> {
     pub(crate) fn name(self) -> crate::types::StaticStr {
         match self {
-            Self::Rust => crate::types::StaticStr::from(constants_str::RUST),
+            Self::Rust(_) => crate::types::StaticStr::from(constants_str::RUST),
             Self::Clippy => crate::types::StaticStr::from(constants_str::CLIPPY),
         }
     }
@@ -314,12 +314,21 @@ pub(crate) fn scan_generated_diagnostic_tokens(
 }
 
 pub(crate) fn assert_workspace_lints_match(
-    rust_or_clippy: RustOrClippy,
-    tool: crate::types::StaticStr,
-    analyzer_bool: crate::types::AnalyzerBool,
+    rust_or_clippy: RustOrClippy<'_>,
     exp_id: crate::types::StaticStr,
-    static_str_slice_ref: crate::types::StaticStrSliceRef<'_>,
 ) {
+    let (tool, analyzer_bool, reviewed_exceptions) = match rust_or_clippy {
+        RustOrClippy::Clippy => (
+            crate::types::StaticStr::from(constants_str::CLIPPY_DRIVER),
+            crate::types::AnalyzerBool::from(true),
+            crate::types::StaticStrSliceRef::from([].as_slice()),
+        ),
+        RustOrClippy::Rust(reviewed_exceptions) => (
+            crate::types::StaticStr::from(constants_str::RUSTC),
+            crate::types::AnalyzerBool::default(),
+            reviewed_exceptions,
+        ),
+    };
     let workspace = workspace_table_from_cargo_toml();
     let lints = toml_val_as_table_ref(
         crate::types::TomlValueRef::from(
@@ -379,12 +388,12 @@ pub(crate) fn assert_workspace_lints_match(
     let lints_from_cmd = crate::types::SourceTextListRef::from(command_lints.as_slice());
     let lints_from_cargo_set = str_set(lints_vec_from_cargo_toml);
     let lints_from_cmd_set = str_set(lints_from_cmd);
-    let lints_exceptions_set = static_str_slice_ref
+    let lints_exceptions_set = reviewed_exceptions
         .get()
         .iter()
         .copied()
         .collect::<std::collections::HashSet<&str>>();
-    let stale_exceptions = static_str_slice_ref
+    let stale_exceptions = reviewed_exceptions
         .get()
         .iter()
         .copied()

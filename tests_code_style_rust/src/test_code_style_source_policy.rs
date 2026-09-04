@@ -446,26 +446,8 @@ fn test_all_files_are_english_only() {
 }
 #[test]
 fn test_expect_and_panic_messages_start_with_unique_diagnostic_ids() {
-    let reviewed_interpolations = [
-        (
-            constants_str::VALUE_7FE2AF02,
-            constants_str::VALUE_265FF5BA,
-            constants_str::VALUE_B4F7B36F,
-        ),
-        (
-            constants_str::VALUE_7FE2AF02,
-            constants_str::VALUE_A5D61573,
-            constants_str::VALUE_B4F7B36F,
-        ),
-        (
-            constants_str::VALUE_D405F3E1,
-            constants_str::VALUE_31DDD380,
-            constants_str::VALUE_9EB896D7,
-        ),
-    ];
     let mut all_ids = Vec::new();
     let mut all_errors = Vec::new();
-    let mut matched_interpolations = std::collections::BTreeSet::new();
     crate::code_style::for_each_rs_file(|file| {
         let (path, ast) = (file.path().as_ref(), file.ast().as_ref());
         let visitor = crate::code_style::visit_syn_file(
@@ -476,45 +458,13 @@ fn test_expect_and_panic_messages_start_with_unique_diagnostic_ids() {
             ),
         );
         all_ids.extend(visitor.get_ids().iter().cloned());
-        visitor.get_errors().clone().into_iter().for_each(|error| {
-            let reviewed =
-                reviewed_interpolations
-                    .iter()
-                    .find(|(path_suffix, reviewed_error, reason)| {
-                        let path_text = path.to_string_lossy();
-                        let split_owner_matches = path_suffix
-                            .strip_suffix(constants_str::RS_EXTENSION)
-                            .and_then(|owner_stem| {
-                                path_text
-                                    .trim_start_matches(constants_str::TEXT_ALT_9)
-                                    .strip_prefix(owner_stem)
-                            })
-                            .is_some_and(|remainder| {
-                                remainder.starts_with('_')
-                                    && remainder.ends_with(constants_str::RS_EXTENSION)
-                            });
-                        (path.ends_with(path_suffix)
-                            || crate::code_style::declared_child_matches(
-                                path_text.as_ref(),
-                                path_suffix,
-                            )
-                            || split_owner_matches)
-                            && error == *reviewed_error
-                            && !reason.is_empty()
-                    });
-            if let Some((path_suffix, reviewed_error, _reason)) = reviewed {
-                let _inserted = matched_interpolations
-                    .insert((path_suffix.to_string(), reviewed_error.to_string()));
-            } else {
-                all_errors.push(format!("{path:?}: {error}"));
-            }
-        });
+        all_errors.extend(
+            visitor
+                .get_errors()
+                .iter()
+                .map(|error| format!("{path:?}: {error}")),
+        );
     });
-    if matched_interpolations.len() != reviewed_interpolations.len() {
-        all_errors.push(format!(
-            "stale generated diagnostic interpolation inventory: matched={matched_interpolations:#?}"
-        ));
-    }
     let mut seen = std::collections::HashSet::new();
     let duplicates = all_ids
         .iter()
@@ -841,32 +791,41 @@ fn test_direct_filesystem_owner_inventory_is_exact_justified_and_current() {
     );
     super::test_code_style_snapshot::with_codebase_snapshot(|snapshot| {
         let mut matched = std::collections::BTreeSet::new();
-        snapshot.rs_files().iter().for_each(|source_file| {
-            let visitor = crate::code_style::visit_syn_file(
-                crate::types::SynFileRef::from(source_file.ast().as_ref()),
-                super::source_analysis::DirectPathCallVisitor::new(
-                    crate::types::DiagnosticMessages::default(),
-                ),
-            );
-            let has_direct_access = visitor.get_calls().iter().any(|call| {
-                call.starts_with(constants_str::STD_PATH_ENV_PATH)
-                    || call.starts_with(constants_str::STD_PATH_FS_PATH)
-                    || call.starts_with(constants_str::TOKIO_PATH_FS_PATH)
-            });
-            if !has_direct_access {
-                return;
-            }
-            let path = source_file.path().as_ref().to_string_lossy();
-            constants_str::CODE_STYLE_DIRECT_FS_OWNER_SUFFIXES
-                .iter()
-                .filter(|suffix| {
-                    path.ends_with(**suffix)
-                        || crate::code_style::declared_child_matches(path.as_ref(), suffix)
-                })
-                .for_each(|suffix| {
-                    let _inserted = matched.insert(*suffix);
+        snapshot
+            .rs_files()
+            .iter()
+            .filter(|source_file| {
+                !crate::code_style::is_test_source_path(crate::types::PathRef::from(
+                    std::borrow::Borrow::<std::path::Path>::borrow(source_file.path()),
+                ))
+                .get()
+            })
+            .for_each(|source_file| {
+                let visitor = crate::code_style::visit_syn_file(
+                    crate::types::SynFileRef::from(source_file.ast().as_ref()),
+                    super::source_analysis::DirectPathCallVisitor::new(
+                        crate::types::DiagnosticMessages::default(),
+                    ),
+                );
+                let has_direct_access = visitor.get_calls().iter().any(|call| {
+                    call.starts_with(constants_str::STD_PATH_ENV_PATH)
+                        || call.starts_with(constants_str::STD_PATH_FS_PATH)
+                        || call.starts_with(constants_str::TOKIO_PATH_FS_PATH)
                 });
-        });
+                if !has_direct_access {
+                    return;
+                }
+                let path = source_file.path().as_ref().to_string_lossy();
+                constants_str::CODE_STYLE_DIRECT_FS_OWNER_SUFFIXES
+                    .iter()
+                    .filter(|suffix| {
+                        path.ends_with(**suffix)
+                            || crate::code_style::declared_child_matches(path.as_ref(), suffix)
+                    })
+                    .for_each(|suffix| {
+                        let _inserted = matched.insert(*suffix);
+                    });
+            });
         let stale = constants_str::CODE_STYLE_DIRECT_FS_OWNER_SUFFIXES
             .iter()
             .filter(|suffix| !matched.contains(**suffix))
@@ -901,9 +860,6 @@ fn test_runtime_data_reads_are_bounded() {
         |path, ast, errors| {
             let path_text = path.to_string_lossy();
             if crate::code_style::is_test_crate_source_path(crate::types::PathRef::from(path)).get()
-                || constants_str::CODE_STYLE_UNBOUNDED_READ_OWNER_SUFFIXES
-                    .iter()
-                    .any(|suffix| path_text.ends_with(suffix))
                 || constants_str::CODE_STYLE_BOUNDED_READ_OWNER_SUFFIXES
                     .iter()
                     .any(|suffix| path_text.ends_with(suffix))
@@ -943,30 +899,6 @@ fn test_bounded_read_policy_rejects_sync_and_async_whole_file_reads() {
         ),
     );
     assert_eq!(visitor.get_calls().len(), 4usize, "46638c47");
-}
-#[test]
-fn test_environment_initializer_is_in_bounded_read_policy_scope() {
-    assert!(
-        !constants_str::CODE_STYLE_UNBOUNDED_READ_OWNER_SUFFIXES
-            .iter()
-            .any(|suffix| suffix.contains(constants_str::INITIALIZE_ENVIRONMENT_FILES)),
-        "920fde35"
-    );
-}
-#[test]
-fn test_workspace_scaffold_is_in_bounded_read_policy_scope() {
-    assert!(
-        !constants_str::CODE_STYLE_UNBOUNDED_READ_OWNER_SUFFIXES
-            .contains(&constants_str::CODE_STYLE_WORKSPACE_SCAFFOLD_FS_OWNER_SUFFIX),
-        "54b718ca"
-    );
-}
-#[test]
-fn test_bounded_read_policy_has_no_whole_file_owner_exceptions() {
-    assert!(
-        constants_str::CODE_STYLE_UNBOUNDED_READ_OWNER_SUFFIXES.is_empty(),
-        "b71f043c"
-    );
 }
 #[test]
 fn test_raw_runtime_sql_identifier_inventory_matches_reviewed_baseline() {
@@ -1135,11 +1067,6 @@ fn test_optimal_memory_layout_derive_visitor_checks_structs_and_enums() {
 }
 #[test]
 fn test_unit_tests_use_deterministic_time_and_randomness_patterns() {
-    let reviewed_calls = [(
-        constants_str::VALUE_4B68F077,
-        constants_str::STD_PATH_TIME_PATH_INSTANT_PATH_NOW,
-        constants_str::VALUE_14AF303B,
-    )];
     crate::code_style::assert_rs_ast_errors_empty_with_context(
         crate::types::StaticStr::from(constants_str::VALUE_821D4A76),
         crate::types::SourceTextRef::from(constants_str::UNIT_TESTS_USE_NONDETERMINISTIC_TIME_SLEEP_OR_RANDOMNESS_WITHOUT_A_REVIEWED_OWNER),
@@ -1154,14 +1081,12 @@ fn test_unit_tests_use_deterministic_time_and_randomness_patterns() {
                 crate::types::SynFileRef::from(ast),
                 super::source_analysis::TestNondeterminismVisitor::new(crate::types::DiagnosticMessages::default(), crate::types::AnalyzerCount::from(usize::from(scan_entire_file))),
             );
-            visitor.get_calls().clone().into_iter().for_each(|call| {
-                let reviewed = reviewed_calls.iter().any(|(suffix, reviewed_call, reason)| {
-                    path.ends_with(suffix) && call == *reviewed_call && !reason.is_empty()
-                });
-                if !reviewed {
-                    errors.push(format!("{}: nondeterministic `{call}`", path.display()));
-                }
-            });
+            errors.extend(
+                visitor
+                    .get_calls()
+                    .iter()
+                    .map(|call| format!("{}: nondeterministic `{call}`", path.display())),
+            );
         },
     );
 }

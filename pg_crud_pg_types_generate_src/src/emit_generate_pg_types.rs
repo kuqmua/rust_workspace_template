@@ -3566,29 +3566,17 @@ pub(super) enum IsConst {
                                         match &range {
                                             crate::range::Range::I32AsInt4 | crate::range::Range::I64AsInt8 => int_range_normalize_token_stream,
                                             crate::range::Range::SqlxTypesChronoNaiveDateAsDate => {
-                                                let generate_dot_succ_opt_expect_token_stream = |id: &dyn std::fmt::Display| {
-                                                    let id_double_quoted_token_stream = generate_quotes::dq_token_stream::dq_token_stream(&id);
-                                                    quote::quote! {.succ_opt().expect(#id_double_quoted_token_stream)}
-                                                };
-                                                let generate_included_start_succ_opt_token_stream = |id: &dyn std::fmt::Display| {
-                                                    let dot_succ_opt_expect_token_stream = generate_dot_succ_opt_expect_token_stream(&id);
-                                                    quote::quote! {#included_upper_camel_case(#start_snake_case #dot_succ_opt_expect_token_stream)}
-                                                };
-                                                let generate_excluded_end_succ_opt_token_stream = |id: &dyn std::fmt::Display| {
-                                                    let dot_succ_opt_expect_token_stream = generate_dot_succ_opt_expect_token_stream(&id);
-                                                    quote::quote! {#excluded_upper_camel_case(#end_snake_case #dot_succ_opt_expect_token_stream)}
-                                                };
                                                 generate_range_match_token_stream(
                                                     &generate_sqlx_pg_types_pg_range_token_stream(&included_start_token_stream, &quote::quote! {#excluded_upper_camel_case(#end_snake_case.succ_opt().expect("9ebce3b4 generate_flts_with invariant must hold"))}),
                                                     &if_eq_unbounded_unbounded_or_included_excluded_token_stream,
                                                     &sqlx_pg_types_pg_range_included_unbounded_token_stream,
                                                     &generate_if_start_end_eq_token_stream(
                                                         &sqlx_pg_types_pg_range_unbounded_unbounded_token_stream,
-                                                        &generate_sqlx_pg_types_pg_range_token_stream(&generate_included_start_succ_opt_token_stream(&constants_str::VALUE_98A0357B_D21A_4949_A101_C641528D2376), &generate_excluded_end_succ_opt_token_stream(&constants_str::FE53A6B9_2D7E_4605_9F5A_7F5C21CC01E6)),
+                                                        &generate_sqlx_pg_types_pg_range_token_stream(&quote::quote! {#included_upper_camel_case(#start_snake_case.succ_opt().expect("98a0357b generated date range successor exists"))}, &quote::quote! {#excluded_upper_camel_case(#end_snake_case.succ_opt().expect("fe53a6b9 generated date range successor exists"))}),
                                                     ),
-                                                    &generate_if_start_end_eq_token_stream(&sqlx_pg_types_pg_range_unbounded_unbounded_token_stream, &generate_sqlx_pg_types_pg_range_token_stream(&generate_included_start_succ_opt_token_stream(&constants_str::D8A26635_C478_4A2A_ACF4_BF1765702889), &excluded_end_token_stream)),
-                                                    &generate_sqlx_pg_types_pg_range_token_stream(&generate_included_start_succ_opt_token_stream(&constants_str::VALUE_9811C7C7_D7F5_4FB7_9D25_AFFB0BD4F5FB), &unbounded_upper_camel_case),
-                                                    &generate_sqlx_pg_types_pg_range_token_stream(&unbounded_upper_camel_case, &generate_excluded_end_succ_opt_token_stream(&constants_str::D6288F19_0A24_42AD_9E69_36036D9F2C1D)),
+                                                    &generate_if_start_end_eq_token_stream(&sqlx_pg_types_pg_range_unbounded_unbounded_token_stream, &generate_sqlx_pg_types_pg_range_token_stream(&quote::quote! {#included_upper_camel_case(#start_snake_case.succ_opt().expect("d8a26635 generated date range successor exists"))}, &excluded_end_token_stream)),
+                                                    &generate_sqlx_pg_types_pg_range_token_stream(&quote::quote! {#included_upper_camel_case(#start_snake_case.succ_opt().expect("9811c7c7 generated date range successor exists"))}, &unbounded_upper_camel_case),
+                                                    &generate_sqlx_pg_types_pg_range_token_stream(&unbounded_upper_camel_case, &quote::quote! {#excluded_upper_camel_case(#end_snake_case.succ_opt().expect("d6288f19 generated date range successor exists"))}),
                                                     &sqlx_pg_types_pg_range_unbounded_excluded_token_stream,
                                                 )
                                             }

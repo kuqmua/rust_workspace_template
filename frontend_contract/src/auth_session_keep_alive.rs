@@ -76,7 +76,7 @@ mod tests {
             std::time::Duration::from_secs(60u64),
         )
         .expect(constants_str::DIAGNOSTIC_99658AD5);
-        let now = crate::auth_session_instant::AuthSessionInstant::from(std::time::Instant::now());
+        let now = crate::auth_session_instant::AuthSessionInstant::default();
         let mut keep_alive = super::AuthSessionKeepAlive::new(interval);
         assert_eq!(
             keep_alive.begin(

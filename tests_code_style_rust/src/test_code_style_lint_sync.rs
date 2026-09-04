@@ -63,18 +63,9 @@ fn probe_lint(tool: &str, lint: &str) -> LintProbeDisposition {
 
 #[test]
 fn test_check_if_workspace_cargo_toml_workspace_lints_clippy_contains_all_clippy_lints() {
-    assert!(
-        constants_str::CODE_STYLE_CLIPPY_LINT_EXCEPTIONS.is_empty(),
-        "42f9b1d6"
-    );
     crate::code_style::assert_workspace_lints_match(
         crate::code_style::RustOrClippy::Clippy,
-        crate::types::StaticStr::from(constants_str::CLIPPY_DRIVER),
-        crate::types::AnalyzerBool::from(true),
         crate::types::StaticStr::from(constants_str::VALUE_8895CA50),
-        crate::types::StaticStrSliceRef::from(
-            constants_str::CODE_STYLE_CLIPPY_LINT_EXCEPTIONS.as_slice(),
-        ),
     );
 }
 #[test]
@@ -149,22 +140,10 @@ fn test_check_if_workspace_cargo_toml_workspace_lints_rust_contains_all_rust_lin
         "bd2fa22f"
     );
     crate::code_style::assert_workspace_lints_match(
-        crate::code_style::RustOrClippy::Rust,
-        crate::types::StaticStr::from(constants_str::RUSTC),
-        crate::types::AnalyzerBool::default(),
+        crate::code_style::RustOrClippy::Rust(crate::types::StaticStrSliceRef::from(
+            exceptions.as_slice(),
+        )),
         crate::types::StaticStr::from(constants_str::VALUE_3C20B457),
-        crate::types::StaticStrSliceRef::from(exceptions.as_slice()),
-    );
-}
-#[test]
-fn test_clippy_lint_exceptions_are_unique() {
-    assert_eq!(
-        constants_str::CODE_STYLE_CLIPPY_LINT_EXCEPTIONS
-            .iter()
-            .collect::<std::collections::BTreeSet<_>>()
-            .len(),
-        constants_str::CODE_STYLE_CLIPPY_LINT_EXCEPTIONS.len(),
-        "98ca7133"
     );
 }
 

@@ -1285,7 +1285,7 @@ fn test_arc_lock_and_trait_object_usage_matches_reviewed_inventory() {
         ),
         (
             constants_str::VALUE_D405F3E1,
-            (0, 0, 177, constants_str::VALUE_FB2CE6C2),
+            (0, 0, 174, constants_str::VALUE_FB2CE6C2),
         ),
         (
             constants_str::VALUE_9D0FC67D,

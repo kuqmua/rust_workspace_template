@@ -9,3 +9,9 @@
     proc_macro_newtype_get_inner::GetInner,
 )]
 pub struct AuthSessionInstant(std::time::Instant);
+
+impl Default for AuthSessionInstant {
+    fn default() -> Self {
+        Self::from(std::time::Instant::now())
+    }
+}

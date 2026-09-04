@@ -9278,10 +9278,10 @@ enum WrapIntoOptional {
         let generate_read_fields_after_update_token_stream: &dyn Fn(
             &syn::Ident,
             &dyn Fn(&syn::Ident) -> proc_macro2::TokenStream,
-            &str,
-            &str,
+            fn(proc_macro2::TokenStream) -> proc_macro2::TokenStream,
+            fn(proc_macro2::TokenStream) -> proc_macro2::TokenStream,
         )
-            -> proc_macro2::TokenStream = &|field, else_fn, expect_uuid_0, expect_uuid_1| {
+            -> proc_macro2::TokenStream = &|field, else_fn, expect_first, expect_second| {
             generate_fields_named_without_primary_key_with_comma_token_stream(
                 &|syn_field: &macro_helpers::syn_field::SynField| {
                     let fi0 = syn_field.get_identifier();
@@ -9290,15 +9290,17 @@ enum WrapIntoOptional {
                             let ts1 = generate_as_pg_type_test_cases_path_token_stream(
                                 syn_field.get_field_type(),
                             );
-                            let expect_0 =
-                                generate_quotes::dq_token_stream::dq_token_stream(&expect_uuid_0);
-                            let expect_1 =
-                                generate_quotes::dq_token_stream::dq_token_stream(&expect_uuid_1);
+                            let first_expected = expect_first(quote::quote! {
+                                &read_ids_element_937c5af3.#fi0.clone()
+                            });
+                            let second_expected = expect_second(quote::quote! {
+                                #ts1 read_ids_to_optional_explicit_value_read_default_some_one_element(
+                                    #first_expected
+                                )
+                            });
                             quote::quote! {
                                 #ts1 previous_read_and_optional_update_into_read(
-                                    #ts1 read_ids_to_optional_explicit_value_read_default_some_one_element(
-                                        &read_ids_element_937c5af3.#fi0.clone().expect(#expect_0)
-                                    ).expect(#expect_1).#VSnakeCase,
+                                    #second_expected.#VSnakeCase,
                                     Some(#UpdateSnakeCase.clone())
                                 )
                             }
@@ -9355,8 +9357,8 @@ enum WrapIntoOptional {
                             generate_read_fields_after_update_token_stream(
                                 field,
                                 &|fi0| quote::quote! {element_a6bc6b2f.#fi0},
-                                constants_str::VALUE_96213542,
-                                constants_str::BF0D6F55,
+                                |value| quote::quote! {#value.expect("96213542 generated read value exists")},
+                                |value| quote::quote! {#value.expect("bf0d6f55 generated optional value exists")},
                             );
                         let expected_rm_token_stream = {
                             let ts = generate_identifier_read_initialization_token_stream(&identifier_read_fields_initialization_without_primary_key_after_uo_token_stream);
@@ -9479,8 +9481,8 @@ enum WrapIntoOptional {
                             generate_read_fields_after_update_token_stream(
                                 field,
                                 &|fi0| quote::quote! {previous_read.#fi0},
-                                constants_str::VALUE_4F19D0D2,
-                                constants_str::C7685B19,
+                                |value| quote::quote! {#value.expect("4f19d0d2 generated read value exists")},
+                                |value| quote::quote! {#value.expect("c7685b19 generated optional value exists")},
                             );
                         let uo_read_inner_into_update_token_stream =
                             generate_read_inner_into_update_token_stream(
