@@ -143,7 +143,7 @@ pub fn emit_generate_pg_table(
             naming::parameter::SelfPayloadExampleSnakeCase::from_display(&self)
         }
         fn self_snake_case_str(self) -> String {
-            self.to_string().to_lowercase()
+            naming_common::domain_types::AsRefStrToSnakeCaseStr::case(&self)
         }
         fn self_snake_case_token_stream(self) -> proc_macro2::TokenStream {
             let identifier = quote::format_ident!("{}", self.self_snake_case_str());
@@ -167,14 +167,14 @@ pub fn emit_generate_pg_table(
                 formatter,
                 "{}",
                 match &self {
-                    Self::CreateMany => "Cm",
-                    Self::CreateOne => "Co",
-                    Self::ReadMany => "Rm",
-                    Self::ReadOne => "Ro",
-                    Self::UpdateMany => "Um",
-                    Self::UpdateOne => "Uo",
-                    Self::DeleteMany => "Dm",
-                    Self::DeleteOne => "Dlo",
+                    Self::CreateMany => "CreateMany",
+                    Self::CreateOne => "CreateOne",
+                    Self::ReadMany => "ReadMany",
+                    Self::ReadOne => "ReadOne",
+                    Self::UpdateMany => "UpdateMany",
+                    Self::UpdateOne => "UpdateOne",
+                    Self::DeleteMany => "DeleteMany",
+                    Self::DeleteOne => "DeleteOne",
                 }
             )
         }
@@ -7215,14 +7215,14 @@ enum WrapIntoOptional {
         }
         #[derive(Clone, Copy, Debug, Eq, PartialEq)]
         pub enum #identifier_operation_upper_camel_case {
-            Cm,
-            Co,
-            Dlo,
-            Dm,
-            Rm,
-            Ro,
-            Um,
-            Uo,
+            CreateMany,
+            CreateOne,
+            DeleteOne,
+            DeleteMany,
+            ReadMany,
+            ReadOne,
+            UpdateMany,
+            UpdateOne,
         }
         #[derive(Clone, Copy, Debug, Eq, PartialEq)]
         pub enum #identifier_success_status_upper_camel_case {
@@ -7325,7 +7325,7 @@ enum WrapIntoOptional {
                     #(#route_contract_operation_kind_arms_token_stream),*
                 };
                 let action = frontend_contract::action_contract::ActionContract::new(operation, self.frontend_contract());
-                if matches!(self.operation(), #identifier_operation_upper_camel_case::Dm | #identifier_operation_upper_camel_case::Dlo) {
+                if matches!(self.operation(), #identifier_operation_upper_camel_case::DeleteMany | #identifier_operation_upper_camel_case::DeleteOne) {
                     action.with_confirmation(frontend_contract::confirmation_requirement::ConfirmationRequirement::Required)
                 } else {
                     action
@@ -7337,7 +7337,7 @@ enum WrapIntoOptional {
             }
             #[must_use]
             pub const fn mutates(self) -> bool {
-                !self.payload_example && matches!(self.operation(), #identifier_operation_upper_camel_case::Cm | #identifier_operation_upper_camel_case::Co | #identifier_operation_upper_camel_case::Um | #identifier_operation_upper_camel_case::Uo | #identifier_operation_upper_camel_case::Dm | #identifier_operation_upper_camel_case::Dlo)
+                !self.payload_example && matches!(self.operation(), #identifier_operation_upper_camel_case::CreateMany | #identifier_operation_upper_camel_case::CreateOne | #identifier_operation_upper_camel_case::UpdateMany | #identifier_operation_upper_camel_case::UpdateOne | #identifier_operation_upper_camel_case::DeleteMany | #identifier_operation_upper_camel_case::DeleteOne)
             }
             #[must_use]
             pub const fn path(self) -> &'static str {
@@ -7663,23 +7663,23 @@ enum WrapIntoOptional {
             GeneratePgTableApiMode::Crud if optimistic_revision_field_index.is_some() => {
                 quote::quote! {
                     assert_eq!(#identifier_route_contract_upper_camel_case::ALL.len(), 7usize);
-                    assert!(#identifier_route_contract_upper_camel_case::ALL.into_iter().all(|contract| !matches!(contract.operation(), #identifier_operation_upper_camel_case::Um)));
+                    assert!(#identifier_route_contract_upper_camel_case::ALL.into_iter().all(|contract| !matches!(contract.operation(), #identifier_operation_upper_camel_case::UpdateMany)));
                 }
             }
             GeneratePgTableApiMode::Crud => quote::quote! {
                 assert_eq!(#identifier_route_contract_upper_camel_case::ALL.len(), 8usize);
             },
             GeneratePgTableApiMode::AppendOnly => quote::quote! {
-                assert!(#identifier_route_contract_upper_camel_case::ALL.into_iter().all(|contract| matches!(contract.operation(), #identifier_operation_upper_camel_case::Cm | #identifier_operation_upper_camel_case::Co | #identifier_operation_upper_camel_case::Rm | #identifier_operation_upper_camel_case::Ro)));
+                assert!(#identifier_route_contract_upper_camel_case::ALL.into_iter().all(|contract| matches!(contract.operation(), #identifier_operation_upper_camel_case::CreateMany | #identifier_operation_upper_camel_case::CreateOne | #identifier_operation_upper_camel_case::ReadMany | #identifier_operation_upper_camel_case::ReadOne)));
             },
             GeneratePgTableApiMode::CreateReadDelete => quote::quote! {
-                assert!(#identifier_route_contract_upper_camel_case::ALL.into_iter().all(|contract| matches!(contract.operation(), #identifier_operation_upper_camel_case::Cm | #identifier_operation_upper_camel_case::Co | #identifier_operation_upper_camel_case::Rm | #identifier_operation_upper_camel_case::Ro | #identifier_operation_upper_camel_case::Dm | #identifier_operation_upper_camel_case::Dlo)));
+                assert!(#identifier_route_contract_upper_camel_case::ALL.into_iter().all(|contract| matches!(contract.operation(), #identifier_operation_upper_camel_case::CreateMany | #identifier_operation_upper_camel_case::CreateOne | #identifier_operation_upper_camel_case::ReadMany | #identifier_operation_upper_camel_case::ReadOne | #identifier_operation_upper_camel_case::DeleteMany | #identifier_operation_upper_camel_case::DeleteOne)));
             },
             GeneratePgTableApiMode::ReadOnly => quote::quote! {
-                assert!(#identifier_route_contract_upper_camel_case::ALL.into_iter().all(|contract| matches!(contract.operation(), #identifier_operation_upper_camel_case::Rm | #identifier_operation_upper_camel_case::Ro)));
+                assert!(#identifier_route_contract_upper_camel_case::ALL.into_iter().all(|contract| matches!(contract.operation(), #identifier_operation_upper_camel_case::ReadMany | #identifier_operation_upper_camel_case::ReadOne)));
             },
             GeneratePgTableApiMode::ReadUpdate => quote::quote! {
-                assert!(#identifier_route_contract_upper_camel_case::ALL.into_iter().all(|contract| matches!(contract.operation(), #identifier_operation_upper_camel_case::Rm | #identifier_operation_upper_camel_case::Ro | #identifier_operation_upper_camel_case::Um | #identifier_operation_upper_camel_case::Uo)));
+                assert!(#identifier_route_contract_upper_camel_case::ALL.into_iter().all(|contract| matches!(contract.operation(), #identifier_operation_upper_camel_case::ReadMany | #identifier_operation_upper_camel_case::ReadOne | #identifier_operation_upper_camel_case::UpdateMany | #identifier_operation_upper_camel_case::UpdateOne)));
             },
         };
         let round_trip_tests_token_stream = crate::operation_descriptor::OperationDescriptor::ALL.iter().map(|operation_descriptor| {

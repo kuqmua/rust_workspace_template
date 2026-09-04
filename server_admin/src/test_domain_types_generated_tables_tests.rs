@@ -350,14 +350,14 @@ fn test_generated_admin_open_api_combines_enabled_routes_only() {
     assert!(!paths.contains_key(constants_str::VALUE_F772F137));
     assert!(paths.contains_key(constants_str::VALUE_356A53CE));
     assert!(paths.contains_key(constants_str::VALUE_2A3105E4));
-    assert!(paths.contains_key(constants_str::ADMIN_USERS_RM));
+    assert!(paths.contains_key(constants_str::ADMIN_USERS_READ_MANY));
     assert!(paths.contains_key(constants_str::VALUE_1FB526B2));
     assert!(!paths.contains_key(constants_str::VALUE_0878EE4E));
-    assert!(paths.contains_key(constants_str::ADMIN_PERMISSIONS_RM));
+    assert!(paths.contains_key(constants_str::ADMIN_PERMISSIONS_READ_MANY));
     assert!(paths.contains_key(constants_str::VALUE_C65AD851));
     assert!(!paths.contains_key(constants_str::VALUE_7B7625A7));
     assert!(!paths.contains_key(constants_str::VALUE_19E13078));
-    assert!(paths.contains_key(constants_str::ADMIN_SYSTEM_SETTINGS_RM));
+    assert!(paths.contains_key(constants_str::ADMIN_SYSTEM_SETTINGS_READ_MANY));
     assert!(!paths.contains_key(constants_str::VALUE_C988BF92));
     assert!(paths.contains_key(constants_str::VALUE_E40BCD1D));
     assert!(!paths.contains_key(constants_str::VALUE_6CC4B99E));
@@ -371,52 +371,52 @@ fn test_generated_admin_open_api_combines_enabled_routes_only() {
 fn test_generated_payload_example_routes_have_contracts_and_named_clients() {
     [
         (
-            crate::admin_users::AdminUsers::rm_route(),
-            crate::admin_users::AdminUsers::rm_payload_example_route(),
+            crate::admin_users::AdminUsers::read_many_route(),
+            crate::admin_users::AdminUsers::read_many_payload_example_route(),
         ),
         (
-            crate::admin_users::AdminUsers::ro_route(),
-            crate::admin_users::AdminUsers::ro_payload_example_route(),
+            crate::admin_users::AdminUsers::read_one_route(),
+            crate::admin_users::AdminUsers::read_one_payload_example_route(),
         ),
         (
-            crate::admin_user_roles::AdminUserRoles::rm_route(),
-            crate::admin_user_roles::AdminUserRoles::rm_payload_example_route(),
+            crate::admin_user_roles::AdminUserRoles::read_many_route(),
+            crate::admin_user_roles::AdminUserRoles::read_many_payload_example_route(),
         ),
         (
-            crate::admin_user_roles::AdminUserRoles::ro_route(),
-            crate::admin_user_roles::AdminUserRoles::ro_payload_example_route(),
+            crate::admin_user_roles::AdminUserRoles::read_one_route(),
+            crate::admin_user_roles::AdminUserRoles::read_one_payload_example_route(),
         ),
         (
-            crate::admin_role_permissions::AdminRolePermissions::rm_route(),
-            crate::admin_role_permissions::AdminRolePermissions::rm_payload_example_route(),
+            crate::admin_role_permissions::AdminRolePermissions::read_many_route(),
+            crate::admin_role_permissions::AdminRolePermissions::read_many_payload_example_route(),
         ),
         (
-            crate::admin_role_permissions::AdminRolePermissions::ro_route(),
-            crate::admin_role_permissions::AdminRolePermissions::ro_payload_example_route(),
+            crate::admin_role_permissions::AdminRolePermissions::read_one_route(),
+            crate::admin_role_permissions::AdminRolePermissions::read_one_payload_example_route(),
         ),
         (
-            crate::admin_roles::AdminRoles::rm_route(),
-            crate::admin_roles::AdminRoles::rm_payload_example_route(),
+            crate::admin_roles::AdminRoles::read_many_route(),
+            crate::admin_roles::AdminRoles::read_many_payload_example_route(),
         ),
         (
-            crate::admin_roles::AdminRoles::ro_route(),
-            crate::admin_roles::AdminRoles::ro_payload_example_route(),
+            crate::admin_roles::AdminRoles::read_one_route(),
+            crate::admin_roles::AdminRoles::read_one_payload_example_route(),
         ),
         (
-            crate::admin_permissions::AdminPermissions::rm_route(),
-            crate::admin_permissions::AdminPermissions::rm_payload_example_route(),
+            crate::admin_permissions::AdminPermissions::read_many_route(),
+            crate::admin_permissions::AdminPermissions::read_many_payload_example_route(),
         ),
         (
-            crate::admin_permissions::AdminPermissions::ro_route(),
-            crate::admin_permissions::AdminPermissions::ro_payload_example_route(),
+            crate::admin_permissions::AdminPermissions::read_one_route(),
+            crate::admin_permissions::AdminPermissions::read_one_payload_example_route(),
         ),
         (
-            crate::admin_system_settings::AdminSystemSettings::rm_route(),
-            crate::admin_system_settings::AdminSystemSettings::rm_payload_example_route(),
+            crate::admin_system_settings::AdminSystemSettings::read_many_route(),
+            crate::admin_system_settings::AdminSystemSettings::read_many_payload_example_route(),
         ),
         (
-            crate::admin_system_settings::AdminSystemSettings::ro_route(),
-            crate::admin_system_settings::AdminSystemSettings::ro_payload_example_route(),
+            crate::admin_system_settings::AdminSystemSettings::read_one_route(),
+            crate::admin_system_settings::AdminSystemSettings::read_one_payload_example_route(),
         ),
     ]
     .into_iter()
@@ -427,7 +427,7 @@ fn test_generated_payload_example_routes_have_contracts_and_named_clients() {
         );
     });
     let contract = crate::admin_users::AdminUsersRouteContract::for_path(
-        crate::admin_users::AdminUsers::rm_payload_example_route().as_ref(),
+        crate::admin_users::AdminUsers::read_many_payload_example_route().as_ref(),
     )
     .expect(constants_str::DIAGNOSTIC_8FB87492);
     assert_eq!(
@@ -436,29 +436,29 @@ fn test_generated_payload_example_routes_have_contracts_and_named_clients() {
     );
     assert!(!contract.mutates());
     [
-        size_of_val(&crate::admin_users::AdminUsersFrontendApiClient::<ClientTransport>::rm_payload_example),
-        size_of_val(&crate::admin_users::AdminUsersFrontendApiClient::<ClientTransport>::ro_payload_example),
-        size_of_val(&crate::admin_user_roles::AdminUserRolesFrontendApiClient::<ClientTransport>::rm_payload_example),
-        size_of_val(&crate::admin_user_roles::AdminUserRolesFrontendApiClient::<ClientTransport>::ro_payload_example),
+        size_of_val(&crate::admin_users::AdminUsersFrontendApiClient::<ClientTransport>::read_many_payload_example),
+        size_of_val(&crate::admin_users::AdminUsersFrontendApiClient::<ClientTransport>::read_one_payload_example),
+        size_of_val(&crate::admin_user_roles::AdminUserRolesFrontendApiClient::<ClientTransport>::read_many_payload_example),
+        size_of_val(&crate::admin_user_roles::AdminUserRolesFrontendApiClient::<ClientTransport>::read_one_payload_example),
         size_of_val(
-            &crate::admin_role_permissions::AdminRolePermissionsFrontendApiClient::<ClientTransport>::rm_payload_example,
+            &crate::admin_role_permissions::AdminRolePermissionsFrontendApiClient::<ClientTransport>::read_many_payload_example,
         ),
         size_of_val(
-            &crate::admin_role_permissions::AdminRolePermissionsFrontendApiClient::<ClientTransport>::ro_payload_example,
+            &crate::admin_role_permissions::AdminRolePermissionsFrontendApiClient::<ClientTransport>::read_one_payload_example,
         ),
-        size_of_val(&crate::admin_roles::AdminRolesFrontendApiClient::<ClientTransport>::rm_payload_example),
-        size_of_val(&crate::admin_roles::AdminRolesFrontendApiClient::<ClientTransport>::ro_payload_example),
+        size_of_val(&crate::admin_roles::AdminRolesFrontendApiClient::<ClientTransport>::read_many_payload_example),
+        size_of_val(&crate::admin_roles::AdminRolesFrontendApiClient::<ClientTransport>::read_one_payload_example),
         size_of_val(
-            &crate::admin_permissions::AdminPermissionsFrontendApiClient::<ClientTransport>::rm_payload_example,
-        ),
-        size_of_val(
-            &crate::admin_permissions::AdminPermissionsFrontendApiClient::<ClientTransport>::ro_payload_example,
+            &crate::admin_permissions::AdminPermissionsFrontendApiClient::<ClientTransport>::read_many_payload_example,
         ),
         size_of_val(
-            &crate::admin_system_settings::AdminSystemSettingsFrontendApiClient::<ClientTransport>::rm_payload_example,
+            &crate::admin_permissions::AdminPermissionsFrontendApiClient::<ClientTransport>::read_one_payload_example,
         ),
         size_of_val(
-            &crate::admin_system_settings::AdminSystemSettingsFrontendApiClient::<ClientTransport>::ro_payload_example,
+            &crate::admin_system_settings::AdminSystemSettingsFrontendApiClient::<ClientTransport>::read_many_payload_example,
+        ),
+        size_of_val(
+            &crate::admin_system_settings::AdminSystemSettingsFrontendApiClient::<ClientTransport>::read_one_payload_example,
         ),
     ]
     .into_iter()
@@ -501,12 +501,12 @@ fn test_generated_read_routes_expose_filter_sort_and_pagination_contract() {
         .and_then(serde_json::Value::as_object)
         .expect(constants_str::DIAGNOSTIC_44D17AB0);
     [
-        constants_str::ADMIN_USERS_RM,
-        constants_str::ADMIN_ROLES_RM,
-        constants_str::ADMIN_PERMISSIONS_RM,
-        constants_str::ADMIN_ROLE_PERMISSIONS_RM,
-        constants_str::ADMIN_USER_ROLES_RM,
-        constants_str::ADMIN_SYSTEM_SETTINGS_RM,
+        constants_str::ADMIN_USERS_READ_MANY,
+        constants_str::ADMIN_ROLES_READ_MANY,
+        constants_str::ADMIN_PERMISSIONS_READ_MANY,
+        constants_str::ADMIN_ROLE_PERMISSIONS_READ_MANY,
+        constants_str::ADMIN_USER_ROLES_READ_MANY,
+        constants_str::ADMIN_SYSTEM_SETTINGS_READ_MANY,
     ]
     .into_iter()
     .for_each(|path| {
@@ -524,12 +524,12 @@ fn test_generated_read_routes_expose_filter_sort_and_pagination_contract() {
         .and_then(serde_json::Value::as_object)
         .expect(constants_str::DIAGNOSTIC_8DCF412E);
     [
-        constants_str::ADMINUSERSRMPAYLOAD,
-        constants_str::ADMINROLESRMPAYLOAD,
-        constants_str::ADMINPERMISSIONSRMPAYLOAD,
-        constants_str::ADMINROLEPERMISSIONSRMPAYLOAD,
-        constants_str::ADMINUSERROLESRMPAYLOAD,
-        constants_str::ADMINSYSTEMSETTINGSRMPAYLOAD,
+        constants_str::ADMIN_USERS_READ_MANY_PAYLOAD,
+        constants_str::ADMIN_ROLES_READ_MANY_PAYLOAD,
+        constants_str::ADMIN_PERMISSIONS_READ_MANY_PAYLOAD,
+        constants_str::ADMIN_ROLE_PERMISSIONS_READ_MANY_PAYLOAD,
+        constants_str::ADMIN_USER_ROLES_READ_MANY_PAYLOAD,
+        constants_str::ADMIN_SYSTEM_SETTINGS_READ_MANY_PAYLOAD,
     ]
     .into_iter()
     .for_each(|schema_name| {
