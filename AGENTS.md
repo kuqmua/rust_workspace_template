@@ -8,7 +8,7 @@
 - Prefer borrowing over cloning, especially for large structures.
 - Prefer immutable data.
 - Avoid memory leaks via static state.
-- Use enums and `thiserror` for errors.
+- Use enums and `thiserror` for errors; keep struct-shaped errors limited to the reviewed snapshot.
 - Use repository domain wrapper types in struct fields, enum fields, function parameters, method parameters, and return values; initialize raw values through `From` or `TryFrom`.
 - Name function and method parameters after their types, except that the sole input parameter of `From::from` and `TryFrom::try_from` implementations must be named `value`.
 - Store bounded text in `bounded_types::bounded_string::BoundedString`; a struct using
@@ -19,8 +19,9 @@
 - Add unit tests for public logic.
 - Use test helpers for repeated setup.
 - Keep tests deterministic.
-- Prefix every test function and its containing test module with `test_`.
-- If error message contains 8 random symbols then search workspace for that id.
+- Prefix every test function with `test_`. Name its containing module `tests` or prefix the module
+  name with `test_`; never use the redundant name `test_tests`. A source file containing a root
+  `#[test]` function must also have a filename starting with `test_`.
 - Avoid allocations inside hot loops.
 - Preserve behavior and semantics unless a change is requested; never change semantics silently.
 - Keep diffs minimal.
@@ -41,7 +42,6 @@
   boundaries, domain wrappers, and direct unit-test coverage. Keep an item-scoped, justified
   `clippy::single_call_fn` allowance only when a named function is required.
 - Prefer explicit paths at usage sites over `use` imports.
-- `expect()` messages must contain the **first 8 symbols from a random UUID v4**.
 - Use established, unambiguous abbreviations when creating names; do not invent unclear short
   forms.
 
@@ -68,12 +68,14 @@
   example.
 - Keep every workspace lint allow entry unique and accompanied by a non-empty, specific inline
   reason; keep the repository's variable-lifetime safety lints and `single_call_fn` lint denied.
+- Keep the workspace lint catalog synchronized with every supported Rust and Clippy lint; retain
+  only the exact reviewed set of unsupported unstable Rust lints.
 
 ## SOURCE AND MODULE POLICY
 
 - Write repository source and tracked text in English, with LF line endings, a final newline, and
   no trailing whitespace.
-- Do not add Rust comments or duplicate `#[cfg(test)]` attributes; keep debug explanations in
+- Do not use Rust comments or duplicate `#[cfg(test)]` attributes; keep debug explanations in
   names, diagnostics, tests, or documentation outside Rust source as appropriate.
 - Do not leave empty modules, empty enums, empty function or method bodies, `todo!()`, or
   `unimplemented!()` in source.
@@ -84,10 +86,10 @@
 - Keep external `mod` declarations in crate roots, do not use `#[path]`, and do not bypass module
   ownership with local crate-root imports.
 - A module containing one item must match that item's name. A function-only module may contain at
-  most one function, and a production module may contain at most one named owner and one bounded
-  responsibility.
-- Keep production items in production-named modules, move tests out of large production modules,
-  and keep every reviewed large-module exception exact and necessary.
+  most one function, and a non-root production module may contain at most one top-level function,
+  struct, enum, or trait; its filename must match that owner.
+- Keep production items in production-named modules and move tests out of production modules once
+  they exceed the code-style size threshold.
 - Do not create non-root re-export-only facade modules or private shared modules that forward
   crate-root exports.
 - Do not use public re-exports. Restrict private imports according to module ownership, including
@@ -108,6 +110,8 @@
   `transmute` calls limited to the reviewed inventory.
 - Every workspace struct and enum must derive `OptimalMemoryLayout` unless it is covered by an
   exact reviewed exception.
+- Do not store untyped `serde_json::Value` in production struct fields outside the exact reviewed
+  domain-wrapper exception.
 - Keep `usize::MAX`, raw SQL identifiers, process static state, raw `Vec` tuple wrappers, ignored
   `map_err` bindings, struct-shaped error exceptions, and allocations inside loops aligned with
   their reviewed inventories; do not broaden an inventory silently.
@@ -167,8 +171,8 @@
 - Async functions must not call blocking executors or synchronous filesystem/network operations.
 - Keep direct environment and filesystem access in their designated owner modules, with every
   exception exact, justified, and current.
-- Bound runtime reads; do not use synchronous or asynchronous whole-file read helpers, and do not
-  create whole-file owner exceptions.
+- Bound runtime reads; keep synchronous and asynchronous whole-file read helpers limited to the
+  exact designated owner modules.
 - Retain an owner for every spawned task and supervise retained tasks through completion,
   cancellation, or shutdown; do not discard join handles with bare or ignored bindings.
 - At every `select!` site, use only cancellation-safe operations or an explicitly reviewed design,
