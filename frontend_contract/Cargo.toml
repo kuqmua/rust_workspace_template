@@ -30,7 +30,6 @@ proc_macro_newtype_deref_inner = { workspace = true }
 proc_macro_newtype_deref_mut_inner = { workspace = true }
 proc_macro_newtype_display = { workspace = true }
 proc_macro_newtype_from_getter = { workspace = true }
-proc_macro_newtype_try_from = { workspace = true }
 proc_macro_newtype_utoipa_schema = { workspace = true }
 proc_macro_newtype_bounded_string_wrapper = { workspace = true }
 percent-encoding = { workspace = true }

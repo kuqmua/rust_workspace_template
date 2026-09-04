@@ -160,6 +160,29 @@ pub fn emit_generate_pg_table(
                     | Self::DeleteOne
             )
         }
+        const fn is_read(self) -> bool {
+            matches!(self, Self::ReadMany | Self::ReadOne)
+        }
+        const fn requires_query_part_error(self) -> bool {
+            !matches!(self, Self::DeleteOne)
+        }
+        const fn requires_row_and_rollback_error(self) -> bool {
+            matches!(
+                self,
+                Self::CreateMany
+                    | Self::CreateOne
+                    | Self::UpdateMany
+                    | Self::UpdateOne
+                    | Self::DeleteMany
+                    | Self::DeleteOne
+            )
+        }
+        const fn payload_derives_clone(self) -> bool {
+            matches!(self, Self::DeleteOne)
+        }
+        const fn payload_uses_generated_accessors(self) -> bool {
+            !matches!(self, Self::CreateMany)
+        }
     }
     impl std::fmt::Display for Operation {
         fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -5180,15 +5203,15 @@ enum WrapIntoOptional {
                     .saturating_add(4usize),
             );
             accumulator.extend_from_slice(common_route_syn_variants.as_slice());
-            if let Operation::ReadMany | Operation::ReadOne = &operation {
+            if operation.is_read() {
                 accumulator.push(GeneratePgTableVariantEmissionRef::Syn(
                     not_unique_field_syn_variant.variant(),
                 ));
             }
-            if let Operation::CreateMany | Operation::ReadMany | Operation::ReadOne | Operation::CreateOne | Operation::UpdateMany | Operation::UpdateOne | Operation::DeleteMany = &operation {
+            if operation.requires_query_part_error() {
                 accumulator.push(GeneratePgTableVariantEmissionRef::Syn(query_part_syn_variant.variant()));
             }
-            if let Operation::CreateMany | Operation::DeleteOne | Operation::CreateOne | Operation::UpdateMany | Operation::UpdateOne | Operation::DeleteMany = &operation {
+            if operation.requires_row_and_rollback_error() {
                 accumulator.push(GeneratePgTableVariantEmissionRef::Syn(
                     row_and_rollback_syn_variant.variant(),
                 ));
@@ -6545,22 +6568,12 @@ enum WrapIntoOptional {
                     |declaration_token_stream: &dyn quote::ToTokens, default_initialization_token_stream: &dyn quote::ToTokens| {
                         let identifier_operation_payload_upper_camel_case = generate_identifier_operation_payload_upper_camel_case(operation);
                         let identifier_operation_payload_token_stream = {
-                            let (derive_clone, derive_copy) = match operation {
-                                Operation::CreateMany
-                                | Operation::CreateOne
-                                | Operation::ReadMany
-                                | Operation::ReadOne
-                                | Operation::UpdateMany
-                                | Operation::UpdateOne
-                                | Operation::DeleteMany => (
-                                    macro_helpers::derive_token_stream_builder::DClone::False,
-                                    macro_helpers::derive_token_stream_builder::DCopy::False,
-                                ),
-                                Operation::DeleteOne => (
-                                    macro_helpers::derive_token_stream_builder::DClone::True,
-                                    macro_helpers::derive_token_stream_builder::DCopy::False,
-                                ),
+                            let derive_clone = if operation.payload_derives_clone() {
+                                macro_helpers::derive_token_stream_builder::DClone::True
+                            } else {
+                                macro_helpers::derive_token_stream_builder::DClone::False
                             };
+                            let derive_copy = macro_helpers::derive_token_stream_builder::DCopy::False;
                             let payload_builder_without_deserialize = macro_helpers::derive_token_stream_builder::DTokenStreamBuilder::new()
                                 .make_pub()
                                 .d_debug()
@@ -6574,17 +6587,14 @@ enum WrapIntoOptional {
                             } else {
                                 payload_builder_without_deserialize.d_serde_deserialize()
                             };
-                            let accessor_constructor_derives = match operation {
-                                Operation::CreateMany => proc_macro2::TokenStream::new(),
-                                Operation::CreateOne
-                                | Operation::ReadMany
-                                | Operation::ReadOne
-                                | Operation::UpdateMany
-                                | Operation::UpdateOne
-                                | Operation::DeleteMany
-                                | Operation::DeleteOne => quote::quote! {
+                            let accessor_constructor_derives = if operation
+                                .payload_uses_generated_accessors()
+                            {
+                                quote::quote! {
                                     #[derive(proc_macro_getters::Getters, proc_macro_new::New)]
-                                },
+                                }
+                            } else {
+                                proc_macro2::TokenStream::new()
                             };
                             let identifier_operation_payload_struct_token_stream = payload_builder
                                 .d_utoipa_to_schema()

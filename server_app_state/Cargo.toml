@@ -9,6 +9,7 @@ license.workspace = true
 edition.workspace = true
 
 [dependencies]
+proc_macro_new = { workspace = true }
 bounded_types = { workspace = true }
 constants_str = { workspace = true, optional = true }
 chrono = { workspace = true }

@@ -14,7 +14,6 @@ constants_usize = { workspace = true }
 proc_macro_optimal_memory_layout = { workspace = true }
 constants_str = { workspace = true }
 proc_macro_getters = { workspace = true }
-proc_macro_new = { workspace = true }
 proc_macro_newtype_foundation_foundation_from_inner = { workspace = true }
 proc_macro_newtype_foundation_foundation_get_inner = { workspace = true }
 proc-macro2 = { workspace = true }

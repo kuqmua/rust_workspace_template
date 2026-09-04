@@ -1,21 +1,12 @@
-#[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Debug)]
+#[derive(
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, proc_macro_new::New,
+)]
 pub struct BackgroundJob<Report> {
     history: crate::async_run_history::AsyncRunHistory<Report>,
     retry_policy: crate::retry_policy::RetryPolicy,
 }
 
 impl<Report: Clone + Send + Sync + 'static> BackgroundJob<Report> {
-    #[must_use]
-    pub const fn new(
-        async_run_history: crate::async_run_history::AsyncRunHistory<Report>,
-        retry_policy: crate::retry_policy::RetryPolicy,
-    ) -> Self {
-        Self {
-            history: async_run_history,
-            retry_policy,
-        }
-    }
-
     pub async fn run_once<Run, RunFuture, Success, Error, IsRetryable, MapReport>(
         &self,
         run: Run,

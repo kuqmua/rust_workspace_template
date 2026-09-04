@@ -1,23 +1,20 @@
-#[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
+#[derive(
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Debug,
+    Eq,
+    PartialEq,
+    proc_macro_new::New,
+)]
 pub struct DiskCacheEntry {
+    #[constructor(order = 2)]
     modified_at: crate::disk_cache_modified_at_system_time::DiskCacheModifiedAtSystemTime,
+    #[constructor(order = 0)]
     path: crate::storage_relative_path_buf::StorageRelativePathBuf,
+    #[constructor(order = 1)]
     size: crate::std_disk_cache_size::StdDiskCacheSize,
 }
 impl DiskCacheEntry {
-    #[must_use]
-    pub const fn new(
-        storage_relative_path_buf: crate::storage_relative_path_buf::StorageRelativePathBuf,
-        std_disk_cache_size: crate::std_disk_cache_size::StdDiskCacheSize,
-        disk_cache_modified_at_system_time: crate::disk_cache_modified_at_system_time::DiskCacheModifiedAtSystemTime,
-    ) -> Self {
-        Self {
-            modified_at: disk_cache_modified_at_system_time,
-            path: storage_relative_path_buf,
-            size: std_disk_cache_size,
-        }
-    }
-
     #[must_use]
     pub const fn parts(
         &self,

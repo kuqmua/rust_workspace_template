@@ -7,22 +7,10 @@
     clippy::arbitrary_source_item_ordering,
     reason = "synchronization runtime configuration keeps declaration order aligned with generated layout or processing flow"
 )]
+#[derive(proc_macro_new::New)]
 pub struct SynchronizationRuntimeConfiguration {
     #[getters(copy)]
     retry_policy: server_runtime_core::retry_policy::RetryPolicy,
     #[getters(copy)]
     execution_mode: server_runtime_core::execution_mode::ExecutionMode,
-}
-
-impl SynchronizationRuntimeConfiguration {
-    #[must_use]
-    pub const fn new(
-        retry_policy: server_runtime_core::retry_policy::RetryPolicy,
-        execution_mode: server_runtime_core::execution_mode::ExecutionMode,
-    ) -> Self {
-        Self {
-            retry_policy,
-            execution_mode,
-        }
-    }
 }

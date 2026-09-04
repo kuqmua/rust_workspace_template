@@ -12,9 +12,12 @@
     serde::Serialize,
     schemars::JsonSchema,
     proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_new::New,
 )]
 pub struct PgTypeWhere<T> {
+    #[constructor(order = 1)]
     values: crate::not_empty_unique_vec::NotEmptyUniqueVec<T>,
+    #[constructor(order = 0)]
     operator: crate::operator::Operator,
 }
 impl<T: utoipa::PartialSchema> utoipa::__dev::ComposeSchema for PgTypeWhere<T> {
@@ -46,17 +49,6 @@ impl<T: utoipa::ToSchema> utoipa::ToSchema for PgTypeWhere<T> {
     }
 }
 impl<T: PartialEq + Clone> PgTypeWhere<T> {
-    #[must_use]
-    pub const fn new(
-        operator: crate::operator::Operator,
-        not_empty_unique_vec: crate::not_empty_unique_vec::NotEmptyUniqueVec<T>,
-    ) -> Self {
-        Self {
-            values: not_empty_unique_vec,
-            operator,
-        }
-    }
-
     pub fn try_new(
         operator: crate::operator::Operator,
         duplicate_candidates: crate::duplicate_candidates::DuplicateCandidates<T>,

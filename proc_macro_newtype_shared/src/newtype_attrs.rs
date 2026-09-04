@@ -9,7 +9,6 @@ pub(crate) struct NewtypeAttrs {
     options: workspace_macro_helpers::unique_option_b_tree_set::UniqueOptionBTreeSet<
         crate::newtype_option::NewtypeOption,
     >,
-    try_from: Option<crate::newtype_try_from_attrs::NewtypeTryFromAttrs>,
     to_err_string_mode: Option<crate::to_err_string_mode::ToErrStringMode>,
 }
 #[allow(

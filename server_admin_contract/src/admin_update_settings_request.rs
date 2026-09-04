@@ -7,46 +7,30 @@
     utoipa::ToSchema,
 )]
 #[serde(deny_unknown_fields)]
+#[derive(proc_macro_new::New)]
 pub struct AdminUpdateSettingsRequest {
     #[schema(max_items = 6)]
+    #[constructor(order = 8)]
     clear: crate::admin_optional_settings::AdminOptionalSettings,
+    #[constructor(order = 0)]
     default_admin_route: Option<crate::admin_default_route::AdminDefaultRoute>,
+    #[constructor(order = 1)]
     main_logo: Option<crate::admin_main_logo::AdminMainLogo>,
+    #[constructor(order = 2)]
     organization_contacts: Option<crate::admin_organization_contacts::AdminOrganizationContacts>,
+    #[constructor(order = 3)]
     organization_name: Option<crate::admin_organization_name::AdminOrganizationName>,
+    #[constructor(order = 4)]
     primary_color: Option<crate::admin_primary_color::AdminPrimaryColor>,
+    #[constructor(order = 5)]
     site_name: Option<crate::admin_site_name::AdminSiteName>,
+    #[constructor(order = 6)]
     support_url: Option<crate::admin_support_url::AdminSupportUrl>,
+    #[constructor(order = 7)]
     tab_title: Option<crate::admin_tab_title::AdminTabTitle>,
 }
 
 impl AdminUpdateSettingsRequest {
-    #[must_use]
-    pub const fn new(
-        default_admin_route: Option<crate::admin_default_route::AdminDefaultRoute>,
-        main_logo: Option<crate::admin_main_logo::AdminMainLogo>,
-        organization_contacts: Option<
-            crate::admin_organization_contacts::AdminOrganizationContacts,
-        >,
-        organization_name: Option<crate::admin_organization_name::AdminOrganizationName>,
-        primary_color: Option<crate::admin_primary_color::AdminPrimaryColor>,
-        site_name: Option<crate::admin_site_name::AdminSiteName>,
-        support_url: Option<crate::admin_support_url::AdminSupportUrl>,
-        tab_title: Option<crate::admin_tab_title::AdminTabTitle>,
-        admin_optional_settings: crate::admin_optional_settings::AdminOptionalSettings,
-    ) -> Self {
-        Self {
-            clear: admin_optional_settings,
-            default_admin_route,
-            main_logo,
-            organization_contacts,
-            organization_name,
-            primary_color,
-            site_name,
-            support_url,
-            tab_title,
-        }
-    }
     #[must_use]
     pub fn into_parts(
         self,

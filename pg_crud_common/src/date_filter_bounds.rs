@@ -7,29 +7,10 @@
     proc_macro_getters::Getters,
 )]
 #[getters(get_mut)]
+#[derive(proc_macro_new::New)]
 pub struct DateFilterBounds<'value_lt> {
     created_at_from: Option<crate::chrono_utc_date_time_ref::ChronoUtcDateTimeRef<'value_lt>>,
     created_at_to: Option<crate::chrono_utc_date_time_ref::ChronoUtcDateTimeRef<'value_lt>>,
     updated_at_from: Option<crate::chrono_utc_date_time_ref::ChronoUtcDateTimeRef<'value_lt>>,
     updated_at_to: Option<crate::chrono_utc_date_time_ref::ChronoUtcDateTimeRef<'value_lt>>,
-}
-#[allow(
-    dead_code,
-    reason = "field access is intentionally encapsulated behind uniform getters"
-)]
-impl<'value_lt> DateFilterBounds<'value_lt> {
-    #[must_use]
-    pub const fn new(
-        created_at_from: Option<crate::chrono_utc_date_time_ref::ChronoUtcDateTimeRef<'value_lt>>,
-        created_at_to: Option<crate::chrono_utc_date_time_ref::ChronoUtcDateTimeRef<'value_lt>>,
-        updated_at_from: Option<crate::chrono_utc_date_time_ref::ChronoUtcDateTimeRef<'value_lt>>,
-        updated_at_to: Option<crate::chrono_utc_date_time_ref::ChronoUtcDateTimeRef<'value_lt>>,
-    ) -> Self {
-        Self {
-            created_at_from,
-            created_at_to,
-            updated_at_from,
-            updated_at_to,
-        }
-    }
 }

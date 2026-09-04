@@ -26,7 +26,6 @@ proc_macro_optimal_memory_layout = { workspace = true }
 proc_macro_newtype_as_ref_str = { workspace = true }
 proc_macro_newtype_deref_inner = { workspace = true }
 proc_macro_newtype_display = { workspace = true }
-proc_macro_newtype_try_from = { workspace = true }
 proc_macro_newtype_bounded_string_wrapper = { workspace = true }
 thiserror = { workspace = true }
 

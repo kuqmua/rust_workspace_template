@@ -1,28 +1,23 @@
 #[derive(
-    proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    PartialEq,
+    proc_macro_new::New,
 )]
 pub struct OpenApiOperationExpectation {
+    #[constructor(order = 2)]
     content_type: frontend_contract::contract_str::ContractStr,
+    #[constructor(order = 0)]
     metadata: frontend_contract::route_metadata::RouteMetadata,
+    #[constructor(order = 3)]
     security: crate::open_api_security_expectation::OpenApiSecurityExpectation,
+    #[constructor(order = 1)]
     status: crate::open_api_response_status::OpenApiResponseStatus,
 }
 impl OpenApiOperationExpectation {
-    #[must_use]
-    pub const fn new(
-        route_metadata: frontend_contract::route_metadata::RouteMetadata,
-        open_api_response_status: crate::open_api_response_status::OpenApiResponseStatus,
-        contract_str: frontend_contract::contract_str::ContractStr,
-        open_api_security_expectation: crate::open_api_security_expectation::OpenApiSecurityExpectation,
-    ) -> Self {
-        Self {
-            content_type: contract_str,
-            metadata: route_metadata,
-            security: open_api_security_expectation,
-            status: open_api_response_status,
-        }
-    }
-
     pub(super) const fn parts(
         &self,
     ) -> (

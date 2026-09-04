@@ -7,30 +7,21 @@
     serde::Serialize,
     serde::Deserialize,
     utoipa::ToSchema,
+    proc_macro_new::New,
 )]
 pub struct AdminDataColumn {
     #[getters(skip)]
+    #[constructor(order = 0)]
     filters: crate::admin_data_filters::AdminDataFilters,
+    #[constructor(order = 2)]
     label: crate::admin_text::AdminText,
+    #[constructor(order = 3)]
     name: crate::admin_text::AdminText,
     #[getters(copy)]
+    #[constructor(order = 1)]
     input_kind: frontend_contract::input_kind::InputKind,
 }
 impl AdminDataColumn {
-    #[must_use]
-    pub const fn new(
-        admin_data_filters: crate::admin_data_filters::AdminDataFilters,
-        input_kind: frontend_contract::input_kind::InputKind,
-        label: crate::admin_text::AdminText,
-        name: crate::admin_text::AdminText,
-    ) -> Self {
-        Self {
-            filters: admin_data_filters,
-            label,
-            name,
-            input_kind,
-        }
-    }
     #[must_use]
     pub const fn filters(&self) -> &[crate::admin_data_filter::AdminDataFilter] {
         self.filters.as_slice()

@@ -1,4 +1,6 @@
-#[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Debug)]
+#[derive(
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, proc_macro_new::New,
+)]
 pub struct CursorCodec {
     key: crate::cursor_signing_key::CursorSigningKey,
     maximum_length: crate::cursor_maximum_length::CursorMaximumLength,
@@ -9,17 +11,6 @@ pub struct CursorCodec {
     reason = "cursor codec keeps declaration order aligned with generated layout or processing flow"
 )]
 impl CursorCodec {
-    #[must_use]
-    pub const fn new(
-        cursor_signing_key: crate::cursor_signing_key::CursorSigningKey,
-        cursor_maximum_length: crate::cursor_maximum_length::CursorMaximumLength,
-    ) -> Self {
-        Self {
-            key: cursor_signing_key,
-            maximum_length: cursor_maximum_length,
-        }
-    }
-
     pub fn encode(
         &self,
         cursor_payload: &crate::cursor_payload::CursorPayload,

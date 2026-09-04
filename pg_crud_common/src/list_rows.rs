@@ -5,6 +5,7 @@
     Debug,
     Eq,
     PartialEq,
+    proc_macro_new::New,
 )]
 pub struct ListRows<Item> {
     items: crate::list_items::ListItems<Item>,
@@ -20,16 +21,5 @@ impl<Item> ListRows<Item> {
         Option<crate::list_total::ListTotal>,
     ) {
         (self.items, self.window_total)
-    }
-
-    #[must_use]
-    pub const fn new(
-        list_items: crate::list_items::ListItems<Item>,
-        option: Option<crate::list_total::ListTotal>,
-    ) -> Self {
-        Self {
-            items: list_items,
-            window_total: option,
-        }
     }
 }

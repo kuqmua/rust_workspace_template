@@ -3,23 +3,13 @@
     clippy::arbitrary_source_item_ordering,
     reason = "outbound url policy keeps declaration order aligned with generated layout or processing flow"
 )]
+#[derive(proc_macro_new::New)]
 pub struct OutboundUrlPolicy {
     schemes: &'static [crate::outbound_url_scheme::OutboundUrlScheme],
     host_policy: crate::outbound_host_policy::OutboundHostPolicy,
 }
 
 impl OutboundUrlPolicy {
-    #[must_use]
-    pub const fn new(
-        schemes: &'static [crate::outbound_url_scheme::OutboundUrlScheme],
-        outbound_host_policy: crate::outbound_host_policy::OutboundHostPolicy,
-    ) -> Self {
-        Self {
-            schemes,
-            host_policy: outbound_host_policy,
-        }
-    }
-
     pub fn validate(
         self,
         outbound_url_text_ref: crate::outbound_url_text_ref::OutboundUrlTextRef<'_>,

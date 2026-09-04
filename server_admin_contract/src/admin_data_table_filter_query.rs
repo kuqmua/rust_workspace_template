@@ -9,35 +9,26 @@
     utoipa::ToSchema,
 )]
 #[into_params(parameter_in = Query)]
+#[derive(proc_macro_new::New)]
 pub struct AdminDataTableFilterQuery {
     #[serde(default)]
     #[param(value_type = Option<String>, max_length = 63)]
+    #[constructor(order = 0)]
     filter_field: Option<crate::admin_filter_field::AdminFilterField>,
     #[serde(default)]
     #[param(value_type = Option<String>, max_length = 4096)]
+    #[constructor(order = 2)]
     filter_value: Option<crate::admin_filter_value::AdminFilterValue>,
     #[serde(default)]
     #[param(value_type = Option<String>, max_length = 4096)]
+    #[constructor(order = 3)]
     filter_end: Option<crate::admin_filter_value::AdminFilterValue>,
     #[serde(default)]
     #[param(inline)]
+    #[constructor(order = 1)]
     filter_operation: Option<frontend_contract::filter_operation::FilterOperation>,
 }
 impl AdminDataTableFilterQuery {
-    #[must_use]
-    pub const fn new(
-        filter_field: Option<crate::admin_filter_field::AdminFilterField>,
-        filter_operation: Option<frontend_contract::filter_operation::FilterOperation>,
-        filter_value: Option<crate::admin_filter_value::AdminFilterValue>,
-        filter_end: Option<crate::admin_filter_value::AdminFilterValue>,
-    ) -> Self {
-        Self {
-            filter_field,
-            filter_value,
-            filter_end,
-            filter_operation,
-        }
-    }
     #[must_use]
     pub const fn field(&self) -> Option<&crate::admin_filter_field::AdminFilterField> {
         self.filter_field.as_ref()

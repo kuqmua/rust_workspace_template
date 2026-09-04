@@ -4,12 +4,18 @@
     Eq,
     PartialEq,
     proc_macro_newtype_as_ref_str::AsRefStr,
-    proc_macro_newtype_try_from::TryFrom,
 )]
-#[try_from(error = crate::init_string_error::InitStringError, validator = |value: &str| {
-    if value.len() > usize::try_from(isize::MAX).unwrap_or(usize::MAX) { Err(crate::init_string_error::InitStringError::Invalid) } else { Ok(()) }
-})]
 pub(crate) struct EnvContent(String);
+impl TryFrom<String> for EnvContent {
+    type Error = crate::init_string_error::InitStringError;
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        if usize::try_from(isize::MAX).is_ok_and(|max| value.len() > max) {
+            Err(Self::Error::Invalid)
+        } else {
+            Ok(Self(value))
+        }
+    }
+}
 impl From<server_runtime_http::bounded_text::BoundedText> for EnvContent {
     fn from(value: server_runtime_http::bounded_text::BoundedText) -> Self {
         Self(value.into_inner())

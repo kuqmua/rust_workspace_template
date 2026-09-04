@@ -11,26 +11,14 @@
     clippy::arbitrary_source_item_ordering,
     reason = "db column spec keeps declaration order aligned with generated layout or processing flow"
 )]
+#[derive(proc_macro_new::New)]
 pub struct DbColumnSpec {
+    #[constructor(order = 1)]
     data_type: crate::db_static_schema_text::DbStaticSchemaText,
+    #[constructor(order = 0)]
     name: crate::db_static_schema_text::DbStaticSchemaText,
+    #[constructor(order = 3)]
     has_server_default: crate::db_column_has_server_default::DbColumnHasServerDefault,
+    #[constructor(order = 2)]
     nullable: crate::db_column_nullable::DbColumnNullable,
-}
-
-impl DbColumnSpec {
-    #[must_use]
-    pub const fn new(
-        name: crate::db_static_schema_text::DbStaticSchemaText,
-        data_type: crate::db_static_schema_text::DbStaticSchemaText,
-        db_column_nullable: crate::db_column_nullable::DbColumnNullable,
-        db_column_has_server_default: crate::db_column_has_server_default::DbColumnHasServerDefault,
-    ) -> Self {
-        Self {
-            data_type,
-            name,
-            has_server_default: db_column_has_server_default,
-            nullable: db_column_nullable,
-        }
-    }
 }

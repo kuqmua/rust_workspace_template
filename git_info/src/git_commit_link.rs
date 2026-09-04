@@ -6,17 +6,15 @@
     proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     proc_macro_newtype_as_ref_str::AsRefStr,
     proc_macro_newtype_partial_eq_inner::PartialEqInner,
-    proc_macro_newtype_try_from::TryFrom,
-)]
-#[try_from(
-    error = crate::git_info_string_try_from_string_error::GitInfoStringTryFromStringError,
-    validator = |value: &str| {
-        if value.len() > crate::git_info_string_max_len::GIT_INFO_STRING_MAX_LEN {
-            Err(crate::git_info_string_try_from_string_error::GitInfoStringTryFromStringError::TooLong { len: value.len(), max: crate::git_info_string_max_len::GIT_INFO_STRING_MAX_LEN })
-        } else { Ok(()) }
-    }
 )]
 pub struct GitCommitLink(String);
+impl TryFrom<String> for GitCommitLink {
+    type Error = crate::git_info_string_try_from_string_error::GitInfoStringTryFromStringError;
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        crate::validate_git_info_string_len::validate_git_info_string_len(value.len())?;
+        Ok(Self(value))
+    }
+}
 impl From<crate::git_commit_link_cow::GitCommitLinkCow> for GitCommitLink {
     fn from(value: crate::git_commit_link_cow::GitCommitLinkCow) -> Self {
         Self::try_from(std::borrow::Cow::from(value).into_owned()).unwrap_or_else(Self::from)

@@ -11,6 +11,7 @@ categories = ["web-programming"]
 edition.workspace = true
 
 [dependencies]
+proc_macro_new = { workspace = true }
 proc_macro_getters = { workspace = true }
 proc_macro_optimal_memory_layout = { workspace = true }
 bounded_types = { workspace = true }

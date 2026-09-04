@@ -1,4 +1,4 @@
-#[derive(Debug, proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
+#[derive(Debug, proc_macro_optimal_memory_layout::OptimalMemoryLayout, proc_macro_new::New)]
 pub struct ServerAppState<'lt> {
     bulk_item_budget: server_runtime_core::resource_budget::ResourceBudget,
     config: server_config::server_config::ServerConfig,
@@ -6,26 +6,9 @@ pub struct ServerAppState<'lt> {
     pg_pool: app_state::sqlx_pg_pool::SqlxPgPool,
     project_git_info: git_info::project_git_info::ProjectGitInfo<'lt>,
 }
-impl<'lt> ServerAppState<'lt> {
+impl ServerAppState<'_> {
     const fn cfg_ref(&self) -> &server_config::server_config::ServerConfig {
         &self.config
-    }
-
-    #[must_use]
-    pub const fn new(
-        bulk_item_budget: server_runtime_core::resource_budget::ResourceBudget,
-        server_config: server_config::server_config::ServerConfig,
-        idempotency_response_budget: server_runtime_core::resource_budget::ResourceBudget,
-        sqlx_pg_pool: app_state::sqlx_pg_pool::SqlxPgPool,
-        project_git_info: git_info::project_git_info::ProjectGitInfo<'lt>,
-    ) -> Self {
-        Self {
-            bulk_item_budget,
-            config: server_config,
-            idempotency_response_budget,
-            pg_pool: sqlx_pg_pool,
-            project_git_info,
-        }
     }
 }
 impl common_routes::common_routes_parameters::CommonRoutesParameters for ServerAppState<'_> {}

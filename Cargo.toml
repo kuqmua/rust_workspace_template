@@ -166,7 +166,6 @@ members = [
   "proc_macro_newtype_to_err_string_as_ref_str",
   "proc_macro_newtype_to_err_string_debug",
   "proc_macro_newtype_to_tokens",
-  "proc_macro_newtype_try_from",
   "proc_macro_newtype_utoipa_schema",
   "proc_macro_newtype_wire_enum",
   "proc_macro_optimal_memory_layout",
@@ -543,7 +542,6 @@ proc_macro_newtype_to_tokens = { path = "./proc_macro_newtype_to_tokens" }
 proc_macro_newtype_to_err_string = { path = "./proc_macro_newtype_to_err_string" }
 proc_macro_newtype_to_err_string_as_ref_str = { path = "./proc_macro_newtype_to_err_string_as_ref_str" }
 proc_macro_newtype_to_err_string_debug = { path = "./proc_macro_newtype_to_err_string_debug" }
-proc_macro_newtype_try_from = { path = "./proc_macro_newtype_try_from" }
 proc_macro_newtype_enum_from_str = { path = "./proc_macro_newtype_enum_from_str" }
 proc_macro_newtype_utoipa_schema = { path = "./proc_macro_newtype_utoipa_schema" }
 proc_macro_newtype_wire_enum = { path = "./proc_macro_newtype_wire_enum" }

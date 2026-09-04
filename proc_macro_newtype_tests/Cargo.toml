@@ -65,7 +65,6 @@ proc_macro_newtype_to_err_string = { workspace = true }
 proc_macro_newtype_to_err_string_as_ref_str = { workspace = true }
 proc_macro_newtype_to_err_string_debug = { workspace = true }
 proc_macro_newtype_to_tokens = { workspace = true }
-proc_macro_newtype_try_from = { workspace = true }
 proc_macro_newtype_utoipa_schema = { workspace = true }
 proc_macro_optimal_memory_layout = { workspace = true }
 quote = { workspace = true }

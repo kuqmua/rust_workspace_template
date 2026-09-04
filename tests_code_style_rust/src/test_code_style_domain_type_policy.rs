@@ -167,21 +167,20 @@ fn test_bounded_string_storage_visitor_rejects_raw_string_and_old_derive() {
     );
 }
 #[test]
-fn test_newtype_try_from_validator_satisfies_string_wrapper_policy() {
+fn test_manual_try_from_validator_satisfies_string_wrapper_policy() {
     let ast: syn::File = syn::parse_quote! {
-            #[derive(proc_macro_newtype_try_from::TryFrom)]
-    #[try_from(
-                validator = validate_value
-            )]
-            struct Value(String);
-            fn validate_value(value: &str) -> Result<(), ValueError> {
-                if value.len() > 8usize {
-                    Err(ValueError)
-                } else {
-                    Ok(())
-                }
+        struct Value(String);
+        impl TryFrom<String> for Value {
+            type Error = ValueError;
+            fn try_from(value: String) -> Result<Self, Self::Error> {
+            if value.len() > 8usize {
+                Err(ValueError)
+            } else {
+                Ok(Self(value))
             }
-        };
+        }
+        }
+    };
     let string_wrapper_names =
         crate::code_style::string_wrapper_names(crate::types::SynFileRef::from(&ast));
     let len_checked_function_names =
@@ -210,20 +209,16 @@ fn test_newtype_try_from_validator_satisfies_string_wrapper_policy() {
     );
 }
 #[test]
-fn test_newtype_try_from_explicit_error_satisfies_string_wrapper_policy() {
+fn test_manual_try_from_explicit_error_satisfies_string_wrapper_policy() {
     let ast: syn::File = syn::parse_quote! {
-        #[derive(proc_macro_newtype_try_from::TryFrom)]
-        #[try_from(
-            error = SharedValueError,
-            validator = Value::validate
-        )]
         struct Value(String);
-        impl Value {
-            fn validate(value: &str) -> Result<(), SharedValueError> {
+        impl TryFrom<String> for Value {
+            type Error = SharedValueError;
+            fn try_from(value: String) -> Result<Self, Self::Error> {
                 if value.len() > 8usize {
                     Err(SharedValueError)
                 } else {
-                    Ok(())
+                    Ok(Self(value))
                 }
             }
         }

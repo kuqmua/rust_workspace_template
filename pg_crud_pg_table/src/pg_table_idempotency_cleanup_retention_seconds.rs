@@ -10,12 +10,15 @@
     Eq,
     PartialEq,
     proc_macro_newtype_get_inner::GetInner,
-    proc_macro_newtype_try_from::TryFrom,
-)]
-#[try_from(
-    error = crate::pg_table_idempotency_cleanup_value_try_from_i64_error::PgTableIdempotencyCleanupValueTryFromI64Error,
-    validator = |value: &i64| {
-        if *value < constants_i64::ZERO { Err(crate::pg_table_idempotency_cleanup_value_try_from_i64_error::PgTableIdempotencyCleanupValueTryFromI64Error::Negative) } else { Ok(()) }
-    }
 )]
 pub struct PgTableIdempotencyCleanupRetentionSeconds(i64);
+impl TryFrom<i64> for PgTableIdempotencyCleanupRetentionSeconds {
+    type Error = crate::pg_table_idempotency_cleanup_value_try_from_i64_error::PgTableIdempotencyCleanupValueTryFromI64Error;
+    fn try_from(value: i64) -> Result<Self, Self::Error> {
+        if value < constants_i64::ZERO {
+            Err(Self::Error::Negative)
+        } else {
+            Ok(Self(value))
+        }
+    }
+}

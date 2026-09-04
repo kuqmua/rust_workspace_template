@@ -10,7 +10,6 @@ mod newtype_attrs;
 mod newtype_bool;
 mod newtype_option;
 mod newtype_syn_derive_input_ref;
-mod newtype_try_from_attrs;
 mod proc_macro2_generated_token_stream;
 mod proc_macro_input_token_stream;
 mod snake_ident_max_len;
@@ -539,75 +538,6 @@ pub fn to_err_string_debug(token_stream: proc_macro2::TokenStream) -> proc_macro
         newtype_option::NewtypeOption::Secret,
         Some(to_err_string_mode::ToErrStringMode::Debug),
     )
-    .into()
-}
-pub fn try_from(token_stream: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
-    (|| {
-        let input = match syn::parse2::<syn::DeriveInput>(token_stream) {
-            Ok(value) => value,
-            Err(error) => {
-                return proc_macro2_generated_token_stream::ProcMacro2GeneratedTokenStream::from(
-                    error.into_compile_error(),
-                );
-            }
-        };
-        let mut error_opt = None;
-        let mut validator_opt = None;
-        let parse_result = input
-            .attrs
-            .iter()
-            .filter(|attr| attr.path().is_ident(constants_str::NEWTYPE_TRY_FROM))
-            .try_for_each(|attr| {
-                attr.parse_nested_meta(|meta| {
-                    if meta.path.is_ident(constants_str::NEWTYPE_TRY_FROM_ERROR) {
-                        if error_opt.is_some() {
-                            return Err(meta.error(constants_str::NEWTYPE_TRY_FROM_ERROR_DUPLICATE));
-                        }
-                        error_opt =
-                            Some(syn_type::SynType::from(meta.value()?.parse::<syn::Type>()?));
-                        return Ok(());
-                    }
-                    if meta
-                        .path
-                        .is_ident(constants_str::NEWTYPE_TRY_FROM_VALIDATOR)
-                    {
-                        if validator_opt.is_some() {
-                            return Err(
-                                meta.error(constants_str::NEWTYPE_TRY_FROM_VALIDATOR_DUPLICATE)
-                            );
-                        }
-                        validator_opt =
-                            Some(syn_expr::SynExpr::from(meta.value()?.parse::<syn::Expr>()?));
-                        return Ok(());
-                    }
-                    Err(meta.error(constants_str::NEWTYPE_TRY_FROM_UNKNOWN_OPTION))
-                })
-            });
-        if let Err(error) = parse_result {
-            return proc_macro2_generated_token_stream::ProcMacro2GeneratedTokenStream::from(
-                error.into_compile_error(),
-            );
-        }
-        let Some(validator) = validator_opt else {
-            return proc_macro2_generated_token_stream::ProcMacro2GeneratedTokenStream::from(
-                syn::Error::new_spanned(&input, constants_str::NEWTYPE_TRY_FROM_VALIDATOR_REQUIRED)
-                    .into_compile_error(),
-            );
-        };
-        let mut attrs = newtype_attrs::NewtypeAttrs::default();
-        *attrs.get_try_from_mut() = Some(newtype_try_from_attrs::NewtypeTryFromAttrs::new(
-            error_opt, validator,
-        ));
-        match generate_newtype_token_stream_with_attrs(
-            newtype_syn_derive_input_ref::NewtypeSynDeriveInputRef::from(&input),
-            &attrs,
-        ) {
-            Ok(value) => value,
-            Err(error) => proc_macro2_generated_token_stream::ProcMacro2GeneratedTokenStream::from(
-                error.into_compile_error(),
-            ),
-        }
-    })()
     .into()
 }
 pub fn enum_from_str(token_stream: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
@@ -1150,6 +1080,10 @@ fn generate_bounded_string_token_stream(
     )
 }
 
+#[allow(
+    clippy::single_call_fn,
+    reason = "the named generator isolates the substantial newtype expansion pipeline from derive input parsing"
+)]
 fn generate_newtype_token_stream_with_attrs(
     newtype_syn_derive_input_ref: newtype_syn_derive_input_ref::NewtypeSynDeriveInputRef<'_>,
     newtype_attrs: &newtype_attrs::NewtypeAttrs,
@@ -1592,26 +1526,6 @@ fn generate_newtype_token_stream_with_attrs(
                 }
             }
         });
-    let try_from_token_stream = newtype_attrs.get_try_from().map(|try_from| {
-        let inferred_error = syn::Type::Path(syn::TypePath {
-            attrs: Vec::new(),
-            qself: None,
-            path: syn::Path::from(quote::format_ident!("{identifier}Error")),
-        });
-        let error = try_from
-            .get_error()
-            .map_or(&inferred_error, |value| value.as_ref());
-        let validator = try_from.get_validator();
-        quote::quote! {
-            impl #impl_generics TryFrom<#inner_ty_ref> for #identifier #ty_generics #where_clause {
-                type Error = #error;
-                fn try_from(value: #inner_ty_ref) -> Result<Self, Self::Error> {
-                    (#validator)(&value)?;
-                    Ok(Self(value))
-                }
-            }
-        }
-    });
     let accessor_token_stream = newtype_attrs
         .contains(newtype_option::NewtypeOption::Accessor)
         .get()
@@ -1842,7 +1756,6 @@ fn generate_newtype_token_stream_with_attrs(
             #deref_mut_inner_token_stream
             #deref_mut_target_token_stream
             #from_token_stream
-            #try_from_token_stream
             #accessor_token_stream
             #get_inner_token_stream
             #into_inner_token_stream

@@ -39,7 +39,6 @@ proc_macro_newtype_deref_mut_target = { workspace = true }
 proc_macro_newtype_deref_target = { workspace = true }
 proc_macro_newtype_into_iterator = { workspace = true }
 proc_macro_newtype_not_inner = { workspace = true }
-proc_macro_newtype_try_from = { workspace = true }
 proc_macro_newtype_wire_enum = { workspace = true }
 frontend_contract = { workspace = true }
 common_routes = { workspace = true }

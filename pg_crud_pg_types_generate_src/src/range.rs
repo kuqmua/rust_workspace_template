@@ -15,35 +15,34 @@ impl TryFrom<&crate::pg_type_catalog_kind::PgTypeCatalogKind> for Range {
     fn try_from(
         value: &crate::pg_type_catalog_kind::PgTypeCatalogKind,
     ) -> Result<Self, Self::Error> {
-        match &value {
-                crate::pg_type_catalog_kind::PgTypeCatalogKind::I16AsInt2
-                | crate::pg_type_catalog_kind::PgTypeCatalogKind::I32AsInt4
-                | crate::pg_type_catalog_kind::PgTypeCatalogKind::I64AsInt8
-                | crate::pg_type_catalog_kind::PgTypeCatalogKind::F32AsFloat4
-                | crate::pg_type_catalog_kind::PgTypeCatalogKind::F64AsFloat8
-                | crate::pg_type_catalog_kind::PgTypeCatalogKind::I16AsSmallSerialInitializationByPg
-                | crate::pg_type_catalog_kind::PgTypeCatalogKind::I32AsSerialInitializationByPg
-                | crate::pg_type_catalog_kind::PgTypeCatalogKind::I64AsBigSerialInitializationByPg
-                | crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgMoneyAsMoney
-                | crate::pg_type_catalog_kind::PgTypeCatalogKind::BoolAsBool
-                | crate::pg_type_catalog_kind::PgTypeCatalogKind::StringAsText
-                | crate::pg_type_catalog_kind::PgTypeCatalogKind::StdVecVecU8AsBytea
-                | crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoNaiveTimeAsTime
-                | crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesTimeTimeAsTime
-                | crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgIntervalAsInterval
-                | crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoNaiveDateAsDate
-                | crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoNaiveDateTimeAsTimestamp
-                | crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTz
-                | crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesUuidUuidAsUuidV4InitializationByPg
-                | crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesUuidUuidAsUuidInitializationByClient
-                | crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesIpnetworkIpNetworkAsInet
-                | crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesMacAddressMacAddressAsMacAddr => Err(()),
-                crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeI32AsInt4Range => Ok(Self::I32AsInt4),
-                crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeI64AsInt8Range => Ok(Self::I64AsInt8),
-                crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsDateRange => Ok(Self::SqlxTypesChronoNaiveDateAsDate),
-                crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsTimestampRange => Ok(Self::SqlxTypesChronoNaiveDateTimeAsTimestamp),
-                crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange => Ok(Self::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTz),
+        match crate::schema_wire_kind::schema_wire_kind(&(*value).spec()) {
+            crate::wire_kind::WireKind::RangeDate => Ok(Self::SqlxTypesChronoNaiveDateAsDate),
+            crate::wire_kind::WireKind::RangeInt32 => Ok(Self::I32AsInt4),
+            crate::wire_kind::WireKind::RangeInt64 => Ok(Self::I64AsInt8),
+            crate::wire_kind::WireKind::RangeTimestamp => {
+                Ok(Self::SqlxTypesChronoNaiveDateTimeAsTimestamp)
             }
+            crate::wire_kind::WireKind::RangeTimestampTz => {
+                Ok(Self::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTz)
+            }
+            crate::wire_kind::WireKind::Bool
+            | crate::wire_kind::WireKind::Bytes
+            | crate::wire_kind::WireKind::Date
+            | crate::wire_kind::WireKind::Float32
+            | crate::wire_kind::WireKind::Float64
+            | crate::wire_kind::WireKind::Inet
+            | crate::wire_kind::WireKind::Int16
+            | crate::wire_kind::WireKind::Int32
+            | crate::wire_kind::WireKind::Int64
+            | crate::wire_kind::WireKind::Interval
+            | crate::wire_kind::WireKind::Mac
+            | crate::wire_kind::WireKind::String
+            | crate::wire_kind::WireKind::TimeChrono
+            | crate::wire_kind::WireKind::TimeTime
+            | crate::wire_kind::WireKind::Timestamp
+            | crate::wire_kind::WireKind::TimestampTz
+            | crate::wire_kind::WireKind::Uuid => Err(()),
+        }
     }
 }
 impl std::fmt::Display for Range {

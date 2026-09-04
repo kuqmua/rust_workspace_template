@@ -18,7 +18,6 @@ proc_macro_new = { workspace = true }
 constants_usize = { workspace = true }
 proc_macro_optimal_memory_layout = { workspace = true }
 proc_macro_newtype_as_ref_target = { workspace = true }
-proc_macro_newtype_try_from = { workspace = true }
 server_runtime_core = { workspace = true }
 thiserror = { workspace = true }
 

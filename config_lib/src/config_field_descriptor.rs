@@ -1,19 +1,27 @@
 #[derive(proc_macro_getters::Getters)]
 #[getters(bare)]
-#[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Copy)]
+#[derive(
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, proc_macro_new::New,
+)]
 pub struct ConfigFieldDescriptor {
     #[getters(copy)]
+    #[constructor(order = 0)]
     env_name: crate::env_var_name_ref::EnvVarNameRef<'static>,
     #[getters(copy)]
+    #[constructor(order = 1)]
     example: crate::config_field_example_ref::ConfigFieldExampleRef<'static>,
+    #[constructor(order = 2)]
     parser: fn(
         crate::std_env_var_ok::StdEnvVarOk,
     ) -> crate::config_example_validity::ConfigExampleValidity,
     #[getters(copy)]
+    #[constructor(order = 4)]
     rust_type_name: crate::config_rust_type_name::ConfigRustTypeName,
     #[getters(copy)]
+    #[constructor(order = 3)]
     requirement: crate::config_field_requirement::ConfigFieldRequirement,
     #[getters(copy)]
+    #[constructor(order = 5)]
     sensitivity: crate::config_field_sensitivity::ConfigFieldSensitivity,
 }
 impl std::fmt::Debug for ConfigFieldDescriptor {
@@ -29,27 +37,6 @@ impl std::fmt::Debug for ConfigFieldDescriptor {
     }
 }
 impl ConfigFieldDescriptor {
-    #[must_use]
-    pub const fn new(
-        env_var_name_ref: crate::env_var_name_ref::EnvVarNameRef<'static>,
-        config_field_example_ref: crate::config_field_example_ref::ConfigFieldExampleRef<'static>,
-        parser: fn(
-            crate::std_env_var_ok::StdEnvVarOk,
-        ) -> crate::config_example_validity::ConfigExampleValidity,
-        config_field_requirement: crate::config_field_requirement::ConfigFieldRequirement,
-        config_rust_type_name: crate::config_rust_type_name::ConfigRustTypeName,
-        config_field_sensitivity: crate::config_field_sensitivity::ConfigFieldSensitivity,
-    ) -> Self {
-        Self {
-            env_name: env_var_name_ref,
-            example: config_field_example_ref,
-            parser,
-            rust_type_name: config_rust_type_name,
-            requirement: config_field_requirement,
-            sensitivity: config_field_sensitivity,
-        }
-    }
-
     #[must_use]
     pub fn validate_example(
         self,

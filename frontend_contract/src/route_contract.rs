@@ -5,39 +5,32 @@
 #[derive(proc_macro_getters::Getters)]
 #[getters(bare)]
 #[derive(
-    proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, PartialEq, Eq,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Debug,
+    PartialEq,
+    Eq,
+    proc_macro_new::New,
 )]
 pub struct RouteContract {
     #[getters(copy)]
+    #[constructor(order = 3)]
     path: crate::contract_str::ContractStr,
     #[getters(copy)]
+    #[constructor(order = 0)]
     authentication: crate::authentication_requirement::AuthenticationRequirement,
     #[getters(copy)]
+    #[constructor(order = 1)]
     method: crate::route_method::RouteMethod,
     #[getters(copy)]
+    #[constructor(order = 2)]
     mutation: crate::mutation_kind::MutationKind,
     #[getters(copy)]
+    #[constructor(order = 4)]
     success_status: crate::success_status::SuccessStatus,
 }
 
-impl RouteContract {
-    #[must_use]
-    pub const fn new(
-        authentication_requirement: crate::authentication_requirement::AuthenticationRequirement,
-        route_method: crate::route_method::RouteMethod,
-        mutation_kind: crate::mutation_kind::MutationKind,
-        contract_str: crate::contract_str::ContractStr,
-        success_status: crate::success_status::SuccessStatus,
-    ) -> Self {
-        Self {
-            path: contract_str,
-            authentication: authentication_requirement,
-            method: route_method,
-            mutation: mutation_kind,
-            success_status,
-        }
-    }
-}
 pub const PUBLIC_AUTH_ROUTE_ERROR_STATUSES: &[crate::route_error_status::RouteErrorStatus] = &[
     crate::route_error_status::RouteErrorStatus::Authentication,
     crate::route_error_status::RouteErrorStatus::PayloadTooLarge,

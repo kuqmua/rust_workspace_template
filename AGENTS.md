@@ -34,6 +34,8 @@
 - Keep every struct field private, including tuple-struct fields. Expose required reads through
   generated getters such as `proc_macro_getters::Getters` or `proc_macro_newtype::GetInner`, and expose
   construction through validated conversions or generated constructors.
+- Derive `proc_macro_new::New` instead of manually implementing a `new` method whose only behavior is
+  to initialize `Self` fields directly from its input parameters.
 - Rewrite a private production function with exactly one non-test call site as a closure inside
   that call site's function when doing so preserves attributes, async behavior, architecture
   boundaries, domain wrappers, and direct unit-test coverage. Keep an item-scoped, justified

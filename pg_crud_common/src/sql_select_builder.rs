@@ -1,6 +1,15 @@
-#[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
+#[derive(
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Debug,
+    Eq,
+    PartialEq,
+    proc_macro_new::New,
+)]
 pub struct SqlSelectBuilder {
+    #[constructor(order = 1)]
     columns: crate::sql_identifiers::SqlIdentifiers,
+    #[constructor(order = 0)]
     table: crate::sql_qualified_identifier::SqlQualifiedIdentifier,
 }
 
@@ -30,16 +39,5 @@ impl SqlSelectBuilder {
             .push_str(self.table.get_table().as_ref());
         crate::query_part_fragment::QueryPartFragment::try_from(String::from(query))
             .unwrap_or_else(crate::query_part_fragment::QueryPartFragment::from)
-    }
-
-    #[must_use]
-    pub const fn new(
-        sql_qualified_identifier: crate::sql_qualified_identifier::SqlQualifiedIdentifier,
-        sql_identifiers: crate::sql_identifiers::SqlIdentifiers,
-    ) -> Self {
-        Self {
-            columns: sql_identifiers,
-            table: sql_qualified_identifier,
-        }
     }
 }

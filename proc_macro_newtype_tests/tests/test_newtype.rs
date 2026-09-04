@@ -386,25 +386,26 @@ mod tests {
         TooLong,
     }
     #[derive(
-        proc_macro_optimal_memory_layout::OptimalMemoryLayout,
-        Debug,
-        Clone,
-        PartialEq,
-        Eq,
-        proc_macro_newtype_try_from::TryFrom,
+        proc_macro_optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, PartialEq, Eq,
     )]
-    #[try_from(validator = validate_checked_text)]
     struct CheckedText(String);
+    impl TryFrom<String> for CheckedText {
+        type Error = CheckedTextError;
+        fn try_from(value: String) -> Result<Self, Self::Error> {
+            validate_checked_text(value.as_str()).map(|()| Self(value))
+        }
+    }
     #[derive(
-        proc_macro_optimal_memory_layout::OptimalMemoryLayout,
-        Debug,
-        Clone,
-        PartialEq,
-        Eq,
-        proc_macro_newtype_try_from::TryFrom,
+        proc_macro_optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, PartialEq, Eq,
     )]
-    #[try_from(error = CheckedTextError, validator = validate_checked_text)]
     struct ExplicitErrorCheckedText(String);
+    impl TryFrom<String> for ExplicitErrorCheckedText {
+        type Error = CheckedTextError;
+        fn try_from(value: String) -> Result<Self, Self::Error> {
+            validate_checked_text(value.as_str())?;
+            Ok(Self(value))
+        }
+    }
     #[derive(
         proc_macro_optimal_memory_layout::OptimalMemoryLayout,
         Debug,
@@ -490,7 +491,7 @@ mod tests {
         );
     }
     #[test]
-    fn test_try_from_validator_generates_checked_conversion() {
+    fn test_try_from_validator_checks_conversion() {
         assert_eq!(
             CheckedText::try_from(constants_str::AB.to_owned()),
             Ok(CheckedText(constants_str::AB.to_owned()))
@@ -501,7 +502,7 @@ mod tests {
         );
     }
     #[test]
-    fn test_try_from_validator_supports_explicit_error_type() {
+    fn test_try_from_uses_explicit_error_type() {
         assert_eq!(
             ExplicitErrorCheckedText::try_from(constants_str::AB.to_owned()),
             Ok(ExplicitErrorCheckedText(constants_str::AB.to_owned()))

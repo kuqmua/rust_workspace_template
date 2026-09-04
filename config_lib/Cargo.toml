@@ -10,6 +10,7 @@ edition.workspace = true
 
 
 [dependencies]
+proc_macro_new = { workspace = true }
 proc_macro_newtype_from_inner = { workspace = true }
 proc_macro_newtype_into_inner_from = { workspace = true }
 proc_macro_newtype_as_ref_inner = { workspace = true }

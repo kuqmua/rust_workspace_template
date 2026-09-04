@@ -7,6 +7,7 @@
     serde::Deserialize,
     serde::Serialize,
     utoipa::ToSchema,
+    proc_macro_new::New,
 )]
 pub struct AdminSessionView {
     created_at: super::admin_session_timestamp::AdminSessionTimestamp,
@@ -15,20 +16,4 @@ pub struct AdminSessionView {
     #[getters(copy)]
     #[serde(default)]
     is_current: crate::admin_bool::AdminBool,
-}
-impl AdminSessionView {
-    #[must_use]
-    pub const fn new(
-        created_at: super::admin_session_timestamp::AdminSessionTimestamp,
-        expires_at: super::admin_session_timestamp::AdminSessionTimestamp,
-        admin_session_identifier: super::admin_session_identifier::AdminSessionIdentifier,
-        admin_bool: crate::admin_bool::AdminBool,
-    ) -> Self {
-        Self {
-            created_at,
-            expires_at,
-            id: admin_session_identifier,
-            is_current: admin_bool,
-        }
-    }
 }

@@ -9,6 +9,7 @@ license.workspace = true
 edition.workspace = true
 
 [dependencies]
+proc_macro_new = { workspace = true }
 proc_macro_frontend_contract_derive_typed_route = { workspace = true }
 proc_macro_newtype_get_inner = { workspace = true }
 proc_macro_newtype_from_inner = { workspace = true }

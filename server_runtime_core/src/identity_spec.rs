@@ -1,26 +1,20 @@
 #[derive(proc_macro_getters::Getters)]
 #[getters(bare)]
-#[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
+#[derive(
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Debug,
+    Eq,
+    PartialEq,
+    proc_macro_new::New,
+)]
 pub struct IdentitySpec<Login, DisplayName, Role, SecretSource> {
+    #[constructor(order = 1)]
     display_name: DisplayName,
+    #[constructor(order = 0)]
     login: Login,
+    #[constructor(order = 2)]
     role: Role,
+    #[constructor(order = 3)]
     secret_source: SecretSource,
-}
-
-impl<Login, DisplayName, Role, SecretSource> IdentitySpec<Login, DisplayName, Role, SecretSource> {
-    #[must_use]
-    pub const fn new(
-        login: Login,
-        display_name: DisplayName,
-        role: Role,
-        secret_source: SecretSource,
-    ) -> Self {
-        Self {
-            display_name,
-            login,
-            role,
-            secret_source,
-        }
-    }
 }

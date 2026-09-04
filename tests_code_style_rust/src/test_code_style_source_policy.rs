@@ -3655,6 +3655,98 @@ fn test_repository_identifiers_use_explicit_resource_names() {
         );
     });
 }
+
+#[test]
+fn test_trivial_new_constructors_are_generated() {
+    crate::code_style::assert_rs_ast_errors_empty_with_context(
+        crate::types::StaticStr::from(constants_str::DIAGNOSTIC_C5142DF8),
+        crate::types::SourceTextRef::from(constants_str::CODE_STYLE_TRIVIAL_NEW_CONSTRUCTOR),
+        |path, ast, errors| {
+            let visitor = crate::code_style::visit_syn_file(
+                crate::types::SynFileRef::from(ast),
+                super::source_analysis::TrivialNewConstructorVisitor::new(
+                    crate::types::DiagnosticMessages::default(),
+                ),
+            );
+            errors.extend(
+                visitor
+                    .get_errors()
+                    .iter()
+                    .map(|error| format!("{}: {error}", path.display())),
+            );
+        },
+    );
+}
+
+#[test]
+fn test_trivial_new_constructor_policy_rejects_direct_field_initialization() {
+    let ast: syn::File = syn::parse_quote! {
+        struct Fixture {
+            first: usize,
+            second: bool,
+        }
+        impl Fixture {
+            fn new(second_value: bool, first_value: usize) -> Self {
+                Self {
+                    first: first_value,
+                    second: second_value,
+                }
+            }
+        }
+    };
+    let visitor = crate::code_style::visit_syn_file(
+        crate::types::SynFileRef::from(&ast),
+        super::source_analysis::TrivialNewConstructorVisitor::new(
+            crate::types::DiagnosticMessages::default(),
+        ),
+    );
+    assert_eq!(visitor.get_errors().len(), constants_usize::ONE);
+}
+
+#[test]
+fn test_trivial_new_constructor_policy_allows_constructor_logic() {
+    let ast: syn::File = syn::parse_quote! {
+        struct Fixture {
+            value: usize,
+        }
+        impl Fixture {
+            fn new(value: usize) -> Self {
+                Self { value: value + constants_usize::ONE }
+            }
+        }
+    };
+    let visitor = crate::code_style::visit_syn_file(
+        crate::types::SynFileRef::from(&ast),
+        super::source_analysis::TrivialNewConstructorVisitor::new(
+            crate::types::DiagnosticMessages::default(),
+        ),
+    );
+    assert!(visitor.get_errors().is_empty());
+}
+
+#[test]
+fn test_trivial_new_constructor_policy_allows_trait_implementation() {
+    let ast: syn::File = syn::parse_quote! {
+        trait Factory {
+            fn new(value: usize) -> Self;
+        }
+        struct Fixture {
+            value: usize,
+        }
+        impl Factory for Fixture {
+            fn new(value: usize) -> Self {
+                Self { value }
+            }
+        }
+    };
+    let visitor = crate::code_style::visit_syn_file(
+        crate::types::SynFileRef::from(&ast),
+        super::source_analysis::TrivialNewConstructorVisitor::new(
+            crate::types::DiagnosticMessages::default(),
+        ),
+    );
+    assert!(visitor.get_errors().is_empty());
+}
 #[test]
 fn test_names_and_modules_start_with_test_prefix() {
     crate::code_style::assert_rs_ast_errors_empty_with_context(

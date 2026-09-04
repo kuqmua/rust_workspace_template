@@ -193,103 +193,9 @@ impl StringWrapperFromVisitor<'_> {
                 })
         }) {
             self.errors.push(format!(
-                        "string wrapper `{}` derives `proc_macro_newtype_from_inner::FromInner`; derive `proc_macro_newtype_try_from::TryFrom` with a length check instead",
+                        "string wrapper `{}` derives `proc_macro_newtype_from_inner::FromInner`; implement `TryFrom<String>` with a length check instead",
                         item_ref.ident
                     ));
-        }
-        let has_try_from = item_ref.attrs.iter().any(|attr| {
-            attr.path().is_ident(constants_str::DERIVE)
-                && attr.meta.require_list().is_ok_and(|list| {
-                    list.tokens
-                        .to_string()
-                        .contains(constants_str::NEWTYPE_TRY_FROM_DERIVE_NAME)
-                })
-        });
-        let mut has_len_check = false;
-        item_ref
-            .attrs
-            .iter()
-            .filter(|attr| attr.path().is_ident(constants_str::NEWTYPE_TRY_FROM))
-            .for_each(|attr| {
-                drop(attr.parse_nested_meta(|meta| {
-                    if meta.path.is_ident(constants_str::NEWTYPE_TRY_FROM_ERROR) {
-                        let _error_type = meta.value()?.parse::<syn::Type>()?;
-                        return Ok(());
-                    }
-                    if meta
-                        .path
-                        .is_ident(constants_str::NEWTYPE_TRY_FROM_VALIDATOR)
-                    {
-                        let expr = meta.value()?.parse::<syn::Expr>()?;
-                        let mut visitor = LenMethodCallVisitor {
-                            found: crate::types::AnalyzerBool::default(),
-                        };
-                        syn::visit::Visit::visit_expr(&mut visitor, &expr);
-                        let path_is_len_checked = match &expr {
-                            syn::Expr::Path(path) => {
-                                let full_path = crate::code_style::path_to_string(
-                                    crate::types::SynPathRef::from(&path.path),
-                                );
-                                self.len_checked_function_names.contains(full_path.as_ref())
-                                    || path.path.segments.last().is_some_and(|segment| {
-                                        self.len_checked_function_names
-                                            .contains(segment.ident.to_string().as_str())
-                                    })
-                            }
-                            syn::Expr::Array(_)
-                            | syn::Expr::Assign(_)
-                            | syn::Expr::Async(_)
-                            | syn::Expr::Await(_)
-                            | syn::Expr::Binary(_)
-                            | syn::Expr::Block(_)
-                            | syn::Expr::Break(_)
-                            | syn::Expr::Call(_)
-                            | syn::Expr::Cast(_)
-                            | syn::Expr::Closure(_)
-                            | syn::Expr::Const(_)
-                            | syn::Expr::Continue(_)
-                            | syn::Expr::Field(_)
-                            | syn::Expr::ForLoop(_)
-                            | syn::Expr::Group(_)
-                            | syn::Expr::If(_)
-                            | syn::Expr::Index(_)
-                            | syn::Expr::Infer(_)
-                            | syn::Expr::Let(_)
-                            | syn::Expr::Lit(_)
-                            | syn::Expr::Loop(_)
-                            | syn::Expr::Macro(_)
-                            | syn::Expr::Match(_)
-                            | syn::Expr::MethodCall(_)
-                            | syn::Expr::Paren(_)
-                            | syn::Expr::Range(_)
-                            | syn::Expr::RawAddr(_)
-                            | syn::Expr::Reference(_)
-                            | syn::Expr::Repeat(_)
-                            | syn::Expr::Return(_)
-                            | syn::Expr::Struct(_)
-                            | syn::Expr::Try(_)
-                            | syn::Expr::TryBlock(_)
-                            | syn::Expr::Tuple(_)
-                            | syn::Expr::Unary(_)
-                            | syn::Expr::Unsafe(_)
-                            | syn::Expr::Verbatim(_)
-                            | syn::Expr::While(_)
-                            | syn::Expr::Yield(_)
-                            | _ => false,
-                        };
-                        if visitor.found.get() || path_is_len_checked {
-                            has_len_check = true;
-                        }
-                    }
-                    Ok(())
-                }));
-            });
-        if has_try_from {
-            let identifier = item_ref.ident.to_string();
-            let _: bool = self.try_from_string_names.insert(identifier.clone());
-            if has_len_check {
-                let _: bool = self.try_from_string_len_checked_names.insert(identifier);
-            }
         }
     }
     fn check_try_from_impl(&mut self, syn_item_impl_ref: crate::types::SynItemImplRef<'_>) {
@@ -698,8 +604,7 @@ impl<'ast> syn::visit::Visit<'ast> for TupleWrapperConversionCollector {
                 match &attr.meta {
                     syn::Meta::List(list) => {
                         let tokens = list.tokens.to_string();
-                        tokens.contains(constants_str::NEWTYPE_TRY_FROM_DERIVE_NAME)
-                            || tokens.contains(constants_str::BOUNDEDSTRING)
+                        tokens.contains(constants_str::BOUNDEDSTRING)
                             || tokens.contains(constants_str::TRYFROM)
                     }
                     syn::Meta::NameValue(_) | syn::Meta::Path(_) => false,

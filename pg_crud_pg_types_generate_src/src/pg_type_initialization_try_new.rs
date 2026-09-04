@@ -22,35 +22,40 @@ impl TryFrom<&crate::pg_type_catalog_kind::PgTypeCatalogKind> for PgTypeInitiali
     fn try_from(
         value: &crate::pg_type_catalog_kind::PgTypeCatalogKind,
     ) -> Result<Self, Self::Error> {
-        match value {
-                crate::pg_type_catalog_kind::PgTypeCatalogKind::I16AsInt2
-                | crate::pg_type_catalog_kind::PgTypeCatalogKind::I32AsInt4
-                | crate::pg_type_catalog_kind::PgTypeCatalogKind::I64AsInt8
-                | crate::pg_type_catalog_kind::PgTypeCatalogKind::F32AsFloat4
-                | crate::pg_type_catalog_kind::PgTypeCatalogKind::I16AsSmallSerialInitializationByPg
-                | crate::pg_type_catalog_kind::PgTypeCatalogKind::I32AsSerialInitializationByPg
-                | crate::pg_type_catalog_kind::PgTypeCatalogKind::I64AsBigSerialInitializationByPg
-                | crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgMoneyAsMoney
-                | crate::pg_type_catalog_kind::PgTypeCatalogKind::BoolAsBool
-                | crate::pg_type_catalog_kind::PgTypeCatalogKind::StdVecVecU8AsBytea
-                | crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgIntervalAsInterval
-                | crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesUuidUuidAsUuidV4InitializationByPg
-                | crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesUuidUuidAsUuidInitializationByClient
-                | crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesIpnetworkIpNetworkAsInet
-                | crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesMacAddressMacAddressAsMacAddr => Err(()),
-                crate::pg_type_catalog_kind::PgTypeCatalogKind::F64AsFloat8 => Ok(Self::F64AsFloat8),
-                crate::pg_type_catalog_kind::PgTypeCatalogKind::StringAsText => Ok(Self::StringAsText),
-                crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoNaiveTimeAsTime => Ok(Self::SqlxTypesChronoNaiveTimeAsTime),
-                crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesTimeTimeAsTime => Ok(Self::SqlxTypesTimeTimeAsTime),
-                crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoNaiveDateAsDate => Ok(Self::SqlxTypesChronoNaiveDateAsDate),
-                crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoNaiveDateTimeAsTimestamp => Ok(Self::SqlxTypesChronoNaiveDateTimeAsTimestamp),
-                crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTz => Ok(Self::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTz),
-                crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeI32AsInt4Range => Ok(Self::SqlxPgTypesPgRangeI32AsInt4Range),
-                crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeI64AsInt8Range => Ok(Self::SqlxPgTypesPgRangeI64AsInt8Range),
-                crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsDateRange => Ok(Self::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsDateRange),
-                crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsTimestampRange => Ok(Self::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsTimestampRange),
-                crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange => Ok(Self::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange),
+        match crate::schema_wire_kind::schema_wire_kind(&(*value).spec()) {
+            crate::wire_kind::WireKind::Date => Ok(Self::SqlxTypesChronoNaiveDateAsDate),
+            crate::wire_kind::WireKind::Float64 => Ok(Self::F64AsFloat8),
+            crate::wire_kind::WireKind::RangeDate => {
+                Ok(Self::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsDateRange)
             }
+            crate::wire_kind::WireKind::RangeInt32 => Ok(Self::SqlxPgTypesPgRangeI32AsInt4Range),
+            crate::wire_kind::WireKind::RangeInt64 => Ok(Self::SqlxPgTypesPgRangeI64AsInt8Range),
+            crate::wire_kind::WireKind::RangeTimestamp => {
+                Ok(Self::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsTimestampRange)
+            }
+            crate::wire_kind::WireKind::RangeTimestampTz => Ok(
+                Self::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange,
+            ),
+            crate::wire_kind::WireKind::String => Ok(Self::StringAsText),
+            crate::wire_kind::WireKind::TimeChrono => Ok(Self::SqlxTypesChronoNaiveTimeAsTime),
+            crate::wire_kind::WireKind::TimeTime => Ok(Self::SqlxTypesTimeTimeAsTime),
+            crate::wire_kind::WireKind::Timestamp => {
+                Ok(Self::SqlxTypesChronoNaiveDateTimeAsTimestamp)
+            }
+            crate::wire_kind::WireKind::TimestampTz => {
+                Ok(Self::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTz)
+            }
+            crate::wire_kind::WireKind::Bool
+            | crate::wire_kind::WireKind::Bytes
+            | crate::wire_kind::WireKind::Float32
+            | crate::wire_kind::WireKind::Inet
+            | crate::wire_kind::WireKind::Int16
+            | crate::wire_kind::WireKind::Int32
+            | crate::wire_kind::WireKind::Int64
+            | crate::wire_kind::WireKind::Interval
+            | crate::wire_kind::WireKind::Mac
+            | crate::wire_kind::WireKind::Uuid => Err(()),
+        }
     }
 }
 impl From<&PgTypeInitializationTryNew> for crate::pg_type_catalog_kind::PgTypeCatalogKind {

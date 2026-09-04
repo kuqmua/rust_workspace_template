@@ -1,40 +1,35 @@
 #[derive(proc_macro_getters::Getters)]
 #[getters(bare)]
 #[derive(
-    proc_macro_optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, Copy, PartialEq, Eq,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    proc_macro_new::New,
 )]
+#[constructor(pub(super))]
 pub struct AdminPageSpec {
     #[getters(copy)]
+    #[constructor(order = 4)]
     route: crate::admin_route::AdminRoute,
     #[getters(copy)]
+    #[constructor(order = 0)]
     capability: crate::admin_page_capability::AdminPageCapability,
+    #[constructor(order = 1)]
     metadata: crate::admin_page_metadata::AdminPageMetadata,
     #[getters(copy)]
+    #[constructor(order = 2)]
     page: crate::admin_page::AdminPage,
     #[getters(skip)]
+    #[constructor(order = 3)]
     path: crate::admin_frontend_path::AdminFrontendPath,
     #[getters(skip)]
+    #[constructor(order = 5)]
     title: crate::admin_page_title::AdminPageTitle,
 }
 impl AdminPageSpec {
-    pub(super) const fn new(
-        admin_page_capability: crate::admin_page_capability::AdminPageCapability,
-        admin_page_metadata: crate::admin_page_metadata::AdminPageMetadata,
-        admin_page: crate::admin_page::AdminPage,
-        admin_frontend_path: crate::admin_frontend_path::AdminFrontendPath,
-        admin_route: crate::admin_route::AdminRoute,
-        admin_page_title: crate::admin_page_title::AdminPageTitle,
-    ) -> Self {
-        Self {
-            route: admin_route,
-            capability: admin_page_capability,
-            metadata: admin_page_metadata,
-            page: admin_page,
-            path: admin_frontend_path,
-            title: admin_page_title,
-        }
-    }
-
     #[must_use]
     pub const fn client_mode(self) -> crate::admin_page_client_mode::AdminPageClientMode {
         *self.metadata.get_client_mode()

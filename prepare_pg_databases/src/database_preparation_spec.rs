@@ -1,6 +1,15 @@
-#[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
+#[derive(
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Debug,
+    Eq,
+    PartialEq,
+    proc_macro_new::New,
+)]
 pub struct DatabasePreparationSpec {
+    #[constructor(order = 1)]
     migrations_source: crate::migrations_source::MigrationsSource,
+    #[constructor(order = 0)]
     url: crate::database_url::DatabaseUrl,
 }
 
@@ -13,16 +22,5 @@ impl DatabasePreparationSpec {
         crate::migrations_source::MigrationsSource,
     ) {
         (self.url, self.migrations_source)
-    }
-
-    #[must_use]
-    pub const fn new(
-        database_url: crate::database_url::DatabaseUrl,
-        migrations_source: crate::migrations_source::MigrationsSource,
-    ) -> Self {
-        Self {
-            migrations_source,
-            url: database_url,
-        }
     }
 }

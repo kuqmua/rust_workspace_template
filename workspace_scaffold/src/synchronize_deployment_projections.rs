@@ -12,6 +12,32 @@ pub(crate) fn synchronize_deployment_projections(
     let entries_ref = crate::service_catalog_entries_ref::ServiceCatalogEntriesRef::from(
         entries.get_inner().as_slice(),
     );
+    let synchronize_static_projection =
+        |projection_path_ref: crate::scaffold_path_ref::ScaffoldPathRef<'_>,
+         begin: crate::scaffold_text_ref::ScaffoldTextRef<'_>,
+         end: crate::scaffold_text_ref::ScaffoldTextRef<'_>,
+         generated: crate::scaffold_text_ref::ScaffoldTextRef<'_>| {
+            crate::synchronize_generated_file::synchronize_generated_file(
+                projection_path_ref,
+                begin,
+                end,
+                generated,
+                should_write,
+            )
+        };
+    let synchronize_entry_projection =
+        |projection_path_ref: crate::scaffold_path_ref::ScaffoldPathRef<'_>,
+         begin: crate::scaffold_text_ref::ScaffoldTextRef<'_>,
+         end: crate::scaffold_text_ref::ScaffoldTextRef<'_>,
+         generated: crate::scaffold_text_ref::ScaffoldTextRef<'_>| {
+            crate::synchronize_generated_file::synchronize_generated_file(
+                projection_path_ref,
+                begin,
+                end,
+                generated,
+                should_write,
+            )
+        };
     let ci = crate::service_catalog_render_release_entries::service_catalog_render_release_entries(
         entries_ref,
     );
@@ -22,20 +48,18 @@ pub(crate) fn synchronize_deployment_projections(
     let ci_path = scaffold_path_ref
         .get()
         .join(constants_str::CODE_STYLE_CI_WORKFLOW_PATH);
-    crate::synchronize_generated_file::synchronize_generated_file(
+    synchronize_static_projection(
         crate::scaffold_path_ref::ScaffoldPathRef::from(ci_path.as_path()),
         crate::scaffold_text_ref::ScaffoldTextRef::from(constants_str::VALUE_48916059),
         crate::scaffold_text_ref::ScaffoldTextRef::from(constants_str::VALUE_37E65562),
         crate::scaffold_text_ref::ScaffoldTextRef::from(ci.as_ref()),
-        should_write,
     )?;
     let release_path = scaffold_path_ref.get().join(constants_str::VALUE_87DB21A9);
-    crate::synchronize_generated_file::synchronize_generated_file(
+    synchronize_static_projection(
         crate::scaffold_path_ref::ScaffoldPathRef::from(release_path.as_path()),
         crate::scaffold_text_ref::ScaffoldTextRef::from(constants_str::VALUE_BF61857A),
         crate::scaffold_text_ref::ScaffoldTextRef::from(constants_str::VALUE_1BC591D5),
         crate::scaffold_text_ref::ScaffoldTextRef::from(release.as_ref()),
-        should_write,
     )?;
     entries_ref.get().iter().try_for_each(|entry| {
         let compose_path = scaffold_path_ref.get().join(entry.get_compose_file().as_ref());
@@ -52,12 +76,11 @@ pub(crate) fn synchronize_deployment_projections(
             entry.get_compose_name().as_ref(),
             entry.get_dockerfile().as_ref()
         );
-        crate::synchronize_generated_file::synchronize_generated_file(
+        synchronize_entry_projection(
             crate::scaffold_path_ref::ScaffoldPathRef::from(compose_path.as_path()),
             crate::scaffold_text_ref::ScaffoldTextRef::from(compose_identity_begin.as_str()),
             crate::scaffold_text_ref::ScaffoldTextRef::from(compose_identity_end.as_str()),
             crate::scaffold_text_ref::ScaffoldTextRef::from(compose_identity.as_str()),
-            should_write,
         )?;
         let compose_socket_begin = format!(
             "      # BEGIN GENERATED COMPOSE SOCKET {}\n",
@@ -72,12 +95,11 @@ pub(crate) fn synchronize_deployment_projections(
             entry.get_socket_env().as_ref(),
             entry.get_port().get()
         );
-        crate::synchronize_generated_file::synchronize_generated_file(
+        synchronize_entry_projection(
             crate::scaffold_path_ref::ScaffoldPathRef::from(compose_path.as_path()),
             crate::scaffold_text_ref::ScaffoldTextRef::from(compose_socket_begin.as_str()),
             crate::scaffold_text_ref::ScaffoldTextRef::from(compose_socket_end.as_str()),
             crate::scaffold_text_ref::ScaffoldTextRef::from(compose_socket.as_str()),
-            should_write,
         )?;
         let ready_path =
             <common_routes::health_ready_route::HealthReadyRoute as frontend_contract::typed_route::TypedRoute>::metadata(
@@ -96,12 +118,11 @@ pub(crate) fn synchronize_deployment_projections(
             entry.get_port().get(),
             ready_path.as_ref()
         );
-        crate::synchronize_generated_file::synchronize_generated_file(
+        synchronize_entry_projection(
             crate::scaffold_path_ref::ScaffoldPathRef::from(compose_path.as_path()),
             crate::scaffold_text_ref::ScaffoldTextRef::from(compose_health_begin.as_str()),
             crate::scaffold_text_ref::ScaffoldTextRef::from(compose_health_end.as_str()),
             crate::scaffold_text_ref::ScaffoldTextRef::from(compose_health.as_str()),
-            should_write,
         )?;
         let compose_port_begin = format!(
             "    # BEGIN GENERATED COMPOSE PORT {}\n",
@@ -112,12 +133,11 @@ pub(crate) fn synchronize_deployment_projections(
             entry.get_compose_name().as_ref()
         );
         let compose_port = format!("    ports:\n      - \"127.0.0.1:{0}:{0}\"\n", entry.get_port().get());
-        crate::synchronize_generated_file::synchronize_generated_file(
+        synchronize_entry_projection(
             crate::scaffold_path_ref::ScaffoldPathRef::from(compose_path.as_path()),
             crate::scaffold_text_ref::ScaffoldTextRef::from(compose_port_begin.as_str()),
             crate::scaffold_text_ref::ScaffoldTextRef::from(compose_port_end.as_str()),
             crate::scaffold_text_ref::ScaffoldTextRef::from(compose_port.as_str()),
-            should_write,
         )?;
 
         let kubernetes_path = scaffold_path_ref.get().join(entry.get_kubernetes_manifest().as_ref());
@@ -133,12 +153,11 @@ pub(crate) fn synchronize_deployment_projections(
             "metadata:\n  name: {0}\n  namespace: rust-workspace-template\n",
             entry.get_image().as_ref()
         );
-        crate::synchronize_generated_file::synchronize_generated_file(
+        synchronize_entry_projection(
             crate::scaffold_path_ref::ScaffoldPathRef::from(kubernetes_path.as_path()),
             crate::scaffold_text_ref::ScaffoldTextRef::from(kubernetes_metadata_begin.as_str()),
             crate::scaffold_text_ref::ScaffoldTextRef::from(kubernetes_metadata_end.as_str()),
             crate::scaffold_text_ref::ScaffoldTextRef::from(kubernetes_metadata.as_str()),
-            should_write,
         )?;
         let kubernetes_workload_identity_begin = format!(
             "  # BEGIN GENERATED KUBERNETES WORKLOAD IDENTITY {}\n",
@@ -152,12 +171,11 @@ pub(crate) fn synchronize_deployment_projections(
             "  selector:\n    matchLabels:\n      app.kubernetes.io/name: {0}\n  template:\n    metadata:\n      labels:\n        app.kubernetes.io/name: {0}\n    spec:\n",
             entry.get_image().as_ref()
         );
-        crate::synchronize_generated_file::synchronize_generated_file(
+        synchronize_entry_projection(
             crate::scaffold_path_ref::ScaffoldPathRef::from(kubernetes_path.as_path()),
             crate::scaffold_text_ref::ScaffoldTextRef::from(kubernetes_workload_identity_begin.as_str()),
             crate::scaffold_text_ref::ScaffoldTextRef::from(kubernetes_workload_identity_end.as_str()),
             crate::scaffold_text_ref::ScaffoldTextRef::from(kubernetes_workload_identity.as_str()),
-            should_write,
         )?;
         let kubernetes_container_begin = format!(
             "      # BEGIN GENERATED KUBERNETES CONTAINER {}\n",
@@ -172,12 +190,11 @@ pub(crate) fn synchronize_deployment_projections(
             entry.get_image().as_ref(),
             entry.get_port().get()
         );
-        crate::synchronize_generated_file::synchronize_generated_file(
+        synchronize_entry_projection(
             crate::scaffold_path_ref::ScaffoldPathRef::from(kubernetes_path.as_path()),
             crate::scaffold_text_ref::ScaffoldTextRef::from(kubernetes_container_begin.as_str()),
             crate::scaffold_text_ref::ScaffoldTextRef::from(kubernetes_container_end.as_str()),
             crate::scaffold_text_ref::ScaffoldTextRef::from(kubernetes_container.as_str()),
-            should_write,
         )?;
         let live_path =
             <common_routes::health_live_route::HealthLiveRoute as frontend_contract::typed_route::TypedRoute>::metadata()
@@ -195,12 +212,11 @@ pub(crate) fn synchronize_deployment_projections(
             ready = ready_path.as_ref(),
             live = live_path.as_ref()
         );
-        crate::synchronize_generated_file::synchronize_generated_file(
+        synchronize_entry_projection(
             crate::scaffold_path_ref::ScaffoldPathRef::from(kubernetes_path.as_path()),
             crate::scaffold_text_ref::ScaffoldTextRef::from(kubernetes_probe_begin.as_str()),
             crate::scaffold_text_ref::ScaffoldTextRef::from(kubernetes_probe_end.as_str()),
             crate::scaffold_text_ref::ScaffoldTextRef::from(kubernetes_probe.as_str()),
-            should_write,
         )?;
         let kubernetes_service_identity_begin = format!(
             "# BEGIN GENERATED KUBERNETES SERVICE IDENTITY {}\n",
@@ -214,12 +230,11 @@ pub(crate) fn synchronize_deployment_projections(
             "metadata:\n  name: {0}\n  namespace: rust-workspace-template\n  labels:\n    app.kubernetes.io/name: {0}\nspec:\n  selector:\n    app.kubernetes.io/name: {0}\n",
             entry.get_image().as_ref()
         );
-        crate::synchronize_generated_file::synchronize_generated_file(
+        synchronize_entry_projection(
             crate::scaffold_path_ref::ScaffoldPathRef::from(kubernetes_path.as_path()),
             crate::scaffold_text_ref::ScaffoldTextRef::from(kubernetes_service_identity_begin.as_str()),
             crate::scaffold_text_ref::ScaffoldTextRef::from(kubernetes_service_identity_end.as_str()),
             crate::scaffold_text_ref::ScaffoldTextRef::from(kubernetes_service_identity.as_str()),
-            should_write,
         )?;
         let kubernetes_service_port_begin = format!(
             "  # BEGIN GENERATED KUBERNETES SERVICE PORT {}\n",
@@ -233,12 +248,11 @@ pub(crate) fn synchronize_deployment_projections(
             "  ports:\n    - name: http\n      port: {}\n      targetPort: http\n",
             entry.get_port().get()
         );
-        crate::synchronize_generated_file::synchronize_generated_file(
+        synchronize_entry_projection(
             crate::scaffold_path_ref::ScaffoldPathRef::from(kubernetes_path.as_path()),
             crate::scaffold_text_ref::ScaffoldTextRef::from(kubernetes_service_port_begin.as_str()),
             crate::scaffold_text_ref::ScaffoldTextRef::from(kubernetes_service_port_end.as_str()),
             crate::scaffold_text_ref::ScaffoldTextRef::from(kubernetes_service_port.as_str()),
-            should_write,
         )
     })?;
     entries_ref.get().iter().try_for_each(|entry| {

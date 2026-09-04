@@ -10,21 +10,11 @@
     serde::Deserialize,
     serde::Serialize,
     utoipa::ToSchema,
+    proc_macro_new::New,
 )]
+#[constructor(pub(crate))]
 pub struct HealthComponent {
     kind: crate::health_component_kind::HealthComponentKind,
     #[getters(copy)]
     status: crate::health_status::HealthStatus,
-}
-impl HealthComponent {
-    #[must_use]
-    pub(crate) const fn new(
-        health_component_kind: crate::health_component_kind::HealthComponentKind,
-        health_status: crate::health_status::HealthStatus,
-    ) -> Self {
-        Self {
-            kind: health_component_kind,
-            status: health_status,
-        }
-    }
 }

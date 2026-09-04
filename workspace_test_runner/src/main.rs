@@ -30,6 +30,8 @@ pub mod command_text;
 pub mod command_texts;
 pub mod commands_ref;
 pub mod create_admin_fixture_string;
+pub mod direct_generation_measurement;
+pub mod direct_generation_output_measurement;
 pub mod domain_types;
 pub mod execution_io_error;
 #[cfg(test)]
@@ -38,6 +40,7 @@ pub mod failed_test_names;
 pub mod generate_pg_table_measure_input_token_stream;
 pub mod macro_generation_measurements;
 pub mod measure_cargo_command;
+pub mod measure_direct_generation;
 pub mod measure_memusage_command;
 pub mod measurement_name;
 pub mod memory_usage_column_index;
@@ -829,27 +832,17 @@ fn main() {
                 "measurement=generate_pg_table_typed_stages parse_us={parse_us} build_us={build_us} validate_us={validate_us} emit_us={emit_us} output_bytes={}",
                 staged_output.to_string().len()
             );
-            let generate_pg_table_measurement = (0..domain_types::DIRECT_GENERATION_REPEAT_COUNT)
-                .fold(
-                    (
-                        u128::MAX,
-                        constants_u128::ZERO,
-                        constants_u128::ZERO,
-                        constants_usize::ZERO,
-                        constants_usize::ZERO,
-                    ),
-                    |(min_wall_us, max_wall_us, total_wall_us, _, _), _| {
-                        let started = std::time::Instant::now();
-                        let output = generate_pg_table_src::generate_pg_table::generate_pg_table(
-                            macro_helpers::proc_macro2_token_stream_ref::ProcMacro2TokenStreamRef::from(
-                                generate_pg_table_input_token_stream.as_ref(),
-                            ),
-                        );
-                        let wall_us = started.elapsed().as_micros();
-                        (
-                            min_wall_us.min(wall_us),
-                            max_wall_us.max(wall_us),
-                            total_wall_us.saturating_add(wall_us),
+            let generate_pg_table_measurement =
+                measure_direct_generation::measure_direct_generation(
+                    || {
+                        generate_pg_table_src::generate_pg_table::generate_pg_table(
+                        macro_helpers::proc_macro2_token_stream_ref::ProcMacro2TokenStreamRef::from(
+                            generate_pg_table_input_token_stream.as_ref(),
+                        ),
+                    )
+                    },
+                    |output| {
+                        direct_generation_output_measurement::DirectGenerationOutputMeasurement::new(
                             output.to_string().len(),
                             output.as_ref().clone().into_iter().count(),
                         )
@@ -858,11 +851,11 @@ fn main() {
             println!(
                 "measurement=generate_pg_table_src repeat_count={} wall_min_us={} wall_total_us={} wall_max_us={} output_bytes={} output_token_trees={}",
                 domain_types::DIRECT_GENERATION_REPEAT_COUNT,
-                generate_pg_table_measurement.0,
-                generate_pg_table_measurement.2,
-                generate_pg_table_measurement.1,
-                generate_pg_table_measurement.3,
-                generate_pg_table_measurement.4
+                generate_pg_table_measurement.get_minimum_wall_microseconds(),
+                generate_pg_table_measurement.get_total_wall_microseconds(),
+                generate_pg_table_measurement.get_maximum_wall_microseconds(),
+                generate_pg_table_measurement.get_output_bytes(),
+                generate_pg_table_measurement.get_output_token_trees()
             );
             let generate_pg_table_with_tests_dir =
                 std::path::Path::new(constants_str::TARGET_MEASURE_GENERATE_PG_TABLE_WITH_TESTS);
@@ -897,26 +890,16 @@ fn main() {
                 std::process::exit(1);
             }
             let generate_pg_table_with_tests_measurement =
-                (0..domain_types::DIRECT_GENERATION_REPEAT_COUNT).fold(
-                    (
-                        u128::MAX,
-                        constants_u128::ZERO,
-                        constants_u128::ZERO,
-                        constants_usize::ZERO,
-                        constants_usize::ZERO,
-                    ),
-                    |(min_wall_us, max_wall_us, total_wall_us, _, _), _| {
-                        let started = std::time::Instant::now();
-                        let output = generate_pg_table_src::generate_pg_table::generate_pg_table(
-                            macro_helpers::proc_macro2_token_stream_ref::ProcMacro2TokenStreamRef::from(
-                                generate_pg_table_input_with_tests_token_stream.as_ref(),
-                            ),
-                        );
-                        let wall_us = started.elapsed().as_micros();
-                        (
-                            min_wall_us.min(wall_us),
-                            max_wall_us.max(wall_us),
-                            total_wall_us.saturating_add(wall_us),
+                measure_direct_generation::measure_direct_generation(
+                    || {
+                        generate_pg_table_src::generate_pg_table::generate_pg_table(
+                        macro_helpers::proc_macro2_token_stream_ref::ProcMacro2TokenStreamRef::from(
+                            generate_pg_table_input_with_tests_token_stream.as_ref(),
+                        ),
+                    )
+                    },
+                    |output| {
+                        direct_generation_output_measurement::DirectGenerationOutputMeasurement::new(
                             output.to_string().len(),
                             output.as_ref().clone().into_iter().count(),
                         )
@@ -952,11 +935,11 @@ fn main() {
             println!(
                 "measurement=generate_pg_table_src_with_tests repeat_count={} wall_min_us={} wall_total_us={} wall_max_us={} output_bytes={} output_token_trees={}",
                 domain_types::DIRECT_GENERATION_REPEAT_COUNT,
-                generate_pg_table_with_tests_measurement.0,
-                generate_pg_table_with_tests_measurement.2,
-                generate_pg_table_with_tests_measurement.1,
-                generate_pg_table_with_tests_measurement.3,
-                generate_pg_table_with_tests_measurement.4
+                generate_pg_table_with_tests_measurement.get_minimum_wall_microseconds(),
+                generate_pg_table_with_tests_measurement.get_total_wall_microseconds(),
+                generate_pg_table_with_tests_measurement.get_maximum_wall_microseconds(),
+                generate_pg_table_with_tests_measurement.get_output_bytes(),
+                generate_pg_table_with_tests_measurement.get_output_token_trees()
             );
             println!(
                 "measurement=generate_pg_table_tests_stage_output bytes={} lines={}",
@@ -966,17 +949,17 @@ fn main() {
                 "measurement=generate_pg_table_tests_emit_delta repeat_count={} wall_total_delta_us={} wall_min_delta_us={} wall_max_delta_us={} output_bytes_delta={}",
                 domain_types::DIRECT_GENERATION_REPEAT_COUNT,
                 generate_pg_table_with_tests_measurement
-                    .2
-                    .saturating_sub(generate_pg_table_measurement.2),
+                    .get_total_wall_microseconds()
+                    .saturating_sub(*generate_pg_table_measurement.get_total_wall_microseconds()),
                 generate_pg_table_with_tests_measurement
-                    .0
-                    .saturating_sub(generate_pg_table_measurement.0),
+                    .get_minimum_wall_microseconds()
+                    .saturating_sub(*generate_pg_table_measurement.get_minimum_wall_microseconds()),
                 generate_pg_table_with_tests_measurement
-                    .1
-                    .saturating_sub(generate_pg_table_measurement.1),
+                    .get_maximum_wall_microseconds()
+                    .saturating_sub(*generate_pg_table_measurement.get_maximum_wall_microseconds()),
                 generate_pg_table_with_tests_measurement
-                    .3
-                    .saturating_sub(generate_pg_table_measurement.3)
+                    .get_output_bytes()
+                    .saturating_sub(*generate_pg_table_measurement.get_output_bytes())
             );
             let generate_pg_types_input_token_stream = quote::quote! {
                 {
@@ -1036,28 +1019,17 @@ fn main() {
                 "measurement=generate_pg_types_typed_stages parse_us={pg_types_parse_us} build_us={pg_types_build_us} validate_us={pg_types_validate_us} emit_us={pg_types_emit_us} output_bytes={}",
                 staged_pg_types.to_string().len()
             );
-            let generate_pg_types_measurement = (0..domain_types::DIRECT_GENERATION_REPEAT_COUNT)
-                .fold(
-                    (
-                        u128::MAX,
-                        constants_u128::ZERO,
-                        constants_u128::ZERO,
-                        constants_usize::ZERO,
-                        constants_usize::ZERO,
-                    ),
-                    |(min_wall_us, max_wall_us, total_wall_us, _, _), _| {
-                        let started = std::time::Instant::now();
-                        let output =
+            let generate_pg_types_measurement =
+                measure_direct_generation::measure_direct_generation(
+                    || {
                         generate_pg_types_src::generate_pg_types_tokens::generate_pg_types_tokens(
                             macro_helpers::proc_macro2_token_stream_ref::ProcMacro2TokenStreamRef::from(
                                 &generate_pg_types_input_token_stream,
                             ),
-                        );
-                        let wall_us = started.elapsed().as_micros();
-                        (
-                            min_wall_us.min(wall_us),
-                            max_wall_us.max(wall_us),
-                            total_wall_us.saturating_add(wall_us),
+                        )
+                    },
+                    |output| {
+                        direct_generation_output_measurement::DirectGenerationOutputMeasurement::new(
                             output.to_string().len(),
                             output.as_ref().clone().into_iter().count(),
                         )
@@ -1066,11 +1038,11 @@ fn main() {
             println!(
                 "measurement=generate_pg_types_src repeat_count={} wall_min_us={} wall_total_us={} wall_max_us={} output_bytes={} output_token_trees={}",
                 domain_types::DIRECT_GENERATION_REPEAT_COUNT,
-                generate_pg_types_measurement.0,
-                generate_pg_types_measurement.2,
-                generate_pg_types_measurement.1,
-                generate_pg_types_measurement.3,
-                generate_pg_types_measurement.4
+                generate_pg_types_measurement.get_minimum_wall_microseconds(),
+                generate_pg_types_measurement.get_total_wall_microseconds(),
+                generate_pg_types_measurement.get_maximum_wall_microseconds(),
+                generate_pg_types_measurement.get_output_bytes(),
+                generate_pg_types_measurement.get_output_token_trees()
             );
             let generate_where_filters_input_token_stream = quote::quote! {
                 {
@@ -1110,39 +1082,30 @@ fn main() {
                 "measurement=generate_where_filters_typed_stages parse_us={where_filters_parse_us} build_us={where_filters_build_us} validate_us={where_filters_validate_us} emit_us={where_filters_emit_us} output_bytes={}",
                 staged_where_filters.to_string().len()
             );
-            let generate_where_filters_measurement = (0..domain_types::DIRECT_GENERATION_REPEAT_COUNT).fold(
-                                (
-                                    u128::MAX,
-                                    constants_u128::ZERO,
-                                    constants_u128::ZERO,
-                                    constants_usize::ZERO,
-                                    constants_usize::ZERO,
-                                ),
-                                |(min_wall_us, max_wall_us, total_wall_us, _, _), _| {
-                                    let started = std::time::Instant::now();
-                                    let output = generate_where_filters_src::generate_where_filters_source::generate_where_filters_source(
-                                        generate_where_filters_src::proc_macro2_generate_where_filters_input::ProcMacro2GenerateWhereFiltersInput::from(
-                                            &generate_where_filters_input_token_stream,
-                                        ),
-                                    );
-                                    let wall_us = started.elapsed().as_micros();
-                                    (
-                                        min_wall_us.min(wall_us),
-                                        max_wall_us.max(wall_us),
-                                        total_wall_us.saturating_add(wall_us),
-                                        output.to_string().len(),
-                                        output.as_ref().clone().into_iter().count(),
-                                    )
-                                },
-                            );
+            let generate_where_filters_measurement =
+                measure_direct_generation::measure_direct_generation(
+                    || {
+                        generate_where_filters_src::generate_where_filters_source::generate_where_filters_source(
+                            generate_where_filters_src::proc_macro2_generate_where_filters_input::ProcMacro2GenerateWhereFiltersInput::from(
+                                &generate_where_filters_input_token_stream,
+                            ),
+                        )
+                    },
+                    |output| {
+                        direct_generation_output_measurement::DirectGenerationOutputMeasurement::new(
+                            output.to_string().len(),
+                            output.as_ref().clone().into_iter().count(),
+                        )
+                    },
+                );
             println!(
                 "measurement=generate_where_filters_src repeat_count={} wall_min_us={} wall_total_us={} wall_max_us={} output_bytes={} output_token_trees={}",
                 domain_types::DIRECT_GENERATION_REPEAT_COUNT,
-                generate_where_filters_measurement.0,
-                generate_where_filters_measurement.2,
-                generate_where_filters_measurement.1,
-                generate_where_filters_measurement.3,
-                generate_where_filters_measurement.4
+                generate_where_filters_measurement.get_minimum_wall_microseconds(),
+                generate_where_filters_measurement.get_total_wall_microseconds(),
+                generate_where_filters_measurement.get_maximum_wall_microseconds(),
+                generate_where_filters_measurement.get_output_bytes(),
+                generate_where_filters_measurement.get_output_token_trees()
             );
             let pg_crud_common_query_part: Result<
                 (u128, u128, u128, usize),

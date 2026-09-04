@@ -7,9 +7,15 @@
     PartialOrd,
     proc_macro_newtype_as_ref_str::AsRefStr,
     proc_macro_newtype_borrow_str::BorrowStr,
-    proc_macro_newtype_try_from::TryFrom,
 )]
-#[try_from(error = crate::init_string_error::InitStringError, validator = |value: &str| {
-    if value.is_empty() || value.len() > 1_024usize { Err(crate::init_string_error::InitStringError::Invalid) } else { Ok(()) }
-})]
 pub(crate) struct EnvKey(String);
+impl TryFrom<String> for EnvKey {
+    type Error = crate::init_string_error::InitStringError;
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        if value.is_empty() || value.len() > 1_024usize {
+            Err(Self::Error::Invalid)
+        } else {
+            Ok(Self(value))
+        }
+    }
+}

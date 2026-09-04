@@ -1,22 +1,16 @@
-#[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Debug)]
+#[derive(
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, proc_macro_new::New,
+)]
 pub struct TypedClient<Transport> {
+    #[constructor(order = 1)]
     path_prefix: crate::transport_path::TransportPath,
+    #[constructor(order = 0)]
     transport: Transport,
 }
 impl<Transport> TypedClient<Transport>
 where
     Transport: crate::transport::Transport,
 {
-    #[must_use]
-    pub const fn new(
-        transport: Transport,
-        transport_path: crate::transport_path::TransportPath,
-    ) -> Self {
-        Self {
-            path_prefix: transport_path,
-            transport,
-        }
-    }
     #[allow(
         clippy::future_not_send,
         reason = "typed client futures remain task-local and are never transferred across threads"

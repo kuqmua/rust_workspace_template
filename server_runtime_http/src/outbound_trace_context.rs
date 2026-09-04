@@ -1,7 +1,17 @@
-#[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
+#[derive(
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Debug,
+    Eq,
+    PartialEq,
+    proc_macro_new::New,
+)]
 pub struct OutboundTraceContext {
+    #[constructor(order = 2)]
     request_id: Option<crate::request_id::RequestId>,
+    #[constructor(order = 0)]
     trace_parent: crate::http_trace_parent::HttpTraceParent,
+    #[constructor(order = 1)]
     trace_state: Option<crate::http_trace_state::HttpTraceState>,
 }
 
@@ -26,18 +36,5 @@ impl OutboundTraceContext {
             None => request_with_state,
         }
         .into()
-    }
-
-    #[must_use]
-    pub const fn new(
-        http_trace_parent: crate::http_trace_parent::HttpTraceParent,
-        trace_state: Option<crate::http_trace_state::HttpTraceState>,
-        request_id: Option<crate::request_id::RequestId>,
-    ) -> Self {
-        Self {
-            request_id,
-            trace_parent: http_trace_parent,
-            trace_state,
-        }
     }
 }

@@ -95,6 +95,77 @@ impl<'ast> syn::visit::Visit<'ast> for FreeFnNameVisitor {
 #[derive(
     proc_macro_getters::Getters,
     proc_macro_new::New,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+)]
+pub(super) struct TrivialNewConstructorVisitor {
+    errors: crate::types::DiagnosticMessages,
+}
+
+impl<'ast> syn::visit::Visit<'ast> for TrivialNewConstructorVisitor {
+    fn visit_item_impl(&mut self, item_impl: &'ast syn::ItemImpl) {
+        let is_trivial_new = |impl_item_fn: &syn::ImplItemFn| {
+            let parameter_names = impl_item_fn
+                .sig
+                .inputs
+                .iter()
+                .map(|input| {
+                    let syn::FnArg::Typed(parameter) = input else {
+                        return None;
+                    };
+                    let syn::Pat::Ident(identifier) = parameter.pat.as_ref() else {
+                        return None;
+                    };
+                    Some(identifier.ident.to_string())
+                })
+                .collect::<Option<std::collections::BTreeSet<String>>>();
+            let direct_initializers = impl_item_fn.block.stmts.first().and_then(|statement| {
+                let syn::Stmt::Expr(syn::Expr::Struct(expression), None) = statement else {
+                    return None;
+                };
+                if impl_item_fn.block.stmts.len() != constants_usize::ONE
+                    || !expression
+                        .path
+                        .is_ident(constants_str::CODE_STYLE_SELF_CONSTRUCTOR_IDENTIFIER)
+                    || expression.rest.is_some()
+                {
+                    return None;
+                }
+                let initializer_names = expression
+                    .fields
+                    .iter()
+                    .map(|field| {
+                        let syn::Expr::Path(value) = &field.expr else {
+                            return None;
+                        };
+                        value.path.get_ident().map(ToString::to_string)
+                    })
+                    .collect::<Option<std::collections::BTreeSet<String>>>()?;
+                (initializer_names.len() == expression.fields.len()).then_some(initializer_names)
+            });
+            impl_item_fn.sig.ident == constants_str::CODE_STYLE_NEW_FN_IDENTIFIER
+                && parameter_names.as_ref().is_some_and(|names| {
+                    names.len() == impl_item_fn.sig.inputs.len()
+                        && direct_initializers
+                            .as_ref()
+                            .is_some_and(|initializers| names == initializers)
+                })
+        };
+        if item_impl.trait_.is_none()
+            && item_impl
+                .items
+                .iter()
+                .any(|item| matches!(item, syn::ImplItem::Fn(function) if is_trivial_new(function)))
+        {
+            self.errors
+                .push(constants_str::CODE_STYLE_TRIVIAL_NEW_CONSTRUCTOR.to_owned());
+        }
+        syn::visit::visit_item_impl(self, item_impl);
+    }
+}
+
+#[derive(
+    proc_macro_getters::Getters,
+    proc_macro_new::New,
     Default,
     proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]

@@ -1,24 +1,21 @@
-#[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
+#[derive(
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Debug,
+    Eq,
+    PartialEq,
+    proc_macro_new::New,
+)]
 pub struct HttpContractObservation {
+    #[constructor(order = 2)]
     body: crate::http_contract_body::HttpContractBody,
+    #[constructor(order = 0)]
     metadata: frontend_contract::route_metadata::RouteMetadata,
+    #[constructor(order = 1)]
     status: crate::http_contract_status::HttpContractStatus,
 }
 
 impl HttpContractObservation {
-    #[must_use]
-    pub const fn new(
-        route_metadata: frontend_contract::route_metadata::RouteMetadata,
-        http_contract_status: crate::http_contract_status::HttpContractStatus,
-        http_contract_body: crate::http_contract_body::HttpContractBody,
-    ) -> Self {
-        Self {
-            body: http_contract_body,
-            metadata: route_metadata,
-            status: http_contract_status,
-        }
-    }
-
     pub(super) const fn parts(
         &self,
     ) -> (
