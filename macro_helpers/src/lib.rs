@@ -60,6 +60,7 @@ pub mod generate_pub_type_alias_token_stream;
 pub mod generate_serde_version_of_named_syn_variant;
 pub mod generate_simple_syn_punct;
 pub mod generate_try_new_token_stream_impl;
+pub mod generate_validated_tokens;
 pub mod generated_file_maximum_bytes;
 #[cfg(test)]
 pub mod get_macro_attribute_tests;
@@ -114,6 +115,8 @@ pub mod syn_variant_ref;
 pub mod test_database;
 #[cfg(test)]
 pub mod test_generate_new_or_try_new_tests;
+#[cfg(test)]
+pub mod test_generate_validated_tokens;
 #[cfg(test)]
 pub mod test_path;
 #[cfg(test)]

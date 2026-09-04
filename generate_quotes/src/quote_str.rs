@@ -5,6 +5,5 @@ pub(super) fn quote_str<Dsp>(
 where
     Dsp: std::fmt::Display + ?Sized,
 {
-    let (_panic_id, prefix, quote_ch) = quote_style.into_parts();
-    crate::quote_literal::quote_literal(prefix, quote_ch, dsp)
+    crate::quote_literal::quote_literal(quote_style.prefix(), quote_style.quote_ch(), dsp)
 }

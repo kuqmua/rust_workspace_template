@@ -36,11 +36,11 @@ impl AdminTableSortField {
     ];
     #[must_use]
     pub fn key(self) -> frontend_contract::contract_str::ContractStr {
-        self.values().into_parts().0
+        self.values().key()
     }
     #[must_use]
     pub fn label(self) -> frontend_contract::contract_str::ContractStr {
-        self.values().into_parts().1
+        self.values().label()
     }
     pub fn try_from_key(
         options: &[Self],

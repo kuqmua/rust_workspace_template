@@ -93,6 +93,10 @@
 - Do not use public re-exports. Restrict private imports according to module ownership, including
   inside declared child modules and `#[cfg(test)]` modules.
 - Generate struct field getters, and do not prefix provider-trait methods with `get_`.
+- Do not expose multiple struct fields through borrowed positional tuple accessors such as
+  `parts(&self)`. Derive `proc_macro_getters::Getters`, use named getters, and mark `Copy` fields
+  with `#[getters(copy)]`. Keep `into_parts(self)` only for intentional ownership transfer when
+  moving non-`Copy` fields avoids cloning.
 - Do not use `for` loops; use iterator operations while preserving early-exit and error semantics.
 - Do not use numeric `as` casts or unstable sorting methods (`sort_unstable*` and equivalent
   unstable variants).

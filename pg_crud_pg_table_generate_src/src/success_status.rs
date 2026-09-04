@@ -1,14 +1,16 @@
 pub(super) const fn success_status<
+    ErrorVariants,
     HttpMethod,
+    Logic,
     Operation,
-    OperationKind,
     PermissionAction,
     StatusCode,
 >(
     operation_descriptor: &crate::operation_descriptor::OperationDescriptor<
+        ErrorVariants,
         HttpMethod,
+        Logic,
         Operation,
-        OperationKind,
         PermissionAction,
         StatusCode,
     >,

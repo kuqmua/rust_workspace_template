@@ -11,7 +11,10 @@ where
         )
     })?;
     expectations.iter().try_for_each(|expectation| {
-        let (content_type, metadata, security, response_status) = expectation.parts();
+        let content_type = expectation.content_type();
+        let metadata = expectation.metadata();
+        let security = expectation.security();
+        let response_status = expectation.status();
         let method = metadata.method().as_ref().to_ascii_lowercase();
         let operation = document_value
             .get(constants_str::PATHS)

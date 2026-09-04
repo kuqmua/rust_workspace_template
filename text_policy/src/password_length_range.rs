@@ -1,8 +1,17 @@
 #[derive(
-    proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Debug,
+    Eq,
+    PartialEq,
+    proc_macro_getters::Getters,
 )]
+#[getters(bare)]
 pub struct PasswordLengthRange {
+    #[getters(copy)]
     minimum: crate::password_length::PasswordLength,
+    #[getters(copy)]
     maximum: crate::password_length::PasswordLength,
 }
 impl PasswordLengthRange {
@@ -12,16 +21,6 @@ impl PasswordLengthRange {
         maximum: crate::password_length::PasswordLength,
     ) -> Self {
         Self { minimum, maximum }
-    }
-
-    #[must_use]
-    pub const fn into_parts(
-        self,
-    ) -> (
-        crate::password_length::PasswordLength,
-        crate::password_length::PasswordLength,
-    ) {
-        (self.minimum, self.maximum)
     }
 }
 impl

@@ -8,6 +8,13 @@ struct HandwrittenFieldGetterVisitor {
 #[derive(
     proc_macro_getters::Getters, Default, proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
+struct BorrowedTupleFieldAccessorVisitor {
+    violations: crate::types::DiagnosticMessages,
+}
+
+#[derive(
+    proc_macro_getters::Getters, Default, proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+)]
 struct ModuleWideSingleCallAllowVisitor {
     violations: crate::types::SourceTextList,
 }
@@ -266,6 +273,52 @@ impl<'ast_lt> syn::visit::Visit<'ast_lt> for HandwrittenFieldGetterVisitor {
     }
 }
 
+impl<'ast_lt> syn::visit::Visit<'ast_lt> for BorrowedTupleFieldAccessorVisitor {
+    fn visit_item_impl(&mut self, item_impl: &'ast_lt syn::ItemImpl) {
+        if item_impl.trait_.is_none() {
+            item_impl.items.iter().for_each(|item| {
+                let syn::ImplItem::Fn(method) = item else {
+                    return;
+                };
+                let Some(receiver) = method.sig.receiver() else {
+                    return;
+                };
+                if !matches!(receiver.kind, syn::ReceiverKind::Reference(..))
+                    || method.sig.inputs.len() != constants_usize::ONE
+                    || method.block.stmts.len() != constants_usize::ONE
+                {
+                    return;
+                }
+                let Some(syn::Stmt::Expr(syn::Expr::Tuple(tuple), None)) =
+                    method.block.stmts.first()
+                else {
+                    return;
+                };
+                let directly_returns_field = |expression: &syn::Expr| {
+                    let field_expression = if let syn::Expr::Reference(reference) = expression {
+                        reference.expr.as_ref()
+                    } else {
+                        expression
+                    };
+                    matches!(field_expression, syn::Expr::Field(field)
+                        if matches!(field.base.as_ref(), syn::Expr::Path(base)
+                            if base.path.is_ident(constants_str::SELF_ALT)))
+                };
+                if tuple.elems.len() > constants_usize::ONE
+                    && tuple.elems.iter().all(directly_returns_field)
+                {
+                    self.violations.push(format!(
+                        "line {}: borrowed tuple field accessor `{}` returns multiple struct fields as positional tuple. This hides field meaning at call sites, couples callers to tuple order and to fields they may not need, encourages opaque `.0`/`.1` access, and bypasses the generated-getter policy. Derive `proc_macro_getters::Getters`, use `#[getters(bare)]`, mark Copy fields with `#[getters(copy)]`, and call the resulting named getters. Reserve `into_parts(self)` for intentional ownership transfer when moving non-Copy fields avoids cloning",
+                        syn::spanned::Spanned::span(&method.sig.ident).start().line,
+                        method.sig.ident
+                    ));
+                }
+            });
+        }
+        syn::visit::visit_item_impl(self, item_impl);
+    }
+}
+
 #[test]
 fn test_cfg_test_attribute_is_not_duplicated() {
     crate::code_style::assert_rs_ast_errors_empty_with_context(
@@ -445,6 +498,51 @@ fn test_field_getters_are_generated() {
             .collect::<Vec<String>>();
         assert!(violations.is_empty(), "{violations:#?}");
     });
+}
+
+#[test]
+fn test_borrowed_tuple_field_accessors_are_forbidden() {
+    super::test_code_style_snapshot::with_codebase_snapshot(|snapshot| {
+        let violations = snapshot
+            .rs_files()
+            .iter()
+            .flat_map(|source_file| {
+                let mut visitor = BorrowedTupleFieldAccessorVisitor::default();
+                syn::visit::Visit::visit_file(&mut visitor, source_file.ast().as_ref());
+                visitor
+                    .get_violations()
+                    .clone()
+                    .into_iter()
+                    .map(|violation| {
+                        format!("{}: {violation}", source_file.path().as_ref().display())
+                    })
+            })
+            .collect::<Vec<String>>();
+        assert!(violations.is_empty(), "{violations:#?}");
+    });
+}
+
+#[test]
+fn test_borrowed_tuple_field_accessor_policy_rejects_borrowed_and_allows_consuming_access() {
+    let ast: syn::File = syn::parse_quote! {
+        struct Example {
+            count: usize,
+            text: String,
+        }
+        impl Example {
+            fn parts(&self) -> (usize, &String) {
+                (self.count, &self.text)
+            }
+            fn into_parts(self) -> (usize, String) {
+                (self.count, self.text)
+            }
+        }
+    };
+    let visitor = crate::code_style::visit_syn_file(
+        crate::types::SynFileRef::from(&ast),
+        BorrowedTupleFieldAccessorVisitor::default(),
+    );
+    assert_eq!(visitor.get_violations().len(), constants_usize::ONE);
 }
 
 #[test]

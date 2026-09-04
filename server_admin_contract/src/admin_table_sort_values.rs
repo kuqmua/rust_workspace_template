@@ -1,15 +1,12 @@
-#[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, proc_macro_new::New)]
+#[derive(
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_getters::Getters,
+    proc_macro_new::New,
+)]
+#[getters(bare)]
 pub(super) struct AdminTableSortValues {
+    #[getters(copy)]
     key: frontend_contract::contract_str::ContractStr,
+    #[getters(copy)]
     label: frontend_contract::contract_str::ContractStr,
-}
-impl AdminTableSortValues {
-    pub(super) const fn into_parts(
-        self,
-    ) -> (
-        frontend_contract::contract_str::ContractStr,
-        frontend_contract::contract_str::ContractStr,
-    ) {
-        (self.key, self.label)
-    }
 }

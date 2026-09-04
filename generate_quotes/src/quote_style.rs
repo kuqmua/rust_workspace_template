@@ -1,20 +1,14 @@
-#[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Copy)]
+#[derive(
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, proc_macro_getters::Getters,
+)]
+#[getters(bare)]
 pub(super) struct QuoteStyle {
+    #[getters(copy)]
     panic_id: crate::quote_panic_id::QuotePanicId,
+    #[getters(copy)]
     prefix: crate::quote_prefix::QuotePrefix,
+    #[getters(copy)]
     quote_ch: crate::quote_char::QuoteChar,
-}
-
-impl QuoteStyle {
-    pub(super) const fn into_parts(
-        self,
-    ) -> (
-        crate::quote_panic_id::QuotePanicId,
-        crate::quote_prefix::QuotePrefix,
-        crate::quote_char::QuoteChar,
-    ) {
-        (self.panic_id, self.prefix, self.quote_ch)
-    }
 }
 
 impl

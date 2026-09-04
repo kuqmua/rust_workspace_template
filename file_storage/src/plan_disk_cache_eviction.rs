@@ -15,11 +15,11 @@ pub fn plan_disk_cache_eviction(
         .iter()
         .try_fold(constants_u64::ZERO, |total, entry| {
             total
-                .checked_add(u64::from(entry.parts().2))
+                .checked_add(u64::from(entry.size()))
                 .ok_or(crate::disk_cache_budget_error::DiskCacheBudgetError::SizeOverflow)
         })?;
     let mut ordered = entries.iter().collect::<Vec<_>>();
-    ordered.sort_by_key(|entry| std::time::SystemTime::from(entry.parts().0));
+    ordered.sort_by_key(|entry| std::time::SystemTime::from(entry.modified_at()));
     let projected = current
         .checked_add(incoming_size)
         .ok_or(crate::disk_cache_budget_error::DiskCacheBudgetError::SizeOverflow)?;
@@ -30,7 +30,7 @@ pub fn plan_disk_cache_eviction(
             if *removed >= required {
                 None
             } else {
-                *removed = removed.saturating_add(u64::from(entry.parts().2));
+                *removed = removed.saturating_add(u64::from(entry.size()));
                 Some(())
             }
         })
@@ -45,8 +45,8 @@ pub fn plan_disk_cache_eviction(
         let Some(entry) = candidates.next() else {
             break;
         };
-        current = current.saturating_sub(u64::from(entry.parts().2));
-        remove.push(entry.parts().1.clone());
+        current = current.saturating_sub(u64::from(entry.size()));
+        remove.push(entry.path().clone());
     }
     Ok(
         crate::disk_cache_eviction_plan::DiskCacheEvictionPlan::from(

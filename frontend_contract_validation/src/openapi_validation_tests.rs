@@ -73,9 +73,11 @@ mod tests {
             constants_str::APPLICATION_JSON.into(),
             crate::open_api_security_expectation::OpenApiSecurityExpectation::Public,
         );
-        let (_, metadata, _, status) = expectation.parts();
-        assert_eq!(metadata.path().as_ref(), constants_str::TEST_OPENAPI_PATH);
-        assert_eq!(*status, 200u16);
+        assert_eq!(
+            expectation.metadata().path().as_ref(),
+            constants_str::TEST_OPENAPI_PATH
+        );
+        assert_eq!(*expectation.status(), 200u16);
         assert!(matches!(
             crate::validate_openapi_operations::validate_openapi_operations(
                 &document,

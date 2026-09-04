@@ -6,16 +6,18 @@
     Copy,
 )]
 pub(crate) struct OperationDescriptor<
+    ErrorVariants,
     HttpMethod,
+    Logic,
     Operation,
-    OperationKind,
     PermissionAction,
     StatusCode,
 > {
+    error_variants: ErrorVariants,
     http_method: HttpMethod,
     idempotency_capable: crate::idempotency_capability::IdempotencyCapability,
+    logic: Logic,
     operation: Operation,
-    operation_kind: OperationKind,
     optimistic_concurrency_capable:
         crate::optimistic_concurrency_capability::OptimisticConcurrencyCapability,
     permission_action: PermissionAction,
@@ -26,22 +28,24 @@ mod tests {
     #[test]
     fn test_operation_descriptor_keeps_transport_permission_and_capabilities_together() {
         let spec = crate::operation_descriptor::OperationDescriptor::new(
+            constants_str::ERROR,
             constants_str::PATCH,
             crate::idempotency_capability::IdempotencyCapability::from(true),
+            constants_str::ERROR,
             constants_str::UO,
-            constants_str::UPDATE_ONE,
             crate::optimistic_concurrency_capability::OptimisticConcurrencyCapability::from(true),
             constants_str::PG_CRUD_UPDATE_PERMISSION_ACTION,
             200u16,
         );
         assert_eq!(*spec.get_http_method(), constants_str::PATCH);
+        assert_eq!(*spec.get_error_variants(), constants_str::ERROR);
+        assert_eq!(*spec.get_logic(), constants_str::ERROR);
         let idempotency_capability: &crate::idempotency_capability::IdempotencyCapability =
             spec.get_idempotency_capable();
         let optimistic_concurrency_capability: &crate::optimistic_concurrency_capability::OptimisticConcurrencyCapability =
             spec.get_optimistic_concurrency_capable();
         assert!(bool::from(*idempotency_capability));
         assert_eq!(*spec.get_operation(), constants_str::UO);
-        assert_eq!(*spec.get_operation_kind(), constants_str::UPDATE_ONE);
         assert!(bool::from(*optimistic_concurrency_capability));
         assert_eq!(
             *spec.get_permission_action(),

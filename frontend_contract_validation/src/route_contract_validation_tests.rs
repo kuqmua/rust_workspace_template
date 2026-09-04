@@ -70,9 +70,8 @@ mod tests {
                 .expect(constants_str::DIAGNOSTIC_A76C9E6B),
             crate::http_contract_body_kind::HttpContractBodyKind::Json,
         );
-        let (_, _, body_kind) = expectation.parts();
         assert_eq!(
-            body_kind,
+            expectation.body_kind(),
             crate::http_contract_body_kind::HttpContractBodyKind::Json
         );
         let result = futures::executor::block_on(
@@ -89,8 +88,7 @@ mod tests {
                             )
                             .expect(constants_str::DIAGNOSTIC_08BDDB5E),
                         );
-                    let (body, _, _) = observation.parts();
-                    assert!(!body.is_empty());
+                    assert!(!observation.body().is_empty());
                     observation
                 },
             ),

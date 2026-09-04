@@ -38,9 +38,11 @@ pub mod execution_io_error;
 pub mod execution_tests;
 pub mod failed_test_names;
 pub mod generate_pg_table_measure_input_token_stream;
+pub mod generation_stage_measurement;
 pub mod macro_generation_measurements;
 pub mod measure_cargo_command;
 pub mod measure_direct_generation;
+pub mod measure_generation_stages;
 pub mod measure_memusage_command;
 pub mod measurement_name;
 pub mod memory_usage_column_index;
@@ -786,51 +788,31 @@ fn main() {
                         generate_pg_table_measure_input_token_stream::generate_pg_table_measure_input_token_stream(
                             &quote::quote! {"True"},
                         );
-            let parse_started = std::time::Instant::now();
-            let parsed = generate_pg_table_src::parse_generate_pg_table::parse_generate_pg_table(
-                macro_helpers::proc_macro2_token_stream_ref::ProcMacro2TokenStreamRef::from(
-                    generate_pg_table_input_token_stream.as_ref(),
-                ),
-            )
-            .unwrap_or_else(|error| {
-                std::panic::panic_any(constants_str::PANIC_D6399CBF.replacen(
-                    constants_str::PANIC_PLACEHOLDER_81240055,
-                    error.to_string().as_str(),
-                    1usize,
-                ))
-            });
-            let parse_us = parse_started.elapsed().as_micros();
-            let build_started = std::time::Instant::now();
-            let built =
-                generate_pg_table_src::build_generate_pg_table::build_generate_pg_table(parsed)
-                    .unwrap_or_else(|error| {
-                        std::panic::panic_any(constants_str::PANIC_6ACB4E92.replacen(
-                            constants_str::PANIC_PLACEHOLDER_81240055,
-                            error.to_string().as_str(),
-                            1usize,
-                        ))
-                    });
-            let build_us = build_started.elapsed().as_micros();
-            let validate_started = std::time::Instant::now();
-            let validated =
-                generate_pg_table_src::validate_generate_pg_table::validate_generate_pg_table(
-                    built,
+            let generate_pg_table_stage_measurement =
+                measure_generation_stages::measure_generation_stages(
+                    macro_helpers::proc_macro2_token_stream_ref::ProcMacro2TokenStreamRef::from(
+                        generate_pg_table_input_token_stream.as_ref(),
+                    ),
+                    generate_pg_table_src::parse_generate_pg_table::parse_generate_pg_table,
+                    generate_pg_table_src::build_generate_pg_table::build_generate_pg_table,
+                    generate_pg_table_src::validate_generate_pg_table::validate_generate_pg_table,
+                    generate_pg_table_src::emit_generate_pg_table::emit_generate_pg_table,
+                    |output| output.to_string().len(),
                 )
                 .unwrap_or_else(|error| {
-                    std::panic::panic_any(constants_str::PANIC_4533A758.replacen(
+                    std::panic::panic_any(constants_str::PANIC_D6399CBF.replacen(
                         constants_str::PANIC_PLACEHOLDER_81240055,
                         error.to_string().as_str(),
                         1usize,
                     ))
                 });
-            let validate_us = validate_started.elapsed().as_micros();
-            let emit_started = std::time::Instant::now();
-            let staged_output =
-                generate_pg_table_src::emit_generate_pg_table::emit_generate_pg_table(validated);
-            let emit_us = emit_started.elapsed().as_micros();
             println!(
-                "measurement=generate_pg_table_typed_stages parse_us={parse_us} build_us={build_us} validate_us={validate_us} emit_us={emit_us} output_bytes={}",
-                staged_output.to_string().len()
+                "measurement=generate_pg_table_typed_stages parse_us={} build_us={} validate_us={} emit_us={} output_bytes={}",
+                generate_pg_table_stage_measurement.get_parse_microseconds(),
+                generate_pg_table_stage_measurement.get_build_microseconds(),
+                generate_pg_table_stage_measurement.get_validate_microseconds(),
+                generate_pg_table_stage_measurement.get_emit_microseconds(),
+                generate_pg_table_stage_measurement.get_output_bytes()
             );
             let generate_pg_table_measurement =
                 measure_direct_generation::measure_direct_generation(
@@ -968,12 +950,16 @@ fn main() {
                     "variant": "All"
                 }
             };
-            let pg_types_parse_started = std::time::Instant::now();
-            let parsed_pg_types =
-                generate_pg_types_src::parse_generate_pg_types::parse_generate_pg_types(
+            let generate_pg_types_stage_measurement =
+                measure_generation_stages::measure_generation_stages(
                     macro_helpers::proc_macro2_token_stream_ref::ProcMacro2TokenStreamRef::from(
                         &generate_pg_types_input_token_stream,
                     ),
+                    generate_pg_types_src::parse_generate_pg_types::parse_generate_pg_types,
+                    generate_pg_types_src::build_generate_pg_types::build_generate_pg_types,
+                    generate_pg_types_src::validate_generate_pg_types::validate_generate_pg_types,
+                    generate_pg_types_src::emit_generate_pg_types::emit_generate_pg_types,
+                    |output| output.to_string().len(),
                 )
                 .unwrap_or_else(|error| {
                     std::panic::panic_any(constants_str::PANIC_A19C725E.replacen(
@@ -982,42 +968,13 @@ fn main() {
                         1usize,
                     ))
                 });
-            let pg_types_parse_us = pg_types_parse_started.elapsed().as_micros();
-            let pg_types_build_started = std::time::Instant::now();
-            let built_pg_types =
-                generate_pg_types_src::build_generate_pg_types::build_generate_pg_types(
-                    parsed_pg_types,
-                )
-                .unwrap_or_else(|error| {
-                    std::panic::panic_any(constants_str::PANIC_C47612BD.replacen(
-                        constants_str::PANIC_PLACEHOLDER_81240055,
-                        error.to_string().as_str(),
-                        1usize,
-                    ))
-                });
-            let pg_types_build_us = pg_types_build_started.elapsed().as_micros();
-            let pg_types_validate_started = std::time::Instant::now();
-            let validated_pg_types =
-                generate_pg_types_src::validate_generate_pg_types::validate_generate_pg_types(
-                    built_pg_types,
-                )
-                .unwrap_or_else(|error| {
-                    std::panic::panic_any(constants_str::PANIC_D3E581A4.replacen(
-                        constants_str::PANIC_PLACEHOLDER_81240055,
-                        error.to_string().as_str(),
-                        1usize,
-                    ))
-                });
-            let pg_types_validate_us = pg_types_validate_started.elapsed().as_micros();
-            let pg_types_emit_started = std::time::Instant::now();
-            let staged_pg_types =
-                generate_pg_types_src::emit_generate_pg_types::emit_generate_pg_types(
-                    validated_pg_types,
-                );
-            let pg_types_emit_us = pg_types_emit_started.elapsed().as_micros();
             println!(
-                "measurement=generate_pg_types_typed_stages parse_us={pg_types_parse_us} build_us={pg_types_build_us} validate_us={pg_types_validate_us} emit_us={pg_types_emit_us} output_bytes={}",
-                staged_pg_types.to_string().len()
+                "measurement=generate_pg_types_typed_stages parse_us={} build_us={} validate_us={} emit_us={} output_bytes={}",
+                generate_pg_types_stage_measurement.get_parse_microseconds(),
+                generate_pg_types_stage_measurement.get_build_microseconds(),
+                generate_pg_types_stage_measurement.get_validate_microseconds(),
+                generate_pg_types_stage_measurement.get_emit_microseconds(),
+                generate_pg_types_stage_measurement.get_output_bytes()
             );
             let generate_pg_types_measurement =
                 measure_direct_generation::measure_direct_generation(
@@ -1050,37 +1007,25 @@ fn main() {
                     "whole_write_into_file": "False"
                 }
             };
-            let where_filters_parse_started = std::time::Instant::now();
-            let parsed_where_filters = generate_where_filters_src::parse_generate_where_filters::parse_generate_where_filters(
+            let generate_where_filters_stage_measurement =
+                measure_generation_stages::measure_generation_stages(
                                 generate_where_filters_src::proc_macro2_generate_where_filters_input::ProcMacro2GenerateWhereFiltersInput::from(
                                     &generate_where_filters_input_token_stream,
                                 ),
-                            )
+                    generate_where_filters_src::parse_generate_where_filters::parse_generate_where_filters,
+                    generate_where_filters_src::build_generate_where_filters::build_generate_where_filters,
+                    generate_where_filters_src::validate_generate_where_filters::validate_generate_where_filters,
+                    generate_where_filters_src::emit_generate_where_filters::emit_generate_where_filters,
+                    |output| output.to_string().len(),
+                )
                             .unwrap_or_else(|error| std::panic::panic_any(constants_str::PANIC_8F246DC1.replacen(constants_str::PANIC_PLACEHOLDER_81240055, error.to_string().as_str(), 1usize)));
-            let where_filters_parse_us = where_filters_parse_started.elapsed().as_micros();
-            let where_filters_build_started = std::time::Instant::now();
-            let built_where_filters =
-                generate_where_filters_src::build_generate_where_filters::build_generate_where_filters(
-                    parsed_where_filters,
-                )
-                .unwrap_or_else(|error| std::panic::panic_any(constants_str::PANIC_912F6BCE.replacen(constants_str::PANIC_PLACEHOLDER_81240055, error.to_string().as_str(), 1usize)));
-            let where_filters_build_us = where_filters_build_started.elapsed().as_micros();
-            let where_filters_validate_started = std::time::Instant::now();
-            let validated_where_filters =
-                generate_where_filters_src::validate_generate_where_filters::validate_generate_where_filters(
-                    built_where_filters,
-                )
-                .unwrap_or_else(|error| std::panic::panic_any(constants_str::PANIC_54B73A29.replacen(constants_str::PANIC_PLACEHOLDER_81240055, error.to_string().as_str(), 1usize)));
-            let where_filters_validate_us = where_filters_validate_started.elapsed().as_micros();
-            let where_filters_emit_started = std::time::Instant::now();
-            let staged_where_filters =
-                generate_where_filters_src::emit_generate_where_filters::emit_generate_where_filters(
-                    validated_where_filters,
-                );
-            let where_filters_emit_us = where_filters_emit_started.elapsed().as_micros();
             println!(
-                "measurement=generate_where_filters_typed_stages parse_us={where_filters_parse_us} build_us={where_filters_build_us} validate_us={where_filters_validate_us} emit_us={where_filters_emit_us} output_bytes={}",
-                staged_where_filters.to_string().len()
+                "measurement=generate_where_filters_typed_stages parse_us={} build_us={} validate_us={} emit_us={} output_bytes={}",
+                generate_where_filters_stage_measurement.get_parse_microseconds(),
+                generate_where_filters_stage_measurement.get_build_microseconds(),
+                generate_where_filters_stage_measurement.get_validate_microseconds(),
+                generate_where_filters_stage_measurement.get_emit_microseconds(),
+                generate_where_filters_stage_measurement.get_output_bytes()
             );
             let generate_where_filters_measurement =
                 measure_direct_generation::measure_direct_generation(

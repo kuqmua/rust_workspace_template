@@ -68,48 +68,7 @@ pub fn emit_generate_pg_table(
         DeleteMany,
         DeleteOne,
     }
-    #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
-    struct OperationAttrs {
-        error_variants: GeneratePgTableAttr,
-        logic: GeneratePgTableAttr,
-    }
     impl Operation {
-        const fn attrs(self) -> OperationAttrs {
-            match self {
-                Self::CreateMany => OperationAttrs {
-                    error_variants: GeneratePgTableAttr::CmErrorVariants,
-                    logic: GeneratePgTableAttr::CmLogic,
-                },
-                Self::CreateOne => OperationAttrs {
-                    error_variants: GeneratePgTableAttr::CoErrorVariants,
-                    logic: GeneratePgTableAttr::CoLogic,
-                },
-                Self::ReadMany => OperationAttrs {
-                    error_variants: GeneratePgTableAttr::RmErrorVariants,
-                    logic: GeneratePgTableAttr::RmLogic,
-                },
-                Self::ReadOne => OperationAttrs {
-                    error_variants: GeneratePgTableAttr::RoErrorVariants,
-                    logic: GeneratePgTableAttr::RoLogic,
-                },
-                Self::UpdateMany => OperationAttrs {
-                    error_variants: GeneratePgTableAttr::UmErrorVariants,
-                    logic: GeneratePgTableAttr::UmLogic,
-                },
-                Self::UpdateOne => OperationAttrs {
-                    error_variants: GeneratePgTableAttr::UoErrorVariants,
-                    logic: GeneratePgTableAttr::UoLogic,
-                },
-                Self::DeleteMany => OperationAttrs {
-                    error_variants: GeneratePgTableAttr::DmErrorVariants,
-                    logic: GeneratePgTableAttr::DmLogic,
-                },
-                Self::DeleteOne => OperationAttrs {
-                    error_variants: GeneratePgTableAttr::DloErrorVariants,
-                    logic: GeneratePgTableAttr::DloLogic,
-                },
-            }
-        }
         const fn desirable_status_code(self) -> macro_helpers::status_code::StatusCode {
             match self {
                 Self::CreateMany | Self::CreateOne => {
@@ -252,22 +211,12 @@ pub fn emit_generate_pg_table(
         Patch,
         Delete,
     }
-    #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Copy)]
-    enum PgTableOperationKind {
-        CreateMany,
-        CreateOne,
-        DeleteMany,
-        DeleteOne,
-        ReadMany,
-        ReadOne,
-        UpdateMany,
-        UpdateOne,
-    }
     impl
         crate::operation_descriptor::OperationDescriptor<
+            GeneratePgTableAttr,
             OperationHttpMethod,
+            GeneratePgTableAttr,
             Operation,
-            PgTableOperationKind,
             &'static str,
             macro_helpers::status_code::StatusCode,
         >
@@ -284,23 +233,33 @@ pub fn emit_generate_pg_table(
         ];
         const fn from_operation(operation: Operation) -> Self {
             Self::new(
+                match operation {
+                    Operation::CreateMany => GeneratePgTableAttr::CmErrorVariants,
+                    Operation::CreateOne => GeneratePgTableAttr::CoErrorVariants,
+                    Operation::ReadMany => GeneratePgTableAttr::RmErrorVariants,
+                    Operation::ReadOne => GeneratePgTableAttr::RoErrorVariants,
+                    Operation::UpdateMany => GeneratePgTableAttr::UmErrorVariants,
+                    Operation::UpdateOne => GeneratePgTableAttr::UoErrorVariants,
+                    Operation::DeleteMany => GeneratePgTableAttr::DmErrorVariants,
+                    Operation::DeleteOne => GeneratePgTableAttr::DloErrorVariants,
+                },
                 operation.http_method(),
                 if operation.supports_idempotency() {
                     crate::idempotency_capability::IdempotencyCapability::Enabled
                 } else {
                     crate::idempotency_capability::IdempotencyCapability::Disabled
                 },
-                operation,
                 match operation {
-                    Operation::CreateMany => PgTableOperationKind::CreateMany,
-                    Operation::CreateOne => PgTableOperationKind::CreateOne,
-                    Operation::DeleteMany => PgTableOperationKind::DeleteMany,
-                    Operation::DeleteOne => PgTableOperationKind::DeleteOne,
-                    Operation::ReadMany => PgTableOperationKind::ReadMany,
-                    Operation::ReadOne => PgTableOperationKind::ReadOne,
-                    Operation::UpdateMany => PgTableOperationKind::UpdateMany,
-                    Operation::UpdateOne => PgTableOperationKind::UpdateOne,
+                    Operation::CreateMany => GeneratePgTableAttr::CmLogic,
+                    Operation::CreateOne => GeneratePgTableAttr::CoLogic,
+                    Operation::ReadMany => GeneratePgTableAttr::RmLogic,
+                    Operation::ReadOne => GeneratePgTableAttr::RoLogic,
+                    Operation::UpdateMany => GeneratePgTableAttr::UmLogic,
+                    Operation::UpdateOne => GeneratePgTableAttr::UoLogic,
+                    Operation::DeleteMany => GeneratePgTableAttr::DmLogic,
+                    Operation::DeleteOne => GeneratePgTableAttr::DloLogic,
                 },
+                operation,
                 match operation {
                     Operation::UpdateOne => crate::optimistic_concurrency_capability::OptimisticConcurrencyCapability::Enabled,
                     Operation::CreateMany
@@ -5194,7 +5153,7 @@ enum WrapIntoOptional {
         let type_variants_from_req_res_syn_variants = {
             let error_variants_len = generate_pg_table_input_model
                 .error_variants_by_attr
-                .get(&operation.attrs().error_variants)
+                .get(operation_descriptor.get_error_variants())
                 .map_or(constants_usize::ZERO, Vec::len);
             let mut accumulator = Vec::with_capacity(
                 common_route_syn_variants
@@ -5219,7 +5178,7 @@ enum WrapIntoOptional {
             accumulator.push(GeneratePgTableVariantEmissionRef::Syn(try_bind_syn_variant.variant()));
             if let Some(variants) = generate_pg_table_input_model
                 .error_variants_by_attr
-                .get(&operation.attrs().error_variants)
+                .get(operation_descriptor.get_error_variants())
             {
                 accumulator.extend(variants.iter().map(GeneratePgTableVariantEmissionRef::Model));
             }
@@ -5628,7 +5587,8 @@ enum WrapIntoOptional {
                 };
                 let extra_validators_token_stream = {
                     let common_logic_token_stream = generate_logic_token_stream(GeneratePgTableAttr::CommonLogic);
-                    let operation_logic_token_stream = generate_logic_token_stream(operation.attrs().logic);
+                    let operation_logic_token_stream =
+                        generate_logic_token_stream(*operation_descriptor.get_logic());
                     quote::quote! {
                         #common_logic_token_stream
                         #operation_logic_token_stream
@@ -7197,17 +7157,10 @@ enum WrapIntoOptional {
             });
     let route_contract_operation_kind_arms_token_stream = crate::operation_descriptor::OperationDescriptor::ALL.iter().map(|operation_descriptor| {
         let operation = quote::format_ident!("{}", operation_descriptor.get_operation().to_string());
-        let operation_kind =
-            match operation_descriptor.get_operation_kind() {
-            PgTableOperationKind::CreateMany => quote::format_ident!("CreateMany"),
-            PgTableOperationKind::CreateOne => quote::format_ident!("CreateOne"),
-            PgTableOperationKind::DeleteMany => quote::format_ident!("DeleteMany"),
-            PgTableOperationKind::DeleteOne => quote::format_ident!("DeleteOne"),
-            PgTableOperationKind::ReadMany => quote::format_ident!("ReadMany"),
-            PgTableOperationKind::ReadOne => quote::format_ident!("ReadOne"),
-            PgTableOperationKind::UpdateMany => quote::format_ident!("UpdateMany"),
-            PgTableOperationKind::UpdateOne => quote::format_ident!("UpdateOne"),
-        };
+        let operation_kind = quote::format_ident!(
+            "{}",
+            operation_descriptor.get_operation().to_string()
+        );
         quote::quote! {#identifier_operation_upper_camel_case::#operation => frontend_contract::operation_kind::OperationKind::#operation_kind}
     });
     let identifier_route_contract_token_stream = quote::quote! {

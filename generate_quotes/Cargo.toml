@@ -10,6 +10,7 @@ edition.workspace = true
 
 
 [dependencies]
+proc_macro_getters = { workspace = true }
 proc_macro_newtype_from_inner = { workspace = true }
 proc_macro_newtype_to_tokens = { workspace = true }
 proc_macro_newtype_into_inner_from = { workspace = true }

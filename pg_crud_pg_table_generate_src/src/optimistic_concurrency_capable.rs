@@ -1,14 +1,16 @@
 pub(crate) const fn optimistic_concurrency_capable<
+    ErrorVariants,
     HttpMethod,
+    Logic,
     Operation,
-    OperationKind,
     PermissionAction,
     StatusCode,
 >(
     operation_descriptor: &crate::operation_descriptor::OperationDescriptor<
+        ErrorVariants,
         HttpMethod,
+        Logic,
         Operation,
-        OperationKind,
         PermissionAction,
         StatusCode,
     >,
@@ -21,6 +23,7 @@ mod tests {
     #[test]
     fn test_returns_optimistic_concurrency_capability() {
         let descriptor = crate::operation_descriptor::OperationDescriptor::new(
+            (),
             (),
             crate::idempotency_capability::IdempotencyCapability::from(false),
             (),
