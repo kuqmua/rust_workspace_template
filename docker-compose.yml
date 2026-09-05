@@ -6,7 +6,7 @@ services:
       POSTGRES_PASSWORD: "change-me"
       POSTGRES_USER: postgres
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d rust_workspace_template"]
+      test: ["CMD-SHELL", "PGPASSWORD=\"$$POSTGRES_PASSWORD\" psql -h 127.0.0.1 -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\" -v ON_ERROR_STOP=1 -c 'SELECT 1' >/dev/null"]
       interval: 5s
       timeout: 3s
       retries: 10
@@ -15,7 +15,7 @@ services:
     ports:
       - "127.0.0.1:5432:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_local_data:/var/lib/postgresql/data
   notification_database:
     profiles: [application]
     image: postgres:16-bookworm@sha256:92620daddcd947f8d5ab5ba66e848702fe443d87fed30c4cea8e389fd78dfc55
@@ -158,4 +158,4 @@ networks:
   application:
 volumes:
   notification_postgres_data:
-  postgres_data:
+  postgres_local_data:

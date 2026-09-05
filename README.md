@@ -70,14 +70,21 @@ the workspace root:
 
 ```bash
 cargo run -p init_env_files
-docker compose up -d database
+docker compose up -d --wait database
 cd server
+SVC_MODE=migrate cargo run
 cargo run
 ```
 
 The server reads `server/.env`. Its `DATABASE_URL` must match the database credentials in
 the root Compose file. Changing `POSTGRES_PASSWORD` does not update the password in an
 existing database volume; update the database password or use its existing password.
+
+The application database uses the `postgres_local_data` volume, initialized with the
+configured credentials. The earlier `postgres_data` volume is not attached or deleted;
+its existing data is not copied into the new local database. Database health checks use
+a TCP connection with the configured password. Wait for a healthy database before running
+the migrations; `docker compose up -d --wait database` performs this check automatically.
 
 The initializer also creates `notification_service_config/.env` from its example. Both
 local environment files use the same defaults as their examples and Compose: database
