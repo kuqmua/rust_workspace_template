@@ -65,14 +65,19 @@ are covered by the [versioning policy](docs/release-versioning.md),
 
 ## Local development
 
-Initialize environment files and start both services with isolated databases:
+Use the workspace root `docker-compose.yml` for local PostgreSQL. Run these commands from
+the workspace root:
 
 ```bash
 cargo run -p init_env_files
-POSTGRES_PASSWORD=development-only \
-NOTIFICATION_POSTGRES_PASSWORD=development-only \
-docker compose up --build
+docker compose up -d database
+cd server
+cargo run
 ```
+
+The server reads `server/.env`. Its `DATABASE_URL` must match the database credentials in
+the root Compose file. Changing `POSTGRES_PASSWORD` does not update the password in an
+existing database volume; update the database password or use its existing password.
 
 Health endpoints:
 
