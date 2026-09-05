@@ -12,7 +12,7 @@ pub struct NotificationServiceConfig {
     #[config(secret)]
     #[config(accessor)]
     #[config(
-        example = "postgres://notification_service:change-me@127.0.0.1:5432/notification_service"
+        example = "postgres://notification_service:change-me@127.0.0.1:5433/notification_service"
     )]
     notification_database_url: config_lib::domain_types::DatabaseUrl,
     #[config(accessor)]

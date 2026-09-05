@@ -16,130 +16,144 @@ services:
       - "127.0.0.1:5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-  # notification_database:
-  #   image: postgres:16-bookworm@sha256:92620daddcd947f8d5ab5ba66e848702fe443d87fed30c4cea8e389fd78dfc55
-  #   environment:
-  #     POSTGRES_DB: notification_service
-  #     POSTGRES_PASSWORD: development-only
-  #     POSTGRES_USER: notification_service
-  #   healthcheck:
-  #     test: ["CMD-SHELL", "pg_isready -U notification_service -d notification_service"]
-  #     interval: 5s
-  #     timeout: 3s
-  #     retries: 10
-  #   networks:
-  #     - application
-  #   volumes:
-  #     - notification_postgres_data:/var/lib/postgresql/data
-  # server_migrate:
-  #   image: rust-workspace-template-application:local
-  #   depends_on:
-  #     database:
-  #       condition: service_healthy
-  #   env_file:
-  #     - server/.env
-  #   environment:
-  #     DATABASE_URL: "postgres://postgres:development-only@database:5432/rust_workspace_template"
-  #     SVC_MODE: migrate
-  #   networks:
-  #     - application
-  #   read_only: true
-  #   restart: "no"
-  #   tmpfs:
-  #     - /tmp:size=16m,mode=1777
-  # # BEGIN GENERATED COMPOSE IDENTITY server
-  # server:
-  #   build:
-  #     context: .
-  #     dockerfile: Dockerfile
-  # # END GENERATED COMPOSE IDENTITY server
-  #   depends_on:
-  #     database:
-  #       condition: service_healthy
-  #     server_migrate:
-  #       condition: service_completed_successfully
-  #   env_file:
-  #     - server/.env
-  #   environment:
-  #     DATABASE_URL: "postgres://postgres:development-only@database:5432/rust_workspace_template"
-  #     SVC_MODE: serve
-  #     # BEGIN GENERATED COMPOSE SOCKET server
-  #     SERVICE_SOCKET_ADDRESS: "0.0.0.0:8080"
-  #     # END GENERATED COMPOSE SOCKET server
-  #   healthcheck:
-  #     # BEGIN GENERATED COMPOSE HEALTH server
-  #     test: ["CMD", "curl", "--fail", "--silent", "http://127.0.0.1:8080/health/ready"]
-  #     # END GENERATED COMPOSE HEALTH server
-  #     interval: 10s
-  #     timeout: 5s
-  #     retries: 12
-  #     start_period: 20s
-  #   networks:
-  #     - application
-  #   # BEGIN GENERATED COMPOSE PORT server
-  #   ports:
-  #     - "127.0.0.1:8080:8080"
-  #   # END GENERATED COMPOSE PORT server
-  #   read_only: true
-  #   restart: unless-stopped
-  #   tmpfs:
-  #     - /tmp:size=16m,mode=1777
-  # notification_service_migrate:
-  #   image: rust-workspace-template-notification-service:local
-  #   depends_on:
-  #     notification_database:
-  #       condition: service_healthy
-  #   environment:
-  #     NOTIFICATION_DATABASE_URL: "postgres://notification_service:development-only@notification_database:5432/notification_service"
-  #     NOTIFICATION_SERVICE_SOCKET_ADDRESS: "0.0.0.0:8081"
-  #     PG_POOL_MAX_CONNECTIONS: "1"
-  #     REQUEST_TIMEOUT_SECONDS: "30"
-  #     SVC_MODE: migrate
-  #     TRACING_FORMAT: text
-  #   networks:
-  #     - application
-  #   read_only: true
-  #   restart: "no"
-  #   tmpfs:
-  #     - /tmp:size=16m,mode=1777
-  # # BEGIN GENERATED COMPOSE IDENTITY notification_service
-  # notification_service:
-  #   build:
-  #     context: .
-  #     dockerfile: notification_service/Dockerfile
-  # # END GENERATED COMPOSE IDENTITY notification_service
-  #   depends_on:
-  #     notification_database:
-  #       condition: service_healthy
-  #     notification_service_migrate:
-  #       condition: service_completed_successfully
-  #   environment:
-  #     NOTIFICATION_DATABASE_URL: "postgres://notification_service:development-only@notification_database:5432/notification_service"
-  #     # BEGIN GENERATED COMPOSE SOCKET notification_service
-  #     NOTIFICATION_SERVICE_SOCKET_ADDRESS: "0.0.0.0:8081"
-  #     # END GENERATED COMPOSE SOCKET notification_service
-  #     PG_POOL_MAX_CONNECTIONS: "10"
-  #     REQUEST_TIMEOUT_SECONDS: "30"
-  #     SVC_MODE: serve
-  #     TRACING_FORMAT: text
-  #   healthcheck:
-  #     # BEGIN GENERATED COMPOSE HEALTH notification_service
-  #     test: ["CMD", "curl", "--fail", "--silent", "http://127.0.0.1:8081/health/ready"]
-  #     # END GENERATED COMPOSE HEALTH notification_service
-  #     interval: 10s
-  #     timeout: 5s
-  #     retries: 12
-  #     start_period: 20s
-  #   networks:
-  #     - application
-  #   # BEGIN GENERATED COMPOSE PORT notification_service
-  #   ports:
-  #     - "127.0.0.1:8081:8081"
-  #   # END GENERATED COMPOSE PORT notification_service
-  #   read_only: true
-  #   restart: unless-stopped
-  #   tmpfs:
-  #     - /tmp:size=16m,mode=1777
+  notification_database:
+    profiles: [application]
+    image: postgres:16-bookworm@sha256:92620daddcd947f8d5ab5ba66e848702fe443d87fed30c4cea8e389fd78dfc55
+    environment:
+      POSTGRES_DB: notification_service
+      POSTGRES_PASSWORD: change-me
+      POSTGRES_USER: notification_service
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U notification_service -d notification_service"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks:
+      - application
+    volumes:
+      - notification_postgres_data:/var/lib/postgresql/data
+    ports:
+      - "127.0.0.1:5433:5432"
+  server_migrate:
+    profiles: [application]
+    image: rust-workspace-template-application:local
+    depends_on:
+      database:
+        condition: service_healthy
+    env_file:
+      - server/.env
+    environment:
+      DATABASE_URL: "postgres://postgres:change-me@database:5432/rust_workspace_template"
+      SERVICE_SOCKET_ADDRESS: "0.0.0.0:8080"
+      SVC_MODE: migrate
+    networks:
+      - application
+    read_only: true
+    restart: "no"
+    tmpfs:
+      - /tmp:size=16m,mode=1777
+  # BEGIN GENERATED COMPOSE IDENTITY server
+  server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+  # END GENERATED COMPOSE IDENTITY server
+    profiles: [application]
+    image: rust-workspace-template-application:local
+    depends_on:
+      database:
+        condition: service_healthy
+      server_migrate:
+        condition: service_completed_successfully
+    env_file:
+      - server/.env
+    environment:
+      DATABASE_URL: "postgres://postgres:change-me@database:5432/rust_workspace_template"
+      SVC_MODE: serve
+      # BEGIN GENERATED COMPOSE SOCKET server
+      SERVICE_SOCKET_ADDRESS: "0.0.0.0:8080"
+      # END GENERATED COMPOSE SOCKET server
+    healthcheck:
+      # BEGIN GENERATED COMPOSE HEALTH server
+      test: ["CMD", "curl", "--fail", "--silent", "http://127.0.0.1:8080/health/ready"]
+      # END GENERATED COMPOSE HEALTH server
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+    networks:
+      - application
+    # BEGIN GENERATED COMPOSE PORT server
+    ports:
+      - "127.0.0.1:8080:8080"
+    # END GENERATED COMPOSE PORT server
+    read_only: true
+    restart: unless-stopped
+    tmpfs:
+      - /tmp:size=16m,mode=1777
+  notification_service_migrate:
+    profiles: [application]
+    image: rust-workspace-template-notification-service:local
+    depends_on:
+      notification_database:
+        condition: service_healthy
+    env_file:
+      - notification_service_config/.env
+    environment:
+      NOTIFICATION_DATABASE_URL: "postgres://notification_service:change-me@notification_database:5432/notification_service"
+      NOTIFICATION_SERVICE_SOCKET_ADDRESS: "0.0.0.0:8081"
+      PG_POOL_MAX_CONNECTIONS: "10"
+      REQUEST_TIMEOUT_SECONDS: "30"
+      SVC_MODE: migrate
+      TRACING_FORMAT: text
+    networks:
+      - application
+    read_only: true
+    restart: "no"
+    tmpfs:
+      - /tmp:size=16m,mode=1777
+  # BEGIN GENERATED COMPOSE IDENTITY notification_service
+  notification_service:
+    build:
+      context: .
+      dockerfile: notification_service/Dockerfile
+  # END GENERATED COMPOSE IDENTITY notification_service
+    profiles: [application]
+    image: rust-workspace-template-notification-service:local
+    depends_on:
+      notification_database:
+        condition: service_healthy
+      notification_service_migrate:
+        condition: service_completed_successfully
+    env_file:
+      - notification_service_config/.env
+    environment:
+      NOTIFICATION_DATABASE_URL: "postgres://notification_service:change-me@notification_database:5432/notification_service"
+      # BEGIN GENERATED COMPOSE SOCKET notification_service
+      NOTIFICATION_SERVICE_SOCKET_ADDRESS: "0.0.0.0:8081"
+      # END GENERATED COMPOSE SOCKET notification_service
+      PG_POOL_MAX_CONNECTIONS: "10"
+      REQUEST_TIMEOUT_SECONDS: "30"
+      SVC_MODE: serve
+      TRACING_FORMAT: text
+    healthcheck:
+      # BEGIN GENERATED COMPOSE HEALTH notification_service
+      test: ["CMD", "curl", "--fail", "--silent", "http://127.0.0.1:8081/health/ready"]
+      # END GENERATED COMPOSE HEALTH notification_service
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+    networks:
+      - application
+    # BEGIN GENERATED COMPOSE PORT notification_service
+    ports:
+      - "127.0.0.1:8081:8081"
+    # END GENERATED COMPOSE PORT notification_service
+    read_only: true
+    restart: unless-stopped
+    tmpfs:
+      - /tmp:size=16m,mode=1777
 networks:
   application:
 volumes:

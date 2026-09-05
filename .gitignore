@@ -25,6 +25,7 @@
 src/**/*.rs.bk
 
 /server/.env
+/notification_service_config/.env
 /telegram_bot/.env
 /.claude/settings.json
 /tasks.json

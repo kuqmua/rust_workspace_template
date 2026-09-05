@@ -79,6 +79,30 @@ The server reads `server/.env`. Its `DATABASE_URL` must match the database crede
 the root Compose file. Changing `POSTGRES_PASSWORD` does not update the password in an
 existing database volume; update the database password or use its existing password.
 
+The initializer also creates `notification_service_config/.env` from its example. Both
+local environment files use the same defaults as their examples and Compose: database
+password `change-me`, connection pool limit `10`, request timeout `30`, and text tracing.
+The databases retain separate users and database names.
+
+Only the application database starts by default. To build and start both applications,
+their migration jobs, and both databases from the same root Compose file:
+
+```bash
+docker compose --profile application up -d --build
+```
+
+The following differences are required by the execution environment:
+
+| Parameter | Local process | Docker container |
+| --- | --- | --- |
+| Application database address | `127.0.0.1:5432` | `database:5432` |
+| Notification database address | `127.0.0.1:5433` | `notification_database:5432` |
+| HTTP bind address | `127.0.0.1` | `0.0.0.0` |
+| `SVC_MODE` | `serve` | `serve` for applications, `migrate` for migration jobs |
+
+Compose loads each application's environment file and overrides its container addresses
+and execution mode. Published database and HTTP ports bind only to `127.0.0.1`.
+
 Health endpoints:
 
 ```text
