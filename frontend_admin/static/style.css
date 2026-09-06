@@ -485,6 +485,7 @@ p {
 }
 
 @layer utilities {
+  .open-api-page [data-name="CodeScrollArea"],
   .page-frame .table-scroll {
     max-height: none !important;
   }
@@ -509,6 +510,8 @@ p {
 
   .table-admin_users_page > .resource-actions > a,
   .table-admin_roles_page > .resource-actions > a,
+  .audit-download-actions button,
+  .audit-download-actions > a,
   .auth-card form button {
     width: 100% !important;
   }
@@ -1300,6 +1303,30 @@ td > form button {
 
 .page-heading h1 {
   margin: 0;
+}
+
+.main-content:has(.open-api-page) {
+  overflow: hidden;
+}
+
+.page-frame:has(.open-api-page) {
+  height: 100%;
+  min-height: 0;
+}
+
+.page-frame :has(.open-api-page),
+.open-api-page,
+.open-api-page .code-card,
+.open-api-page [data-name="CardContent"] {
+  display: flex;
+  flex: 1 1 0;
+  min-height: 0;
+  flex-direction: column;
+}
+
+.open-api-page [data-name="CodeScrollArea"] {
+  flex: 1 1 0;
+  min-height: 0;
 }
 
 .code-card {

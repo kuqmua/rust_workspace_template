@@ -65,7 +65,7 @@ pub(crate) fn AdminAuditDownload(
         });
     });
     leptos::view! {
-        <div class="resource-actions">
+        <div class="resource-actions audit-download-actions">
             {move || leptos::prelude::With::with(&state, |admin_audit_download_state| {
                 match admin_audit_download_state {
                     crate::admin_audit_download_state::AdminAuditDownloadState::Ready(url) => leptos::prelude::IntoAny::into_any(leptos::view! {
