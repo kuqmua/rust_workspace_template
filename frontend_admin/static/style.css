@@ -463,7 +463,7 @@ p {
   height: auto;
   min-height: 0;
   flex-direction: column;
-  gap: 18px;
+  gap: 0;
   overflow: visible;
 }
 
@@ -637,7 +637,7 @@ p {
 
 .table-scroll {
   min-height: 0;
-  flex: 1 1 0;
+  flex: 0 1 auto;
   overflow: auto;
   overscroll-behavior: contain;
   border: 1px solid var(--border);

@@ -11,22 +11,22 @@ test.afterEach(async ({ page }) => {
   await signOutIfAuthenticated(page);
 });
 
-async function expectTableFillsPage(page) {
+async function expectTableFitsContent(page) {
   await expect.poll(async () => page.locator(".table-scroll").evaluate(element => {
-    const parent = element.parentElement;
-    const footer = parent.lastElementChild;
+    const footer = element.parentElement.lastElementChild;
     const main = element.closest("main");
+    const tableHeight = element.querySelector("table").getBoundingClientRect().height;
     return {
-      bottomGap: Math.abs(footer.getBoundingClientRect().bottom - window.innerHeight),
-      tableGap: Math.abs(footer.getBoundingClientRect().top - element.getBoundingClientRect().bottom -
-        (parseFloat(getComputedStyle(parent).rowGap) || 0)),
+      footerOverflow: Math.max(0, footer.getBoundingClientRect().bottom - window.innerHeight),
+      tableGap: Math.abs(footer.getBoundingClientRect().top - element.getBoundingClientRect().bottom),
+      emptySpace: Math.max(0, element.clientHeight - tableHeight),
       pageOverflow: main.scrollHeight - main.clientHeight
     };
-  })).toEqual({ bottomGap: 0, tableGap: 0, pageOverflow: 0 });
+  })).toEqual({ footerOverflow: 0, tableGap: 0, emptySpace: 0, pageOverflow: 0 });
 }
 
 [...tablePages, ...dataTablePages].forEach(({ name, path }) => {
-  test(`test_${name}_table_fills_height_and_scrolls_only_rows`, async ({ page }) => {
+  test(`test_${name}_table_fits_content_and_scrolls_only_rows`, async ({ page }) => {
     await page.goto(path);
     const table = page.locator(".table-scroll");
     await expect(table.locator("table")).toBeVisible();
@@ -54,15 +54,17 @@ async function expectTableFillsPage(page) {
           body.replaceChildren(...Array.from({ length: count }, () => row.cloneNode(true)));
           element.scrollTop = 0;
         }, count);
-        await expectTableFillsPage(page);
+        await expectTableFitsContent(page);
         const before = await table.evaluate(element => ({
           headerTop: element.querySelector("thead").getBoundingClientRect().top,
           footerTop: element.parentElement.lastElementChild.getBoundingClientRect().top,
+          footerHeight: element.parentElement.lastElementChild.getBoundingClientRect().height,
           rowTop: element.querySelector("tbody tr")?.getBoundingClientRect().top,
           overflow: element.scrollHeight - element.clientHeight
         }));
         if (count === 100) {
           expect(before.overflow).toBeGreaterThan(0);
+          expect(before.footerTop + before.footerHeight).toBe(page.viewportSize().height);
           await table.evaluate(element => { element.scrollTop = element.scrollHeight; });
           await expect.poll(async () => table.evaluate(element => element.scrollTop)).toBeGreaterThan(0);
           const after = await table.evaluate(element => ({
@@ -73,7 +75,7 @@ async function expectTableFillsPage(page) {
           expect(after.headerTop).toBe(before.headerTop);
           expect(after.footerTop).toBe(before.footerTop);
           expect(after.rowTop).toBeLessThan(before.rowTop);
-          await expectTableFillsPage(page);
+          await expectTableFitsContent(page);
         } else {
           expect(before.overflow).toBe(0);
         }
@@ -94,6 +96,6 @@ test("test_table_reserves_space_for_interface_below_pagination", async ({ page }
   });
   const footer = await page.getByTestId("table-footer-fixture").boundingBox();
   const pagination = await page.locator(".table-pagination").boundingBox();
-  expect(footer.y + footer.height).toBe(page.viewportSize().height);
+  expect(footer.y + footer.height).toBeLessThanOrEqual(page.viewportSize().height);
   expect(pagination.y + pagination.height).toBe(footer.y);
 });
