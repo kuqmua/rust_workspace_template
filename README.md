@@ -159,9 +159,12 @@ OTEL_EXPORTER_OTLP_TIMEOUT=10000
 OTEL_RESOURCE_ATTRIBUTES=service.namespace=backend,deployment.environment.name=production
 ```
 
-`service.name` is always set by each binary. If no endpoint is configured, the OpenTelemetry SDK
-uses its standard OTLP/HTTP default. The tracer provider is flushed and shut down after HTTP and
-background-task graceful shutdown completes.
+`service.name` is always set by each binary. Trace export is enabled only when
+`OTEL_EXPORTER_OTLP_TRACES_ENDPOINT` or `OTEL_EXPORTER_OTLP_ENDPOINT` is non-empty. Without an
+endpoint, text or JSON logging remains enabled, but no OTLP exporter or batch worker is created.
+Local development therefore needs no collector and does not wait for trace export on shutdown.
+When enabled, the tracer provider is flushed and shut down after HTTP and background-task
+graceful shutdown completes.
 
 Development credentials are not production defaults. Production deployments must supply secrets,
 exact allowed origins, secure cookies, immutable image tags and managed database URLs.
