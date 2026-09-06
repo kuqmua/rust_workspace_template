@@ -96,6 +96,19 @@ impl FrontendBuildEnvironment {
                     constants_str::FRONTEND_NPM_PROGRAM,
                     &[constants_str::FRONTEND_CI_ARGUMENT][..],
                 ),
+                crate::frontend_build_step::FrontendBuildStep::BrowserAssets
+                    if cfg!(debug_assertions) =>
+                {
+                    (
+                        constants_str::FRONTEND_TRUNK_PROGRAM,
+                        &[
+                            constants_str::FRONTEND_BUILD_ARGUMENT,
+                            constants_str::FRONTEND_RELEASE_ARGUMENT,
+                            constants_str::FRONTEND_CARGO_PROFILE_ARGUMENT,
+                            constants_str::FRONTEND_DEVELOPMENT_PROFILE,
+                        ][..],
+                    )
+                }
                 crate::frontend_build_step::FrontendBuildStep::BrowserAssets => (
                     constants_str::FRONTEND_TRUNK_PROGRAM,
                     &[

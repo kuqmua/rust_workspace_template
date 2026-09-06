@@ -33,11 +33,21 @@ cargo install trunk --version 0.21.14 --locked
 The Rust server startup installs the pinned npm dependencies when their manifests or Node.js version
 change, ensures the WebAssembly target is installed, and runs the existing Trunk pipeline.
 It reuses a separate Cargo cache in `target/frontend` and `target/frontend-build`.
+Ordinary `cargo run` selects the `frontend-dev` Cargo profile for WebAssembly: incremental
+compilation, optimization level 1, 256 code generation units, and no LTO. The profile inherits
+release runtime checks and panic behavior, keeping Leptos release behavior in the browser.
+`cargo run --release` retains the fully optimized release pipeline. The first development
+build populates a new profile cache; subsequent builds reuse it. Packaged production assets
+continue to use `trunk build --release`.
 If available, it uses the local Node.js installation at
 `~/.local/share/rust_workspace_template_tools/node/bin`; `FRONTEND_NODE_BIN` can override
 this directory. Build failures prevent server startup.
 Migration mode (`SVC_MODE=migrate`) and other workspace binaries skip frontend preparation.
 This is startup preparation, not a file watcher: rerun `cargo run` after frontend changes.
+Changes to `static/style.css` and the directly served static JavaScript files only need a
+browser reload with its cache disabled. Rust component changes need a rebuild. Shared SSR
+components and shared contracts can also rebuild server dependents; browser-only modules
+guarded by `target_arch = "wasm32"` do not participate in the server compilation.
 
 The orchestration lives in the existing `server_runtime_http` crate and uses Tokio child
 processes; it needs no shell or Python runner. Its environment and dependency-cache access
@@ -59,6 +69,19 @@ trunk build --release
 Run these commands from this directory. The Trunk pre-build hook compiles the Rust/UI Tailwind
 stylesheet. Trunk writes generated JavaScript and WebAssembly into `static/csr`; the server exposes
 the generated assets below `/admin/assets`.
+
+To rebuild only the browser application using the same development cache as `cargo run`,
+run from this directory:
+
+```bash
+NO_COLOR=true CARGO_TARGET_DIR="$PWD/../target/frontend" \
+  CARGO_BUILD_BUILD_DIR="$PWD/../target/frontend-build" \
+  trunk build --release --cargo-profile frontend-dev
+```
+
+Reload the browser after completion. The server serves these assets directly, so
+this command does not require restarting it. Changes to Tailwind inputs need this pipeline
+or `npm run build:css`; editing the hand-written `static/style.css` does not.
 
 The server CSP must allow WebAssembly compilation. Existing local `server/.env` files created
 before the CSR frontend need this directive:

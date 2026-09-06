@@ -82,6 +82,9 @@ cargo run
 Node.js 22 or newer and Trunk; see [frontend setup](frontend_admin/README.md). Rust startup code uses
 incremental build caches, refreshes npm dependencies when needed, and stops if frontend
 compilation fails. Migration mode skips the frontend build.
+Development WebAssembly builds use the incremental `frontend-dev` profile without LTO;
+`cargo run --release` keeps the optimized release profile. The first build primes the new
+cache. See the frontend setup for rebuilding only the client while the server remains available.
 
 The server reads `server/.env`. Its `DATABASE_URL` must match the database credentials in
 the root Compose file. Changing `POSTGRES_PASSWORD` does not update the password in an

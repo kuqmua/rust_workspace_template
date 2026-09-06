@@ -1679,6 +1679,13 @@ codegen-units = 1
 panic = "abort"
 strip = "symbols"
 
+[profile.frontend-dev]
+inherits = "release"
+opt-level = 1
+lto = "off"
+codegen-units = 256
+incremental = true
+
 [profile.bench]
 debug = 1
 strip = "none"
