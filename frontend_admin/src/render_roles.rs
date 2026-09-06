@@ -40,7 +40,7 @@ pub fn render_roles(
         })
         .collect::<Vec<_>>();
     let content_view = leptos::view! {
-        <section class="table-page">
+        <section class="table-page table-admin_roles_page">
         <div class="resource-actions">
             {can_create.then(|| leptos::view! { <crate::admin_button_link::AdminButtonLink str=server_admin_contract::admin_frontend_path::AdminFrontendPath::RolesCreate.get()>"Create role"</crate::admin_button_link::AdminButtonLink> })}
             {can_manage.then(|| leptos::view! { <crate::admin_button_link::AdminButtonLink str=server_admin_contract::admin_frontend_path::AdminFrontendPath::RolesManage.get() admin_button_variant=crate::admin_button_variant::AdminButtonVariant::Secondary>"Manage roles"</crate::admin_button_link::AdminButtonLink> })}

@@ -210,7 +210,7 @@ p {
   overflow-x: hidden;
   overflow-y: auto;
   overscroll-behavior-block: contain;
-  padding: 8px 12px;
+  padding: 0;
   scroll-padding-block: 12px;
   scrollbar-color: var(--border-strong) var(--surface-subtle);
   scrollbar-width: thin;
@@ -283,7 +283,6 @@ p {
 .topbar nav a.active {
   background: var(--accent-soft);
   color: var(--accent-hover);
-  box-shadow: inset 0 -2px 0 var(--accent);
 }
 
 .topbar nav li > form {
@@ -451,7 +450,8 @@ p {
   gap: 8px;
 }
 
-.table-admin_users_page > .resource-actions {
+.table-admin_users_page > .resource-actions,
+.table-admin_roles_page > .resource-actions {
   display: grid;
   grid-auto-flow: column;
   grid-auto-columns: minmax(0, 1fr);
@@ -460,7 +460,9 @@ p {
 }
 
 @layer utilities {
-  .table-admin_users_page > .resource-actions > a {
+  .table-admin_users_page > .resource-actions > a,
+  .table-admin_roles_page > .resource-actions > a,
+  .auth-card form button {
     width: 100% !important;
   }
 }
@@ -1059,7 +1061,6 @@ td > form button {
 
 .table-pagination {
   display: flex;
-  min-height: 58px;
   flex-wrap: wrap;
   align-items: center;
   justify-content: flex-end;
@@ -1068,7 +1069,7 @@ td > form button {
   border-radius: 0;
   background: rgb(255 255 255 / 94%);
   backdrop-filter: blur(16px);
-  padding: 8px 12px;
+  padding: 0;
   color: var(--muted);
   font-size: 12px;
 }
@@ -1089,7 +1090,7 @@ td > form button {
 .table-page-size-controls {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 0;
 }
 
 .table-page-size-controls .ui-field {
@@ -1210,7 +1211,6 @@ pre {
 }
 
 .auth-card form button {
-  width: 100%;
   min-height: 44px;
   margin-top: 2px;
   background: var(--accent);
@@ -1312,7 +1312,7 @@ pre {
     height: 100%;
     align-items: center;
     justify-content: space-between;
-    padding: 0 16px;
+    padding: 0;
     color: var(--text-secondary);
     cursor: pointer;
     font-size: var(--header-font-size);
@@ -1358,7 +1358,7 @@ pre {
     border-bottom: 1px solid var(--border);
     background: var(--surface);
     box-shadow: var(--shadow);
-    padding: 10px;
+    padding: 0;
     scroll-padding: 10px;
   }
 
@@ -1391,10 +1391,6 @@ pre {
     flex: 1 1 140px;
     padding: 0 10px;
     white-space: nowrap;
-  }
-
-  .topbar nav a.active {
-    box-shadow: inset 0 -3px 0 var(--accent);
   }
 
   .topbar nav li > form {
