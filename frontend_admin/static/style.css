@@ -637,7 +637,7 @@ p {
 
 .table-scroll {
   min-height: 0;
-  flex: 0 1 auto;
+  flex: 1 1 0;
   overflow: auto;
   overscroll-behavior: contain;
   border: 1px solid var(--border);

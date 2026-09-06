@@ -11,22 +11,20 @@ test.afterEach(async ({ page }) => {
   await signOutIfAuthenticated(page);
 });
 
-async function expectTableFitsContent(page) {
+async function expectTableFillsPage(page) {
   await expect.poll(async () => page.locator(".table-scroll").evaluate(element => {
     const footer = element.parentElement.lastElementChild;
     const main = element.closest("main");
-    const tableHeight = element.querySelector("table").getBoundingClientRect().height;
     return {
-      footerOverflow: Math.max(0, footer.getBoundingClientRect().bottom - window.innerHeight),
+      bottomGap: Math.abs(footer.getBoundingClientRect().bottom - window.innerHeight),
       tableGap: Math.abs(footer.getBoundingClientRect().top - element.getBoundingClientRect().bottom),
-      emptySpace: Math.max(0, element.clientHeight - tableHeight),
       pageOverflow: main.scrollHeight - main.clientHeight
     };
-  })).toEqual({ footerOverflow: 0, tableGap: 0, emptySpace: 0, pageOverflow: 0 });
+  })).toEqual({ bottomGap: 0, tableGap: 0, pageOverflow: 0 });
 }
 
 [...tablePages, ...dataTablePages].forEach(({ name, path }) => {
-  test(`test_${name}_table_fits_content_and_scrolls_only_rows`, async ({ page }) => {
+  test(`test_${name}_table_fills_page_and_scrolls_only_rows`, async ({ page }) => {
     await page.goto(path);
     const table = page.locator(".table-scroll");
     await expect(table.locator("table")).toBeVisible();
@@ -54,7 +52,7 @@ async function expectTableFitsContent(page) {
           body.replaceChildren(...Array.from({ length: count }, () => row.cloneNode(true)));
           element.scrollTop = 0;
         }, count);
-        await expectTableFitsContent(page);
+        await expectTableFillsPage(page);
         const before = await table.evaluate(element => ({
           headerTop: element.querySelector("thead").getBoundingClientRect().top,
           footerTop: element.parentElement.lastElementChild.getBoundingClientRect().top,
@@ -75,7 +73,7 @@ async function expectTableFitsContent(page) {
           expect(after.headerTop).toBe(before.headerTop);
           expect(after.footerTop).toBe(before.footerTop);
           expect(after.rowTop).toBeLessThan(before.rowTop);
-          await expectTableFitsContent(page);
+          await expectTableFillsPage(page);
         } else {
           expect(before.overflow).toBe(0);
         }
@@ -96,6 +94,6 @@ test("test_table_reserves_space_for_interface_below_pagination", async ({ page }
   });
   const footer = await page.getByTestId("table-footer-fixture").boundingBox();
   const pagination = await page.locator(".table-pagination").boundingBox();
-  expect(footer.y + footer.height).toBeLessThanOrEqual(page.viewportSize().height);
+  expect(footer.y + footer.height).toBe(page.viewportSize().height);
   expect(pagination.y + pagination.height).toBe(footer.y);
 });
