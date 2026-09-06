@@ -1414,7 +1414,7 @@ fn test_ignored_map_err_bindings_match_reviewed_inventory() {
         ),
         (
             constants_str::CODE_STYLE_FRONTEND_OWNER,
-            (11usize, constants_str::CODE_STYLE_MAP_ERR_OWNER_REASON),
+            (14usize, constants_str::CODE_STYLE_MAP_ERR_OWNER_REASON),
         ),
         (
             constants_str::CODE_STYLE_SERVER_RUNTIME_HTTP_OWNER,
@@ -1497,16 +1497,8 @@ fn test_ignored_map_err_bindings_match_reviewed_inventory() {
             (5usize, constants_str::VALUE_FAE4D1C8),
         ),
         (
-            constants_str::VALUE_27AB06E9,
-            (2usize, constants_str::VALUE_B1E73CDD),
-        ),
-        (
             constants_str::VALUE_9E7DB142,
             (10usize, constants_str::VALUE_0B70A676),
-        ),
-        (
-            constants_str::VALUE_BEBEC57E,
-            (constants_usize::ONE, constants_str::VALUE_9CA4EAEB),
         ),
     ]);
     super::test_code_style_snapshot::with_codebase_snapshot(|snapshot| {

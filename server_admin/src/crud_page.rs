@@ -11,7 +11,7 @@ where
         &View,
         &server_admin_contract::authenticated_admin::AuthenticatedAdmin,
         &server_admin_contract::admin_branding_view::AdminBrandingView,
-    ) -> frontend::admin_ssr_html::AdminSsrHtml,
+    ) -> frontend_admin::admin_ssr_html::AdminSsrHtml,
 {
     match crate::page_context_impl::page_context_impl(&admin_auth_request).await {
         Ok((_admin, _branding, password_change_required)) if *password_change_required => {

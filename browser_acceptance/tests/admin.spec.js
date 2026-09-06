@@ -71,20 +71,24 @@ test("initial administrator sign-in forces a password change before administrato
   await expect(page.locator(".password-policy")).toContainText(
     "uppercase, lowercase, digit, and special characters"
   );
+  await expect(page.getByRole("alert")).toContainText(
+    "Change your initial password to unlock administrator navigation."
+  );
+  await expect(page.locator('header a[href="/admin/users"]')).toHaveCount(0);
   await page.goto("/admin/users");
   await expect(page).toHaveURL(/\/admin\/profile$/);
 
   await page.getByLabel("Current password").fill(initialAdminPassword);
   await page.getByLabel("New password").fill("admin");
   await page.getByRole("button", { name: "Change password" }).click();
-  await expect(page.getByRole("alert")).toHaveText(
+  await expect(page.getByRole("alert").filter({ hasText: "Check both passwords" })).toHaveText(
     "Check both passwords and ensure the new password satisfies the policy."
   );
 
   await changePassword(page, initialAdminPassword, changedAdminPassword);
   await expect(page).toHaveURL(/\/admin\/profile$/);
-
-  await page.goto("/admin/users");
+  await expect(page.getByText("Change your initial password to unlock administrator navigation.", { exact: true })).toHaveCount(0);
+  await page.locator('header a[href="/admin/users"]').click();
   await expect(page).toHaveURL(/\/admin\/users$/);
   await expect(page.locator('[data-renderer="csr"]')).toBeVisible();
   await expect(page.locator("tbody tr").filter({ hasText: "administrator" })).toBeVisible();
@@ -107,6 +111,7 @@ test("administrator users page contains only its header, table, and pagination",
   expect(usersCellStyle).toEqual(await firstCellStyle(page));
 
   await page.setViewportSize({ width: 390, height: 844 });
+  await page.getByText("Navigation", { exact: true }).click();
   await expect(page.locator("nav[aria-label='Admin sections']")).toBeVisible();
   await expect(page.locator(".table-scroll")).toBeVisible();
   await page.setViewportSize({ width: 1440, height: 900 });
@@ -144,10 +149,11 @@ test("shared administrator layout stays fixed while pages change", async ({ page
     "/admin/roles/manage"
   ]) {
     await page.goto(path);
+    await expect(page.locator(".loading-state")).toHaveCount(0);
     await expect(page.locator(".page-frame")).toBeVisible();
     geometry.push({
       content: await page
-        .locator(".page-frame > :not(.flash-success)")
+        .locator(".page-frame > :visible:not(.flash-success)")
         .first()
         .boundingBox(),
       main: await page.locator("main.main-content").boundingBox(),
@@ -156,6 +162,13 @@ test("shared administrator layout stays fixed while pages change", async ({ page
   }
 
   const expected = geometry[0];
+  expect(expected.navigation.x).toBe(0);
+  expect(expected.navigation.y).toBe(0);
+  expect(expected.navigation.width).toBe(1440);
+  expect(expected.main.x).toBe(0);
+  expect(expected.main.y).toBeGreaterThanOrEqual(
+    expected.navigation.y + expected.navigation.height
+  );
   for (const current of geometry.slice(1)) {
     expect(current.main).toEqual(expected.main);
     expect(current.navigation).toEqual(expected.navigation);
@@ -297,7 +310,7 @@ test("data-table filter places a full-width Close control below Apply", async ({
   await expect(filter).toHaveAttribute("data-name", "Popover");
   await expect(dialog).toHaveAttribute("data-name", "PopoverContent");
   await expect(dialog.locator('[data-name="RadioButtonGroup"]')).toHaveCount(1);
-  await expect(dialog.locator('[data-name="RadioButton"]').first()).toBeChecked();
+  await expect(dialog.getByRole("radio", { name: "Eq", exact: true })).toBeChecked();
   await expect(close).toContainText("Close");
 
   const controls = await filter.evaluate(element => {
@@ -367,5 +380,27 @@ test("shared administrator shell remains visually stable across page navigation"
         Array.from(element.querySelectorAll("*")).map(child => child.tagName)
       )
     ).toEqual(initialStructure);
+  }
+});
+
+
+test("header links leave profile and render the selected page on desktop and mobile", async ({ page }) => {
+  await signInAdministrator(page);
+  for (const width of [1440, 390]) {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto("/admin/profile");
+    for (const name of ["users", "roles", "permissions", "profile"]) {
+      if (width === 390) await page.getByText("Navigation", { exact: true }).click();
+      await page.locator(`header a[href="/admin/${name}"]`).click();
+      await expect(page).toHaveURL(new RegExp(`/admin/${name}$`));
+      await expect(page.locator(`header a[href="/admin/${name}"][aria-current="page"]`)).toHaveCount(1);
+      await expect(page.locator('[data-renderer="csr"]')).toBeVisible();
+      if (name === "profile") {
+        await expect(page.getByLabel("Current password")).toBeVisible();
+      } else {
+        await expect(page.getByRole("table")).toBeVisible();
+        await expect(page.getByLabel("Current password")).toHaveCount(0);
+      }
+    }
   }
 });

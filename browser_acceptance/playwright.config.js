@@ -26,14 +26,17 @@ if (process.env.BROWSER_ACCEPTANCE_CROSS_BROWSER === "1") {
 
 export default defineConfig({
   testDir: "./tests",
+  outputDir: "../target/browser_acceptance",
   fullyParallel: false,
   forbidOnly: Boolean(process.env.CI),
   retries: process.env.CI ? 1 : 0,
   workers: 1,
-  reporter: process.env.CI ? [["line"], ["html", { open: "never" }]] : "line",
+  reporter: process.env.CI
+    ? [["line"], ["html", { open: "never", outputFolder: "../target/browser_acceptance_report" }]]
+    : "line",
   use: {
     baseURL: "http://127.0.0.1:18080",
-    screenshot: "only-on-failure",
+    screenshot: process.env.BROWSER_ACCEPTANCE_SCREENSHOTS === "1" ? "on" : "only-on-failure",
     trace: "retain-on-failure",
     video: "retain-on-failure"
   },
@@ -43,6 +46,6 @@ export default defineConfig({
     cwd: import.meta.dirname,
     url: "http://127.0.0.1:18080/health/live",
     reuseExistingServer: !process.env.CI,
-    timeout: 180_000
+    timeout: 600_000
   }
 });

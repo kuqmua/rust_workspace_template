@@ -1,8 +1,8 @@
 [files]
 extend-exclude = [
   "Cargo.lock",
-  "frontend/dist",
-  "frontend/test-results",
+  "frontend_admin/dist",
+  "frontend_admin/test-results",
   "target",
   "test_results",
 ]

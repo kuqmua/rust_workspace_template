@@ -128,9 +128,30 @@ pub fn try_from_env(token_stream: proc_macro::TokenStream) -> proc_macro::TokenS
                         ))
                     },
                     |example| {
+                        let value = example.value();
+                        let literal = if value.chars().any(|character| {
+                            character.is_whitespace()
+                                || matches!(character, '\'' | '"' | '\\' | '$' | '#')
+                        }) {
+                            let escaped = std::iter::once('"')
+                                .chain(value.chars().flat_map(|character| {
+                                    match character {
+                                        '\\' | '"' | '$' => [Some('\\'), Some(character)],
+                                        '\n' => [Some('\\'), Some('n')],
+                                        _ => [Some(character), None],
+                                    }
+                                    .into_iter()
+                                    .flatten()
+                                }))
+                                .chain(std::iter::once('"'))
+                                .collect::<String>();
+                            syn::LitStr::new(&escaped, example.span())
+                        } else {
+                            example.clone()
+                        };
                         Ok((
                             env_name,
-                            quote::quote!(#env_name_literal, "=", #example, "\n"),
+                            quote::quote!(#env_name_literal, "=", #literal, "\n"),
                         ))
                     },
                 )

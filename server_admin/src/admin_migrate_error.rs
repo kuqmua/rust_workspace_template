@@ -1,5 +1,7 @@
 #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
 pub enum AdminMigrateError {
+    #[error("{message}: {0}", message = constants_str::ADMIN_IDEMPOTENCY_PREPARATION_FAILED)]
+    Idempotency(#[source] pg_table::sqlx_pg_table_idempotency_error::SqlxPgTableIdempotencyError),
     #[error("failed to prepare administrator schema: migration failed: {0:?}")]
     Migration(crate::sqlx_admin_migrate_error::SqlxAdminMigrateError),
     #[error("failed to prepare administrator schema: permission reconciliation failed: {0:?}")]

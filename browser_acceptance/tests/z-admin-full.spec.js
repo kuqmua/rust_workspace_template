@@ -87,7 +87,6 @@ test("read-only role rows and runtime branding persist", async ({ page }) => {
 
 test("one-session and all-session revocation are enforced", async ({
   browser,
-  context,
   page
 }) => {
   await signInAdministrator(page);
@@ -122,12 +121,19 @@ test("one-session and all-session revocation are enforced", async ({
   ).toHaveCount(0);
   await otherContext.close();
 
-  const revoked = await page.request.delete("/v1/admin/auth/sessions", {
-    data: {},
-    headers: await adminHeaders(context)
-  });
-  expect(revoked.status()).toBe(204);
-  await page.goto("/admin/users");
+  await page.getByRole("button", { name: "Revoke all sessions", exact: true }).click();
+  const confirmation = page.getByRole("dialog", { name: "Revoke all sessions", exact: true });
+  await confirmation.getByRole("button", { name: "Cancel", exact: true }).click();
+  await expect(confirmation).not.toBeVisible();
+  await expect(page).toHaveURL(/\/admin\/sessions$/);
+  const revoked = page.waitForResponse(response =>
+    response.request().method() === "DELETE" &&
+    response.url().endsWith("/v1/admin/auth/sessions") &&
+    response.status() === 204
+  );
+  await page.getByRole("button", { name: "Revoke all sessions", exact: true }).click();
+  await confirmation.getByRole("button", { name: "Revoke all sessions", exact: true }).click();
+  await revoked;
   await expect(page).toHaveURL(/\/admin\/sign_in$/);
 });
 

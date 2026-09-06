@@ -12,13 +12,19 @@ pub(crate) async fn csr_page(
                 server_admin_contract::admin_frontend_path::AdminFrontendPath::Profile.get(),
             ))
         }
-        Ok((admin, branding, _password_change_required))
+        Ok((admin, branding, password_change_required))
             if bool::from(admin.can_access(admin_page))
                 && option
                     .is_none_or(|table| bool::from(admin.has_permission(table.permission()))) =>
         {
             crate::html_response_impl::html_response_impl(
-                frontend::render_admin_csr::render_admin_csr(admin_page, option, &admin, &branding),
+                frontend_admin::render_admin_csr::render_admin_csr(
+                    server_admin_contract::admin_bool::AdminBool::from(*password_change_required),
+                    admin_page,
+                    option,
+                    &admin,
+                    &branding,
+                ),
             )
         }
         Ok(_context) => crate::html_page_error_impl::html_page_error_impl(

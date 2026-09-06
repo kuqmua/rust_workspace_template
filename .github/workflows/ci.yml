@@ -129,13 +129,14 @@ jobs:
         with:
           node-version: 22
           cache: npm
-          cache-dependency-path: frontend/package-lock.json
+          cache-dependency-path: frontend_admin/package-lock.json
       - run: npm ci
-        working-directory: frontend
+        working-directory: frontend_admin
       - run: npm run build:css
-        working-directory: frontend
-      - run: cargo test -p frontend
-      - run: cargo check -p frontend --target wasm32-unknown-unknown
+        working-directory: frontend_admin
+      - run: cargo test -p frontend_admin
+      - run: cargo check -p frontend_admin --target wasm32-unknown-unknown
+      - run: cargo clippy -p frontend_admin --target wasm32-unknown-unknown -- -D warnings
   browser-acceptance:
     if: >-
       github.event_name == 'push' ||
@@ -169,14 +170,14 @@ jobs:
           cache: npm
           cache-dependency-path: |
             browser_acceptance/package-lock.json
-            frontend/package-lock.json
+            frontend_admin/package-lock.json
       - uses: taiki-e/install-action@5292d65c95e72dc79f25946b7ce34e28deecf2f3
         with:
           tool: trunk
       - run: npm ci
         working-directory: browser_acceptance
       - run: npm ci
-        working-directory: frontend
+        working-directory: frontend_admin
       - if: github.event_name == 'push' || github.event_name == 'pull_request'
         run: npx playwright install --with-deps chromium
         working-directory: browser_acceptance
@@ -204,8 +205,8 @@ jobs:
         with:
           name: browser-acceptance-failure
           path: |
-            browser_acceptance/playwright-report/
-            browser_acceptance/test-results/
+            target/browser_acceptance_report/
+            target/browser_acceptance/
           if-no-files-found: ignore
   clippy:
     if: github.event_name == 'push' || github.event_name == 'pull_request'
@@ -430,14 +431,14 @@ jobs:
           cache: npm
           cache-dependency-path: |
             browser_acceptance/package-lock.json
-            frontend/package-lock.json
+            frontend_admin/package-lock.json
       - uses: taiki-e/install-action@5292d65c95e72dc79f25946b7ce34e28deecf2f3
         with:
           tool: trunk
       - run: npm ci
         working-directory: browser_acceptance
       - run: npm ci
-        working-directory: frontend
+        working-directory: frontend_admin
       - run: npx playwright install --with-deps chromium
         working-directory: browser_acceptance
       - run: npm run test:full
@@ -449,8 +450,8 @@ jobs:
         with:
           name: browser-acceptance-full-failure
           path: |
-            browser_acceptance/playwright-report/
-            browser_acceptance/test-results/
+            target/browser_acceptance_report/
+            target/browser_acceptance/
           if-no-files-found: ignore
   unused-dependencies:
     if: github.event_name == 'push' || github.event_name == 'pull_request'

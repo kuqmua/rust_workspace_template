@@ -1,6 +1,11 @@
 pub async fn prepare_postgresql(
     sqlx_pg_pool_ref: app_state::sqlx_pg_pool_ref::SqlxPgPoolRef<'_>,
 ) -> Result<(), crate::admin_migrate_error::AdminMigrateError> {
+    pg_table::ensure_pg_table_idempotency_schema::ensure_pg_table_idempotency_schema(
+        sqlx_pg_pool_ref,
+    )
+    .await
+    .map_err(crate::admin_migrate_error::AdminMigrateError::Idempotency)?;
     crate::migrator::migrator()
         .run(sqlx_pg_pool_ref.as_ref())
         .await

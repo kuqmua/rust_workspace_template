@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { readFile } from "node:fs/promises";
 import {
   adminHeaders,
   adminOrigin,
@@ -225,15 +226,23 @@ test("oversized and invalid mutations fail without changing persisted state", as
   });
   expect(invalid.status()).toBe(422);
 
-  const oversized = await page.request.post("/v1/admin/users", {
-    data: {
-      display_name: "x".repeat(1_100_000),
-      login: "oversized_user",
-      password: "Oversized-password8!"
-    },
-    headers: await adminHeaders(page.context())
-  });
-  expect(oversized.status()).toBe(413);
+  const headers = await adminHeaders(page.context());
+  const oversizedStatus = await page.evaluate(async csrfToken => {
+    const response = await fetch("/v1/admin/users", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRF-Token": csrfToken
+      },
+      body: JSON.stringify({
+        display_name: "x".repeat(1_100_000),
+        login: "oversized_user",
+        password: "Oversized-password8!"
+      })
+    });
+    return response.status;
+  }, headers["X-CSRF-Token"]);
+  expect(oversizedStatus).toBe(413);
 
   const unchanged = await page.request.get("/v1/admin/system_settings");
   expect(unchanged.status()).toBe(200);
@@ -525,10 +534,10 @@ test("search and sorting are deterministic and survive UI reloads", async ({
   );
 
   const ascendingResponse = await page.request.get(
-    "/v1/admin/users?search=query_&sort=login&direction=asc&limit=100"
+    "/v1/admin/users?search=query_&sort=login&direction=ascending&limit=100"
   );
   const descendingResponse = await page.request.get(
-    "/v1/admin/users?search=query_&sort=login&direction=desc&limit=100"
+    "/v1/admin/users?search=query_&sort=login&direction=descending&limit=100"
   );
   expect(ascendingResponse.status()).toBe(200);
   expect(descendingResponse.status()).toBe(200);
@@ -537,13 +546,32 @@ test("search and sorting are deterministic and survive UI reloads", async ({
   expect(ascending).toEqual(["query_alpha_user", "query_zeta_user"]);
   expect(descending).toEqual(["query_zeta_user", "query_alpha_user"]);
 
+  await createRole(page, "query_sort_role");
+  for (const resource of ["roles", "permissions"]) {
+    const ascendingPage = await page.request.get(
+      `/v1/admin/${resource}?sort=name&direction=ascending&limit=100`
+    );
+    const descendingPage = await page.request.get(
+      `/v1/admin/${resource}?sort=name&direction=descending&limit=100`
+    );
+    expect(ascendingPage.status()).toBe(200);
+    expect(descendingPage.status()).toBe(200);
+    const ascendingBody = await ascendingPage.json();
+    const descendingBody = await descendingPage.json();
+    expect(ascendingBody.items.length).toBeGreaterThan(1);
+    expect(ascendingBody.items).toHaveLength(ascendingBody.total);
+    expect(descendingBody.items.map(item => item.id)).toEqual(
+      ascendingBody.items.map(item => item.id).reverse()
+    );
+  }
+
   const unknownSort = await page.request.get(
     "/v1/admin/users?sort=unknown_column"
   );
   expect(unknownSort.status()).toBe(422);
 
   const query =
-    "search=query_alpha_user&sort=login&direction=desc&limit=1&offset=0";
+    "search=query_alpha_user&sort=login&direction=descending&limit=1&offset=0";
   await page.goto(`/admin/users?${query}`);
   await expect(page.locator('[data-renderer="csr"]')).toBeVisible();
   await expect(page.locator("tbody tr")).toHaveCount(1);
@@ -609,6 +637,18 @@ test("audit export records mutations without exposing submitted passwords", asyn
     "Audit Export User",
     password
   );
+  const auditResponse = await page.request.get("/v1/admin/audit_log?limit=100");
+  expect(auditResponse.status()).toBe(200);
+  const auditPage = await auditResponse.json();
+  expect(auditPage.items).toEqual(expect.arrayContaining([
+    expect.objectContaining({
+      action: "create",
+      resource: "user",
+      resource_id: String(userId),
+      succeeded: true
+    })
+  ]));
+  expect(JSON.stringify(auditPage)).not.toContain(password);
   const exported = await page.request.get(
     "/v1/admin/audit_log/export?limit=100"
   );
@@ -618,6 +658,23 @@ test("audit export records mutations without exposing submitted passwords", asyn
     `\"create\",\"user\",\"${userId}\",\"true\"`
   );
   expect(body.csv).not.toContain(password);
+  await page.goto("/admin/audit_log?limit=100&offset=0");
+  await expect(page.locator('[data-renderer="csr"]')).toBeVisible();
+  const exportResponse = page.waitForResponse(response =>
+    response.url().endsWith("/v1/admin/audit_log/export?limit=100&offset=0")
+  );
+  await page.getByRole("button", { name: "Prepare page CSV" }).click();
+  const response = await exportResponse;
+  expect(response.status()).toBe(200);
+  const exportBody = await response.json();
+  const downloadEvent = page.waitForEvent("download");
+  await page.getByRole("link", { name: "Download page CSV" }).click();
+  const download = await downloadEvent;
+  expect(download.suggestedFilename()).toBe("audit_log.csv");
+  const file = await download.path();
+  expect(file).not.toBeNull();
+  expect(await readFile(file, "utf8")).toBe(exportBody.csv);
+  expect(exportBody.csv).not.toContain(password);
 });
 
 test("a read-only administrator sees only authorized navigation and mutations fail", async ({
@@ -633,11 +690,13 @@ test("a read-only administrator sees only authorized navigation and mutations fa
   const permissions = (await permissionsResponse.json()).items;
   const usersRead = permissions.find(permission => permission.name === "users:read");
   const tablesRead = permissions.find(permission => permission.name === "tables:read");
+  const auditRead = permissions.find(permission => permission.name === "audit_log:read");
   const settingsRead = permissions.find(
     permission => permission.name === "system_settings:read"
   );
   expect(usersRead).toBeTruthy();
   expect(tablesRead).toBeTruthy();
+  expect(auditRead).toBeTruthy();
   expect(settingsRead).toBeTruthy();
 
   const rolePermissions = await page.request.put(
@@ -645,7 +704,7 @@ test("a read-only administrator sees only authorized navigation and mutations fa
     {
       data: {
         expected_permission_ids: [],
-        permission_ids: [settingsRead.id, tablesRead.id, usersRead.id]
+        permission_ids: [auditRead.id, settingsRead.id, tablesRead.id, usersRead.id]
       },
       headers: await adminHeaders(page.context())
     }
@@ -694,6 +753,11 @@ test("a read-only administrator sees only authorized navigation and mutations fa
     reader.locator('nav[aria-label="Admin sections"] a[href="/admin/settings"]')
   ).toBeVisible();
 
+  await reader.goto("/admin/audit_log");
+  await expect(reader.locator('[data-renderer="csr"]')).toBeVisible();
+  await expect(reader.getByRole("button", { name: "Prepare page CSV" })).toHaveCount(0);
+  expect((await reader.request.get("/v1/admin/audit_log/export")).status()).toBe(403);
+
   await reader.goto("/admin/settings");
   await expect(reader.locator('[data-renderer="csr"]')).toBeVisible();
   const settingsControls = reader.locator(
@@ -737,6 +801,10 @@ test("a failed settings mutation preserves input and reports the server error", 
   const originalSiteName = await siteName.inputValue();
   await siteName.fill("Unsaved Production Name");
   let intercepted = 0;
+  let refreshes = 0;
+  page.on("request", request => {
+    if (request.url().endsWith("/v1/admin/auth/refresh")) refreshes += 1;
+  });
   await page.route("**/v1/admin/system_settings", async route => {
     if (route.request().method() === "PATCH") {
       intercepted += 1;
@@ -760,6 +828,7 @@ test("a failed settings mutation preserves input and reports the server error", 
   await expect(page.getByRole("alert")).toBeVisible();
   await expect(siteName).toHaveValue("Unsaved Production Name");
   expect(intercepted).toBe(1);
+  expect(refreshes).toBe(0);
 
   await page.unroute("**/v1/admin/system_settings");
   const persisted = await page.request.get("/v1/admin/system_settings");
@@ -776,8 +845,10 @@ test("interactive controls remain named and keyboard reachable on mobile", async
     await page.goto(path);
     await expect(page.locator("main")).toBeVisible();
     await expect(page.locator('[data-renderer="csr"]')).toBeVisible();
+    await page.getByText("Navigation", { exact: true }).click();
+    await expect(page.getByRole("navigation", { name: "Admin sections" })).toBeVisible();
     const controls = page.locator(
-      "a, button, input:not([type='hidden']), select, textarea"
+      ":is(a, button, input:not([type='hidden']), select, textarea):visible"
     );
     const count = await controls.count();
     expect(count).toBeGreaterThan(0);
@@ -813,4 +884,72 @@ test("primary pages emit no uncaught errors, failed requests, or console errors"
   expect(consoleErrors).toEqual([]);
   expect(failedRequests).toEqual([]);
   expect(pageErrors).toEqual([]);
+});
+
+
+test("expired access cookies recover an audit download once", async ({ context, page }) => {
+  await signInAdministrator(page);
+  await page.goto("/admin/audit_log");
+  const prepare = page.getByRole("button", { name: "Prepare page CSV" });
+  await expect(prepare).toBeVisible();
+  await context.clearCookies({ name: /admin_(access_token|csrf_token)/ });
+  const responses = [];
+  page.on("response", response => {
+    if (response.url().includes("/v1/admin/audit_log/export") ||
+        response.url().endsWith("/v1/admin/auth/refresh")) {
+      responses.push([response.request().method(), response.status()]);
+    }
+  });
+  await prepare.click();
+  await expect(page.getByRole("link", { name: "Download page CSV" })).toBeVisible();
+  expect(responses).toEqual([["GET", 401], ["POST", 200], ["GET", 200]]);
+});
+
+test("missing credentials stop audit recovery after one refresh", async ({ context, page }) => {
+  await signInAdministrator(page);
+  await page.goto("/admin/audit_log");
+  const prepare = page.getByRole("button", { name: "Prepare page CSV" });
+  await expect(prepare).toBeVisible();
+  await context.clearCookies();
+  const responses = [];
+  page.on("response", response => {
+    if (response.url().includes("/v1/admin/audit_log/export") ||
+        response.url().endsWith("/v1/admin/auth/refresh")) {
+      responses.push([response.request().method(), response.status()]);
+    }
+  });
+  await prepare.click();
+  await expect(page.getByRole("alert")).toBeVisible();
+  await expect(prepare).toBeVisible();
+  await expect(page.getByRole("link", { name: "Download page CSV" })).toHaveCount(0);
+  expect(responses).toEqual([["GET", 401], ["POST", 401], ["GET", 401]]);
+});
+
+test("expired CSRF cookies recover a settings mutation without replaying it", async ({ context, page }) => {
+  await signInAdministrator(page);
+  await page.goto("/admin/settings");
+  const siteName = page.getByLabel("Site name");
+  const original = await siteName.inputValue();
+  await siteName.fill("Recovered administration");
+  await context.clearCookies({ name: /admin_(access_token|csrf_token)/ });
+  const responses = [];
+  page.on("response", response => {
+    if (response.request().method() === "PATCH" ||
+        response.url().endsWith("/v1/admin/auth/refresh")) {
+      responses.push([response.request().method(), response.status()]);
+    }
+  });
+  const saved = page.waitForResponse(response =>
+    response.request().method() === "PATCH" && response.status() === 204);
+  await page.getByRole("button", { name: "Save settings" }).click();
+  await saved;
+  await expect(siteName).toHaveValue("Recovered administration");
+  expect(responses).toEqual([["POST", 200], ["PATCH", 204]]);
+  await page.reload();
+  await expect(siteName).toHaveValue("Recovered administration");
+  await siteName.fill(original);
+  const restored = page.waitForResponse(response =>
+    response.request().method() === "PATCH" && response.status() === 204);
+  await page.getByRole("button", { name: "Save settings" }).click();
+  await restored;
 });

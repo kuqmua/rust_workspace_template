@@ -36,6 +36,8 @@ reference boundary to follow when adding another service.
 - `server_runtime_core` and `server_runtime_http`: lifecycle, graceful shutdown, health, limits,
   request metadata, retries, outbound URL policy and metrics;
 - `frontend_contract` and service-owned contract crates: typed transport values;
+- `frontend_admin`: the replacement Leptos administrator library, shared by native rendering
+  and the browser application;
 - `config_lib`: validated environment configuration with secret redaction;
 - PostgreSQL CRUD crates: generated contracts, handlers, clients and OpenAPI metadata;
 - `server_admin`: sessions, RBAC, audit, rate limits and operational cleanup;
@@ -75,6 +77,11 @@ cd server
 SVC_MODE=migrate cargo run
 cargo run
 ```
+
+`cargo run` prepares the browser assets before starting the server. It requires
+Node.js 22 or newer and Trunk; see [frontend setup](frontend_admin/README.md). Rust startup code uses
+incremental build caches, refreshes npm dependencies when needed, and stops if frontend
+compilation fails. Migration mode skips the frontend build.
 
 The server reads `server/.env`. Its `DATABASE_URL` must match the database credentials in
 the root Compose file. Changing `POSTGRES_PASSWORD` does not update the password in an

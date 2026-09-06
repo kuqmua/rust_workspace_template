@@ -4,66 +4,94 @@ DbCatalogSnapshot {
         [
             DbObjectSnapshot {
                 definition: DbSchemaText(
-                    "CREATE OR REPLACE FUNCTION admin_migration_fresh_test.audit_log_append_only()\n RETURNS trigger\n LANGUAGE plpgsql\nAS $function$\nBEGIN\n    IF TG_OP = 'DELETE' AND current_setting('app.admin_audit_cleanup', TRUE) = 'on' THEN\n        RETURN OLD;\n    END IF;\n    RAISE EXCEPTION 'audit_log is append-only';\nEND;\n$function$\n",
+                    BoundedString {
+                        value: "CREATE OR REPLACE FUNCTION admin_migration_fresh_test.audit_log_append_only()\n RETURNS trigger\n LANGUAGE plpgsql\nAS $function$\nBEGIN\n    IF TG_OP = 'DELETE' AND current_setting('app.admin_audit_cleanup', TRUE) = 'on' THEN\n        RETURN OLD;\n    END IF;\n    RAISE EXCEPTION 'audit_log is append-only';\nEND;\n$function$\n",
+                    },
+                ),
+                name: DbSchemaText(
+                    BoundedString {
+                        value: "audit_log_append_only",
+                    },
                 ),
                 kind: Function,
-                name: DbSchemaText(
-                    "audit_log_append_only",
-                ),
             },
             DbObjectSnapshot {
                 definition: DbSchemaText(
-                    "CREATE OR REPLACE FUNCTION admin_migration_fresh_test.set_updated_at()\n RETURNS trigger\n LANGUAGE plpgsql\nAS $function$\nBEGIN\n    NEW.updated_at = NOW();\n    RETURN NEW;\nEND;\n$function$\n",
+                    BoundedString {
+                        value: "CREATE OR REPLACE FUNCTION admin_migration_fresh_test.set_updated_at()\n RETURNS trigger\n LANGUAGE plpgsql\nAS $function$\nBEGIN\n    NEW.updated_at = NOW();\n    RETURN NEW;\nEND;\n$function$\n",
+                    },
+                ),
+                name: DbSchemaText(
+                    BoundedString {
+                        value: "set_updated_at",
+                    },
                 ),
                 kind: Function,
-                name: DbSchemaText(
-                    "set_updated_at",
-                ),
             },
             DbObjectSnapshot {
                 definition: DbSchemaText(
-                    "audit_log:BEFORE:DELETE:EXECUTE FUNCTION audit_log_append_only()",
+                    BoundedString {
+                        value: "audit_log:BEFORE:DELETE:EXECUTE FUNCTION audit_log_append_only()",
+                    },
+                ),
+                name: DbSchemaText(
+                    BoundedString {
+                        value: "audit_log_append_only_guard",
+                    },
                 ),
                 kind: Trigger,
-                name: DbSchemaText(
-                    "audit_log_append_only_guard",
-                ),
             },
             DbObjectSnapshot {
                 definition: DbSchemaText(
-                    "audit_log:BEFORE:UPDATE:EXECUTE FUNCTION audit_log_append_only()",
+                    BoundedString {
+                        value: "audit_log:BEFORE:UPDATE:EXECUTE FUNCTION audit_log_append_only()",
+                    },
+                ),
+                name: DbSchemaText(
+                    BoundedString {
+                        value: "audit_log_append_only_guard",
+                    },
                 ),
                 kind: Trigger,
-                name: DbSchemaText(
-                    "audit_log_append_only_guard",
-                ),
             },
             DbObjectSnapshot {
                 definition: DbSchemaText(
-                    "roles:BEFORE:UPDATE:EXECUTE FUNCTION set_updated_at()",
+                    BoundedString {
+                        value: "roles:BEFORE:UPDATE:EXECUTE FUNCTION set_updated_at()",
+                    },
+                ),
+                name: DbSchemaText(
+                    BoundedString {
+                        value: "roles_set_updated_at",
+                    },
                 ),
                 kind: Trigger,
-                name: DbSchemaText(
-                    "roles_set_updated_at",
-                ),
             },
             DbObjectSnapshot {
                 definition: DbSchemaText(
-                    "system_settings:BEFORE:UPDATE:EXECUTE FUNCTION set_updated_at()",
+                    BoundedString {
+                        value: "system_settings:BEFORE:UPDATE:EXECUTE FUNCTION set_updated_at()",
+                    },
+                ),
+                name: DbSchemaText(
+                    BoundedString {
+                        value: "system_settings_set_updated_at",
+                    },
                 ),
                 kind: Trigger,
-                name: DbSchemaText(
-                    "system_settings_set_updated_at",
-                ),
             },
             DbObjectSnapshot {
                 definition: DbSchemaText(
-                    "users:BEFORE:UPDATE:EXECUTE FUNCTION set_updated_at()",
+                    BoundedString {
+                        value: "users:BEFORE:UPDATE:EXECUTE FUNCTION set_updated_at()",
+                    },
+                ),
+                name: DbSchemaText(
+                    BoundedString {
+                        value: "users_set_updated_at",
+                    },
                 ),
                 kind: Trigger,
-                name: DbSchemaText(
-                    "users_set_updated_at",
-                ),
             },
         ],
     ),
@@ -75,11 +103,15 @@ DbTableSnapshot {
         [
             DbColumnSnapshot {
                 data_type: DbSchemaText(
-                    "bigint",
+                    BoundedString {
+                        value: "bigint",
+                    },
                 ),
                 default: None,
                 name: DbSchemaText(
-                    "id",
+                    BoundedString {
+                        value: "id",
+                    },
                 ),
                 nullable: DbColumnNullable(
                     false,
@@ -87,15 +119,21 @@ DbTableSnapshot {
             },
             DbColumnSnapshot {
                 data_type: DbSchemaText(
-                    "boolean",
+                    BoundedString {
+                        value: "boolean",
+                    },
                 ),
                 default: Some(
                     DbSchemaText(
-                        "false",
+                        BoundedString {
+                            value: "false",
+                        },
                     ),
                 ),
                 name: DbSchemaText(
-                    "is_banned",
+                    BoundedString {
+                        value: "is_banned",
+                    },
                 ),
                 nullable: DbColumnNullable(
                     false,
@@ -103,15 +141,21 @@ DbTableSnapshot {
             },
             DbColumnSnapshot {
                 data_type: DbSchemaText(
-                    "boolean",
+                    BoundedString {
+                        value: "boolean",
+                    },
                 ),
                 default: Some(
                     DbSchemaText(
-                        "true",
+                        BoundedString {
+                            value: "true",
+                        },
                     ),
                 ),
                 name: DbSchemaText(
-                    "must_change_password",
+                    BoundedString {
+                        value: "must_change_password",
+                    },
                 ),
                 nullable: DbColumnNullable(
                     false,
@@ -119,11 +163,15 @@ DbTableSnapshot {
             },
             DbColumnSnapshot {
                 data_type: DbSchemaText(
-                    "text",
+                    BoundedString {
+                        value: "text",
+                    },
                 ),
                 default: None,
                 name: DbSchemaText(
-                    "display_name",
+                    BoundedString {
+                        value: "display_name",
+                    },
                 ),
                 nullable: DbColumnNullable(
                     false,
@@ -131,11 +179,15 @@ DbTableSnapshot {
             },
             DbColumnSnapshot {
                 data_type: DbSchemaText(
-                    "text",
+                    BoundedString {
+                        value: "text",
+                    },
                 ),
                 default: None,
                 name: DbSchemaText(
-                    "login",
+                    BoundedString {
+                        value: "login",
+                    },
                 ),
                 nullable: DbColumnNullable(
                     false,
@@ -143,11 +195,15 @@ DbTableSnapshot {
             },
             DbColumnSnapshot {
                 data_type: DbSchemaText(
-                    "text",
+                    BoundedString {
+                        value: "text",
+                    },
                 ),
                 default: None,
                 name: DbSchemaText(
-                    "password_hash",
+                    BoundedString {
+                        value: "password_hash",
+                    },
                 ),
                 nullable: DbColumnNullable(
                     false,
@@ -155,15 +211,21 @@ DbTableSnapshot {
             },
             DbColumnSnapshot {
                 data_type: DbSchemaText(
-                    "timestamp with time zone",
+                    BoundedString {
+                        value: "timestamp with time zone",
+                    },
                 ),
                 default: Some(
                     DbSchemaText(
-                        "now()",
+                        BoundedString {
+                            value: "now()",
+                        },
                     ),
                 ),
                 name: DbSchemaText(
-                    "created_at",
+                    BoundedString {
+                        value: "created_at",
+                    },
                 ),
                 nullable: DbColumnNullable(
                     false,
@@ -171,15 +233,21 @@ DbTableSnapshot {
             },
             DbColumnSnapshot {
                 data_type: DbSchemaText(
-                    "timestamp with time zone",
+                    BoundedString {
+                        value: "timestamp with time zone",
+                    },
                 ),
                 default: Some(
                     DbSchemaText(
-                        "now()",
+                        BoundedString {
+                            value: "now()",
+                        },
                     ),
                 ),
                 name: DbSchemaText(
-                    "updated_at",
+                    BoundedString {
+                        value: "updated_at",
+                    },
                 ),
                 nullable: DbColumnNullable(
                     false,
@@ -191,75 +259,107 @@ DbTableSnapshot {
         [
             DbObjectSnapshot {
                 definition: DbSchemaText(
-                    "CHECK (((char_length(display_name) >= 1) AND (char_length(display_name) <= 256)))",
+                    BoundedString {
+                        value: "CHECK (((char_length(display_name) >= 1) AND (char_length(display_name) <= 256)))",
+                    },
+                ),
+                name: DbSchemaText(
+                    BoundedString {
+                        value: "users_display_name_length",
+                    },
                 ),
                 kind: Check,
-                name: DbSchemaText(
-                    "users_display_name_length",
-                ),
             },
             DbObjectSnapshot {
                 definition: DbSchemaText(
-                    "CHECK (((char_length(login) >= 3) AND (char_length(login) <= 128)))",
+                    BoundedString {
+                        value: "CHECK (((char_length(login) >= 3) AND (char_length(login) <= 128)))",
+                    },
+                ),
+                name: DbSchemaText(
+                    BoundedString {
+                        value: "users_login_length",
+                    },
                 ),
                 kind: Check,
-                name: DbSchemaText(
-                    "users_login_length",
-                ),
             },
             DbObjectSnapshot {
                 definition: DbSchemaText(
-                    "CHECK (((login = lower(login)) AND (login ~ '^[a-z0-9_.-]+$'::text)))",
+                    BoundedString {
+                        value: "CHECK (((login = lower(login)) AND (login ~ '^[a-z0-9_.-]+$'::text)))",
+                    },
+                ),
+                name: DbSchemaText(
+                    BoundedString {
+                        value: "users_login_format",
+                    },
                 ),
                 kind: Check,
-                name: DbSchemaText(
-                    "users_login_format",
-                ),
             },
             DbObjectSnapshot {
                 definition: DbSchemaText(
-                    "CHECK ((char_length(password_hash) > 0))",
+                    BoundedString {
+                        value: "CHECK ((char_length(password_hash) > 0))",
+                    },
+                ),
+                name: DbSchemaText(
+                    BoundedString {
+                        value: "users_password_hash_not_empty",
+                    },
                 ),
                 kind: Check,
-                name: DbSchemaText(
-                    "users_password_hash_not_empty",
-                ),
             },
             DbObjectSnapshot {
                 definition: DbSchemaText(
-                    "CHECK ((display_name = btrim(display_name)))",
+                    BoundedString {
+                        value: "CHECK ((display_name = btrim(display_name)))",
+                    },
+                ),
+                name: DbSchemaText(
+                    BoundedString {
+                        value: "users_display_name_trimmed",
+                    },
                 ),
                 kind: Check,
-                name: DbSchemaText(
-                    "users_display_name_trimmed",
-                ),
             },
             DbObjectSnapshot {
                 definition: DbSchemaText(
-                    "CREATE UNIQUE INDEX users_login_lower_unq ON admin_migration_fresh_test.users USING btree (lower(login))",
+                    BoundedString {
+                        value: "CREATE UNIQUE INDEX users_login_lower_unq ON admin_migration_fresh_test.users USING btree (lower(login))",
+                    },
+                ),
+                name: DbSchemaText(
+                    BoundedString {
+                        value: "users_login_lower_unq",
+                    },
                 ),
                 kind: Index,
-                name: DbSchemaText(
-                    "users_login_lower_unq",
-                ),
             },
             DbObjectSnapshot {
                 definition: DbSchemaText(
-                    "CREATE UNIQUE INDEX users_pkey ON admin_migration_fresh_test.users USING btree (id)",
+                    BoundedString {
+                        value: "CREATE UNIQUE INDEX users_pkey ON admin_migration_fresh_test.users USING btree (id)",
+                    },
+                ),
+                name: DbSchemaText(
+                    BoundedString {
+                        value: "users_pkey",
+                    },
                 ),
                 kind: Index,
-                name: DbSchemaText(
-                    "users_pkey",
-                ),
             },
             DbObjectSnapshot {
                 definition: DbSchemaText(
-                    "PRIMARY KEY (id)",
+                    BoundedString {
+                        value: "PRIMARY KEY (id)",
+                    },
+                ),
+                name: DbSchemaText(
+                    BoundedString {
+                        value: "users_pkey",
+                    },
                 ),
                 kind: PrimaryKey,
-                name: DbSchemaText(
-                    "users_pkey",
-                ),
             },
         ],
     ),
@@ -271,11 +371,15 @@ DbTableSnapshot {
         [
             DbColumnSnapshot {
                 data_type: DbSchemaText(
-                    "bigint",
+                    BoundedString {
+                        value: "bigint",
+                    },
                 ),
                 default: None,
                 name: DbSchemaText(
-                    "id",
+                    BoundedString {
+                        value: "id",
+                    },
                 ),
                 nullable: DbColumnNullable(
                     false,
@@ -283,15 +387,21 @@ DbTableSnapshot {
             },
             DbColumnSnapshot {
                 data_type: DbSchemaText(
-                    "boolean",
+                    BoundedString {
+                        value: "boolean",
+                    },
                 ),
                 default: Some(
                     DbSchemaText(
-                        "false",
+                        BoundedString {
+                            value: "false",
+                        },
                     ),
                 ),
                 name: DbSchemaText(
-                    "is_system",
+                    BoundedString {
+                        value: "is_system",
+                    },
                 ),
                 nullable: DbColumnNullable(
                     false,
@@ -299,11 +409,15 @@ DbTableSnapshot {
             },
             DbColumnSnapshot {
                 data_type: DbSchemaText(
-                    "text",
+                    BoundedString {
+                        value: "text",
+                    },
                 ),
                 default: None,
                 name: DbSchemaText(
-                    "name",
+                    BoundedString {
+                        value: "name",
+                    },
                 ),
                 nullable: DbColumnNullable(
                     false,
@@ -311,15 +425,21 @@ DbTableSnapshot {
             },
             DbColumnSnapshot {
                 data_type: DbSchemaText(
-                    "timestamp with time zone",
+                    BoundedString {
+                        value: "timestamp with time zone",
+                    },
                 ),
                 default: Some(
                     DbSchemaText(
-                        "now()",
+                        BoundedString {
+                            value: "now()",
+                        },
                     ),
                 ),
                 name: DbSchemaText(
-                    "created_at",
+                    BoundedString {
+                        value: "created_at",
+                    },
                 ),
                 nullable: DbColumnNullable(
                     false,
@@ -327,15 +447,21 @@ DbTableSnapshot {
             },
             DbColumnSnapshot {
                 data_type: DbSchemaText(
-                    "timestamp with time zone",
+                    BoundedString {
+                        value: "timestamp with time zone",
+                    },
                 ),
                 default: Some(
                     DbSchemaText(
-                        "now()",
+                        BoundedString {
+                            value: "now()",
+                        },
                     ),
                 ),
                 name: DbSchemaText(
-                    "updated_at",
+                    BoundedString {
+                        value: "updated_at",
+                    },
                 ),
                 nullable: DbColumnNullable(
                     false,
@@ -347,57 +473,81 @@ DbTableSnapshot {
         [
             DbObjectSnapshot {
                 definition: DbSchemaText(
-                    "CHECK (((char_length(name) >= 1) AND (char_length(name) <= 128)))",
+                    BoundedString {
+                        value: "CHECK (((char_length(name) >= 1) AND (char_length(name) <= 128)))",
+                    },
+                ),
+                name: DbSchemaText(
+                    BoundedString {
+                        value: "roles_name_length",
+                    },
                 ),
                 kind: Check,
-                name: DbSchemaText(
-                    "roles_name_length",
-                ),
             },
             DbObjectSnapshot {
                 definition: DbSchemaText(
-                    "CHECK (((name = lower(name)) AND (name ~ '^[a-z0-9_.-]+$'::text)))",
+                    BoundedString {
+                        value: "CHECK (((name = lower(name)) AND (name ~ '^[a-z0-9_.-]+$'::text)))",
+                    },
+                ),
+                name: DbSchemaText(
+                    BoundedString {
+                        value: "roles_name_format",
+                    },
                 ),
                 kind: Check,
-                name: DbSchemaText(
-                    "roles_name_format",
-                ),
             },
             DbObjectSnapshot {
                 definition: DbSchemaText(
-                    "CREATE UNIQUE INDEX roles_name_key ON admin_migration_fresh_test.roles USING btree (name)",
+                    BoundedString {
+                        value: "CREATE UNIQUE INDEX roles_name_key ON admin_migration_fresh_test.roles USING btree (name)",
+                    },
+                ),
+                name: DbSchemaText(
+                    BoundedString {
+                        value: "roles_name_key",
+                    },
                 ),
                 kind: Index,
-                name: DbSchemaText(
-                    "roles_name_key",
-                ),
             },
             DbObjectSnapshot {
                 definition: DbSchemaText(
-                    "CREATE UNIQUE INDEX roles_pkey ON admin_migration_fresh_test.roles USING btree (id)",
+                    BoundedString {
+                        value: "CREATE UNIQUE INDEX roles_pkey ON admin_migration_fresh_test.roles USING btree (id)",
+                    },
+                ),
+                name: DbSchemaText(
+                    BoundedString {
+                        value: "roles_pkey",
+                    },
                 ),
                 kind: Index,
-                name: DbSchemaText(
-                    "roles_pkey",
-                ),
             },
             DbObjectSnapshot {
                 definition: DbSchemaText(
-                    "PRIMARY KEY (id)",
+                    BoundedString {
+                        value: "PRIMARY KEY (id)",
+                    },
+                ),
+                name: DbSchemaText(
+                    BoundedString {
+                        value: "roles_pkey",
+                    },
                 ),
                 kind: PrimaryKey,
-                name: DbSchemaText(
-                    "roles_pkey",
-                ),
             },
             DbObjectSnapshot {
                 definition: DbSchemaText(
-                    "UNIQUE (name)",
+                    BoundedString {
+                        value: "UNIQUE (name)",
+                    },
+                ),
+                name: DbSchemaText(
+                    BoundedString {
+                        value: "roles_name_key",
+                    },
                 ),
                 kind: Unique,
-                name: DbSchemaText(
-                    "roles_name_key",
-                ),
             },
         ],
     ),
@@ -409,11 +559,15 @@ DbTableSnapshot {
         [
             DbColumnSnapshot {
                 data_type: DbSchemaText(
-                    "bigint",
+                    BoundedString {
+                        value: "bigint",
+                    },
                 ),
                 default: None,
                 name: DbSchemaText(
-                    "id",
+                    BoundedString {
+                        value: "id",
+                    },
                 ),
                 nullable: DbColumnNullable(
                     false,
@@ -421,11 +575,15 @@ DbTableSnapshot {
             },
             DbColumnSnapshot {
                 data_type: DbSchemaText(
-                    "text",
+                    BoundedString {
+                        value: "text",
+                    },
                 ),
                 default: None,
                 name: DbSchemaText(
-                    "name",
+                    BoundedString {
+                        value: "name",
+                    },
                 ),
                 nullable: DbColumnNullable(
                     false,
@@ -433,15 +591,21 @@ DbTableSnapshot {
             },
             DbColumnSnapshot {
                 data_type: DbSchemaText(
-                    "timestamp with time zone",
+                    BoundedString {
+                        value: "timestamp with time zone",
+                    },
                 ),
                 default: Some(
                     DbSchemaText(
-                        "now()",
+                        BoundedString {
+                            value: "now()",
+                        },
                     ),
                 ),
                 name: DbSchemaText(
-                    "created_at",
+                    BoundedString {
+                        value: "created_at",
+                    },
                 ),
                 nullable: DbColumnNullable(
                     false,
@@ -453,57 +617,81 @@ DbTableSnapshot {
         [
             DbObjectSnapshot {
                 definition: DbSchemaText(
-                    "CHECK (((char_length(name) >= 3) AND (char_length(name) <= 128)))",
+                    BoundedString {
+                        value: "CHECK (((char_length(name) >= 3) AND (char_length(name) <= 128)))",
+                    },
+                ),
+                name: DbSchemaText(
+                    BoundedString {
+                        value: "permissions_name_length",
+                    },
                 ),
                 kind: Check,
-                name: DbSchemaText(
-                    "permissions_name_length",
-                ),
             },
             DbObjectSnapshot {
                 definition: DbSchemaText(
-                    "CHECK (((name = lower(name)) AND (name ~ '^[a-z0-9_]+:[a-z0-9_]+$'::text)))",
+                    BoundedString {
+                        value: "CHECK (((name = lower(name)) AND (name ~ '^[a-z0-9_]+:[a-z0-9_]+$'::text)))",
+                    },
+                ),
+                name: DbSchemaText(
+                    BoundedString {
+                        value: "permissions_name_format",
+                    },
                 ),
                 kind: Check,
-                name: DbSchemaText(
-                    "permissions_name_format",
-                ),
             },
             DbObjectSnapshot {
                 definition: DbSchemaText(
-                    "CREATE UNIQUE INDEX permissions_name_key ON admin_migration_fresh_test.permissions USING btree (name)",
+                    BoundedString {
+                        value: "CREATE UNIQUE INDEX permissions_name_key ON admin_migration_fresh_test.permissions USING btree (name)",
+                    },
+                ),
+                name: DbSchemaText(
+                    BoundedString {
+                        value: "permissions_name_key",
+                    },
                 ),
                 kind: Index,
-                name: DbSchemaText(
-                    "permissions_name_key",
-                ),
             },
             DbObjectSnapshot {
                 definition: DbSchemaText(
-                    "CREATE UNIQUE INDEX permissions_pkey ON admin_migration_fresh_test.permissions USING btree (id)",
+                    BoundedString {
+                        value: "CREATE UNIQUE INDEX permissions_pkey ON admin_migration_fresh_test.permissions USING btree (id)",
+                    },
+                ),
+                name: DbSchemaText(
+                    BoundedString {
+                        value: "permissions_pkey",
+                    },
                 ),
                 kind: Index,
-                name: DbSchemaText(
-                    "permissions_pkey",
-                ),
             },
             DbObjectSnapshot {
                 definition: DbSchemaText(
-                    "PRIMARY KEY (id)",
+                    BoundedString {
+                        value: "PRIMARY KEY (id)",
+                    },
+                ),
+                name: DbSchemaText(
+                    BoundedString {
+                        value: "permissions_pkey",
+                    },
                 ),
                 kind: PrimaryKey,
-                name: DbSchemaText(
-                    "permissions_pkey",
-                ),
             },
             DbObjectSnapshot {
                 definition: DbSchemaText(
-                    "UNIQUE (name)",
+                    BoundedString {
+                        value: "UNIQUE (name)",
+                    },
+                ),
+                name: DbSchemaText(
+                    BoundedString {
+                        value: "permissions_name_key",
+                    },
                 ),
                 kind: Unique,
-                name: DbSchemaText(
-                    "permissions_name_key",
-                ),
             },
         ],
     ),
@@ -515,11 +703,15 @@ DbTableSnapshot {
         [
             DbColumnSnapshot {
                 data_type: DbSchemaText(
-                    "bigint",
+                    BoundedString {
+                        value: "bigint",
+                    },
                 ),
                 default: None,
                 name: DbSchemaText(
-                    "id",
+                    BoundedString {
+                        value: "id",
+                    },
                 ),
                 nullable: DbColumnNullable(
                     false,
@@ -527,11 +719,15 @@ DbTableSnapshot {
             },
             DbColumnSnapshot {
                 data_type: DbSchemaText(
-                    "bigint",
+                    BoundedString {
+                        value: "bigint",
+                    },
                 ),
                 default: None,
                 name: DbSchemaText(
-                    "role_id",
+                    BoundedString {
+                        value: "role_id",
+                    },
                 ),
                 nullable: DbColumnNullable(
                     false,
@@ -539,11 +735,15 @@ DbTableSnapshot {
             },
             DbColumnSnapshot {
                 data_type: DbSchemaText(
-                    "bigint",
+                    BoundedString {
+                        value: "bigint",
+                    },
                 ),
                 default: None,
                 name: DbSchemaText(
-                    "user_id",
+                    BoundedString {
+                        value: "user_id",
+                    },
                 ),
                 nullable: DbColumnNullable(
                     false,
@@ -551,15 +751,21 @@ DbTableSnapshot {
             },
             DbColumnSnapshot {
                 data_type: DbSchemaText(
-                    "timestamp with time zone",
+                    BoundedString {
+                        value: "timestamp with time zone",
+                    },
                 ),
                 default: Some(
                     DbSchemaText(
-                        "now()",
+                        BoundedString {
+                            value: "now()",
+                        },
                     ),
                 ),
                 name: DbSchemaText(
-                    "created_at",
+                    BoundedString {
+                        value: "created_at",
+                    },
                 ),
                 nullable: DbColumnNullable(
                     false,
@@ -571,66 +777,94 @@ DbTableSnapshot {
         [
             DbObjectSnapshot {
                 definition: DbSchemaText(
-                    "CREATE INDEX user_roles_role_id_idx ON admin_migration_fresh_test.user_roles USING btree (role_id)",
+                    BoundedString {
+                        value: "CREATE INDEX user_roles_role_id_idx ON admin_migration_fresh_test.user_roles USING btree (role_id)",
+                    },
+                ),
+                name: DbSchemaText(
+                    BoundedString {
+                        value: "user_roles_role_id_idx",
+                    },
                 ),
                 kind: Index,
-                name: DbSchemaText(
-                    "user_roles_role_id_idx",
-                ),
             },
             DbObjectSnapshot {
                 definition: DbSchemaText(
-                    "CREATE UNIQUE INDEX user_roles_pkey ON admin_migration_fresh_test.user_roles USING btree (id)",
+                    BoundedString {
+                        value: "CREATE UNIQUE INDEX user_roles_pkey ON admin_migration_fresh_test.user_roles USING btree (id)",
+                    },
+                ),
+                name: DbSchemaText(
+                    BoundedString {
+                        value: "user_roles_pkey",
+                    },
                 ),
                 kind: Index,
-                name: DbSchemaText(
-                    "user_roles_pkey",
-                ),
             },
             DbObjectSnapshot {
                 definition: DbSchemaText(
-                    "CREATE UNIQUE INDEX user_roles_user_id_role_id_key ON admin_migration_fresh_test.user_roles USING btree (user_id, role_id)",
+                    BoundedString {
+                        value: "CREATE UNIQUE INDEX user_roles_user_id_role_id_key ON admin_migration_fresh_test.user_roles USING btree (user_id, role_id)",
+                    },
+                ),
+                name: DbSchemaText(
+                    BoundedString {
+                        value: "user_roles_user_id_role_id_key",
+                    },
                 ),
                 kind: Index,
-                name: DbSchemaText(
-                    "user_roles_user_id_role_id_key",
-                ),
             },
             DbObjectSnapshot {
                 definition: DbSchemaText(
-                    "FOREIGN KEY (role_id) REFERENCES roles(id) ON DELETE CASCADE",
+                    BoundedString {
+                        value: "FOREIGN KEY (role_id) REFERENCES roles(id) ON DELETE CASCADE",
+                    },
+                ),
+                name: DbSchemaText(
+                    BoundedString {
+                        value: "user_roles_role_id_fkey",
+                    },
                 ),
                 kind: ForeignKey,
-                name: DbSchemaText(
-                    "user_roles_role_id_fkey",
-                ),
             },
             DbObjectSnapshot {
                 definition: DbSchemaText(
-                    "FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE",
+                    BoundedString {
+                        value: "FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE",
+                    },
+                ),
+                name: DbSchemaText(
+                    BoundedString {
+                        value: "user_roles_user_id_fkey",
+                    },
                 ),
                 kind: ForeignKey,
-                name: DbSchemaText(
-                    "user_roles_user_id_fkey",
-                ),
             },
             DbObjectSnapshot {
                 definition: DbSchemaText(
-                    "PRIMARY KEY (id)",
+                    BoundedString {
+                        value: "PRIMARY KEY (id)",
+                    },
+                ),
+                name: DbSchemaText(
+                    BoundedString {
+                        value: "user_roles_pkey",
+                    },
                 ),
                 kind: PrimaryKey,
-                name: DbSchemaText(
-                    "user_roles_pkey",
-                ),
             },
             DbObjectSnapshot {
                 definition: DbSchemaText(
-                    "UNIQUE (user_id, role_id)",
+                    BoundedString {
+                        value: "UNIQUE (user_id, role_id)",
+                    },
+                ),
+                name: DbSchemaText(
+                    BoundedString {
+                        value: "user_roles_user_id_role_id_key",
+                    },
                 ),
                 kind: Unique,
-                name: DbSchemaText(
-                    "user_roles_user_id_role_id_key",
-                ),
             },
         ],
     ),
@@ -642,11 +876,15 @@ DbTableSnapshot {
         [
             DbColumnSnapshot {
                 data_type: DbSchemaText(
-                    "bigint",
+                    BoundedString {
+                        value: "bigint",
+                    },
                 ),
                 default: None,
                 name: DbSchemaText(
-                    "id",
+                    BoundedString {
+                        value: "id",
+                    },
                 ),
                 nullable: DbColumnNullable(
                     false,
@@ -654,11 +892,15 @@ DbTableSnapshot {
             },
             DbColumnSnapshot {
                 data_type: DbSchemaText(
-                    "bigint",
+                    BoundedString {
+                        value: "bigint",
+                    },
                 ),
                 default: None,
                 name: DbSchemaText(
-                    "permission_id",
+                    BoundedString {
+                        value: "permission_id",
+                    },
                 ),
                 nullable: DbColumnNullable(
                     false,
@@ -666,11 +908,15 @@ DbTableSnapshot {
             },
             DbColumnSnapshot {
                 data_type: DbSchemaText(
-                    "bigint",
+                    BoundedString {
+                        value: "bigint",
+                    },
                 ),
                 default: None,
                 name: DbSchemaText(
-                    "role_id",
+                    BoundedString {
+                        value: "role_id",
+                    },
                 ),
                 nullable: DbColumnNullable(
                     false,
@@ -678,15 +924,21 @@ DbTableSnapshot {
             },
             DbColumnSnapshot {
                 data_type: DbSchemaText(
-                    "timestamp with time zone",
+                    BoundedString {
+                        value: "timestamp with time zone",
+                    },
                 ),
                 default: Some(
                     DbSchemaText(
-                        "now()",
+                        BoundedString {
+                            value: "now()",
+                        },
                     ),
                 ),
                 name: DbSchemaText(
-                    "created_at",
+                    BoundedString {
+                        value: "created_at",
+                    },
                 ),
                 nullable: DbColumnNullable(
                     false,
@@ -698,66 +950,94 @@ DbTableSnapshot {
         [
             DbObjectSnapshot {
                 definition: DbSchemaText(
-                    "CREATE INDEX role_permissions_permission_id_idx ON admin_migration_fresh_test.role_permissions USING btree (permission_id)",
+                    BoundedString {
+                        value: "CREATE INDEX role_permissions_permission_id_idx ON admin_migration_fresh_test.role_permissions USING btree (permission_id)",
+                    },
+                ),
+                name: DbSchemaText(
+                    BoundedString {
+                        value: "role_permissions_permission_id_idx",
+                    },
                 ),
                 kind: Index,
-                name: DbSchemaText(
-                    "role_permissions_permission_id_idx",
-                ),
             },
             DbObjectSnapshot {
                 definition: DbSchemaText(
-                    "CREATE UNIQUE INDEX role_permissions_pkey ON admin_migration_fresh_test.role_permissions USING btree (id)",
+                    BoundedString {
+                        value: "CREATE UNIQUE INDEX role_permissions_pkey ON admin_migration_fresh_test.role_permissions USING btree (id)",
+                    },
+                ),
+                name: DbSchemaText(
+                    BoundedString {
+                        value: "role_permissions_pkey",
+                    },
                 ),
                 kind: Index,
-                name: DbSchemaText(
-                    "role_permissions_pkey",
-                ),
             },
             DbObjectSnapshot {
                 definition: DbSchemaText(
-                    "CREATE UNIQUE INDEX role_permissions_role_id_permission_id_key ON admin_migration_fresh_test.role_permissions USING btree (role_id, permission_id)",
+                    BoundedString {
+                        value: "CREATE UNIQUE INDEX role_permissions_role_id_permission_id_key ON admin_migration_fresh_test.role_permissions USING btree (role_id, permission_id)",
+                    },
+                ),
+                name: DbSchemaText(
+                    BoundedString {
+                        value: "role_permissions_role_id_permission_id_key",
+                    },
                 ),
                 kind: Index,
-                name: DbSchemaText(
-                    "role_permissions_role_id_permission_id_key",
-                ),
             },
             DbObjectSnapshot {
                 definition: DbSchemaText(
-                    "FOREIGN KEY (permission_id) REFERENCES permissions(id) ON DELETE CASCADE",
+                    BoundedString {
+                        value: "FOREIGN KEY (permission_id) REFERENCES permissions(id) ON DELETE CASCADE",
+                    },
+                ),
+                name: DbSchemaText(
+                    BoundedString {
+                        value: "role_permissions_permission_id_fkey",
+                    },
                 ),
                 kind: ForeignKey,
-                name: DbSchemaText(
-                    "role_permissions_permission_id_fkey",
-                ),
             },
             DbObjectSnapshot {
                 definition: DbSchemaText(
-                    "FOREIGN KEY (role_id) REFERENCES roles(id) ON DELETE CASCADE",
+                    BoundedString {
+                        value: "FOREIGN KEY (role_id) REFERENCES roles(id) ON DELETE CASCADE",
+                    },
+                ),
+                name: DbSchemaText(
+                    BoundedString {
+                        value: "role_permissions_role_id_fkey",
+                    },
                 ),
                 kind: ForeignKey,
-                name: DbSchemaText(
-                    "role_permissions_role_id_fkey",
-                ),
             },
             DbObjectSnapshot {
                 definition: DbSchemaText(
-                    "PRIMARY KEY (id)",
+                    BoundedString {
+                        value: "PRIMARY KEY (id)",
+                    },
+                ),
+                name: DbSchemaText(
+                    BoundedString {
+                        value: "role_permissions_pkey",
+                    },
                 ),
                 kind: PrimaryKey,
-                name: DbSchemaText(
-                    "role_permissions_pkey",
-                ),
             },
             DbObjectSnapshot {
                 definition: DbSchemaText(
-                    "UNIQUE (role_id, permission_id)",
+                    BoundedString {
+                        value: "UNIQUE (role_id, permission_id)",
+                    },
+                ),
+                name: DbSchemaText(
+                    BoundedString {
+                        value: "role_permissions_role_id_permission_id_key",
+                    },
                 ),
                 kind: Unique,
-                name: DbSchemaText(
-                    "role_permissions_role_id_permission_id_key",
-                ),
             },
         ],
     ),
@@ -769,11 +1049,15 @@ DbTableSnapshot {
         [
             DbColumnSnapshot {
                 data_type: DbSchemaText(
-                    "bigint",
+                    BoundedString {
+                        value: "bigint",
+                    },
                 ),
                 default: None,
                 name: DbSchemaText(
-                    "user_id",
+                    BoundedString {
+                        value: "user_id",
+                    },
                 ),
                 nullable: DbColumnNullable(
                     false,
@@ -781,11 +1065,15 @@ DbTableSnapshot {
             },
             DbColumnSnapshot {
                 data_type: DbSchemaText(
-                    "text",
+                    BoundedString {
+                        value: "text",
+                    },
                 ),
                 default: None,
                 name: DbSchemaText(
-                    "token_hash",
+                    BoundedString {
+                        value: "token_hash",
+                    },
                 ),
                 nullable: DbColumnNullable(
                     false,
@@ -793,11 +1081,15 @@ DbTableSnapshot {
             },
             DbColumnSnapshot {
                 data_type: DbSchemaText(
-                    "timestamp with time zone",
+                    BoundedString {
+                        value: "timestamp with time zone",
+                    },
                 ),
                 default: None,
                 name: DbSchemaText(
-                    "expires_at",
+                    BoundedString {
+                        value: "expires_at",
+                    },
                 ),
                 nullable: DbColumnNullable(
                     false,
@@ -805,11 +1097,15 @@ DbTableSnapshot {
             },
             DbColumnSnapshot {
                 data_type: DbSchemaText(
-                    "timestamp with time zone",
+                    BoundedString {
+                        value: "timestamp with time zone",
+                    },
                 ),
                 default: None,
                 name: DbSchemaText(
-                    "revoked_at",
+                    BoundedString {
+                        value: "revoked_at",
+                    },
                 ),
                 nullable: DbColumnNullable(
                     true,
@@ -817,15 +1113,21 @@ DbTableSnapshot {
             },
             DbColumnSnapshot {
                 data_type: DbSchemaText(
-                    "timestamp with time zone",
+                    BoundedString {
+                        value: "timestamp with time zone",
+                    },
                 ),
                 default: Some(
                     DbSchemaText(
-                        "now()",
+                        BoundedString {
+                            value: "now()",
+                        },
                     ),
                 ),
                 name: DbSchemaText(
-                    "created_at",
+                    BoundedString {
+                        value: "created_at",
+                    },
                 ),
                 nullable: DbColumnNullable(
                     false,
@@ -833,11 +1135,15 @@ DbTableSnapshot {
             },
             DbColumnSnapshot {
                 data_type: DbSchemaText(
-                    "uuid",
+                    BoundedString {
+                        value: "uuid",
+                    },
                 ),
                 default: None,
                 name: DbSchemaText(
-                    "id",
+                    BoundedString {
+                        value: "id",
+                    },
                 ),
                 nullable: DbColumnNullable(
                     false,
@@ -849,84 +1155,120 @@ DbTableSnapshot {
         [
             DbObjectSnapshot {
                 definition: DbSchemaText(
-                    "CHECK (((revoked_at IS NULL) OR (revoked_at >= created_at)))",
+                    BoundedString {
+                        value: "CHECK (((revoked_at IS NULL) OR (revoked_at >= created_at)))",
+                    },
+                ),
+                name: DbSchemaText(
+                    BoundedString {
+                        value: "refresh_tokens_revoked_after_created",
+                    },
                 ),
                 kind: Check,
-                name: DbSchemaText(
-                    "refresh_tokens_revoked_after_created",
-                ),
             },
             DbObjectSnapshot {
                 definition: DbSchemaText(
-                    "CHECK ((char_length(token_hash) > 0))",
+                    BoundedString {
+                        value: "CHECK ((char_length(token_hash) > 0))",
+                    },
+                ),
+                name: DbSchemaText(
+                    BoundedString {
+                        value: "refresh_tokens_hash_not_empty",
+                    },
                 ),
                 kind: Check,
-                name: DbSchemaText(
-                    "refresh_tokens_hash_not_empty",
-                ),
             },
             DbObjectSnapshot {
                 definition: DbSchemaText(
-                    "CHECK ((expires_at > created_at))",
+                    BoundedString {
+                        value: "CHECK ((expires_at > created_at))",
+                    },
+                ),
+                name: DbSchemaText(
+                    BoundedString {
+                        value: "refresh_tokens_expires_after_created",
+                    },
                 ),
                 kind: Check,
-                name: DbSchemaText(
-                    "refresh_tokens_expires_after_created",
-                ),
             },
             DbObjectSnapshot {
                 definition: DbSchemaText(
-                    "CREATE INDEX refresh_tokens_user_expiry_idx ON admin_migration_fresh_test.refresh_tokens USING btree (user_id, expires_at)",
+                    BoundedString {
+                        value: "CREATE INDEX refresh_tokens_user_expiry_idx ON admin_migration_fresh_test.refresh_tokens USING btree (user_id, expires_at)",
+                    },
+                ),
+                name: DbSchemaText(
+                    BoundedString {
+                        value: "refresh_tokens_user_expiry_idx",
+                    },
                 ),
                 kind: Index,
-                name: DbSchemaText(
-                    "refresh_tokens_user_expiry_idx",
-                ),
             },
             DbObjectSnapshot {
                 definition: DbSchemaText(
-                    "CREATE UNIQUE INDEX refresh_tokens_pkey ON admin_migration_fresh_test.refresh_tokens USING btree (id)",
+                    BoundedString {
+                        value: "CREATE UNIQUE INDEX refresh_tokens_pkey ON admin_migration_fresh_test.refresh_tokens USING btree (id)",
+                    },
+                ),
+                name: DbSchemaText(
+                    BoundedString {
+                        value: "refresh_tokens_pkey",
+                    },
                 ),
                 kind: Index,
-                name: DbSchemaText(
-                    "refresh_tokens_pkey",
-                ),
             },
             DbObjectSnapshot {
                 definition: DbSchemaText(
-                    "CREATE UNIQUE INDEX refresh_tokens_token_hash_key ON admin_migration_fresh_test.refresh_tokens USING btree (token_hash)",
+                    BoundedString {
+                        value: "CREATE UNIQUE INDEX refresh_tokens_token_hash_key ON admin_migration_fresh_test.refresh_tokens USING btree (token_hash)",
+                    },
+                ),
+                name: DbSchemaText(
+                    BoundedString {
+                        value: "refresh_tokens_token_hash_key",
+                    },
                 ),
                 kind: Index,
-                name: DbSchemaText(
-                    "refresh_tokens_token_hash_key",
-                ),
             },
             DbObjectSnapshot {
                 definition: DbSchemaText(
-                    "FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE",
+                    BoundedString {
+                        value: "FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE",
+                    },
+                ),
+                name: DbSchemaText(
+                    BoundedString {
+                        value: "refresh_tokens_user_id_fkey",
+                    },
                 ),
                 kind: ForeignKey,
-                name: DbSchemaText(
-                    "refresh_tokens_user_id_fkey",
-                ),
             },
             DbObjectSnapshot {
                 definition: DbSchemaText(
-                    "PRIMARY KEY (id)",
+                    BoundedString {
+                        value: "PRIMARY KEY (id)",
+                    },
+                ),
+                name: DbSchemaText(
+                    BoundedString {
+                        value: "refresh_tokens_pkey",
+                    },
                 ),
                 kind: PrimaryKey,
-                name: DbSchemaText(
-                    "refresh_tokens_pkey",
-                ),
             },
             DbObjectSnapshot {
                 definition: DbSchemaText(
-                    "UNIQUE (token_hash)",
+                    BoundedString {
+                        value: "UNIQUE (token_hash)",
+                    },
+                ),
+                name: DbSchemaText(
+                    BoundedString {
+                        value: "refresh_tokens_token_hash_key",
+                    },
                 ),
                 kind: Unique,
-                name: DbSchemaText(
-                    "refresh_tokens_token_hash_key",
-                ),
             },
         ],
     ),
@@ -938,11 +1280,15 @@ DbTableSnapshot {
         [
             DbColumnSnapshot {
                 data_type: DbSchemaText(
-                    "bigint",
+                    BoundedString {
+                        value: "bigint",
+                    },
                 ),
                 default: None,
                 name: DbSchemaText(
-                    "user_id",
+                    BoundedString {
+                        value: "user_id",
+                    },
                 ),
                 nullable: DbColumnNullable(
                     false,
@@ -950,11 +1296,15 @@ DbTableSnapshot {
             },
             DbColumnSnapshot {
                 data_type: DbSchemaText(
-                    "text",
+                    BoundedString {
+                        value: "text",
+                    },
                 ),
                 default: None,
                 name: DbSchemaText(
-                    "csrf_token_hash",
+                    BoundedString {
+                        value: "csrf_token_hash",
+                    },
                 ),
                 nullable: DbColumnNullable(
                     false,
@@ -962,11 +1312,15 @@ DbTableSnapshot {
             },
             DbColumnSnapshot {
                 data_type: DbSchemaText(
-                    "text",
+                    BoundedString {
+                        value: "text",
+                    },
                 ),
                 default: None,
                 name: DbSchemaText(
-                    "token_context_hash",
+                    BoundedString {
+                        value: "token_context_hash",
+                    },
                 ),
                 nullable: DbColumnNullable(
                     false,
@@ -974,11 +1328,15 @@ DbTableSnapshot {
             },
             DbColumnSnapshot {
                 data_type: DbSchemaText(
-                    "text",
+                    BoundedString {
+                        value: "text",
+                    },
                 ),
                 default: None,
                 name: DbSchemaText(
-                    "token_identifier_hash",
+                    BoundedString {
+                        value: "token_identifier_hash",
+                    },
                 ),
                 nullable: DbColumnNullable(
                     false,
@@ -986,11 +1344,15 @@ DbTableSnapshot {
             },
             DbColumnSnapshot {
                 data_type: DbSchemaText(
-                    "timestamp with time zone",
+                    BoundedString {
+                        value: "timestamp with time zone",
+                    },
                 ),
                 default: None,
                 name: DbSchemaText(
-                    "expires_at",
+                    BoundedString {
+                        value: "expires_at",
+                    },
                 ),
                 nullable: DbColumnNullable(
                     false,
@@ -998,11 +1360,15 @@ DbTableSnapshot {
             },
             DbColumnSnapshot {
                 data_type: DbSchemaText(
-                    "timestamp with time zone",
+                    BoundedString {
+                        value: "timestamp with time zone",
+                    },
                 ),
                 default: None,
                 name: DbSchemaText(
-                    "revoked_at",
+                    BoundedString {
+                        value: "revoked_at",
+                    },
                 ),
                 nullable: DbColumnNullable(
                     true,
@@ -1010,15 +1376,21 @@ DbTableSnapshot {
             },
             DbColumnSnapshot {
                 data_type: DbSchemaText(
-                    "timestamp with time zone",
+                    BoundedString {
+                        value: "timestamp with time zone",
+                    },
                 ),
                 default: Some(
                     DbSchemaText(
-                        "now()",
+                        BoundedString {
+                            value: "now()",
+                        },
                     ),
                 ),
                 name: DbSchemaText(
-                    "created_at",
+                    BoundedString {
+                        value: "created_at",
+                    },
                 ),
                 nullable: DbColumnNullable(
                     false,
@@ -1026,11 +1398,15 @@ DbTableSnapshot {
             },
             DbColumnSnapshot {
                 data_type: DbSchemaText(
-                    "uuid",
+                    BoundedString {
+                        value: "uuid",
+                    },
                 ),
                 default: None,
                 name: DbSchemaText(
-                    "id",
+                    BoundedString {
+                        value: "id",
+                    },
                 ),
                 nullable: DbColumnNullable(
                     false,
@@ -1042,111 +1418,159 @@ DbTableSnapshot {
         [
             DbObjectSnapshot {
                 definition: DbSchemaText(
-                    "CHECK (((revoked_at IS NULL) OR (revoked_at >= created_at)))",
+                    BoundedString {
+                        value: "CHECK (((revoked_at IS NULL) OR (revoked_at >= created_at)))",
+                    },
+                ),
+                name: DbSchemaText(
+                    BoundedString {
+                        value: "access_sessions_revoked_after_created",
+                    },
                 ),
                 kind: Check,
-                name: DbSchemaText(
-                    "access_sessions_revoked_after_created",
-                ),
             },
             DbObjectSnapshot {
                 definition: DbSchemaText(
-                    "CHECK ((char_length(csrf_token_hash) > 0))",
+                    BoundedString {
+                        value: "CHECK ((char_length(csrf_token_hash) > 0))",
+                    },
+                ),
+                name: DbSchemaText(
+                    BoundedString {
+                        value: "access_sessions_csrf_hash_not_empty",
+                    },
                 ),
                 kind: Check,
-                name: DbSchemaText(
-                    "access_sessions_csrf_hash_not_empty",
-                ),
             },
             DbObjectSnapshot {
                 definition: DbSchemaText(
-                    "CHECK ((char_length(token_identifier_hash) > 0))",
+                    BoundedString {
+                        value: "CHECK ((char_length(token_identifier_hash) > 0))",
+                    },
+                ),
+                name: DbSchemaText(
+                    BoundedString {
+                        value: "access_sessions_token_hash_not_empty",
+                    },
                 ),
                 kind: Check,
-                name: DbSchemaText(
-                    "access_sessions_token_hash_not_empty",
-                ),
             },
             DbObjectSnapshot {
                 definition: DbSchemaText(
-                    "CHECK ((expires_at > created_at))",
+                    BoundedString {
+                        value: "CHECK ((expires_at > created_at))",
+                    },
+                ),
+                name: DbSchemaText(
+                    BoundedString {
+                        value: "access_sessions_expires_after_created",
+                    },
                 ),
                 kind: Check,
-                name: DbSchemaText(
-                    "access_sessions_expires_after_created",
-                ),
             },
             DbObjectSnapshot {
                 definition: DbSchemaText(
-                    "CHECK ((token_context_hash ~ '^[0-9a-f]{64}$'::text))",
+                    BoundedString {
+                        value: "CHECK ((token_context_hash ~ '^[0-9a-f]{64}$'::text))",
+                    },
+                ),
+                name: DbSchemaText(
+                    BoundedString {
+                        value: "access_sessions_context_hash_format",
+                    },
                 ),
                 kind: Check,
-                name: DbSchemaText(
-                    "access_sessions_context_hash_format",
-                ),
             },
             DbObjectSnapshot {
                 definition: DbSchemaText(
-                    "CREATE INDEX access_sessions_context_active_idx ON admin_migration_fresh_test.access_sessions USING btree (user_id, token_context_hash, expires_at) WHERE (revoked_at IS NULL)",
+                    BoundedString {
+                        value: "CREATE INDEX access_sessions_context_active_idx ON admin_migration_fresh_test.access_sessions USING btree (user_id, token_context_hash, expires_at) WHERE (revoked_at IS NULL)",
+                    },
+                ),
+                name: DbSchemaText(
+                    BoundedString {
+                        value: "access_sessions_context_active_idx",
+                    },
                 ),
                 kind: Index,
-                name: DbSchemaText(
-                    "access_sessions_context_active_idx",
-                ),
             },
             DbObjectSnapshot {
                 definition: DbSchemaText(
-                    "CREATE INDEX access_sessions_user_expiry_idx ON admin_migration_fresh_test.access_sessions USING btree (user_id, expires_at)",
+                    BoundedString {
+                        value: "CREATE INDEX access_sessions_user_expiry_idx ON admin_migration_fresh_test.access_sessions USING btree (user_id, expires_at)",
+                    },
+                ),
+                name: DbSchemaText(
+                    BoundedString {
+                        value: "access_sessions_user_expiry_idx",
+                    },
                 ),
                 kind: Index,
-                name: DbSchemaText(
-                    "access_sessions_user_expiry_idx",
-                ),
             },
             DbObjectSnapshot {
                 definition: DbSchemaText(
-                    "CREATE UNIQUE INDEX access_sessions_pkey ON admin_migration_fresh_test.access_sessions USING btree (id)",
+                    BoundedString {
+                        value: "CREATE UNIQUE INDEX access_sessions_pkey ON admin_migration_fresh_test.access_sessions USING btree (id)",
+                    },
+                ),
+                name: DbSchemaText(
+                    BoundedString {
+                        value: "access_sessions_pkey",
+                    },
                 ),
                 kind: Index,
-                name: DbSchemaText(
-                    "access_sessions_pkey",
-                ),
             },
             DbObjectSnapshot {
                 definition: DbSchemaText(
-                    "CREATE UNIQUE INDEX access_sessions_token_identifier_hash_key ON admin_migration_fresh_test.access_sessions USING btree (token_identifier_hash)",
+                    BoundedString {
+                        value: "CREATE UNIQUE INDEX access_sessions_token_identifier_hash_key ON admin_migration_fresh_test.access_sessions USING btree (token_identifier_hash)",
+                    },
+                ),
+                name: DbSchemaText(
+                    BoundedString {
+                        value: "access_sessions_token_identifier_hash_key",
+                    },
                 ),
                 kind: Index,
-                name: DbSchemaText(
-                    "access_sessions_token_identifier_hash_key",
-                ),
             },
             DbObjectSnapshot {
                 definition: DbSchemaText(
-                    "FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE",
+                    BoundedString {
+                        value: "FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE",
+                    },
+                ),
+                name: DbSchemaText(
+                    BoundedString {
+                        value: "access_sessions_user_id_fkey",
+                    },
                 ),
                 kind: ForeignKey,
-                name: DbSchemaText(
-                    "access_sessions_user_id_fkey",
-                ),
             },
             DbObjectSnapshot {
                 definition: DbSchemaText(
-                    "PRIMARY KEY (id)",
+                    BoundedString {
+                        value: "PRIMARY KEY (id)",
+                    },
+                ),
+                name: DbSchemaText(
+                    BoundedString {
+                        value: "access_sessions_pkey",
+                    },
                 ),
                 kind: PrimaryKey,
-                name: DbSchemaText(
-                    "access_sessions_pkey",
-                ),
             },
             DbObjectSnapshot {
                 definition: DbSchemaText(
-                    "UNIQUE (token_identifier_hash)",
+                    BoundedString {
+                        value: "UNIQUE (token_identifier_hash)",
+                    },
+                ),
+                name: DbSchemaText(
+                    BoundedString {
+                        value: "access_sessions_token_identifier_hash_key",
+                    },
                 ),
                 kind: Unique,
-                name: DbSchemaText(
-                    "access_sessions_token_identifier_hash_key",
-                ),
             },
         ],
     ),
@@ -1158,11 +1582,15 @@ DbTableSnapshot {
         [
             DbColumnSnapshot {
                 data_type: DbSchemaText(
-                    "bigint",
+                    BoundedString {
+                        value: "bigint",
+                    },
                 ),
                 default: None,
                 name: DbSchemaText(
-                    "id",
+                    BoundedString {
+                        value: "id",
+                    },
                 ),
                 nullable: DbColumnNullable(
                     false,
@@ -1170,11 +1598,15 @@ DbTableSnapshot {
             },
             DbColumnSnapshot {
                 data_type: DbSchemaText(
-                    "boolean",
+                    BoundedString {
+                        value: "boolean",
+                    },
                 ),
                 default: None,
                 name: DbSchemaText(
-                    "succeeded",
+                    BoundedString {
+                        value: "succeeded",
+                    },
                 ),
                 nullable: DbColumnNullable(
                     false,
@@ -1182,11 +1614,15 @@ DbTableSnapshot {
             },
             DbColumnSnapshot {
                 data_type: DbSchemaText(
-                    "inet",
+                    BoundedString {
+                        value: "inet",
+                    },
                 ),
                 default: None,
                 name: DbSchemaText(
-                    "ip_address",
+                    BoundedString {
+                        value: "ip_address",
+                    },
                 ),
                 nullable: DbColumnNullable(
                     true,
@@ -1194,11 +1630,15 @@ DbTableSnapshot {
             },
             DbColumnSnapshot {
                 data_type: DbSchemaText(
-                    "text",
+                    BoundedString {
+                        value: "text",
+                    },
                 ),
                 default: None,
                 name: DbSchemaText(
-                    "login",
+                    BoundedString {
+                        value: "login",
+                    },
                 ),
                 nullable: DbColumnNullable(
                     false,
@@ -1206,15 +1646,21 @@ DbTableSnapshot {
             },
             DbColumnSnapshot {
                 data_type: DbSchemaText(
-                    "timestamp with time zone",
+                    BoundedString {
+                        value: "timestamp with time zone",
+                    },
                 ),
                 default: Some(
                     DbSchemaText(
-                        "now()",
+                        BoundedString {
+                            value: "now()",
+                        },
                     ),
                 ),
                 name: DbSchemaText(
-                    "attempted_at",
+                    BoundedString {
+                        value: "attempted_at",
+                    },
                 ),
                 nullable: DbColumnNullable(
                     false,
@@ -1226,39 +1672,55 @@ DbTableSnapshot {
         [
             DbObjectSnapshot {
                 definition: DbSchemaText(
-                    "CHECK ((char_length(login) > 0))",
+                    BoundedString {
+                        value: "CHECK ((char_length(login) > 0))",
+                    },
+                ),
+                name: DbSchemaText(
+                    BoundedString {
+                        value: "login_attempts_login_not_empty",
+                    },
                 ),
                 kind: Check,
-                name: DbSchemaText(
-                    "login_attempts_login_not_empty",
-                ),
             },
             DbObjectSnapshot {
                 definition: DbSchemaText(
-                    "CREATE INDEX login_attempts_login_ip_time_idx ON admin_migration_fresh_test.login_attempts USING btree (login, ip_address, attempted_at DESC)",
+                    BoundedString {
+                        value: "CREATE INDEX login_attempts_login_ip_time_idx ON admin_migration_fresh_test.login_attempts USING btree (login, ip_address, attempted_at DESC)",
+                    },
+                ),
+                name: DbSchemaText(
+                    BoundedString {
+                        value: "login_attempts_login_ip_time_idx",
+                    },
                 ),
                 kind: Index,
-                name: DbSchemaText(
-                    "login_attempts_login_ip_time_idx",
-                ),
             },
             DbObjectSnapshot {
                 definition: DbSchemaText(
-                    "CREATE UNIQUE INDEX login_attempts_pkey ON admin_migration_fresh_test.login_attempts USING btree (id)",
+                    BoundedString {
+                        value: "CREATE UNIQUE INDEX login_attempts_pkey ON admin_migration_fresh_test.login_attempts USING btree (id)",
+                    },
+                ),
+                name: DbSchemaText(
+                    BoundedString {
+                        value: "login_attempts_pkey",
+                    },
                 ),
                 kind: Index,
-                name: DbSchemaText(
-                    "login_attempts_pkey",
-                ),
             },
             DbObjectSnapshot {
                 definition: DbSchemaText(
-                    "PRIMARY KEY (id)",
+                    BoundedString {
+                        value: "PRIMARY KEY (id)",
+                    },
+                ),
+                name: DbSchemaText(
+                    BoundedString {
+                        value: "login_attempts_pkey",
+                    },
                 ),
                 kind: PrimaryKey,
-                name: DbSchemaText(
-                    "login_attempts_pkey",
-                ),
             },
         ],
     ),
@@ -1270,11 +1732,15 @@ DbTableSnapshot {
         [
             DbColumnSnapshot {
                 data_type: DbSchemaText(
-                    "bigint",
+                    BoundedString {
+                        value: "bigint",
+                    },
                 ),
                 default: None,
                 name: DbSchemaText(
-                    "id",
+                    BoundedString {
+                        value: "id",
+                    },
                 ),
                 nullable: DbColumnNullable(
                     false,
@@ -1282,11 +1748,15 @@ DbTableSnapshot {
             },
             DbColumnSnapshot {
                 data_type: DbSchemaText(
-                    "bigint",
+                    BoundedString {
+                        value: "bigint",
+                    },
                 ),
                 default: None,
                 name: DbSchemaText(
-                    "user_id",
+                    BoundedString {
+                        value: "user_id",
+                    },
                 ),
                 nullable: DbColumnNullable(
                     true,
@@ -1294,11 +1764,15 @@ DbTableSnapshot {
             },
             DbColumnSnapshot {
                 data_type: DbSchemaText(
-                    "boolean",
+                    BoundedString {
+                        value: "boolean",
+                    },
                 ),
                 default: None,
                 name: DbSchemaText(
-                    "succeeded",
+                    BoundedString {
+                        value: "succeeded",
+                    },
                 ),
                 nullable: DbColumnNullable(
                     false,
@@ -1306,11 +1780,15 @@ DbTableSnapshot {
             },
             DbColumnSnapshot {
                 data_type: DbSchemaText(
-                    "jsonb",
+                    BoundedString {
+                        value: "jsonb",
+                    },
                 ),
                 default: None,
                 name: DbSchemaText(
-                    "details",
+                    BoundedString {
+                        value: "details",
+                    },
                 ),
                 nullable: DbColumnNullable(
                     true,
@@ -1318,11 +1796,15 @@ DbTableSnapshot {
             },
             DbColumnSnapshot {
                 data_type: DbSchemaText(
-                    "text",
+                    BoundedString {
+                        value: "text",
+                    },
                 ),
                 default: None,
                 name: DbSchemaText(
-                    "action",
+                    BoundedString {
+                        value: "action",
+                    },
                 ),
                 nullable: DbColumnNullable(
                     false,
@@ -1330,11 +1812,15 @@ DbTableSnapshot {
             },
             DbColumnSnapshot {
                 data_type: DbSchemaText(
-                    "text",
+                    BoundedString {
+                        value: "text",
+                    },
                 ),
                 default: None,
                 name: DbSchemaText(
-                    "resource",
+                    BoundedString {
+                        value: "resource",
+                    },
                 ),
                 nullable: DbColumnNullable(
                     false,
@@ -1342,11 +1828,15 @@ DbTableSnapshot {
             },
             DbColumnSnapshot {
                 data_type: DbSchemaText(
-                    "text",
+                    BoundedString {
+                        value: "text",
+                    },
                 ),
                 default: None,
                 name: DbSchemaText(
-                    "resource_id",
+                    BoundedString {
+                        value: "resource_id",
+                    },
                 ),
                 nullable: DbColumnNullable(
                     true,
@@ -1354,11 +1844,15 @@ DbTableSnapshot {
             },
             DbColumnSnapshot {
                 data_type: DbSchemaText(
-                    "text",
+                    BoundedString {
+                        value: "text",
+                    },
                 ),
                 default: None,
                 name: DbSchemaText(
-                    "user_login",
+                    BoundedString {
+                        value: "user_login",
+                    },
                 ),
                 nullable: DbColumnNullable(
                     true,
@@ -1366,15 +1860,21 @@ DbTableSnapshot {
             },
             DbColumnSnapshot {
                 data_type: DbSchemaText(
-                    "timestamp with time zone",
+                    BoundedString {
+                        value: "timestamp with time zone",
+                    },
                 ),
                 default: Some(
                     DbSchemaText(
-                        "now()",
+                        BoundedString {
+                            value: "now()",
+                        },
                     ),
                 ),
                 name: DbSchemaText(
-                    "created_at",
+                    BoundedString {
+                        value: "created_at",
+                    },
                 ),
                 nullable: DbColumnNullable(
                     false,
@@ -1382,11 +1882,15 @@ DbTableSnapshot {
             },
             DbColumnSnapshot {
                 data_type: DbSchemaText(
-                    "uuid",
+                    BoundedString {
+                        value: "uuid",
+                    },
                 ),
                 default: None,
                 name: DbSchemaText(
-                    "request_id",
+                    BoundedString {
+                        value: "request_id",
+                    },
                 ),
                 nullable: DbColumnNullable(
                     true,
@@ -1398,66 +1902,94 @@ DbTableSnapshot {
         [
             DbObjectSnapshot {
                 definition: DbSchemaText(
-                    "CHECK (((action = lower(action)) AND (action ~ '^[a-z0-9_]+$'::text)))",
+                    BoundedString {
+                        value: "CHECK (((action = lower(action)) AND (action ~ '^[a-z0-9_]+$'::text)))",
+                    },
+                ),
+                name: DbSchemaText(
+                    BoundedString {
+                        value: "audit_log_action_format",
+                    },
                 ),
                 kind: Check,
-                name: DbSchemaText(
-                    "audit_log_action_format",
-                ),
             },
             DbObjectSnapshot {
                 definition: DbSchemaText(
-                    "CHECK (((resource = lower(resource)) AND (resource ~ '^[a-z0-9_]+$'::text)))",
+                    BoundedString {
+                        value: "CHECK (((resource = lower(resource)) AND (resource ~ '^[a-z0-9_]+$'::text)))",
+                    },
+                ),
+                name: DbSchemaText(
+                    BoundedString {
+                        value: "audit_log_resource_format",
+                    },
                 ),
                 kind: Check,
-                name: DbSchemaText(
-                    "audit_log_resource_format",
-                ),
             },
             DbObjectSnapshot {
                 definition: DbSchemaText(
-                    "CHECK (((user_login IS NULL) OR (char_length(user_login) > 0)))",
+                    BoundedString {
+                        value: "CHECK (((user_login IS NULL) OR (char_length(user_login) > 0)))",
+                    },
+                ),
+                name: DbSchemaText(
+                    BoundedString {
+                        value: "audit_log_user_login_not_empty",
+                    },
                 ),
                 kind: Check,
-                name: DbSchemaText(
-                    "audit_log_user_login_not_empty",
-                ),
             },
             DbObjectSnapshot {
                 definition: DbSchemaText(
-                    "CREATE INDEX audit_log_resource_time_idx ON admin_migration_fresh_test.audit_log USING btree (resource, resource_id, created_at DESC)",
+                    BoundedString {
+                        value: "CREATE INDEX audit_log_resource_time_idx ON admin_migration_fresh_test.audit_log USING btree (resource, resource_id, created_at DESC)",
+                    },
+                ),
+                name: DbSchemaText(
+                    BoundedString {
+                        value: "audit_log_resource_time_idx",
+                    },
                 ),
                 kind: Index,
-                name: DbSchemaText(
-                    "audit_log_resource_time_idx",
-                ),
             },
             DbObjectSnapshot {
                 definition: DbSchemaText(
-                    "CREATE INDEX audit_log_user_time_idx ON admin_migration_fresh_test.audit_log USING btree (user_id, created_at DESC)",
+                    BoundedString {
+                        value: "CREATE INDEX audit_log_user_time_idx ON admin_migration_fresh_test.audit_log USING btree (user_id, created_at DESC)",
+                    },
+                ),
+                name: DbSchemaText(
+                    BoundedString {
+                        value: "audit_log_user_time_idx",
+                    },
                 ),
                 kind: Index,
-                name: DbSchemaText(
-                    "audit_log_user_time_idx",
-                ),
             },
             DbObjectSnapshot {
                 definition: DbSchemaText(
-                    "CREATE UNIQUE INDEX audit_log_pkey ON admin_migration_fresh_test.audit_log USING btree (id)",
+                    BoundedString {
+                        value: "CREATE UNIQUE INDEX audit_log_pkey ON admin_migration_fresh_test.audit_log USING btree (id)",
+                    },
+                ),
+                name: DbSchemaText(
+                    BoundedString {
+                        value: "audit_log_pkey",
+                    },
                 ),
                 kind: Index,
-                name: DbSchemaText(
-                    "audit_log_pkey",
-                ),
             },
             DbObjectSnapshot {
                 definition: DbSchemaText(
-                    "PRIMARY KEY (id)",
+                    BoundedString {
+                        value: "PRIMARY KEY (id)",
+                    },
+                ),
+                name: DbSchemaText(
+                    BoundedString {
+                        value: "audit_log_pkey",
+                    },
                 ),
                 kind: PrimaryKey,
-                name: DbSchemaText(
-                    "audit_log_pkey",
-                ),
             },
         ],
     ),
@@ -1469,15 +2001,21 @@ DbTableSnapshot {
         [
             DbColumnSnapshot {
                 data_type: DbSchemaText(
-                    "smallint",
+                    BoundedString {
+                        value: "smallint",
+                    },
                 ),
                 default: Some(
                     DbSchemaText(
-                        "1",
+                        BoundedString {
+                            value: "1",
+                        },
                     ),
                 ),
                 name: DbSchemaText(
-                    "id",
+                    BoundedString {
+                        value: "id",
+                    },
                 ),
                 nullable: DbColumnNullable(
                     false,
@@ -1485,15 +2023,21 @@ DbTableSnapshot {
             },
             DbColumnSnapshot {
                 data_type: DbSchemaText(
-                    "text",
+                    BoundedString {
+                        value: "text",
+                    },
                 ),
                 default: Some(
                     DbSchemaText(
-                        "'#5b55e7'::text",
+                        BoundedString {
+                            value: "'#5b55e7'::text",
+                        },
                     ),
                 ),
                 name: DbSchemaText(
-                    "primary_color",
+                    BoundedString {
+                        value: "primary_color",
+                    },
                 ),
                 nullable: DbColumnNullable(
                     false,
@@ -1501,15 +2045,21 @@ DbTableSnapshot {
             },
             DbColumnSnapshot {
                 data_type: DbSchemaText(
-                    "text",
+                    BoundedString {
+                        value: "text",
+                    },
                 ),
                 default: Some(
                     DbSchemaText(
-                        "'/admin/users'::text",
+                        BoundedString {
+                            value: "'/admin/users'::text",
+                        },
                     ),
                 ),
                 name: DbSchemaText(
-                    "default_admin_route",
+                    BoundedString {
+                        value: "default_admin_route",
+                    },
                 ),
                 nullable: DbColumnNullable(
                     false,
@@ -1517,15 +2067,21 @@ DbTableSnapshot {
             },
             DbColumnSnapshot {
                 data_type: DbSchemaText(
-                    "text",
+                    BoundedString {
+                        value: "text",
+                    },
                 ),
                 default: Some(
                     DbSchemaText(
-                        "'Admin'::text",
+                        BoundedString {
+                            value: "'Admin'::text",
+                        },
                     ),
                 ),
                 name: DbSchemaText(
-                    "organization_name",
+                    BoundedString {
+                        value: "organization_name",
+                    },
                 ),
                 nullable: DbColumnNullable(
                     false,
@@ -1533,15 +2089,21 @@ DbTableSnapshot {
             },
             DbColumnSnapshot {
                 data_type: DbSchemaText(
-                    "text",
+                    BoundedString {
+                        value: "text",
+                    },
                 ),
                 default: Some(
                     DbSchemaText(
-                        "'Admin'::text",
+                        BoundedString {
+                            value: "'Admin'::text",
+                        },
                     ),
                 ),
                 name: DbSchemaText(
-                    "site_name",
+                    BoundedString {
+                        value: "site_name",
+                    },
                 ),
                 nullable: DbColumnNullable(
                     false,
@@ -1549,15 +2111,21 @@ DbTableSnapshot {
             },
             DbColumnSnapshot {
                 data_type: DbSchemaText(
-                    "text",
+                    BoundedString {
+                        value: "text",
+                    },
                 ),
                 default: Some(
                     DbSchemaText(
-                        "'Admin'::text",
+                        BoundedString {
+                            value: "'Admin'::text",
+                        },
                     ),
                 ),
                 name: DbSchemaText(
-                    "tab_title",
+                    BoundedString {
+                        value: "tab_title",
+                    },
                 ),
                 nullable: DbColumnNullable(
                     false,
@@ -1565,15 +2133,21 @@ DbTableSnapshot {
             },
             DbColumnSnapshot {
                 data_type: DbSchemaText(
-                    "text",
+                    BoundedString {
+                        value: "text",
+                    },
                 ),
                 default: Some(
                     DbSchemaText(
-                        "'https://example.com/admin-logo.svg'::text",
+                        BoundedString {
+                            value: "'https://example.com/admin-logo.svg'::text",
+                        },
                     ),
                 ),
                 name: DbSchemaText(
-                    "main_logo",
+                    BoundedString {
+                        value: "main_logo",
+                    },
                 ),
                 nullable: DbColumnNullable(
                     false,
@@ -1581,15 +2155,21 @@ DbTableSnapshot {
             },
             DbColumnSnapshot {
                 data_type: DbSchemaText(
-                    "text",
+                    BoundedString {
+                        value: "text",
+                    },
                 ),
                 default: Some(
                     DbSchemaText(
-                        "'https://example.com/support'::text",
+                        BoundedString {
+                            value: "'https://example.com/support'::text",
+                        },
                     ),
                 ),
                 name: DbSchemaText(
-                    "support_url",
+                    BoundedString {
+                        value: "support_url",
+                    },
                 ),
                 nullable: DbColumnNullable(
                     false,
@@ -1597,15 +2177,21 @@ DbTableSnapshot {
             },
             DbColumnSnapshot {
                 data_type: DbSchemaText(
-                    "text",
+                    BoundedString {
+                        value: "text",
+                    },
                 ),
                 default: Some(
                     DbSchemaText(
-                        "'support@example.com'::text",
+                        BoundedString {
+                            value: "'support@example.com'::text",
+                        },
                     ),
                 ),
                 name: DbSchemaText(
-                    "organization_contacts",
+                    BoundedString {
+                        value: "organization_contacts",
+                    },
                 ),
                 nullable: DbColumnNullable(
                     false,
@@ -1613,15 +2199,21 @@ DbTableSnapshot {
             },
             DbColumnSnapshot {
                 data_type: DbSchemaText(
-                    "timestamp with time zone",
+                    BoundedString {
+                        value: "timestamp with time zone",
+                    },
                 ),
                 default: Some(
                     DbSchemaText(
-                        "now()",
+                        BoundedString {
+                            value: "now()",
+                        },
                     ),
                 ),
                 name: DbSchemaText(
-                    "updated_at",
+                    BoundedString {
+                        value: "updated_at",
+                    },
                 ),
                 nullable: DbColumnNullable(
                     false,
@@ -1633,48 +2225,68 @@ DbTableSnapshot {
         [
             DbObjectSnapshot {
                 definition: DbSchemaText(
-                    "CHECK ((char_length(btrim(site_name)) > 0))",
+                    BoundedString {
+                        value: "CHECK ((char_length(btrim(site_name)) > 0))",
+                    },
+                ),
+                name: DbSchemaText(
+                    BoundedString {
+                        value: "system_settings_site_name_not_empty",
+                    },
                 ),
                 kind: Check,
-                name: DbSchemaText(
-                    "system_settings_site_name_not_empty",
-                ),
             },
             DbObjectSnapshot {
                 definition: DbSchemaText(
-                    "CHECK ((default_admin_route ~~ '/admin%'::text))",
+                    BoundedString {
+                        value: "CHECK ((default_admin_route ~~ '/admin%'::text))",
+                    },
+                ),
+                name: DbSchemaText(
+                    BoundedString {
+                        value: "system_settings_default_route_format",
+                    },
                 ),
                 kind: Check,
-                name: DbSchemaText(
-                    "system_settings_default_route_format",
-                ),
             },
             DbObjectSnapshot {
                 definition: DbSchemaText(
-                    "CHECK ((id = 1))",
+                    BoundedString {
+                        value: "CHECK ((id = 1))",
+                    },
+                ),
+                name: DbSchemaText(
+                    BoundedString {
+                        value: "system_settings_singleton",
+                    },
                 ),
                 kind: Check,
-                name: DbSchemaText(
-                    "system_settings_singleton",
-                ),
             },
             DbObjectSnapshot {
                 definition: DbSchemaText(
-                    "CREATE UNIQUE INDEX system_settings_pkey ON admin_migration_fresh_test.system_settings USING btree (id)",
+                    BoundedString {
+                        value: "CREATE UNIQUE INDEX system_settings_pkey ON admin_migration_fresh_test.system_settings USING btree (id)",
+                    },
+                ),
+                name: DbSchemaText(
+                    BoundedString {
+                        value: "system_settings_pkey",
+                    },
                 ),
                 kind: Index,
-                name: DbSchemaText(
-                    "system_settings_pkey",
-                ),
             },
             DbObjectSnapshot {
                 definition: DbSchemaText(
-                    "PRIMARY KEY (id)",
+                    BoundedString {
+                        value: "PRIMARY KEY (id)",
+                    },
+                ),
+                name: DbSchemaText(
+                    BoundedString {
+                        value: "system_settings_pkey",
+                    },
                 ),
                 kind: PrimaryKey,
-                name: DbSchemaText(
-                    "system_settings_pkey",
-                ),
             },
         ],
     ),
@@ -1686,15 +2298,21 @@ DbTableSnapshot {
         [
             DbColumnSnapshot {
                 data_type: DbSchemaText(
-                    "bigint",
+                    BoundedString {
+                        value: "bigint",
+                    },
                 ),
                 default: Some(
                     DbSchemaText(
-                        "0",
+                        BoundedString {
+                            value: "0",
+                        },
                     ),
                 ),
                 name: DbSchemaText(
-                    "request_count",
+                    BoundedString {
+                        value: "request_count",
+                    },
                 ),
                 nullable: DbColumnNullable(
                     false,
@@ -1702,11 +2320,15 @@ DbTableSnapshot {
             },
             DbColumnSnapshot {
                 data_type: DbSchemaText(
-                    "text",
+                    BoundedString {
+                        value: "text",
+                    },
                 ),
                 default: None,
                 name: DbSchemaText(
-                    "scope",
+                    BoundedString {
+                        value: "scope",
+                    },
                 ),
                 nullable: DbColumnNullable(
                     false,
@@ -1714,11 +2336,15 @@ DbTableSnapshot {
             },
             DbColumnSnapshot {
                 data_type: DbSchemaText(
-                    "text",
+                    BoundedString {
+                        value: "text",
+                    },
                 ),
                 default: None,
                 name: DbSchemaText(
-                    "subject",
+                    BoundedString {
+                        value: "subject",
+                    },
                 ),
                 nullable: DbColumnNullable(
                     false,
@@ -1726,15 +2352,21 @@ DbTableSnapshot {
             },
             DbColumnSnapshot {
                 data_type: DbSchemaText(
-                    "timestamp with time zone",
+                    BoundedString {
+                        value: "timestamp with time zone",
+                    },
                 ),
                 default: Some(
                     DbSchemaText(
-                        "now()",
+                        BoundedString {
+                            value: "now()",
+                        },
                     ),
                 ),
                 name: DbSchemaText(
-                    "window_started_at",
+                    BoundedString {
+                        value: "window_started_at",
+                    },
                 ),
                 nullable: DbColumnNullable(
                     false,
@@ -1746,57 +2378,81 @@ DbTableSnapshot {
         [
             DbObjectSnapshot {
                 definition: DbSchemaText(
-                    "CHECK ((char_length(scope) > 0))",
+                    BoundedString {
+                        value: "CHECK ((char_length(scope) > 0))",
+                    },
+                ),
+                name: DbSchemaText(
+                    BoundedString {
+                        value: "rate_limits_scope_not_empty",
+                    },
                 ),
                 kind: Check,
-                name: DbSchemaText(
-                    "rate_limits_scope_not_empty",
-                ),
             },
             DbObjectSnapshot {
                 definition: DbSchemaText(
-                    "CHECK ((char_length(subject) > 0))",
+                    BoundedString {
+                        value: "CHECK ((char_length(subject) > 0))",
+                    },
+                ),
+                name: DbSchemaText(
+                    BoundedString {
+                        value: "rate_limits_subject_not_empty",
+                    },
                 ),
                 kind: Check,
-                name: DbSchemaText(
-                    "rate_limits_subject_not_empty",
-                ),
             },
             DbObjectSnapshot {
                 definition: DbSchemaText(
-                    "CHECK ((request_count >= 0))",
+                    BoundedString {
+                        value: "CHECK ((request_count >= 0))",
+                    },
+                ),
+                name: DbSchemaText(
+                    BoundedString {
+                        value: "rate_limits_request_count_nonnegative",
+                    },
                 ),
                 kind: Check,
-                name: DbSchemaText(
-                    "rate_limits_request_count_nonnegative",
-                ),
             },
             DbObjectSnapshot {
                 definition: DbSchemaText(
-                    "CREATE INDEX rate_limits_window_idx ON admin_migration_fresh_test.rate_limits USING btree (window_started_at)",
+                    BoundedString {
+                        value: "CREATE INDEX rate_limits_window_idx ON admin_migration_fresh_test.rate_limits USING btree (window_started_at)",
+                    },
+                ),
+                name: DbSchemaText(
+                    BoundedString {
+                        value: "rate_limits_window_idx",
+                    },
                 ),
                 kind: Index,
-                name: DbSchemaText(
-                    "rate_limits_window_idx",
-                ),
             },
             DbObjectSnapshot {
                 definition: DbSchemaText(
-                    "CREATE UNIQUE INDEX rate_limits_pkey ON admin_migration_fresh_test.rate_limits USING btree (scope, subject)",
+                    BoundedString {
+                        value: "CREATE UNIQUE INDEX rate_limits_pkey ON admin_migration_fresh_test.rate_limits USING btree (scope, subject)",
+                    },
+                ),
+                name: DbSchemaText(
+                    BoundedString {
+                        value: "rate_limits_pkey",
+                    },
                 ),
                 kind: Index,
-                name: DbSchemaText(
-                    "rate_limits_pkey",
-                ),
             },
             DbObjectSnapshot {
                 definition: DbSchemaText(
-                    "PRIMARY KEY (scope, subject)",
+                    BoundedString {
+                        value: "PRIMARY KEY (scope, subject)",
+                    },
+                ),
+                name: DbSchemaText(
+                    BoundedString {
+                        value: "rate_limits_pkey",
+                    },
                 ),
                 kind: PrimaryKey,
-                name: DbSchemaText(
-                    "rate_limits_pkey",
-                ),
             },
         ],
     ),
@@ -1808,11 +2464,15 @@ DbTableSnapshot {
         [
             DbColumnSnapshot {
                 data_type: DbSchemaText(
-                    "bigint",
+                    BoundedString {
+                        value: "bigint",
+                    },
                 ),
                 default: None,
                 name: DbSchemaText(
-                    "last_deleted_rows",
+                    BoundedString {
+                        value: "last_deleted_rows",
+                    },
                 ),
                 nullable: DbColumnNullable(
                     false,
@@ -1820,15 +2480,21 @@ DbTableSnapshot {
             },
             DbColumnSnapshot {
                 data_type: DbSchemaText(
-                    "boolean",
+                    BoundedString {
+                        value: "boolean",
+                    },
                 ),
                 default: Some(
                     DbSchemaText(
-                        "true",
+                        BoundedString {
+                            value: "true",
+                        },
                     ),
                 ),
                 name: DbSchemaText(
-                    "singleton",
+                    BoundedString {
+                        value: "singleton",
+                    },
                 ),
                 nullable: DbColumnNullable(
                     false,
@@ -1836,11 +2502,15 @@ DbTableSnapshot {
             },
             DbColumnSnapshot {
                 data_type: DbSchemaText(
-                    "timestamp with time zone",
+                    BoundedString {
+                        value: "timestamp with time zone",
+                    },
                 ),
                 default: None,
                 name: DbSchemaText(
-                    "last_success_at",
+                    BoundedString {
+                        value: "last_success_at",
+                    },
                 ),
                 nullable: DbColumnNullable(
                     false,
@@ -1852,39 +2522,55 @@ DbTableSnapshot {
         [
             DbObjectSnapshot {
                 definition: DbSchemaText(
-                    "CHECK ((last_deleted_rows >= 0))",
+                    BoundedString {
+                        value: "CHECK ((last_deleted_rows >= 0))",
+                    },
+                ),
+                name: DbSchemaText(
+                    BoundedString {
+                        value: "cleanup_status_last_deleted_rows_check",
+                    },
                 ),
                 kind: Check,
-                name: DbSchemaText(
-                    "cleanup_status_last_deleted_rows_check",
-                ),
             },
             DbObjectSnapshot {
                 definition: DbSchemaText(
-                    "CHECK (singleton)",
+                    BoundedString {
+                        value: "CHECK (singleton)",
+                    },
+                ),
+                name: DbSchemaText(
+                    BoundedString {
+                        value: "cleanup_status_singleton_check",
+                    },
                 ),
                 kind: Check,
-                name: DbSchemaText(
-                    "cleanup_status_singleton_check",
-                ),
             },
             DbObjectSnapshot {
                 definition: DbSchemaText(
-                    "CREATE UNIQUE INDEX cleanup_status_pkey ON admin_migration_fresh_test.cleanup_status USING btree (singleton)",
+                    BoundedString {
+                        value: "CREATE UNIQUE INDEX cleanup_status_pkey ON admin_migration_fresh_test.cleanup_status USING btree (singleton)",
+                    },
+                ),
+                name: DbSchemaText(
+                    BoundedString {
+                        value: "cleanup_status_pkey",
+                    },
                 ),
                 kind: Index,
-                name: DbSchemaText(
-                    "cleanup_status_pkey",
-                ),
             },
             DbObjectSnapshot {
                 definition: DbSchemaText(
-                    "PRIMARY KEY (singleton)",
+                    BoundedString {
+                        value: "PRIMARY KEY (singleton)",
+                    },
+                ),
+                name: DbSchemaText(
+                    BoundedString {
+                        value: "cleanup_status_pkey",
+                    },
                 ),
                 kind: PrimaryKey,
-                name: DbSchemaText(
-                    "cleanup_status_pkey",
-                ),
             },
         ],
     ),

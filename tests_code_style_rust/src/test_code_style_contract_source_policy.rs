@@ -320,32 +320,33 @@ fn test_administrator_data_table_queries_come_from_the_typed_spec() {
 #[test]
 fn test_administrator_csr_page_behavior_comes_from_the_page_catalog() {
     super::test_code_style_snapshot::with_codebase_snapshot(|snapshot| {
-        let query = snapshot
+        let application = snapshot
             .rs_files()
             .iter()
             .find(|file| {
                 file.path()
                     .as_ref()
-                    .ends_with(constants_str::VALUE_BEBEC57E)
+                    .ends_with(constants_str::FRONTEND_SRC_APP_SHELL_RS)
             })
             .expect(constants_str::DIAGNOSTIC_58E2110E)
             .content()
             .as_ref();
-        let loader = snapshot
-            .rs_files()
-            .iter()
-            .find(|file| {
-                file.path()
-                    .as_ref()
-                    .ends_with(constants_str::VALUE_27AB06E9)
-            })
-            .expect(constants_str::DIAGNOSTIC_04BB78AF)
-            .content()
-            .as_ref();
-        assert!(!query.contains(constants_str::VALUE_D57022B3), "438888fd");
-        assert!(query.contains(constants_str::VALUE_2F9537C9), "d3ec99c6");
-        assert!(loader.contains(constants_str::VALUE_225D2BF5), "256ac244");
-        assert!(loader.contains(constants_str::VALUE_A07B86DA), "fe0906a9");
+        assert!(
+            !application.contains(constants_str::VALUE_D57022B3),
+            "438888fd"
+        );
+        assert!(
+            application.contains(constants_str::VALUE_2F9537C9),
+            "d3ec99c6"
+        );
+        assert!(
+            application.contains(constants_str::VALUE_225D2BF5),
+            "256ac244"
+        );
+        assert!(
+            application.contains(constants_str::VALUE_A07B86DA),
+            "fe0906a9"
+        );
         let pages = snapshot
             .rs_files()
             .iter()

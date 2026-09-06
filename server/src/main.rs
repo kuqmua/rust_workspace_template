@@ -16,6 +16,14 @@ pub mod tests_domain_types;
 pub mod tokio_server_runtime;
 
 fn main() -> server_exit_code::ServerExitCode {
+    if option_env!("ADMIN_FRONTEND_STATIC_DIR").is_none()
+        && let Err(error) = server_runtime_http::frontend_build_environment::FrontendBuildEnvironment::enter_server_directory(
+            server_runtime_http::runtime_path_ref::RuntimePathRef::from(std::path::Path::new(env!("CARGO_MANIFEST_DIR"))),
+        )
+    {
+        tracing::error!(error = %error, message = %constants_str::FRONTEND_PREPARATION_STARTUP_FAILED);
+        return server_exit_code::ServerExitCode::from(std::process::ExitCode::FAILURE);
+    }
     let config = match server_config::server_config::ServerConfig::try_from_env() {
         Ok(config) => config,
         Err(config_error) => {
@@ -75,6 +83,10 @@ fn main() -> server_exit_code::ServerExitCode {
             }
             config_lib::svc_mode::SvcMode::Serve => {
                 tokio::runtime::Runtime::from(runtime).block_on(async move {
+                        if option_env!("ADMIN_FRONTEND_STATIC_DIR").is_none() {
+                            server_runtime_http::frontend_build_environment::FrontendBuildEnvironment::discover()
+                                .prepare().await.map_err(run_server_error::RunServerError::FrontendPreparation)?;
+                        }
                         let pg_pool = make_postgresql_pool::make_postgresql_pool(&config).await?;
                         let cleanup_batch_size = server_admin::admin_cleanup_batch_size::AdminCleanupBatchSize::try_from(1_000i64)
                             .map_err(run_server_error::RunServerError::AdminCleanupConfig)?;
@@ -233,17 +245,17 @@ fn main() -> server_exit_code::ServerExitCode {
                                         },
                                         |body| {
                                             let title_result =
-                                                frontend::admin_ssr_text::AdminSsrText::try_from(
+                                                frontend_admin::admin_ssr_text::AdminSsrText::try_from(
                                                     constants_str::METRICS_ALT.to_owned(),
                                                 );
                                             let text_result =
-                                                frontend::admin_ssr_text::AdminSsrText::try_from(
+                                                frontend_admin::admin_ssr_text::AdminSsrText::try_from(
                                                     body.into_inner(),
                                                 );
                                             match (title_result, text_result) {
                                                 (Ok(title), Ok(text)) => axum::response::IntoResponse::into_response(
                                                     axum::response::Html(String::from(
-                                                        frontend::render_text_page::render_text_page(
+                                                        frontend_admin::render_text_page::render_text_page(
                                                             server_admin_contract::admin_page::AdminPage::Metrics,
                                                             title,
                                                             text,
@@ -371,7 +383,7 @@ fn main() -> server_exit_code::ServerExitCode {
                                                 ),
                                             ))
                                             .merge(axum::Router::from(
-                                                frontend::admin_frontend_routes::admin_frontend_routes(),
+                                                frontend_admin::admin_frontend_routes::admin_frontend_routes(),
                                             ))
                                             .merge(axum::Router::from(admin_html_routes))
                                             .merge(admin_metrics_routes)

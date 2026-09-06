@@ -1,0 +1,28 @@
+#![allow(
+    clippy::same_name_method,
+    clippy::shadow_reuse,
+    clippy::unused_trait_names,
+    reason = "Leptos component and entry-point macro expansion produces these patterns"
+)]
+
+#[allow(
+    clippy::single_call_fn,
+    reason = "wasm_bindgen requires a named start function exported as the WebAssembly module entrypoint"
+)]
+#[wasm_bindgen::prelude::wasm_bindgen(start)]
+pub(crate) fn start() {
+    let Some(window) = web_sys::window() else {
+        return;
+    };
+    let Some(document) = window.document() else {
+        return;
+    };
+    let Some(element) = document.get_element_by_id(constants_str::ADMIN_CSR_ROOT_ID) else {
+        return;
+    };
+    let Ok(root) = wasm_bindgen::JsCast::dyn_into::<web_sys::HtmlElement>(element) else {
+        return;
+    };
+    root.set_inner_html(constants_str::EMPTY);
+    leptos::mount::mount_to(root, crate::admin_app::AdminApp).forget();
+}

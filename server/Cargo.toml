@@ -36,7 +36,7 @@ frontend_contract = { workspace = true }
 server_app_state = { workspace = true }
 server_admin = { workspace = true }
 server_admin_contract = { workspace = true }
-frontend = { workspace = true }
+frontend_admin = { workspace = true }
 server_config = { workspace = true }
 server_runtime_http = { workspace = true }
 server_runtime_core = { workspace = true }

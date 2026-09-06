@@ -18,6 +18,8 @@ pub(crate) enum RunServerError {
     ContentSecurityPolicy(server_runtime_http::http_content_security_policy_error::HttpContentSecurityPolicyError),
     #[error("invalid CORS allow-origin configuration: {0}")]
     CorsAllowOrigin(server_runtime_http::http_cors_allow_origin_header_values_error::HttpCorsAllowOriginHeaderValuesError),
+    #[error("{message}: {0}", message = constants_str::FRONTEND_PREPARATION_STARTUP_FAILED)]
+    FrontendPreparation(#[source] server_runtime_http::frontend_preparation_error::FrontendPreparationError),
     #[error("failed to install metrics recorder: {0}")]
     MetricsRecorder(crate::metrics_exporter_prometheus_build_error::MetricsExporterPrometheusBuildError),
     #[error("failed to initialize observability: {0}")]

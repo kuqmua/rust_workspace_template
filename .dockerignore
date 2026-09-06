@@ -1,6 +1,6 @@
 .git
 .github
 server/.env
-frontend/test-results
+frontend_admin/test-results
 target
 test_results

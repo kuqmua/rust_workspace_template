@@ -53,11 +53,6 @@ psql "${DATABASE_URL}" --set ON_ERROR_STOP=1 \
   --command "DROP SCHEMA IF EXISTS public CASCADE" \
   --command "CREATE SCHEMA public"
 
-(
-  cd "frontend"
-  trunk build --release
-)
-
 umask 077
 printf '%s\n' "Initial-password1!" > "${password_file}"
 

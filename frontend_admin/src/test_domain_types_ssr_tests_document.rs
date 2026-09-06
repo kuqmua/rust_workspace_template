@@ -1,0 +1,226 @@
+#[test]
+fn test_csr_template_contains_mount_root() {
+    let template = std::fs::read_to_string(concat!(env!("CARGO_MANIFEST_DIR"), "/csr.html"))
+        .expect(constants_str::DIAGNOSTIC_4FC292A1);
+
+    assert!(template.contains(format!("id=\"{}\"", constants_str::ADMIN_CSR_ROOT_ID).as_str()));
+}
+
+#[test]
+fn test_server_rendered_pages_contain_forms_and_no_scripts() {
+    let sign_in = crate::render_sign_in::render_sign_in(None, None);
+    assert!(sign_in.as_ref().contains(constants_str::VALUE_675DDC50));
+    assert!(!sign_in.as_ref().contains(constants_str::VALUE_DE15FB4A));
+    assert!(!sign_in.as_ref().contains(constants_str::VALUE_A684F0EC));
+    assert_eq!(
+        sign_in
+            .as_ref()
+            .matches(constants_str::VALUE_675DDC50)
+            .count(),
+        constants_usize::ONE
+    );
+    assert!(!sign_in.as_ref().contains(constants_str::VALUE_F7EB3699));
+    assert!(!sign_in.as_ref().contains(constants_str::VALUE_0350DB6E));
+    assert!(!sign_in.as_ref().contains(constants_str::VALUE_5D74223D));
+    assert!(!sign_in.as_ref().contains(constants_str::VALUE_0DA7C218));
+    let failed_sign_in = crate::render_sign_in::render_sign_in(
+        Some(
+            crate::admin_ssr_error_message::AdminSsrErrorMessage::try_from(String::from(
+                constants_str::VALUE_7EC371A9,
+            ))
+            .expect(constants_str::DIAGNOSTIC_31B0D69F),
+        ),
+        None,
+    );
+    assert!(
+        failed_sign_in
+            .as_ref()
+            .contains(constants_str::VALUE_D51D67DA)
+    );
+    assert!(
+        failed_sign_in
+            .as_ref()
+            .contains(constants_str::VALUE_88B7E010)
+    );
+
+    let page = crate::render_admin_page::render_admin_page(
+        server_admin_contract::admin_page::AdminPage::Users,
+        crate::admin_ssr_html::AdminSsrHtml::try_from(String::from(constants_str::VALUE_91B66961))
+            .expect(constants_str::DIAGNOSTIC_C78BD3A1),
+    );
+    assert!(page.as_ref().contains(constants_str::VALUE_91B66961));
+    assert!(!page.as_ref().contains(constants_str::VALUE_F7EB3699));
+    assert!(!page.as_ref().contains(constants_str::VALUE_0350DB6E));
+    assert!(!page.as_ref().contains(constants_str::VALUE_86DA447D));
+    assert!(!page.as_ref().contains(constants_str::VALUE_F1D07BED));
+    assert!(page.as_ref().contains(constants_str::VALUE_6B793D02));
+    assert!(page.as_ref().contains(constants_str::VALUE_8DE14560));
+    assert!(!page.as_ref().contains(constants_str::VALUE_A47845FB));
+    assert!(
+        page.as_ref().contains(
+            format!(
+                "{}</button></form></li></ul></nav>",
+                server_admin_contract::admin_html_action::AdminHtmlAction::SignOut
+                    .route_name()
+                    .as_ref()
+            )
+            .as_str()
+        )
+    );
+    assert!(!page.as_ref().contains(constants_str::VALUE_5D74223D));
+}
+
+#[test]
+fn test_header_table_labels_match_table_names_and_routes() {
+    let page = crate::render_admin_page::render_admin_page(
+        server_admin_contract::admin_page::AdminPage::Users,
+        crate::admin_ssr_html::AdminSsrHtml::try_from(String::new())
+            .expect(constants_str::DIAGNOSTIC_5A984C96),
+    );
+
+    assert!(
+        server_admin_contract::admin_data_table::AdminDataTable::PG_ORDER
+            .into_iter()
+            .all(|table| {
+                let table_name = table.to_string();
+                let route = table.frontend_path().to_string();
+                let route_name = route
+                    .rsplit_once('/')
+                    .map(|(_prefix, name)| name)
+                    .expect(constants_str::DIAGNOSTIC_100762F4);
+                let href = format!("href=\"{route}\"");
+                let header_label = page
+                    .as_ref()
+                    .split_once(href.as_str())
+                    .and_then(|(_prefix, link_tail)| link_tail.split_once('>'))
+                    .and_then(|(_attributes, label_tail)| {
+                        label_tail.split_once(constants_str::VALUE_ECD5B806)
+                    })
+                    .map_or(constants_str::EMPTY, |(label, _suffix)| label);
+
+                route_name == table_name && header_label == table_name
+            })
+    );
+}
+
+#[test]
+fn test_header_items_stay_stable_between_static_and_table_pages() {
+    let metrics = crate::render_admin_page::render_admin_page(
+        server_admin_contract::admin_page::AdminPage::Metrics,
+        crate::admin_ssr_html::AdminSsrHtml::try_from(String::new())
+            .expect(constants_str::DIAGNOSTIC_F2D57BB4),
+    );
+    let cleanup_status =
+        crate::render_admin_page_with_table_access::render_admin_page_with_table_access(
+            server_admin_contract::admin_page::AdminPage::Tables,
+            crate::admin_ssr_html::AdminSsrHtml::try_from(String::new())
+                .expect(constants_str::DIAGNOSTIC_7F46CFD6),
+            None,
+            None,
+            Some(server_admin_contract::admin_data_table::AdminDataTable::CleanupStatus),
+        );
+    let normalized_header = |html: &crate::admin_ssr_html::AdminSsrHtml| {
+        html.as_ref()
+            .split_once(constants_str::VALUE_75322EEF)
+            .and_then(|(_prefix, header_tail)| {
+                header_tail.split_once(constants_str::VALUE_5034F288)
+            })
+            .map_or_else(String::new, |(header, _suffix)| {
+                header
+                    .replace(
+                        constants_str::VALUE_C067F6CF,
+                        constants_str::PG_CRUD_EMPTY_SQL_SUFFIX,
+                    )
+                    .replace(constants_str::VALUE_80E35525, constants_str::VALUE_A5C068D6)
+                    .replace(
+                        constants_str::VALUE_319B0378,
+                        constants_str::PG_CRUD_EMPTY_SQL_SUFFIX,
+                    )
+            })
+    };
+    let metrics_header = normalized_header(&metrics);
+    let cleanup_status_header = normalized_header(&cleanup_status);
+
+    assert!(!metrics_header.is_empty());
+    assert_eq!(metrics_header, cleanup_status_header);
+    assert!(metrics_header.contains(constants_str::VALUE_6B793D02));
+    assert!(!metrics_header.contains(constants_str::VALUE_A47845FB));
+}
+
+#[test]
+fn test_csr_page_contains_only_csr_application_shell() {
+    let admin = server_admin_contract::authenticated_admin::AuthenticatedAdmin::new(
+        server_admin_contract::admin_display_name::AdminDisplayName::try_from(
+            constants_str::ADMIN.to_owned(),
+        )
+        .expect(constants_str::DIAGNOSTIC_642357A8),
+        server_admin_contract::admin_user_id::AdminUserId::try_from(constants_i64::ONE)
+            .expect(constants_str::DIAGNOSTIC_41856438),
+        server_admin_contract::admin_login::AdminLogin::try_from(constants_str::ROOT.to_owned())
+            .expect(constants_str::DIAGNOSTIC_71A3B6E5),
+        server_admin_contract::admin_permission_values::AdminPermissionValues::try_from(Vec::new())
+            .expect(constants_str::DIAGNOSTIC_8E3CF81F),
+        server_admin_contract::admin_role_names::AdminRoleNames::try_from(Vec::new())
+            .expect(constants_str::DIAGNOSTIC_A5677F33),
+    );
+    let settings = server_admin_contract::admin_settings_view::AdminSettingsView::new(
+        server_admin_contract::admin_default_route::AdminDefaultRoute::try_from(
+            server_admin_contract::admin_frontend_path::AdminFrontendPath::Users
+                .get()
+                .to_owned(),
+        )
+        .expect(constants_str::DIAGNOSTIC_44758B19),
+        None,
+        None,
+        None,
+        None,
+        server_admin_contract::admin_site_name::AdminSiteName::try_from(String::from(
+            constants_str::ADMIN,
+        ))
+        .expect(constants_str::DIAGNOSTIC_8BA6B381),
+        None,
+        None,
+    );
+    let branding =
+        server_admin_contract::admin_branding_view::AdminBrandingView::from_settings(&settings);
+    let html = crate::render_admin_csr::render_admin_csr(
+        server_admin_contract::admin_bool::AdminBool::from(false),
+        server_admin_contract::admin_page::AdminPage::Users,
+        None,
+        &admin,
+        &branding,
+    );
+
+    assert!(html.as_ref().contains(constants_str::VALUE_03DEA637));
+    assert!(html.as_ref().contains(constants_str::VALUE_1F65EE47));
+    assert!(html.as_ref().contains(constants_str::VALUE_775BF65E));
+    assert!(html.as_ref().contains(constants_str::VALUE_C84BBF51));
+    assert!(
+        !html
+            .as_ref()
+            .contains(constants_str::ADMIN_PASSWORD_CHANGE_REQUIRED_ATTRIBUTE)
+    );
+    let restricted_html = crate::render_admin_csr::render_admin_csr(
+        server_admin_contract::admin_bool::AdminBool::from(true),
+        server_admin_contract::admin_page::AdminPage::Profile,
+        None,
+        &admin,
+        &branding,
+    );
+    assert!(
+        restricted_html
+            .as_ref()
+            .contains(constants_str::ADMIN_PASSWORD_CHANGE_REQUIRED_ATTRIBUTE)
+    );
+    assert!(!html.as_ref().contains(constants_str::VALUE_A0C452CB));
+    assert!(!html.as_ref().contains(constants_str::VALUE_EA8C92A5));
+    assert!(!html.as_ref().contains(constants_str::VALUE_C23058ED));
+
+    let table_html = crate::render_data_tables_csr::render_data_tables_csr(
+        Some(server_admin_contract::admin_data_table::AdminDataTable::Users),
+        &admin,
+        &branding,
+    );
+    assert!(table_html.as_ref().contains(constants_str::VALUE_03DEA637));
+    assert!(table_html.as_ref().contains(constants_str::VALUE_C84BBF51));
+}

@@ -138,14 +138,14 @@ jobs:
           cache: npm
           cache-dependency-path: |
             browser_acceptance/package-lock.json
-            frontend/package-lock.json
+            frontend_admin/package-lock.json
       - uses: taiki-e/install-action@5292d65c95e72dc79f25946b7ce34e28deecf2f3
         with:
           tool: trunk
       - run: npm ci
         working-directory: browser_acceptance
       - run: npm ci
-        working-directory: frontend
+        working-directory: frontend_admin
       - run: npx playwright install --with-deps chromium
         working-directory: browser_acceptance
       - run: npm test

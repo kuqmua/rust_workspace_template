@@ -30,13 +30,13 @@ pub(crate) async fn admin_html_open_api(
                 utoipa::openapi::OpenApi::from(crate::generated_open_api::generated_open_api());
             match serde_json::to_string_pretty(&document) {
                 Ok(text) => match (
-                    frontend::admin_ssr_text::AdminSsrText::try_from(
+                    frontend_admin::admin_ssr_text::AdminSsrText::try_from(
                         constants_str::OPENAPI_DOCUMENT.to_owned(),
                     ),
-                    frontend::admin_ssr_text::AdminSsrText::try_from(text),
+                    frontend_admin::admin_ssr_text::AdminSsrText::try_from(text),
                 ) {
                     (Ok(title), Ok(text)) => crate::html_response_impl::html_response_impl(
-                        frontend::render_text_page_with_access::render_text_page_with_access(
+                        frontend_admin::render_text_page_with_access::render_text_page_with_access(
                             server_admin_contract::admin_page::AdminPage::OpenApi,
                             title,
                             text,

@@ -12,7 +12,7 @@ RUN rust_toolchain="$(sed -n 's/^channel = \"\\([^\"]*\\)\"$/\\1/p' rust-toolcha
     && rustup default "${rust_toolchain}" \
     && rustup target add wasm32-unknown-unknown \
     && cargo install trunk --version 0.21.14 --locked
-WORKDIR /workspace/frontend
+WORKDIR /workspace/frontend_admin
 RUN npm ci
 RUN NO_COLOR=true trunk build --release
 WORKDIR /workspace
@@ -25,7 +25,7 @@ RUN apt-get update \
     && groupadd --gid 10001 application \
     && useradd --uid 10001 --gid 10001 --no-create-home --home-dir /nonexistent application
 COPY --from=builder /workspace/target/release/server /application/server
-COPY --from=builder /workspace/frontend/static /application/admin/static
+COPY --from=builder /workspace/frontend_admin/static /application/admin/static
 USER 10001:10001
 EXPOSE 8080
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \

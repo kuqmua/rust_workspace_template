@@ -18,7 +18,7 @@ members = [
   "dev_identity_creation_planner",
   "external_service_emulators",
   "file_storage",
-  "frontend",
+  "frontend_admin",
   "frontend_contract",
   "frontend_contract_validation",
   "fuzz",
@@ -572,7 +572,7 @@ runtime_tests = { path = "./runtime_tests" }
 server_admin = { path = "./server_admin" }
 server_admin_core = { path = "./server_admin_core" }
 server_admin_contract = { path = "./server_admin_contract" }
-frontend = { path = "./frontend" }
+frontend_admin = { path = "./frontend_admin" }
 server_app_state = { path = "./server_app_state" }
 proc_macro_impl_cfg_accessor = { path = "./proc_macro_impl_cfg_accessor" }
 server_config = { path = "./server_config" }

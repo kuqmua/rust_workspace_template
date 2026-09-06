@@ -2493,7 +2493,7 @@ mod test_html {
     }
     #[tokio::test]
     #[ignore = "requires PostgreSQL; run through workspace_test_runner database"]
-    async fn test_postgresql_html_sessions_reads_every_field_and_revokes_session() {
+    async fn test_postgresql_html_sessions_reads_every_field_and_revokes_future_created_session() {
         let fixture = crate::admin_html_test_fixture().await;
         let admin_id = sqlx::query_scalar::<_, i64>(
             constants_str::SELECT_ID_FROM_ADMIN_USERS_WHERE_LOGIN_ADMIN,
@@ -2524,6 +2524,12 @@ mod test_html {
         let sessions_html = crate::admin_html_body(sessions_response).await;
         crate::assert_admin_csr_shell(&sessions_html);
 
+        let _future_created_session =
+            sqlx::query(constants_str::ADMIN_SESSION_FUTURE_CREATION_FIXTURE_SQL)
+                .bind(session_id)
+                .execute(&fixture.pool.0)
+                .await
+                .expect(constants_str::DIAGNOSTIC_3E1B1D3F);
         let revoke_body = super::AdminHtmlTestFormBody::try_from(format!(
             "session_id={session_id}&confirmation=true"
         ))
@@ -3196,6 +3202,18 @@ mod test_maintenance {
         .into_iter()
         .collect::<std::collections::BTreeSet<String>>();
         assert_eq!(fresh_tables, expected_tables);
+        server_admin::prepare_postgresql::prepare_postgresql(
+            app_state::sqlx_pg_pool_ref::SqlxPgPoolRef::from(&fresh_pool),
+        )
+        .await
+        .expect(constants_str::DIAGNOSTIC_E0106BD2);
+        let idempotency_rows = sqlx::query_scalar::<_, i64>(
+            constants_str::SELECT_COUNT_ASTERISK_FROM_PG_TABLE_IDEMPOTENCY,
+        )
+        .fetch_one(&fresh_pool)
+        .await
+        .expect(constants_str::DIAGNOSTIC_3CC6053F);
+        assert_eq!(idempotency_rows, constants_i64::ZERO);
         fresh_pool.close().await;
         let _drop_after =
             sqlx::raw_sql(constants_str::DROP_SCHEMA_ADMIN_MIGRATION_FRESH_TEST_CASCADE)

@@ -1407,7 +1407,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "frontend"
+name = "frontend_admin"
 version = "0.1.0"
 dependencies = [
  "axum",
@@ -5813,7 +5813,7 @@ dependencies = [
  "config_lib",
  "constants_str",
  "constants_usize",
- "frontend",
+ "frontend_admin",
  "frontend_contract",
  "git_info",
  "metrics-exporter-prometheus",
@@ -5855,7 +5855,7 @@ dependencies = [
  "constants_str",
  "constants_u64",
  "constants_usize",
- "frontend",
+ "frontend_admin",
  "frontend_contract",
  "frontend_contract_validation",
  "futures",
