@@ -40,7 +40,7 @@ pub fn render_users(
         })
         .collect::<Vec<_>>();
     let content_view = leptos::view! {
-        <section class="table-page">
+        <section class="table-page table-admin_users_page">
         <div class="resource-actions">
             {can_create.then(|| leptos::view! { <crate::admin_button_link::AdminButtonLink str=server_admin_contract::admin_frontend_path::AdminFrontendPath::UsersCreate.get()>"Create user"</crate::admin_button_link::AdminButtonLink> })}
             {can_manage.then(|| leptos::view! { <crate::admin_button_link::AdminButtonLink str=server_admin_contract::admin_frontend_path::AdminFrontendPath::UsersManage.get() admin_button_variant=crate::admin_button_variant::AdminButtonVariant::Secondary>"Manage users"</crate::admin_button_link::AdminButtonLink> })}

@@ -436,6 +436,19 @@ p {
   gap: 8px;
 }
 
+.table-admin_users_page > .resource-actions {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  width: 100%;
+}
+
+@layer utilities {
+  .table-admin_users_page > .resource-actions > a {
+    width: 100% !important;
+  }
+}
+
 .crud-page {
   display: grid;
   width: 100%;
