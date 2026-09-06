@@ -22,6 +22,26 @@ pub(crate) fn AdminProfileView(
         let current_password = leptos::prelude::RwSignal::new(String::new());
         let new_password = leptos::prelude::RwSignal::new(String::new());
         let password_validation_failed = leptos::prelude::RwSignal::new(false);
+        let password_generation_failed = leptos::prelude::RwSignal::new(false);
+        let password_visible = leptos::prelude::RwSignal::new(false);
+        let generate_password = || {
+            let window = web_sys::window()
+                .ok_or(crate::admin_password_generation_error::AdminPasswordGenerationError::BrowserUnavailable)?;
+            let randomness_error = |exception| {
+                crate::admin_password_generation_error::AdminPasswordGenerationError::Randomness(
+                    crate::wasm_bindgen_password_generation_exception::WasmBindgenPasswordGenerationException::from(exception),
+                )
+            };
+            let crypto = window.crypto().map_err(randomness_error)?;
+            let mut entropy = [0u8; 32];
+            let _random_values = crypto
+                .get_random_values_with_u8_array(&mut entropy)
+                .map_err(randomness_error)?;
+            server_admin_contract::admin_new_password::AdminNewPassword::try_from(
+                server_admin_contract::admin_password_entropy::AdminPasswordEntropy::from(entropy),
+            )
+            .map_err(crate::admin_password_generation_error::AdminPasswordGenerationError::Policy)
+        };
         leptos::view! {
             <crate::admin_card::AdminCard admin_card_variant=crate::admin_card_variant::AdminCardVariant::Security>
                 <crate::admin_card_header::AdminCardHeader><crate::admin_card_title::AdminCardTitle>"Change password"</crate::admin_card_title::AdminCardTitle></crate::admin_card_header::AdminCardHeader>
@@ -52,6 +72,26 @@ pub(crate) fn AdminProfileView(
                     <crate::admin_field::AdminField admin_field_label="New password">
                         <crate::admin_input::AdminInput admin_input_name="new_password" admin_input_kind=crate::admin_input_kind::AdminInputKind::Password minlength=server_admin_contract::identity::ADMIN_NEW_PASSWORD_MIN_CHARS maxlength=server_admin_contract::identity::ADMIN_PASSWORD_MAX_CHARS required=true bind_value=new_password />
                         <singlestage::FieldDescription attr:class="password-policy">{constants_str::ADMIN_PASSWORD_POLICY_DESCRIPTION}</singlestage::FieldDescription>
+                        <crate::admin_button::AdminButton admin_button_kind=crate::admin_button_kind::AdminButtonKind::Button on_click=leptos::prelude::Callback::new(move |_| {
+                            match generate_password() {
+                                Ok(password) => {
+                                    leptos::prelude::Set::set(&new_password, password.as_ref().to_owned());
+                                    leptos::prelude::Set::set(&password_visible, false);
+                                    leptos::prelude::Set::set(&password_generation_failed, false);
+                                    leptos::prelude::Set::set(&password_validation_failed, false);
+                                }
+                                Err(_error) => leptos::prelude::Set::set(&password_generation_failed, true),
+                            }
+                        })>{constants_str::ADMIN_GENERATE_PASSWORD}</crate::admin_button::AdminButton>
+                        <crate::admin_button::AdminButton admin_button_kind=crate::admin_button_kind::AdminButtonKind::Button on_click=leptos::prelude::Callback::new(move |_| {
+                            leptos::prelude::Update::update(&password_visible, |visible| *visible = !*visible);
+                        })>{move || if leptos::prelude::Get::get(&password_visible) { constants_str::ADMIN_HIDE_PASSWORD } else { constants_str::ADMIN_SHOW_PASSWORD }}</crate::admin_button::AdminButton>
+                        {move || leptos::prelude::Get::get(&password_visible).then(|| leptos::view! {
+                            <p><code>{move || leptos::prelude::Get::get(&new_password)}</code></p>
+                        })}
+                        {move || leptos::prelude::Get::get(&password_generation_failed).then(|| leptos::view! {
+                            <singlestage::FieldError>{constants_str::ADMIN_PASSWORD_GENERATION_FAILED}</singlestage::FieldError>
+                        })}
                         {move || leptos::prelude::Get::get(&password_validation_failed).then(|| leptos::view! {
                             <singlestage::FieldError>"Check both passwords and ensure the new password satisfies the policy."</singlestage::FieldError>
                         })}

@@ -14,6 +14,15 @@ The server enforces this requirement; the frontend shows an explanation and disp
 only Profile navigation until the change succeeds. Header links become available after
 the password change reloads the page.
 
+Profile offers Generate password beside the new-password policy. It fills the field with
+a 68-character password using 32 bytes from the browser's Web Crypto generator. Show password
+reveals the value for saving; generation never submits the form. If randomness is unavailable,
+the existing field value is preserved and an error is shown.
+
+The shared `AdminPasswordEntropy` boundary in `server_admin_contract` feeds the validated
+`AdminNewPassword` conversion, keeping generation and password policy together. The public API
+snapshot intentionally adds this redacted entropy wrapper; HTTP routes are unchanged.
+
 `cargo run -p server` (or `cargo run` from `server`) automatically builds browser
 assets before starting the server. Install Node.js 22 or newer and Trunk once:
 

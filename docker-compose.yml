@@ -1,5 +1,6 @@
 services:
   database:
+    restart: unless-stopped
     image: ghcr.io/kuqmua/postgresql_16_with_pg_jsonschema@sha256:e95f0b8fce882a4cadbd7a1e01451a1440b356299af7a2a17859018914d0c178
     environment:
       POSTGRES_DB: rust_workspace_template

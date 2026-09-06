@@ -95,6 +95,7 @@ pub mod admin_page_title;
 pub mod admin_page_total;
 pub mod admin_parameterized_route_path;
 pub mod admin_password;
+pub mod admin_password_entropy;
 pub mod admin_path_route_name;
 pub mod admin_permission;
 pub mod admin_permission_id;
