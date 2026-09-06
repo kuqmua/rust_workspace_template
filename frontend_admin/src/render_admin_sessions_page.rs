@@ -29,7 +29,7 @@ pub fn render_admin_sessions_page(
         let dialog = crate::with_owner::with_owner(move || {
             leptos::view! {
                 <singlestage::Dialog alert=true id=dialog_id class="w-full max-w-lg rounded-2xl border bg-background p-6 shadow-lg" dialog_trigger=singlestage::DialogTrigger::builder().children(leptos::prelude::ToChildren::to_children(move || leptos::view! {
-                    <crate::admin_button::AdminButton admin_button_variant=crate::admin_button_variant::AdminButtonVariant::Danger admin_button_kind=crate::admin_button_kind::AdminButtonKind::Button>"Revoke session"</crate::admin_button::AdminButton>
+                    <crate::admin_button::AdminButton admin_button_variant=crate::admin_button_variant::AdminButtonVariant::Danger admin_button_kind=crate::admin_button_kind::AdminButtonKind::Button>{constants_str::ADMIN_BUTTON_REVOKE_SESSION}</crate::admin_button::AdminButton>
                 })).build()>
                     <singlestage::DialogContent attr:data-name="AlertDialogContent" class="flex flex-col gap-4">
                         <div data-name="AlertDialogBody" class="contents">
@@ -42,8 +42,8 @@ pub fn render_admin_sessions_page(
                                 <singlestage::Label attr:data-name="Label" class="flex items-center gap-2 text-sm leading-none font-medium select-none"><crate::admin_checkbox::AdminCheckbox name="confirmation" value="true" bool=true />"Confirm session revocation"</singlestage::Label>
                             </form>
                             <singlestage::DialogFooter attr:data-name="AlertDialogFooter" class="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-                                <crate::admin_button::AdminButton admin_button_variant=crate::admin_button_variant::AdminButtonVariant::Secondary>"Cancel"</crate::admin_button::AdminButton>
-                                <crate::admin_button::AdminButton admin_button_variant=crate::admin_button_variant::AdminButtonVariant::Danger form=confirm_form_id>"Revoke session"</crate::admin_button::AdminButton>
+                                <crate::admin_button::AdminButton admin_button_variant=crate::admin_button_variant::AdminButtonVariant::Secondary>{constants_str::ADMIN_BUTTON_CANCEL}</crate::admin_button::AdminButton>
+                                <crate::admin_button::AdminButton admin_button_variant=crate::admin_button_variant::AdminButtonVariant::Danger form=confirm_form_id>{constants_str::ADMIN_BUTTON_REVOKE_SESSION}</crate::admin_button::AdminButton>
                             </singlestage::DialogFooter>
                         </div>
                     </singlestage::DialogContent>

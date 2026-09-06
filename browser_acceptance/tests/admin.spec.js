@@ -47,7 +47,7 @@ test("initial administrator sign-in forces a password change before administrato
       response.url().endsWith("/admin/actions/sign_in") &&
       response.status() === 303
   );
-  await page.getByRole("button", { name: "Sign in" }).click();
+  await page.getByRole("button", { name: "sign_in" }).click();
   const response = await signInCompleted;
   const setCookie = (await response.headersArray())
     .filter(header => header.name.toLowerCase() === "set-cookie")
@@ -80,7 +80,7 @@ test("initial administrator sign-in forces a password change before administrato
 
   await page.getByLabel("Current password").fill(initialAdminPassword);
   await page.getByLabel("New password").fill("admin");
-  await page.getByRole("button", { name: "Change password" }).click();
+  await page.getByRole("button", { name: "change_password" }).click();
   await expect(page.getByRole("alert").filter({ hasText: "Check both passwords" })).toHaveText(
     "Check both passwords and ensure the new password satisfies the policy."
   );
@@ -111,7 +111,7 @@ test("administrator users page contains only its header, table, and pagination",
   expect(usersCellStyle).toEqual(await firstCellStyle(page));
 
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.getByText("Navigation", { exact: true }).click();
+  await page.getByText("navigation", { exact: true }).click();
   await expect(page.locator("nav[aria-label='Admin sections']")).toBeVisible();
   await expect(page.locator(".table-scroll")).toBeVisible();
   await page.setViewportSize({ width: 1440, height: 900 });
@@ -195,55 +195,55 @@ test("administrator can create, update, and delete users and roles from dedicate
   await signInAdministrator(page);
 
   await page.goto("/admin/users");
-  await page.getByRole("link", { name: "Create user" }).click();
+  await page.getByRole("link", { name: "create_user" }).click();
   await expect(page).toHaveURL(/\/admin\/users\/create$/);
   await page.getByLabel("Login").fill("crud_user");
   await page.getByLabel("Display name").fill("CRUD User");
   await page.getByLabel("Initial password").fill("CrudUser1!Secure");
-  await page.getByRole("button", { name: "Create user" }).click();
+  await page.getByRole("button", { name: "create_user" }).click();
   await expect(page).toHaveURL(/\/admin\/users#saved$/);
   await expect(page.getByRole("cell", { name: "crud_user" })).toBeVisible();
 
-  await page.getByRole("link", { name: "Manage users" }).click();
+  await page.getByRole("link", { name: "manage_users" }).click();
   await expect(page).toHaveURL(/\/admin\/users\/manage$/);
   const userCard = page.locator("article.crud-record").filter({
     has: page.locator('input[name="login"][value="crud_user"]')
   });
   await userCard.getByLabel("Display name").fill("Updated CRUD User");
-  await userCard.getByRole("button", { name: "Save changes" }).click();
+  await userCard.getByRole("button", { name: "save_changes" }).click();
   await expect(page).toHaveURL(/\/admin\/users#saved$/);
   await expect(page.getByRole("cell", { name: "Updated CRUD User" })).toBeVisible();
-  await page.getByRole("link", { name: "Manage users" }).click();
+  await page.getByRole("link", { name: "manage_users" }).click();
   const updatedUserCard = page.locator("article.crud-record").filter({
     has: page.locator('input[name="login"][value="crud_user"]')
   });
   await updatedUserCard.getByLabel("I understand this cannot be undone").check();
-  await updatedUserCard.getByRole("button", { name: "Delete user" }).click();
+  await updatedUserCard.getByRole("button", { name: "delete_user" }).click();
   await expect(page).toHaveURL(/\/admin\/users#saved$/);
   await expect(page.getByRole("cell", { name: "crud_user" })).toHaveCount(0);
 
   await page.goto("/admin/roles");
-  await page.getByRole("link", { name: "Create role" }).click();
+  await page.getByRole("link", { name: "create_role" }).click();
   await expect(page).toHaveURL(/\/admin\/roles\/create$/);
   await page.getByLabel("Role name").fill("crud_role");
-  await page.getByRole("button", { name: "Create role" }).click();
+  await page.getByRole("button", { name: "create_role" }).click();
   await expect(page).toHaveURL(/\/admin\/roles#saved$/);
   await expect(page.getByRole("cell", { name: "crud_role" })).toBeVisible();
 
-  await page.getByRole("link", { name: "Manage roles" }).click();
+  await page.getByRole("link", { name: "manage_roles" }).click();
   const roleCard = page.locator("article.crud-record").filter({
     has: page.locator('input[name="name"][value="crud_role"]')
   });
   await roleCard.getByLabel("Role name").fill("updated_crud_role");
-  await roleCard.getByRole("button", { name: "Save changes" }).click();
+  await roleCard.getByRole("button", { name: "save_changes" }).click();
   await expect(page).toHaveURL(/\/admin\/roles#saved$/);
   await expect(page.getByRole("cell", { name: "updated_crud_role" })).toBeVisible();
-  await page.getByRole("link", { name: "Manage roles" }).click();
+  await page.getByRole("link", { name: "manage_roles" }).click();
   const updatedRoleCard = page.locator("article.crud-record").filter({
     has: page.locator('input[name="name"][value="updated_crud_role"]')
   });
   await updatedRoleCard.getByLabel("I understand this cannot be undone").check();
-  await updatedRoleCard.getByRole("button", { name: "Delete role" }).click();
+  await updatedRoleCard.getByRole("button", { name: "delete_role" }).click();
   await expect(page).toHaveURL(/\/admin\/roles#saved$/);
   await expect(page.getByRole("cell", { name: "updated_crud_role" })).toHaveCount(0);
 });
@@ -278,7 +278,7 @@ test("Rust UI primitives expose their semantic component contracts", async ({ pa
   await textarea.fill(`${textareaValue} UI test`);
   await expect(textarea).toHaveValue(`${textareaValue} UI test`);
   await page
-    .getByRole("button", { name: "Reset to template defaults" })
+    .getByRole("button", { name: "reset_to_template_defaults" })
     .click();
   const dialog = page.getByRole("dialog", { name: "Reset settings?" });
   await expect(dialog).toBeVisible();
@@ -291,7 +291,7 @@ test("Rust UI primitives expose their semantic component contracts", async ({ pa
     dialog.locator('[data-name="AlertDialogDescription"]')
   ).toHaveCount(1);
   await expect(dialog.locator('[data-name="AlertDialogFooter"]')).toHaveCount(1);
-  await dialog.getByRole("button", { name: "Cancel" }).click();
+  await dialog.getByRole("button", { name: "cancel" }).click();
   await expect(dialog).not.toBeVisible();
 });
 
@@ -305,13 +305,13 @@ test("data-table filter places a full-width Close control below Apply", async ({
   await filter.getByRole("button", { name: "Filter Role Id" }).click();
 
   const dialog = filter.getByRole("dialog");
-  const close = dialog.getByRole("button", { name: "Close" });
+  const close = dialog.getByRole("button", { name: "close" });
   await expect(dialog).toBeVisible();
   await expect(filter).toHaveAttribute("data-name", "Popover");
   await expect(dialog).toHaveAttribute("data-name", "PopoverContent");
   await expect(dialog.locator('[data-name="RadioButtonGroup"]')).toHaveCount(1);
   await expect(dialog.getByRole("radio", { name: "Eq", exact: true })).toBeChecked();
-  await expect(close).toContainText("Close");
+  await expect(close).toContainText("close");
 
   const controls = await filter.evaluate(element => {
     const buttons = element.querySelectorAll("button");
@@ -390,7 +390,7 @@ test("header links leave profile and render the selected page on desktop and mob
     await page.setViewportSize({ width, height: 900 });
     await page.goto("/admin/profile");
     for (const name of ["users", "roles", "permissions", "profile"]) {
-      if (width === 390) await page.getByText("Navigation", { exact: true }).click();
+      if (width === 390) await page.getByText("navigation", { exact: true }).click();
       await page.locator(`header a[href="/admin/${name}"]`).click();
       await expect(page).toHaveURL(new RegExp(`/admin/${name}$`));
       await expect(page.locator(`header a[href="/admin/${name}"][aria-current="page"]`)).toHaveCount(1);

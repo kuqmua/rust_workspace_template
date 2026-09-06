@@ -59,17 +59,17 @@ pub(crate) fn AdminPagination(
                 <input type="hidden" name="offset" value="0" />
                 <crate::admin_input_group::AdminInputGroup>
                     <crate::admin_field::AdminField admin_field_label="Rows"><crate::admin_input::AdminInput admin_input_name="limit" admin_input_kind=crate::admin_input_kind::AdminInputKind::Number min=server_admin_contract::admin_page_limit::AdminPageLimit::MIN max=server_admin_contract::admin_page_limit::AdminPageLimit::MAX initial_value=limit /></crate::admin_field::AdminField>
-                    <crate::admin_button::AdminButton>"Apply"</crate::admin_button::AdminButton>
+                    <crate::admin_button::AdminButton>{constants_str::ADMIN_BUTTON_APPLY}</crate::admin_button::AdminButton>
                 </crate::admin_input_group::AdminInputGroup>
             </form></singlestage::PaginationItem>
             <singlestage::PaginationItem class="contents"><form method="get" action=admin_frontend_path.get()>
                 {previous_query}
-                <input type="hidden" name="offset" value=u32::from(range.previous_offset()).to_string() /><crate::admin_button::AdminButton admin_button_variant=crate::admin_button_variant::AdminButtonVariant::Secondary bool=bool::from(range.previous_disabled())>"Previous"</crate::admin_button::AdminButton>
+                <input type="hidden" name="offset" value=u32::from(range.previous_offset()).to_string() /><crate::admin_button::AdminButton admin_button_variant=crate::admin_button_variant::AdminButtonVariant::Secondary bool=bool::from(range.previous_disabled())>{constants_str::ADMIN_BUTTON_PREVIOUS}</crate::admin_button::AdminButton>
             </form></singlestage::PaginationItem>
             <singlestage::PaginationItem class="contents"><span>{format!("{}-{} of {}", u64::from(range.start()), u64::from(range.end()), total_value)}</span></singlestage::PaginationItem>
             <singlestage::PaginationItem class="contents"><form method="get" action=admin_frontend_path.get()>
                 {next_query}
-                <input type="hidden" name="offset" value=u32::from(range.next_offset()).to_string() /><crate::admin_button::AdminButton admin_button_variant=crate::admin_button_variant::AdminButtonVariant::Secondary bool=bool::from(range.next_disabled())>"Next"</crate::admin_button::AdminButton>
+                <input type="hidden" name="offset" value=u32::from(range.next_offset()).to_string() /><crate::admin_button::AdminButton admin_button_variant=crate::admin_button_variant::AdminButtonVariant::Secondary bool=bool::from(range.next_disabled())>{constants_str::ADMIN_BUTTON_NEXT}</crate::admin_button::AdminButton>
             </form></singlestage::PaginationItem>
             </singlestage::PaginationContent>
         </singlestage::Pagination>

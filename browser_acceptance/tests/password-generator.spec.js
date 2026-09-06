@@ -9,7 +9,7 @@ test("profile generates, reveals, and replaces a password without submitting it"
   await signInInitialAdministrator(page);
   await page.goto("/admin/profile");
   const password = page.getByLabel("New password", { exact: true });
-  const generate = page.getByRole("button", { name: "Generate password", exact: true });
+  const generate = page.getByRole("button", { name: "generate_password", exact: true });
   let passwordChanges = 0;
   page.on("request", request => {
     if (request.method() === "POST" && request.url().endsWith("/v1/admin/auth/password")) {
@@ -25,9 +25,9 @@ test("profile generates, reveals, and replaces a password without submitting it"
   await expect(password).toHaveAttribute("type", "password");
   await expect(page.getByLabel("Current password", { exact: true })).toHaveValue("");
   await expect(page.locator(".security-card code")).toHaveCount(0);
-  await page.getByRole("button", { name: "Show password", exact: true }).click();
+  await page.getByRole("button", { name: "show_password", exact: true }).click();
   await expect(page.locator(".security-card code")).toHaveText(first);
-  await page.getByRole("button", { name: "Hide password", exact: true }).click();
+  await page.getByRole("button", { name: "hide_password", exact: true }).click();
   await expect(page.locator(".security-card code")).toHaveCount(0);
   await generate.click();
   await expect(password).not.toHaveValue(first);

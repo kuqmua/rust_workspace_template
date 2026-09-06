@@ -27,7 +27,7 @@ pub fn render_admin_profile_page(
         <crate::admin_card::AdminCard admin_card_variant=crate::admin_card_variant::AdminCardVariant::Security><form method="post" action=server_admin_contract::admin_html_action::AdminHtmlAction::ProfilePassword.get()>
             <crate::admin_field::AdminField admin_field_label="Current password"><crate::admin_input::AdminInput admin_input_name="current_password" admin_input_kind=crate::admin_input_kind::AdminInputKind::Password required=true /></crate::admin_field::AdminField>
             <crate::admin_field::AdminField admin_field_label="New password"><crate::admin_input::AdminInput admin_input_name="new_password" admin_input_kind=crate::admin_input_kind::AdminInputKind::Password minlength=server_admin_contract::identity::ADMIN_NEW_PASSWORD_MIN_CHARS maxlength=server_admin_contract::identity::ADMIN_PASSWORD_MAX_CHARS required=true /><singlestage::FieldDescription attr:class="password-policy">{constants_str::ADMIN_PASSWORD_POLICY_DESCRIPTION}</singlestage::FieldDescription></crate::admin_field::AdminField>
-            <crate::admin_card_footer::AdminCardFooter><crate::admin_button::AdminButton>"Change password"</crate::admin_button::AdminButton></crate::admin_card_footer::AdminCardFooter>
+            <crate::admin_card_footer::AdminCardFooter><crate::admin_button::AdminButton>{constants_str::ADMIN_BUTTON_CHANGE_PASSWORD}</crate::admin_button::AdminButton></crate::admin_card_footer::AdminCardFooter>
         </form></crate::admin_card::AdminCard>
     };
     let content = crate::render_view::render_view(content_view);

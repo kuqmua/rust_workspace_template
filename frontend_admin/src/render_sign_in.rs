@@ -32,7 +32,7 @@ pub fn render_sign_in(
                     <form method="post" action=server_admin_contract::admin_html_action::AdminHtmlAction::SignIn.get()>
                         <crate::admin_field::AdminField admin_field_label="Login"><crate::admin_input::AdminInput admin_input_name="login" autocomplete="username" required=true /></crate::admin_field::AdminField>
                         <crate::admin_field::AdminField admin_field_label="Password"><crate::admin_input::AdminInput admin_input_name="password" admin_input_kind=crate::admin_input_kind::AdminInputKind::Password autocomplete="current-password" required=true /></crate::admin_field::AdminField>
-                        <crate::admin_button::AdminButton>"Sign in"</crate::admin_button::AdminButton>
+                        <crate::admin_button::AdminButton>{constants_str::SIGN_IN}</crate::admin_button::AdminButton>
                     </form>
                 </crate::admin_card::AdminCard>
             </main>

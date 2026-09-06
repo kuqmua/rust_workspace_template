@@ -62,7 +62,7 @@ test("revisiting sign-in preserves the authenticated administrator session", asy
   await signInAdministrator(page);
   await page.goto("/admin/sign_in");
   await expect(page).toHaveURL(/\/admin\/sign_in$/);
-  await expect(page.getByRole("button", { name: "Sign in" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "sign_in" })).toBeVisible();
   await page.goto("/admin/users");
   await expect(page).toHaveURL(/\/admin\/users$/);
   await expect(page.locator('[data-renderer="csr"]')).toBeVisible();
@@ -192,7 +192,7 @@ test("profile page exposes account details and a labeled password form", async (
   await expect(page.locator(".profile-card")).toBeVisible();
   await expect(page.getByLabel("Current password")).toHaveAttribute("type", "password");
   await expect(page.getByLabel("New password")).toHaveAttribute("type", "password");
-  await expect(page.getByRole("button", { name: "Change password" })).toBeEnabled();
+  await expect(page.getByRole("button", { name: "change_password" })).toBeEnabled();
 });
 
 test("profile page preserves its content after reload", async ({ page }) => {
@@ -213,9 +213,9 @@ test("settings page exposes labeled editable settings", async ({ page }) => {
   await expect(page.getByLabel("Site name")).toBeEditable();
   await expect(page.getByLabel("Tab title")).toBeEditable();
   await expect(page.getByLabel("Default route")).toBeEditable();
-  await expect(page.getByRole("button", { name: "Save settings" })).toBeEnabled();
+  await expect(page.getByRole("button", { name: "save_settings" })).toBeEnabled();
   await expect(
-    page.getByRole("button", { name: "Reset to template defaults" })
+    page.getByRole("button", { name: "reset_to_template_defaults" })
   ).toBeEnabled();
 });
 

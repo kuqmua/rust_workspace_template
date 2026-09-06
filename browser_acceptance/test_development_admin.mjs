@@ -20,10 +20,10 @@ test("test_development_admin_documented_password_signs_in", {
     await page.goto("http://127.0.0.1:8080/admin/sign_in");
     await page.getByLabel("Login", { exact: true }).fill(login);
     await page.getByLabel("Password", { exact: true }).fill(password);
-    await page.getByRole("button", { name: "Sign in", exact: true }).click();
+    await page.getByRole("button", { name: "sign_in", exact: true }).click();
     await page.waitForURL("http://127.0.0.1:8080/admin/users");
-    await page.getByRole("link", { name: "Create user", exact: true }).waitFor();
-    await page.getByRole("link", { name: "Manage users", exact: true }).waitFor();
+    await page.getByRole("link", { name: "create_user", exact: true }).waitFor();
+    await page.getByRole("link", { name: "manage_users", exact: true }).waitFor();
     await page.locator("header form button").click();
     await page.waitForURL("http://127.0.0.1:8080/admin/sign_in");
   } finally {

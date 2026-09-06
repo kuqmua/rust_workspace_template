@@ -12,7 +12,7 @@ export async function signIn(
   await page.goto("/admin/sign_in");
   await page.getByLabel("Login").fill(login);
   await page.getByLabel("Password").fill(password);
-  await page.getByRole("button", { name: "Sign in" }).click();
+  await page.getByRole("button", { name: "sign_in" }).click();
 }
 
 export async function signInAdministrator(page) {
@@ -29,7 +29,7 @@ export async function changePassword(page, currentPassword, newPassword) {
       response.url().endsWith("/v1/admin/auth/password") &&
       response.status() === 204
   );
-  await page.getByRole("button", { name: "Change password" }).click();
+  await page.getByRole("button", { name: "change_password" }).click();
   await passwordChanged;
 }
 

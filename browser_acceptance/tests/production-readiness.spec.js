@@ -159,7 +159,7 @@ test("logout prevents browser history from restoring an authenticated page", asy
   await page.reload();
   await expect(page).toHaveURL(/\/admin\/sign_in$/);
   await expect(page.locator("header.topbar")).toHaveCount(0);
-  await expect(page.getByRole("button", { name: "Sign in" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "sign_in" })).toBeVisible();
 });
 
 test("HTML success and error responses retain production security headers", async ({
@@ -663,12 +663,12 @@ test("audit export records mutations without exposing submitted passwords", asyn
   const exportResponse = page.waitForResponse(response =>
     response.url().endsWith("/v1/admin/audit_log/export?limit=100&offset=0")
   );
-  await page.getByRole("button", { name: "Prepare page CSV" }).click();
+  await page.getByRole("button", { name: "prepare_page_csv" }).click();
   const response = await exportResponse;
   expect(response.status()).toBe(200);
   const exportBody = await response.json();
   const downloadEvent = page.waitForEvent("download");
-  await page.getByRole("link", { name: "Download page CSV" }).click();
+  await page.getByRole("link", { name: "download_page_csv" }).click();
   const download = await downloadEvent;
   expect(download.suggestedFilename()).toBe("audit_log.csv");
   const file = await download.path();
@@ -737,7 +737,7 @@ test("a read-only administrator sees only authorized navigation and mutations fa
       response.url().endsWith("/v1/admin/auth/password") &&
       response.status() === 204
   );
-  await reader.getByRole("button", { name: "Change password" }).click();
+  await reader.getByRole("button", { name: "change_password" }).click();
   await passwordChanged;
   await expect(reader).toHaveURL(/\/admin\/profile$/);
 
@@ -755,7 +755,7 @@ test("a read-only administrator sees only authorized navigation and mutations fa
 
   await reader.goto("/admin/audit_log");
   await expect(reader.locator('[data-renderer="csr"]')).toBeVisible();
-  await expect(reader.getByRole("button", { name: "Prepare page CSV" })).toHaveCount(0);
+  await expect(reader.getByRole("button", { name: "prepare_page_csv" })).toHaveCount(0);
   expect((await reader.request.get("/v1/admin/audit_log/export")).status()).toBe(403);
 
   await reader.goto("/admin/settings");
@@ -769,9 +769,9 @@ test("a read-only administrator sees only authorized navigation and mutations fa
       elements.every(element => element.disabled)
     )
   ).toBe(true);
-  await expect(reader.getByRole("button", { name: "Save settings" })).toBeDisabled();
+  await expect(reader.getByRole("button", { name: "save_settings" })).toBeDisabled();
   const reset = reader.getByRole("button", {
-    name: "Reset to template defaults"
+    name: "reset_to_template_defaults"
   });
   await expect(reset).toBeDisabled();
   await reset.click({ force: true });
@@ -824,7 +824,7 @@ test("a failed settings mutation preserves input and reports the server error", 
     await route.continue();
   });
 
-  await page.getByRole("button", { name: "Save settings" }).click();
+  await page.getByRole("button", { name: "save_settings" }).click();
   await expect(page.getByRole("alert")).toBeVisible();
   await expect(siteName).toHaveValue("Unsaved Production Name");
   expect(intercepted).toBe(1);
@@ -845,7 +845,7 @@ test("interactive controls remain named and keyboard reachable on mobile", async
     await page.goto(path);
     await expect(page.locator("main")).toBeVisible();
     await expect(page.locator('[data-renderer="csr"]')).toBeVisible();
-    await page.getByText("Navigation", { exact: true }).click();
+    await page.getByText("navigation", { exact: true }).click();
     await expect(page.getByRole("navigation", { name: "Admin sections" })).toBeVisible();
     const controls = page.locator(
       ":is(a, button, input:not([type='hidden']), select, textarea):visible"
@@ -890,7 +890,7 @@ test("primary pages emit no uncaught errors, failed requests, or console errors"
 test("expired access cookies recover an audit download once", async ({ context, page }) => {
   await signInAdministrator(page);
   await page.goto("/admin/audit_log");
-  const prepare = page.getByRole("button", { name: "Prepare page CSV" });
+  const prepare = page.getByRole("button", { name: "prepare_page_csv" });
   await expect(prepare).toBeVisible();
   await context.clearCookies({ name: /admin_(access_token|csrf_token)/ });
   const responses = [];
@@ -901,14 +901,14 @@ test("expired access cookies recover an audit download once", async ({ context, 
     }
   });
   await prepare.click();
-  await expect(page.getByRole("link", { name: "Download page CSV" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "download_page_csv" })).toBeVisible();
   expect(responses).toEqual([["GET", 401], ["POST", 200], ["GET", 200]]);
 });
 
 test("missing credentials stop audit recovery after one refresh", async ({ context, page }) => {
   await signInAdministrator(page);
   await page.goto("/admin/audit_log");
-  const prepare = page.getByRole("button", { name: "Prepare page CSV" });
+  const prepare = page.getByRole("button", { name: "prepare_page_csv" });
   await expect(prepare).toBeVisible();
   await context.clearCookies();
   const responses = [];
@@ -921,7 +921,7 @@ test("missing credentials stop audit recovery after one refresh", async ({ conte
   await prepare.click();
   await expect(page.getByRole("alert")).toBeVisible();
   await expect(prepare).toBeVisible();
-  await expect(page.getByRole("link", { name: "Download page CSV" })).toHaveCount(0);
+  await expect(page.getByRole("link", { name: "download_page_csv" })).toHaveCount(0);
   expect(responses).toEqual([["GET", 401], ["POST", 401], ["GET", 401]]);
 });
 
@@ -941,7 +941,7 @@ test("expired CSRF cookies recover a settings mutation without replaying it", as
   });
   const saved = page.waitForResponse(response =>
     response.request().method() === "PATCH" && response.status() === 204);
-  await page.getByRole("button", { name: "Save settings" }).click();
+  await page.getByRole("button", { name: "save_settings" }).click();
   await saved;
   await expect(siteName).toHaveValue("Recovered administration");
   expect(responses).toEqual([["POST", 200], ["PATCH", 204]]);
@@ -950,6 +950,6 @@ test("expired CSRF cookies recover a settings mutation without replaying it", as
   await siteName.fill(original);
   const restored = page.waitForResponse(response =>
     response.request().method() === "PATCH" && response.status() === 204);
-  await page.getByRole("button", { name: "Save settings" }).click();
+  await page.getByRole("button", { name: "save_settings" }).click();
   await restored;
 });

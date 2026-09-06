@@ -96,7 +96,7 @@ pub(crate) fn AdminProfileView(
                             <singlestage::FieldError>"Check both passwords and ensure the new password satisfies the policy."</singlestage::FieldError>
                         })}
                     </crate::admin_field::AdminField>
-                    <crate::admin_card_footer::AdminCardFooter><crate::admin_button::AdminButton>"Change password"</crate::admin_button::AdminButton></crate::admin_card_footer::AdminCardFooter>
+                    <crate::admin_card_footer::AdminCardFooter><crate::admin_button::AdminButton>{constants_str::ADMIN_BUTTON_CHANGE_PASSWORD}</crate::admin_button::AdminButton></crate::admin_card_footer::AdminCardFooter>
                 </form>
             </crate::admin_card::AdminCard>
         }

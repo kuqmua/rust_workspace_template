@@ -33,7 +33,7 @@ pub(crate) fn AdminSessionsView(
                 <crate::table_cell::TableCell data_label="created">{created_at}</crate::table_cell::TableCell>
                 <crate::table_cell::TableCell data_label="expires">{expires_at}</crate::table_cell::TableCell>
                 <crate::table_cell::TableCell data_label="current"><crate::admin_badge::AdminBadge admin_badge_variant=if is_current { crate::admin_badge_variant::AdminBadgeVariant::Success } else { crate::admin_badge_variant::AdminBadgeVariant::Neutral }>{current_text}</crate::admin_badge::AdminBadge></crate::table_cell::TableCell>
-                <crate::table_cell::TableCell data_label="actions"><div class="table-actions"><crate::admin_alert_dialog::AdminAlertDialog string=dialog_id title="Revoke session?" description="This administrator session will be signed out immediately." trigger="Revoke session" confirm="Revoke" callback=leptos::prelude::Callback::new(move |()| {
+                <crate::table_cell::TableCell data_label="actions"><div class="table-actions"><crate::admin_alert_dialog::AdminAlertDialog string=dialog_id title="Revoke session?" description="This administrator session will be signed out immediately." trigger=constants_str::ADMIN_BUTTON_REVOKE_SESSION confirm=constants_str::ADMIN_BUTTON_REVOKE callback=leptos::prelude::Callback::new(move |()| {
                     if let Ok(path) = crate::admin_route_path_url::admin_route_path_url(&server_admin_contract::admin_parameterized_route_path::admin_parameterized_route_path::<server_admin_contract::admin_revoke_session_route::AdminRevokeSessionRoute>(&revoke_session_id)) {
                         crate::reload_after::reload_after(crate::admin_mutation_method::AdminMutationMethod::Delete, path, server_admin_contract::admin_no_body::AdminNoBody);
                     }
@@ -48,8 +48,8 @@ pub(crate) fn AdminSessionsView(
                     string=String::from(constants_str::ADMIN_REVOKE_ALL_SESSIONS_DIALOG)
                     title=constants_str::ADMIN_REVOKE_ALL_SESSIONS_LABEL
                     description=constants_str::ADMIN_REVOKE_ALL_SESSIONS_DESCRIPTION
-                    trigger=constants_str::ADMIN_REVOKE_ALL_SESSIONS_LABEL
-                    confirm=constants_str::ADMIN_REVOKE_ALL_SESSIONS_LABEL
+                    trigger=constants_str::ADMIN_BUTTON_REVOKE_ALL_SESSIONS
+                    confirm=constants_str::ADMIN_BUTTON_REVOKE_ALL_SESSIONS
                     callback=leptos::prelude::Callback::new(move |()| {
                         match crate::admin_api_url::admin_api_url(server_admin_contract::admin_route::AdminRoute::RevokeAllSessions) {
                             Ok(path) => crate::reload_after::reload_after(

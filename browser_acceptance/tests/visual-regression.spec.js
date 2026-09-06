@@ -150,7 +150,7 @@ for (const viewport of viewports) {
       viewport
     });
     await page.goto("/admin/sign_in");
-    await expect(page.getByRole("button", { name: "Sign in" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "sign_in" })).toBeVisible();
     await expectPixelPerfect(page, `sign-in-${viewport.name}`, []);
     await page.close();
   });
@@ -174,7 +174,7 @@ for (const viewport of viewports) {
     authenticatedTest("expanded navigation is pixel-perfect on mobile", async ({ page }) => {
       await page.setViewportSize(viewport);
       await page.goto("/admin/users");
-      await page.getByText("Navigation", { exact: true }).click();
+      await page.getByText("navigation", { exact: true }).click();
 
       const navigation = page.locator('header nav[data-name="NavigationMenu"]');
       await expect(navigation).toBeVisible();

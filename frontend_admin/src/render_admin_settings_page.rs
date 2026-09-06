@@ -25,7 +25,7 @@ pub fn render_admin_settings_page(
         <section class="settings-grid"><crate::admin_card::AdminCard admin_card_variant=crate::admin_card_variant::AdminCardVariant::Settings>
         {can_update.then(|| leptos::view! { <form class="settings-form" method="post" action=server_admin_contract::admin_html_action::AdminHtmlAction::SettingsUpdate.get()>
             {crate::admin_setting_inputs::admin_setting_inputs(signals, crate::admin_setting_disabled::AdminSettingDisabled::from(false))}
-            <crate::admin_card_footer::AdminCardFooter><crate::admin_button::AdminButton>"Save settings"</crate::admin_button::AdminButton></crate::admin_card_footer::AdminCardFooter>
+            <crate::admin_card_footer::AdminCardFooter><crate::admin_button::AdminButton>{constants_str::ADMIN_BUTTON_SAVE_SETTINGS}</crate::admin_button::AdminButton></crate::admin_card_footer::AdminCardFooter>
         </form> })}
         {(!can_update).then(|| leptos::view! { <crate::admin_alert::AdminAlert>"Settings are read-only for this account."</crate::admin_alert::AdminAlert> })}
         </crate::admin_card::AdminCard></section>

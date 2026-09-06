@@ -29,7 +29,7 @@ pub(crate) fn AdminSidebar(children: leptos::prelude::Children) -> impl leptos::
         <div class="nav-menu">
             <label class="nav-menu-toggle">
                 <input type="checkbox" />
-                <span>"Navigation"</span>
+                <span>{constants_str::ADMIN_BUTTON_NAVIGATION}</span>
             </label>
             <nav aria-label=constants_str::ADMIN_NAVIGATION_LABEL data-name="NavigationMenu">
                 <ul class="nav-menu-list">{children()}</ul>
