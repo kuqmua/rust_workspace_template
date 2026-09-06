@@ -1,17 +1,17 @@
 #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, thiserror::Error)]
 pub(crate) enum AdminTableLoadError {
-    #[error("{}", constants_str::AUTHENTICATION_REQUIRED)]
+    #[error("{}", constants_str::ADMIN_UI_AUTHENTICATION_REQUIRED)]
     MissingCsrf,
-    #[error("The table request failed.")]
+    #[error("{message}", message = constants_str::ADMIN_UI_THE_TABLE_REQUEST_FAILED)]
     Fetch,
-    #[error("The server returned status {0} for {1}.")]
+    #[error("{message}_{0}_{connector}_{1}", message = constants_str::ADMIN_UI_THE_SERVER_RETURNED_STATUS, connector = constants_str::ADMIN_UI_FOR)]
     Http(
         crate::admin_http_status::AdminHttpStatus,
         crate::admin_csr_api_url::AdminCsrApiUrl,
     ),
-    #[error("The table query is invalid.")]
+    #[error("{message}", message = constants_str::ADMIN_UI_THE_TABLE_QUERY_IS_INVALID)]
     Query,
-    #[error("The table response was invalid.")]
+    #[error("{message}", message = constants_str::ADMIN_UI_THE_TABLE_RESPONSE_WAS_INVALID)]
     Response,
 }
 

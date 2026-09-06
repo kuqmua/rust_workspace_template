@@ -23,9 +23,9 @@ use leptos::prelude::{
 )]
 pub(crate) fn AdminSpinner() -> impl leptos::prelude::IntoView {
     leptos::view! {
-        <div data-name="Spinner" class="ui-spinner loading-state" role="status" aria-live="polite">
-            <singlestage::Spinner class="loading-spinner size-4 animate-spin rounded-full border-2 border-muted border-t-primary" />
-            <span class="sr-only">"Loading\u{2026}"</span>
+        <div data-name="Spinner" class="ui-spinner loading-state" role="status" aria-live="polite" aria-label=constants_str::ADMIN_UI_LOADING>
+            <span aria-hidden=constants_str::TRUE class="loading-spinner size-4 animate-spin rounded-full border-2 border-muted border-t-primary"></span>
+            <span class="sr-only">{constants_str::ADMIN_UI_LOADING}</span>
         </div>
     }
 }

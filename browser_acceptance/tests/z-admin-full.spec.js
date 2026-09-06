@@ -53,8 +53,8 @@ test("read-only role rows and runtime branding persist", async ({ page }) => {
   await expect(roleRow.locator("button, input, select")).toHaveCount(0);
 
   await page.goto("/admin/settings");
-  await page.getByLabel("Site name").fill("Browser Acceptance Admin");
-  await page.getByLabel("Tab title").fill("Acceptance Console");
+  await page.getByLabel("site_name").fill("Browser Acceptance Admin");
+  await page.getByLabel("tab_title").fill("Acceptance Console");
   let mutation = page.waitForResponse(
     response =>
       response.request().method() === "PATCH" &&
@@ -65,7 +65,7 @@ test("read-only role rows and runtime branding persist", async ({ page }) => {
   await mutation;
   await expect(page).toHaveTitle("Acceptance Console");
   await page.reload();
-  await expect(page.getByLabel("Site name")).toHaveValue("Browser Acceptance Admin");
+  await expect(page.getByLabel("site_name")).toHaveValue("Browser Acceptance Admin");
 
   mutation = page.waitForResponse(
     response =>
@@ -77,12 +77,12 @@ test("read-only role rows and runtime branding persist", async ({ page }) => {
     .getByRole("button", { name: "reset_to_template_defaults" })
     .click();
   await page
-    .getByRole("dialog", { name: "Reset settings?" })
+    .getByRole("dialog", { name: "reset_settings" })
     .getByRole("button", { name: "reset_settings" })
     .click();
   await mutation;
-  await expect(page.getByLabel("Site name")).toHaveValue("Admin");
-  await expect(page.getByLabel("Default route")).toHaveValue("/admin/users");
+  await expect(page.getByLabel("site_name")).toHaveValue("Admin");
+  await expect(page.getByLabel("default_route")).toHaveValue("/admin/users");
 });
 
 test("one-session and all-session revocation are enforced", async ({
@@ -112,7 +112,7 @@ test("one-session and all-session revocation are enforced", async ({
   );
   await otherSession.getByRole("button", { name: "revoke_session" }).click();
   await otherSession
-    .getByRole("dialog", { name: "Revoke session?" })
+    .getByRole("dialog", { name: "revoke_session" })
     .getByRole("button", { name: "revoke", exact: true })
     .click();
   await oneRevoked;
@@ -122,7 +122,7 @@ test("one-session and all-session revocation are enforced", async ({
   await otherContext.close();
 
   await page.getByRole("button", { name: "revoke_all_sessions", exact: true }).click();
-  const confirmation = page.getByRole("dialog", { name: "Revoke all sessions", exact: true });
+  const confirmation = page.getByRole("dialog", { name: "revoke_all_sessions", exact: true });
   await confirmation.getByRole("button", { name: "cancel", exact: true }).click();
   await expect(confirmation).not.toBeVisible();
   await expect(page).toHaveURL(/\/admin\/sessions$/);
@@ -140,8 +140,8 @@ test("one-session and all-session revocation are enforced", async ({
 test("failed sign-in reaches the concealed account lockout", async ({ page }) => {
   await page.goto("/admin/sign_in");
   for (let attempt = 0; attempt < 10; attempt += 1) {
-    await page.getByLabel("Login").fill("missing_browser_user");
-    await page.getByLabel("Password").fill("Wrong-password1!");
+    await page.getByLabel("login").fill("missing_browser_user");
+    await page.getByLabel("password").fill("Wrong-password1!");
     const rejected = page.waitForResponse(
       response =>
         response.url().endsWith("/admin/actions/sign_in") &&
@@ -150,8 +150,8 @@ test("failed sign-in reaches the concealed account lockout", async ({ page }) =>
     await page.getByRole("button", { name: "sign_in" }).click();
     await rejected;
   }
-  await page.getByLabel("Login").fill("missing_browser_user");
-  await page.getByLabel("Password").fill("Wrong-password1!");
+  await page.getByLabel("login").fill("missing_browser_user");
+  await page.getByLabel("password").fill("Wrong-password1!");
   const concealedLockout = page.waitForResponse(
     response =>
       response.url().endsWith("/admin/actions/sign_in") &&

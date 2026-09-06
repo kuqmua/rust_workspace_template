@@ -52,7 +52,7 @@ pub(crate) fn TableCell(
                 type=crate::admin_button_kind::AdminButtonKind::Button.value()
                 class=constants_str::ADMIN_TABLE_CELL_PREVIEW_CLASS
                 aria-haspopup=constants_str::ADMIN_TABLE_VALUE_DIALOG_ROLE
-                title=constants_str::ADMIN_TABLE_VALUE_PREVIEW_LABEL
+                title=constants_str::ADMIN_UI_VIEW_FULL_VALUE
             >{children()}</button>
         })
     };

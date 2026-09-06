@@ -44,7 +44,7 @@ pub(crate) fn AdminProfileView(
         };
         leptos::view! {
             <crate::admin_card::AdminCard admin_card_variant=crate::admin_card_variant::AdminCardVariant::Security>
-                <crate::admin_card_header::AdminCardHeader><crate::admin_card_title::AdminCardTitle>"Change password"</crate::admin_card_title::AdminCardTitle></crate::admin_card_header::AdminCardHeader>
+                <crate::admin_card_header::AdminCardHeader><crate::admin_card_title::AdminCardTitle>{constants_str::ADMIN_UI_CHANGE_PASSWORD}</crate::admin_card_title::AdminCardTitle></crate::admin_card_header::AdminCardHeader>
                 <form novalidate on:submit=move |event| {
                     event.prevent_default();
                     let request = (
@@ -68,10 +68,10 @@ pub(crate) fn AdminProfileView(
                         leptos::prelude::Set::set(&password_validation_failed, true);
                     }
                 }>
-                    <crate::admin_field::AdminField admin_field_label="Current password"><crate::admin_input::AdminInput admin_input_name="current_password" admin_input_kind=crate::admin_input_kind::AdminInputKind::Password required=true bind_value=current_password /></crate::admin_field::AdminField>
-                    <crate::admin_field::AdminField admin_field_label="New password">
+                    <crate::admin_field::AdminField admin_field_label=constants_str::ADMIN_UI_CURRENT_PASSWORD><crate::admin_input::AdminInput admin_input_name="current_password" admin_input_kind=crate::admin_input_kind::AdminInputKind::Password required=true bind_value=current_password /></crate::admin_field::AdminField>
+                    <crate::admin_field::AdminField admin_field_label=constants_str::ADMIN_UI_NEW_PASSWORD>
                         <crate::admin_input::AdminInput admin_input_name="new_password" admin_input_kind=crate::admin_input_kind::AdminInputKind::Password minlength=server_admin_contract::identity::ADMIN_NEW_PASSWORD_MIN_CHARS maxlength=server_admin_contract::identity::ADMIN_PASSWORD_MAX_CHARS required=true bind_value=new_password />
-                        <singlestage::FieldDescription attr:class="password-policy">{constants_str::ADMIN_PASSWORD_POLICY_DESCRIPTION}</singlestage::FieldDescription>
+                        <singlestage::FieldDescription attr:class="password-policy">{constants_str::ADMIN_UI_NEW_PASSWORDS_MUST_CONTAIN_12_TO_1024_CHARACTERS_INCLUDING_UPPERCASE_LOWERCASE_DIGIT_AND_SPECIAL_CHARACTERS_WITH_NO_WHITESPACE}</singlestage::FieldDescription>
                         <crate::admin_button::AdminButton admin_button_kind=crate::admin_button_kind::AdminButtonKind::Button on_click=leptos::prelude::Callback::new(move |_| {
                             match generate_password() {
                                 Ok(password) => {
@@ -90,10 +90,10 @@ pub(crate) fn AdminProfileView(
                             <p><code>{move || leptos::prelude::Get::get(&new_password)}</code></p>
                         })}
                         {move || leptos::prelude::Get::get(&password_generation_failed).then(|| leptos::view! {
-                            <singlestage::FieldError>{constants_str::ADMIN_PASSWORD_GENERATION_FAILED}</singlestage::FieldError>
+                            <singlestage::FieldError>{constants_str::ADMIN_UI_PASSWORD_GENERATION_FAILED}</singlestage::FieldError>
                         })}
                         {move || leptos::prelude::Get::get(&password_validation_failed).then(|| leptos::view! {
-                            <singlestage::FieldError>"Check both passwords and ensure the new password satisfies the policy."</singlestage::FieldError>
+                            <singlestage::FieldError>{constants_str::ADMIN_UI_CHECK_BOTH_PASSWORDS_AND_ENSURE_THE_NEW_PASSWORD_SATISFIES_THE_POLICY}</singlestage::FieldError>
                         })}
                     </crate::admin_field::AdminField>
                     <crate::admin_card_footer::AdminCardFooter><crate::admin_button::AdminButton>{constants_str::ADMIN_BUTTON_CHANGE_PASSWORD}</crate::admin_button::AdminButton></crate::admin_card_footer::AdminCardFooter>
@@ -119,12 +119,12 @@ pub(crate) fn AdminProfileView(
         ));
         leptos::view! {
             <crate::admin_card::AdminCard admin_card_variant=crate::admin_card_variant::AdminCardVariant::Profile>
-                <crate::admin_card_header::AdminCardHeader><crate::admin_card_title::AdminCardTitle option="profile-card-title">"Account"</crate::admin_card_title::AdminCardTitle></crate::admin_card_header::AdminCardHeader>
+                <crate::admin_card_header::AdminCardHeader><crate::admin_card_title::AdminCardTitle option="profile-card-title">{constants_str::ADMIN_UI_ACCOUNT}</crate::admin_card_title::AdminCardTitle></crate::admin_card_header::AdminCardHeader>
                 <dl>
-                    <dt>"Login"</dt><dd>{login}</dd>
-                    <dt>"Display name"</dt><dd>{display_name}</dd>
-                    <dt>"Roles"</dt><dd>{roles}</dd>
-                    <dt>"Permissions"</dt><dd>{permissions}</dd>
+                    <dt>{constants_str::ADMIN_UI_LOGIN}</dt><dd>{login}</dd>
+                    <dt>{constants_str::ADMIN_UI_DISPLAY_NAME}</dt><dd>{display_name}</dd>
+                    <dt>{constants_str::ADMIN_UI_ROLES}</dt><dd>{roles}</dd>
+                    <dt>{constants_str::ADMIN_UI_PERMISSIONS}</dt><dd>{permissions}</dd>
                 </dl>
             </crate::admin_card::AdminCard>
         }

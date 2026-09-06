@@ -25,19 +25,19 @@ impl AdminSetting {
         let (input_kind, label, name, optionality) = match self {
             Self::DefaultRoute => (
                 crate::admin_setting_input_kind::AdminSettingInputKind::Text,
-                constants_str::VALUE_64B5E1B6,
+                constants_str::ADMIN_UI_DEFAULT_ROUTE,
                 constants_str::VALUE_ACD40F02,
                 crate::admin_setting_optionality::AdminSettingOptionality::Required,
             ),
             Self::SiteName => (
                 crate::admin_setting_input_kind::AdminSettingInputKind::Text,
-                constants_str::VALUE_E98AF105,
+                constants_str::ADMIN_UI_SITE_NAME,
                 constants_str::VALUE_7C6A6719,
                 crate::admin_setting_optionality::AdminSettingOptionality::Required,
             ),
             Self::TabTitle => (
                 crate::admin_setting_input_kind::AdminSettingInputKind::Text,
-                constants_str::VALUE_9A74868F,
+                constants_str::ADMIN_UI_TAB_TITLE,
                 constants_str::VALUE_FD69A71C,
                 crate::admin_setting_optionality::AdminSettingOptionality::Clearable(
                     crate::admin_optional_setting::AdminOptionalSetting::TabTitle,
@@ -45,7 +45,7 @@ impl AdminSetting {
             ),
             Self::OrganizationName => (
                 crate::admin_setting_input_kind::AdminSettingInputKind::Text,
-                constants_str::VALUE_D764D425,
+                constants_str::ADMIN_UI_ORGANIZATION,
                 constants_str::VALUE_C41F289C,
                 crate::admin_setting_optionality::AdminSettingOptionality::Clearable(
                     crate::admin_optional_setting::AdminOptionalSetting::OrganizationName,
@@ -53,7 +53,7 @@ impl AdminSetting {
             ),
             Self::OrganizationContacts => (
                 crate::admin_setting_input_kind::AdminSettingInputKind::TextArea,
-                constants_str::VALUE_34CD6225,
+                constants_str::ADMIN_UI_ORGANIZATION_CONTACTS,
                 constants_str::VALUE_C33009C5,
                 crate::admin_setting_optionality::AdminSettingOptionality::Clearable(
                     crate::admin_optional_setting::AdminOptionalSetting::OrganizationContacts,
@@ -61,7 +61,7 @@ impl AdminSetting {
             ),
             Self::SupportUrl => (
                 crate::admin_setting_input_kind::AdminSettingInputKind::Url,
-                constants_str::VALUE_6CCA2FBA,
+                constants_str::ADMIN_UI_SUPPORT_URL,
                 constants_str::VALUE_9B284285,
                 crate::admin_setting_optionality::AdminSettingOptionality::Clearable(
                     crate::admin_optional_setting::AdminOptionalSetting::SupportUrl,
@@ -69,7 +69,7 @@ impl AdminSetting {
             ),
             Self::PrimaryColor => (
                 crate::admin_setting_input_kind::AdminSettingInputKind::Text,
-                constants_str::VALUE_2B03958C,
+                constants_str::ADMIN_UI_PRIMARY_COLOR,
                 constants_str::VALUE_EAFDE0B2,
                 crate::admin_setting_optionality::AdminSettingOptionality::Clearable(
                     crate::admin_optional_setting::AdminOptionalSetting::PrimaryColor,
@@ -77,7 +77,7 @@ impl AdminSetting {
             ),
             Self::MainLogo => (
                 crate::admin_setting_input_kind::AdminSettingInputKind::Url,
-                constants_str::VALUE_4AE21E86,
+                constants_str::ADMIN_UI_MAIN_LOGO_URL,
                 constants_str::VALUE_304B098A,
                 crate::admin_setting_optionality::AdminSettingOptionality::Clearable(
                     crate::admin_optional_setting::AdminOptionalSetting::MainLogo,

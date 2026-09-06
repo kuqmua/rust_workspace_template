@@ -180,7 +180,7 @@ pub(crate) fn AdminSettingsView(
             {crate::admin_setting_inputs::admin_setting_inputs(signals, crate::admin_setting_disabled::AdminSettingDisabled::from(!can_update))}
             <crate::admin_card_footer::AdminCardFooter>
                 <crate::admin_button::AdminButton bool=!can_update>{constants_str::ADMIN_BUTTON_SAVE_SETTINGS}</crate::admin_button::AdminButton>
-                <crate::admin_alert_dialog::AdminAlertDialog string=String::from("reset-settings-dialog") title="Reset settings?" description="All administrator settings will return to the template defaults." trigger=constants_str::ADMIN_BUTTON_RESET_TO_TEMPLATE_DEFAULTS confirm=constants_str::ADMIN_BUTTON_RESET_SETTINGS bool=!can_update callback=leptos::prelude::Callback::new(move |()| {
+                <crate::admin_alert_dialog::AdminAlertDialog string=String::from("reset-settings-dialog") title=constants_str::ADMIN_UI_RESET_SETTINGS description=constants_str::ADMIN_UI_ALL_ADMINISTRATOR_SETTINGS_WILL_RETURN_TO_THE_TEMPLATE_DEFAULTS trigger=constants_str::ADMIN_BUTTON_RESET_TO_TEMPLATE_DEFAULTS confirm=constants_str::ADMIN_BUTTON_RESET_SETTINGS bool=!can_update callback=leptos::prelude::Callback::new(move |()| {
                     reset();
                 }) />
             </crate::admin_card_footer::AdminCardFooter>

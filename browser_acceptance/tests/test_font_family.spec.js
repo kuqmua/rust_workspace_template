@@ -77,7 +77,7 @@ test.describe("administrator typography", () => {
     test(`test_shared_font_on_${path.slice(1).replaceAll("/", "_")}`, async ({ page }) => {
       await page.goto(path);
       await expect(page.locator("main")).toBeVisible();
-      await expect(page.getByText("Loading…", { exact: true })).toHaveCount(0);
+      await expect(page.getByText("loading", { exact: true })).toHaveCount(0);
       await expect(page.locator("main")).not.toBeEmpty();
       await expect(page.getByRole("alert")).toHaveCount(0);
       await expectSharedFontFamily(page);
@@ -91,13 +91,13 @@ test.describe("administrator typography", () => {
   test("test_dialog_and_filter_popover_use_the_interface_font", async ({ page }) => {
     await page.goto("/admin/settings");
     await page.getByRole("button", { name: "reset_to_template_defaults", exact: true }).click();
-    const confirmation = page.getByRole("dialog", { name: "Reset settings?" });
+    const confirmation = page.getByRole("dialog", { name: "reset_settings" });
     await expect(confirmation).toBeVisible();
     await expectSharedFontFamily(page);
     await confirmation.getByRole("button", { name: "cancel", exact: true }).click();
     await page.goto("/admin/role_permissions");
-    await page.getByRole("button", { name: "Filter Role Id", exact: true }).click();
-    const filter = page.getByRole("dialog", { name: "Filter Role Id", exact: true });
+    await page.getByRole("button", { name: "filter_role_id", exact: true }).click();
+    const filter = page.getByRole("dialog", { name: "filter_role_id", exact: true });
     await expect(filter).toBeVisible();
     await expectSharedFontFamily(page);
     await filter.getByRole("button", { name: "close", exact: true }).click();

@@ -112,5 +112,8 @@ fn test_editable_settings_render_every_input_kind_from_the_contract_catalog() {
     assert!(html.as_ref().contains(constants_str::VALUE_345DE32F));
     assert!(html.as_ref().contains(constants_str::VALUE_28A73F84));
     assert!(html.as_ref().contains(constants_str::VALUE_E1A1A172));
-    assert!(html.as_ref().contains(constants_str::VALUE_ADC2C05B));
+    assert!(
+        html.as_ref()
+            .contains(constants_str::ADMIN_UI_EXPECT_VALUE_ADC2C05B)
+    );
 }

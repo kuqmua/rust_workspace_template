@@ -34,7 +34,7 @@ pub fn render_admin_csr(
             <div id=constants_str::ADMIN_CSR_ROOT_ID style=primary_color data-password-change-required=bool::from(admin_bool).then_some(constants_str::EMPTY)>
                 <crate::admin_spinner::AdminSpinner />
             </div>
-            <script type="module" src="/admin/assets/admin_csr_application.js?v=20260906-49"></script>
+            <script type="module" src="/admin/assets/admin_csr_application.js?v=20260906-51"></script>
         },
     )
 }

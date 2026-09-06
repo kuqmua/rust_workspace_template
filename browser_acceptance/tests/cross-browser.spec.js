@@ -21,7 +21,7 @@ test("administrator shell works across production browser engines", async ({ pag
     expect(response).not.toBeNull();
     expect(response.status()).toBe(200);
     await expect(page.locator("main")).toBeVisible();
-    await expect(page.locator("nav[aria-label='Admin sections']")).toBeVisible();
+    await expect(page.locator("nav[aria-label='admin_sections']")).toBeVisible();
   }
 
   expect(consoleErrors).toEqual([]);

@@ -174,7 +174,7 @@ pub(crate) fn AdminApp() -> impl leptos::prelude::IntoView {
             let current_state = leptos::prelude::Get::get(&state);
             let navigation_admin = current_state.admin().cloned();
             let content = match current_state {
-                crate::admin_load_state::AdminLoadState::Empty(_admin) => leptos::prelude::IntoAny::into_any(leptos::view! { <crate::admin_empty::AdminEmpty>"Choose a table."</crate::admin_empty::AdminEmpty> }),
+                crate::admin_load_state::AdminLoadState::Empty(_admin) => leptos::prelude::IntoAny::into_any(leptos::view! { <crate::admin_empty::AdminEmpty>{constants_str::ADMIN_UI_CHOOSE_A_TABLE}</crate::admin_empty::AdminEmpty> }),
                 crate::admin_load_state::AdminLoadState::Error(error) => leptos::prelude::IntoAny::into_any(leptos::view! { <crate::admin_alert::AdminAlert>{error.to_string()}</crate::admin_alert::AdminAlert> }),
                 crate::admin_load_state::AdminLoadState::Loading => leptos::prelude::IntoAny::into_any(leptos::view! { <crate::admin_spinner::AdminSpinner /> }),
                 crate::admin_load_state::AdminLoadState::Permissions(_admin, page) => leptos::prelude::IntoAny::into_any(leptos::view! { <super::admin_permissions_view::AdminPermissionsView admin_permissions_page=page admin_csr_query=query_result.clone().unwrap_or_default() /> }),
@@ -185,7 +185,7 @@ pub(crate) fn AdminApp() -> impl leptos::prelude::IntoView {
                 crate::admin_load_state::AdminLoadState::Table(admin, view) => leptos::prelude::IntoAny::into_any(leptos::view! { <super::admin_data_grid::AdminDataGrid admin_bool=admin.has_permission(server_admin_contract::admin_permission::AdminPermission::AuditLogExport) admin_data_table_view=view admin_csr_query=query_result.clone().unwrap_or_default() /> }),
                 crate::admin_load_state::AdminLoadState::Users(admin, page) => leptos::prelude::IntoAny::into_any(leptos::view! { <super::admin_users_view::AdminUsersView authenticated_admin=admin admin_users_page=page admin_csr_query=query_result.clone().unwrap_or_default() /> }),
             };
-            leptos::view! { <super::csr_admin_nav::CsrAdminNav option=navigation_admin admin_bool=server_admin_contract::admin_bool::AdminBool::from(password_change_required) /><main class="main-content"><div class="page-frame">{password_change_required.then(|| leptos::view! { <crate::admin_alert::AdminAlert>{constants_str::ADMIN_PASSWORD_CHANGE_REQUIRED_NOTICE}</crate::admin_alert::AdminAlert> })}{content}</div></main> }
+            leptos::view! { <super::csr_admin_nav::CsrAdminNav option=navigation_admin admin_bool=server_admin_contract::admin_bool::AdminBool::from(password_change_required) /><main class="main-content"><div class="page-frame">{password_change_required.then(|| leptos::view! { <crate::admin_alert::AdminAlert>{constants_str::ADMIN_UI_CHANGE_YOUR_INITIAL_PASSWORD_TO_UNLOCK_ADMINISTRATOR_NAVIGATION}</crate::admin_alert::AdminAlert> })}{content}</div></main> }
         }}</div>
     }
 }

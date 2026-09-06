@@ -72,7 +72,7 @@ fn test_primitives_render_semantic_accessible_markup() {
     assert!(html.contains(constants_str::VALUE_407E5FF2));
     assert!(html.contains(constants_str::VALUE_FAE48E86));
     assert!(html.contains(constants_str::VALUE_F8CB664C));
-    assert!(html.contains(constants_str::VALUE_BA3BBBE1));
+    assert!(html.contains(constants_str::ADMIN_UI_LOADING));
     assert!(html.contains(constants_str::VALUE_64474E4B));
     assert!(html.contains(constants_str::VALUE_6BE3FB1C));
     assert!(html.contains(constants_str::VALUE_67B26491));

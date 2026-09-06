@@ -34,12 +34,12 @@ pub fn render_admin_sessions_page(
                     <singlestage::DialogContent attr:data-name="AlertDialogContent" class="flex flex-col gap-4">
                         <div data-name="AlertDialogBody" class="contents">
                             <singlestage::DialogHeader attr:data-name="AlertDialogHeader" class="flex flex-col gap-2 text-center sm:text-left">
-                                <singlestage::DialogTitle attr:data-name="AlertDialogTitle" class="text-lg leading-none font-semibold">"Revoke session?"</singlestage::DialogTitle>
-                                <singlestage::DialogDescription attr:data-name="AlertDialogDescription" class="text-sm text-muted-foreground">"This administrator session will be signed out immediately."</singlestage::DialogDescription>
+                                <singlestage::DialogTitle attr:data-name="AlertDialogTitle" class="text-lg leading-none font-semibold">{constants_str::ADMIN_UI_REVOKE_SESSION}</singlestage::DialogTitle>
+                                <singlestage::DialogDescription attr:data-name="AlertDialogDescription" class="text-sm text-muted-foreground">{constants_str::ADMIN_UI_THIS_ADMINISTRATOR_SESSION_WILL_BE_SIGNED_OUT_IMMEDIATELY}</singlestage::DialogDescription>
                             </singlestage::DialogHeader>
                             <form id=form_id method="post" action=server_admin_contract::admin_html_action::AdminHtmlAction::SessionRevoke.get()>
                                 <input type="hidden" name="session_id" value=hidden_session_id />
-                                <singlestage::Label attr:data-name="Label" class="flex items-center gap-2 text-sm leading-none font-medium select-none"><crate::admin_checkbox::AdminCheckbox name="confirmation" value="true" bool=true />"Confirm session revocation"</singlestage::Label>
+                                <singlestage::Label attr:data-name="Label" class="flex items-center gap-2 text-sm leading-none font-medium select-none"><crate::admin_checkbox::AdminCheckbox name="confirmation" value="true" bool=true />{constants_str::ADMIN_UI_CONFIRM_SESSION_REVOCATION}</singlestage::Label>
                             </form>
                             <singlestage::DialogFooter attr:data-name="AlertDialogFooter" class="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
                                 <crate::admin_button::AdminButton admin_button_variant=crate::admin_button_variant::AdminButtonVariant::Secondary>{constants_str::ADMIN_BUTTON_CANCEL}</crate::admin_button::AdminButton>

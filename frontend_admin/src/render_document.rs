@@ -14,7 +14,7 @@ pub(crate) fn render_document(
 ) -> crate::admin_ssr_html::AdminSsrHtml {
     let rendered_body = crate::render_view::render_view(body);
     crate::admin_ssr_html::AdminSsrHtml::try_from(format!(
-        "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>{admin_ssr_text}</title><link rel=\"stylesheet\" href=\"/admin/assets/style.css?v=20260906-50\"><link rel=\"stylesheet\" href=\"/admin/assets/rust-ui.css?v=20260906-38\"></head><body>{}</body></html>",
+        "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>{admin_ssr_text}</title><link rel=\"stylesheet\" href=\"/admin/assets/style.css?v=20260906-51\"><link rel=\"stylesheet\" href=\"/admin/assets/rust-ui.css?v=20260906-38\"></head><body>{}</body></html>",
         String::from(rendered_body)
     ))
     .unwrap_or_else(crate::admin_ssr_html::AdminSsrHtml::from)

@@ -27,7 +27,7 @@ pub(crate) fn admin_data_table_grid(
         .iter()
         .map(|column| {
             let field = column.name().to_string();
-            let label = column.label().to_string();
+            let label = column.name().to_string();
             let filter_count = column.filters().len().to_string();
 let filter = {
                 let table_path = admin_data_table_view.table().frontend_path();
@@ -46,12 +46,12 @@ let filter = {
                 let popover_style = format!(
                     "position-anchor:{anchor_name};inset:auto;position-area:block-end;position-try-fallbacks:flip-block"
                 );
-                let flt_label = column.label().to_string();
+                let flt_label = column.name().to_string();
                 let input_type =
                     super::admin_data_grid_input_type::AdminDataGridInputType::from(column.input_kind());
                 let is_active_field = active_field.as_deref() == Some(flt_field.as_str());
-                let filter_label = format!("Filter {flt_label}");
-                let filter_title = format!("Filter by {flt_label}");
+                let filter_label = format!("{}_{flt_label}", constants_str::ADMIN_BUTTON_FILTER);
+                let filter_title = format!("{}_{flt_label}", constants_str::ADMIN_UI_FILTER_BY);
                 let selected_operation =
                     crate::leptos_admin_filter_operation_signal::LeptosAdminFilterOperationSignal::from(leptos::prelude::RwSignal::new(
                         is_active_field
@@ -104,14 +104,14 @@ let filter = {
                                                                         value=radio_key
                                                                         checked=checked
                                                                     />
-                                                                    <span>{format!("{operation:?}")}</span>
+                                                                    <span>{server_admin_contract::admin_filter_operation_key::AdminFilterOperationKey::from(operation).to_string()}</span>
                                                                 </singlestage::Label>
                                                                 {{
                                                                     let needs_end = bool::from(filter.requires_end());
                                                                     let value = active_value.map(ToString::to_string).unwrap_or_default();
                                                                     let op_key = server_admin_contract::admin_filter_operation_key::AdminFilterOperationKey::from(filter.operation()).to_string();
                                                                     bool::from(filter.requires_value()).then(|| {
-                                                                        let value_label = if needs_end { constants_str::VALUE_E4BB9F1E } else { constants_str::CODE_STYLE_VALUE };
+                                                                        let value_label = if needs_end { constants_str::ADMIN_UI_START } else { constants_str::ADMIN_UI_VALUE };
                                                                         let value_placeholder = needs_end.then_some(value_label);
                                                                         leptos::prelude::IntoAny::into_any(leptos::view! {
                                                                             <singlestage::Label attr:data-name="Label" class="table-filter-input-label flex items-center gap-2 text-sm leading-none font-medium select-none">
@@ -136,14 +136,14 @@ let filter = {
                                                                     bool::from(filter.requires_end()).then(|| {
                                                                         leptos::prelude::IntoAny::into_any(leptos::view! {
                                                                             <singlestage::Label attr:data-name="Label" class="table-filter-input-label flex items-center gap-2 text-sm leading-none font-medium select-none">
-                                                                                <span>"End"</span>
+                                                                                <span>{constants_str::ADMIN_UI_END}</span>
                                                                                 <singlestage::Input
                                                                                     attr:data-name="Input"
                                                                                     attr:class="flex h-9 w-full min-w-0 rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs outline-none transition-[color,box-shadow] focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50"
                                                                                     name="filter_end"
                                                                                     input_type=String::from(input_type.as_ref())
                                                                                     value=end
-                                                                                    placeholder="End"
+                                                                                    placeholder=constants_str::ADMIN_UI_END
                                                                                     required=true
                                                                                     disabled=leptos::prelude::Signal::derive(move || leptos::prelude::Get::get(&leptos::prelude::RwSignal::from(selected_operation)) != op_key)
                                                                                 />
@@ -161,7 +161,7 @@ let filter = {
                                                 <crate::admin_button::AdminButton admin_button_variant=crate::admin_button_variant::AdminButtonVariant::Secondary admin_button_kind=crate::admin_button_kind::AdminButtonKind::Button popover_target=close_filter_id popover_target_action="hide">{constants_str::ADMIN_BUTTON_CLOSE}</crate::admin_button::AdminButton>
                                             </div>
                                         </form>
-                                        {is_active_field.then(|| leptos::view! { <a class="table-filter-clear" href=clear_href.clone()>"Clear"</a> })}
+                                        {is_active_field.then(|| leptos::view! { <a class="table-filter-clear" href=clear_href.clone()>{constants_str::ADMIN_UI_CLEAR}</a> })}
                                     </div>
                                 </singlestage::Popover>
                             })))
@@ -188,7 +188,7 @@ let filter = {
                 .map(|(index, value)| {
                     let column = admin_data_table_view.columns().get(index);
                     let label =
-                        column.map_or_else(String::new, |column| column.label().to_string());
+                        column.map_or_else(String::new, |column| column.name().to_string());
                     let field =
                         column.map_or_else(String::new, |column| column.name().to_string());
                     let numeric = column.is_some_and(|column| {

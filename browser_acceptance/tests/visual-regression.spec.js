@@ -162,7 +162,7 @@ for (const viewport of viewports) {
       await page
         .locator('th[data-field="role_id"] .table-column-filter > button')
         .click();
-      const filter = page.getByRole("dialog", { name: "Filter Role Id" });
+      const filter = page.getByRole("dialog", { name: "filter_role_id" });
       await expect(filter).toBeVisible();
       await expectComponentPixelPerfect(
         page,

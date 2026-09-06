@@ -10,12 +10,18 @@ fn test_pagination_preserves_server_side_navigation() {
         ),
     );
     assert!(html.as_ref().contains(constants_str::VALUE_63C4C5D8));
-    assert!(html.as_ref().contains(constants_str::VALUE_50B5BD8E));
+    assert!(
+        html.as_ref()
+            .contains(constants_str::ADMIN_UI_EXPECT_VALUE_50B5BD8E)
+    );
     assert!(html.as_ref().contains(constants_str::VALUE_0AA8ABD0));
     assert!(html.as_ref().contains(constants_str::VALUE_C7A9349A));
     assert!(html.as_ref().contains(constants_str::VALUE_0666A453));
     assert!(html.as_ref().contains(constants_str::VALUE_51DD0CFC));
-    assert!(html.as_ref().contains(constants_str::VALUE_47ABB6D8));
+    assert!(
+        html.as_ref()
+            .contains(constants_str::ADMIN_UI_EXPECT_VALUE_47ABB6D8)
+    );
     assert!(!html.as_ref().contains(constants_str::VALUE_5D74223D));
 
     let table_filter =

@@ -4,7 +4,7 @@ import { navigationAdminPaths } from "./support/pages.js";
 
 async function expectSnakeCaseButtonLabels(page) {
   const labels = await page
-    .locator("button, a.ui-button, header nav a, .nav-menu-toggle > span")
+    .locator("button:not(.table-cell-preview), a.ui-button, header nav a, .nav-menu-toggle > span")
     .evaluateAll(elements => elements.map(element => ({
       text: element.textContent.trim(),
       transform: getComputedStyle(element).textTransform
@@ -44,7 +44,7 @@ test.describe("authenticated button labels", () => {
     test(`test_button_labels_use_snake_case_on_${path.replaceAll("/", "_")}`, async ({ page }) => {
       await page.goto(path);
       await expect(page.locator("main")).toBeVisible();
-      await expect(page.getByText("Loading…", { exact: true })).toHaveCount(0);
+      await expect(page.getByText("loading", { exact: true })).toHaveCount(0);
       await expect(page.locator("main")).not.toBeEmpty();
       await expect(page.getByRole("alert")).toHaveCount(0);
       await expectSnakeCaseButtonLabels(page);
@@ -82,7 +82,7 @@ test.describe("authenticated button labels", () => {
   test("test_confirmation_button_labels_use_snake_case", async ({ page }) => {
     await page.goto("/admin/settings");
     await page.getByRole("button", { name: "reset_to_template_defaults", exact: true }).click();
-    const dialog = page.getByRole("dialog", { name: "Reset settings?" });
+    const dialog = page.getByRole("dialog", { name: "reset_settings" });
     await expect(dialog).toBeVisible();
     await expect(dialog.getByRole("button")).toHaveText(["cancel", "reset_settings"]);
     await expectSnakeCaseButtonLabels(page);

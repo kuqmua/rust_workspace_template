@@ -82,7 +82,10 @@ fn test_data_grid() {
     assert!(html.as_ref().contains(constants_str::VALUE_0702D49A));
     assert!(html.as_ref().contains(constants_str::VALUE_7CA6DA11));
     assert!(html.as_ref().contains(constants_str::VALUE_0F228174));
-    assert!(html.as_ref().contains(constants_str::VALUE_50E5C8E7));
+    assert!(
+        html.as_ref()
+            .contains(constants_str::ADMIN_UI_EXPECT_VALUE_50E5C8E7)
+    );
     assert!(html.as_ref().contains(constants_str::VALUE_80DFAFAE));
     assert!(html.as_ref().contains(constants_str::VALUE_ED7335DF));
     assert!(!html.as_ref().contains(constants_str::VALUE_B2F8E281));
@@ -146,7 +149,7 @@ fn test_data_grid() {
     assert!(
         filters_html
             .as_ref()
-            .contains(constants_str::VALUE_1665AC0E)
+            .contains(constants_str::ADMIN_UI_EXPECT_VALUE_1665AC0E)
     );
     assert!(
         filters_html
@@ -156,12 +159,12 @@ fn test_data_grid() {
     assert!(
         filters_html
             .as_ref()
-            .contains(constants_str::VALUE_D641BA27)
+            .contains(constants_str::ADMIN_UI_EXPECT_VALUE_D641BA27)
     );
     assert!(
         filters_html
             .as_ref()
-            .contains(constants_str::VALUE_6FB367C6)
+            .contains(constants_str::ADMIN_UI_EXPECT_VALUE_6FB367C6)
     );
     assert!(
         filters_html
@@ -211,7 +214,7 @@ fn test_data_grid() {
     assert!(
         filters_html
             .as_ref()
-            .contains(constants_str::VALUE_FF2F6A65)
+            .contains(constants_str::ADMIN_UI_EXPECT_VALUE_FF2F6A65)
     );
     assert!(
         filters_html
@@ -221,22 +224,22 @@ fn test_data_grid() {
     assert!(
         !filters_html
             .as_ref()
-            .contains(constants_str::VALUE_D8E97E9A)
+            .contains(constants_str::ADMIN_UI_EXPECT_VALUE_D8E97E9A)
     );
     assert!(
         filters_html
             .as_ref()
-            .contains(constants_str::VALUE_8C4051D1)
+            .contains(constants_str::ADMIN_UI_EXPECT_VALUE_8C4051D1)
     );
     assert!(
         filters_html
             .as_ref()
-            .contains(constants_str::VALUE_69FA33B8)
+            .contains(constants_str::ADMIN_UI_EXPECT_VALUE_69FA33B8)
     );
     assert!(
         filters_html
             .as_ref()
-            .contains(constants_str::VALUE_E1FD30CF)
+            .contains(constants_str::ADMIN_UI_EXPECT_VALUE_E1FD30CF)
     );
     assert!(
         filters_html
@@ -246,24 +249,24 @@ fn test_data_grid() {
     assert!(
         filters_html
             .as_ref()
-            .contains(constants_str::VALUE_F969D2DE)
+            .contains(constants_str::ADMIN_UI_EXPECT_VALUE_F969D2DE)
     );
     assert!(
         filters_html
             .as_ref()
-            .contains(constants_str::VALUE_BD7A6256)
+            .contains(constants_str::ADMIN_UI_EXPECT_VALUE_BD7A6256)
     );
     let apply_position = filters_html
         .as_ref()
-        .find(constants_str::VALUE_38228244)
+        .find(constants_str::ADMIN_UI_EXPECT_VALUE_38228244)
         .expect(constants_str::DIAGNOSTIC_10C26D45);
     let close_position = filters_html
         .as_ref()
-        .find(constants_str::VALUE_0D4379EB)
+        .find(constants_str::ADMIN_UI_EXPECT_VALUE_0D4379EB)
         .expect(constants_str::DIAGNOSTIC_1542A5C3);
     let clear_position = filters_html
         .as_ref()
-        .find(constants_str::VALUE_BD7A6256)
+        .find(constants_str::ADMIN_UI_EXPECT_VALUE_BD7A6256)
         .expect(constants_str::DIAGNOSTIC_58F35E11);
     assert!(close_position > apply_position);
     assert!(clear_position > apply_position);
@@ -278,7 +281,7 @@ fn test_data_grid() {
     assert_eq!(
         filters_html
             .as_ref()
-            .matches(constants_str::VALUE_38228244)
+            .matches(constants_str::ADMIN_UI_EXPECT_VALUE_38228244)
             .count(),
         constants_usize::ONE
     );

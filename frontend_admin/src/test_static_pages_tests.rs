@@ -161,7 +161,7 @@ fn test_static_pages() {
     assert!(
         sessions_html
             .as_ref()
-            .contains(constants_str::VALUE_B86DD350)
+            .contains(constants_str::ADMIN_UI_EXPECT_VALUE_B86DD350)
     );
 
     let profile_html =
@@ -179,8 +179,10 @@ fn test_static_pages() {
 
     let public_text = crate::render_text_page::render_text_page(
         server_admin_contract::admin_page::AdminPage::Metrics,
-        crate::admin_ssr_text::AdminSsrText::try_from(String::from(constants_str::METRICS_ALT))
-            .expect(constants_str::DIAGNOSTIC_E5A204BD),
+        crate::admin_ssr_text::AdminSsrText::try_from(String::from(
+            constants_str::ADMIN_UI_EXPECT_METRICS_ALT,
+        ))
+        .expect(constants_str::DIAGNOSTIC_E5A204BD),
         crate::admin_ssr_text::AdminSsrText::try_from(String::from(constants_str::VALUE_242C81E4))
             .expect(constants_str::DIAGNOSTIC_107CDE83),
     );

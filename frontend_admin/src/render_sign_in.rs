@@ -16,7 +16,7 @@ pub fn render_sign_in(
     let tab_title = branding
         .and_then(server_admin_contract::admin_branding_view::AdminBrandingView::tab_title)
         .map_or_else(
-            || String::from(constants_str::ADMINISTRATOR_SIGN_IN),
+            || String::from(constants_str::ADMIN_UI_ADMINISTRATOR_SIGN_IN),
             |value| AsRef::<str>::as_ref(value).to_owned(),
         );
     let primary_color = branding
@@ -30,8 +30,8 @@ pub fn render_sign_in(
                 <crate::admin_card::AdminCard admin_card_variant=crate::admin_card_variant::AdminCardVariant::Auth>
                     {error.map(|message| leptos::view! { <crate::admin_alert::AdminAlert>{message.to_string()}</crate::admin_alert::AdminAlert> })}
                     <form method="post" action=server_admin_contract::admin_html_action::AdminHtmlAction::SignIn.get()>
-                        <crate::admin_field::AdminField admin_field_label="Login"><crate::admin_input::AdminInput admin_input_name="login" autocomplete="username" required=true /></crate::admin_field::AdminField>
-                        <crate::admin_field::AdminField admin_field_label="Password"><crate::admin_input::AdminInput admin_input_name="password" admin_input_kind=crate::admin_input_kind::AdminInputKind::Password autocomplete="current-password" required=true /></crate::admin_field::AdminField>
+                        <crate::admin_field::AdminField admin_field_label=constants_str::ADMIN_UI_LOGIN><crate::admin_input::AdminInput admin_input_name="login" autocomplete="username" required=true /></crate::admin_field::AdminField>
+                        <crate::admin_field::AdminField admin_field_label=constants_str::ADMIN_UI_PASSWORD><crate::admin_input::AdminInput admin_input_name="password" admin_input_kind=crate::admin_input_kind::AdminInputKind::Password autocomplete="current-password" required=true /></crate::admin_field::AdminField>
                         <crate::admin_button::AdminButton>{constants_str::SIGN_IN}</crate::admin_button::AdminButton>
                     </form>
                 </crate::admin_card::AdminCard>

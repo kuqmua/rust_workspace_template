@@ -10,8 +10,8 @@ export async function signIn(
   password = changedAdminPassword
 ) {
   await page.goto("/admin/sign_in");
-  await page.getByLabel("Login").fill(login);
-  await page.getByLabel("Password").fill(password);
+  await page.getByLabel("login").fill(login);
+  await page.getByLabel("password").fill(password);
   await page.getByRole("button", { name: "sign_in" }).click();
 }
 
@@ -22,8 +22,8 @@ export async function signInAdministrator(page) {
 }
 
 export async function changePassword(page, currentPassword, newPassword) {
-  await page.getByLabel("Current password").fill(currentPassword);
-  await page.getByLabel("New password").fill(newPassword);
+  await page.getByLabel("current_password").fill(currentPassword);
+  await page.getByLabel("new_password").fill(newPassword);
   const passwordChanged = page.waitForResponse(
     response =>
       response.url().endsWith("/v1/admin/auth/password") &&

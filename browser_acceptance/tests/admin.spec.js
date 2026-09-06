@@ -37,10 +37,10 @@ test("initial administrator sign-in forces a password change before administrato
 
   await expect(page.locator(".password-policy")).toHaveCount(0);
   await expect(
-    page.getByText("New passwords must contain", { exact: false })
+    page.getByText("new_passwords_must_contain", { exact: false })
   ).toHaveCount(0);
-  await page.getByLabel("Login").fill("administrator");
-  await page.getByLabel("Password").fill(initialAdminPassword);
+  await page.getByLabel("login").fill("administrator");
+  await page.getByLabel("password").fill(initialAdminPassword);
 
   const signInCompleted = page.waitForResponse(
     response =>
@@ -72,22 +72,22 @@ test("initial administrator sign-in forces a password change before administrato
     "uppercase, lowercase, digit, and special characters"
   );
   await expect(page.getByRole("alert")).toContainText(
-    "Change your initial password to unlock administrator navigation."
+    "change_your_initial_password_to_unlock_administrator_navigation"
   );
   await expect(page.locator('header a[href="/admin/users"]')).toHaveCount(0);
   await page.goto("/admin/users");
   await expect(page).toHaveURL(/\/admin\/profile$/);
 
-  await page.getByLabel("Current password").fill(initialAdminPassword);
-  await page.getByLabel("New password").fill("admin");
+  await page.getByLabel("current_password").fill(initialAdminPassword);
+  await page.getByLabel("new_password").fill("admin");
   await page.getByRole("button", { name: "change_password" }).click();
-  await expect(page.getByRole("alert").filter({ hasText: "Check both passwords" })).toHaveText(
-    "Check both passwords and ensure the new password satisfies the policy."
+  await expect(page.getByRole("alert").filter({ hasText: "check_both_passwords" })).toHaveText(
+    "check_both_passwords_and_ensure_the_new_password_satisfies_the_policy"
   );
 
   await changePassword(page, initialAdminPassword, changedAdminPassword);
   await expect(page).toHaveURL(/\/admin\/profile$/);
-  await expect(page.getByText("Change your initial password to unlock administrator navigation.", { exact: true })).toHaveCount(0);
+  await expect(page.getByText("change_your_initial_password_to_unlock_administrator_navigation", { exact: true })).toHaveCount(0);
   await page.locator('header a[href="/admin/users"]').click();
   await expect(page).toHaveURL(/\/admin\/users$/);
   await expect(page.locator('[data-renderer="csr"]')).toBeVisible();
@@ -112,7 +112,7 @@ test("administrator users page contains only its header, table, and pagination",
 
   await page.setViewportSize({ width: 390, height: 844 });
   await page.getByText("navigation", { exact: true }).click();
-  await expect(page.locator("nav[aria-label='Admin sections']")).toBeVisible();
+  await expect(page.locator("nav[aria-label='admin_sections']")).toBeVisible();
   await expect(page.locator(".table-scroll")).toBeVisible();
   await page.setViewportSize({ width: 1440, height: 900 });
   await expect(page.getByRole("table")).toBeVisible();
@@ -197,9 +197,9 @@ test("administrator can create, update, and delete users and roles from dedicate
   await page.goto("/admin/users");
   await page.getByRole("link", { name: "create_user" }).click();
   await expect(page).toHaveURL(/\/admin\/users\/create$/);
-  await page.getByLabel("Login").fill("crud_user");
-  await page.getByLabel("Display name").fill("CRUD User");
-  await page.getByLabel("Initial password").fill("CrudUser1!Secure");
+  await page.getByLabel("login").fill("crud_user");
+  await page.getByLabel("display_name").fill("CRUD User");
+  await page.getByLabel("initial_password").fill("CrudUser1!Secure");
   await page.getByRole("button", { name: "create_user" }).click();
   await expect(page).toHaveURL(/\/admin\/users#saved$/);
   await expect(page.getByRole("cell", { name: "crud_user" })).toBeVisible();
@@ -209,7 +209,7 @@ test("administrator can create, update, and delete users and roles from dedicate
   const userCard = page.locator("article.crud-record").filter({
     has: page.locator('input[name="login"][value="crud_user"]')
   });
-  await userCard.getByLabel("Display name").fill("Updated CRUD User");
+  await userCard.getByLabel("display_name").fill("Updated CRUD User");
   await userCard.getByRole("button", { name: "save_changes" }).click();
   await expect(page).toHaveURL(/\/admin\/users#saved$/);
   await expect(page.getByRole("cell", { name: "Updated CRUD User" })).toBeVisible();
@@ -217,7 +217,7 @@ test("administrator can create, update, and delete users and roles from dedicate
   const updatedUserCard = page.locator("article.crud-record").filter({
     has: page.locator('input[name="login"][value="crud_user"]')
   });
-  await updatedUserCard.getByLabel("I understand this cannot be undone").check();
+  await updatedUserCard.getByLabel("i_understand_this_cannot_be_undone").check();
   await updatedUserCard.getByRole("button", { name: "delete_user" }).click();
   await expect(page).toHaveURL(/\/admin\/users#saved$/);
   await expect(page.getByRole("cell", { name: "crud_user" })).toHaveCount(0);
@@ -225,7 +225,7 @@ test("administrator can create, update, and delete users and roles from dedicate
   await page.goto("/admin/roles");
   await page.getByRole("link", { name: "create_role" }).click();
   await expect(page).toHaveURL(/\/admin\/roles\/create$/);
-  await page.getByLabel("Role name").fill("crud_role");
+  await page.getByLabel("role_name").fill("crud_role");
   await page.getByRole("button", { name: "create_role" }).click();
   await expect(page).toHaveURL(/\/admin\/roles#saved$/);
   await expect(page.getByRole("cell", { name: "crud_role" })).toBeVisible();
@@ -234,7 +234,7 @@ test("administrator can create, update, and delete users and roles from dedicate
   const roleCard = page.locator("article.crud-record").filter({
     has: page.locator('input[name="name"][value="crud_role"]')
   });
-  await roleCard.getByLabel("Role name").fill("updated_crud_role");
+  await roleCard.getByLabel("role_name").fill("updated_crud_role");
   await roleCard.getByRole("button", { name: "save_changes" }).click();
   await expect(page).toHaveURL(/\/admin\/roles#saved$/);
   await expect(page.getByRole("cell", { name: "updated_crud_role" })).toBeVisible();
@@ -242,7 +242,7 @@ test("administrator can create, update, and delete users and roles from dedicate
   const updatedRoleCard = page.locator("article.crud-record").filter({
     has: page.locator('input[name="name"][value="updated_crud_role"]')
   });
-  await updatedRoleCard.getByLabel("I understand this cannot be undone").check();
+  await updatedRoleCard.getByLabel("i_understand_this_cannot_be_undone").check();
   await updatedRoleCard.getByRole("button", { name: "delete_role" }).click();
   await expect(page).toHaveURL(/\/admin\/roles#saved$/);
   await expect(page.getByRole("cell", { name: "updated_crud_role" })).toHaveCount(0);
@@ -280,12 +280,12 @@ test("Rust UI primitives expose their semantic component contracts", async ({ pa
   await page
     .getByRole("button", { name: "reset_to_template_defaults" })
     .click();
-  const dialog = page.getByRole("dialog", { name: "Reset settings?" });
+  const dialog = page.getByRole("dialog", { name: "reset_settings" });
   await expect(dialog).toBeVisible();
   await expect(dialog.locator('[data-name="AlertDialogBody"]')).toHaveCount(1);
   await expect(dialog.locator('[data-name="AlertDialogHeader"]')).toHaveCount(1);
   await expect(dialog.locator('[data-name="AlertDialogTitle"]')).toHaveText(
-    "Reset settings?"
+    "reset_settings"
   );
   await expect(
     dialog.locator('[data-name="AlertDialogDescription"]')
@@ -302,7 +302,7 @@ test("data-table filter places a full-width Close control below Apply", async ({
   await page.goto("/admin/role_permissions");
 
   const filter = page.locator('th[data-field="role_id"] .table-column-filter');
-  await filter.getByRole("button", { name: "Filter Role Id" }).click();
+  await filter.getByRole("button", { name: "filter_role_id" }).click();
 
   const dialog = filter.getByRole("dialog");
   const close = dialog.getByRole("button", { name: "close" });
@@ -310,7 +310,7 @@ test("data-table filter places a full-width Close control below Apply", async ({
   await expect(filter).toHaveAttribute("data-name", "Popover");
   await expect(dialog).toHaveAttribute("data-name", "PopoverContent");
   await expect(dialog.locator('[data-name="RadioButtonGroup"]')).toHaveCount(1);
-  await expect(dialog.getByRole("radio", { name: "Eq", exact: true })).toBeChecked();
+  await expect(dialog.getByRole("radio", { name: "eq", exact: true })).toBeChecked();
   await expect(close).toContainText("close");
 
   const controls = await filter.evaluate(element => {
@@ -396,10 +396,10 @@ test("header links leave profile and render the selected page on desktop and mob
       await expect(page.locator(`header a[href="/admin/${name}"][aria-current="page"]`)).toHaveCount(1);
       await expect(page.locator('[data-renderer="csr"]')).toBeVisible();
       if (name === "profile") {
-        await expect(page.getByLabel("Current password")).toBeVisible();
+        await expect(page.getByLabel("current_password")).toBeVisible();
       } else {
         await expect(page.getByRole("table")).toBeVisible();
-        await expect(page.getByLabel("Current password")).toHaveCount(0);
+        await expect(page.getByLabel("current_password")).toHaveCount(0);
       }
     }
   }

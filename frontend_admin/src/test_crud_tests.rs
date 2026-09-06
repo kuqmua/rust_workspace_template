@@ -81,7 +81,11 @@ fn test_crud() {
     );
 
     let user_create = crate::render_user_create::render_user_create(&admin, &branding);
-    assert!(user_create.as_ref().contains(constants_str::VALUE_F06DA128));
+    assert!(
+        user_create
+            .as_ref()
+            .contains(constants_str::ADMIN_UI_EXPECT_VALUE_F06DA128)
+    );
     assert!(
         user_create
             .as_ref()
@@ -101,7 +105,11 @@ fn test_crud() {
     );
 
     let role_create = crate::render_role_create::render_role_create(&admin, &branding);
-    assert!(role_create.as_ref().contains(constants_str::CREATE_ROLE));
+    assert!(
+        role_create
+            .as_ref()
+            .contains(constants_str::ADMIN_UI_EXPECT_CREATE_ROLE)
+    );
     let role_manage = crate::render_role_manage::render_role_manage(&roles, &admin, &branding);
     assert!(role_manage.as_ref().contains(constants_str::VALUE_6186A0EE));
     assert!(

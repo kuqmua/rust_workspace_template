@@ -27,7 +27,7 @@ async function openAdminPage(page, path) {
 
 async function expectAdminShell(page) {
   await expect(page.locator("header.topbar")).toHaveCount(1);
-  await expect(page.locator("nav[aria-label='Admin sections']")).toBeVisible();
+  await expect(page.locator("nav[aria-label='admin_sections']")).toBeVisible();
   await expect(page.locator("main.main-content")).toHaveCount(1);
   await expect(page.locator("header form button")).toHaveAccessibleName("sign_out");
 }
@@ -51,7 +51,7 @@ test("shared page catalog matches every rendered navigation destination", async 
 }) => {
   await signInAdministrator(page);
   const destinations = await page
-    .locator('nav[aria-label="Admin sections"] a')
+    .locator('nav[aria-label="admin_sections"] a')
     .evaluateAll(links => links.map(link => link.getAttribute("href")));
   expect(destinations).toEqual(navigationAdminPaths);
 });
@@ -90,7 +90,7 @@ test("disabled OpenAPI route remains linked but rejects rendering", async ({
 }) => {
   await signInAdministrator(page);
   await expect(
-    page.locator('nav[aria-label="Admin sections"] a[href="/admin/swagger_ui"]')
+    page.locator('nav[aria-label="admin_sections"] a[href="/admin/swagger_ui"]')
   ).toHaveCount(1);
   const response = await page.goto("/admin/swagger_ui");
   expect(response).not.toBeNull();
@@ -120,7 +120,7 @@ for (const pageSpec of tablePages) {
   }) => {
     await signInAdministrator(page);
     await openAdminPage(page, pageSpec.path);
-    const destination = page.locator(`nav[aria-label="Admin sections"] a[href="${pageSpec.path}"]`);
+    const destination = page.locator(`nav[aria-label="admin_sections"] a[href="${pageSpec.path}"]`);
     await expect(destination).toHaveCount(1);
     await expect(destination).toHaveAttribute("aria-current", "page");
     await expectUniqueIds(page);
@@ -163,7 +163,7 @@ for (const pageSpec of dataTablePages) {
     await expect(page.locator("thead th").first()).toBeVisible();
     await expect(page.locator("nav.table-pagination")).toHaveCount(1);
     await expect(
-      page.locator(`nav[aria-label="Admin sections"] a[href="${pageSpec.path}"]`)
+      page.locator(`nav[aria-label="admin_sections"] a[href="${pageSpec.path}"]`)
     ).toHaveAttribute("aria-current", "page");
   });
 
@@ -190,8 +190,8 @@ test("profile page exposes account details and a labeled password form", async (
   await openAdminPage(page, "/admin/profile");
   await expectAdminShell(page);
   await expect(page.locator(".profile-card")).toBeVisible();
-  await expect(page.getByLabel("Current password")).toHaveAttribute("type", "password");
-  await expect(page.getByLabel("New password")).toHaveAttribute("type", "password");
+  await expect(page.getByLabel("current_password")).toHaveAttribute("type", "password");
+  await expect(page.getByLabel("new_password")).toHaveAttribute("type", "password");
   await expect(page.getByRole("button", { name: "change_password" })).toBeEnabled();
 });
 
@@ -200,8 +200,8 @@ test("profile page preserves its content after reload", async ({ page }) => {
   await openAdminPage(page, "/admin/profile");
   await page.reload();
   await expect(page.locator('[data-renderer="csr"]')).toBeVisible();
-  await expect(page.getByLabel("Current password")).toHaveValue("");
-  await expect(page.getByLabel("New password")).toHaveValue("");
+  await expect(page.getByLabel("current_password")).toHaveValue("");
+  await expect(page.getByLabel("new_password")).toHaveValue("");
   await expectUniqueIds(page);
 });
 
@@ -210,9 +210,9 @@ test("settings page exposes labeled editable settings", async ({ page }) => {
   await openAdminPage(page, "/admin/settings");
   await expectAdminShell(page);
   await expect(page.locator("form.settings-form")).toHaveCount(1);
-  await expect(page.getByLabel("Site name")).toBeEditable();
-  await expect(page.getByLabel("Tab title")).toBeEditable();
-  await expect(page.getByLabel("Default route")).toBeEditable();
+  await expect(page.getByLabel("site_name")).toBeEditable();
+  await expect(page.getByLabel("tab_title")).toBeEditable();
+  await expect(page.getByLabel("default_route")).toBeEditable();
   await expect(page.getByRole("button", { name: "save_settings" })).toBeEnabled();
   await expect(
     page.getByRole("button", { name: "reset_to_template_defaults" })
@@ -222,13 +222,13 @@ test("settings page exposes labeled editable settings", async ({ page }) => {
 test("settings page preserves server values after reload", async ({ page }) => {
   await signInAdministrator(page);
   await openAdminPage(page, "/admin/settings");
-  const siteName = await page.getByLabel("Site name").inputValue();
-  const tabTitle = await page.getByLabel("Tab title").inputValue();
-  const defaultRoute = await page.getByLabel("Default route").inputValue();
+  const siteName = await page.getByLabel("site_name").inputValue();
+  const tabTitle = await page.getByLabel("tab_title").inputValue();
+  const defaultRoute = await page.getByLabel("default_route").inputValue();
   await page.reload();
-  await expect(page.getByLabel("Site name")).toHaveValue(siteName);
-  await expect(page.getByLabel("Tab title")).toHaveValue(tabTitle);
-  await expect(page.getByLabel("Default route")).toHaveValue(defaultRoute);
+  await expect(page.getByLabel("site_name")).toHaveValue(siteName);
+  await expect(page.getByLabel("tab_title")).toHaveValue(tabTitle);
+  await expect(page.getByLabel("default_route")).toHaveValue(defaultRoute);
   await expectUniqueIds(page);
 });
 
@@ -239,7 +239,7 @@ for (const pageSpec of serverRenderedPages) {
     await expectAdminShell(page);
     await expect(page.locator("main")).not.toBeEmpty();
     await expect(
-      page.locator(`nav[aria-label="Admin sections"] a[href="${pageSpec.path}"]`)
+      page.locator(`nav[aria-label="admin_sections"] a[href="${pageSpec.path}"]`)
     ).toHaveAttribute("aria-current", "page");
   });
 

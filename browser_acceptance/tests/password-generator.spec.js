@@ -8,7 +8,7 @@ test.afterEach(async ({ page }) => {
 test("profile generates, reveals, and replaces a password without submitting it", async ({ page }) => {
   await signInInitialAdministrator(page);
   await page.goto("/admin/profile");
-  const password = page.getByLabel("New password", { exact: true });
+  const password = page.locator('input[name="new_password"]');
   const generate = page.getByRole("button", { name: "generate_password", exact: true });
   let passwordChanges = 0;
   page.on("request", request => {
@@ -23,7 +23,7 @@ test("profile generates, reveals, and replaces a password without submitting it"
   expect(first.length).toBe(68);
   expect(/[A-Z]/.test(first) && /[a-z]/.test(first) && /[0-9]/.test(first) && /[^A-Za-z0-9\s]/.test(first) && !/\s/.test(first)).toBe(true);
   await expect(password).toHaveAttribute("type", "password");
-  await expect(page.getByLabel("Current password", { exact: true })).toHaveValue("");
+  await expect(page.getByLabel("current_password", { exact: true })).toHaveValue("");
   await expect(page.locator(".security-card code")).toHaveCount(0);
   await page.getByRole("button", { name: "show_password", exact: true }).click();
   await expect(page.locator(".security-card code")).toHaveText(first);
@@ -41,7 +41,7 @@ test("profile generates, reveals, and replaces a password without submitting it"
     });
   });
   await generate.click();
-  await expect(page.getByText("password generation failed", { exact: true })).toBeVisible();
+  await expect(page.getByText("password_generation_failed", { exact: true })).toBeVisible();
   await expect(password).toHaveValue(second);
   expect(passwordChanges).toBe(0);
 });

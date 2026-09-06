@@ -552,7 +552,18 @@ p {
   font-size: 11px;
   font-weight: 800;
   letter-spacing: 0.08em;
-  text-transform: uppercase;
+  text-transform: none;
+}
+
+.password-policy,
+.ui-alert,
+.field-error,
+.table-filter-operations,
+.crud-heading p,
+.crud-delete p,
+.crud-confirm,
+[data-name="AlertDialogDescription"] {
+  overflow-wrap: anywhere;
 }
 
 .crud-form {
@@ -1639,7 +1650,7 @@ pre {
     font-size: 10px;
     font-weight: 800;
     letter-spacing: 0.065em;
-    text-transform: uppercase;
+    text-transform: none;
   }
 
   table td > form {

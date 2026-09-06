@@ -730,8 +730,8 @@ test("a read-only administrator sees only authorized navigation and mutations fa
   const reader = await context.newPage();
   await signIn(reader, "production_reader", "Reader-password4!");
   await expect(reader).toHaveURL(/\/admin\/profile$/);
-  await reader.getByLabel("Current password").fill("Reader-password4!");
-  await reader.getByLabel("New password").fill("Reader-password5!");
+  await reader.getByLabel("current_password").fill("Reader-password4!");
+  await reader.getByLabel("new_password").fill("Reader-password5!");
   const passwordChanged = reader.waitForResponse(
     response =>
       response.url().endsWith("/v1/admin/auth/password") &&
@@ -744,13 +744,13 @@ test("a read-only administrator sees only authorized navigation and mutations fa
   await reader.goto("/admin/users");
   await expect(reader.locator('[data-renderer="csr"]')).toBeVisible();
   await expect(
-    reader.locator('nav[aria-label="Admin sections"] a[href="/admin/users"]')
+    reader.locator('nav[aria-label="admin_sections"] a[href="/admin/users"]')
   ).toBeVisible();
   await expect(
-    reader.locator('nav[aria-label="Admin sections"] a[href="/admin/roles"]')
+    reader.locator('nav[aria-label="admin_sections"] a[href="/admin/roles"]')
   ).toHaveCount(0);
   await expect(
-    reader.locator('nav[aria-label="Admin sections"] a[href="/admin/settings"]')
+    reader.locator('nav[aria-label="admin_sections"] a[href="/admin/settings"]')
   ).toBeVisible();
 
   await reader.goto("/admin/audit_log");
@@ -775,7 +775,7 @@ test("a read-only administrator sees only authorized navigation and mutations fa
   });
   await expect(reset).toBeDisabled();
   await reset.click({ force: true });
-  await expect(reader.getByRole("dialog", { name: "Reset settings?" })).not.toBeVisible();
+  await expect(reader.getByRole("dialog", { name: "reset_settings" })).not.toBeVisible();
 
   const forbiddenPage = await reader.goto("/admin/roles");
   expect(forbiddenPage).not.toBeNull();
@@ -797,7 +797,7 @@ test("a failed settings mutation preserves input and reports the server error", 
 }) => {
   await signInAdministrator(page);
   await page.goto("/admin/settings");
-  const siteName = page.getByLabel("Site name");
+  const siteName = page.getByLabel("site_name");
   const originalSiteName = await siteName.inputValue();
   await siteName.fill("Unsaved Production Name");
   let intercepted = 0;
@@ -846,7 +846,7 @@ test("interactive controls remain named and keyboard reachable on mobile", async
     await expect(page.locator("main")).toBeVisible();
     await expect(page.locator('[data-renderer="csr"]')).toBeVisible();
     await page.getByText("navigation", { exact: true }).click();
-    await expect(page.getByRole("navigation", { name: "Admin sections" })).toBeVisible();
+    await expect(page.getByRole("navigation", { name: "admin_sections" })).toBeVisible();
     const controls = page.locator(
       ":is(a, button, input:not([type='hidden']), select, textarea):visible"
     );
@@ -928,7 +928,7 @@ test("missing credentials stop audit recovery after one refresh", async ({ conte
 test("expired CSRF cookies recover a settings mutation without replaying it", async ({ context, page }) => {
   await signInAdministrator(page);
   await page.goto("/admin/settings");
-  const siteName = page.getByLabel("Site name");
+  const siteName = page.getByLabel("site_name");
   const original = await siteName.inputValue();
   await siteName.fill("Recovered administration");
   await context.clearCookies({ name: /admin_(access_token|csrf_token)/ });

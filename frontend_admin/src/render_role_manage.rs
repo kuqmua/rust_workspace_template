@@ -32,21 +32,21 @@ pub fn render_role_manage(
         let name = item.name().to_string();
         let is_system = bool::from(item.is_system());
         let status = if is_system {
-            constants_str::VALUE_91C86A3E
+            constants_str::ADMIN_UI_SYSTEM_ROLE
         } else {
-            constants_str::VALUE_5B58E07E
+            constants_str::ADMIN_UI_CUSTOM_ROLE
         };
         leptos::view! {
             <crate::admin_card::AdminCard><article class="crud-record" id=article_id>
                 <div class="crud-record-heading"><h2>{title}</h2><span>{status}</span></div>
                 {can_update.then(|| leptos::view! { <form class="crud-form crud-form-compact" method="post" action=server_admin_contract::admin_html_action::AdminHtmlAction::RoleUpdate.get()>
                     <input type="hidden" name="role_id" value=id.clone() />
-                    <crate::admin_field::AdminField admin_field_label="Role name"><crate::admin_input::AdminInput admin_input_name="name" initial_value=name required=true disabled=is_system /></crate::admin_field::AdminField>
+                    <crate::admin_field::AdminField admin_field_label=constants_str::ADMIN_UI_ROLE_NAME><crate::admin_input::AdminInput admin_input_name="name" initial_value=name required=true disabled=is_system /></crate::admin_field::AdminField>
                     <div class="crud-actions"><crate::admin_button::AdminButton bool=is_system>{constants_str::ADMIN_BUTTON_SAVE_CHANGES}</crate::admin_button::AdminButton></div>
                 </form> })}
                 {(can_delete && !is_system).then(|| leptos::view! { <form class="crud-delete" method="post" action=server_admin_contract::admin_html_action::AdminHtmlAction::RoleDelete.get()>
                     <input type="hidden" name="role_id" value=id />
-                    <div><p>"Permanently remove this role and its assignments."</p><label class="crud-confirm"><crate::admin_checkbox::AdminCheckbox name="confirmation" value="true" bool=true />"I understand this cannot be undone"</label></div><crate::admin_button::AdminButton admin_button_variant=crate::admin_button_variant::AdminButtonVariant::Danger>{constants_str::ADMIN_BUTTON_DELETE_ROLE}</crate::admin_button::AdminButton>
+                    <div><p>{constants_str::ADMIN_UI_PERMANENTLY_REMOVE_THIS_ROLE_AND_ITS_ASSIGNMENTS}</p><label class="crud-confirm"><crate::admin_checkbox::AdminCheckbox name="confirmation" value="true" bool=true />{constants_str::ADMIN_UI_I_UNDERSTAND_THIS_CANNOT_BE_UNDONE}</label></div><crate::admin_button::AdminButton admin_button_variant=crate::admin_button_variant::AdminButtonVariant::Danger>{constants_str::ADMIN_BUTTON_DELETE_ROLE}</crate::admin_button::AdminButton>
                 </form> })}
             </article></crate::admin_card::AdminCard>
         }
@@ -54,7 +54,7 @@ pub fn render_role_manage(
     super::crud_render_shell::crud_render_shell(
         server_admin_contract::admin_page::AdminPage::Roles,
         leptos::view! {
-            <section class="crud-page"><div class="crud-heading"><div><p class="eyebrow">"Roles"</p><h1>"Manage roles"</h1><p>"Rename custom roles or remove roles that are no longer needed."</p></div><crate::admin_button_link::AdminButtonLink str=server_admin_contract::admin_frontend_path::AdminFrontendPath::Roles.get() admin_button_variant=crate::admin_button_variant::AdminButtonVariant::Secondary>{constants_str::ADMIN_BUTTON_BACK_TO_ROLES}</crate::admin_button_link::AdminButtonLink></div><div class="crud-list">{cards}</div></section>
+            <section class="crud-page"><div class="crud-heading"><div><p class="eyebrow">{constants_str::ADMIN_UI_ROLES}</p><h1>{constants_str::ADMIN_UI_MANAGE_ROLES}</h1><p>{constants_str::ADMIN_UI_RENAME_CUSTOM_ROLES_OR_REMOVE_ROLES_THAT_ARE_NO_LONGER_NEEDED}</p></div><crate::admin_button_link::AdminButtonLink str=server_admin_contract::admin_frontend_path::AdminFrontendPath::Roles.get() admin_button_variant=crate::admin_button_variant::AdminButtonVariant::Secondary>{constants_str::ADMIN_BUTTON_BACK_TO_ROLES}</crate::admin_button_link::AdminButtonLink></div><div class="crud-list">{cards}</div></section>
         },
         authenticated_admin,
         admin_branding_view,
