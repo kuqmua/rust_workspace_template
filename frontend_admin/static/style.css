@@ -51,7 +51,7 @@
   --shadow: 0 12px 32px rgb(20 29 48 / 7%);
   --header-font-size: 12px;
   --header-font-weight: 650;
-  --header-height: 52px;
+  --header-height: 37px;
 }
 
 * {
@@ -326,11 +326,25 @@ p {
   margin: 0 auto;
 }
 
-.page-frame > :not(.flash-success):has(> .table-page),
-.page-frame > .table-page {
-  flex: 0 0 auto;
-  height: auto;
+.main-content:has(.table-scroll) {
+  overflow: hidden;
+}
+
+.page-frame:has(.table-scroll) {
+  height: 100%;
   min-height: 0;
+}
+
+.page-frame > :has(.table-scroll),
+.page-frame :has(> .table-scroll) {
+  display: flex;
+  flex: 1 1 0;
+  min-height: 0;
+  flex-direction: column;
+}
+
+.page-frame :has(> .table-scroll) > :not(.table-scroll) {
+  flex-shrink: 0;
 }
 
 .settings-grid {
@@ -471,6 +485,28 @@ p {
 }
 
 @layer utilities {
+  .page-frame .table-scroll {
+    max-height: none !important;
+  }
+
+  .table-scroll table {
+    max-width: none !important;
+  }
+
+  .table-scroll th,
+  .table-scroll td {
+    height: var(--header-height) !important;
+    padding-block: 0 !important;
+    white-space: nowrap;
+  }
+
+  .table-pagination button,
+  .table-pagination input {
+    height: calc(var(--header-height) - 2px) !important;
+    min-height: 0 !important;
+    padding-block: 0 !important;
+  }
+
   .table-admin_users_page > .resource-actions > a,
   .table-admin_roles_page > .resource-actions > a,
   .auth-card form button {
@@ -590,8 +626,7 @@ p {
 
 .table-scroll {
   min-height: 0;
-  max-height: calc(100dvh - 188px);
-  flex: 0 1 auto;
+  flex: 1 1 0;
   overflow: auto;
   overscroll-behavior: contain;
   border: 1px solid var(--border);
@@ -896,6 +931,101 @@ td form button:hover {
   overflow: visible;
 }
 
+.table-scroll thead {
+  position: sticky;
+  z-index: 2;
+  top: 0;
+}
+
+.table-scroll dialog {
+  white-space: normal;
+}
+
+.table-cell-preview {
+  display: block;
+  width: max-content;
+  max-width: min(24ch, 100%);
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: zoom-in;
+}
+
+.table-cell-preview:hover {
+  color: var(--accent);
+}
+
+.table-cell-preview:empty::before {
+  content: "\2014";
+}
+
+.table-cell-preview:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.table-cell-dialog {
+  width: min(48rem, calc(100% - 2rem));
+  max-height: calc(100dvh - 2rem);
+  margin: auto;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: var(--shadow);
+}
+
+.table-cell-dialog[open] {
+  display: flex;
+  flex-direction: column;
+}
+
+.table-cell-dialog::backdrop {
+  background: rgb(0 0 0 / 50%);
+}
+
+.table-cell-dialog > header {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.table-cell-dialog h2 {
+  margin: 0;
+  overflow-wrap: anywhere;
+  font-size: 16px;
+}
+
+.table-cell-dialog button {
+  min-height: 36px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  background: var(--surface-subtle);
+}
+
+.table-cell-dialog > pre {
+  min-height: 0;
+  margin: 0;
+  padding: 16px;
+  overflow: auto;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  user-select: text;
+}
+
 .settings-form {
   display: grid;
   width: 100%;
@@ -960,7 +1090,7 @@ td form button:hover {
   flex-wrap: wrap;
   align-items: center;
   gap: 8px;
-  padding: 4px 0;
+  padding: 0;
 }
 
 .table-actions > input:not([type="checkbox"]),
@@ -1072,7 +1202,9 @@ td > form button {
 
 .table-pagination {
   display: flex;
-  flex-wrap: wrap;
+  height: var(--header-height);
+  flex-wrap: nowrap;
+  white-space: nowrap;
   align-items: center;
   justify-content: flex-end;
   gap: 12px;
@@ -1493,6 +1625,8 @@ pre {
     border-top: 1px solid var(--border);
     padding: 12px 14px;
     overflow-wrap: anywhere;
+    align-items: center;
+    overflow-x: auto;
   }
 
   table td:first-child {
@@ -1538,12 +1672,15 @@ pre {
 }
 
 @media (max-width: 420px) {
-  .table-pagination {
-    justify-content: space-between;
-  }
+  @layer utilities {
+    .table-pagination {
+      gap: 4px !important;
+    }
 
-  .table-pagination .table-page-size {
-    width: 100%;
+    .table-pagination button {
+      padding-inline: 4px !important;
+      font-size: 11px !important;
+    }
   }
 
   .auth-card {

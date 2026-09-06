@@ -221,6 +221,8 @@ pub mod test_domain_types_ssr_tests_settings;
 pub mod test_domain_types_with_owner_tests;
 #[cfg(all(not(target_arch = "wasm32"), test))]
 pub mod test_static_pages_tests;
+#[cfg(test)]
+pub mod test_table_cell_tests;
 #[cfg(target_arch = "wasm32")]
 pub mod wasm_bindgen_password_generation_exception;
 #[cfg(target_arch = "wasm32")]

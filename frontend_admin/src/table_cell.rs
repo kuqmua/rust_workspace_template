@@ -18,7 +18,7 @@
     reason = "grouped Leptos prelude imports are required by workspace source policy"
 )]
 #[rustfmt::skip]
-use leptos::prelude::{AddAnyAttr};
+use leptos::prelude::{AddAnyAttr, AriaAttributes, ClassAttribute, ElementChild, GlobalAttributes};
 
 #[leptos::component]
 #[allow(
@@ -29,6 +29,7 @@ pub(crate) fn TableCell(
     #[prop(optional, into)] data_label: Option<std::borrow::Cow<'static, str>>,
     #[prop(optional, into)] data_field: Option<std::borrow::Cow<'static, str>>,
     #[prop(optional)] class: Option<&'static str>,
+    #[prop(optional)] bool: bool,
     children: leptos::prelude::Children,
 ) -> impl leptos::prelude::IntoView {
     let class = class.map_or_else(
@@ -43,5 +44,17 @@ pub(crate) fn TableCell(
             ))
         },
     );
-    leptos::view! { <singlestage::TableCell attr:data-name="TableCell" attr:data-label=data_label attr:data-field=data_field attr:class=class>{children()}</singlestage::TableCell> }
+    let children = if bool {
+        leptos::prelude::IntoAny::into_any(children())
+    } else {
+        leptos::prelude::IntoAny::into_any(leptos::view! {
+            <button
+                type=crate::admin_button_kind::AdminButtonKind::Button.value()
+                class=constants_str::ADMIN_TABLE_CELL_PREVIEW_CLASS
+                aria-haspopup=constants_str::ADMIN_TABLE_VALUE_DIALOG_ROLE
+                title=constants_str::ADMIN_TABLE_VALUE_PREVIEW_LABEL
+            >{children()}</button>
+        })
+    };
+    leptos::view! { <singlestage::TableCell attr:data-name="TableCell" attr:data-label=data_label attr:data-field=data_field attr:class=class>{children}</singlestage::TableCell> }
 }

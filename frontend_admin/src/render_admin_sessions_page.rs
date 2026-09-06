@@ -56,7 +56,7 @@ pub fn render_admin_sessions_page(
                 <crate::table_cell::TableCell data_label="created">{created_at}</crate::table_cell::TableCell>
                 <crate::table_cell::TableCell data_label="expires">{expires_at}</crate::table_cell::TableCell>
                 <crate::table_cell::TableCell data_label="current"><crate::admin_badge::AdminBadge admin_badge_variant=if is_current { crate::admin_badge_variant::AdminBadgeVariant::Success } else { crate::admin_badge_variant::AdminBadgeVariant::Neutral }>{current_text}</crate::admin_badge::AdminBadge></crate::table_cell::TableCell>
-                <crate::table_cell::TableCell data_label="actions">
+                <crate::table_cell::TableCell data_label="actions" bool=true>
                     {dialog}
                 </crate::table_cell::TableCell>
             </crate::table_row::TableRow>
