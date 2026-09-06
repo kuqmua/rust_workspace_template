@@ -214,7 +214,7 @@ jobs:
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
-      - uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
         with:
           path: |
             ~/.cargo/registry
@@ -234,7 +234,7 @@ jobs:
       MIRIFLAGS: -Zmiri-disable-isolation
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
-      - uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
         with:
           path: |
             ~/.cargo/registry
@@ -259,7 +259,7 @@ jobs:
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
-      - uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
         with:
           path: |
             ~/.cargo/registry
