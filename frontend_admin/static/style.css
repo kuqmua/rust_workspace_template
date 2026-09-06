@@ -1,3 +1,18 @@
+@layer interface-shape {
+  *,
+  *::before,
+  *::after,
+  *::backdrop,
+  *::file-selector-button {
+    border-radius: 0 !important;
+  }
+
+  *::-webkit-scrollbar-thumb,
+  *::-webkit-scrollbar-track {
+    border-radius: 0 !important;
+  }
+}
+
 :root {
   color: #172033;
   background: #f6f7f9;
@@ -18,9 +33,9 @@
   --danger-soft: #fff1f2;
   --success: #177245;
   --success-soft: #eaf8f0;
-  --radius-sm: 8px;
-  --radius: 12px;
-  --radius-lg: 16px;
+  --radius-sm: 0;
+  --radius: 0;
+  --radius-lg: 0;
   --shadow-sm: 0 1px 2px rgb(20 29 48 / 4%);
   --shadow: 0 12px 32px rgb(20 29 48 / 7%);
   --header-font-size: 12px;
