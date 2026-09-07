@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 import { signInInitialAdministrator, signOutIfAuthenticated } from "./support/admin.js";
 import { navigationAdminPaths } from "./support/pages.js";
 
-async function expectSharedFontFamily(page) {
+async function expectSharedTypography(page) {
   const fonts = await page.evaluate(() => {
     const family = getComputedStyle(document.documentElement).fontFamily;
     const samples = [document.body, ...document.body.querySelectorAll("*")].flatMap(element => {
@@ -12,7 +12,8 @@ async function expectSharedFontFamily(page) {
       const control = element.matches("input, textarea, select, button");
       const samples = hasText || control ? [{
         element: element.tagName,
-        family: getComputedStyle(element).fontFamily
+        family: getComputedStyle(element).fontFamily,
+        weight: getComputedStyle(element).fontWeight
       }] : [];
       ["::before", "::after", "::marker", "::placeholder", "::file-selector-button"].forEach(pseudo => {
         const style = getComputedStyle(element, pseudo);
@@ -20,7 +21,7 @@ async function expectSharedFontFamily(page) {
         if (generated || (pseudo === "::marker" && getComputedStyle(element).display === "list-item") ||
             (pseudo === "::placeholder" && element.hasAttribute("placeholder")) ||
             (pseudo === "::file-selector-button" && element.matches('input[type="file"]'))) {
-          samples.push({ element: `${element.tagName}${pseudo}`, family: style.fontFamily });
+          samples.push({ element: `${element.tagName}${pseudo}`, family: style.fontFamily, weight: style.fontWeight });
         }
       });
       return samples;
@@ -30,21 +31,25 @@ async function expectSharedFontFamily(page) {
   expect(fonts.family).not.toBe("");
   expect(fonts.samples.length).toBeGreaterThan(0);
   expect(fonts.samples.filter(sample => sample.family !== fonts.family), page.url()).toEqual([]);
+  expect(fonts.samples.filter(sample => sample.weight !== "400"), page.url()).toEqual([]);
 }
 
-test("test_sign_in_uses_one_font_family", async ({ page }) => {
+test("test_sign_in_uses_regular_interface_typography", async ({ page }) => {
   await page.goto("/admin/sign_in");
   await expect(page.getByRole("button", { name: "sign_in", exact: true })).toBeVisible();
-  await expectSharedFontFamily(page);
+  await expectSharedTypography(page);
 });
 
-test("test_code_and_native_controls_use_the_interface_font", async ({ page }) => {
+test("test_headings_emphasis_utilities_and_controls_use_regular_interface_typography", async ({ page }) => {
   await page.goto("/admin/sign_in");
   await expect(page.getByRole("button", { name: "sign_in", exact: true })).toBeVisible();
   await page.evaluate(() => {
     const section = document.createElement("section");
     section.innerHTML = '<style>.font-fixture::before, .font-fixture::after {' +
-      'content: "Generated text"; font-family: monospace !important; }</style>' +
+      'content: "Generated text"; font-family: monospace !important; font-weight: 900 !important; }</style>' +
+      '<h1>Heading</h1><h2>Subheading</h2><strong>Important text</strong><b>Bold element</b>' +
+      '<span class="font-semibold">Semibold utility</span><span class="font-bold">Bold utility</span>' +
+      '<span style="font-weight: 900">Explicit legacy weight</span><table><tr><th>Header</th></tr></table>' +
       '<pre>Preformatted text</pre><code class="font-mono">Code text</code>' +
       '<kbd>Keyboard shortcut</kbd><samp>Program output</samp>' +
       '<span style="font-family: monospace">Explicit legacy font</span>' +
@@ -54,7 +59,7 @@ test("test_code_and_native_controls_use_the_interface_font", async ({ page }) =>
       '<span class="font-fixture">Generated content fixture</span>';
     document.body.append(section);
   });
-  await expectSharedFontFamily(page);
+  await expectSharedTypography(page);
 });
 
 test.describe("administrator typography", () => {
@@ -74,17 +79,17 @@ test.describe("administrator typography", () => {
   ];
 
   paths.forEach(path => {
-    test(`test_shared_font_on_${path.slice(1).replaceAll("/", "_")}`, async ({ page }) => {
+    test(`test_regular_interface_typography_on_${path.slice(1).replaceAll("/", "_")}`, async ({ page }) => {
       await page.goto(path);
       await expect(page.locator("main")).toBeVisible();
       await expect(page.getByText("loading", { exact: true })).toHaveCount(0);
       await expect(page.locator("main")).not.toBeEmpty();
       await expect(page.getByRole("alert")).toHaveCount(0);
-      await expectSharedFontFamily(page);
+      await expectSharedTypography(page);
       await page.setViewportSize({ width: 390, height: 844 });
       await page.getByText("navigation", { exact: true }).click();
       await expect(page.locator("header nav")).toBeVisible();
-      await expectSharedFontFamily(page);
+      await expectSharedTypography(page);
     });
   });
 
@@ -93,13 +98,13 @@ test.describe("administrator typography", () => {
     await page.getByRole("button", { name: "reset_to_template_defaults", exact: true }).click();
     const confirmation = page.getByRole("dialog", { name: "reset_settings" });
     await expect(confirmation).toBeVisible();
-    await expectSharedFontFamily(page);
+    await expectSharedTypography(page);
     await confirmation.getByRole("button", { name: "cancel", exact: true }).click();
     await page.goto("/admin/role_permissions");
     await page.getByRole("button", { name: "filter_role_id", exact: true }).click();
     const filter = page.getByRole("dialog", { name: "filter_role_id", exact: true });
     await expect(filter).toBeVisible();
-    await expectSharedFontFamily(page);
+    await expectSharedTypography(page);
     await filter.getByRole("button", { name: "close", exact: true }).click();
   });
 });

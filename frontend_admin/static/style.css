@@ -6,6 +6,7 @@
   *::placeholder,
   *::file-selector-button {
     font-family: var(--interface-font-family) !important;
+    font-weight: 400 !important;
   }
 }
 
@@ -485,6 +486,12 @@ p {
 }
 
 @layer utilities {
+  .open-api-page .code-card,
+  .open-api-page [data-name="CardContent"],
+  body:has(a[href="/admin/metrics"][aria-current="page"]) main :is([data-name="Card"], [data-name="CardContent"]) {
+    padding: 0 !important;
+  }
+
   .open-api-page [data-name="CodeScrollArea"],
   .page-frame .table-scroll {
     max-height: none !important;
@@ -512,6 +519,7 @@ p {
   .table-admin_roles_page > .resource-actions > a,
   .audit-download-actions button,
   .audit-download-actions > a,
+  .user-create-page > .crud-heading > a,
   .auth-card form button {
     width: 100% !important;
   }
@@ -529,6 +537,14 @@ p {
   justify-content: space-between;
   gap: 20px;
   min-height: 64px;
+}
+
+.user-create-page {
+  gap: 0;
+}
+
+.user-create-page > .crud-heading {
+  min-height: 0;
 }
 
 .crud-heading h1,
@@ -694,10 +710,10 @@ p {
 .profile-grid {
   display: grid;
   width: 100%;
-  grid-template-columns: minmax(280px, 0.85fr) minmax(420px, 1.4fr);
+  grid-template-columns: minmax(0, 1fr);
   align-items: start;
   gap: 16px;
-  margin: 0;
+  margin: 0 auto;
   padding: 0;
 }
 

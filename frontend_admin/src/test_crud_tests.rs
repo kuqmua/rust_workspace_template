@@ -82,6 +82,11 @@ fn test_crud() {
 
     let user_create = crate::render_user_create::render_user_create(&admin, &branding);
     assert!(
+        !user_create
+            .as_ref()
+            .contains(constants_str::ADMIN_UI_ADD_A_USER_ACCOUNT_WITH_INITIAL_CREDENTIALS)
+    );
+    assert!(
         user_create
             .as_ref()
             .contains(constants_str::ADMIN_UI_EXPECT_VALUE_F06DA128)

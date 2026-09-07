@@ -19,7 +19,7 @@ pub fn render_user_create(
     super::crud_render_shell::crud_render_shell(
         server_admin_contract::admin_page::AdminPage::Users,
         leptos::view! {
-            <section class="crud-page"><div class="crud-heading"><div><p class="eyebrow">{constants_str::ADMIN_UI_USERS}</p><h1>{constants_str::ADMIN_UI_CREATE_USER}</h1><p>{constants_str::ADMIN_UI_ADD_A_USER_ACCOUNT_WITH_INITIAL_CREDENTIALS}</p></div><crate::admin_button_link::AdminButtonLink str=server_admin_contract::admin_frontend_path::AdminFrontendPath::Users.get() admin_button_variant=crate::admin_button_variant::AdminButtonVariant::Secondary>{constants_str::ADMIN_BUTTON_BACK_TO_USERS}</crate::admin_button_link::AdminButtonLink></div>
+            <section class="crud-page user-create-page"><div class="crud-heading"><crate::admin_button_link::AdminButtonLink str=server_admin_contract::admin_frontend_path::AdminFrontendPath::Users.get() admin_button_variant=crate::admin_button_variant::AdminButtonVariant::Secondary>{constants_str::ADMIN_BUTTON_BACK_TO_USERS}</crate::admin_button_link::AdminButtonLink></div>
             <crate::admin_card::AdminCard><form class="crud-form" method="post" action=server_admin_contract::admin_html_action::AdminHtmlAction::UserCreate.get()>
                 <crate::admin_field::AdminField admin_field_label=constants_str::ADMIN_UI_LOGIN><crate::admin_input::AdminInput admin_input_name="login" autocomplete="username" required=true /></crate::admin_field::AdminField>
                 <crate::admin_field::AdminField admin_field_label=constants_str::ADMIN_UI_DISPLAY_NAME><crate::admin_input::AdminInput admin_input_name="display_name" required=true /></crate::admin_field::AdminField>
