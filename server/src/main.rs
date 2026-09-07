@@ -143,11 +143,13 @@ fn main() -> server_exit_code::ServerExitCode {
                         .map_err(|error| {
                             run_server_error::RunServerError::BindServiceSocket(
                                 server_io_error::ServerIoError::from(error),
+                                *config.get_service_socket_address(),
                             )
                         })?;
                         let actual_service_socket_address = tcp_listener.local_addr().map_err(|error| {
                             run_server_error::RunServerError::BindServiceSocket(
                                 server_io_error::ServerIoError::from(error),
+                                *config.get_service_socket_address(),
                             )
                         })?;
                         tracing::info!(frontend = %actual_service_socket_address);

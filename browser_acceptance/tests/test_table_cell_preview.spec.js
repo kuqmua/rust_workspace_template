@@ -14,6 +14,32 @@ test.afterEach(async ({ page }) => {
 });
 
 [...tablePages, ...dataTablePages].forEach(({ name, path }) => {
+  test(`test_${name}_hidden_cell_content_does_not_expand_columns`, async ({ page }) => {
+    await page.goto(path);
+    const table = page.locator(".table-scroll table");
+    await expect(table).toBeVisible();
+    await [390, 1280, 2560].reduce(async (previous, width) => {
+      await previous;
+      await page.setViewportSize({ width, height: 1080 });
+      const widths = await table.evaluate(element => {
+        const row = element.querySelector("tbody").insertRow();
+        const cell = row.insertCell();
+        const preview = document.createElement("button");
+        preview.className = "table-cell-preview";
+        cell.append(preview);
+        preview.textContent = "W".repeat(24);
+        const bounded = element.getBoundingClientRect().width;
+        preview.textContent = "W".repeat(2000);
+        const expanded = element.getBoundingClientRect().width;
+        const clipped = preview.scrollWidth > preview.clientWidth;
+        row.remove();
+        return { bounded, expanded, clipped };
+      });
+      expect(widths.clipped).toBe(true);
+      expect(widths.expanded).toBeLessThanOrEqual(widths.bounded + 1);
+    }, Promise.resolve());
+  });
+
   test(`test_${name}_values_have_a_full_content_viewer`, async ({ page }) => {
     await page.goto(path);
     await expect(page.locator(".table-scroll table")).toBeVisible();

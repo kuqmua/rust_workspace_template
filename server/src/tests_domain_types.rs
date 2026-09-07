@@ -1,5 +1,38 @@
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn test_bind_service_socket_error_reports_address_and_preserves_source() {
+        assert!([
+            std::net::SocketAddr::from((std::net::Ipv4Addr::LOCALHOST, 8080u16)),
+            std::net::SocketAddr::from((std::net::Ipv6Addr::LOCALHOST, 8081u16)),
+        ]
+        .into_iter()
+        .all(|socket_addr| {
+            let service_socket_address =
+                <config_lib::domain_types::ServiceSocketAddress as config_lib::try_from_std_env_var_ok::TryFromStdEnvVarOk>::try_from_std_env_var_ok(
+                    config_lib::std_env_var_ok::StdEnvVarOk::try_from(socket_addr.to_string())
+                        .unwrap_or_else(config_lib::std_env_var_ok::StdEnvVarOk::from),
+                )
+                .expect(constants_str::DIAGNOSTIC_572E4C7E);
+            let server_io_error = crate::server_io_error::ServerIoError::from(
+                std::io::Error::from(std::io::ErrorKind::AddrInUse),
+            );
+            let source_message = server_io_error.to_string();
+            let run_server_error = crate::run_server_error::RunServerError::BindServiceSocket(
+                server_io_error,
+                service_socket_address,
+            );
+            let message = run_server_error.to_string();
+            message.starts_with(constants_str::SERVICE_SOCKET_BIND_FAILED)
+                && message.contains(&socket_addr.to_string())
+                && message.ends_with(&source_message)
+                && std::error::Error::source(&run_server_error).is_some_and(|error| {
+                    error.is::<crate::server_io_error::ServerIoError>()
+                        && error.to_string() == source_message
+                })
+        }));
+    }
+
     #[tokio::test]
     async fn test_administrator_asset_route_preserves_static_file_serving() {
         let response = tower::ServiceExt::oneshot(

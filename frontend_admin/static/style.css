@@ -958,7 +958,7 @@ td form button:hover {
 .table-cell-preview {
   display: block;
   width: max-content;
-  max-width: min(24ch, 100%);
+  max-width: 24ch;
   min-width: 0;
   margin: 0;
   padding: 0;
@@ -1377,6 +1377,10 @@ pre {
 .auth-card form {
   display: grid;
   gap: 16px;
+}
+
+.auth-card .field-error + form {
+  margin-top: 18px;
 }
 
 .auth-card form label {

@@ -6,8 +6,11 @@ pub(crate) enum RunServerError {
     AdminCleanupConfig(server_admin::admin_cleanup_configuration_error::AdminCleanupConfigurationError),
     #[error("administrator cleanup task shutdown failed: {0}")]
     AdminCleanupShutdown(server_runtime_http::background_task_shutdown_error::BackgroundTaskShutdownError),
-    #[error("failed to bind service socket: {0}")]
-    BindServiceSocket(crate::server_io_error::ServerIoError),
+    #[error("{message} {address}: {0}", message = constants_str::SERVICE_SOCKET_BIND_FAILED, address = .1.get_inner())]
+    BindServiceSocket(
+        #[source] crate::server_io_error::ServerIoError,
+        config_lib::domain_types::ServiceSocketAddress,
+    ),
     #[error("failed to build tokio runtime: {0}")]
     BuildRuntime(crate::server_io_error::ServerIoError),
     #[error("failed to read configuration from environment: {0}")]
