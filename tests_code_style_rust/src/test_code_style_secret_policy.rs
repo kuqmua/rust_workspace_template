@@ -2,23 +2,23 @@
     proc_macro_getters::Getters, proc_macro_optimal_memory_layout::OptimalMemoryLayout, Default,
 )]
 struct SecretBoxStringVisitor {
-    argument_identifiers: crate::types::SourceTextBTreeSet,
-    found_count: crate::types::AnalyzerCount,
+    argument_identifiers: crate::source_text_b_tree_set::SourceTextBTreeSet,
+    found_count: crate::analyzer_count::AnalyzerCount,
 }
 
 #[derive(
     proc_macro_getters::Getters, proc_macro_optimal_memory_layout::OptimalMemoryLayout, Default,
 )]
 struct BoundedStringIdentifierVisitor {
-    identifiers: crate::types::SourceTextBTreeSet,
+    identifiers: crate::source_text_b_tree_set::SourceTextBTreeSet,
 }
 
 impl<'ast> syn::visit::Visit<'ast> for BoundedStringIdentifierVisitor {
     fn visit_item_struct(&mut self, item_struct: &'ast syn::ItemStruct) {
         let derives_bounded_string = item_struct.attrs.iter().any(|attribute| {
             crate::code_style::derive_attr_has_terminal(
-                crate::types::SynAttributeRef::from(attribute),
-                crate::types::SourceTextRef::from(stringify!(BoundedString)),
+                crate::syn_attribute_ref::SynAttributeRef::from(attribute),
+                crate::source_text_ref::SourceTextRef::from(stringify!(BoundedString)),
             )
             .get()
         });
@@ -26,8 +26,8 @@ impl<'ast> syn::visit::Visit<'ast> for BoundedStringIdentifierVisitor {
             syn::Fields::Unnamed(fields) if fields.unnamed.len() == 1 => {
                 fields.unnamed.first().is_some_and(|field| {
                     crate::code_style::type_path_ends_with_identifier(
-                        crate::types::SynTypeRef::from(&field.ty),
-                        crate::types::SourceTextRef::from(constants_str::BOUNDEDSTRING),
+                        crate::syn_type_ref::SynTypeRef::from(&field.ty),
+                        crate::source_text_ref::SourceTextRef::from(constants_str::BOUNDEDSTRING),
                     )
                     .get()
                 })
@@ -86,17 +86,17 @@ fn type_secret_box_argument_identifier(ty: &syn::Type) -> Option<&syn::Ident> {
 #[test]
 fn test_secret_boxes_do_not_use_raw_string_anywhere_in_repository() {
     crate::code_style::assert_rs_ast_errors_empty_with_context(
-        crate::types::StaticStr::from(constants_str::VALUE_3B1BC5FE),
-        crate::types::SourceTextRef::from(constants_str::VALUE_820D50A4),
+        crate::static_str::StaticStr::from(constants_str::VALUE_3B1BC5FE),
+        crate::source_text_ref::SourceTextRef::from(constants_str::VALUE_820D50A4),
         |path, ast, errors| {
             let visitor = crate::code_style::visit_syn_file(
-                crate::types::SynFileRef::from(ast),
+                crate::syn_file_ref::SynFileRef::from(ast),
                 SecretBoxStringVisitor::default(),
             );
             crate::code_style::push_repeated_file_error(
-                crate::types::DiagnosticMessagesMutRef::from(errors),
-                crate::types::PathRef::from(path),
-                crate::types::SourceTextRef::from(constants_str::VALUE_05D8F7AC),
+                crate::diagnostic_messages_mut_ref::DiagnosticMessagesMutRef::from(errors),
+                crate::path_ref::PathRef::from(path),
+                crate::source_text_ref::SourceTextRef::from(constants_str::VALUE_05D8F7AC),
                 *visitor.get_found_count(),
             );
         },
@@ -119,7 +119,7 @@ fn test_repository_secret_box_policy_checks_generated_tokens() {
     let ast =
         syn::parse_file(constants_str::VALUE_53E9A56F).expect(constants_str::DIAGNOSTIC_47BF1CF6);
     let visitor = crate::code_style::visit_syn_file(
-        crate::types::SynFileRef::from(&ast),
+        crate::syn_file_ref::SynFileRef::from(&ast),
         SecretBoxStringVisitor::default(),
     );
     assert_eq!(visitor.get_found_count().get(), constants_usize::ONE);
@@ -132,7 +132,7 @@ fn test_repository_secret_boxes_use_bounded_string_types() {
             .iter()
             .flat_map(|source_file| {
                 crate::code_style::visit_syn_file(
-                    crate::types::SynFileRef::from(source_file.ast().as_ref()),
+                    crate::syn_file_ref::SynFileRef::from(source_file.ast().as_ref()),
                     BoundedStringIdentifierVisitor::default(),
                 )
                 .identifiers
@@ -144,7 +144,7 @@ fn test_repository_secret_boxes_use_bounded_string_types() {
             .iter()
             .flat_map(|source_file| {
                 crate::code_style::visit_syn_file(
-                    crate::types::SynFileRef::from(source_file.ast().as_ref()),
+                    crate::syn_file_ref::SynFileRef::from(source_file.ast().as_ref()),
                     SecretBoxStringVisitor::default(),
                 )
                 .argument_identifiers

@@ -65,7 +65,7 @@ fn probe_lint(tool: &str, lint: &str) -> LintProbeDisposition {
 fn test_check_if_workspace_cargo_toml_workspace_lints_clippy_contains_all_clippy_lints() {
     crate::code_style::assert_workspace_lints_match(
         crate::code_style::RustOrClippy::Clippy,
-        crate::types::StaticStr::from(constants_str::VALUE_8895CA50),
+        crate::static_str::StaticStr::from(constants_str::VALUE_8895CA50),
     );
 }
 #[test]
@@ -140,10 +140,10 @@ fn test_check_if_workspace_cargo_toml_workspace_lints_rust_contains_all_rust_lin
         "bd2fa22f"
     );
     crate::code_style::assert_workspace_lints_match(
-        crate::code_style::RustOrClippy::Rust(crate::types::StaticStrSliceRef::from(
-            exceptions.as_slice(),
-        )),
-        crate::types::StaticStr::from(constants_str::VALUE_3C20B457),
+        crate::code_style::RustOrClippy::Rust(
+            crate::static_str_slice_ref::StaticStrSliceRef::from(exceptions.as_slice()),
+        ),
+        crate::static_str::StaticStr::from(constants_str::VALUE_3C20B457),
     );
 }
 

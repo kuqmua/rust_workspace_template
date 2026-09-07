@@ -5,6 +5,6 @@ pub mod mock_notification_provider_closed;
 pub mod remote_sync_request_count;
 pub mod remote_sync_source;
 #[cfg(test)]
-pub mod test_tests;
+pub mod test_external_service_emulators;
 pub mod tokio_mock_notification_receiver;
 pub mod tokio_mock_notification_sender;

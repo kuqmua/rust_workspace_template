@@ -99,4 +99,21 @@ impl AdminPasswordHasher {
             crate::admin_password_hash_error::AdminPasswordHashError::Join(crate::tokio_admin_join_error::TokioAdminJoinError::from(error))
         })?
     }
+
+    pub(crate) async fn acquire(
+        &self,
+    ) -> Result<
+        crate::tokio_admin_owned_semaphore_permit::TokioAdminOwnedSemaphorePermit,
+        crate::admin_password_hash_error::AdminPasswordHashError,
+    > {
+        std::sync::Arc::<tokio::sync::Semaphore>::clone(self.get_semaphore().get_inner())
+            .acquire_owned()
+            .await
+            .map(crate::tokio_admin_owned_semaphore_permit::TokioAdminOwnedSemaphorePermit::from)
+            .map_err(|error| {
+                crate::admin_password_hash_error::AdminPasswordHashError::SemaphoreClosed(
+                    crate::tokio_admin_acquire_error::TokioAdminAcquireError::from(error),
+                )
+            })
+    }
 }

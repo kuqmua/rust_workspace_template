@@ -4,14 +4,16 @@
     reason = "shared proc-macro implementations preserve the original entrypoint bodies and conversion points while returning proc_macro2 streams to one-entrypoint facade crates; every result is consumed immediately by its facade"
 )]
 
+extern crate proc_macro;
+
 mod bounded_string_attrs;
 mod bounded_string_option;
 mod newtype_attrs;
 mod newtype_bool;
 mod newtype_option;
 mod newtype_syn_derive_input_ref;
-mod proc_macro2_generated_token_stream;
-mod proc_macro_input_token_stream;
+pub mod proc_macro2_generated_token_stream;
+pub mod proc_macro_input_token_stream;
 mod snake_ident_max_len;
 mod snake_identifier;
 mod snake_identifierifier_len;
@@ -76,104 +78,130 @@ fn derive_newtype_option(
         ),
     }
 }
-pub fn as_mut(token_stream: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
+pub fn as_mut(
+    proc_macro_input_token_stream: proc_macro_input_token_stream::ProcMacroInputTokenStream,
+) -> proc_macro2_generated_token_stream::ProcMacro2GeneratedTokenStream {
     derive_newtype_option(
-        proc_macro_input_token_stream::ProcMacroInputTokenStream::from(token_stream),
+        proc_macro_input_token_stream,
         newtype_option::NewtypeOption::AsMut,
         None,
     )
     .into()
 }
-pub fn as_ref(token_stream: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
+pub fn as_ref(
+    proc_macro_input_token_stream: proc_macro_input_token_stream::ProcMacroInputTokenStream,
+) -> proc_macro2_generated_token_stream::ProcMacro2GeneratedTokenStream {
     derive_newtype_option(
-        proc_macro_input_token_stream::ProcMacroInputTokenStream::from(token_stream),
+        proc_macro_input_token_stream,
         newtype_option::NewtypeOption::AsRef,
         None,
     )
     .into()
 }
-pub fn as_ref_inner(token_stream: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
+pub fn as_ref_inner(
+    proc_macro_input_token_stream: proc_macro_input_token_stream::ProcMacroInputTokenStream,
+) -> proc_macro2_generated_token_stream::ProcMacro2GeneratedTokenStream {
     derive_newtype_option(
-        proc_macro_input_token_stream::ProcMacroInputTokenStream::from(token_stream),
+        proc_macro_input_token_stream,
         newtype_option::NewtypeOption::AsRefInner,
         None,
     )
     .into()
 }
-pub fn as_ref_owned(token_stream: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
+pub fn as_ref_owned(
+    proc_macro_input_token_stream: proc_macro_input_token_stream::ProcMacroInputTokenStream,
+) -> proc_macro2_generated_token_stream::ProcMacro2GeneratedTokenStream {
     derive_newtype_option(
-        proc_macro_input_token_stream::ProcMacroInputTokenStream::from(token_stream),
+        proc_macro_input_token_stream,
         newtype_option::NewtypeOption::AsRefOwned,
         None,
     )
     .into()
 }
-pub fn as_ref_str(token_stream: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
+pub fn as_ref_str(
+    proc_macro_input_token_stream: proc_macro_input_token_stream::ProcMacroInputTokenStream,
+) -> proc_macro2_generated_token_stream::ProcMacro2GeneratedTokenStream {
     derive_newtype_option(
-        proc_macro_input_token_stream::ProcMacroInputTokenStream::from(token_stream),
+        proc_macro_input_token_stream,
         newtype_option::NewtypeOption::AsRefStr,
         None,
     )
     .into()
 }
-pub fn as_ref_target(token_stream: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
+pub fn as_ref_target(
+    proc_macro_input_token_stream: proc_macro_input_token_stream::ProcMacroInputTokenStream,
+) -> proc_macro2_generated_token_stream::ProcMacro2GeneratedTokenStream {
     derive_newtype_option(
-        proc_macro_input_token_stream::ProcMacroInputTokenStream::from(token_stream),
+        proc_macro_input_token_stream,
         newtype_option::NewtypeOption::AsRefTarget,
         None,
     )
     .into()
 }
-pub fn as_slice(token_stream: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
+pub fn as_slice(
+    proc_macro_input_token_stream: proc_macro_input_token_stream::ProcMacroInputTokenStream,
+) -> proc_macro2_generated_token_stream::ProcMacro2GeneratedTokenStream {
     derive_newtype_option(
-        proc_macro_input_token_stream::ProcMacroInputTokenStream::from(token_stream),
+        proc_macro_input_token_stream,
         newtype_option::NewtypeOption::AsSlice,
         None,
     )
     .into()
 }
-pub fn borrow_inner(token_stream: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
+pub fn borrow_inner(
+    proc_macro_input_token_stream: proc_macro_input_token_stream::ProcMacroInputTokenStream,
+) -> proc_macro2_generated_token_stream::ProcMacro2GeneratedTokenStream {
     derive_newtype_option(
-        proc_macro_input_token_stream::ProcMacroInputTokenStream::from(token_stream),
+        proc_macro_input_token_stream,
         newtype_option::NewtypeOption::BorrowInner,
         None,
     )
     .into()
 }
-pub fn borrow_owned(token_stream: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
+pub fn borrow_owned(
+    proc_macro_input_token_stream: proc_macro_input_token_stream::ProcMacroInputTokenStream,
+) -> proc_macro2_generated_token_stream::ProcMacro2GeneratedTokenStream {
     derive_newtype_option(
-        proc_macro_input_token_stream::ProcMacroInputTokenStream::from(token_stream),
+        proc_macro_input_token_stream,
         newtype_option::NewtypeOption::BorrowOwned,
         None,
     )
     .into()
 }
-pub fn borrow_path(token_stream: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
+pub fn borrow_path(
+    proc_macro_input_token_stream: proc_macro_input_token_stream::ProcMacroInputTokenStream,
+) -> proc_macro2_generated_token_stream::ProcMacro2GeneratedTokenStream {
     derive_newtype_option(
-        proc_macro_input_token_stream::ProcMacroInputTokenStream::from(token_stream),
+        proc_macro_input_token_stream,
         newtype_option::NewtypeOption::BorrowPath,
         None,
     )
     .into()
 }
-pub fn borrow_str(token_stream: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
+pub fn borrow_str(
+    proc_macro_input_token_stream: proc_macro_input_token_stream::ProcMacroInputTokenStream,
+) -> proc_macro2_generated_token_stream::ProcMacro2GeneratedTokenStream {
     derive_newtype_option(
-        proc_macro_input_token_stream::ProcMacroInputTokenStream::from(token_stream),
+        proc_macro_input_token_stream,
         newtype_option::NewtypeOption::BorrowStr,
         None,
     )
     .into()
 }
-pub fn clone_inner(token_stream: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
+pub fn clone_inner(
+    proc_macro_input_token_stream: proc_macro_input_token_stream::ProcMacroInputTokenStream,
+) -> proc_macro2_generated_token_stream::ProcMacro2GeneratedTokenStream {
     derive_newtype_option(
-        proc_macro_input_token_stream::ProcMacroInputTokenStream::from(token_stream),
+        proc_macro_input_token_stream,
         newtype_option::NewtypeOption::CloneInner,
         None,
     )
     .into()
 }
-pub fn clone_fields(token_stream: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
-    let input = match syn::parse2::<syn::DeriveInput>(token_stream) {
+pub fn clone_fields(
+    proc_macro_input_token_stream: proc_macro_input_token_stream::ProcMacroInputTokenStream,
+) -> proc_macro2_generated_token_stream::ProcMacro2GeneratedTokenStream {
+    let input = match syn::parse2::<syn::DeriveInput>(proc_macro_input_token_stream.into_inner()) {
         Ok(value) => value,
         Err(error) => return error.into_compile_error().into(),
     };
@@ -220,72 +248,90 @@ pub fn clone_fields(token_stream: proc_macro2::TokenStream) -> proc_macro2::Toke
     }
     .into()
 }
-pub fn debug_redacted(token_stream: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
+pub fn debug_redacted(
+    proc_macro_input_token_stream: proc_macro_input_token_stream::ProcMacroInputTokenStream,
+) -> proc_macro2_generated_token_stream::ProcMacro2GeneratedTokenStream {
     derive_newtype_option(
-        proc_macro_input_token_stream::ProcMacroInputTokenStream::from(token_stream),
+        proc_macro_input_token_stream,
         newtype_option::NewtypeOption::DebugRedacted,
         None,
     )
     .into()
 }
-pub fn debug_transparent(token_stream: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
+pub fn debug_transparent(
+    proc_macro_input_token_stream: proc_macro_input_token_stream::ProcMacroInputTokenStream,
+) -> proc_macro2_generated_token_stream::ProcMacro2GeneratedTokenStream {
     derive_newtype_option(
-        proc_macro_input_token_stream::ProcMacroInputTokenStream::from(token_stream),
+        proc_macro_input_token_stream,
         newtype_option::NewtypeOption::DebugTransparent,
         None,
     )
     .into()
 }
-pub fn deref_inner(token_stream: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
+pub fn deref_inner(
+    proc_macro_input_token_stream: proc_macro_input_token_stream::ProcMacroInputTokenStream,
+) -> proc_macro2_generated_token_stream::ProcMacro2GeneratedTokenStream {
     derive_newtype_option(
-        proc_macro_input_token_stream::ProcMacroInputTokenStream::from(token_stream),
+        proc_macro_input_token_stream,
         newtype_option::NewtypeOption::DerefInner,
         None,
     )
     .into()
 }
-pub fn deref_mut_inner(token_stream: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
+pub fn deref_mut_inner(
+    proc_macro_input_token_stream: proc_macro_input_token_stream::ProcMacroInputTokenStream,
+) -> proc_macro2_generated_token_stream::ProcMacro2GeneratedTokenStream {
     derive_newtype_option(
-        proc_macro_input_token_stream::ProcMacroInputTokenStream::from(token_stream),
+        proc_macro_input_token_stream,
         newtype_option::NewtypeOption::DerefMutInner,
         None,
     )
     .into()
 }
-pub fn deref_mut_target(token_stream: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
+pub fn deref_mut_target(
+    proc_macro_input_token_stream: proc_macro_input_token_stream::ProcMacroInputTokenStream,
+) -> proc_macro2_generated_token_stream::ProcMacro2GeneratedTokenStream {
     derive_newtype_option(
-        proc_macro_input_token_stream::ProcMacroInputTokenStream::from(token_stream),
+        proc_macro_input_token_stream,
         newtype_option::NewtypeOption::DerefMutTarget,
         None,
     )
     .into()
 }
-pub fn deref_target(token_stream: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
+pub fn deref_target(
+    proc_macro_input_token_stream: proc_macro_input_token_stream::ProcMacroInputTokenStream,
+) -> proc_macro2_generated_token_stream::ProcMacro2GeneratedTokenStream {
     derive_newtype_option(
-        proc_macro_input_token_stream::ProcMacroInputTokenStream::from(token_stream),
+        proc_macro_input_token_stream,
         newtype_option::NewtypeOption::DerefTarget,
         None,
     )
     .into()
 }
-pub fn display(token_stream: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
+pub fn display(
+    proc_macro_input_token_stream: proc_macro_input_token_stream::ProcMacroInputTokenStream,
+) -> proc_macro2_generated_token_stream::ProcMacro2GeneratedTokenStream {
     derive_newtype_option(
-        proc_macro_input_token_stream::ProcMacroInputTokenStream::from(token_stream),
+        proc_macro_input_token_stream,
         newtype_option::NewtypeOption::Display,
         None,
     )
     .into()
 }
-pub fn default_inner(token_stream: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
+pub fn default_inner(
+    proc_macro_input_token_stream: proc_macro_input_token_stream::ProcMacroInputTokenStream,
+) -> proc_macro2_generated_token_stream::ProcMacro2GeneratedTokenStream {
     derive_newtype_option(
-        proc_macro_input_token_stream::ProcMacroInputTokenStream::from(token_stream),
+        proc_macro_input_token_stream,
         newtype_option::NewtypeOption::DefaultInner,
         None,
     )
     .into()
 }
-pub fn debug_display(token_stream: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
-    let input = match syn::parse2::<syn::DeriveInput>(token_stream) {
+pub fn debug_display(
+    proc_macro_input_token_stream: proc_macro_input_token_stream::ProcMacroInputTokenStream,
+) -> proc_macro2_generated_token_stream::ProcMacro2GeneratedTokenStream {
+    let input = match syn::parse2::<syn::DeriveInput>(proc_macro_input_token_stream.into_inner()) {
         Ok(value) => value,
         Err(error) => return error.into_compile_error().into(),
     };
@@ -306,8 +352,10 @@ pub fn debug_display(token_stream: proc_macro2::TokenStream) -> proc_macro2::Tok
     }
     .into()
 }
-pub fn display_const(token_stream: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
-    let input = match syn::parse2::<syn::DeriveInput>(token_stream) {
+pub fn display_const(
+    proc_macro_input_token_stream: proc_macro_input_token_stream::ProcMacroInputTokenStream,
+) -> proc_macro2_generated_token_stream::ProcMacro2GeneratedTokenStream {
+    let input = match syn::parse2::<syn::DeriveInput>(proc_macro_input_token_stream.into_inner()) {
         Ok(value) => value,
         Err(error) => return error.into_compile_error().into(),
     };
@@ -347,16 +395,20 @@ pub fn display_const(token_stream: proc_macro2::TokenStream) -> proc_macro2::Tok
     }
     .into()
 }
-pub fn from_inner(token_stream: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
+pub fn from_inner(
+    proc_macro_input_token_stream: proc_macro_input_token_stream::ProcMacroInputTokenStream,
+) -> proc_macro2_generated_token_stream::ProcMacro2GeneratedTokenStream {
     derive_newtype_option(
-        proc_macro_input_token_stream::ProcMacroInputTokenStream::from(token_stream),
+        proc_macro_input_token_stream,
         newtype_option::NewtypeOption::From,
         None,
     )
     .into()
 }
-pub fn from_getter(token_stream: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
-    let input = match syn::parse2::<syn::DeriveInput>(token_stream) {
+pub fn from_getter(
+    proc_macro_input_token_stream: proc_macro_input_token_stream::ProcMacroInputTokenStream,
+) -> proc_macro2_generated_token_stream::ProcMacro2GeneratedTokenStream {
+    let input = match syn::parse2::<syn::DeriveInput>(proc_macro_input_token_stream.into_inner()) {
         Ok(value) => value,
         Err(error) => return error.into_compile_error().into(),
     };
@@ -442,106 +494,130 @@ pub fn from_getter(token_stream: proc_macro2::TokenStream) -> proc_macro2::Token
     }
     .into()
 }
-pub fn accessor(token_stream: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
+pub fn accessor(
+    proc_macro_input_token_stream: proc_macro_input_token_stream::ProcMacroInputTokenStream,
+) -> proc_macro2_generated_token_stream::ProcMacro2GeneratedTokenStream {
     derive_newtype_option(
-        proc_macro_input_token_stream::ProcMacroInputTokenStream::from(token_stream),
+        proc_macro_input_token_stream,
         newtype_option::NewtypeOption::Accessor,
         None,
     )
     .into()
 }
-pub fn get_inner(token_stream: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
+pub fn get_inner(
+    proc_macro_input_token_stream: proc_macro_input_token_stream::ProcMacroInputTokenStream,
+) -> proc_macro2_generated_token_stream::ProcMacro2GeneratedTokenStream {
     derive_newtype_option(
-        proc_macro_input_token_stream::ProcMacroInputTokenStream::from(token_stream),
+        proc_macro_input_token_stream,
         newtype_option::NewtypeOption::GetInner,
         None,
     )
     .into()
 }
-pub fn into_inner(token_stream: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
+pub fn into_inner(
+    proc_macro_input_token_stream: proc_macro_input_token_stream::ProcMacroInputTokenStream,
+) -> proc_macro2_generated_token_stream::ProcMacro2GeneratedTokenStream {
     derive_newtype_option(
-        proc_macro_input_token_stream::ProcMacroInputTokenStream::from(token_stream),
+        proc_macro_input_token_stream,
         newtype_option::NewtypeOption::IntoInner,
         None,
     )
     .into()
 }
-pub fn into_inner_from(token_stream: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
+pub fn into_inner_from(
+    proc_macro_input_token_stream: proc_macro_input_token_stream::ProcMacroInputTokenStream,
+) -> proc_macro2_generated_token_stream::ProcMacro2GeneratedTokenStream {
     derive_newtype_option(
-        proc_macro_input_token_stream::ProcMacroInputTokenStream::from(token_stream),
+        proc_macro_input_token_stream,
         newtype_option::NewtypeOption::IntoInnerFrom,
         None,
     )
     .into()
 }
-pub fn into_iterator(token_stream: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
+pub fn into_iterator(
+    proc_macro_input_token_stream: proc_macro_input_token_stream::ProcMacroInputTokenStream,
+) -> proc_macro2_generated_token_stream::ProcMacro2GeneratedTokenStream {
     derive_newtype_option(
-        proc_macro_input_token_stream::ProcMacroInputTokenStream::from(token_stream),
+        proc_macro_input_token_stream,
         newtype_option::NewtypeOption::IntoIterator,
         None,
     )
     .into()
 }
-pub fn into_vec(token_stream: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
+pub fn into_vec(
+    proc_macro_input_token_stream: proc_macro_input_token_stream::ProcMacroInputTokenStream,
+) -> proc_macro2_generated_token_stream::ProcMacro2GeneratedTokenStream {
     derive_newtype_option(
-        proc_macro_input_token_stream::ProcMacroInputTokenStream::from(token_stream),
+        proc_macro_input_token_stream,
         newtype_option::NewtypeOption::IntoVec,
         None,
     )
     .into()
 }
-pub fn not_inner(token_stream: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
+pub fn not_inner(
+    proc_macro_input_token_stream: proc_macro_input_token_stream::ProcMacroInputTokenStream,
+) -> proc_macro2_generated_token_stream::ProcMacro2GeneratedTokenStream {
     derive_newtype_option(
-        proc_macro_input_token_stream::ProcMacroInputTokenStream::from(token_stream),
+        proc_macro_input_token_stream,
         newtype_option::NewtypeOption::NotInner,
         None,
     )
     .into()
 }
-pub fn partial_eq_inner(token_stream: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
+pub fn partial_eq_inner(
+    proc_macro_input_token_stream: proc_macro_input_token_stream::ProcMacroInputTokenStream,
+) -> proc_macro2_generated_token_stream::ProcMacro2GeneratedTokenStream {
     derive_newtype_option(
-        proc_macro_input_token_stream::ProcMacroInputTokenStream::from(token_stream),
+        proc_macro_input_token_stream,
         newtype_option::NewtypeOption::PartialEqInner,
         None,
     )
     .into()
 }
-pub fn to_tokens(token_stream: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
+pub fn to_tokens(
+    proc_macro_input_token_stream: proc_macro_input_token_stream::ProcMacroInputTokenStream,
+) -> proc_macro2_generated_token_stream::ProcMacro2GeneratedTokenStream {
     derive_newtype_option(
-        proc_macro_input_token_stream::ProcMacroInputTokenStream::from(token_stream),
+        proc_macro_input_token_stream,
         newtype_option::NewtypeOption::ToTokens,
         None,
     )
     .into()
 }
-pub fn to_err_string(token_stream: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
+pub fn to_err_string(
+    proc_macro_input_token_stream: proc_macro_input_token_stream::ProcMacroInputTokenStream,
+) -> proc_macro2_generated_token_stream::ProcMacro2GeneratedTokenStream {
     derive_newtype_option(
-        proc_macro_input_token_stream::ProcMacroInputTokenStream::from(token_stream),
+        proc_macro_input_token_stream,
         newtype_option::NewtypeOption::Secret,
         Some(to_err_string_mode::ToErrStringMode::Display),
     )
     .into()
 }
 pub fn to_err_string_as_ref_str(
-    token_stream: proc_macro2::TokenStream,
-) -> proc_macro2::TokenStream {
+    proc_macro_input_token_stream: proc_macro_input_token_stream::ProcMacroInputTokenStream,
+) -> proc_macro2_generated_token_stream::ProcMacro2GeneratedTokenStream {
     derive_newtype_option(
-        proc_macro_input_token_stream::ProcMacroInputTokenStream::from(token_stream),
+        proc_macro_input_token_stream,
         newtype_option::NewtypeOption::Secret,
         Some(to_err_string_mode::ToErrStringMode::AsRefStr),
     )
     .into()
 }
-pub fn to_err_string_debug(token_stream: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
+pub fn to_err_string_debug(
+    proc_macro_input_token_stream: proc_macro_input_token_stream::ProcMacroInputTokenStream,
+) -> proc_macro2_generated_token_stream::ProcMacro2GeneratedTokenStream {
     derive_newtype_option(
-        proc_macro_input_token_stream::ProcMacroInputTokenStream::from(token_stream),
+        proc_macro_input_token_stream,
         newtype_option::NewtypeOption::Secret,
         Some(to_err_string_mode::ToErrStringMode::Debug),
     )
     .into()
 }
-pub fn enum_from_str(token_stream: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
-    let input = match syn::parse2::<syn::DeriveInput>(token_stream) {
+pub fn enum_from_str(
+    proc_macro_input_token_stream: proc_macro_input_token_stream::ProcMacroInputTokenStream,
+) -> proc_macro2_generated_token_stream::ProcMacro2GeneratedTokenStream {
+    let input = match syn::parse2::<syn::DeriveInput>(proc_macro_input_token_stream.into_inner()) {
         Ok(v) => v,
         Err(error) => return error.into_compile_error().into(),
     };
@@ -619,8 +695,10 @@ pub fn enum_from_str(token_stream: proc_macro2::TokenStream) -> proc_macro2::Tok
         Err(error) => error.into_compile_error().into(),
     }
 }
-pub fn utoipa_schema(token_stream: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
-    let input = match syn::parse2::<syn::DeriveInput>(token_stream) {
+pub fn utoipa_schema(
+    proc_macro_input_token_stream: proc_macro_input_token_stream::ProcMacroInputTokenStream,
+) -> proc_macro2_generated_token_stream::ProcMacro2GeneratedTokenStream {
+    let input = match syn::parse2::<syn::DeriveInput>(proc_macro_input_token_stream.into_inner()) {
         Ok(value) => value,
         Err(error) => return error.into_compile_error().into(),
     };
@@ -662,8 +740,10 @@ pub fn utoipa_schema(token_stream: proc_macro2::TokenStream) -> proc_macro2::Tok
     }
     .into()
 }
-pub fn wire_enum(token_stream: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
-    let input = match syn::parse2::<syn::DeriveInput>(token_stream) {
+pub fn wire_enum(
+    proc_macro_input_token_stream: proc_macro_input_token_stream::ProcMacroInputTokenStream,
+) -> proc_macro2_generated_token_stream::ProcMacro2GeneratedTokenStream {
+    let input = match syn::parse2::<syn::DeriveInput>(proc_macro_input_token_stream.into_inner()) {
         Ok(value) => value,
         Err(error) => return error.to_compile_error().into(),
     };
@@ -774,8 +854,10 @@ pub fn wire_enum(token_stream: proc_macro2::TokenStream) -> proc_macro2::TokenSt
     }
     .into()
 }
-pub fn bounded_string_wrapper(token_stream: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
-    let input = match syn::parse2::<syn::DeriveInput>(token_stream) {
+pub fn bounded_string_wrapper(
+    proc_macro_input_token_stream: proc_macro_input_token_stream::ProcMacroInputTokenStream,
+) -> proc_macro2_generated_token_stream::ProcMacro2GeneratedTokenStream {
+    let input = match syn::parse2::<syn::DeriveInput>(proc_macro_input_token_stream.into_inner()) {
         Ok(v) => v,
         Err(error) => return error.into_compile_error().into(),
     };
@@ -1836,4 +1918,4 @@ fn identifier_to_snake(
     snake_identifier::SnakeIdentifier::try_from(out).expect(constants_str::DIAGNOSTIC_2E7A9C4F)
 }
 #[cfg(test)]
-mod test_tests;
+mod test_proc_macro_newtype_shared;

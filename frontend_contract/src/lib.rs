@@ -54,6 +54,8 @@ pub mod empty_filter_contracts;
 pub mod field_capability;
 pub mod field_contract;
 pub mod field_contracts;
+pub mod field_label;
+pub mod field_name;
 pub mod field_order;
 pub mod field_placeholder;
 pub mod field_visibility;
@@ -135,7 +137,7 @@ pub mod server_response;
 pub mod server_route_metadata;
 pub mod success_status;
 #[cfg(test)]
-pub mod test_tests;
+pub mod test_frontend_contract;
 pub mod to_axum_method_filter;
 pub mod transport;
 pub mod transport_body;

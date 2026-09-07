@@ -158,3 +158,14 @@ pub mod written_file_path_ref;
 
 const _: fn(&str) -> Result<(), bounded_types::bounded_string_error::BoundedStringError> =
     bounded_types::bounded_string::BoundedString::<0, 0>::validate_str;
+
+pub mod std_fmt_arguments;
+mod std_io_write_ref;
+pub mod std_tool_io_error;
+pub mod tool_console_stream;
+pub mod tool_console_write_error;
+
+mod std_str_chars;
+pub mod tool_ansi_chars;
+mod tool_ansi_escape_state;
+pub mod tool_ansi_text_ref;

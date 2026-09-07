@@ -1,8 +1,8 @@
 #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
 pub(crate) enum AdminRepositoryError {
-    #[error("stored admin value does not satisfy its contract")]
+    #[error("{message}", message = constants_str::ADMIN_DIAGNOSTIC_STORED_ADMIN_VALUE_DOES_NOT_SATISFY_ITS_CONTRACT)]
     InvalidStoredValue,
-    #[error("admin repository query failed: {0:?}")]
+    #[error("{message}: {0:?}", message = constants_str::ADMIN_DIAGNOSTIC_ADMIN_REPOSITORY_QUERY_FAILED)]
     Sqlx(crate::sqlx_admin_error::SqlxAdminError),
 }
 

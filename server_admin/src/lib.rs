@@ -274,7 +274,6 @@ pub mod runtime_admin_password;
 pub mod runtime_admin_password_hash_concurrency;
 pub mod runtime_admin_role_names;
 pub mod runtime_authenticated_admin;
-pub mod security;
 pub mod sessions;
 pub mod sessions_revoke_all_sessions;
 pub mod sessions_revoke_session;
@@ -315,6 +314,8 @@ pub mod test_adapters_repository_data_tables_tests;
 #[cfg(test)]
 pub mod test_adapters_repository_roles_tests;
 #[cfg(test)]
+pub mod test_admin_service_tests;
+#[cfg(test)]
 pub mod test_application_html_tests;
 #[cfg(test)]
 pub mod test_application_tests;
@@ -324,8 +325,6 @@ pub mod test_domain_types_generated_tables_tests;
 pub mod test_maintenance_tests;
 #[cfg(test)]
 pub mod test_shared_tests;
-#[cfg(test)]
-pub mod test_tests;
 #[cfg(test)]
 pub mod test_tests_domain_types;
 pub mod token;

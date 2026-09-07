@@ -312,8 +312,8 @@ fn test_service_catalog_covers_every_build_and_runtime_projection() {
 }
 
 fn unpinned_dockerfile_base_images(
-    source_text_ref: crate::types::SourceTextRef<'_>,
-) -> crate::types::SourceTextList {
+    source_text_ref: crate::source_text_ref::SourceTextRef<'_>,
+) -> crate::source_text_list::SourceTextList {
     let from_parts = |line: &str| {
         let words = line.split_ascii_whitespace().collect::<Vec<_>>();
         if !words
@@ -387,16 +387,18 @@ fn test_catalog_dockerfiles_pin_every_external_base_image_by_digest() {
             .expect(constants_str::DIAGNOSTIC_C1854D7F);
         let source = std::fs::read_to_string(repository_root.join(dockerfile))
             .expect(constants_str::DIAGNOSTIC_3FA21B68);
-        unpinned_dockerfile_base_images(crate::types::SourceTextRef::from(source.as_str()))
-            .into_iter()
-            .for_each(|image| errors.push(format!("{dockerfile}: unpinned base image `{image}`")));
+        unpinned_dockerfile_base_images(crate::source_text_ref::SourceTextRef::from(
+            source.as_str(),
+        ))
+        .into_iter()
+        .for_each(|image| errors.push(format!("{dockerfile}: unpinned base image `{image}`")));
     });
     assert!(errors.is_empty(), "e40a7c16 {errors:#?}");
 }
 
 #[test]
 fn test_dockerfile_base_image_policy_rejects_latest_and_allows_named_stages() {
-    let violations = unpinned_dockerfile_base_images(crate::types::SourceTextRef::from(
+    let violations = unpinned_dockerfile_base_images(crate::source_text_ref::SourceTextRef::from(
         constants_str::VALUE_43F5436D,
     ));
     assert_eq!(
@@ -408,7 +410,7 @@ fn test_dockerfile_base_image_policy_rejects_latest_and_allows_named_stages() {
         ]
     );
     assert!(
-        unpinned_dockerfile_base_images(crate::types::SourceTextRef::from(
+        unpinned_dockerfile_base_images(crate::source_text_ref::SourceTextRef::from(
             constants_str::VALUE_889A7936
         ))
         .is_empty()

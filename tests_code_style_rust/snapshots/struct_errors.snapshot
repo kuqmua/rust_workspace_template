@@ -6,6 +6,7 @@
 ../init_env_files/src/init_io_error.rs:InitIoError
 ../init_env_files/src/toml_init_error.rs:TomlInitError
 ../macro_helpers/src/macro_serde_json_error.rs:MacroSerdeJsonError
+../macro_helpers/src/std_tool_io_error.rs:StdToolIoError
 ../notification_service/src/sqlx_notification_database_error.rs:SqlxNotificationDatabaseError
 ../pg_crud_common/src/sqlx_box_dyn_error.rs:SqlxBoxDynError
 ../pg_crud_common/src/sqlx_pg_relation_lock_error.rs:SqlxPgRelationLockError

@@ -1,15 +1,36 @@
 #[test]
-fn test_ansi_cleanup_processes_multiple_and_unterminated_sequences() {
-    let clean = crate::strip_ansi_codes::strip_ansi_codes(crate::ansi_text_ref::AnsiTextRef::from(
-        constants_str::VALUE_22233BC3,
-    ));
-    assert_eq!(clean.as_ref(), constants_str::VALUE_14D8B1DB);
+fn test_ansi_adapters_preserve_distinct_length_error_fallbacks() {
+    let maximum = constants_usize::VALUE_16_777_216;
+    let length = maximum + constants_usize::ONE;
+    let input = constants_str::X.repeat(length);
+    let command_text =
+        crate::strip_ansi::strip_ansi(macro_helpers::tool_ansi_chars::ToolAnsiChars::from(
+            macro_helpers::tool_ansi_text_ref::ToolAnsiTextRef::from(input.as_str()),
+        ));
+    let clean_ansi_text = crate::strip_ansi_codes::strip_ansi_codes(
+        macro_helpers::tool_ansi_chars::ToolAnsiChars::from(
+            macro_helpers::tool_ansi_text_ref::ToolAnsiTextRef::from(input.as_str()),
+        ),
+    );
     assert_eq!(
-        crate::strip_ansi_codes::strip_ansi_codes(crate::ansi_text_ref::AnsiTextRef::from(
-            constants_str::VALUE_A116C9ED
-        ))
-        .as_ref(),
-        constants_str::VALUE_A116C9ED
+        command_text.as_ref(),
+        crate::command_text::CommandText::from(
+            crate::command_text::CommandTextTryFromStringError::TooLong {
+                len: length,
+                max: maximum
+            },
+        )
+        .as_ref()
+    );
+    assert_eq!(
+        clean_ansi_text.as_ref(),
+        crate::clean_ansi_text::CleanAnsiText::from(
+            crate::clean_ansi_text::CleanAnsiTextTryFromStringError::TooLong {
+                len: length,
+                max: maximum
+            },
+        )
+        .as_ref()
     );
 }
 #[test]

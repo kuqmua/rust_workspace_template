@@ -4,4 +4,4 @@ pub mod synchronization_payload_too_large;
 pub mod synchronization_runtime_configuration;
 pub mod synchronization_source;
 #[cfg(test)]
-pub mod test_tests;
+pub mod test_synchronization_service_runtime;

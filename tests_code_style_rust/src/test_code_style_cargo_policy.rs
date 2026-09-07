@@ -6,7 +6,7 @@
 #[test]
 fn test_crate_names_follow_workspace_vocabulary() {
     crate::code_style::assert_crate_manifest_cargo_policy(
-        crate::types::StaticStr::from(constants_str::VALUE_4CE7AB5C),
+        crate::static_str::StaticStr::from(constants_str::VALUE_4CE7AB5C),
         |path, parsed, errors| {
             let Some(name) = parsed
                 .get(constants_str::PACKAGE)
@@ -138,7 +138,7 @@ fn test_proc_macro_lib_has_exactly_one_entrypoint_function() {
 #[test]
 fn test_all_crates_have_publish_false() {
     crate::code_style::assert_crate_manifest_cargo_policy(
-        crate::types::StaticStr::from(constants_str::F2A8C5D3),
+        crate::static_str::StaticStr::from(constants_str::F2A8C5D3),
         |path, parsed, errors| {
             let publish = parsed
                 .get(constants_str::PACKAGE)
@@ -159,7 +159,7 @@ fn test_all_crates_have_publish_false() {
 #[test]
 fn test_all_crates_have_workspace_lints() {
     crate::code_style::assert_crate_manifest_cargo_policy(
-        crate::types::StaticStr::from(constants_str::D5F1A4E7),
+        crate::static_str::StaticStr::from(constants_str::D5F1A4E7),
         |path, parsed, errors| match parsed
             .get(constants_str::LINTS)
             .and_then(|v_8f2a3d6b| v_8f2a3d6b.as_table())
@@ -260,7 +260,7 @@ fn test_variable_lifetime_safety_lints_remain_denied() {
 #[test]
 fn test_all_crates_use_edition_2024() {
     crate::code_style::assert_crate_manifest_cargo_policy(
-        crate::types::StaticStr::from(constants_str::A3D7F1C8),
+        crate::static_str::StaticStr::from(constants_str::A3D7F1C8),
         |path, parsed, errors| {
             let edition = parsed
                 .get(constants_str::PACKAGE)
@@ -281,7 +281,7 @@ fn test_all_crates_use_edition_2024() {
 #[test]
 fn test_all_crates_inherit_shared_package_metadata() {
     crate::code_style::assert_crate_manifest_cargo_policy(
-        crate::types::StaticStr::from(constants_str::VALUE_EF65E2D1),
+        crate::static_str::StaticStr::from(constants_str::VALUE_EF65E2D1),
         |path, parsed, errors| {
             [
                 constants_str::VERSION_ALT_3,
@@ -312,20 +312,20 @@ fn test_all_crates_inherit_shared_package_metadata() {
 fn test_check_workspace_dependencies_having_exact_version() {
     let workspace = crate::code_style::workspace_table_from_cargo_toml();
     crate::code_style::toml_val_as_table_ref(
-        crate::types::TomlValueRef::from(
+        crate::toml_value_ref::TomlValueRef::from(
             workspace
                 .as_ref()
                 .get(constants_str::DEPENDENCIES)
                 .expect(constants_str::DIAGNOSTIC_2376F58E),
         ),
-        crate::types::StaticStr::from(constants_str::E117FA5A),
+        crate::static_str::StaticStr::from(constants_str::E117FA5A),
     )
     .as_ref()
     .values()
     .for_each(|dep| {
         let v_table = crate::code_style::toml_val_as_table_ref(
-            crate::types::TomlValueRef::from(dep),
-            crate::types::StaticStr::from(constants_str::CB693A3F),
+            crate::toml_value_ref::TomlValueRef::from(dep),
+            crate::static_str::StaticStr::from(constants_str::CB693A3F),
         );
         if let Some(path_v) = v_table.get().get(constants_str::PATH_ALT_5) {
             match path_v {
@@ -402,13 +402,13 @@ fn test_check_workspace_dependencies_having_exact_version() {
 fn test_external_workspace_dependencies_disable_default_features() {
     let workspace = crate::code_style::workspace_table_from_cargo_toml();
     let dependencies = crate::code_style::toml_val_as_table_ref(
-        crate::types::TomlValueRef::from(
+        crate::toml_value_ref::TomlValueRef::from(
             workspace
                 .as_ref()
                 .get(constants_str::DEPENDENCIES)
                 .expect(constants_str::DIAGNOSTIC_9AC9FB4C),
         ),
-        crate::types::StaticStr::from(constants_str::VALUE_5EECAACC),
+        crate::static_str::StaticStr::from(constants_str::VALUE_5EECAACC),
     );
     let violations = dependencies
         .as_ref()
@@ -418,7 +418,7 @@ fn test_external_workspace_dependencies_disable_default_features() {
                 .as_table()
                 .is_some_and(|table| table.contains_key(constants_str::VERSION_ALT_3))
                 && !crate::code_style::workspace_dep_disables_default_features(
-                    crate::types::TomlValueRef::from(*dependency),
+                    crate::toml_value_ref::TomlValueRef::from(*dependency),
                 )
                 .get()
         })
@@ -436,7 +436,7 @@ fn test_workspace_dependency_default_feature_policy_rejects_missing_and_true_val
         .expect(constants_str::DIAGNOSTIC_E441C429);
     assert!(
         crate::code_style::workspace_dep_disables_default_features(
-            crate::types::TomlValueRef::from(
+            crate::toml_value_ref::TomlValueRef::from(
                 valid
                     .get(constants_str::VALUE_F26350DA)
                     .expect(constants_str::DIAGNOSTIC_34136B6C),
@@ -446,7 +446,7 @@ fn test_workspace_dependency_default_feature_policy_rejects_missing_and_true_val
     );
     assert!(
         !crate::code_style::workspace_dep_disables_default_features(
-            crate::types::TomlValueRef::from(
+            crate::toml_value_ref::TomlValueRef::from(
                 missing
                     .get(constants_str::VALUE_F26350DA)
                     .expect(constants_str::DIAGNOSTIC_E9B5ED95),
@@ -456,7 +456,7 @@ fn test_workspace_dependency_default_feature_policy_rejects_missing_and_true_val
     );
     assert!(
         !crate::code_style::workspace_dep_disables_default_features(
-            crate::types::TomlValueRef::from(
+            crate::toml_value_ref::TomlValueRef::from(
                 enabled
                     .get(constants_str::VALUE_F26350DA)
                     .expect(constants_str::DIAGNOSTIC_3E8046EF),
@@ -518,13 +518,13 @@ fn test_workspace_crates_do_not_enable_default_features() {
 fn test_workspace_dependency_catalog_has_no_unused_entries() {
     let workspace = crate::code_style::workspace_table_from_cargo_toml();
     let catalog = crate::code_style::toml_val_as_table_ref(
-        crate::types::TomlValueRef::from(
+        crate::toml_value_ref::TomlValueRef::from(
             workspace
                 .as_ref()
                 .get(constants_str::DEPENDENCIES)
                 .expect(constants_str::DIAGNOSTIC_3E0AC397),
         ),
-        crate::types::StaticStr::from(constants_str::VALUE_5EB013E8),
+        crate::static_str::StaticStr::from(constants_str::VALUE_5EB013E8),
     );
     super::test_code_style_snapshot::with_codebase_snapshot(|snapshot| {
         let workspace_names = snapshot.workspace_crate_names();
@@ -644,7 +644,7 @@ fn test_library_crates_with_public_logic_own_tests() {
                     .collect::<Vec<&super::test_code_style_snapshot::RsSourceFile>>();
                 let has_public_logic = source_files.iter().any(|source_file| {
                     crate::code_style::visit_syn_file(
-                        crate::types::SynFileRef::from(source_file.ast().as_ref()),
+                        crate::syn_file_ref::SynFileRef::from(source_file.ast().as_ref()),
                         super::source_analysis::PublicLogicVisitor::default(),
                     )
                     .get_found()
@@ -652,7 +652,7 @@ fn test_library_crates_with_public_logic_own_tests() {
                 });
                 let has_owned_test = source_files.iter().any(|source_file| {
                     crate::code_style::visit_syn_file(
-                        crate::types::SynFileRef::from(source_file.ast().as_ref()),
+                        crate::syn_file_ref::SynFileRef::from(source_file.ast().as_ref()),
                         super::source_analysis::OwnedTestVisitor::default(),
                     )
                     .get_found()
@@ -693,12 +693,12 @@ fn test_source_modules_with_public_logic_own_unit_tests() {
                 let path = file.path().as_ref();
                 path.components()
                     .any(|part| part.as_os_str() == stringify!(src))
-                    && !crate::code_style::is_test_crate_source_path(crate::types::PathRef::from(
-                        path,
-                    ))
+                    && !crate::code_style::is_test_crate_source_path(
+                        crate::path_ref::PathRef::from(path),
+                    )
                     .get()
                     && !crate::code_style::is_proc_macro_implementation_source_path(
-                        crate::types::PathRef::from(path),
+                        crate::path_ref::PathRef::from(path),
                     )
                     .get()
                     && !proc_macro_entrypoints
@@ -707,7 +707,7 @@ fn test_source_modules_with_public_logic_own_unit_tests() {
             })
             .filter(|file| {
                 crate::code_style::visit_syn_file(
-                    crate::types::SynFileRef::from(file.ast().as_ref()),
+                    crate::syn_file_ref::SynFileRef::from(file.ast().as_ref()),
                     super::source_analysis::PublicLogicVisitor::default(),
                 )
                 .get_found()
@@ -715,7 +715,7 @@ fn test_source_modules_with_public_logic_own_unit_tests() {
             })
             .filter(|file| {
                 !crate::code_style::visit_syn_file(
-                    crate::types::SynFileRef::from(file.ast().as_ref()),
+                    crate::syn_file_ref::SynFileRef::from(file.ast().as_ref()),
                     super::source_analysis::OwnedTestVisitor::default(),
                 )
                 .get_found()
@@ -742,7 +742,7 @@ fn test_source_modules_with_public_logic_own_unit_tests() {
                     .any(|root_file| {
                         root_file.ast().as_ref().items.iter().any(|item| {
                             crate::code_style::has_test_only_cfg_attr(
-                                crate::types::SynItemRef::from(item),
+                                crate::syn_item_ref::SynItemRef::from(item),
                             )
                             .get()
                         })
@@ -762,14 +762,14 @@ fn test_workspace_lint_allows_have_inline_reasons() {
     let source = std::fs::read_to_string(constants_str::CODE_STYLE_WORKSPACE_MANIFEST_PATH)
         .expect(constants_str::DIAGNOSTIC_68DCAF75);
     let violations = crate::code_style::unjustified_workspace_lint_allows(
-        crate::types::SourceTextRef::from(source.as_str()),
+        crate::source_text_ref::SourceTextRef::from(source.as_str()),
     );
     assert!(violations.is_empty(), "a94f0751 {violations:#?}");
 }
 #[test]
 fn test_workspace_lint_allow_reason_policy_rejects_missing_and_empty_comments() {
     let violations = crate::code_style::unjustified_workspace_lint_allows(
-        crate::types::SourceTextRef::from(constants_str::VALUE_05BB0EE4),
+        crate::source_text_ref::SourceTextRef::from(constants_str::VALUE_05BB0EE4),
     );
     assert_eq!(violations.len(), 2usize);
 }
@@ -778,32 +778,33 @@ fn test_env_and_env_example_have_same_keys() {
     if !std::path::Path::new(constants_str::SERVER_ENV).is_file() {
         return;
     }
-    let env_keys = crate::code_style::env_keys_from_file(crate::types::StaticStr::from(
+    let env_keys = crate::code_style::env_keys_from_file(crate::static_str::StaticStr::from(
         constants_str::SERVER_ENV,
     ));
-    let example_keys = crate::code_style::env_keys_from_file(crate::types::StaticStr::from(
+    let example_keys = crate::code_style::env_keys_from_file(crate::static_str::StaticStr::from(
         constants_str::SERVER_DOT_ENV_EXAMPLE,
     ));
-    let env_keys_set =
-        crate::code_style::str_set(crate::types::SourceTextListRef::from(env_keys.as_slice()));
-    let example_keys_set = crate::code_style::str_set(crate::types::SourceTextListRef::from(
-        example_keys.as_slice(),
-    ));
+    let env_keys_set = crate::code_style::str_set(
+        crate::source_text_list_ref::SourceTextListRef::from(env_keys.as_slice()),
+    );
+    let example_keys_set = crate::code_style::str_set(
+        crate::source_text_list_ref::SourceTextListRef::from(example_keys.as_slice()),
+    );
     let mut errors = crate::code_style::collect_missing_key_errors(
-        crate::types::SourceTextListRef::from(env_keys.as_slice()),
-        crate::types::SourceTextRefHashSet::from(example_keys_set.as_ref()),
-        crate::types::StaticStr::from(constants_str::ENV),
-        crate::types::StaticStr::from(constants_str::ENV_EXAMPLE),
+        crate::source_text_list_ref::SourceTextListRef::from(env_keys.as_slice()),
+        crate::source_text_ref_hash_set::SourceTextRefHashSet::from(example_keys_set.as_ref()),
+        crate::static_str::StaticStr::from(constants_str::ENV),
+        crate::static_str::StaticStr::from(constants_str::ENV_EXAMPLE),
     );
     errors.extend(crate::code_style::collect_missing_key_errors(
-        crate::types::SourceTextListRef::from(example_keys.as_slice()),
-        crate::types::SourceTextRefHashSet::from(env_keys_set.as_ref()),
-        crate::types::StaticStr::from(constants_str::ENV_EXAMPLE),
-        crate::types::StaticStr::from(constants_str::ENV),
+        crate::source_text_list_ref::SourceTextListRef::from(example_keys.as_slice()),
+        crate::source_text_ref_hash_set::SourceTextRefHashSet::from(env_keys_set.as_ref()),
+        crate::static_str::StaticStr::from(constants_str::ENV_EXAMPLE),
+        crate::static_str::StaticStr::from(constants_str::ENV),
     ));
     crate::code_style::assert_joined_errors_empty_sorted(
-        crate::types::DiagnosticMessagesMutRef::from(&mut errors),
-        crate::types::StaticStr::from(constants_str::C8D2F1A3),
+        crate::diagnostic_messages_mut_ref::DiagnosticMessagesMutRef::from(&mut errors),
+        crate::static_str::StaticStr::from(constants_str::C8D2F1A3),
     );
 }
 #[test]
@@ -820,12 +821,12 @@ fn test_server_has_one_tracked_environment_example() {
 #[test]
 fn test_workspace_crates_must_use_workspace_dependencies() {
     crate::code_style::assert_cargo_toml_errors_empty(
-        crate::types::StaticStr::from(constants_str::VALUE_5F8A6D17),
+        crate::static_str::StaticStr::from(constants_str::VALUE_5F8A6D17),
         |path, parsed, errors| {
             crate::code_style::collect_non_workspace_dep_errors(
-                crate::types::PathRef::from(path),
-                crate::types::TomlTableRef::from(parsed),
-                crate::types::DiagnosticMessagesMutRef::from(errors),
+                crate::path_ref::PathRef::from(path),
+                crate::toml_table_ref::TomlTableRef::from(parsed),
+                crate::diagnostic_messages_mut_ref::DiagnosticMessagesMutRef::from(errors),
             );
         },
     );
@@ -837,9 +838,9 @@ fn test_target_specific_dependencies_must_use_workspace_dependencies() {
         .expect(constants_str::DIAGNOSTIC_B49E27C1);
     let mut invalid_errors = Vec::new();
     crate::code_style::collect_non_workspace_dep_errors(
-        crate::types::PathRef::from(std::path::Path::new(constants_str::VALUE_EAE77D23)),
-        crate::types::TomlTableRef::from(&invalid_manifest),
-        crate::types::DiagnosticMessagesMutRef::from(&mut invalid_errors),
+        crate::path_ref::PathRef::from(std::path::Path::new(constants_str::VALUE_EAE77D23)),
+        crate::toml_table_ref::TomlTableRef::from(&invalid_manifest),
+        crate::diagnostic_messages_mut_ref::DiagnosticMessagesMutRef::from(&mut invalid_errors),
     );
     assert_eq!(invalid_errors.len(), 3usize);
     [
@@ -862,9 +863,9 @@ fn test_target_specific_dependencies_must_use_workspace_dependencies() {
         .expect(constants_str::DIAGNOSTIC_8F1C3A6D);
     let mut valid_errors = Vec::new();
     crate::code_style::collect_non_workspace_dep_errors(
-        crate::types::PathRef::from(std::path::Path::new(constants_str::VALUE_EAE77D23)),
-        crate::types::TomlTableRef::from(&valid_manifest),
-        crate::types::DiagnosticMessagesMutRef::from(&mut valid_errors),
+        crate::path_ref::PathRef::from(std::path::Path::new(constants_str::VALUE_EAE77D23)),
+        crate::toml_table_ref::TomlTableRef::from(&valid_manifest),
+        crate::diagnostic_messages_mut_ref::DiagnosticMessagesMutRef::from(&mut valid_errors),
     );
     assert!(valid_errors.is_empty());
 }
@@ -875,7 +876,7 @@ fn test_workspace_dependencies_use_inline_table_style() {
             .expect(constants_str::DIAGNOSTIC_AC15D6B9);
     let mut errors = Vec::new();
     crate::code_style::for_each_crate_manifest_file(|path| {
-        let v = crate::code_style::cargo_toml_content(crate::types::PathRef::from(path))
+        let v = crate::code_style::cargo_toml_content(crate::path_ref::PathRef::from(path))
             .expect(constants_str::DIAGNOSTIC_762C1D9E);
         errors.extend(regex.find_iter(v.as_ref()).filter_map(|mtch| {
             let field = mtch
@@ -909,19 +910,21 @@ fn test_workspace_dependencies_use_inline_table_style() {
             }));
     });
     crate::code_style::assert_joined_errors_empty_with_context(
-        crate::types::SourceTextListRef::from(errors.as_slice()),
-        crate::types::StaticStr::from(constants_str::D7A3C5B1),
-        crate::types::SourceTextRef::from(constants_str::DOTTED_WORKSPACE_DEPENDENCY_STYLE_FOUND),
+        crate::source_text_list_ref::SourceTextListRef::from(errors.as_slice()),
+        crate::static_str::StaticStr::from(constants_str::D7A3C5B1),
+        crate::source_text_ref::SourceTextRef::from(
+            constants_str::DOTTED_WORKSPACE_DEPENDENCY_STYLE_FOUND,
+        ),
     );
 }
 #[test]
 fn test_workspace_members_exist_on_disk() {
     let workspace = crate::code_style::workspace_table_from_cargo_toml();
     let members = crate::code_style::workspace_members_as_strs(
-        crate::types::TomlTableRef::from(workspace.as_ref()),
-        crate::types::StaticStr::from(constants_str::VALUE_7F3A1C4E),
+        crate::toml_table_ref::TomlTableRef::from(workspace.as_ref()),
+        crate::static_str::StaticStr::from(constants_str::VALUE_7F3A1C4E),
     );
-    let mut errors = crate::types::SourceTextList::from(
+    let mut errors = crate::source_text_list::SourceTextList::from(
         members
             .as_slice()
             .iter()
@@ -939,8 +942,8 @@ fn test_workspace_members_exist_on_disk() {
             .collect::<Vec<String>>(),
     );
     crate::code_style::assert_joined_errors_empty_sorted(
-        crate::types::DiagnosticMessagesMutRef::from(&mut errors),
-        crate::types::StaticStr::from(constants_str::A4E3B8D1),
+        crate::diagnostic_messages_mut_ref::DiagnosticMessagesMutRef::from(&mut errors),
+        crate::static_str::StaticStr::from(constants_str::A4E3B8D1),
     );
 }
 #[test]
@@ -1039,8 +1042,8 @@ fn test_workspace_crate_src_modules_are_flat() {
 fn test_workspace_members_sorted_alphabetically() {
     let workspace = crate::code_style::workspace_table_from_cargo_toml();
     let members_vec = crate::code_style::workspace_members_as_strs(
-        crate::types::TomlTableRef::from(workspace.as_ref()),
-        crate::types::StaticStr::from(constants_str::C1D4F7A2),
+        crate::toml_table_ref::TomlTableRef::from(workspace.as_ref()),
+        crate::static_str::StaticStr::from(constants_str::C1D4F7A2),
     );
     let mut sorted = members_vec.clone();
     sorted.sort();
@@ -1054,9 +1057,9 @@ fn test_workspace_members_sorted_alphabetically() {
         })
         .collect::<Vec<String>>();
     crate::code_style::assert_joined_errors_empty_with_context(
-        crate::types::SourceTextListRef::from(errors.as_slice()),
-        crate::types::StaticStr::from(constants_str::B7C2E5F8),
-        crate::types::SourceTextRef::from(constants_str::MEMBERS_NOT_SORTED),
+        crate::source_text_list_ref::SourceTextListRef::from(errors.as_slice()),
+        crate::static_str::StaticStr::from(constants_str::B7C2E5F8),
+        crate::source_text_ref::SourceTextRef::from(constants_str::MEMBERS_NOT_SORTED),
     );
 }
 

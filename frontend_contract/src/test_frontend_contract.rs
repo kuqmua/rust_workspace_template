@@ -81,12 +81,28 @@ fn test_contracts_preserve_typed_metadata() {
     ))
     .with_step(crate::input_step::InputStep::Integer);
     let field = crate::field_contract::FieldContract::new(
-        crate::contract_str::ContractStr::from(constants_str::SQL_NAMES_ID),
-        crate::contract_str::ContractStr::from(constants_str::ID),
+        crate::field_name::FieldName::from(crate::contract_str::ContractStr::from(
+            constants_str::SQL_NAMES_ID,
+        )),
+        crate::field_label::FieldLabel::from(crate::contract_str::ContractStr::from(
+            constants_str::ID,
+        )),
         type_contract,
     )
     .with_primary_key(crate::primary_key_kind::PrimaryKeyKind::Primary)
     .with_readable(crate::field_capability::FieldCapability::Enabled);
+    assert_eq!(field.name().as_ref(), constants_str::SQL_NAMES_ID);
+    assert_eq!(field.label().as_ref(), constants_str::ID);
+    assert_eq!(field.name().to_string(), constants_str::SQL_NAMES_ID);
+    assert_eq!(field.label().to_string(), constants_str::ID);
+    assert_eq!(
+        crate::contract_str::ContractStr::from(field.name()),
+        crate::contract_str::ContractStr::from(constants_str::SQL_NAMES_ID)
+    );
+    assert_eq!(
+        crate::contract_str::ContractStr::from(field.label()),
+        crate::contract_str::ContractStr::from(constants_str::ID)
+    );
     assert_eq!(
         field.type_contract().input_kind(),
         crate::input_kind::InputKind::Number

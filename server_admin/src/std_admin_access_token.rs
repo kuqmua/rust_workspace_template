@@ -13,3 +13,9 @@
 )]
 #[bounded_string(max = 8192, description = "administrator access token")]
 pub struct StdAdminAccessToken(bounded_types::bounded_string::BoundedString<0usize, 8192, false>);
+
+impl std::fmt::Debug for StdAdminAccessToken {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str(constants_str::REDACTED_ALT_3)
+    }
+}

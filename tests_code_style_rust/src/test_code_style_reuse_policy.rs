@@ -10,9 +10,11 @@ struct FunctionBodyComplexity {
 
 #[derive(proc_macro_getters::Getters, proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
 struct FunctionBodyVisitor<'visitor_lt> {
-    bodies: crate::types::FunctionBodyLocationsBTreeMapMutRef<'visitor_lt>,
-    identifier_pattern: crate::types::RegexRegexRef<'visitor_lt>,
-    path: crate::types::PathRef<'visitor_lt>,
+    bodies: crate::function_body_locations_b_tree_map_mut_ref::FunctionBodyLocationsBTreeMapMutRef<
+        'visitor_lt,
+    >,
+    identifier_pattern: crate::regex_regex_ref::RegexRegexRef<'visitor_lt>,
+    path: crate::path_ref::PathRef<'visitor_lt>,
 }
 
 #[derive(proc_macro_getters::Getters, proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
@@ -89,7 +91,10 @@ impl<'ast> syn::visit::Visit<'ast> for FunctionBodyVisitor<'_> {
     }
 
     fn visit_item_fn(&mut self, item_fn: &'ast syn::ItemFn) {
-        if !crate::code_style::item_fn_is_unit_test(crate::types::SynItemFnRef::from(item_fn)).get()
+        if !crate::code_style::item_fn_is_unit_test(crate::syn_item_fn_ref::SynItemFnRef::from(
+            item_fn,
+        ))
+        .get()
         {
             self.record(&item_fn.sig.ident, &item_fn.block);
         }
@@ -105,13 +110,13 @@ fn function_body_is_substantial(block: &syn::Block) -> bool {
 
 fn function_body_hash(
     block: &syn::Block,
-    regex_regex_ref: crate::types::RegexRegexRef<'_>,
-) -> crate::types::FunctionBodyHash {
+    regex_regex_ref: crate::regex_regex_ref::RegexRegexRef<'_>,
+) -> crate::function_body_hash::FunctionBodyHash {
     let body = format!("{block:?}");
     let normalized_body = regex_regex_ref.replace_all(&body, constants_str::NORMALIZED_IDENTIFIER);
     let mut hasher = std::hash::DefaultHasher::new();
     std::hash::Hash::hash(&normalized_body, &mut hasher);
-    crate::types::FunctionBodyHash::from(std::hash::Hasher::finish(&hasher))
+    crate::function_body_hash::FunctionBodyHash::from(std::hash::Hasher::finish(&hasher))
 }
 
 #[test]
@@ -180,8 +185,9 @@ fn test_substantial_function_bodies_have_one_source_of_truth() {
                     crate::code_style::declared_children()
                         .iter()
                         .find_map(|(owner, child)| {
-                            (child == normalized_path)
-                                .then_some(crate::types::SourceTextRef::from(owner.as_str()))
+                            (child == normalized_path).then_some(
+                                crate::source_text_ref::SourceTextRef::from(owner.as_str()),
+                            )
                         });
                 let split_owner = immediate_owner.and_then(|candidate| {
                     let owner_stem = candidate.get().strip_suffix(constants_str::RS_EXTENSION)?;
@@ -204,15 +210,16 @@ fn test_substantial_function_bodies_have_one_source_of_truth() {
             .collect::<Vec<String>>()
             .join(constants_str::NEWLINE)
     };
-    let mut bodies = crate::types::FunctionBodyLocationsBTreeMap::default();
+    let mut bodies =
+        crate::function_body_locations_b_tree_map::FunctionBodyLocationsBTreeMap::default();
     let identifier_pattern =
         regex::Regex::new(constants_str::VALUE_58523C42).expect(constants_str::DIAGNOSTIC_D4A8C2F1);
     super::test_code_style_snapshot::with_codebase_snapshot(|snapshot| {
         snapshot.rs_files().iter().for_each(|file| {
             let mut visitor = FunctionBodyVisitor {
-                bodies: crate::types::FunctionBodyLocationsBTreeMapMutRef::from(&mut bodies),
-                identifier_pattern: crate::types::RegexRegexRef::from(&identifier_pattern),
-                path: crate::types::PathRef::from(file.path().as_ref()),
+                bodies: crate::function_body_locations_b_tree_map_mut_ref::FunctionBodyLocationsBTreeMapMutRef::from(&mut bodies),
+                identifier_pattern: crate::regex_regex_ref::RegexRegexRef::from(&identifier_pattern),
+                path: crate::path_ref::PathRef::from(file.path().as_ref()),
             };
             syn::visit::Visit::visit_file(&mut visitor, file.ast().as_ref());
         });
@@ -249,10 +256,6 @@ fn test_substantial_function_bodies_have_one_source_of_truth() {
         ReviewedDuplicateGroup {
             locations: constants_str::VALUE_224F7450,
             reason: constants_str::VALUE_BD024C4B,
-        },
-        ReviewedDuplicateGroup {
-            locations: constants_str::VALUE_11C1DCC5,
-            reason: constants_str::VALUE_D0150024,
         },
         ReviewedDuplicateGroup {
             locations: constants_str::VALUE_AE96131E,
@@ -293,8 +296,8 @@ fn test_substantial_function_bodies_have_one_source_of_truth() {
     );
     let mut matched_reviewed = std::collections::BTreeSet::<String>::new();
     let duplicates = std::collections::BTreeMap::<
-        crate::types::FunctionBodyHash,
-        crate::types::SourceTextList,
+        crate::function_body_hash::FunctionBodyHash,
+        crate::source_text_list::SourceTextList,
     >::from(bodies)
     .into_values()
     .filter(|locations| locations.len() > constants_usize::ONE)
@@ -342,7 +345,7 @@ fn test_function_body_similarity_ignores_identifier_names() {
         .expect(constants_str::DIAGNOSTIC_B608F7E1);
     let identifier_pattern =
         regex::Regex::new(constants_str::VALUE_58523C42).expect(constants_str::DIAGNOSTIC_9658F225);
-    let identifier_pattern_ref = crate::types::RegexRegexRef::from(&identifier_pattern);
+    let identifier_pattern_ref = crate::regex_regex_ref::RegexRegexRef::from(&identifier_pattern);
     assert_eq!(
         function_body_hash(&first.block, identifier_pattern_ref),
         function_body_hash(&second.block, identifier_pattern_ref)
@@ -357,7 +360,7 @@ fn test_function_body_similarity_preserves_behavioral_structure() {
         .expect(constants_str::DIAGNOSTIC_AE9313CB);
     let identifier_pattern =
         regex::Regex::new(constants_str::VALUE_58523C42).expect(constants_str::DIAGNOSTIC_FDF7075B);
-    let identifier_pattern_ref = crate::types::RegexRegexRef::from(&identifier_pattern);
+    let identifier_pattern_ref = crate::regex_regex_ref::RegexRegexRef::from(&identifier_pattern);
     assert_ne!(
         function_body_hash(&addition.block, identifier_pattern_ref),
         function_body_hash(&subtraction.block, identifier_pattern_ref)

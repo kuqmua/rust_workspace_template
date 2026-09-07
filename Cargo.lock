@@ -4259,6 +4259,7 @@ dependencies = [
  "proc_macro_optimal_memory_layout",
  "quote",
  "syn 3.0.4",
+ "workspace_macro_helpers",
 ]
 
 [[package]]
@@ -7847,6 +7848,7 @@ name = "workspace_macro_helpers"
 version = "0.1.0"
 dependencies = [
  "constants_str",
+ "constants_usize",
  "proc-macro2",
  "proc_macro_newtype_foundation_foundation_from_inner",
  "proc_macro_newtype_foundation_foundation_get_inner",

@@ -17,7 +17,7 @@ pub mod std_time_duration_nanos_try_from_u32_error;
 pub mod std_time_duration_secs;
 
 #[cfg(test)]
-pub mod test_tests;
+pub mod test_location_lib;
 
 const _: fn(&str) -> Result<(), bounded_types::bounded_string_error::BoundedStringError> =
     bounded_types::bounded_string::BoundedString::<0, 0>::validate_str;

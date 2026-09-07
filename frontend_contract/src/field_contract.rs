@@ -24,9 +24,9 @@ pub struct FieldContract {
     #[getters(skip)]
     filters: crate::filter_contracts::FilterContracts,
     #[getters(copy)]
-    label: crate::contract_str::ContractStr,
+    label: crate::field_label::FieldLabel,
     #[getters(copy)]
-    name: crate::contract_str::ContractStr,
+    name: crate::field_name::FieldName,
     #[getters(copy)]
     placeholder: crate::field_placeholder::FieldPlaceholder,
     #[getters(copy)]
@@ -51,8 +51,8 @@ pub struct FieldContract {
 impl FieldContract {
     #[must_use]
     pub fn new(
-        name: crate::contract_str::ContractStr,
-        label: crate::contract_str::ContractStr,
+        field_name: crate::field_name::FieldName,
+        field_label: crate::field_label::FieldLabel,
         type_contract: crate::type_contract::TypeContract,
     ) -> Self {
         Self {
@@ -61,8 +61,8 @@ impl FieldContract {
             filters: crate::filter_contracts::FilterContracts::from(
                 crate::empty_filter_contracts::EMPTY_FILTER_CONTRACTS,
             ),
-            label,
-            name,
+            label: field_label,
+            name: field_name,
             order: crate::field_order::FieldOrder::from(constants_usize::ZERO),
             placeholder: crate::field_placeholder::FieldPlaceholder::None,
             primary_key: crate::primary_key_kind::PrimaryKeyKind::NonPrimary,

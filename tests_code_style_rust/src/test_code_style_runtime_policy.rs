@@ -1,15 +1,15 @@
 #[test]
 fn test_runtime_code_does_not_use_expect_unwrap_or_panic() {
     crate::code_style::assert_rs_ast_errors_empty_with_context(
-        crate::types::StaticStr::from(constants_str::C71F2A8D),
-        crate::types::SourceTextRef::from(constants_str::RUNTIME_CODE_CONTAINS_FORBIDDEN_EXPECT_UNWRAP_PANIC_CALLS_USE_RESULT_WITH_A),
+        crate::static_str::StaticStr::from(constants_str::C71F2A8D),
+        crate::source_text_ref::SourceTextRef::from(constants_str::RUNTIME_CODE_CONTAINS_FORBIDDEN_EXPECT_UNWRAP_PANIC_CALLS_USE_RESULT_WITH_A),
         |path, ast, errors| {
-            if !crate::code_style::is_runtime_policy_source_path(crate::types::PathRef::from(path)).get() {
+            if !crate::code_style::is_runtime_policy_source_path(crate::path_ref::PathRef::from(path)).get() {
                 return;
             }
             let visitor = crate::code_style::visit_syn_file(
-                crate::types::SynFileRef::from(ast),
-                super::runtime_analysis::RuntimePanicExpectUnwrapVisitor::new(crate::types::DiagnosticMessages::default()),
+                crate::syn_file_ref::SynFileRef::from(ast),
+                super::runtime_analysis::RuntimePanicExpectUnwrapVisitor::new(crate::diagnostic_messages::DiagnosticMessages::default()),
             );
             errors.extend(
                 visitor
@@ -22,20 +22,20 @@ fn test_runtime_code_does_not_use_expect_unwrap_or_panic() {
 #[test]
 fn test_runtime_code_does_not_use_mutex() {
     crate::code_style::assert_rs_ast_errors_empty_with_context(
-        crate::types::StaticStr::from(constants_str::E3F8A1C5),
-        crate::types::SourceTextRef::from(constants_str::RUNTIME_CODE_CONTAINS_MUTEX_USE_IT_ONLY_FOR_JUSTIFIED_INTERIOR_MUTABILITY),
+        crate::static_str::StaticStr::from(constants_str::E3F8A1C5),
+        crate::source_text_ref::SourceTextRef::from(constants_str::RUNTIME_CODE_CONTAINS_MUTEX_USE_IT_ONLY_FOR_JUSTIFIED_INTERIOR_MUTABILITY),
         |path, ast, errors| {
-            if !crate::code_style::is_runtime_policy_source_path(crate::types::PathRef::from(path)).get() {
+            if !crate::code_style::is_runtime_policy_source_path(crate::path_ref::PathRef::from(path)).get() {
                 return;
             }
             let visitor = crate::code_style::visit_syn_file(
-                crate::types::SynFileRef::from(ast),
-                super::runtime_analysis::RuntimeMutexVisitor::new(crate::types::AnalyzerCount::default()),
+                crate::syn_file_ref::SynFileRef::from(ast),
+                super::runtime_analysis::RuntimeMutexVisitor::new(crate::analyzer_count::AnalyzerCount::default()),
             );
             crate::code_style::push_repeated_file_error(
-                crate::types::DiagnosticMessagesMutRef::from(&mut *errors),
-                crate::types::PathRef::from(path),
-                crate::types::SourceTextRef::from(constants_str::MUTEX_TYPE_USAGE),
+                crate::diagnostic_messages_mut_ref::DiagnosticMessagesMutRef::from(&mut *errors),
+                crate::path_ref::PathRef::from(path),
+                crate::source_text_ref::SourceTextRef::from(constants_str::MUTEX_TYPE_USAGE),
                 *visitor.get_found_count(),
             );
         },
@@ -65,21 +65,25 @@ fn test_runtime_arc_usage_is_limited_to_cross_thread_state() {
         })
     };
     crate::code_style::assert_rs_ast_errors_empty_with_context(
-        crate::types::StaticStr::from(constants_str::F9C2D4A8),
-        crate::types::SourceTextRef::from(
+        crate::static_str::StaticStr::from(constants_str::F9C2D4A8),
+        crate::source_text_ref::SourceTextRef::from(
             constants_str::RUNTIME_ARC_USAGE_MUST_BE_LIMITED_TO_EXPLICIT_CROSS_THREAD_SHARED_STATE,
         ),
         |path, ast, errors| {
-            if !crate::code_style::is_runtime_policy_source_path(crate::types::PathRef::from(path))
-                .get()
+            if !crate::code_style::is_runtime_policy_source_path(crate::path_ref::PathRef::from(
+                path,
+            ))
+            .get()
             {
                 return;
             }
             let visitor = crate::code_style::visit_syn_file(
-                crate::types::SynFileRef::from(ast),
+                crate::syn_file_ref::SynFileRef::from(ast),
                 super::runtime_analysis::RuntimeArcVisitor::new(
-                    crate::types::DiagnosticMessages::default(),
-                    crate::types::AnalyzerBool::from(defines_explicit_shared_arc_wrapper(ast)),
+                    crate::diagnostic_messages::DiagnosticMessages::default(),
+                    crate::analyzer_bool::AnalyzerBool::from(defines_explicit_shared_arc_wrapper(
+                        ast,
+                    )),
                 ),
             );
             errors.extend(
@@ -101,25 +105,27 @@ fn test_runtime_test_crate_detection_uses_test_name_segments() {
         .parse::<toml::Table>()
         .expect(constants_str::DIAGNOSTIC_50B60550);
     assert!(
-        !crate::code_style::is_test_crate(crate::types::TomlTableRef::from(&production)).get(),
+        !crate::code_style::is_test_crate(crate::toml_table_ref::TomlTableRef::from(&production))
+            .get(),
         "3db51a9b"
     );
     assert!(
-        crate::code_style::is_test_crate(crate::types::TomlTableRef::from(&test_crate)).get(),
+        crate::code_style::is_test_crate(crate::toml_table_ref::TomlTableRef::from(&test_crate))
+            .get(),
         "6a5afda4"
     );
 }
 #[test]
 fn test_runtime_test_module_exclusion_uses_test_filename() {
     assert!(
-        !crate::code_style::is_runtime_policy_source_path(crate::types::PathRef::from(
+        !crate::code_style::is_runtime_policy_source_path(crate::path_ref::PathRef::from(
             std::path::Path::new(constants_str::VALUE_6C37CAB1)
         ))
         .get(),
         "2e8a5d90"
     );
     assert!(
-        crate::code_style::is_runtime_policy_source_path(crate::types::PathRef::from(
+        crate::code_style::is_runtime_policy_source_path(crate::path_ref::PathRef::from(
             std::path::Path::new(constants_str::VALUE_568F0475)
         ))
         .get(),
@@ -129,7 +135,7 @@ fn test_runtime_test_module_exclusion_uses_test_filename() {
 #[test]
 fn test_environment_initializer_is_in_runtime_policy_scope() {
     assert!(
-        crate::code_style::is_runtime_policy_source_path(crate::types::PathRef::from(
+        crate::code_style::is_runtime_policy_source_path(crate::path_ref::PathRef::from(
             std::path::Path::new(constants_str::VALUE_40BCA356)
         ))
         .get(),
@@ -139,21 +145,23 @@ fn test_environment_initializer_is_in_runtime_policy_scope() {
 #[test]
 fn test_async_functions_do_not_make_blocking_executor_calls() {
     crate::code_style::assert_rs_ast_errors_empty_with_context(
-        crate::types::StaticStr::from(constants_str::A8E1C6F3),
-        crate::types::SourceTextRef::from(
+        crate::static_str::StaticStr::from(constants_str::A8E1C6F3),
+        crate::source_text_ref::SourceTextRef::from(
             constants_str::ASYNC_FUNCTIONS_CONTAIN_BLOCKING_EXECUTOR_CALLS,
         ),
         |path, ast, errors| {
-            if !crate::code_style::is_runtime_policy_source_path(crate::types::PathRef::from(path))
-                .get()
+            if !crate::code_style::is_runtime_policy_source_path(crate::path_ref::PathRef::from(
+                path,
+            ))
+            .get()
             {
                 return;
             }
             let visitor = crate::code_style::visit_syn_file(
-                crate::types::SynFileRef::from(ast),
+                crate::syn_file_ref::SynFileRef::from(ast),
                 super::runtime_analysis::AsyncBlockingCallVisitor::new(
-                    crate::types::AnalyzerCount::default(),
-                    crate::types::DiagnosticMessages::default(),
+                    crate::analyzer_count::AnalyzerCount::default(),
+                    crate::diagnostic_messages::DiagnosticMessages::default(),
                 ),
             );
             errors.extend(
@@ -171,10 +179,10 @@ fn test_async_blocking_policy_rejects_sync_filesystem_network_and_executor_calls
     let ast =
         syn::parse_file(constants_str::VALUE_9AC9CBBD).expect(constants_str::DIAGNOSTIC_57A4F701);
     let visitor = crate::code_style::visit_syn_file(
-        crate::types::SynFileRef::from(&ast),
+        crate::syn_file_ref::SynFileRef::from(&ast),
         super::runtime_analysis::AsyncBlockingCallVisitor::new(
-            crate::types::AnalyzerCount::default(),
-            crate::types::DiagnosticMessages::default(),
+            crate::analyzer_count::AnalyzerCount::default(),
+            crate::diagnostic_messages::DiagnosticMessages::default(),
         ),
     );
     assert_eq!(visitor.get_errors().len(), 7usize);
@@ -182,15 +190,15 @@ fn test_async_blocking_policy_rejects_sync_filesystem_network_and_executor_calls
 #[test]
 fn test_unit_tests_do_not_create_external_service_clients() {
     crate::code_style::assert_rs_ast_errors_empty_with_context(
-        crate::types::StaticStr::from(constants_str::D1F5B9C7),
-        crate::types::SourceTextRef::from(constants_str::UNIT_TESTS_CONTAIN_EXTERNAL_SERVICE_CLIENTS_USE_DETERMINISTIC_LOCAL_FAKES_INSTEAD),
+        crate::static_str::StaticStr::from(constants_str::D1F5B9C7),
+        crate::source_text_ref::SourceTextRef::from(constants_str::UNIT_TESTS_CONTAIN_EXTERNAL_SERVICE_CLIENTS_USE_DETERMINISTIC_LOCAL_FAKES_INSTEAD),
         |path, ast, errors| {
-            if crate::code_style::is_test_source_path(crate::types::PathRef::from(path)).get() {
+            if crate::code_style::is_test_source_path(crate::path_ref::PathRef::from(path)).get() {
                 return;
             }
             let visitor = crate::code_style::visit_syn_file(
-                crate::types::SynFileRef::from(ast),
-                super::runtime_analysis::UnitTestExternalServiceVisitor::new(crate::types::DiagnosticMessages::default(), crate::types::AnalyzerCount::default()),
+                crate::syn_file_ref::SynFileRef::from(ast),
+                super::runtime_analysis::UnitTestExternalServiceVisitor::new(crate::diagnostic_messages::DiagnosticMessages::default(), crate::analyzer_count::AnalyzerCount::default()),
             );
             errors.extend(
                 visitor
@@ -206,10 +214,10 @@ fn test_external_service_policy_rejects_http_database_and_socket_clients() {
     let ast =
         syn::parse_file(constants_str::VALUE_0FE6CFEC).expect(constants_str::DIAGNOSTIC_62A4C3A8);
     let visitor = crate::code_style::visit_syn_file(
-        crate::types::SynFileRef::from(&ast),
+        crate::syn_file_ref::SynFileRef::from(&ast),
         super::runtime_analysis::UnitTestExternalServiceVisitor::new(
-            crate::types::DiagnosticMessages::default(),
-            crate::types::AnalyzerCount::default(),
+            crate::diagnostic_messages::DiagnosticMessages::default(),
+            crate::analyzer_count::AnalyzerCount::default(),
         ),
     );
     assert_eq!(visitor.get_errors().len(), 5usize, "e165d841");
@@ -220,10 +228,10 @@ fn test_external_service_policy_requires_a_reason_for_ignored_integration_tests(
     let ast =
         syn::parse_file(constants_str::VALUE_7BBB4BBC).expect(constants_str::DIAGNOSTIC_FA48E32B);
     let visitor = crate::code_style::visit_syn_file(
-        crate::types::SynFileRef::from(&ast),
+        crate::syn_file_ref::SynFileRef::from(&ast),
         super::runtime_analysis::UnitTestExternalServiceVisitor::new(
-            crate::types::DiagnosticMessages::default(),
-            crate::types::AnalyzerCount::default(),
+            crate::diagnostic_messages::DiagnosticMessages::default(),
+            crate::analyzer_count::AnalyzerCount::default(),
         ),
     );
     assert_eq!(visitor.get_errors().len(), constants_usize::ONE, "31fd7ca0");

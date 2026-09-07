@@ -4,12 +4,12 @@
     proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct StringWrapperNameVisitor {
-    names: crate::types::SourceTextBTreeSet,
+    names: crate::source_text_b_tree_set::SourceTextBTreeSet,
 }
 impl<'ast> syn::visit::Visit<'ast> for StringWrapperNameVisitor {
     fn visit_item_struct(&mut self, item_struct: &'ast syn::ItemStruct) {
         if crate::code_style::item_struct_is_single_string_wrapper(
-            crate::types::SynItemStructRef::from(item_struct),
+            crate::syn_item_struct_ref::SynItemStructRef::from(item_struct),
         )
         .get()
         {
@@ -24,7 +24,7 @@ impl<'ast> syn::visit::Visit<'ast> for StringWrapperNameVisitor {
     proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct BoundedStringStorageVisitor {
-    errors: crate::types::DiagnosticMessages,
+    errors: crate::diagnostic_messages::DiagnosticMessages,
 }
 impl<'ast> syn::visit::Visit<'ast> for BoundedStringStorageVisitor {
     fn visit_item_struct(&mut self, item_struct: &'ast syn::ItemStruct) {
@@ -64,8 +64,10 @@ impl<'ast> syn::visit::Visit<'ast> for BoundedStringStorageVisitor {
                 syn::Fields::Unnamed(fields) if fields.unnamed.len() == 1 => {
                     fields.unnamed.first().is_some_and(|field| {
                         crate::code_style::type_path_ends_with_identifier(
-                            crate::types::SynTypeRef::from(&field.ty),
-                            crate::types::SourceTextRef::from(constants_str::BOUNDEDSTRING),
+                            crate::syn_type_ref::SynTypeRef::from(&field.ty),
+                            crate::source_text_ref::SourceTextRef::from(
+                                constants_str::BOUNDEDSTRING,
+                            ),
                         )
                         .get()
                     })
@@ -88,16 +90,16 @@ impl<'ast> syn::visit::Visit<'ast> for BoundedStringStorageVisitor {
     proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct StringWrapperFromVisitor<'names_lt> {
-    errors: crate::types::DiagnosticMessages,
-    len_checked_function_names: &'names_lt crate::types::SourceTextBTreeSet,
-    string_wrapper_names: &'names_lt crate::types::SourceTextBTreeSet,
-    try_from_string_len_checked_names: crate::types::SourceTextBTreeSet,
-    try_from_string_names: crate::types::SourceTextBTreeSet,
+    errors: crate::diagnostic_messages::DiagnosticMessages,
+    len_checked_function_names: &'names_lt crate::source_text_b_tree_set::SourceTextBTreeSet,
+    string_wrapper_names: &'names_lt crate::source_text_b_tree_set::SourceTextBTreeSet,
+    try_from_string_len_checked_names: crate::source_text_b_tree_set::SourceTextBTreeSet,
+    try_from_string_names: crate::source_text_b_tree_set::SourceTextBTreeSet,
 }
 impl StringWrapperFromVisitor<'_> {
     fn check_bounded_string_attr(
         &mut self,
-        syn_item_struct_ref: crate::types::SynItemStructRef<'_>,
+        syn_item_struct_ref: crate::syn_item_struct_ref::SynItemStructRef<'_>,
     ) {
         let item_ref = syn_item_struct_ref.as_ref();
         if !crate::code_style::item_struct_is_single_string_wrapper(syn_item_struct_ref).get() {
@@ -106,8 +108,8 @@ impl StringWrapperFromVisitor<'_> {
         let stores_bounded_string = match &item_ref.fields {
             syn::Fields::Unnamed(fields) => fields.unnamed.first().is_some_and(|field| {
                 crate::code_style::type_path_ends_with_identifier(
-                    crate::types::SynTypeRef::from(&field.ty),
-                    crate::types::SourceTextRef::from(constants_str::BOUNDEDSTRING),
+                    crate::syn_type_ref::SynTypeRef::from(&field.ty),
+                    crate::source_text_ref::SourceTextRef::from(constants_str::BOUNDEDSTRING),
                 )
                 .get()
             }),
@@ -147,22 +149,22 @@ impl StringWrapperFromVisitor<'_> {
             let _: bool = self.try_from_string_len_checked_names.insert(identifier);
         }
     }
-    fn check_from_impl(&mut self, syn_item_impl_ref: crate::types::SynItemImplRef<'_>) {
-        let is_from_string = crate::types::AnalyzerBool::from(
+    fn check_from_impl(&mut self, syn_item_impl_ref: crate::syn_item_impl_ref::SynItemImplRef<'_>) {
+        let is_from_string = crate::analyzer_bool::AnalyzerBool::from(
             syn_item_impl_ref
                 .as_ref()
                 .trait_
                 .as_ref()
                 .is_some_and(|(path, _)| {
                     crate::code_style::path_ends_with(
-                        crate::types::SynPathRef::from(path),
-                        crate::types::StaticStrSliceRef::from(
+                        crate::syn_path_ref::SynPathRef::from(path),
+                        crate::static_str_slice_ref::StaticStrSliceRef::from(
                             [constants_str::FROM_ALT_3].as_slice(),
                         ),
                     )
                     .get()
                         && crate::code_style::from_trait_arg_is_string(
-                            crate::types::SynPathRef::from(path),
+                            crate::syn_path_ref::SynPathRef::from(path),
                         )
                         .get()
                 }),
@@ -179,7 +181,10 @@ impl StringWrapperFromVisitor<'_> {
             "`{identifier}` implements `From<String>`; implement `TryFrom<String>` instead"
         ));
     }
-    fn check_newtype_attr(&mut self, syn_item_struct_ref: crate::types::SynItemStructRef<'_>) {
+    fn check_newtype_attr(
+        &mut self,
+        syn_item_struct_ref: crate::syn_item_struct_ref::SynItemStructRef<'_>,
+    ) {
         let item_ref = syn_item_struct_ref.as_ref();
         if !crate::code_style::item_struct_is_single_string_wrapper(syn_item_struct_ref).get() {
             return;
@@ -198,20 +203,25 @@ impl StringWrapperFromVisitor<'_> {
                     ));
         }
     }
-    fn check_try_from_impl(&mut self, syn_item_impl_ref: crate::types::SynItemImplRef<'_>) {
-        let is_try_from_string = crate::types::AnalyzerBool::from(
+    fn check_try_from_impl(
+        &mut self,
+        syn_item_impl_ref: crate::syn_item_impl_ref::SynItemImplRef<'_>,
+    ) {
+        let is_try_from_string = crate::analyzer_bool::AnalyzerBool::from(
             syn_item_impl_ref
                 .as_ref()
                 .trait_
                 .as_ref()
                 .is_some_and(|(path, _)| {
                     crate::code_style::path_ends_with(
-                        crate::types::SynPathRef::from(path),
-                        crate::types::StaticStrSliceRef::from([constants_str::TRYFROM].as_slice()),
+                        crate::syn_path_ref::SynPathRef::from(path),
+                        crate::static_str_slice_ref::StaticStrSliceRef::from(
+                            [constants_str::TRYFROM].as_slice(),
+                        ),
                     )
                     .get()
                         && crate::code_style::from_trait_arg_is_string(
-                            crate::types::SynPathRef::from(path),
+                            crate::syn_path_ref::SynPathRef::from(path),
                         )
                         .get()
                 }),
@@ -230,11 +240,11 @@ impl StringWrapperFromVisitor<'_> {
             .try_from_string_names
             .insert(String::from(identifier.clone()));
         let mut len_call_visitor = LenMethodCallVisitor {
-            found: crate::types::AnalyzerBool::default(),
+            found: crate::analyzer_bool::AnalyzerBool::default(),
         };
         syn::visit::Visit::visit_item_impl(&mut len_call_visitor, syn_item_impl_ref.as_ref());
         let mut len_checked_call_visitor = LenCheckedFunctionCallVisitor {
-            found: crate::types::AnalyzerBool::default(),
+            found: crate::analyzer_bool::AnalyzerBool::default(),
             names: self.len_checked_function_names,
         };
         syn::visit::Visit::visit_item_impl(
@@ -254,14 +264,15 @@ impl StringWrapperFromVisitor<'_> {
     proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct LenCheckedFunctionCallVisitor<'names_lt> {
-    found: crate::types::AnalyzerBool,
-    names: &'names_lt crate::types::SourceTextBTreeSet,
+    found: crate::analyzer_bool::AnalyzerBool,
+    names: &'names_lt crate::source_text_b_tree_set::SourceTextBTreeSet,
 }
 impl<'ast> syn::visit::Visit<'ast> for LenCheckedFunctionCallVisitor<'_> {
     fn visit_expr_call(&mut self, expr_call: &'ast syn::ExprCall) {
         if let syn::Expr::Path(path) = expr_call.func.as_ref() {
-            let full_path =
-                crate::code_style::path_to_string(crate::types::SynPathRef::from(&path.path));
+            let full_path = crate::code_style::path_to_string(
+                crate::syn_path_ref::SynPathRef::from(&path.path),
+            );
             if self.names.iter().any(|name| {
                 full_path.as_ref() == name
                     || full_path
@@ -281,12 +292,12 @@ impl<'ast> syn::visit::Visit<'ast> for LenCheckedFunctionCallVisitor<'_> {
     proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct LenCheckedFunctionNameVisitor {
-    names: crate::types::SourceTextBTreeSet,
+    names: crate::source_text_b_tree_set::SourceTextBTreeSet,
 }
 impl<'ast> syn::visit::Visit<'ast> for LenCheckedFunctionNameVisitor {
     fn visit_item_fn(&mut self, item_fn: &'ast syn::ItemFn) {
         let mut visitor = LenMethodCallVisitor {
-            found: crate::types::AnalyzerBool::default(),
+            found: crate::analyzer_bool::AnalyzerBool::default(),
         };
         syn::visit::Visit::visit_block(&mut visitor, &item_fn.block);
         if visitor.found.get() {
@@ -296,7 +307,7 @@ impl<'ast> syn::visit::Visit<'ast> for LenCheckedFunctionNameVisitor {
     }
     fn visit_item_impl(&mut self, item_impl: &'ast syn::ItemImpl) {
         let Some(type_name) = crate::code_style::item_impl_self_ty_identifier(
-            crate::types::SynItemImplRef::from(item_impl),
+            crate::syn_item_impl_ref::SynItemImplRef::from(item_impl),
         ) else {
             syn::visit::visit_item_impl(self, item_impl);
             return;
@@ -306,7 +317,7 @@ impl<'ast> syn::visit::Visit<'ast> for LenCheckedFunctionNameVisitor {
                 return;
             };
             let mut visitor = LenMethodCallVisitor {
-                found: crate::types::AnalyzerBool::default(),
+                found: crate::analyzer_bool::AnalyzerBool::default(),
             };
             syn::visit::Visit::visit_block(&mut visitor, &method.block);
             if visitor.found.get() {
@@ -320,14 +331,18 @@ impl<'ast> syn::visit::Visit<'ast> for LenCheckedFunctionNameVisitor {
 }
 impl<'ast> syn::visit::Visit<'ast> for StringWrapperFromVisitor<'_> {
     fn visit_item_impl(&mut self, item_impl: &'ast syn::ItemImpl) {
-        self.check_from_impl(crate::types::SynItemImplRef::from(item_impl));
-        self.check_try_from_impl(crate::types::SynItemImplRef::from(item_impl));
+        self.check_from_impl(crate::syn_item_impl_ref::SynItemImplRef::from(item_impl));
+        self.check_try_from_impl(crate::syn_item_impl_ref::SynItemImplRef::from(item_impl));
         syn::visit::visit_item_impl(self, item_impl);
     }
     fn visit_item_struct(&mut self, item_struct: &'ast syn::ItemStruct) {
         syn::visit::visit_item_struct(self, item_struct);
-        self.check_bounded_string_attr(crate::types::SynItemStructRef::from(item_struct));
-        self.check_newtype_attr(crate::types::SynItemStructRef::from(item_struct));
+        self.check_bounded_string_attr(crate::syn_item_struct_ref::SynItemStructRef::from(
+            item_struct,
+        ));
+        self.check_newtype_attr(crate::syn_item_struct_ref::SynItemStructRef::from(
+            item_struct,
+        ));
     }
 }
 #[derive(
@@ -336,7 +351,7 @@ impl<'ast> syn::visit::Visit<'ast> for StringWrapperFromVisitor<'_> {
     proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct LenMethodCallVisitor {
-    found: crate::types::AnalyzerBool,
+    found: crate::analyzer_bool::AnalyzerBool,
 }
 impl<'ast> syn::visit::Visit<'ast> for LenMethodCallVisitor {
     fn visit_expr_method_call(&mut self, expr_method_call: &'ast syn::ExprMethodCall) {
@@ -352,7 +367,7 @@ impl<'ast> syn::visit::Visit<'ast> for LenMethodCallVisitor {
     proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct PublicTupleWrapperFieldVisitor {
-    errors: crate::types::DiagnosticMessages,
+    errors: crate::diagnostic_messages::DiagnosticMessages,
 }
 #[derive(
     proc_macro_getters::Getters,
@@ -360,7 +375,7 @@ pub(super) struct PublicTupleWrapperFieldVisitor {
     proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct DirectDeserializeTupleWrapperVisitor {
-    errors: crate::types::DiagnosticMessages,
+    errors: crate::diagnostic_messages::DiagnosticMessages,
 }
 #[derive(
     proc_macro_getters::Getters,
@@ -368,7 +383,7 @@ pub(super) struct DirectDeserializeTupleWrapperVisitor {
     proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct DeserializeConversionCallVisitor {
-    found: crate::types::AnalyzerBool,
+    found: crate::analyzer_bool::AnalyzerBool,
 }
 #[derive(
     proc_macro_getters::Getters,
@@ -376,8 +391,8 @@ pub(super) struct DeserializeConversionCallVisitor {
     proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct ManualDeserializeTupleWrapperVisitor<'names> {
-    errors: crate::types::DiagnosticMessages,
-    names: &'names crate::types::SourceTextBTreeSet,
+    errors: crate::diagnostic_messages::DiagnosticMessages,
+    names: &'names crate::source_text_b_tree_set::SourceTextBTreeSet,
 }
 #[derive(
     proc_macro_getters::Getters,
@@ -385,13 +400,13 @@ pub(super) struct ManualDeserializeTupleWrapperVisitor<'names> {
     proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct TupleWrapperConversionCollector {
-    converted_names: crate::types::SourceTextBTreeSet,
-    from_inner_names: crate::types::SourceTextBTreeSet,
-    from_names: crate::types::SourceTextBTreeSet,
+    converted_names: crate::source_text_b_tree_set::SourceTextBTreeSet,
+    from_inner_names: crate::source_text_b_tree_set::SourceTextBTreeSet,
+    from_names: crate::source_text_b_tree_set::SourceTextBTreeSet,
     inner_types: std::collections::BTreeMap<String, syn::Type>,
-    names: crate::types::SourceTextBTreeSet,
-    try_from_inner_names: crate::types::SourceTextBTreeSet,
-    try_from_names: crate::types::SourceTextBTreeSet,
+    names: crate::source_text_b_tree_set::SourceTextBTreeSet,
+    try_from_inner_names: crate::source_text_b_tree_set::SourceTextBTreeSet,
+    try_from_names: crate::source_text_b_tree_set::SourceTextBTreeSet,
 }
 #[derive(
     proc_macro_getters::Getters,
@@ -400,9 +415,9 @@ pub(super) struct TupleWrapperConversionCollector {
 )]
 pub(super) struct DirectTupleWrapperConstructorVisitor<'names> {
     current_wrapper_name: Option<String>,
-    errors: crate::types::DiagnosticMessages,
-    inside_conversion_impl: crate::types::AnalyzerBool,
-    names: &'names crate::types::SourceTextBTreeSet,
+    errors: crate::diagnostic_messages::DiagnosticMessages,
+    inside_conversion_impl: crate::analyzer_bool::AnalyzerBool,
+    names: &'names crate::source_text_b_tree_set::SourceTextBTreeSet,
 }
 impl<'ast> syn::visit::Visit<'ast> for PublicTupleWrapperFieldVisitor {
     fn visit_item_struct(&mut self, item_struct: &'ast syn::ItemStruct) {
@@ -414,7 +429,7 @@ impl<'ast> syn::visit::Visit<'ast> for PublicTupleWrapperFieldVisitor {
             syn::Fields::Named(_) | syn::Fields::Unnamed(_) | syn::Fields::Unit => false,
         };
         if crate::code_style::item_struct_is_single_field_tuple_wrapper(
-            crate::types::SynItemStructRef::from(item_struct),
+            crate::syn_item_struct_ref::SynItemStructRef::from(item_struct),
         )
         .get()
             && inner_field_is_non_private
@@ -453,7 +468,7 @@ impl<'ast> syn::visit::Visit<'ast> for DirectDeserializeTupleWrapperVisitor {
             }
         });
         if crate::code_style::item_struct_is_single_field_tuple_wrapper(
-            crate::types::SynItemStructRef::from(item_struct),
+            crate::syn_item_struct_ref::SynItemStructRef::from(item_struct),
         )
         .get()
             && derives_deserialize
@@ -489,14 +504,14 @@ impl<'ast> syn::visit::Visit<'ast> for ManualDeserializeTupleWrapperVisitor<'_> 
             })
         });
         let Some(name) = crate::code_style::item_impl_self_ty_identifier(
-            crate::types::SynItemImplRef::from(item_impl),
+            crate::syn_item_impl_ref::SynItemImplRef::from(item_impl),
         ) else {
             syn::visit::visit_item_impl(self, item_impl);
             return;
         };
         if is_deserialize_impl && self.names.contains(name.as_ref()) {
             let mut visitor = DeserializeConversionCallVisitor {
-                found: crate::types::AnalyzerBool::default(),
+                found: crate::analyzer_bool::AnalyzerBool::default(),
             };
             syn::visit::visit_item_impl(&mut visitor, item_impl);
             if !visitor.found.get() {
@@ -512,12 +527,12 @@ impl<'ast> syn::visit::Visit<'ast> for ManualDeserializeTupleWrapperVisitor<'_> 
 }
 impl<'ast> syn::visit::Visit<'ast> for TupleWrapperConversionCollector {
     fn visit_item_impl(&mut self, item_impl: &'ast syn::ItemImpl) {
-        let item_ref = crate::types::SynItemImplRef::from(item_impl);
+        let item_ref = crate::syn_item_impl_ref::SynItemImplRef::from(item_impl);
         let Some(name) = crate::code_style::item_impl_self_ty_identifier(item_ref) else {
             syn::visit::visit_item_impl(self, item_impl);
             return;
         };
-        let is_from = crate::types::AnalyzerBool::from(
+        let is_from = crate::analyzer_bool::AnalyzerBool::from(
             item_ref.as_ref().trait_.as_ref().is_some_and(|(path, _)| {
                 path.segments
                     .last()
@@ -532,7 +547,7 @@ impl<'ast> syn::visit::Visit<'ast> for TupleWrapperConversionCollector {
                 let _: bool = self.from_inner_names.insert(name.as_ref().to_owned());
             }
         }
-        let is_try_from = crate::types::AnalyzerBool::from(
+        let is_try_from = crate::analyzer_bool::AnalyzerBool::from(
             item_ref.as_ref().trait_.as_ref().is_some_and(|(path, _)| {
                 path.segments
                     .last()
@@ -554,7 +569,7 @@ impl<'ast> syn::visit::Visit<'ast> for TupleWrapperConversionCollector {
     }
     fn visit_item_struct(&mut self, item_struct: &'ast syn::ItemStruct) {
         if crate::code_style::item_struct_is_single_field_tuple_wrapper(
-            crate::types::SynItemStructRef::from(item_struct),
+            crate::syn_item_struct_ref::SynItemStructRef::from(item_struct),
         )
         .get()
         {
@@ -663,10 +678,10 @@ impl<'ast> syn::visit::Visit<'ast> for DirectTupleWrapperConstructorVisitor<'_> 
         let previous = self.inside_conversion_impl;
         let previous_wrapper_name = self.current_wrapper_name.take();
         self.inside_conversion_impl = crate::code_style::item_impl_is_from_or_try_from(
-            crate::types::SynItemImplRef::from(item_impl),
+            crate::syn_item_impl_ref::SynItemImplRef::from(item_impl),
         );
         self.current_wrapper_name = crate::code_style::item_impl_self_ty_identifier(
-            crate::types::SynItemImplRef::from(item_impl),
+            crate::syn_item_impl_ref::SynItemImplRef::from(item_impl),
         )
         .map(|name| name.as_ref().to_owned())
         .filter(|name| self.names.contains(name));
@@ -681,11 +696,13 @@ impl<'ast> syn::visit::Visit<'ast> for DirectTupleWrapperConstructorVisitor<'_> 
     proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct DeclaredDomainTypeVisitor {
-    names: crate::types::SourceTextBTreeSet,
+    names: crate::source_text_b_tree_set::SourceTextBTreeSet,
 }
 impl<'ast> syn::visit::Visit<'ast> for DeclaredDomainTypeVisitor {
     fn visit_item(&mut self, item: &'ast syn::Item) {
-        if crate::code_style::has_test_only_cfg_attr(crate::types::SynItemRef::from(item)).get() {
+        if crate::code_style::has_test_only_cfg_attr(crate::syn_item_ref::SynItemRef::from(item))
+            .get()
+        {
             return;
         }
         syn::visit::visit_item(self, item);
@@ -720,8 +737,8 @@ impl<'ast> syn::visit::Visit<'ast> for DeclaredDomainTypeVisitor {
     }
     fn visit_macro(&mut self, r#macro: &'ast syn::Macro) {
         if crate::code_style::path_ends_with(
-            crate::types::SynPathRef::from(&r#macro.path),
-            crate::types::StaticStrSliceRef::from(
+            crate::syn_path_ref::SynPathRef::from(&r#macro.path),
+            crate::static_str_slice_ref::StaticStrSliceRef::from(
                 [
                     constants_str::CODE_STYLE_GENERATE_PG_TYPES_MACRO_NAME,
                     constants_str::CODE_STYLE_GENERATE_PG_TYPES_MACRO_NAME,
@@ -747,10 +764,10 @@ impl<'ast> syn::visit::Visit<'ast> for DeclaredDomainTypeVisitor {
                         .insert(format!("Optional{prefix}AsNullable{suffix}"));
                 });
         }
-        let path = crate::types::SynPathRef::from(&r#macro.path);
+        let path = crate::syn_path_ref::SynPathRef::from(&r#macro.path);
         let config_lib_domain_type_macro = crate::code_style::path_ends_with(
             path,
-            crate::types::StaticStrSliceRef::from(
+            crate::static_str_slice_ref::StaticStrSliceRef::from(
                 [
                     constants_str::CONFIG_LIB_MACROS,
                     constants_str::IMPL_TRY_FROM_NON_EMPTY_STRING,
@@ -761,7 +778,7 @@ impl<'ast> syn::visit::Visit<'ast> for DeclaredDomainTypeVisitor {
         .get()
             || crate::code_style::path_ends_with(
                 path,
-                crate::types::StaticStrSliceRef::from(
+                crate::static_str_slice_ref::StaticStrSliceRef::from(
                     [
                         constants_str::CONFIG_LIB_MACROS,
                         constants_str::IMPL_TRY_FROM_SECRET_URL,
@@ -772,7 +789,7 @@ impl<'ast> syn::visit::Visit<'ast> for DeclaredDomainTypeVisitor {
             .get()
             || crate::code_style::path_ends_with(
                 path,
-                crate::types::StaticStrSliceRef::from(
+                crate::static_str_slice_ref::StaticStrSliceRef::from(
                     [
                         constants_str::CONFIG_LIB_MACROS,
                         constants_str::IMPL_TRY_FROM_PARSE,
@@ -783,7 +800,7 @@ impl<'ast> syn::visit::Visit<'ast> for DeclaredDomainTypeVisitor {
             .get()
             || crate::code_style::path_ends_with(
                 path,
-                crate::types::StaticStrSliceRef::from(
+                crate::static_str_slice_ref::StaticStrSliceRef::from(
                     [
                         constants_str::CONFIG_LIB_MACROS,
                         constants_str::IMPL_TRY_FROM_PARSE_STRING_ERROR,
@@ -794,37 +811,39 @@ impl<'ast> syn::visit::Visit<'ast> for DeclaredDomainTypeVisitor {
             .get();
         if config_lib_domain_type_macro {
             crate::code_style::collect_first_macro_identifier_domain_name(
-                crate::types::SourceTextRef::from(r#macro.tokens.to_string().as_str()),
+                crate::source_text_ref::SourceTextRef::from(r#macro.tokens.to_string().as_str()),
                 &mut self.names,
             );
         }
         if crate::code_style::path_ends_with(
-            crate::types::SynPathRef::from(&r#macro.path),
-            crate::types::StaticStrSliceRef::from(
+            crate::syn_path_ref::SynPathRef::from(&r#macro.path),
+            crate::static_str_slice_ref::StaticStrSliceRef::from(
                 [constants_str::API_OPERATION_ERROR_MACRO_IDENTIFIER].as_slice(),
             ),
         )
         .get()
         {
             crate::code_style::collect_first_macro_identifier_domain_name(
-                crate::types::SourceTextRef::from(r#macro.tokens.to_string().as_str()),
+                crate::source_text_ref::SourceTextRef::from(r#macro.tokens.to_string().as_str()),
                 &mut self.names,
             );
         }
         if crate::code_style::path_ends_with(
-            crate::types::SynPathRef::from(&r#macro.path),
-            crate::types::StaticStrSliceRef::from([constants_str::BOOL_ENUM_TO_TOKENS].as_slice()),
+            crate::syn_path_ref::SynPathRef::from(&r#macro.path),
+            crate::static_str_slice_ref::StaticStrSliceRef::from(
+                [constants_str::BOOL_ENUM_TO_TOKENS].as_slice(),
+            ),
         )
         .get()
         {
             crate::code_style::collect_first_macro_identifier_domain_name(
-                crate::types::SourceTextRef::from(r#macro.tokens.to_string().as_str()),
+                crate::source_text_ref::SourceTextRef::from(r#macro.tokens.to_string().as_str()),
                 &mut self.names,
             );
         }
         if crate::code_style::path_ends_with(
-            crate::types::SynPathRef::from(&r#macro.path),
-            crate::types::StaticStrSliceRef::from(
+            crate::syn_path_ref::SynPathRef::from(&r#macro.path),
+            crate::static_str_slice_ref::StaticStrSliceRef::from(
                 [
                     constants_str::CODE_STYLE_GENERATE_DERIVE_TOKEN_STREAM_BUILDER_MACRO_NAME,
                     constants_str::CODE_STYLE_GENERATE_DERIVE_TOKEN_STREAM_BUILDER_MACRO_NAME,
@@ -847,12 +866,12 @@ impl<'ast> syn::visit::Visit<'ast> for DeclaredDomainTypeVisitor {
     proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct DomainTypePolicyVisitor<'types> {
-    check_non_public: crate::types::AnalyzerBool,
-    closure_body_scan_depth: crate::types::AnalyzerCount,
-    errors: crate::types::DiagnosticMessages,
-    generic_scopes: Vec<crate::types::SourceTextBTreeSet>,
-    repo_crates: crate::types::SourceTextBTreeSetRef<'types>,
-    repo_types: crate::types::SourceTextBTreeSetRef<'types>,
+    check_non_public: crate::analyzer_bool::AnalyzerBool,
+    closure_body_scan_depth: crate::analyzer_count::AnalyzerCount,
+    errors: crate::diagnostic_messages::DiagnosticMessages,
+    generic_scopes: Vec<crate::source_text_b_tree_set::SourceTextBTreeSet>,
+    repo_crates: crate::source_text_b_tree_set_ref::SourceTextBTreeSetRef<'types>,
+    repo_types: crate::source_text_b_tree_set_ref::SourceTextBTreeSetRef<'types>,
 }
 #[derive(
     proc_macro_getters::Getters,
@@ -860,7 +879,7 @@ pub(super) struct DomainTypePolicyVisitor<'types> {
     proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct AnalyzerStateRawContainerFieldVisitor {
-    errors: crate::types::DiagnosticMessages,
+    errors: crate::diagnostic_messages::DiagnosticMessages,
 }
 #[derive(
     proc_macro_getters::Getters,
@@ -868,7 +887,7 @@ pub(super) struct AnalyzerStateRawContainerFieldVisitor {
     proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct HelperRawTextReturnVisitor {
-    errors: crate::types::DiagnosticMessages,
+    errors: crate::diagnostic_messages::DiagnosticMessages,
 }
 #[derive(
     proc_macro_getters::Getters,
@@ -876,7 +895,7 @@ pub(super) struct HelperRawTextReturnVisitor {
     proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct RawTextLocalVisitor {
-    errors: crate::types::DiagnosticMessages,
+    errors: crate::diagnostic_messages::DiagnosticMessages,
 }
 #[derive(
     proc_macro_getters::Getters,
@@ -884,15 +903,15 @@ pub(super) struct RawTextLocalVisitor {
     proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct ExternalLeafWrapperNameVisitor<'types> {
-    errors: crate::types::DiagnosticMessages,
-    repo_crates: crate::types::SourceTextBTreeSetRef<'types>,
+    errors: crate::diagnostic_messages::DiagnosticMessages,
+    repo_crates: crate::source_text_b_tree_set_ref::SourceTextBTreeSetRef<'types>,
 }
 impl DomainTypePolicyVisitor<'_> {
     fn check_fields(
         &mut self,
-        syn_fields_ref: crate::types::SynFieldsRef<'_>,
-        source_text_ref: crate::types::SourceTextRef<'_>,
-        analyzer_bool: crate::types::AnalyzerBool,
+        syn_fields_ref: crate::syn_fields_ref::SynFieldsRef<'_>,
+        source_text_ref: crate::source_text_ref::SourceTextRef<'_>,
+        analyzer_bool: crate::analyzer_bool::AnalyzerBool,
     ) {
         let fields_ref = syn_fields_ref.as_ref();
         if analyzer_bool.get()
@@ -901,13 +920,16 @@ impl DomainTypePolicyVisitor<'_> {
             return;
         }
         fields_ref.iter().for_each(|field| {
-            self.check_ty(crate::types::SynTypeRef::from(&field.ty), source_text_ref);
+            self.check_ty(
+                crate::syn_type_ref::SynTypeRef::from(&field.ty),
+                source_text_ref,
+            );
         });
     }
     fn check_path_arguments(
         &mut self,
-        syn_path_arguments_ref: crate::types::SynPathArgumentsRef<'_>,
-        source_text_ref: crate::types::SourceTextRef<'_>,
+        syn_path_arguments_ref: crate::syn_path_arguments_ref::SynPathArgumentsRef<'_>,
+        source_text_ref: crate::source_text_ref::SourceTextRef<'_>,
     ) {
         match syn_path_arguments_ref.as_ref() {
             syn::PathArguments::AngleBracketed(args) => {
@@ -923,17 +945,23 @@ impl DomainTypePolicyVisitor<'_> {
                         | _ => None,
                     })
                     .for_each(|ty| {
-                        self.check_ty(crate::types::SynTypeRef::from(ty), source_text_ref);
+                        self.check_ty(crate::syn_type_ref::SynTypeRef::from(ty), source_text_ref);
                     });
             }
             syn::PathArguments::Parenthesized(args) => {
                 args.inputs.iter().for_each(|arg| {
-                    self.check_ty(crate::types::SynTypeRef::from(&arg.ty), source_text_ref);
+                    self.check_ty(
+                        crate::syn_type_ref::SynTypeRef::from(&arg.ty),
+                        source_text_ref,
+                    );
                 });
                 match &args.output {
                     syn::ReturnType::Default => {}
                     syn::ReturnType::Type(_, ty) => {
-                        self.check_ty(crate::types::SynTypeRef::from(&**ty), source_text_ref);
+                        self.check_ty(
+                            crate::syn_type_ref::SynTypeRef::from(&**ty),
+                            source_text_ref,
+                        );
                     }
                 }
             }
@@ -942,11 +970,13 @@ impl DomainTypePolicyVisitor<'_> {
     }
     fn check_sig(
         &mut self,
-        syn_signature_ref: crate::types::SynSignatureRef<'_>,
-        source_text_ref: crate::types::SourceTextRef<'_>,
+        syn_signature_ref: crate::syn_signature_ref::SynSignatureRef<'_>,
+        source_text_ref: crate::source_text_ref::SourceTextRef<'_>,
     ) {
         let sig_ref = syn_signature_ref.as_ref();
-        self.push_generics(crate::types::SynGenericsRef::from(&sig_ref.generics));
+        self.push_generics(crate::syn_generics_ref::SynGenericsRef::from(
+            &sig_ref.generics,
+        ));
         sig_ref
             .inputs
             .iter()
@@ -956,8 +986,8 @@ impl DomainTypePolicyVisitor<'_> {
             })
             .for_each(|pat_ty| {
                 self.check_ty(
-                    crate::types::SynTypeRef::from(&*pat_ty.ty),
-                    crate::types::SourceTextRef::from(
+                    crate::syn_type_ref::SynTypeRef::from(&*pat_ty.ty),
+                    crate::source_text_ref::SourceTextRef::from(
                         format!("{} parameter", source_text_ref.as_ref()).as_str(),
                     ),
                 );
@@ -966,8 +996,8 @@ impl DomainTypePolicyVisitor<'_> {
             syn::ReturnType::Default => {}
             syn::ReturnType::Type(_, ty) => {
                 self.check_ty(
-                    crate::types::SynTypeRef::from(&**ty),
-                    crate::types::SourceTextRef::from(
+                    crate::syn_type_ref::SynTypeRef::from(&**ty),
+                    crate::source_text_ref::SourceTextRef::from(
                         format!("{} return type", source_text_ref.as_ref()).as_str(),
                     ),
                 );
@@ -977,46 +1007,49 @@ impl DomainTypePolicyVisitor<'_> {
     }
     fn check_ty(
         &mut self,
-        syn_type_ref: crate::types::SynTypeRef<'_>,
-        source_text_ref: crate::types::SourceTextRef<'_>,
+        syn_type_ref: crate::syn_type_ref::SynTypeRef<'_>,
+        source_text_ref: crate::source_text_ref::SourceTextRef<'_>,
     ) {
         match syn_type_ref.as_ref() {
             syn::Type::Array(ty_array) => {
                 self.check_ty(
-                    crate::types::SynTypeRef::from(&*ty_array.elem),
+                    crate::syn_type_ref::SynTypeRef::from(&*ty_array.elem),
                     source_text_ref,
                 );
             }
             syn::Type::Group(ty_group) => {
                 self.check_ty(
-                    crate::types::SynTypeRef::from(&*ty_group.elem),
+                    crate::syn_type_ref::SynTypeRef::from(&*ty_group.elem),
                     source_text_ref,
                 );
             }
             syn::Type::Paren(ty_paren) => {
                 self.check_ty(
-                    crate::types::SynTypeRef::from(&*ty_paren.elem),
+                    crate::syn_type_ref::SynTypeRef::from(&*ty_paren.elem),
                     source_text_ref,
                 );
             }
             syn::Type::Path(ty_path) => {
-                self.check_ty_path(crate::types::SynTypePathRef::from(ty_path), source_text_ref);
+                self.check_ty_path(
+                    crate::syn_type_path_ref::SynTypePathRef::from(ty_path),
+                    source_text_ref,
+                );
             }
             syn::Type::Reference(ty_reference) => {
                 self.check_ty(
-                    crate::types::SynTypeRef::from(&*ty_reference.elem),
+                    crate::syn_type_ref::SynTypeRef::from(&*ty_reference.elem),
                     source_text_ref,
                 );
             }
             syn::Type::Slice(ty_slice) => {
                 self.check_ty(
-                    crate::types::SynTypeRef::from(&*ty_slice.elem),
+                    crate::syn_type_ref::SynTypeRef::from(&*ty_slice.elem),
                     source_text_ref,
                 );
             }
             syn::Type::Tuple(ty_tuple) => {
                 ty_tuple.elems.iter().for_each(|elem| {
-                    self.check_ty(crate::types::SynTypeRef::from(elem), source_text_ref);
+                    self.check_ty(crate::syn_type_ref::SynTypeRef::from(elem), source_text_ref);
                 });
             }
             syn::Type::FnPtr(_)
@@ -1032,15 +1065,18 @@ impl DomainTypePolicyVisitor<'_> {
     }
     fn check_ty_path(
         &mut self,
-        syn_type_path_ref: crate::types::SynTypePathRef<'_>,
-        source_text_ref: crate::types::SourceTextRef<'_>,
+        syn_type_path_ref: crate::syn_type_path_ref::SynTypePathRef<'_>,
+        source_text_ref: crate::source_text_ref::SourceTextRef<'_>,
     ) {
         let ty_path_ref = syn_type_path_ref.as_ref();
         if let Some(qself) = &ty_path_ref.qself {
-            self.check_ty(crate::types::SynTypeRef::from(&*qself.ty), source_text_ref);
+            self.check_ty(
+                crate::syn_type_ref::SynTypeRef::from(&*qself.ty),
+                source_text_ref,
+            );
             ty_path_ref.path.segments.iter().for_each(|segment| {
                 self.check_path_arguments(
-                    crate::types::SynPathArgumentsRef::from(&segment.arguments),
+                    crate::syn_path_arguments_ref::SynPathArgumentsRef::from(&segment.arguments),
                     source_text_ref,
                 );
             });
@@ -1057,7 +1093,7 @@ impl DomainTypePolicyVisitor<'_> {
             .is_some_and(|first_segment| first_segment.ident == constants_str::SELF)
         {
             self.check_path_arguments(
-                crate::types::SynPathArgumentsRef::from(&segment.arguments),
+                crate::syn_path_arguments_ref::SynPathArgumentsRef::from(&segment.arguments),
                 source_text_ref,
             );
             return;
@@ -1067,58 +1103,66 @@ impl DomainTypePolicyVisitor<'_> {
             constants_str::OPTION | constants_str::RESULT
         ) {
             self.check_path_arguments(
-                crate::types::SynPathArgumentsRef::from(&segment.arguments),
+                crate::syn_path_arguments_ref::SynPathArgumentsRef::from(&segment.arguments),
                 source_text_ref,
             );
             return;
         }
         if self
-            .is_allowed_type_identifier(crate::types::SourceTextRef::from(identifier.as_str()))
+            .is_allowed_type_identifier(crate::source_text_ref::SourceTextRef::from(
+                identifier.as_str(),
+            ))
             .get()
         {
             self.check_path_arguments(
-                crate::types::SynPathArgumentsRef::from(&segment.arguments),
+                crate::syn_path_arguments_ref::SynPathArgumentsRef::from(&segment.arguments),
                 source_text_ref,
             );
             return;
         }
         if self
-            .path_starts_with_allowed_type_identifier(crate::types::SynPathRef::from(
+            .path_starts_with_allowed_type_identifier(crate::syn_path_ref::SynPathRef::from(
                 &ty_path_ref.path,
             ))
             .get()
         {
             ty_path_ref.path.segments.iter().for_each(|path_segment| {
                 self.check_path_arguments(
-                    crate::types::SynPathArgumentsRef::from(&path_segment.arguments),
+                    crate::syn_path_arguments_ref::SynPathArgumentsRef::from(
+                        &path_segment.arguments,
+                    ),
                     source_text_ref,
                 );
             });
             return;
         }
         if self
-            .path_starts_with_repo_crate(crate::types::SynPathRef::from(&ty_path_ref.path))
+            .path_starts_with_repo_crate(crate::syn_path_ref::SynPathRef::from(&ty_path_ref.path))
             .get()
         {
             ty_path_ref.path.segments.iter().for_each(|path_segment| {
                 self.check_path_arguments(
-                    crate::types::SynPathArgumentsRef::from(&path_segment.arguments),
+                    crate::syn_path_arguments_ref::SynPathArgumentsRef::from(
+                        &path_segment.arguments,
+                    ),
                     source_text_ref,
                 );
             });
             return;
         }
         if self
-            .path_starts_with_external_crate(crate::types::SynPathRef::from(&ty_path_ref.path))
+            .path_starts_with_external_crate(crate::syn_path_ref::SynPathRef::from(
+                &ty_path_ref.path,
+            ))
             .get()
         {
             self.errors.push(format!(
                 "{} uses `{}`; use a repository domain wrapper type and initialize it with From/TryFrom instead of exposing raw external or primitive types",
                 source_text_ref.as_ref(),
-                crate::code_style::path_to_string(crate::types::SynPathRef::from(&ty_path_ref.path)).as_ref()
+                crate::code_style::path_to_string(crate::syn_path_ref::SynPathRef::from(&ty_path_ref.path)).as_ref()
             ));
             self.check_path_arguments(
-                crate::types::SynPathArgumentsRef::from(&segment.arguments),
+                crate::syn_path_arguments_ref::SynPathArgumentsRef::from(&segment.arguments),
                 source_text_ref,
             );
             return;
@@ -1126,22 +1170,22 @@ impl DomainTypePolicyVisitor<'_> {
         self.errors.push(format!(
                 "{} uses `{}`; use a repository domain wrapper type and initialize it with From/TryFrom instead of exposing raw external or primitive types",
                 source_text_ref.as_ref(),
-                crate::code_style::path_to_string(crate::types::SynPathRef::from(&ty_path_ref.path)).as_ref()
+                crate::code_style::path_to_string(crate::syn_path_ref::SynPathRef::from(&ty_path_ref.path)).as_ref()
             ));
         self.check_path_arguments(
-            crate::types::SynPathArgumentsRef::from(&segment.arguments),
+            crate::syn_path_arguments_ref::SynPathArgumentsRef::from(&segment.arguments),
             source_text_ref,
         );
     }
-    fn closure_body_scan_is_active(&self) -> crate::types::AnalyzerBool {
-        crate::types::AnalyzerBool::from(self.closure_body_scan_depth.get() > 0)
+    fn closure_body_scan_is_active(&self) -> crate::analyzer_bool::AnalyzerBool {
+        crate::analyzer_bool::AnalyzerBool::from(self.closure_body_scan_depth.get() > 0)
     }
     fn is_allowed_type_identifier(
         &self,
-        source_text_ref: crate::types::SourceTextRef<'_>,
-    ) -> crate::types::AnalyzerBool {
+        source_text_ref: crate::source_text_ref::SourceTextRef<'_>,
+    ) -> crate::analyzer_bool::AnalyzerBool {
         let identifier_ref = source_text_ref.as_ref();
-        crate::types::AnalyzerBool::from(
+        crate::analyzer_bool::AnalyzerBool::from(
             identifier_ref == constants_str::SELF
                 || self.repo_types.as_ref().contains(identifier_ref)
                 || self
@@ -1153,13 +1197,13 @@ impl DomainTypePolicyVisitor<'_> {
     }
     fn path_starts_with_allowed_type_identifier(
         &self,
-        syn_path_ref: crate::types::SynPathRef<'_>,
-    ) -> crate::types::AnalyzerBool {
+        syn_path_ref: crate::syn_path_ref::SynPathRef<'_>,
+    ) -> crate::analyzer_bool::AnalyzerBool {
         let path_ref = syn_path_ref.as_ref();
-        crate::types::AnalyzerBool::from(
+        crate::analyzer_bool::AnalyzerBool::from(
             path_ref.segments.len() > 1
                 && path_ref.segments.first().is_some_and(|segment| {
-                    self.is_allowed_type_identifier(crate::types::SourceTextRef::from(
+                    self.is_allowed_type_identifier(crate::source_text_ref::SourceTextRef::from(
                         segment.ident.to_string().as_str(),
                     ))
                     .get()
@@ -1168,10 +1212,10 @@ impl DomainTypePolicyVisitor<'_> {
     }
     fn path_starts_with_external_crate(
         &self,
-        syn_path_ref: crate::types::SynPathRef<'_>,
-    ) -> crate::types::AnalyzerBool {
+        syn_path_ref: crate::syn_path_ref::SynPathRef<'_>,
+    ) -> crate::analyzer_bool::AnalyzerBool {
         let path_ref = syn_path_ref.as_ref();
-        crate::types::AnalyzerBool::from(
+        crate::analyzer_bool::AnalyzerBool::from(
             path_ref.segments.len() > 1
                 && path_ref.segments.first().is_some_and(|segment| {
                     let identifier = segment.ident.to_string();
@@ -1180,19 +1224,19 @@ impl DomainTypePolicyVisitor<'_> {
                         && identifier != constants_str::SUPER
                         && !self.repo_crates.as_ref().contains(&identifier)
                         && !self
-                            .is_allowed_type_identifier(crate::types::SourceTextRef::from(
-                                identifier.as_str(),
-                            ))
+                            .is_allowed_type_identifier(
+                                crate::source_text_ref::SourceTextRef::from(identifier.as_str()),
+                            )
                             .get()
                 }),
         )
     }
     fn path_starts_with_repo_crate(
         &self,
-        syn_path_ref: crate::types::SynPathRef<'_>,
-    ) -> crate::types::AnalyzerBool {
+        syn_path_ref: crate::syn_path_ref::SynPathRef<'_>,
+    ) -> crate::analyzer_bool::AnalyzerBool {
         let path_ref = syn_path_ref.as_ref();
-        crate::types::AnalyzerBool::from(
+        crate::analyzer_bool::AnalyzerBool::from(
             path_ref.segments.len() > 1
                 && path_ref.segments.first().is_some_and(|segment| {
                     let identifier = segment.ident.to_string();
@@ -1204,7 +1248,7 @@ impl DomainTypePolicyVisitor<'_> {
         let popped = self.generic_scopes.pop();
         assert!(popped.is_some(), "1cb23b63");
     }
-    fn push_generics(&mut self, syn_generics_ref: crate::types::SynGenericsRef<'_>) {
+    fn push_generics(&mut self, syn_generics_ref: crate::syn_generics_ref::SynGenericsRef<'_>) {
         let mut names = std::collections::BTreeSet::new();
         names.extend(
             syn_generics_ref
@@ -1217,9 +1261,14 @@ impl DomainTypePolicyVisitor<'_> {
                 }),
         );
         self.generic_scopes
-            .push(crate::types::SourceTextBTreeSet::from(names));
+            .push(crate::source_text_b_tree_set::SourceTextBTreeSet::from(
+                names,
+            ));
     }
-    fn scan_block_for_closure_inputs(&mut self, syn_block_ref: crate::types::SynBlockRef<'_>) {
+    fn scan_block_for_closure_inputs(
+        &mut self,
+        syn_block_ref: crate::syn_block_ref::SynBlockRef<'_>,
+    ) {
         self.closure_body_scan_depth.saturating_inc();
         syn::visit::visit_block(self, syn_block_ref.as_ref());
         self.closure_body_scan_depth.saturating_dec();
@@ -1230,15 +1279,17 @@ impl<'ast> syn::visit::Visit<'ast> for DomainTypePolicyVisitor<'_> {
         expr_closure.inputs.iter().for_each(|input| {
             if let syn::Pat::Type(pat_ty) = input {
                 self.check_ty(
-                    crate::types::SynTypeRef::from(&*pat_ty.ty),
-                    crate::types::SourceTextRef::from(constants_str::CLOSURE_PARAMETER),
+                    crate::syn_type_ref::SynTypeRef::from(&*pat_ty.ty),
+                    crate::source_text_ref::SourceTextRef::from(constants_str::CLOSURE_PARAMETER),
                 );
             }
         });
         syn::visit::visit_expr_closure(self, expr_closure);
     }
     fn visit_item(&mut self, item: &'ast syn::Item) {
-        if crate::code_style::has_test_only_cfg_attr(crate::types::SynItemRef::from(item)).get() {
+        if crate::code_style::has_test_only_cfg_attr(crate::syn_item_ref::SynItemRef::from(item))
+            .get()
+        {
             return;
         }
         if self.closure_body_scan_is_active().get() {
@@ -1254,38 +1305,47 @@ impl<'ast> syn::visit::Visit<'ast> for DomainTypePolicyVisitor<'_> {
         {
             return;
         }
-        self.push_generics(crate::types::SynGenericsRef::from(&item_enum.generics));
+        self.push_generics(crate::syn_generics_ref::SynGenericsRef::from(
+            &item_enum.generics,
+        ));
         item_enum.variants.iter().for_each(|variant| {
             self.check_fields(
-                crate::types::SynFieldsRef::from(&variant.fields),
-                crate::types::SourceTextRef::from(
+                crate::syn_fields_ref::SynFieldsRef::from(&variant.fields),
+                crate::source_text_ref::SourceTextRef::from(
                     format!("enum `{}` variant", item_enum.ident).as_str(),
                 ),
-                crate::types::AnalyzerBool::default(),
+                crate::analyzer_bool::AnalyzerBool::default(),
             );
         });
         self.pop_generics();
     }
     fn visit_item_fn(&mut self, item_fn: &'ast syn::ItemFn) {
-        if crate::code_style::item_fn_is_proc_macro(crate::types::SynItemFnRef::from(item_fn)).get()
+        if crate::code_style::item_fn_is_proc_macro(crate::syn_item_fn_ref::SynItemFnRef::from(
+            item_fn,
+        ))
+        .get()
         {
             return;
         }
         if self.check_non_public.get() || matches!(item_fn.vis, syn::Visibility::Public(_)) {
             self.check_sig(
-                crate::types::SynSignatureRef::from(&item_fn.sig),
-                crate::types::SourceTextRef::from(
+                crate::syn_signature_ref::SynSignatureRef::from(&item_fn.sig),
+                crate::source_text_ref::SourceTextRef::from(
                     format!("function `{}`", item_fn.sig.ident).as_str(),
                 ),
             );
         }
-        self.scan_block_for_closure_inputs(crate::types::SynBlockRef::from(&*item_fn.block));
+        self.scan_block_for_closure_inputs(crate::syn_block_ref::SynBlockRef::from(
+            &*item_fn.block,
+        ));
     }
     fn visit_item_impl(&mut self, item_impl: &'ast syn::ItemImpl) {
         if item_impl.trait_.is_some() {
             return;
         }
-        self.push_generics(crate::types::SynGenericsRef::from(&item_impl.generics));
+        self.push_generics(crate::syn_generics_ref::SynGenericsRef::from(
+            &item_impl.generics,
+        ));
         let check_non_public = self.check_non_public.get();
         item_impl
             .items
@@ -1293,14 +1353,16 @@ impl<'ast> syn::visit::Visit<'ast> for DomainTypePolicyVisitor<'_> {
             .filter_map(|item| match item {
                 syn::ImplItem::Fn(item_fn)
                     if !crate::code_style::attrs_contain_test_only_cfg(
-                        crate::types::SynAttributeListRef::from(item_fn.attrs.as_slice()),
+                        crate::syn_attribute_list_ref::SynAttributeListRef::from(
+                            item_fn.attrs.as_slice(),
+                        ),
                     )
                     .get()
                         && (check_non_public
                             || matches!(item_fn.vis, syn::Visibility::Public(_))) =>
                 {
                     if crate::code_style::method_is_explicit_wrapper_accessor(
-                        crate::types::SynIdentifierRef::from(&item_fn.sig.ident),
+                        crate::syn_identifier_ref::SynIdentifierRef::from(&item_fn.sig.ident),
                     )
                     .get()
                         || (matches!(item_fn.vis, syn::Visibility::Inherited)
@@ -1319,8 +1381,8 @@ impl<'ast> syn::visit::Visit<'ast> for DomainTypePolicyVisitor<'_> {
             })
             .for_each(|item_fn| {
                 self.check_sig(
-                    crate::types::SynSignatureRef::from(&item_fn.sig),
-                    crate::types::SourceTextRef::from(
+                    crate::syn_signature_ref::SynSignatureRef::from(&item_fn.sig),
+                    crate::source_text_ref::SourceTextRef::from(
                         format!("method `{}`", item_fn.sig.ident).as_str(),
                     ),
                 );
@@ -1331,7 +1393,9 @@ impl<'ast> syn::visit::Visit<'ast> for DomainTypePolicyVisitor<'_> {
             .filter_map(|item| match item {
                 syn::ImplItem::Fn(item_fn)
                     if !crate::code_style::attrs_contain_test_only_cfg(
-                        crate::types::SynAttributeListRef::from(item_fn.attrs.as_slice()),
+                        crate::syn_attribute_list_ref::SynAttributeListRef::from(
+                            item_fn.attrs.as_slice(),
+                        ),
                     )
                     .get() =>
                 {
@@ -1344,30 +1408,38 @@ impl<'ast> syn::visit::Visit<'ast> for DomainTypePolicyVisitor<'_> {
                 | _ => None,
             })
             .for_each(|item_fn| {
-                self.scan_block_for_closure_inputs(crate::types::SynBlockRef::from(&item_fn.block));
+                self.scan_block_for_closure_inputs(crate::syn_block_ref::SynBlockRef::from(
+                    &item_fn.block,
+                ));
             });
         self.pop_generics();
     }
     fn visit_item_struct(&mut self, item_struct: &'ast syn::ItemStruct) {
-        self.push_generics(crate::types::SynGenericsRef::from(&item_struct.generics));
+        self.push_generics(crate::syn_generics_ref::SynGenericsRef::from(
+            &item_struct.generics,
+        ));
         self.check_fields(
-            crate::types::SynFieldsRef::from(&item_struct.fields),
-            crate::types::SourceTextRef::from(
+            crate::syn_fields_ref::SynFieldsRef::from(&item_struct.fields),
+            crate::source_text_ref::SourceTextRef::from(
                 format!("struct `{}` field", item_struct.ident).as_str(),
             ),
-            crate::types::AnalyzerBool::from(true),
+            crate::analyzer_bool::AnalyzerBool::from(true),
         );
         self.pop_generics();
     }
     fn visit_item_trait(&mut self, item_trait: &'ast syn::ItemTrait) {
-        self.push_generics(crate::types::SynGenericsRef::from(&item_trait.generics));
+        self.push_generics(crate::syn_generics_ref::SynGenericsRef::from(
+            &item_trait.generics,
+        ));
         item_trait
             .items
             .iter()
             .filter_map(|item| match item {
                 syn::TraitItem::Fn(item_fn)
                     if !crate::code_style::attrs_contain_test_only_cfg(
-                        crate::types::SynAttributeListRef::from(item_fn.attrs.as_slice()),
+                        crate::syn_attribute_list_ref::SynAttributeListRef::from(
+                            item_fn.attrs.as_slice(),
+                        ),
                     )
                     .get() =>
                 {
@@ -1381,8 +1453,8 @@ impl<'ast> syn::visit::Visit<'ast> for DomainTypePolicyVisitor<'_> {
             })
             .for_each(|item_fn| {
                 self.check_sig(
-                    crate::types::SynSignatureRef::from(&item_fn.sig),
-                    crate::types::SourceTextRef::from(
+                    crate::syn_signature_ref::SynSignatureRef::from(&item_fn.sig),
+                    crate::source_text_ref::SourceTextRef::from(
                         format!("trait method `{}`", item_fn.sig.ident).as_str(),
                     ),
                 );
@@ -1391,11 +1463,14 @@ impl<'ast> syn::visit::Visit<'ast> for DomainTypePolicyVisitor<'_> {
     }
 }
 impl AnalyzerStateRawContainerFieldVisitor {
-    fn check_fields(&mut self, syn_item_struct_ref: crate::types::SynItemStructRef<'_>) {
+    fn check_fields(
+        &mut self,
+        syn_item_struct_ref: crate::syn_item_struct_ref::SynItemStructRef<'_>,
+    ) {
         let item_ref = syn_item_struct_ref.as_ref();
         item_ref.fields.iter().for_each(|field| {
             if let Some((raw_ty, wrapper_ty)) = crate::code_style::analyzer_state_raw_container_ty(
-                crate::types::SynTypeRef::from(&field.ty),
+                crate::syn_type_ref::SynTypeRef::from(&field.ty),
             ) {
                 let field_name = field
                     .ident
@@ -1415,27 +1490,29 @@ impl AnalyzerStateRawContainerFieldVisitor {
 impl<'ast> syn::visit::Visit<'ast> for AnalyzerStateRawContainerFieldVisitor {
     fn visit_item_struct(&mut self, item_struct: &'ast syn::ItemStruct) {
         if crate::code_style::item_struct_is_single_field_tuple_wrapper(
-            crate::types::SynItemStructRef::from(item_struct),
+            crate::syn_item_struct_ref::SynItemStructRef::from(item_struct),
         )
         .get()
         {
             return;
         }
-        self.check_fields(crate::types::SynItemStructRef::from(item_struct));
+        self.check_fields(crate::syn_item_struct_ref::SynItemStructRef::from(
+            item_struct,
+        ));
         syn::visit::visit_item_struct(self, item_struct);
     }
 }
 impl HelperRawTextReturnVisitor {
     fn check_sig(
         &mut self,
-        syn_signature_ref: crate::types::SynSignatureRef<'_>,
-        source_text_ref: crate::types::SourceTextRef<'_>,
+        syn_signature_ref: crate::syn_signature_ref::SynSignatureRef<'_>,
+        source_text_ref: crate::source_text_ref::SourceTextRef<'_>,
     ) {
         let syn::ReturnType::Type(_, ty) = &syn_signature_ref.as_ref().output else {
             return;
         };
         if let Some((raw_ty, wrapper_ty)) =
-            crate::code_style::raw_text_return_ty(crate::types::SynTypeRef::from(&**ty))
+            crate::code_style::raw_text_return_ty(crate::syn_type_ref::SynTypeRef::from(&**ty))
         {
             self.errors.push(format!(
                 "{} return type uses `{}`; use `{}`",
@@ -1448,13 +1525,18 @@ impl HelperRawTextReturnVisitor {
 }
 impl<'ast> syn::visit::Visit<'ast> for HelperRawTextReturnVisitor {
     fn visit_item_fn(&mut self, item_fn: &'ast syn::ItemFn) {
-        if crate::code_style::item_fn_is_proc_macro(crate::types::SynItemFnRef::from(item_fn)).get()
+        if crate::code_style::item_fn_is_proc_macro(crate::syn_item_fn_ref::SynItemFnRef::from(
+            item_fn,
+        ))
+        .get()
         {
             return;
         }
         self.check_sig(
-            crate::types::SynSignatureRef::from(&item_fn.sig),
-            crate::types::SourceTextRef::from(format!("function `{}`", item_fn.sig.ident).as_str()),
+            crate::syn_signature_ref::SynSignatureRef::from(&item_fn.sig),
+            crate::source_text_ref::SourceTextRef::from(
+                format!("function `{}`", item_fn.sig.ident).as_str(),
+            ),
         );
         syn::visit::visit_item_fn(self, item_fn);
     }
@@ -1468,7 +1550,7 @@ impl<'ast> syn::visit::Visit<'ast> for HelperRawTextReturnVisitor {
             .filter_map(|item| match item {
                 syn::ImplItem::Fn(item_fn)
                     if !crate::code_style::method_is_explicit_wrapper_accessor(
-                        crate::types::SynIdentifierRef::from(&item_fn.sig.ident),
+                        crate::syn_identifier_ref::SynIdentifierRef::from(&item_fn.sig.ident),
                     )
                     .get() =>
                 {
@@ -1482,8 +1564,8 @@ impl<'ast> syn::visit::Visit<'ast> for HelperRawTextReturnVisitor {
             })
             .for_each(|item_fn| {
                 self.check_sig(
-                    crate::types::SynSignatureRef::from(&item_fn.sig),
-                    crate::types::SourceTextRef::from(
+                    crate::syn_signature_ref::SynSignatureRef::from(&item_fn.sig),
+                    crate::source_text_ref::SourceTextRef::from(
                         format!("method `{}`", item_fn.sig.ident).as_str(),
                     ),
                 );
@@ -1493,8 +1575,9 @@ impl<'ast> syn::visit::Visit<'ast> for HelperRawTextReturnVisitor {
 impl<'ast> syn::visit::Visit<'ast> for RawTextLocalVisitor {
     fn visit_local(&mut self, local: &'ast syn::Local) {
         if let syn::Pat::Type(pat_ty) = &local.pat
-            && let Some((raw_ty, wrapper_ty)) =
-                crate::code_style::raw_text_return_ty(crate::types::SynTypeRef::from(&*pat_ty.ty))
+            && let Some((raw_ty, wrapper_ty)) = crate::code_style::raw_text_return_ty(
+                crate::syn_type_ref::SynTypeRef::from(&*pat_ty.ty),
+            )
             && raw_ty.get() != constants_str::STR
             && raw_ty.get() != constants_str::OPTION_STR
         {
@@ -1510,9 +1593,9 @@ impl<'ast> syn::visit::Visit<'ast> for RawTextLocalVisitor {
 }
 impl<'ast> syn::visit::Visit<'ast> for ExternalLeafWrapperNameVisitor<'_> {
     fn visit_item_struct(&mut self, item_struct: &'ast syn::ItemStruct) {
-        if crate::code_style::attrs_contain_test_only_cfg(crate::types::SynAttributeListRef::from(
-            item_struct.attrs.as_slice(),
-        ))
+        if crate::code_style::attrs_contain_test_only_cfg(
+            crate::syn_attribute_list_ref::SynAttributeListRef::from(item_struct.attrs.as_slice()),
+        )
         .get()
         {
             return;
@@ -1530,8 +1613,8 @@ impl<'ast> syn::visit::Visit<'ast> for ExternalLeafWrapperNameVisitor<'_> {
             return;
         };
         self.check_external_leaf_wrapper_name(
-            crate::types::SynItemStructRef::from(item_struct),
-            crate::types::SynTypeRef::from(&field.ty),
+            crate::syn_item_struct_ref::SynItemStructRef::from(item_struct),
+            crate::syn_type_ref::SynTypeRef::from(&field.ty),
         );
         syn::visit::visit_item_struct(self, item_struct);
     }
@@ -1543,8 +1626,8 @@ impl<'ast> syn::visit::Visit<'ast> for ExternalLeafWrapperNameVisitor<'_> {
 impl ExternalLeafWrapperNameVisitor<'_> {
     fn check_external_leaf_wrapper_name(
         &mut self,
-        syn_item_struct_ref: crate::types::SynItemStructRef<'_>,
-        syn_type_ref: crate::types::SynTypeRef<'_>,
+        syn_item_struct_ref: crate::syn_item_struct_ref::SynItemStructRef<'_>,
+        syn_type_ref: crate::syn_type_ref::SynTypeRef<'_>,
     ) {
         let Some(leaf_segment) = self.external_leaf_segment(syn_type_ref) else {
             return;
@@ -1586,7 +1669,7 @@ impl ExternalLeafWrapperNameVisitor<'_> {
                 (output, next_upper)
             },
         );
-        let expected_fragment = crate::types::SourceText::try_from(fragment_text)
+        let expected_fragment = crate::source_text::SourceText::try_from(fragment_text)
             .expect(constants_str::DIAGNOSTIC_9EA072C4);
         let identifier = item_ref.ident.to_string();
         if identifier.contains(expected_fragment.as_ref()) {
@@ -1602,22 +1685,23 @@ impl ExternalLeafWrapperNameVisitor<'_> {
     }
     fn external_root_segment<'ty_lt>(
         &self,
-        syn_type_ref: crate::types::SynTypeRef<'ty_lt>,
-    ) -> Option<crate::types::SynPathSegmentRef<'ty_lt>> {
+        syn_type_ref: crate::syn_type_ref::SynTypeRef<'ty_lt>,
+    ) -> Option<crate::syn_path_segment_ref::SynPathSegmentRef<'ty_lt>> {
         match syn_type_ref.get() {
             syn::Type::Array(ty_array) => {
-                self.external_root_segment(crate::types::SynTypeRef::from(&*ty_array.elem))
+                self.external_root_segment(crate::syn_type_ref::SynTypeRef::from(&*ty_array.elem))
             }
             syn::Type::Group(ty_group) => {
-                self.external_root_segment(crate::types::SynTypeRef::from(&*ty_group.elem))
+                self.external_root_segment(crate::syn_type_ref::SynTypeRef::from(&*ty_group.elem))
             }
             syn::Type::Paren(ty_paren) => {
-                self.external_root_segment(crate::types::SynTypeRef::from(&*ty_paren.elem))
+                self.external_root_segment(crate::syn_type_ref::SynTypeRef::from(&*ty_paren.elem))
             }
             syn::Type::Path(ty_path) => {
-                let ty_path_ref = crate::types::SynTypePathRef::from(ty_path).get();
+                let ty_path_ref = crate::syn_type_path_ref::SynTypePathRef::from(ty_path).get();
                 if let Some(qself) = &ty_path_ref.qself {
-                    return self.external_root_segment(crate::types::SynTypeRef::from(&*qself.ty));
+                    return self
+                        .external_root_segment(crate::syn_type_ref::SynTypeRef::from(&*qself.ty));
                 }
                 let first_segment = ty_path_ref.path.segments.first()?;
                 let parse_first_identifier = first_segment.ident.to_string();
@@ -1628,29 +1712,33 @@ impl ExternalLeafWrapperNameVisitor<'_> {
                 {
                     return ty_path_ref.path.segments.iter().find_map(|segment| {
                         self.external_root_segment_from_arguments(
-                            crate::types::SynPathArgumentsRef::from(&segment.arguments),
+                            crate::syn_path_arguments_ref::SynPathArgumentsRef::from(
+                                &segment.arguments,
+                            ),
                         )
                     });
                 }
                 if ty_path_ref.path.segments.len() > 1 {
-                    return Some(crate::types::SynPathSegmentRef::from(first_segment));
+                    return Some(crate::syn_path_segment_ref::SynPathSegmentRef::from(
+                        first_segment,
+                    ));
                 }
                 ty_path_ref.path.segments.iter().find_map(|segment| {
                     self.external_root_segment_from_arguments(
-                        crate::types::SynPathArgumentsRef::from(&segment.arguments),
+                        crate::syn_path_arguments_ref::SynPathArgumentsRef::from(
+                            &segment.arguments,
+                        ),
                     )
                 })
             }
-            syn::Type::Reference(ty_reference) => {
-                self.external_root_segment(crate::types::SynTypeRef::from(&*ty_reference.elem))
-            }
+            syn::Type::Reference(ty_reference) => self
+                .external_root_segment(crate::syn_type_ref::SynTypeRef::from(&*ty_reference.elem)),
             syn::Type::Slice(ty_slice) => {
-                self.external_root_segment(crate::types::SynTypeRef::from(&*ty_slice.elem))
+                self.external_root_segment(crate::syn_type_ref::SynTypeRef::from(&*ty_slice.elem))
             }
-            syn::Type::Tuple(ty_tuple) => ty_tuple
-                .elems
-                .iter()
-                .find_map(|elem| self.external_root_segment(crate::types::SynTypeRef::from(elem))),
+            syn::Type::Tuple(ty_tuple) => ty_tuple.elems.iter().find_map(|elem| {
+                self.external_root_segment(crate::syn_type_ref::SynTypeRef::from(elem))
+            }),
             syn::Type::FnPtr(_)
             | syn::Type::ImplTrait(_)
             | syn::Type::Infer(_)
@@ -1664,13 +1752,13 @@ impl ExternalLeafWrapperNameVisitor<'_> {
     }
     fn external_root_segment_from_arguments<'args_lt>(
         &self,
-        syn_path_arguments_ref: crate::types::SynPathArgumentsRef<'args_lt>,
-    ) -> Option<crate::types::SynPathSegmentRef<'args_lt>> {
+        syn_path_arguments_ref: crate::syn_path_arguments_ref::SynPathArgumentsRef<'args_lt>,
+    ) -> Option<crate::syn_path_segment_ref::SynPathSegmentRef<'args_lt>> {
         match syn_path_arguments_ref.get() {
             syn::PathArguments::AngleBracketed(args) => {
                 args.args.iter().find_map(|arg| match arg {
                     syn::GenericArgument::Type(ty) => {
-                        self.external_root_segment(crate::types::SynTypeRef::from(ty))
+                        self.external_root_segment(crate::syn_type_ref::SynTypeRef::from(ty))
                     }
                     syn::GenericArgument::AssocConst(_)
                     | syn::GenericArgument::AssocType(_)
@@ -1683,11 +1771,13 @@ impl ExternalLeafWrapperNameVisitor<'_> {
             syn::PathArguments::Parenthesized(args) => args
                 .inputs
                 .iter()
-                .find_map(|arg| self.external_root_segment(crate::types::SynTypeRef::from(&arg.ty)))
+                .find_map(|arg| {
+                    self.external_root_segment(crate::syn_type_ref::SynTypeRef::from(&arg.ty))
+                })
                 .or_else(|| match &args.output {
                     syn::ReturnType::Default => None,
                     syn::ReturnType::Type(_, ty) => {
-                        self.external_root_segment(crate::types::SynTypeRef::from(&**ty))
+                        self.external_root_segment(crate::syn_type_ref::SynTypeRef::from(&**ty))
                     }
                 }),
             syn::PathArguments::None => None,
@@ -1695,22 +1785,23 @@ impl ExternalLeafWrapperNameVisitor<'_> {
     }
     fn external_leaf_segment<'ty_lt>(
         &self,
-        syn_type_ref: crate::types::SynTypeRef<'ty_lt>,
-    ) -> Option<crate::types::SynPathSegmentRef<'ty_lt>> {
+        syn_type_ref: crate::syn_type_ref::SynTypeRef<'ty_lt>,
+    ) -> Option<crate::syn_path_segment_ref::SynPathSegmentRef<'ty_lt>> {
         match syn_type_ref.get() {
             syn::Type::Array(ty_array) => {
-                self.external_leaf_segment(crate::types::SynTypeRef::from(&*ty_array.elem))
+                self.external_leaf_segment(crate::syn_type_ref::SynTypeRef::from(&*ty_array.elem))
             }
             syn::Type::Group(ty_group) => {
-                self.external_leaf_segment(crate::types::SynTypeRef::from(&*ty_group.elem))
+                self.external_leaf_segment(crate::syn_type_ref::SynTypeRef::from(&*ty_group.elem))
             }
             syn::Type::Paren(ty_paren) => {
-                self.external_leaf_segment(crate::types::SynTypeRef::from(&*ty_paren.elem))
+                self.external_leaf_segment(crate::syn_type_ref::SynTypeRef::from(&*ty_paren.elem))
             }
             syn::Type::Path(ty_path) => {
-                let ty_path_ref = crate::types::SynTypePathRef::from(ty_path).get();
+                let ty_path_ref = crate::syn_type_path_ref::SynTypePathRef::from(ty_path).get();
                 if let Some(qself) = &ty_path_ref.qself {
-                    return self.external_leaf_segment(crate::types::SynTypeRef::from(&*qself.ty));
+                    return self
+                        .external_leaf_segment(crate::syn_type_ref::SynTypeRef::from(&*qself.ty));
                 }
                 let first_segment = ty_path_ref.path.segments.first()?;
                 let parse_first_identifier = first_segment.ident.to_string();
@@ -1721,7 +1812,9 @@ impl ExternalLeafWrapperNameVisitor<'_> {
                 {
                     return ty_path_ref.path.segments.iter().find_map(|segment| {
                         self.external_leaf_segment_from_arguments(
-                            crate::types::SynPathArgumentsRef::from(&segment.arguments),
+                            crate::syn_path_arguments_ref::SynPathArgumentsRef::from(
+                                &segment.arguments,
+                            ),
                         )
                     });
                 }
@@ -1730,24 +1823,24 @@ impl ExternalLeafWrapperNameVisitor<'_> {
                         .path
                         .segments
                         .last()
-                        .map(crate::types::SynPathSegmentRef::from);
+                        .map(crate::syn_path_segment_ref::SynPathSegmentRef::from);
                 }
                 ty_path_ref.path.segments.iter().find_map(|segment| {
                     self.external_leaf_segment_from_arguments(
-                        crate::types::SynPathArgumentsRef::from(&segment.arguments),
+                        crate::syn_path_arguments_ref::SynPathArgumentsRef::from(
+                            &segment.arguments,
+                        ),
                     )
                 })
             }
-            syn::Type::Reference(ty_reference) => {
-                self.external_leaf_segment(crate::types::SynTypeRef::from(&*ty_reference.elem))
-            }
+            syn::Type::Reference(ty_reference) => self
+                .external_leaf_segment(crate::syn_type_ref::SynTypeRef::from(&*ty_reference.elem)),
             syn::Type::Slice(ty_slice) => {
-                self.external_leaf_segment(crate::types::SynTypeRef::from(&*ty_slice.elem))
+                self.external_leaf_segment(crate::syn_type_ref::SynTypeRef::from(&*ty_slice.elem))
             }
-            syn::Type::Tuple(ty_tuple) => ty_tuple
-                .elems
-                .iter()
-                .find_map(|elem| self.external_leaf_segment(crate::types::SynTypeRef::from(elem))),
+            syn::Type::Tuple(ty_tuple) => ty_tuple.elems.iter().find_map(|elem| {
+                self.external_leaf_segment(crate::syn_type_ref::SynTypeRef::from(elem))
+            }),
             syn::Type::FnPtr(_)
             | syn::Type::ImplTrait(_)
             | syn::Type::Infer(_)
@@ -1761,13 +1854,13 @@ impl ExternalLeafWrapperNameVisitor<'_> {
     }
     fn external_leaf_segment_from_arguments<'args_lt>(
         &self,
-        syn_path_arguments_ref: crate::types::SynPathArgumentsRef<'args_lt>,
-    ) -> Option<crate::types::SynPathSegmentRef<'args_lt>> {
+        syn_path_arguments_ref: crate::syn_path_arguments_ref::SynPathArgumentsRef<'args_lt>,
+    ) -> Option<crate::syn_path_segment_ref::SynPathSegmentRef<'args_lt>> {
         match syn_path_arguments_ref.get() {
             syn::PathArguments::AngleBracketed(args) => {
                 args.args.iter().find_map(|arg| match arg {
                     syn::GenericArgument::Type(ty) => {
-                        self.external_leaf_segment(crate::types::SynTypeRef::from(ty))
+                        self.external_leaf_segment(crate::syn_type_ref::SynTypeRef::from(ty))
                     }
                     syn::GenericArgument::AssocConst(_)
                     | syn::GenericArgument::AssocType(_)
@@ -1780,11 +1873,13 @@ impl ExternalLeafWrapperNameVisitor<'_> {
             syn::PathArguments::Parenthesized(args) => args
                 .inputs
                 .iter()
-                .find_map(|arg| self.external_leaf_segment(crate::types::SynTypeRef::from(&arg.ty)))
+                .find_map(|arg| {
+                    self.external_leaf_segment(crate::syn_type_ref::SynTypeRef::from(&arg.ty))
+                })
                 .or_else(|| match &args.output {
                     syn::ReturnType::Default => None,
                     syn::ReturnType::Type(_, ty) => {
-                        self.external_leaf_segment(crate::types::SynTypeRef::from(&**ty))
+                        self.external_leaf_segment(crate::syn_type_ref::SynTypeRef::from(&**ty))
                     }
                 }),
             syn::PathArguments::None => None,

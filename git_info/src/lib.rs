@@ -26,7 +26,7 @@ pub mod project_git_commit_link_ref_value;
 pub mod project_git_info;
 pub mod project_git_info_value;
 #[cfg(test)]
-pub mod test_tests;
+pub mod test_git_info;
 mod validate_git_info_string_len;
 pub mod validate_project_commit;
 pub mod validate_project_commit_error;

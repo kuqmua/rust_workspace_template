@@ -66,6 +66,10 @@ pub(super) fn page_render_with_table_access(
             </crate::admin_sidebar::AdminSidebar>
         }
     };
+    let mut page_content = String::from(crate::render_view::render_view(leptos::view! {
+        <crate::admin_alert::AdminAlert admin_alert_variant=crate::admin_alert_variant::AdminAlertVariant::Success option="saved">{constants_str::ADMIN_UI_CHANGES_SAVED}</crate::admin_alert::AdminAlert>
+    }));
+    page_content.push_str(String::from(admin_ssr_html).as_str());
     crate::render_document::render_document(
         &crate::admin_ssr_text::AdminSsrText::try_from(document_title)
             .unwrap_or_else(crate::admin_ssr_text::AdminSsrText::from),
@@ -74,7 +78,7 @@ pub(super) fn page_render_with_table_access(
                 <header class="topbar">
                     {navigation}
                 </header>
-                <main class="main-content"><div class="page-frame"><crate::admin_alert::AdminAlert admin_alert_variant=crate::admin_alert_variant::AdminAlertVariant::Success option="saved">{constants_str::ADMIN_UI_CHANGES_SAVED}</crate::admin_alert::AdminAlert><div inner_html=String::from(admin_ssr_html)></div></div></main>
+                <main class="main-content"><div class="page-frame" inner_html=page_content></div></main>
             </div>
         },
     )

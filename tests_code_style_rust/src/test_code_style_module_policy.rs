@@ -1,8 +1,8 @@
 const INLINE_TEST_SEPARATION_MIN_LINES: usize = 1_024usize;
 
-fn identifier_snake_case(ident: &syn::Ident) -> crate::types::SourceText {
+fn identifier_snake_case(ident: &syn::Ident) -> crate::source_text::SourceText {
     let characters = ident.to_string().chars().collect::<Vec<_>>();
-    crate::types::SourceText::try_from(characters.iter().enumerate().fold(
+    crate::source_text::SourceText::try_from(characters.iter().enumerate().fold(
         String::new(),
         |mut output, (index, character)| {
             let uppercase = character.is_ascii_uppercase();
@@ -36,14 +36,14 @@ fn test_custom_type_names_are_unique_across_workspace() {
             .rs_files()
             .iter()
             .filter(|source_file| {
-                !crate::code_style::is_test_source_path(crate::types::PathRef::from(
+                !crate::code_style::is_test_source_path(crate::path_ref::PathRef::from(
                     source_file.path().as_ref(),
                 ))
                 .get()
             })
             .for_each(|source_file| {
                 let visitor = crate::code_style::visit_syn_file(
-                    crate::types::SynFileRef::from(source_file.ast().as_ref()),
+                    crate::syn_file_ref::SynFileRef::from(source_file.ast().as_ref()),
                     super::source_analysis::CustomTypeNameVisitor::default(),
                 );
                 visitor.get_names().clone().into_iter().for_each(|name| {
@@ -78,7 +78,7 @@ fn test_custom_type_name_visitor_covers_all_rust_type_declarations() {
     let ast = syn::parse_file(constants_str::CODE_STYLE_TYPE_DECLARATIONS_FIXTURE)
         .expect(constants_str::DIAGNOSTIC_A9EA85B6);
     let visitor = crate::code_style::visit_syn_file(
-        crate::types::SynFileRef::from(&ast),
+        crate::syn_file_ref::SynFileRef::from(&ast),
         super::source_analysis::CustomTypeNameVisitor::default(),
     );
     assert_eq!(
@@ -105,7 +105,7 @@ fn test_free_function_name_visitor_excludes_methods() {
     let ast = syn::parse_file(constants_str::CODE_STYLE_FREE_FUNCTION_DECLARATIONS_FIXTURE)
         .expect(constants_str::DIAGNOSTIC_31495514);
     let visitor = crate::code_style::visit_syn_file(
-        crate::types::SynFileRef::from(&ast),
+        crate::syn_file_ref::SynFileRef::from(&ast),
         super::source_analysis::FreeFnNameVisitor::default(),
     );
     assert_eq!(
@@ -142,7 +142,7 @@ fn test_free_function_names_are_unique_across_workspace() {
                 return;
             }
             let visitor = crate::code_style::visit_syn_file(
-                crate::types::SynFileRef::from(source_file.ast().as_ref()),
+                crate::syn_file_ref::SynFileRef::from(source_file.ast().as_ref()),
                 super::source_analysis::FreeFnNameVisitor::default(),
             );
             visitor
@@ -770,7 +770,7 @@ fn test_production_named_modules_contain_production_items() {
             .rs_files()
             .iter()
             .filter(|file| {
-                !crate::code_style::is_test_crate_source_path(crate::types::PathRef::from(
+                !crate::code_style::is_test_crate_source_path(crate::path_ref::PathRef::from(
                     file.path().as_ref(),
                 ))
                 .get()
@@ -791,8 +791,10 @@ fn test_production_named_modules_contain_production_items() {
             .filter(|file| !file.ast().as_ref().items.is_empty())
             .filter(|file| {
                 file.ast().as_ref().items.iter().all(|item| {
-                    crate::code_style::has_test_only_cfg_attr(crate::types::SynItemRef::from(item))
-                        .get()
+                    crate::code_style::has_test_only_cfg_attr(
+                        crate::syn_item_ref::SynItemRef::from(item),
+                    )
+                    .get()
                 })
             })
             .map(|file| file.path().as_ref().display().to_string())
@@ -896,7 +898,7 @@ fn test_production_modules_contain_at_most_one_named_owner() {
     });
 }
 fn is_test_source(path: &std::path::Path) -> bool {
-    crate::code_style::is_test_source_path(crate::types::PathRef::from(path)).get()
+    crate::code_style::is_test_source_path(crate::path_ref::PathRef::from(path)).get()
         || path.file_stem().is_some_and(|file_stem| {
             file_stem
                 .to_string_lossy()
@@ -926,7 +928,7 @@ fn test_large_production_modules_keep_tests_in_separate_files() {
                         && module.content.is_some()
                         && module.attrs.iter().any(|attribute| {
                             crate::code_style::attr_is_test_only_cfg(
-                                crate::types::SynAttributeRef::from(attribute),
+                                crate::syn_attribute_ref::SynAttributeRef::from(attribute),
                             )
                             .get()
                         })
@@ -1081,4 +1083,34 @@ fn test_workspace_test_runner_domain_types_exclude_application_and_adapter_workf
             );
         });
     });
+}
+#[test]
+fn test_source_path_classification_accepts_canonical_test_prefix() {
+    assert!(
+        [
+            constants_str::CODE_STYLE_CANONICAL_TEST_MODULE_PATH,
+            constants_str::VALUE_6C37CAB1,
+        ]
+        .into_iter()
+        .all(|path| {
+            crate::code_style::is_test_source_path(crate::path_ref::PathRef::from(
+                std::path::Path::new(path),
+            ))
+            .get()
+        })
+    );
+    assert!(
+        !crate::code_style::is_test_source_path(crate::path_ref::PathRef::from(
+            std::path::Path::new(constants_str::VALUE_568F0475),
+        ))
+        .get()
+    );
+    let production_helper =
+        std::path::Path::new(constants_str::TEXT_ALT_9).join(constants_str::VALUE_3E2D4173);
+    assert!(
+        !crate::code_style::is_test_source_path(crate::path_ref::PathRef::from(
+            production_helper.as_path(),
+        ))
+        .get()
+    );
 }

@@ -24,14 +24,4 @@ mod tests {
             .is_empty()
         );
     }
-    #[test]
-    fn test_ansi_is_removed_from_machine_summary() {
-        assert_eq!(
-            crate::strip_ansi::strip_ansi(crate::text_ref::TextRef::from(
-                constants_str::VALUE_EC39432A
-            ))
-            .as_ref(),
-            constants_str::VALUE_4E9A9107
-        );
-    }
 }

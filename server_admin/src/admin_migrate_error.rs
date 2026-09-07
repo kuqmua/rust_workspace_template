@@ -2,9 +2,9 @@
 pub enum AdminMigrateError {
     #[error("{message}: {0}", message = constants_str::ADMIN_IDEMPOTENCY_PREPARATION_FAILED)]
     Idempotency(#[source] pg_table::sqlx_pg_table_idempotency_error::SqlxPgTableIdempotencyError),
-    #[error("failed to prepare administrator schema: migration failed: {0:?}")]
+    #[error("{message}: {0:?}", message = constants_str::ADMIN_DIAGNOSTIC_FAILED_TO_PREPARE_ADMINISTRATOR_SCHEMA_MIGRATION_FAILED)]
     Migration(crate::sqlx_admin_migrate_error::SqlxAdminMigrateError),
-    #[error("failed to prepare administrator schema: permission reconciliation failed: {0:?}")]
+    #[error("{message}: {0:?}", message = constants_str::ADMIN_DIAGNOSTIC_FAILED_TO_PREPARE_ADMINISTRATOR_SCHEMA_PERMISSION_RECONCILIATION_FAILED)]
     Reconciliation(crate::sqlx_admin_error::SqlxAdminError),
 }
 impl From<crate::sqlx_admin_migrate_error::SqlxAdminMigrateError> for AdminMigrateError {

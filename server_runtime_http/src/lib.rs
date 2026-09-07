@@ -373,9 +373,9 @@ pub mod test_request_timeout_tests;
 #[cfg(test)]
 pub mod test_secure_cookie_tests;
 #[cfg(test)]
-pub mod test_service_tests;
+pub mod test_server_runtime_http;
 #[cfg(test)]
-pub mod test_tests;
+pub mod test_service_tests;
 #[cfg(test)]
 pub mod test_tests_domain_types_request_id;
 #[cfg(test)]

@@ -7,7 +7,13 @@
     proc_macro_newtype_as_ref_str::AsRefStr,
     proc_macro_newtype_into_inner_from::IntoInnerFrom,
 )]
-pub struct AdminSsrHtml(String);
+pub struct AdminSsrHtml(
+    bounded_types::bounded_string::BoundedString<
+        { constants_usize::ZERO },
+        { constants_usize::VALUE_16_777_216 },
+        false,
+    >,
+);
 impl TryFrom<String> for AdminSsrHtml {
     type Error = crate::admin_ssr_html_try_from_string_error::AdminSsrHtmlTryFromStringError;
     fn try_from(value: String) -> Result<Self, Self::Error> {
@@ -16,7 +22,9 @@ impl TryFrom<String> for AdminSsrHtml {
                 crate::admin_ssr_html_try_from_string_error::AdminSsrHtmlTryFromStringError::TooLarge,
             );
         }
-        Ok(Self(value))
+        Ok(Self(
+            bounded_types::bounded_string::BoundedString::from_truncated(value),
+        ))
     }
 }
 impl From<crate::admin_ssr_html_try_from_string_error::AdminSsrHtmlTryFromStringError>
@@ -25,6 +33,6 @@ impl From<crate::admin_ssr_html_try_from_string_error::AdminSsrHtmlTryFromString
     fn from(
         value: crate::admin_ssr_html_try_from_string_error::AdminSsrHtmlTryFromStringError,
     ) -> Self {
-        Self(value.to_string())
+        Self(bounded_types::bounded_string::BoundedString::from_truncated(value.to_string()))
     }
 }

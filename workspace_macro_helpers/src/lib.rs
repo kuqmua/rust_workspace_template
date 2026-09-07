@@ -6,6 +6,7 @@ pub mod first_ident_max_len;
 pub mod first_identifier;
 pub mod first_identifier_at;
 pub mod first_identifierifier_try_from_string_error;
+pub mod generate_private_field_getters;
 pub mod parse_first_identifier;
 pub mod part_at;
 pub mod part_index;

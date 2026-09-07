@@ -9,6 +9,7 @@ fn test_csr_template_contains_mount_root() {
 #[test]
 fn test_server_rendered_pages_contain_forms_and_no_scripts() {
     let sign_in = crate::render_sign_in::render_sign_in(None, None);
+    assert!(!sign_in.as_ref().contains(constants_str::VALUE_A8036BFC));
     assert!(sign_in.as_ref().contains(constants_str::VALUE_675DDC50));
     assert!(!sign_in.as_ref().contains(constants_str::VALUE_DE15FB4A));
     assert!(!sign_in.as_ref().contains(constants_str::VALUE_A684F0EC));
@@ -31,6 +32,11 @@ fn test_server_rendered_pages_contain_forms_and_no_scripts() {
             .expect(constants_str::DIAGNOSTIC_31B0D69F),
         ),
         None,
+    );
+    assert!(
+        !failed_sign_in
+            .as_ref()
+            .contains(constants_str::VALUE_A8036BFC)
     );
     assert!(
         failed_sign_in

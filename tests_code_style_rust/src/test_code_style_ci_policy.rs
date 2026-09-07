@@ -1,4 +1,4 @@
-fn workflow() -> crate::types::SourceText {
+fn workflow() -> crate::source_text::SourceText {
     let source = std::fs::read_to_string(
         std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
             .parent()
@@ -6,12 +6,12 @@ fn workflow() -> crate::types::SourceText {
             .join(constants_str::CODE_STYLE_CI_WORKFLOW_PATH),
     )
     .expect(constants_str::DIAGNOSTIC_DA504E54);
-    active_workflow_source(crate::types::SourceTextRef::from(source.as_str()))
+    active_workflow_source(crate::source_text_ref::SourceTextRef::from(source.as_str()))
 }
 fn active_workflow_source(
-    source_text_ref: crate::types::SourceTextRef<'_>,
-) -> crate::types::SourceText {
-    crate::types::SourceText::try_from(
+    source_text_ref: crate::source_text_ref::SourceTextRef<'_>,
+) -> crate::source_text::SourceText {
+    crate::source_text::SourceText::try_from(
         source_text_ref
             .as_ref()
             .lines()
@@ -211,7 +211,7 @@ fn test_workflow_jobs_have_timeouts_and_marketplace_actions_use_commit_shas() {
 }
 #[test]
 fn test_workflow_policy_ignores_commented_commands_and_actions() {
-    let source = active_workflow_source(crate::types::SourceTextRef::from(
+    let source = active_workflow_source(crate::source_text_ref::SourceTextRef::from(
         constants_str::VALUE_0356E8E3,
     ));
     assert!(!source.as_ref().contains(constants_str::CARGO_MACHETE));

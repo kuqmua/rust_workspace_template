@@ -8,3 +8,9 @@
     proc_macro_getters::Getters,
 )]
 pub struct HttpAdminHeaderMapRef<'headers_lt>(&'headers_lt http::HeaderMap);
+
+impl<'headers_lt> HttpAdminHeaderMapRef<'headers_lt> {
+    pub(crate) const fn get(self) -> &'headers_lt http::HeaderMap {
+        self.get_inner()
+    }
+}

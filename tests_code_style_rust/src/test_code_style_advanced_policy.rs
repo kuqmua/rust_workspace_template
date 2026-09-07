@@ -9,7 +9,7 @@
     proc_macro_getters::Getters, proc_macro_optimal_memory_layout::OptimalMemoryLayout, Default,
 )]
 struct AwaitVisitor {
-    found: crate::types::AnalyzerBool,
+    found: crate::analyzer_bool::AnalyzerBool,
 }
 impl<'ast> syn::visit::Visit<'ast> for AwaitVisitor {
     fn visit_expr_await(&mut self, expr_await: &'ast syn::ExprAwait) {
@@ -22,7 +22,7 @@ impl<'ast> syn::visit::Visit<'ast> for AwaitVisitor {
     proc_macro_getters::Getters, proc_macro_optimal_memory_layout::OptimalMemoryLayout, Default,
 )]
 struct LockAcrossAwaitVisitor {
-    violations: crate::types::DiagnosticMessages,
+    violations: crate::diagnostic_messages::DiagnosticMessages,
 }
 impl<'ast> syn::visit::Visit<'ast> for LockAcrossAwaitVisitor {
     fn visit_block(&mut self, block: &'ast syn::Block) {
@@ -73,7 +73,7 @@ impl<'ast> syn::visit::Visit<'ast> for LockAcrossAwaitVisitor {
                 (argument.path.segments.len() == constants_usize::ONE)
                     .then(|| {
                         argument.path.segments.first().map(|segment| {
-                            crate::types::SourceText::try_from(segment.ident.to_string())
+                            crate::source_text::SourceText::try_from(segment.ident.to_string())
                                 .expect(constants_str::DIAGNOSTIC_D4F6BDCE)
                         })
                     })
@@ -115,7 +115,7 @@ fn expression_acquires_lock(expr: &syn::Expr) -> bool {
     proc_macro_getters::Getters, proc_macro_optimal_memory_layout::OptimalMemoryLayout, Default,
 )]
 struct LeakApiVisitor {
-    violations: crate::types::DiagnosticMessages,
+    violations: crate::diagnostic_messages::DiagnosticMessages,
 }
 impl<'ast> syn::visit::Visit<'ast> for LeakApiVisitor {
     fn visit_expr_call(&mut self, expr_call: &'ast syn::ExprCall) {
@@ -166,7 +166,7 @@ impl<'ast> syn::visit::Visit<'ast> for LeakApiVisitor {
     proc_macro_getters::Getters, proc_macro_optimal_memory_layout::OptimalMemoryLayout, Default,
 )]
 struct SpawnConsumptionVisitor {
-    consumed: crate::types::SourceTextBTreeSet,
+    consumed: crate::source_text_b_tree_set::SourceTextBTreeSet,
 }
 impl SpawnConsumptionVisitor {
     fn record_path(&mut self, expr: &syn::Expr) {
@@ -242,7 +242,7 @@ impl<'ast> syn::visit::Visit<'ast> for SpawnConsumptionVisitor {
     proc_macro_getters::Getters, proc_macro_optimal_memory_layout::OptimalMemoryLayout, Default,
 )]
 struct SpawnLifecycleVisitor {
-    violations: crate::types::DiagnosticMessages,
+    violations: crate::diagnostic_messages::DiagnosticMessages,
 }
 impl<'ast> syn::visit::Visit<'ast> for SpawnLifecycleVisitor {
     fn visit_block(&mut self, block: &'ast syn::Block) {
@@ -276,7 +276,7 @@ impl<'ast> syn::visit::Visit<'ast> for SpawnLifecycleVisitor {
     proc_macro_getters::Getters, proc_macro_optimal_memory_layout::OptimalMemoryLayout, Default,
 )]
 struct RouteLiteralVisitor {
-    violations: crate::types::DiagnosticMessages,
+    violations: crate::diagnostic_messages::DiagnosticMessages,
 }
 impl RouteLiteralVisitor {
     fn inspect_literal(&mut self, lit_str: &syn::LitStr) {
@@ -355,8 +355,8 @@ impl<'ast> syn::visit::Visit<'ast> for RouteLiteralVisitor {
     proc_macro_getters::Getters, proc_macro_optimal_memory_layout::OptimalMemoryLayout, Default,
 )]
 struct SelectMacroVisitor {
-    count: crate::types::AnalyzerCount,
-    unsafe_operations: crate::types::DiagnosticMessages,
+    count: crate::analyzer_count::AnalyzerCount,
+    unsafe_operations: crate::diagnostic_messages::DiagnosticMessages,
 }
 impl SelectMacroVisitor {
     fn inspect_sensitive_tokens(&mut self, token_stream: proc_macro2::TokenStream) {
@@ -404,14 +404,16 @@ impl<'ast> syn::visit::Visit<'ast> for SelectMacroVisitor {
     proc_macro_getters::Getters, proc_macro_optimal_memory_layout::OptimalMemoryLayout, Default,
 )]
 struct ExpressionPathVisitor {
-    paths: crate::types::SourceTextList,
+    paths: crate::source_text_list::SourceTextList,
 }
 impl<'ast> syn::visit::Visit<'ast> for ExpressionPathVisitor {
     fn visit_expr_path(&mut self, expr_path: &'ast syn::ExprPath) {
         self.paths.push(
-            crate::code_style::path_to_string(crate::types::SynPathRef::from(&expr_path.path))
-                .as_ref()
-                .to_owned(),
+            crate::code_style::path_to_string(crate::syn_path_ref::SynPathRef::from(
+                &expr_path.path,
+            ))
+            .as_ref()
+            .to_owned(),
         );
         syn::visit::visit_expr_path(self, expr_path);
     }
@@ -421,7 +423,7 @@ impl<'ast> syn::visit::Visit<'ast> for ExpressionPathVisitor {
     proc_macro_getters::Getters, proc_macro_optimal_memory_layout::OptimalMemoryLayout, Default,
 )]
 struct IgnoredMapErrBindingVisitor {
-    entries: crate::types::DiagnosticMessages,
+    entries: crate::diagnostic_messages::DiagnosticMessages,
 }
 impl<'ast> syn::visit::Visit<'ast> for IgnoredMapErrBindingVisitor {
     fn visit_expr_method_call(&mut self, expr_method_call: &'ast syn::ExprMethodCall) {
@@ -461,14 +463,14 @@ impl<'ast> syn::visit::Visit<'ast> for IgnoredMapErrBindingVisitor {
     proc_macro_getters::Getters, proc_macro_optimal_memory_layout::OptimalMemoryLayout, Default,
 )]
 struct RawVecTupleWrapperVisitor {
-    identifiers: crate::types::SourceTextList,
+    identifiers: crate::source_text_list::SourceTextList,
 }
 
 #[derive(
     proc_macro_getters::Getters, proc_macro_optimal_memory_layout::OptimalMemoryLayout, Default,
 )]
 struct FromVecImplVisitor {
-    targets: crate::types::SourceTextList,
+    targets: crate::source_text_list::SourceTextList,
 }
 impl<'ast> syn::visit::Visit<'ast> for FromVecImplVisitor {
     fn visit_item_impl(&mut self, item_impl: &'ast syn::ItemImpl) {
@@ -514,7 +516,7 @@ impl<'ast> syn::visit::Visit<'ast> for RawVecTupleWrapperVisitor {
     proc_macro_getters::Getters, proc_macro_optimal_memory_layout::OptimalMemoryLayout, Default,
 )]
 struct UsizeMaxExprVisitor {
-    count: crate::types::AnalyzerCount,
+    count: crate::analyzer_count::AnalyzerCount,
 }
 impl<'ast> syn::visit::Visit<'ast> for UsizeMaxExprVisitor {
     fn visit_expr_path(&mut self, expr_path: &'ast syn::ExprPath) {
@@ -533,9 +535,9 @@ impl<'ast> syn::visit::Visit<'ast> for UsizeMaxExprVisitor {
     }
 
     fn visit_item_mod(&mut self, item_mod: &'ast syn::ItemMod) {
-        if crate::code_style::attrs_contain_test_only_cfg(crate::types::SynAttributeListRef::from(
-            item_mod.attrs.as_slice(),
-        ))
+        if crate::code_style::attrs_contain_test_only_cfg(
+            crate::syn_attribute_list_ref::SynAttributeListRef::from(item_mod.attrs.as_slice()),
+        )
         .get()
         {
             return;
@@ -548,9 +550,9 @@ impl<'ast> syn::visit::Visit<'ast> for UsizeMaxExprVisitor {
     proc_macro_getters::Getters, proc_macro_optimal_memory_layout::OptimalMemoryLayout, Default,
 )]
 struct SharedDispatchVisitor {
-    arc_types: crate::types::AnalyzerCount,
-    lock_types: crate::types::AnalyzerCount,
-    trait_objects: crate::types::AnalyzerCount,
+    arc_types: crate::analyzer_count::AnalyzerCount,
+    lock_types: crate::analyzer_count::AnalyzerCount,
+    trait_objects: crate::analyzer_count::AnalyzerCount,
 }
 impl<'ast> syn::visit::Visit<'ast> for SharedDispatchVisitor {
     fn visit_type_path(&mut self, type_path: &'ast syn::TypePath) {
@@ -573,11 +575,11 @@ impl<'ast> syn::visit::Visit<'ast> for SharedDispatchVisitor {
 
 #[derive(proc_macro_getters::Getters, proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
 struct PublicApiVisitor {
-    entries: crate::types::SourceTextList,
-    lines: crate::types::SourceTextList,
+    entries: crate::source_text_list::SourceTextList,
+    lines: crate::source_text_list::SourceTextList,
 }
 impl PublicApiVisitor {
-    fn source(&self, span: proc_macro2::Span) -> crate::types::SourceText {
+    fn source(&self, span: proc_macro2::Span) -> crate::source_text::SourceText {
         let start = span.start().line.saturating_sub(constants_usize::ONE);
         let end = span.end().line;
         let normalized = self
@@ -588,9 +590,10 @@ impl PublicApiVisitor {
             .split_whitespace()
             .collect::<Vec<_>>()
             .join(constants_str::SPACE);
-        crate::types::SourceText::try_from(normalized).expect(constants_str::DIAGNOSTIC_31F04BB7)
+        crate::source_text::SourceText::try_from(normalized)
+            .expect(constants_str::DIAGNOSTIC_31F04BB7)
     }
-    fn field_type(&self, field: &syn::Field) -> crate::types::SourceText {
+    fn field_type(&self, field: &syn::Field) -> crate::source_text::SourceText {
         let source = self.source(syn::spanned::Spanned::span(field));
         let separator = [':', ' '].into_iter().collect::<String>();
         let field_type = source
@@ -598,7 +601,8 @@ impl PublicApiVisitor {
             .rsplit_once(separator.as_str())
             .map(|(_field, field_type)| field_type.trim().trim_end_matches(',').to_owned())
             .expect(constants_str::DIAGNOSTIC_5AF91E82);
-        crate::types::SourceText::try_from(field_type).expect(constants_str::DIAGNOSTIC_3E2D89EF)
+        crate::source_text::SourceText::try_from(field_type)
+            .expect(constants_str::DIAGNOSTIC_3E2D89EF)
     }
     fn record(&mut self, span: proc_macro2::Span, bool: bool) {
         let start = span.start().line.saturating_sub(constants_usize::ONE);
@@ -762,8 +766,8 @@ impl<'ast> syn::visit::Visit<'ast> for PublicApiVisitor {
             self.record(syn::spanned::Spanned::span(item_enum), false);
             if item_enum.attrs.iter().any(|attribute| {
                 crate::code_style::derive_attr_has_terminal(
-                    crate::types::SynAttributeRef::from(attribute),
-                    crate::types::SourceTextRef::from(constants_str::VALUE_4529EB51),
+                    crate::syn_attribute_ref::SynAttributeRef::from(attribute),
+                    crate::source_text_ref::SourceTextRef::from(constants_str::VALUE_4529EB51),
                 )
                 .get()
             }) {
@@ -808,14 +812,14 @@ impl<'ast> syn::visit::Visit<'ast> for PublicApiVisitor {
     proc_macro_getters::Getters, proc_macro_optimal_memory_layout::OptimalMemoryLayout, Default,
 )]
 struct StructErrorVisitor {
-    identifiers: crate::types::SourceTextList,
+    identifiers: crate::source_text_list::SourceTextList,
 }
 impl<'ast> syn::visit::Visit<'ast> for StructErrorVisitor {
     fn visit_item_struct(&mut self, item_struct: &'ast syn::ItemStruct) {
         if item_struct.attrs.iter().any(|attribute| {
             crate::code_style::derive_attr_has_terminal(
-                crate::types::SynAttributeRef::from(attribute),
-                crate::types::SourceTextRef::from(constants_str::ERROR),
+                crate::syn_attribute_ref::SynAttributeRef::from(attribute),
+                crate::source_text_ref::SourceTextRef::from(constants_str::ERROR),
             )
             .get()
         }) {
@@ -829,11 +833,11 @@ impl<'ast> syn::visit::Visit<'ast> for StructErrorVisitor {
     proc_macro_getters::Getters, proc_macro_optimal_memory_layout::OptimalMemoryLayout, Default,
 )]
 struct LoopAllocationVisitor {
-    depth: crate::types::AnalyzerCount,
-    entries: crate::types::DiagnosticMessages,
+    depth: crate::analyzer_count::AnalyzerCount,
+    entries: crate::diagnostic_messages::DiagnosticMessages,
 }
 impl LoopAllocationVisitor {
-    fn record(&mut self, source_text_ref: crate::types::SourceTextRef<'_>) {
+    fn record(&mut self, source_text_ref: crate::source_text_ref::SourceTextRef<'_>) {
         if self.depth.get() != constants_usize::ZERO {
             self.entries.push(source_text_ref.as_ref().to_owned());
         }
@@ -842,8 +846,9 @@ impl LoopAllocationVisitor {
 impl<'ast> syn::visit::Visit<'ast> for LoopAllocationVisitor {
     fn visit_expr_call(&mut self, expr_call: &'ast syn::ExprCall) {
         if let syn::Expr::Path(function) = expr_call.func.as_ref() {
-            let path =
-                crate::code_style::path_to_string(crate::types::SynPathRef::from(&function.path));
+            let path = crate::code_style::path_to_string(crate::syn_path_ref::SynPathRef::from(
+                &function.path,
+            ));
             if [
                 constants_str::VALUE_EDB966EE,
                 constants_str::VALUE_13D4D62E,
@@ -860,7 +865,7 @@ impl<'ast> syn::visit::Visit<'ast> for LoopAllocationVisitor {
             ]
             .contains(&path.as_ref())
             {
-                self.record(crate::types::SourceTextRef::from(path.as_ref()));
+                self.record(crate::source_text_ref::SourceTextRef::from(path.as_ref()));
             }
         }
         syn::visit::visit_expr_call(self, expr_call);
@@ -878,7 +883,7 @@ impl<'ast> syn::visit::Visit<'ast> for LoopAllocationVisitor {
                 | constants_str::VALUE_E132B7C0
                 | constants_str::VALUE_C5E9F49A
         ) {
-            self.record(crate::types::SourceTextRef::from(
+            self.record(crate::source_text_ref::SourceTextRef::from(
                 expr_method_call.method.to_string().as_str(),
             ));
         }
@@ -897,7 +902,9 @@ impl<'ast> syn::visit::Visit<'ast> for LoopAllocationVisitor {
             )
         {
             let operation = segment.ident.to_string();
-            self.record(crate::types::SourceTextRef::from(operation.as_str()));
+            self.record(crate::source_text_ref::SourceTextRef::from(
+                operation.as_str(),
+            ));
         }
         syn::visit::visit_macro(self, r#macro);
     }
@@ -911,7 +918,7 @@ fn test_lock_guards_are_not_held_across_await() {
             .iter()
             .flat_map(|source_file| {
                 let visitor = crate::code_style::visit_syn_file(
-                    crate::types::SynFileRef::from(source_file.ast().as_ref()),
+                    crate::syn_file_ref::SynFileRef::from(source_file.ast().as_ref()),
                     LockAcrossAwaitVisitor::default(),
                 );
                 visitor
@@ -956,14 +963,14 @@ fn test_allocations_inside_loops_match_reviewed_inventory() {
             .rs_files()
             .iter()
             .filter(|source_file| {
-                !crate::code_style::is_test_source_path(crate::types::PathRef::from(
+                !crate::code_style::is_test_source_path(crate::path_ref::PathRef::from(
                     std::borrow::Borrow::<std::path::Path>::borrow(source_file.path()),
                 ))
                 .get()
             })
             .flat_map(|source_file| {
                 let visitor = crate::code_style::visit_syn_file(
-                    crate::types::SynFileRef::from(source_file.ast().as_ref()),
+                    crate::syn_file_ref::SynFileRef::from(source_file.ast().as_ref()),
                     LoopAllocationVisitor::default(),
                 );
                 let path = source_file.path().as_ref().display().to_string();
@@ -1004,7 +1011,7 @@ fn test_struct_error_exceptions_match_reviewed_snapshot() {
             .iter()
             .flat_map(|source_file| {
                 let visitor = crate::code_style::visit_syn_file(
-                    crate::types::SynFileRef::from(source_file.ast().as_ref()),
+                    crate::syn_file_ref::SynFileRef::from(source_file.ast().as_ref()),
                     StructErrorVisitor::default(),
                 );
                 let path = source_file.path().as_ref().display().to_string();
@@ -1059,10 +1066,10 @@ fn test_contract_public_api_matches_reviewed_snapshot() {
                 })
                 .flat_map(|source_file| {
                     let visitor = crate::code_style::visit_syn_file(
-                        crate::types::SynFileRef::from(source_file.ast().as_ref()),
+                        crate::syn_file_ref::SynFileRef::from(source_file.ast().as_ref()),
                         PublicApiVisitor {
-                            entries: crate::types::SourceTextList::default(),
-                            lines: crate::types::SourceTextList::from(
+                            entries: crate::source_text_list::SourceTextList::default(),
+                            lines: crate::source_text_list::SourceTextList::from(
                                 source_file
                                     .content()
                                     .as_ref()
@@ -1303,14 +1310,14 @@ fn test_arc_lock_and_trait_object_usage_matches_reviewed_inventory() {
             .rs_files()
             .iter()
             .filter(|source_file| {
-                !crate::code_style::is_test_source_path(crate::types::PathRef::from(
+                !crate::code_style::is_test_source_path(crate::path_ref::PathRef::from(
                     std::borrow::Borrow::<std::path::Path>::borrow(source_file.path()),
                 ))
                 .get()
             })
             .for_each(|source_file| {
                 let visitor = crate::code_style::visit_syn_file(
-                    crate::types::SynFileRef::from(source_file.ast().as_ref()),
+                    crate::syn_file_ref::SynFileRef::from(source_file.ast().as_ref()),
                     SharedDispatchVisitor::default(),
                 );
                 let observed = (
@@ -1425,10 +1432,6 @@ fn test_ignored_map_err_bindings_match_reviewed_inventory() {
             (9usize, constants_str::CODE_STYLE_MAP_ERR_OWNER_REASON),
         ),
         (
-            constants_str::CODE_STYLE_WORKSPACE_TEST_RUNNER_OWNER,
-            (2usize, constants_str::CODE_STYLE_MAP_ERR_OWNER_REASON),
-        ),
-        (
             constants_str::VALUE_AC7A6F68,
             (2usize, constants_str::VALUE_3995FF01),
         ),
@@ -1469,10 +1472,6 @@ fn test_ignored_map_err_bindings_match_reviewed_inventory() {
             (constants_usize::ONE, constants_str::VALUE_099B4392),
         ),
         (
-            constants_str::VALUE_3930BC5E,
-            (constants_usize::ONE, constants_str::VALUE_7B6389D8),
-        ),
-        (
             constants_str::VALUE_E24F0FD4,
             (constants_usize::ONE, constants_str::VALUE_01371493),
         ),
@@ -1506,7 +1505,7 @@ fn test_ignored_map_err_bindings_match_reviewed_inventory() {
         let mut violations = Vec::new();
         snapshot.rs_files().iter().for_each(|source_file| {
             let visitor = crate::code_style::visit_syn_file(
-                crate::types::SynFileRef::from(source_file.ast().as_ref()),
+                crate::syn_file_ref::SynFileRef::from(source_file.ast().as_ref()),
                 IgnoredMapErrBindingVisitor::default(),
             );
             if visitor.entries.is_empty() {
@@ -1597,14 +1596,14 @@ fn test_raw_vec_tuple_wrappers_match_reviewed_inventory() {
             .rs_files()
             .iter()
             .filter(|source_file| {
-                !crate::code_style::is_test_source_path(crate::types::PathRef::from(
+                !crate::code_style::is_test_source_path(crate::path_ref::PathRef::from(
                     std::borrow::Borrow::<std::path::Path>::borrow(source_file.path()),
                 ))
                 .get()
             })
             .flat_map(|source_file| {
                 let visitor = crate::code_style::visit_syn_file(
-                    crate::types::SynFileRef::from(source_file.ast().as_ref()),
+                    crate::syn_file_ref::SynFileRef::from(source_file.ast().as_ref()),
                     RawVecTupleWrapperVisitor::default(),
                 );
                 let path = source_file.path().as_ref().display().to_string();
@@ -1634,7 +1633,7 @@ fn test_from_vec_implementations_are_forbidden() {
             .iter()
             .flat_map(|source_file| {
                 let visitor = crate::code_style::visit_syn_file(
-                    crate::types::SynFileRef::from(source_file.ast().as_ref()),
+                    crate::syn_file_ref::SynFileRef::from(source_file.ast().as_ref()),
                     FromVecImplVisitor::default(),
                 );
                 let path = source_file.path().as_ref().display().to_string();
@@ -1660,7 +1659,7 @@ fn test_raw_vec_tuple_wrapper_visitor_detects_qualified_and_nested_types() {
         }
     };
     let visitor = crate::code_style::visit_syn_file(
-        crate::types::SynFileRef::from(&file),
+        crate::syn_file_ref::SynFileRef::from(&file),
         RawVecTupleWrapperVisitor::default(),
     );
     assert_eq!(visitor.get_identifiers().len(), 2usize);
@@ -1825,14 +1824,14 @@ fn test_usize_max_usage_matches_reviewed_inventory() {
             .rs_files()
             .iter()
             .filter(|source_file| {
-                !crate::code_style::is_test_source_path(crate::types::PathRef::from(
+                !crate::code_style::is_test_source_path(crate::path_ref::PathRef::from(
                     std::borrow::Borrow::<std::path::Path>::borrow(source_file.path()),
                 ))
                 .get()
             })
             .for_each(|source_file| {
                 let visitor = crate::code_style::visit_syn_file(
-                    crate::types::SynFileRef::from(source_file.ast().as_ref()),
+                    crate::syn_file_ref::SynFileRef::from(source_file.ast().as_ref()),
                     UsizeMaxExprVisitor::default(),
                 );
                 let count = visitor.count.get();
@@ -1877,7 +1876,7 @@ fn test_usize_max_expression_visitor_skips_test_modules() {
         }
     };
     let visitor = crate::code_style::visit_syn_file(
-        crate::types::SynFileRef::from(&file),
+        crate::syn_file_ref::SynFileRef::from(&file),
         UsizeMaxExprVisitor::default(),
     );
     assert_eq!(visitor.count.get(), constants_usize::ONE);
@@ -1909,7 +1908,7 @@ fn test_select_sites_match_reviewed_cancellation_inventory() {
             .iter()
             .flat_map(|source_file| {
                 let visitor = crate::code_style::visit_syn_file(
-                    crate::types::SynFileRef::from(source_file.ast().as_ref()),
+                    crate::syn_file_ref::SynFileRef::from(source_file.ast().as_ref()),
                     SelectMacroVisitor::default(),
                 );
                 if visitor.count.get() != constants_usize::ZERO {
@@ -1977,7 +1976,7 @@ fn test_select_policy_rejects_cancellation_sensitive_operations() {
     let ast =
         syn::parse_file(constants_str::VALUE_F6958372).expect(constants_str::DIAGNOSTIC_714C620F);
     let visitor = crate::code_style::visit_syn_file(
-        crate::types::SynFileRef::from(&ast),
+        crate::syn_file_ref::SynFileRef::from(&ast),
         SelectMacroVisitor::default(),
     );
     assert_eq!(visitor.unsafe_operations.len(), 2usize, "c4267f0a");
@@ -2060,11 +2059,11 @@ fn test_lock_across_await_policy_requires_explicit_drop() {
     let valid =
         syn::parse_file(constants_str::VALUE_D481790B).expect(constants_str::DIAGNOSTIC_A62F1CE9);
     let invalid_visitor = crate::code_style::visit_syn_file(
-        crate::types::SynFileRef::from(&invalid),
+        crate::syn_file_ref::SynFileRef::from(&invalid),
         LockAcrossAwaitVisitor::default(),
     );
     let valid_visitor = crate::code_style::visit_syn_file(
-        crate::types::SynFileRef::from(&valid),
+        crate::syn_file_ref::SynFileRef::from(&valid),
         LockAcrossAwaitVisitor::default(),
     );
     assert_eq!(
@@ -2089,7 +2088,7 @@ fn test_production_code_does_not_use_explicit_leak_apis() {
             })
             .flat_map(|source_file| {
                 let visitor = crate::code_style::visit_syn_file(
-                    crate::types::SynFileRef::from(source_file.ast().as_ref()),
+                    crate::syn_file_ref::SynFileRef::from(source_file.ast().as_ref()),
                     LeakApiVisitor::default(),
                 );
                 visitor
@@ -2113,7 +2112,7 @@ fn test_retained_spawn_tasks_are_supervised() {
             .iter()
             .flat_map(|source_file| {
                 let visitor = crate::code_style::visit_syn_file(
-                    crate::types::SynFileRef::from(source_file.ast().as_ref()),
+                    crate::syn_file_ref::SynFileRef::from(source_file.ast().as_ref()),
                     SpawnLifecycleVisitor::default(),
                 );
                 visitor
@@ -2134,7 +2133,7 @@ fn test_spawn_lifecycle_policy_rejects_unconsumed_tasks() {
     let ast =
         syn::parse_file(constants_str::VALUE_9F18A090).expect(constants_str::DIAGNOSTIC_834138AF);
     let visitor = crate::code_style::visit_syn_file(
-        crate::types::SynFileRef::from(&ast),
+        crate::syn_file_ref::SynFileRef::from(&ast),
         SpawnLifecycleVisitor::default(),
     );
     assert_eq!(
@@ -2152,7 +2151,7 @@ fn test_route_path_segments_use_snake_case() {
             .iter()
             .flat_map(|source_file| {
                 let visitor = crate::code_style::visit_syn_file(
-                    crate::types::SynFileRef::from(source_file.ast().as_ref()),
+                    crate::syn_file_ref::SynFileRef::from(source_file.ast().as_ref()),
                     RouteLiteralVisitor::default(),
                 );
                 visitor
@@ -2173,7 +2172,7 @@ fn test_route_path_policy_rejects_kebab_case() {
     let ast =
         syn::parse_file(constants_str::VALUE_72E2834F).expect(constants_str::DIAGNOSTIC_9AA037DC);
     let visitor = crate::code_style::visit_syn_file(
-        crate::types::SynFileRef::from(&ast),
+        crate::syn_file_ref::SynFileRef::from(&ast),
         RouteLiteralVisitor::default(),
     );
     assert_eq!(
@@ -2188,7 +2187,7 @@ fn test_route_path_policy_rejects_api_prefix() {
     let ast =
         syn::parse_file(constants_str::VALUE_D7270E5B).expect(constants_str::DIAGNOSTIC_3EAA623D);
     let visitor = crate::code_style::visit_syn_file(
-        crate::types::SynFileRef::from(&ast),
+        crate::syn_file_ref::SynFileRef::from(&ast),
         RouteLiteralVisitor::default(),
     );
     assert_eq!(

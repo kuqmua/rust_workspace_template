@@ -27,14 +27,14 @@ pub fn render_sign_in(
             .unwrap_or_else(crate::admin_ssr_text::AdminSsrText::from),
         leptos::view! {
             <main class="auth-layout" style=primary_color>
-                <crate::admin_card::AdminCard admin_card_variant=crate::admin_card_variant::AdminCardVariant::Auth>
+                <section class="auth-card">
                     {error.map(|message| leptos::view! { <crate::admin_alert::AdminAlert>{message.to_string()}</crate::admin_alert::AdminAlert> })}
                     <form method="post" action=server_admin_contract::admin_html_action::AdminHtmlAction::SignIn.get()>
                         <crate::admin_field::AdminField admin_field_label=constants_str::ADMIN_UI_LOGIN><crate::admin_input::AdminInput admin_input_name="login" autocomplete="username" required=true /></crate::admin_field::AdminField>
                         <crate::admin_field::AdminField admin_field_label=constants_str::ADMIN_UI_PASSWORD><crate::admin_input::AdminInput admin_input_name="password" admin_input_kind=crate::admin_input_kind::AdminInputKind::Password autocomplete="current-password" required=true /></crate::admin_field::AdminField>
                         <crate::admin_button::AdminButton>{constants_str::SIGN_IN}</crate::admin_button::AdminButton>
                     </form>
-                </crate::admin_card::AdminCard>
+                </section>
             </main>
         },
     )

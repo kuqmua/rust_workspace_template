@@ -1,8 +1,8 @@
 #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
 pub enum AdminAccessTokenError {
-    #[error("administrator access token has invalid bounds: {0}")]
+    #[error("{message}: {0}", message = constants_str::ADMIN_DIAGNOSTIC_ADMINISTRATOR_ACCESS_TOKEN_HAS_INVALID_BOUNDS)]
     Bounds(crate::std_admin_access_token::StdAdminAccessTokenTryFromStringError),
-    #[error("administrator access token operation failed: {0:?}")]
+    #[error("{message}: {0:?}", message = constants_str::ADMIN_DIAGNOSTIC_ADMINISTRATOR_ACCESS_TOKEN_OPERATION_FAILED)]
     Token(crate::jsonwebtoken_admin_error::JsonwebtokenAdminError),
 }
 impl From<crate::std_admin_access_token::StdAdminAccessTokenTryFromStringError>

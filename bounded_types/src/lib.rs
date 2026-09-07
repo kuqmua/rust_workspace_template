@@ -20,4 +20,4 @@ pub mod serde_prealloc_max_items;
 pub mod validate_len;
 
 #[cfg(test)]
-pub mod test_tests;
+pub mod test_bounded_types;

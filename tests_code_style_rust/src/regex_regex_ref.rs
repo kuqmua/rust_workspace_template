@@ -1,0 +1,10 @@
+#[derive(
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+    Debug,
+    Clone,
+    Copy,
+    proc_macro_newtype_as_ref_inner::AsRefInner,
+    proc_macro_newtype_deref_target::DerefTarget,
+    proc_macro_newtype_from_inner::FromInner,
+)]
+pub(super) struct RegexRegexRef<'regex_lt>(&'regex_lt regex::Regex);

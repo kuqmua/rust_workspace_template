@@ -1,71 +1,71 @@
 #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
 pub(crate) enum AdminError {
-    #[error("administrator authentication failed")]
+    #[error("{message}", message = constants_str::ADMIN_DIAGNOSTIC_ADMINISTRATOR_AUTHENTICATION_FAILED)]
     Authentication,
-    #[error("administrator authentication secret text is invalid")]
+    #[error("{message}", message = constants_str::ADMIN_DIAGNOSTIC_ADMINISTRATOR_AUTHENTICATION_SECRET_TEXT_IS_INVALID)]
     AuthenticationSecretText(
         #[source]
         server_observability::observed_error::ObservedError<
             crate::admin_secret_text_error::AdminSecretTextError,
         >,
     ),
-    #[error("administrator authorization failed")]
+    #[error("{message}", message = constants_str::ADMIN_DIAGNOSTIC_ADMINISTRATOR_AUTHORIZATION_FAILED)]
     Authorization,
-    #[error("administrator operation conflicts with current state")]
+    #[error("{message}", message = constants_str::ADMIN_DIAGNOSTIC_ADMINISTRATOR_OPERATION_CONFLICTS_WITH_CURRENT_STATE)]
     Conflict,
-    #[error("administrator request failed CSRF validation")]
+    #[error("{message}", message = constants_str::ADMIN_DIAGNOSTIC_ADMINISTRATOR_REQUEST_FAILED_CSRF_VALIDATION)]
     Csrf,
-    #[error("administrator CSRF secret text is invalid")]
+    #[error("{message}", message = constants_str::ADMIN_DIAGNOSTIC_ADMINISTRATOR_CSRF_SECRET_TEXT_IS_INVALID)]
     CsrfSecretText(
         #[source]
         server_observability::observed_error::ObservedError<
             crate::admin_secret_text_error::AdminSecretTextError,
         >,
     ),
-    #[error("administrator authentication is temporarily rate limited")]
+    #[error("{message}", message = constants_str::ADMIN_DIAGNOSTIC_ADMINISTRATOR_AUTHENTICATION_IS_TEMPORARILY_RATE_LIMITED)]
     RateLimited,
-    #[error("administrator request validation failed")]
+    #[error("{message}", message = constants_str::ADMIN_DIAGNOSTIC_ADMINISTRATOR_REQUEST_VALIDATION_FAILED)]
     Validation,
-    #[error("administrator API database operation failed: {0:?}")]
+    #[error("{message}: {0:?}", message = constants_str::ADMIN_DIAGNOSTIC_ADMINISTRATOR_API_DATABASE_OPERATION_FAILED)]
     Pg(
         #[source]
         server_observability::observed_error::ObservedError<
             crate::sqlx_admin_error::SqlxAdminError,
         >,
     ),
-    #[error("administrator password hashing failed: {0}")]
+    #[error("{message}: {0}", message = constants_str::ADMIN_DIAGNOSTIC_ADMINISTRATOR_PASSWORD_HASHING_FAILED)]
     PasswordHash(
         #[source]
         server_observability::observed_error::ObservedError<
             crate::admin_password_hash_error::AdminPasswordHashError,
         >,
     ),
-    #[error("administrator password text is invalid")]
+    #[error("{message}", message = constants_str::ADMIN_DIAGNOSTIC_ADMINISTRATOR_PASSWORD_TEXT_IS_INVALID)]
     PasswordText(
         #[source]
         server_observability::observed_error::ObservedError<
             crate::admin_password_try_from_string_error::AdminPasswordTryFromStringError,
         >,
     ),
-    #[error("administrator request body is too large")]
+    #[error("{message}", message = constants_str::ADMIN_DIAGNOSTIC_ADMINISTRATOR_REQUEST_BODY_IS_TOO_LARGE)]
     PayloadTooLarge,
-    #[error("administrator secret text is invalid")]
+    #[error("{message}", message = constants_str::ADMIN_DIAGNOSTIC_ADMINISTRATOR_SECRET_TEXT_IS_INVALID)]
     SecretText(
         #[source]
         server_observability::observed_error::ObservedError<
             crate::admin_secret_text_error::AdminSecretTextError,
         >,
     ),
-    #[error("administrator route does not support this HTTP method")]
+    #[error("{message}", message = constants_str::ADMIN_DIAGNOSTIC_ADMINISTRATOR_ROUTE_DOES_NOT_SUPPORT_THIS_HTTP_METHOD)]
     MethodNotAllowed,
-    #[error("administrator session operation failed: {0}")]
+    #[error("{message}: {0}", message = constants_str::ADMIN_DIAGNOSTIC_ADMINISTRATOR_SESSION_OPERATION_FAILED)]
     Session(
         #[source]
         server_observability::observed_error::ObservedError<
             crate::admin_session_error::AdminSessionError,
         >,
     ),
-    #[error("administrator response header is invalid: {0:?}")]
+    #[error("{message}: {0:?}", message = constants_str::ADMIN_DIAGNOSTIC_ADMINISTRATOR_RESPONSE_HEADER_IS_INVALID)]
     Header(
         #[source]
         server_observability::observed_error::ObservedError<

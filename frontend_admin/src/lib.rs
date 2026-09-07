@@ -231,3 +231,6 @@ pub mod with_owner;
 
 const _: fn(&str) -> Result<(), bounded_types::bounded_string_error::BoundedStringError> =
     bounded_types::bounded_string::BoundedString::<0, 0>::validate_str;
+
+#[cfg(test)]
+mod test_admin_ssr_html;

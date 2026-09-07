@@ -45,13 +45,9 @@
   --danger-soft: #fff1f2;
   --success: #177245;
   --success-soft: #eaf8f0;
-  --radius-sm: 0;
-  --radius: 0;
-  --radius-lg: 0;
   --shadow-sm: 0 1px 2px rgb(20 29 48 / 4%);
   --shadow: 0 12px 32px rgb(20 29 48 / 7%);
   --header-font-size: 12px;
-  --header-font-weight: 650;
   --header-height: 37px;
 }
 
@@ -87,11 +83,11 @@ textarea {
 
 button {
   -webkit-tap-highlight-color: transparent;
-}
-
-button {
   border: 0;
   cursor: pointer;
+  font-size: 13px;
+  line-height: 1.2;
+  transition: background 140ms ease, border-color 140ms ease, color 140ms ease, transform 140ms ease;
 }
 
 button:disabled {
@@ -105,7 +101,6 @@ textarea {
   width: 100%;
   min-height: 42px;
   border: 1px solid var(--border-strong);
-  border-radius: var(--radius-sm);
   outline: none;
   background: var(--surface);
   color: var(--text);
@@ -131,14 +126,6 @@ select:focus,
 textarea:focus {
   border-color: var(--accent);
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 14%, transparent);
-}
-
-button {
-  border-radius: var(--radius-sm);
-  font-size: 13px;
-  font-weight: 700;
-  line-height: 1.2;
-  transition: background 140ms ease, border-color 140ms ease, color 140ms ease, transform 140ms ease;
 }
 
 button:active {
@@ -179,7 +166,6 @@ p {
   height: 34px;
   border: 3px solid var(--accent-soft);
   border-top-color: var(--accent);
-  border-radius: 50%;
   animation: loading-spinner-rotation 700ms linear infinite;
 }
 
@@ -258,7 +244,6 @@ p {
 }
 
 .topbar nav::-webkit-scrollbar-thumb {
-  border-radius: 999px;
   background: var(--border-strong);
 }
 
@@ -276,11 +261,9 @@ p {
   justify-content: flex-start;
   gap: 6px;
   border: 0;
-  border-radius: var(--radius-sm);
   background: transparent;
   color: var(--text-secondary);
   font-size: var(--header-font-size);
-  font-weight: var(--header-font-weight);
   line-height: inherit;
   padding: 0 10px;
   white-space: nowrap;
@@ -411,7 +394,6 @@ p {
   gap: 6px;
   color: var(--text-secondary);
   font-size: 12px;
-  font-weight: 650;
 }
 
 .ui-input,
@@ -430,10 +412,8 @@ p {
   min-height: 22px;
   align-items: center;
   border: 1px solid var(--border);
-  border-radius: 999px;
   padding: 2px 8px;
   font-size: 11px;
-  font-weight: 700;
   line-height: 1;
   white-space: nowrap;
 }
@@ -486,6 +466,15 @@ p {
 }
 
 @layer utilities {
+  .user-create-form [data-name="Label"] {
+    width: 100% !important;
+  }
+
+  .user-create-form [data-name="Label"] > span {
+    width: 100%;
+    text-align: center;
+  }
+
   .open-api-page .code-card,
   .open-api-page [data-name="CardContent"],
   body:has(a[href="/admin/metrics"][aria-current="page"]) main :is([data-name="Card"], [data-name="CardContent"]) {
@@ -520,6 +509,7 @@ p {
   .audit-download-actions button,
   .audit-download-actions > a,
   .user-create-page > .crud-heading > a,
+  .user-create-form .crud-actions > button,
   .auth-card form button {
     width: 100% !important;
   }
@@ -569,7 +559,6 @@ p {
   margin: 0 0 6px;
   color: var(--accent-hover);
   font-size: 11px;
-  font-weight: 800;
   letter-spacing: 0.08em;
   text-transform: none;
 }
@@ -590,6 +579,15 @@ p {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 16px;
   padding: 4px 0;
+}
+
+.user-create-page .crud-form {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.user-create-form {
+  display: grid;
+  gap: 0;
 }
 
 .crud-form > .ui-field:last-of-type:nth-of-type(3) {
@@ -628,12 +626,10 @@ p {
 }
 
 .crud-record-heading span {
-  border-radius: 999px;
   background: var(--surface-subtle);
   color: var(--muted);
   padding: 4px 9px;
   font-size: 11px;
-  font-weight: 700;
 }
 
 .crud-delete {
@@ -660,7 +656,6 @@ p {
   overflow: auto;
   overscroll-behavior: contain;
   border: 1px solid var(--border);
-  border-radius: 0;
   background: var(--surface);
   box-shadow: var(--shadow-sm);
 }
@@ -669,7 +664,6 @@ p {
   max-width: none;
   margin: 0 0 22px;
   border: 1px solid #b8e0c9;
-  border-radius: 0;
   background: var(--success-soft);
   color: var(--success);
   padding: 11px 14px;
@@ -682,12 +676,8 @@ p {
 
 .security-card {
   border: 1px solid var(--border);
-  border-radius: var(--radius);
   background: var(--surface);
   box-shadow: var(--shadow-sm);
-}
-
-.security-card {
   display: grid;
   width: 100%;
   max-width: 820px;
@@ -723,7 +713,6 @@ p {
   max-width: none;
   margin: 0;
   border: 1px solid var(--border);
-  border-radius: var(--radius);
   background: var(--surface);
   box-shadow: var(--shadow-sm);
   padding: 24px;
@@ -757,7 +746,6 @@ p {
 .profile-card dt {
   color: var(--muted);
   font-size: 12px;
-  font-weight: 650;
 }
 
 .profile-card dd {
@@ -773,7 +761,6 @@ p {
 .mutation-form form label {
   color: var(--text-secondary);
   font-size: 12px;
-  font-weight: 650;
 }
 
 .security-card label > span,
@@ -808,13 +795,6 @@ td form button:hover {
   background: var(--accent-hover);
 }
 
-.settings-form {
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  background: var(--surface);
-  box-shadow: var(--shadow-sm);
-}
-
 .table-column-heading {
   display: flex;
   align-items: center;
@@ -834,7 +814,6 @@ td form button:hover {
   margin: 0 auto;
   padding: clamp(20px, 4vw, 48px);
   border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
   background: var(--surface);
   box-shadow: var(--shadow);
   font-size: var(--header-font-size);
@@ -879,7 +858,6 @@ td form button:hover {
 .table-filter-form span {
   color: var(--text-secondary);
   font-size: 12px;
-  font-weight: 650;
 }
 
 .table-filter-form .table-filter-input-label {
@@ -896,7 +874,6 @@ td form button:hover {
   display: grid;
   gap: 10px;
   border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
   padding: 12px;
 }
 
@@ -950,11 +927,9 @@ td form button:hover {
   min-height: 42px;
   place-items: center;
   border: 1px solid var(--border-strong);
-  border-radius: var(--radius-sm);
   background: var(--surface-muted);
   color: var(--text);
   font-size: var(--header-font-size);
-  font-weight: 700;
 }
 
 .table-scroll table {
@@ -1048,15 +1023,14 @@ td form button:hover {
 
 .table-cell-dialog > pre {
   min-height: 0;
-  margin: 0;
   padding: 16px;
-  overflow: auto;
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
   user-select: text;
 }
 
 .settings-form {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
   display: grid;
   width: 100%;
   max-width: none;
@@ -1095,7 +1069,6 @@ td form button:hover {
   width: 100%;
   margin: 0 0 16px;
   border: 1px solid var(--border);
-  border-radius: 0;
   background: var(--surface);
   box-shadow: var(--shadow-sm);
   padding: 16px;
@@ -1149,7 +1122,6 @@ table {
   width: 100%;
   border: 0;
   border-collapse: separate;
-  border-radius: 0;
   border-spacing: 0;
   background: var(--surface);
   box-shadow: none;
@@ -1163,9 +1135,7 @@ th {
   height: var(--header-height);
   background: var(--surface-subtle);
   color: var(--muted);
-  font-family: inherit;
   font-size: var(--header-font-size);
-  font-weight: var(--header-font-weight);
   letter-spacing: normal;
   padding: 0 11px;
   text-align: left;
@@ -1223,7 +1193,6 @@ td > form button {
 .field-error {
   margin: 0;
   border: 1px solid #f0c5ca;
-  border-radius: 0;
   background: var(--danger-soft);
   color: var(--danger);
   padding: 10px 12px;
@@ -1239,7 +1208,6 @@ td > form button {
   justify-content: flex-end;
   gap: 12px;
   border: 1px solid var(--border);
-  border-radius: 0;
   background: rgb(255 255 255 / 94%);
   backdrop-filter: blur(16px);
   padding: 0;
@@ -1294,15 +1262,13 @@ td > form button {
 }
 
 .table-pagination button {
-  height: 36px;
-  min-height: 36px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   border: 1px solid var(--border);
   background: var(--surface);
   color: var(--text-secondary);
-  padding: 8px 11px;
+  padding-inline: 11px;
 }
 
 .table-pagination button:hover:not(:disabled) {
@@ -1348,7 +1314,6 @@ td > form button {
 .code-card {
   max-width: 100%;
   border: 1px solid var(--border);
-  border-radius: 0;
   background: var(--surface);
   box-shadow: var(--shadow-sm);
   color: var(--text);
@@ -1367,10 +1332,9 @@ pre {
 .auth-layout {
   display: grid;
   min-height: 100vh;
+  min-height: 100dvh;
   place-items: center;
-  background:
-    radial-gradient(circle at 50% 0%, color-mix(in srgb, var(--accent) 9%, transparent), transparent 35%),
-    var(--background);
+  background: var(--surface);
   padding: 32px 20px;
 }
 
@@ -1378,10 +1342,9 @@ pre {
   display: grid;
   width: min(100%, 400px);
   gap: 24px;
-  border: 1px solid var(--border);
-  border-radius: 0;
-  background: var(--surface);
-  box-shadow: 0 20px 55px rgb(20 29 48 / 9%);
+  border: 0;
+  background: transparent;
+  box-shadow: none;
   padding: 34px;
 }
 
@@ -1402,7 +1365,6 @@ pre {
 .auth-card form label {
   color: var(--text-secondary);
   font-size: 12px;
-  font-weight: 650;
 }
 
 .auth-card form label span {
@@ -1429,7 +1391,6 @@ pre {
   margin: 18px 0;
   border: 1px solid var(--border);
   border-left: 4px solid var(--preview-primary, var(--accent));
-  border-radius: 0;
   background: var(--surface);
   padding: 16px;
 }
@@ -1460,10 +1421,6 @@ pre {
     grid-template-columns: minmax(0, 1fr);
   }
 
-  .profile-grid {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
   .mutation-form:is(form) {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -1485,24 +1442,17 @@ pre {
   }
 
   .app-shell {
-    grid-template-columns: minmax(0, 1fr);
     grid-template-rows: var(--header-height) minmax(0, 1fr);
   }
 
   .topbar {
-    inset: 0 0 auto;
-    width: 100%;
     min-height: 0;
     height: var(--header-height);
-    display: block;
     border-right: 0;
-    border-bottom: 1px solid var(--border);
-    padding: 0;
   }
 
   .nav-menu {
     position: relative;
-    display: block;
     width: 100%;
     height: 100%;
   }
@@ -1516,7 +1466,6 @@ pre {
     color: var(--text-secondary);
     cursor: pointer;
     font-size: var(--header-font-size);
-    font-weight: var(--header-font-weight);
     list-style: none;
   }
 
@@ -1545,20 +1494,13 @@ pre {
     top: 100%;
     left: 0;
     display: none !important;
-    width: 100%;
-    height: auto;
     max-height: calc(100dvh - var(--header-height));
-    flex-direction: row;
     flex-wrap: wrap;
     align-content: start;
-    align-items: stretch;
     gap: 4px;
-    overflow-x: hidden;
-    overflow-y: auto;
     border-bottom: 1px solid var(--border);
     background: var(--surface);
     box-shadow: var(--shadow);
-    padding: 0;
     scroll-padding: 10px;
   }
 
@@ -1566,16 +1508,7 @@ pre {
     display: flex !important;
   }
 
-  .nav-menu-list {
-    width: 100%;
-    min-height: 0;
-    flex-direction: row;
-    flex-wrap: wrap;
-    gap: 4px;
-  }
-
   .nav-menu-list > li {
-    width: auto;
     flex: 1 1 140px;
   }
 
@@ -1586,17 +1519,8 @@ pre {
 
   .topbar nav a,
   .topbar nav li > form button {
-    width: auto;
     min-height: 36px;
     flex: 1 1 140px;
-    padding: 0 10px;
-    white-space: nowrap;
-  }
-
-  .topbar nav li > form {
-    width: 100%;
-    margin: 0;
-    padding: 0;
   }
 
   .topbar nav li > form button {
@@ -1648,11 +1572,7 @@ pre {
   }
 
   table {
-    display: block;
-    border: 0;
-    border-radius: 0;
     background: transparent;
-    box-shadow: none;
     overflow: visible;
   }
 
@@ -1670,7 +1590,6 @@ pre {
     height: auto;
     overflow: hidden;
     border: 1px solid var(--border);
-    border-radius: 0;
     background: var(--surface);
     box-shadow: var(--shadow-sm);
   }
@@ -1695,7 +1614,6 @@ pre {
     content: attr(data-label);
     color: var(--muted);
     font-size: 10px;
-    font-weight: 800;
     letter-spacing: 0.065em;
     text-transform: none;
   }
@@ -1709,9 +1627,7 @@ pre {
   }
 
   .profile-grid {
-    grid-template-columns: minmax(0, 1fr);
     gap: 12px;
-    padding: 0;
   }
 
   .profile-card,
@@ -1720,7 +1636,6 @@ pre {
   }
 
   .auth-layout {
-    place-items: start center;
     padding: 40px 16px;
   }
 

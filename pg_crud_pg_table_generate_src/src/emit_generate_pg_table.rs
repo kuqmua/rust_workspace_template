@@ -1749,8 +1749,8 @@ pub fn emit_generate_pg_table(
             );
             Some(quote::quote! {
                 frontend_contract::field_contract::FieldContract::new(
-                    frontend_contract::contract_str::ContractStr::from(#field_name_double_quoted_token_stream),
-                    frontend_contract::contract_str::ContractStr::from(#label_double_quoted_token_stream),
+                    frontend_contract::field_name::FieldName::from(frontend_contract::contract_str::ContractStr::from(#field_name_double_quoted_token_stream)),
+                    frontend_contract::field_label::FieldLabel::from(frontend_contract::contract_str::ContractStr::from(#label_double_quoted_token_stream)),
                     <#field_type as frontend_contract::has_type_contract::HasTypeContract>::type_contract(),
                 )
                 .with_primary_key(#primary_key_token_stream)

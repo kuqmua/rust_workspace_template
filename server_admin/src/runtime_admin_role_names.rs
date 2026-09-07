@@ -17,3 +17,14 @@ pub(crate) struct RuntimeAdminRoleNames(
         { crate::admin_auth_collection_max_len::ADMIN_AUTH_COLLECTION_MAX_LEN },
     >,
 );
+
+impl TryFrom<Vec<server_admin_contract::admin_role_name::AdminRoleName>> for RuntimeAdminRoleNames {
+    type Error = crate::admin_auth_collection_error::AdminAuthCollectionError;
+    fn try_from(
+        value: Vec<server_admin_contract::admin_role_name::AdminRoleName>,
+    ) -> Result<Self, Self::Error> {
+        bounded_types::bounded_vec::BoundedVec::try_from(value)
+            .map(Self::from)
+            .map_err(crate::admin_auth_collection_error::AdminAuthCollectionError::from)
+    }
+}

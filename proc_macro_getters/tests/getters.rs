@@ -28,12 +28,28 @@ mod tests {
     #[derive(
         proc_macro_getters::Getters, proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     )]
-    #[getters(bare)]
+    #[getters(bare, legacy_refs)]
     struct BareFields {
         #[getters(copy)]
         count: u64,
         #[getters(skip)]
         text: String,
+    }
+
+    #[derive(
+        proc_macro_getters::Getters, proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+    )]
+    #[getters(bare, legacy_refs)]
+    struct LegacyReferenceField {
+        text: String,
+    }
+
+    #[derive(
+        proc_macro_getters::Getters, proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+    )]
+    #[getters(bare, legacy_refs)]
+    struct LegacyOptionalField {
+        optional: Option<u16>,
     }
 
     impl BareFields {
@@ -60,9 +76,33 @@ mod tests {
     }
 
     #[test]
+    fn test_bare_and_legacy_accessors_borrow_the_same_fields() {
+        let legacy_reference_field = LegacyReferenceField {
+            text: String::from(constants_str::A_ALT),
+        };
+        assert!(std::ptr::eq(
+            legacy_reference_field.text(),
+            legacy_reference_field.get_text()
+        ));
+        assert!(std::ptr::eq(
+            legacy_reference_field.text(),
+            legacy_reference_field.get_ref_text()
+        ));
+        let legacy_optional_field = LegacyOptionalField { optional: Some(3) };
+        assert_eq!(legacy_optional_field.optional(), Some(&3));
+        assert_eq!(legacy_optional_field.get_optional(), Some(&3));
+        let absent = LegacyOptionalField { optional: None };
+        assert_eq!(absent.optional(), None);
+        assert_eq!(absent.get_optional(), None);
+    }
+
+    #[test]
     fn test_generates_named_optional_mutable_and_snake_case_getters() {
         let _proc_macro2_marker: Option<proc_macro2::TokenStream> = None;
-        let _quote_marker = quote::quote!();
+        let _shared_macro_tokens =
+            workspace_macro_helpers::proc_macro2_macro_tokens::ProcMacro2MacroTokens::from(
+                quote::quote!(),
+            );
         let _syn_marker: Option<syn::DeriveInput> = None;
         let mut named = NamedFields {
             optional: Some(3),
@@ -89,6 +129,8 @@ mod tests {
             text: String::from(constants_str::A_ALT),
         };
         assert_eq!(*bare.get_ref_count(), 34);
+        assert_eq!(bare.count(), 34);
+        assert_eq!(*bare.get_count(), 34);
         assert_eq!(bare.get_value_count(), 34);
         assert_eq!(bare.text_len(), constants_usize::ONE);
     }

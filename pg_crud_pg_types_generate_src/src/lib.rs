@@ -45,7 +45,7 @@ pub mod rust_type_wire_kind;
 pub mod schema_wire_kind;
 pub mod serde_json_generate_pg_types_error;
 #[cfg(test)]
-pub mod test_tests;
+pub mod test_pg_crud_pg_types_generate_src;
 pub mod validate_generate_pg_types;
 pub mod validated_generate_pg_types_config;
 pub mod wire_kind;

@@ -3,13 +3,10 @@ pub(super) fn measure_memusage_command(
     program_path_ref: crate::program_path_ref::ProgramPathRef<'_>,
     program_args_ref: crate::program_args_ref::ProgramArgsRef<'_>,
     memusage_prog_name_ref: crate::memusage_prog_name_ref::MemusageProgNameRef<'_>,
-) -> Result<(), ()> {
+) -> Result<(), crate::memusage_measurement_error::MemusageMeasurementError> {
     let measurement_name_value = measurement_name.get();
     if !std::path::Path::new(constants_str::WORKSPACE_TEST_RUNNER_MEMUSAGE_PATH).exists() {
-        println!(
-            "measurement={measurement_name_value}_allocations status=unavailable reason=libmemusage_not_found path={}",
-            constants_str::WORKSPACE_TEST_RUNNER_MEMUSAGE_PATH
-        );
+        macro_helpers::tool_console_stream::ToolConsoleStream::StandardOutput.write(macro_helpers::std_fmt_arguments::StdFmtArguments::from(format_args!("{}{}", format_args!("{}{}{}{}", constants_str::RUNNER_MEASUREMENT_PREFIX, measurement_name_value, constants_str::RUNNER_OUTPUT_ALLOCATIONS_STATUS_UNAVAILABLE_REASON_LIBMEMUSAGE_NOT_FOUND_PATH, constants_str::WORKSPACE_TEST_RUNNER_MEMUSAGE_PATH), constants_str::NEWLINE))).map_err(|tool_console_write_error| crate::memusage_measurement_error::MemusageMeasurementError::WriteUnavailable {measurement_name, tool_console_write_error,})?;
         return Ok(());
     }
     let command_output = macro_helpers::tool_command::ToolCommand::new(
@@ -34,15 +31,25 @@ pub(super) fn measure_memusage_command(
             {
                 let stdout = String::from_utf8_lossy(output.stdout.as_slice());
                 if !stdout.is_empty() {
-                    print!("{stdout}");
+                    macro_helpers::tool_console_stream::ToolConsoleStream::StandardOutput.write(macro_helpers::std_fmt_arguments::StdFmtArguments::from(format_args!("{stdout}"))).map_err(|tool_console_write_error| crate::memusage_measurement_error::MemusageMeasurementError::WriteOutput {measurement_name, tool_console_write_error,process_exit_status: macro_helpers::process_exit_status::ProcessExitStatus::from(output.status),})?;
                 }
             }
             let stderr = String::from_utf8_lossy(output.stderr.as_slice());
             crate::print_without_memusage_footer::print_without_memusage_footer(
                 crate::stderr_text_ref::StderrTextRef::from(stderr.as_ref()),
-            );
+            )
+            .map_err(|tool_console_write_error| {
+                crate::memusage_measurement_error::MemusageMeasurementError::WriteOutput {
+                    measurement_name,
+                    process_exit_status:
+                        macro_helpers::process_exit_status::ProcessExitStatus::from(output.status),
+                    tool_console_write_error,
+                }
+            })?;
             let clean = crate::strip_ansi_codes::strip_ansi_codes(
-                crate::ansi_text_ref::AnsiTextRef::from(stderr.as_ref()),
+                macro_helpers::tool_ansi_chars::ToolAnsiChars::from(
+                    macro_helpers::tool_ansi_text_ref::ToolAnsiTextRef::from(stderr.as_ref()),
+                ),
             );
             let heap_total = crate::memusage_heap_value::memusage_heap_value(
                 &clean,
@@ -125,33 +132,41 @@ pub(super) fn measure_memusage_command(
                 crate::memory_usage_column_index::MemoryUsageColumnIndex::from(1),
             )
             .get();
-            println!(
-                "measurement={measurement_name_value}_allocations status=ok tool=libmemusage heap_total_bytes={heap_total} heap_peak_bytes={heap_peak} stack_peak_bytes={stack_peak} malloc_calls={malloc_calls} malloc_bytes={malloc_memory} malloc_failed={malloc_failed} realloc_calls={realloc_calls} realloc_bytes={realloc_memory} realloc_failed={realloc_failed} calloc_calls={calloc_calls} calloc_bytes={calloc_memory} calloc_failed={calloc_failed} free_calls={free_calls} free_bytes={free_memory}"
-            );
+            macro_helpers::tool_console_stream::ToolConsoleStream::StandardOutput.write(macro_helpers::std_fmt_arguments::StdFmtArguments::from(format_args!("{}{}", format_args!("{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}", constants_str::RUNNER_MEASUREMENT_PREFIX, measurement_name_value, constants_str::RUNNER_OUTPUT_ALLOCATIONS_STATUS_OK_TOOL_LIBMEMUSAGE_HEAP_TOTAL_BYTES, heap_total, constants_str::RUNNER_OUTPUT_HEAP_PEAK_BYTES, heap_peak, constants_str::RUNNER_OUTPUT_STACK_PEAK_BYTES, stack_peak, constants_str::RUNNER_OUTPUT_MALLOC_CALLS, malloc_calls, constants_str::RUNNER_OUTPUT_MALLOC_BYTES, malloc_memory, constants_str::RUNNER_OUTPUT_MALLOC_FAILED, malloc_failed, constants_str::RUNNER_OUTPUT_REALLOC_CALLS, realloc_calls, constants_str::RUNNER_OUTPUT_REALLOC_BYTES, realloc_memory, constants_str::RUNNER_OUTPUT_REALLOC_FAILED, realloc_failed, constants_str::RUNNER_OUTPUT_CALLOC_CALLS, calloc_calls, constants_str::RUNNER_OUTPUT_CALLOC_BYTES, calloc_memory, constants_str::RUNNER_OUTPUT_CALLOC_FAILED, calloc_failed, constants_str::RUNNER_OUTPUT_FREE_CALLS, free_calls, constants_str::RUNNER_OUTPUT_FREE_BYTES, free_memory), constants_str::NEWLINE))).map_err(|tool_console_write_error| crate::memusage_measurement_error::MemusageMeasurementError::WriteOutput {measurement_name, tool_console_write_error,process_exit_status: macro_helpers::process_exit_status::ProcessExitStatus::from(output.status),})?;
             Ok(())
         }
         Ok(output) => {
             {
                 let stdout = String::from_utf8_lossy(output.stdout.as_slice());
                 if !stdout.is_empty() {
-                    print!("{stdout}");
+                    macro_helpers::tool_console_stream::ToolConsoleStream::StandardOutput.write(macro_helpers::std_fmt_arguments::StdFmtArguments::from(format_args!("{stdout}"))).map_err(|tool_console_write_error| crate::memusage_measurement_error::MemusageMeasurementError::WriteOutput {measurement_name, tool_console_write_error,process_exit_status: macro_helpers::process_exit_status::ProcessExitStatus::from(output.status),})?;
                 }
             }
             let stderr = String::from_utf8_lossy(output.stderr.as_slice());
             crate::print_without_memusage_footer::print_without_memusage_footer(
                 crate::stderr_text_ref::StderrTextRef::from(stderr.as_ref()),
-            );
-            eprintln!(
-                "measurement={measurement_name_value}_allocations status=failed exit_status={}",
-                output.status
-            );
-            Err(())
+            )
+            .map_err(|tool_console_write_error| {
+                crate::memusage_measurement_error::MemusageMeasurementError::WriteOutput {
+                    measurement_name,
+                    process_exit_status:
+                        macro_helpers::process_exit_status::ProcessExitStatus::from(output.status),
+                    tool_console_write_error,
+                }
+            })?;
+            Err(
+                crate::memusage_measurement_error::MemusageMeasurementError::Exit {
+                    measurement_name,
+                    process_exit_status:
+                        macro_helpers::process_exit_status::ProcessExitStatus::from(output.status),
+                },
+            )
         }
-        Err(error) => {
-            eprintln!(
-                "measurement={measurement_name_value}_allocations status=spawn_failed error={error}"
-            );
-            Err(())
-        }
+        Err(error) => Err(
+            crate::memusage_measurement_error::MemusageMeasurementError::Spawn {
+                measurement_name,
+                execution_io_error: macro_helpers::std_tool_io_error::StdToolIoError::from(error),
+            },
+        ),
     }
 }

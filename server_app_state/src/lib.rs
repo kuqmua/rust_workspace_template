@@ -4,4 +4,4 @@ pub mod server_app_state;
 #[cfg(feature = "test-utils")]
 pub mod test_env;
 #[cfg(test)]
-pub mod test_tests;
+pub mod test_server_app_state;

@@ -2270,4 +2270,4 @@ pub fn derive_route_family(token_stream: proc_macro2::TokenStream) -> proc_macro
 }
 
 #[cfg(test)]
-mod test_tests;
+mod test_proc_macro_frontend_contract_shared;

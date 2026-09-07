@@ -5,3 +5,12 @@
     proc_macro_getters::Getters,
 )]
 pub struct RuntimeAdminJwtSecret(server_admin_core::secrecy_admin_string::SecrecyAdminString);
+
+impl RuntimeAdminJwtSecret {
+    #[must_use]
+    pub fn new(
+        secrecy_admin_string: server_admin_core::secrecy_admin_string::SecrecyAdminString,
+    ) -> Self {
+        Self::from(secrecy_admin_string)
+    }
+}

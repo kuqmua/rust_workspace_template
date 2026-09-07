@@ -64,7 +64,7 @@ pub mod not_found_payload;
 pub mod open_api_specification_path;
 pub mod readiness_report;
 #[cfg(test)]
-pub mod test_tests;
+pub mod test_common_routes_tests;
 #[cfg(test)]
 pub mod test_tests_domain_types;
 #[cfg(test)]

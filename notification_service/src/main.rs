@@ -35,7 +35,7 @@ pub mod sqlx_notification_database_error;
 pub mod sqlx_notification_migration_error;
 
 #[cfg(test)]
-pub mod test_tests;
+pub mod test_notification_service;
 
 #[tokio::main]
 async fn main() -> notification_exit_code::NotificationExitCode {

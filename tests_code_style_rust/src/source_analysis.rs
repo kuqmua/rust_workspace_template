@@ -4,7 +4,7 @@
     proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct DbgVisitor {
-    found: crate::types::AnalyzerBool,
+    found: crate::analyzer_bool::AnalyzerBool,
 }
 
 #[derive(
@@ -14,7 +14,7 @@ pub(super) struct DbgVisitor {
     proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct CustomTypeNameVisitor {
-    names: crate::types::SourceTextList,
+    names: crate::source_text_list::SourceTextList,
 }
 
 impl<'ast> syn::visit::Visit<'ast> for CustomTypeNameVisitor {
@@ -82,7 +82,7 @@ impl<'ast> syn::visit::Visit<'ast> for CustomTypeNameVisitor {
     proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct FreeFnNameVisitor {
-    names: crate::types::SourceTextList,
+    names: crate::source_text_list::SourceTextList,
 }
 
 impl<'ast> syn::visit::Visit<'ast> for FreeFnNameVisitor {
@@ -98,7 +98,7 @@ impl<'ast> syn::visit::Visit<'ast> for FreeFnNameVisitor {
     proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct TrivialNewConstructorVisitor {
-    errors: crate::types::DiagnosticMessages,
+    errors: crate::diagnostic_messages::DiagnosticMessages,
 }
 
 impl<'ast> syn::visit::Visit<'ast> for TrivialNewConstructorVisitor {
@@ -170,7 +170,7 @@ impl<'ast> syn::visit::Visit<'ast> for TrivialNewConstructorVisitor {
     proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct OptimalMemoryLayoutVisitor {
-    errors: crate::types::DiagnosticMessages,
+    errors: crate::diagnostic_messages::DiagnosticMessages,
 }
 impl OptimalMemoryLayoutVisitor {
     fn check_attrs(&mut self, ident: &syn::Ident, attrs: &[syn::Attribute], str: &str) {
@@ -231,8 +231,8 @@ impl<'ast> syn::visit::Visit<'ast> for DbgVisitor {
     proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct TodoUnimplVisitor {
-    todo_found: crate::types::AnalyzerCount,
-    unimplemented_found: crate::types::AnalyzerCount,
+    todo_found: crate::analyzer_count::AnalyzerCount,
+    unimplemented_found: crate::analyzer_count::AnalyzerCount,
 }
 impl<'ast> syn::visit::Visit<'ast> for TodoUnimplVisitor {
     fn visit_macro(&mut self, r#macro: &'ast syn::Macro) {
@@ -255,7 +255,7 @@ impl<'ast> syn::visit::Visit<'ast> for TodoUnimplVisitor {
     proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct UnwrapVisitor {
-    found_count: crate::types::AnalyzerCount,
+    found_count: crate::analyzer_count::AnalyzerCount,
 }
 impl<'ast> syn::visit::Visit<'ast> for UnwrapVisitor {
     fn visit_expr_method_call(&mut self, expr_method_call: &'ast syn::ExprMethodCall) {
@@ -271,7 +271,7 @@ impl<'ast> syn::visit::Visit<'ast> for UnwrapVisitor {
     proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct ForLoopVisitor {
-    found_count: crate::types::AnalyzerCount,
+    found_count: crate::analyzer_count::AnalyzerCount,
 }
 
 #[derive(
@@ -281,7 +281,7 @@ pub(super) struct ForLoopVisitor {
     Default,
 )]
 pub(super) struct SourceDroppingMapErrVisitor {
-    found_count: crate::types::AnalyzerCount,
+    found_count: crate::analyzer_count::AnalyzerCount,
 }
 impl<'ast> syn::visit::Visit<'ast> for SourceDroppingMapErrVisitor {
     fn visit_expr_method_call(&mut self, expr_method_call: &'ast syn::ExprMethodCall) {
@@ -303,7 +303,7 @@ impl<'ast> syn::visit::Visit<'ast> for SourceDroppingMapErrVisitor {
     Default,
 )]
 pub(super) struct NumericAsCastVisitor {
-    found_count: crate::types::AnalyzerCount,
+    found_count: crate::analyzer_count::AnalyzerCount,
 }
 
 #[derive(
@@ -313,7 +313,7 @@ pub(super) struct NumericAsCastVisitor {
     Default,
 )]
 pub(super) struct SerdeJsonValueFieldVisitor {
-    violations: crate::types::DiagnosticMessages,
+    violations: crate::diagnostic_messages::DiagnosticMessages,
 }
 impl<'ast> syn::visit::Visit<'ast> for SerdeJsonValueFieldVisitor {
     fn visit_field(&mut self, field: &'ast syn::Field) {
@@ -326,7 +326,7 @@ impl<'ast> syn::visit::Visit<'ast> for SerdeJsonValueFieldVisitor {
         syn::visit::visit_field(self, field);
     }
     fn visit_item_struct(&mut self, item_struct: &'ast syn::ItemStruct) {
-        if crate::code_style::has_test_only_cfg_attr(crate::types::SynItemRef::from(
+        if crate::code_style::has_test_only_cfg_attr(crate::syn_item_ref::SynItemRef::from(
             &syn::Item::Struct(item_struct.clone()),
         ))
         .get()
@@ -345,7 +345,7 @@ impl<'ast> syn::visit::Visit<'ast> for SerdeJsonValueFieldVisitor {
     Default,
 )]
 pub(super) struct SerdeJsonValueTypeVisitor {
-    found: crate::types::AnalyzerBool,
+    found: crate::analyzer_bool::AnalyzerBool,
 }
 
 #[derive(
@@ -355,14 +355,14 @@ pub(super) struct SerdeJsonValueTypeVisitor {
     Default,
 )]
 pub(super) struct PublicStructFieldVisitor {
-    violations: crate::types::DiagnosticMessages,
+    violations: crate::diagnostic_messages::DiagnosticMessages,
 }
 
 #[derive(
     proc_macro_getters::Getters, proc_macro_optimal_memory_layout::OptimalMemoryLayout, Default,
 )]
 pub(super) struct GeneratedPublicStructFieldVisitor {
-    violations: crate::types::DiagnosticMessages,
+    violations: crate::diagnostic_messages::DiagnosticMessages,
 }
 
 impl GeneratedPublicStructFieldVisitor {
@@ -507,7 +507,7 @@ impl<'ast> syn::visit::Visit<'ast> for ForLoopVisitor {
     proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct IncludeAssetMacroVisitor {
-    errors: crate::types::DiagnosticMessages,
+    errors: crate::diagnostic_messages::DiagnosticMessages,
 }
 impl<'ast> syn::visit::Visit<'ast> for IncludeAssetMacroVisitor {
     fn visit_macro(&mut self, r#macro: &'ast syn::Macro) {
@@ -526,7 +526,7 @@ impl<'ast> syn::visit::Visit<'ast> for IncludeAssetMacroVisitor {
     proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct DirectPathCallVisitor {
-    calls: crate::types::DiagnosticMessages,
+    calls: crate::diagnostic_messages::DiagnosticMessages,
 }
 #[derive(
     proc_macro_getters::Getters,
@@ -534,13 +534,13 @@ pub(super) struct DirectPathCallVisitor {
     proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct UnboundedReadVisitor {
-    calls: crate::types::DiagnosticMessages,
+    calls: crate::diagnostic_messages::DiagnosticMessages,
 }
 impl<'ast> syn::visit::Visit<'ast> for UnboundedReadVisitor {
     fn visit_expr_call(&mut self, expr_call: &'ast syn::ExprCall) {
-        if let Some(path) =
-            crate::code_style::expr_call_path(crate::types::SynExprCallRef::from(expr_call))
-        {
+        if let Some(path) = crate::code_style::expr_call_path(
+            crate::syn_expr_call_ref::SynExprCallRef::from(expr_call),
+        ) {
             let call = crate::code_style::path_to_string(path);
             if matches!(
                 call.as_ref(),
@@ -561,7 +561,9 @@ impl<'ast> syn::visit::Visit<'ast> for UnboundedReadVisitor {
         syn::visit::visit_expr_method_call(self, expr_method_call);
     }
     fn visit_item(&mut self, item: &'ast syn::Item) {
-        if crate::code_style::has_test_only_cfg_attr(crate::types::SynItemRef::from(item)).get() {
+        if crate::code_style::has_test_only_cfg_attr(crate::syn_item_ref::SynItemRef::from(item))
+            .get()
+        {
             return;
         }
         syn::visit::visit_item(self, item);
@@ -569,9 +571,9 @@ impl<'ast> syn::visit::Visit<'ast> for UnboundedReadVisitor {
 }
 impl<'ast> syn::visit::Visit<'ast> for DirectPathCallVisitor {
     fn visit_expr_call(&mut self, expr_call: &'ast syn::ExprCall) {
-        if let Some(path) =
-            crate::code_style::expr_call_path(crate::types::SynExprCallRef::from(expr_call))
-        {
+        if let Some(path) = crate::code_style::expr_call_path(
+            crate::syn_expr_call_ref::SynExprCallRef::from(expr_call),
+        ) {
             self.calls
                 .push(crate::code_style::path_to_string(path).as_ref().to_owned());
         }
@@ -584,7 +586,7 @@ impl<'ast> syn::visit::Visit<'ast> for DirectPathCallVisitor {
     proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct LostSpawnVisitor {
-    errors: crate::types::DiagnosticMessages,
+    errors: crate::diagnostic_messages::DiagnosticMessages,
 }
 impl<'ast> syn::visit::Visit<'ast> for LostSpawnVisitor {
     fn visit_stmt(&mut self, stmt: &'ast syn::Stmt) {
@@ -631,8 +633,8 @@ impl<'ast> syn::visit::Visit<'ast> for LostSpawnVisitor {
     proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct TestNondeterminismVisitor {
-    calls: crate::types::DiagnosticMessages,
-    test_depth: crate::types::AnalyzerCount,
+    calls: crate::diagnostic_messages::DiagnosticMessages,
+    test_depth: crate::analyzer_count::AnalyzerCount,
 }
 #[derive(
     proc_macro_getters::Getters,
@@ -640,7 +642,7 @@ pub(super) struct TestNondeterminismVisitor {
     proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct SensitiveTextDebugDeriveVisitor {
-    errors: crate::types::DiagnosticMessages,
+    errors: crate::diagnostic_messages::DiagnosticMessages,
 }
 #[derive(
     proc_macro_getters::Getters,
@@ -648,7 +650,7 @@ pub(super) struct SensitiveTextDebugDeriveVisitor {
     proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct SensitiveErrorFormatVisitor {
-    errors: crate::types::DiagnosticMessages,
+    errors: crate::diagnostic_messages::DiagnosticMessages,
 }
 #[derive(
     proc_macro_getters::Getters,
@@ -656,7 +658,7 @@ pub(super) struct SensitiveErrorFormatVisitor {
     proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct GeneratedRandomnessVisitor {
-    calls: crate::types::DiagnosticMessages,
+    calls: crate::diagnostic_messages::DiagnosticMessages,
 }
 #[derive(
     proc_macro_getters::Getters,
@@ -664,7 +666,7 @@ pub(super) struct GeneratedRandomnessVisitor {
     proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct StaticStateVisitor {
-    identifiers: crate::types::SourceTextList,
+    identifiers: crate::source_text_list::SourceTextList,
 }
 #[derive(
     proc_macro_getters::Getters,
@@ -672,7 +674,7 @@ pub(super) struct StaticStateVisitor {
     proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct PrintMacroVisitor {
-    calls: crate::types::DiagnosticMessages,
+    calls: crate::diagnostic_messages::DiagnosticMessages,
 }
 #[derive(
     proc_macro_getters::Getters,
@@ -680,7 +682,7 @@ pub(super) struct PrintMacroVisitor {
     proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct ProductionLinePrintMacroVisitor {
-    calls: crate::types::DiagnosticMessages,
+    calls: crate::diagnostic_messages::DiagnosticMessages,
 }
 #[derive(
     proc_macro_getters::Getters,
@@ -688,7 +690,7 @@ pub(super) struct ProductionLinePrintMacroVisitor {
     proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct DoubleUnderscoreNamingVisitor {
-    identifiers: crate::types::DiagnosticMessages,
+    identifiers: crate::diagnostic_messages::DiagnosticMessages,
 }
 #[derive(
     proc_macro_getters::Getters,
@@ -696,7 +698,7 @@ pub(super) struct DoubleUnderscoreNamingVisitor {
     proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct ShortFunctionNamingVisitor {
-    identifiers: crate::types::DiagnosticMessages,
+    identifiers: crate::diagnostic_messages::DiagnosticMessages,
 }
 #[derive(
     proc_macro_getters::Getters,
@@ -704,7 +706,7 @@ pub(super) struct ShortFunctionNamingVisitor {
     proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct OpaqueShortFieldNamingVisitor {
-    identifiers: crate::types::DiagnosticMessages,
+    identifiers: crate::diagnostic_messages::DiagnosticMessages,
 }
 #[derive(
     proc_macro_getters::Getters,
@@ -712,7 +714,7 @@ pub(super) struct OpaqueShortFieldNamingVisitor {
     proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct OpaqueSerdeRenameVisitor {
-    identifiers: crate::types::DiagnosticMessages,
+    identifiers: crate::diagnostic_messages::DiagnosticMessages,
 }
 impl OpaqueSerdeRenameVisitor {
     fn check_identifier(&mut self, string: String) {
@@ -821,7 +823,7 @@ impl ShortFunctionNamingVisitor {
     Default,
 )]
 pub(super) struct PublicLogicVisitor {
-    found: crate::types::AnalyzerBool,
+    found: crate::analyzer_bool::AnalyzerBool,
 }
 #[derive(
     proc_macro_getters::Getters,
@@ -830,7 +832,7 @@ pub(super) struct PublicLogicVisitor {
     Default,
 )]
 pub(super) struct OwnedTestVisitor {
-    found: crate::types::AnalyzerBool,
+    found: crate::analyzer_bool::AnalyzerBool,
 }
 #[derive(
     proc_macro_getters::Getters,
@@ -838,8 +840,8 @@ pub(super) struct OwnedTestVisitor {
     proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct AllowReasonVisitor {
-    errors: crate::types::DiagnosticMessages,
-    lines: crate::types::SourceTextList,
+    errors: crate::diagnostic_messages::DiagnosticMessages,
+    lines: crate::source_text_list::SourceTextList,
 }
 #[derive(
     proc_macro_getters::Getters,
@@ -848,14 +850,14 @@ pub(super) struct AllowReasonVisitor {
 )]
 #[getters(get_mut)]
 pub(super) struct DiagnosticIdVisitor {
-    errors: crate::types::DiagnosticMessages,
-    ids: crate::types::SourceTextList,
+    errors: crate::diagnostic_messages::DiagnosticMessages,
+    ids: crate::source_text_list::SourceTextList,
 }
 impl DiagnosticIdVisitor {
     pub(super) fn record(
         &mut self,
-        kind: crate::types::SourceTextRef<'_>,
-        value: crate::types::SourceTextRef<'_>,
+        kind: crate::source_text_ref::SourceTextRef<'_>,
+        value: crate::source_text_ref::SourceTextRef<'_>,
     ) {
         let optional_prefix = value
             .get()
@@ -899,7 +901,7 @@ impl DiagnosticIdVisitor {
     }
     fn record_constant_path(
         &mut self,
-        source_text_ref: crate::types::SourceTextRef<'_>,
+        source_text_ref: crate::source_text_ref::SourceTextRef<'_>,
         expr: &syn::Expr,
     ) -> bool {
         let syn::Expr::Path(path) = expr else {
@@ -925,7 +927,7 @@ impl DiagnosticIdVisitor {
         };
         self.record(
             source_text_ref,
-            crate::types::SourceTextRef::from(
+            crate::source_text_ref::SourceTextRef::from(
                 format!("{diagnostic_id} stored diagnostic").as_str(),
             ),
         );
@@ -940,13 +942,15 @@ impl<'ast> syn::visit::Visit<'ast> for DiagnosticIdVisitor {
                     lit: syn::Lit::Str(lit_str),
                     ..
                 })) if expr_method_call.args.len() == constants_usize::ONE => self.record(
-                    crate::types::SourceTextRef::from(constants_str::CODE_STYLE_EXPECT_METHOD_NAME),
-                    crate::types::SourceTextRef::from(lit_str.value().as_str()),
+                    crate::source_text_ref::SourceTextRef::from(
+                        constants_str::CODE_STYLE_EXPECT_METHOD_NAME,
+                    ),
+                    crate::source_text_ref::SourceTextRef::from(lit_str.value().as_str()),
                 ),
                 Some(argument)
                     if expr_method_call.args.len() == constants_usize::ONE
                         && self.record_constant_path(
-                            crate::types::SourceTextRef::from(
+                            crate::source_text_ref::SourceTextRef::from(
                                 constants_str::CODE_STYLE_EXPECT_METHOD_NAME,
                             ),
                             argument,
@@ -957,8 +961,10 @@ impl<'ast> syn::visit::Visit<'ast> for DiagnosticIdVisitor {
         syn::visit::visit_expr_method_call(self, expr_method_call);
     }
     fn visit_macro(&mut self, r#macro: &'ast syn::Macro) {
-        if crate::code_style::macro_path_is_quote(crate::types::SynPathRef::from(&r#macro.path))
-            .get()
+        if crate::code_style::macro_path_is_quote(crate::syn_path_ref::SynPathRef::from(
+            &r#macro.path,
+        ))
+        .get()
         {
             crate::code_style::scan_generated_diagnostic_tokens(&r#macro.tokens, self);
         }
@@ -974,15 +980,15 @@ impl<'ast> syn::visit::Visit<'ast> for DiagnosticIdVisitor {
                         Ok(lit_str) => {
                             let value = lit_str.value();
                             if !crate::code_style::panic_uses_dynamic_diagnostic_id(
-                                crate::types::SourceTextRef::from(value.as_str()),
+                                crate::source_text_ref::SourceTextRef::from(value.as_str()),
                             )
                             .get()
                             {
                                 self.record(
-                                    crate::types::SourceTextRef::from(
+                                    crate::source_text_ref::SourceTextRef::from(
                                         constants_str::CODE_STYLE_PANIC_METHOD_NAME,
                                     ),
-                                    crate::types::SourceTextRef::from(value.as_str()),
+                                    crate::source_text_ref::SourceTextRef::from(value.as_str()),
                                 );
                             }
                         }
@@ -1001,9 +1007,9 @@ impl<'ast> syn::visit::Visit<'ast> for DiagnosticIdVisitor {
 )]
 impl<'ast> syn::visit::Visit<'ast> for SensitiveTextDebugDeriveVisitor {
     fn visit_item_struct(&mut self, item_struct: &'ast syn::ItemStruct) {
-        if crate::code_style::sensitive_text_wrapper_identifier(crate::types::SourceTextRef::from(
-            item_struct.ident.to_string().as_str(),
-        ))
+        if crate::code_style::sensitive_text_wrapper_identifier(
+            crate::source_text_ref::SourceTextRef::from(item_struct.ident.to_string().as_str()),
+        )
         .get()
             && item_struct
                 .fields
@@ -1020,8 +1026,8 @@ impl<'ast> syn::visit::Visit<'ast> for SensitiveTextDebugDeriveVisitor {
             .for_each(|derive_name| {
                 if item_struct.attrs.iter().any(|attr| {
                     crate::code_style::derive_attr_has_terminal(
-                        crate::types::SynAttributeRef::from(attr),
-                        crate::types::SourceTextRef::from(derive_name),
+                        crate::syn_attribute_ref::SynAttributeRef::from(attr),
+                        crate::source_text_ref::SourceTextRef::from(derive_name),
                     )
                     .get()
                 }) {
@@ -1050,7 +1056,7 @@ impl SensitiveErrorFormatVisitor {
         }
         fields.iter().enumerate().for_each(|(index, field)| {
             let named_placeholder = field.ident.as_ref().and_then(|identifier| {
-                crate::code_style::sensitive_text_wrapper_identifier(crate::types::SourceTextRef::from(
+                crate::code_style::sensitive_text_wrapper_identifier(crate::source_text_ref::SourceTextRef::from(
                     identifier.to_string().as_str(),
                 ))
                 .get()
@@ -1092,8 +1098,10 @@ impl<'ast> syn::visit::Visit<'ast> for SensitiveErrorFormatVisitor {
 }
 impl<'ast> syn::visit::Visit<'ast> for GeneratedRandomnessVisitor {
     fn visit_macro(&mut self, r#macro: &'ast syn::Macro) {
-        if crate::code_style::macro_path_is_quote(crate::types::SynPathRef::from(&r#macro.path))
-            .get()
+        if crate::code_style::macro_path_is_quote(crate::syn_path_ref::SynPathRef::from(
+            &r#macro.path,
+        ))
+        .get()
         {
             let compact = r#macro
                 .tokens
@@ -1137,9 +1145,11 @@ impl<'ast> syn::visit::Visit<'ast> for PrintMacroVisitor {
             )
         }) {
             self.calls.push(
-                crate::code_style::path_to_string(crate::types::SynPathRef::from(&r#macro.path))
-                    .as_ref()
-                    .to_owned(),
+                crate::code_style::path_to_string(crate::syn_path_ref::SynPathRef::from(
+                    &r#macro.path,
+                ))
+                .as_ref()
+                .to_owned(),
             );
         }
         syn::visit::visit_macro(self, r#macro);
@@ -1147,7 +1157,9 @@ impl<'ast> syn::visit::Visit<'ast> for PrintMacroVisitor {
 }
 impl<'ast> syn::visit::Visit<'ast> for ProductionLinePrintMacroVisitor {
     fn visit_item(&mut self, item: &'ast syn::Item) {
-        if crate::code_style::has_test_only_cfg_attr(crate::types::SynItemRef::from(item)).get() {
+        if crate::code_style::has_test_only_cfg_attr(crate::syn_item_ref::SynItemRef::from(item))
+            .get()
+        {
             return;
         }
         syn::visit::visit_item(self, item);
@@ -1158,9 +1170,9 @@ impl<'ast> syn::visit::Visit<'ast> for ProductionLinePrintMacroVisitor {
                 .segments
                 .last()
                 .is_some_and(|segment| segment.ident == constants_str::TEST_ALT_3)
-                || crate::code_style::attr_is_test_only_cfg(crate::types::SynAttributeRef::from(
-                    attr,
-                ))
+                || crate::code_style::attr_is_test_only_cfg(
+                    crate::syn_attribute_ref::SynAttributeRef::from(attr),
+                )
                 .get()
         }) {
             return;
@@ -1175,9 +1187,11 @@ impl<'ast> syn::visit::Visit<'ast> for ProductionLinePrintMacroVisitor {
             )
         }) {
             self.calls.push(
-                crate::code_style::path_to_string(crate::types::SynPathRef::from(&r#macro.path))
-                    .as_ref()
-                    .to_owned(),
+                crate::code_style::path_to_string(crate::syn_path_ref::SynPathRef::from(
+                    &r#macro.path,
+                ))
+                .as_ref()
+                .to_owned(),
             );
         }
         syn::visit::visit_macro(self, r#macro);
@@ -1255,9 +1269,9 @@ impl<'ast> syn::visit::Visit<'ast> for OwnedTestVisitor {
     fn visit_item_mod(&mut self, item_mod: &'ast syn::ItemMod) {
         if item_mod.ident == constants_str::TESTS_ALT
             && item_mod.attrs.iter().any(|attribute| {
-                crate::code_style::attr_is_test_only_cfg(crate::types::SynAttributeRef::from(
-                    attribute,
-                ))
+                crate::code_style::attr_is_test_only_cfg(
+                    crate::syn_attribute_ref::SynAttributeRef::from(attribute),
+                )
                 .get()
             })
         {
@@ -1325,8 +1339,9 @@ impl<'ast> syn::visit::Visit<'ast> for AllowReasonVisitor {
 impl<'ast> syn::visit::Visit<'ast> for TestNondeterminismVisitor {
     fn visit_expr_call(&mut self, expr_call: &'ast syn::ExprCall) {
         if self.test_depth.get() != 0
-            && let Some(path) =
-                crate::code_style::expr_call_path(crate::types::SynExprCallRef::from(expr_call))
+            && let Some(path) = crate::code_style::expr_call_path(
+                crate::syn_expr_call_ref::SynExprCallRef::from(expr_call),
+            )
         {
             let text = crate::code_style::path_to_string(path);
             if matches!(
@@ -1356,8 +1371,9 @@ impl<'ast> syn::visit::Visit<'ast> for TestNondeterminismVisitor {
     }
     fn visit_expr_path(&mut self, expr_path: &'ast syn::ExprPath) {
         if self.test_depth.get() != 0 {
-            let text =
-                crate::code_style::path_to_string(crate::types::SynPathRef::from(&expr_path.path));
+            let text = crate::code_style::path_to_string(crate::syn_path_ref::SynPathRef::from(
+                &expr_path.path,
+            ));
             if matches!(
                 text.as_ref(),
                 constants_str::RAND_PATH_RNGS_PATH_OS_RNG | constants_str::RAND_CORE_PATH_OS_RNG
@@ -1368,9 +1384,10 @@ impl<'ast> syn::visit::Visit<'ast> for TestNondeterminismVisitor {
         syn::visit::visit_expr_path(self, expr_path);
     }
     fn visit_item_fn(&mut self, item_fn: &'ast syn::ItemFn) {
-        let is_test =
-            crate::code_style::item_fn_is_unit_test(crate::types::SynItemFnRef::from(item_fn))
-                .get();
+        let is_test = crate::code_style::item_fn_is_unit_test(
+            crate::syn_item_fn_ref::SynItemFnRef::from(item_fn),
+        )
+        .get();
         if is_test {
             self.test_depth.saturating_inc();
         }
@@ -1381,8 +1398,10 @@ impl<'ast> syn::visit::Visit<'ast> for TestNondeterminismVisitor {
     }
     fn visit_item_mod(&mut self, item_mod: &'ast syn::ItemMod) {
         let is_test = item_mod.attrs.iter().any(|attr| {
-            crate::code_style::attr_is_test_only_cfg(crate::types::SynAttributeRef::from(attr))
-                .get()
+            crate::code_style::attr_is_test_only_cfg(
+                crate::syn_attribute_ref::SynAttributeRef::from(attr),
+            )
+            .get()
         });
         if is_test {
             self.test_depth.saturating_inc();
@@ -1403,9 +1422,9 @@ impl<'ast> syn::visit::Visit<'ast> for TestNondeterminismVisitor {
     reason = "alignment order required by optimal_memory_layout takes precedence over alphabetical field order"
 )]
 pub(super) struct UseImportVisitor {
-    public_use_roots: crate::types::SourceTextList,
-    found_non_public_use_import: crate::types::AnalyzerBool,
-    found_use_rename: crate::types::AnalyzerBool,
+    public_use_roots: crate::source_text_list::SourceTextList,
+    found_non_public_use_import: crate::analyzer_bool::AnalyzerBool,
+    found_use_rename: crate::analyzer_bool::AnalyzerBool,
 }
 #[allow(
     clippy::arbitrary_source_item_ordering,
@@ -1417,8 +1436,8 @@ impl UseImportVisitor {
         matches!(use_tree, syn::UseTree::Path(path) if path.ident == stringify!(leptos))
     }
 
-    fn use_tree_root(use_tree: &syn::UseTree) -> crate::types::SourceText {
-        crate::types::SourceText::try_from(match use_tree {
+    fn use_tree_root(use_tree: &syn::UseTree) -> crate::source_text::SourceText {
+        crate::source_text::SourceText::try_from(match use_tree {
             syn::UseTree::Path(path) => path.ident.to_string(),
             syn::UseTree::Name(name) => name.ident.to_string(),
             syn::UseTree::Rename(rename) => rename.ident.to_string(),
@@ -1429,17 +1448,18 @@ impl UseImportVisitor {
     }
 
     fn use_tree_contains_rename(
-        syn_use_tree_ref: crate::types::SynUseTreeRef<'_>,
-    ) -> crate::types::AnalyzerBool {
-        crate::types::AnalyzerBool::from(match syn_use_tree_ref.as_ref() {
-            syn::UseTree::Path(use_path) => {
-                Self::use_tree_contains_rename(crate::types::SynUseTreeRef::from(&*use_path.tree))
-                    .get()
-            }
+        syn_use_tree_ref: crate::syn_use_tree_ref::SynUseTreeRef<'_>,
+    ) -> crate::analyzer_bool::AnalyzerBool {
+        crate::analyzer_bool::AnalyzerBool::from(match syn_use_tree_ref.as_ref() {
+            syn::UseTree::Path(use_path) => Self::use_tree_contains_rename(
+                crate::syn_use_tree_ref::SynUseTreeRef::from(&*use_path.tree),
+            )
+            .get(),
             syn::UseTree::Name(_) | syn::UseTree::Glob(_) => false,
             syn::UseTree::Rename(_) => true,
             syn::UseTree::Group(use_group) => use_group.items.iter().any(|item| {
-                Self::use_tree_contains_rename(crate::types::SynUseTreeRef::from(item)).get()
+                Self::use_tree_contains_rename(crate::syn_use_tree_ref::SynUseTreeRef::from(item))
+                    .get()
             }),
         })
     }
@@ -1455,7 +1475,11 @@ impl<'ast> syn::visit::Visit<'ast> for UseImportVisitor {
             self.public_use_roots
                 .push(String::from(Self::use_tree_root(&item_use.tree)));
         }
-        if Self::use_tree_contains_rename(crate::types::SynUseTreeRef::from(&item_use.tree)).get() {
+        if Self::use_tree_contains_rename(crate::syn_use_tree_ref::SynUseTreeRef::from(
+            &item_use.tree,
+        ))
+        .get()
+        {
             self.found_use_rename.set_true();
         }
         syn::visit::visit_item_use(self, item_use);
@@ -1467,7 +1491,7 @@ impl<'ast> syn::visit::Visit<'ast> for UseImportVisitor {
     proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct TypeAliasVisitor {
-    errors: crate::types::DiagnosticMessages,
+    errors: crate::diagnostic_messages::DiagnosticMessages,
 }
 impl<'ast> syn::visit::Visit<'ast> for TypeAliasVisitor {
     fn visit_item_type(&mut self, item_type: &'ast syn::ItemType) {
@@ -1484,7 +1508,7 @@ impl<'ast> syn::visit::Visit<'ast> for TypeAliasVisitor {
     proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct EmptyEnumVisitor {
-    errors: crate::types::DiagnosticMessages,
+    errors: crate::diagnostic_messages::DiagnosticMessages,
 }
 impl EmptyEnumVisitor {
     fn check(&mut self, item_enum: &syn::ItemEnum) {
@@ -1517,7 +1541,7 @@ impl<'ast> syn::visit::Visit<'ast> for EmptyEnumVisitor {
     proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct InfallibleResultVisitor {
-    errors: crate::types::DiagnosticMessages,
+    errors: crate::diagnostic_messages::DiagnosticMessages,
 }
 impl InfallibleResultVisitor {
     fn type_is_infallible(ty: &syn::Type) -> bool {
@@ -1585,7 +1609,7 @@ impl<'ast> syn::visit::Visit<'ast> for InfallibleResultVisitor {
     proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct ConstantAliasVisitor {
-    errors: crate::types::DiagnosticMessages,
+    errors: crate::diagnostic_messages::DiagnosticMessages,
 }
 impl<'ast> syn::visit::Visit<'ast> for ConstantAliasVisitor {
     fn visit_item_const(&mut self, item_const: &'ast syn::ItemConst) {
@@ -1607,7 +1631,7 @@ impl<'ast> syn::visit::Visit<'ast> for ConstantAliasVisitor {
         {
             self.errors.push(format!(
                 "`{local_constant_name}` aliases `{}`; use the source constant directly",
-                crate::code_style::path_to_string(crate::types::SynPathRef::from(
+                crate::code_style::path_to_string(crate::syn_path_ref::SynPathRef::from(
                     &expression_path.path
                 ))
                 .as_ref()
@@ -1622,7 +1646,7 @@ impl<'ast> syn::visit::Visit<'ast> for ConstantAliasVisitor {
     proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct ForwardingDerefVisitor {
-    errors: crate::types::DiagnosticMessages,
+    errors: crate::diagnostic_messages::DiagnosticMessages,
     inner_types: std::collections::BTreeMap<String, syn::Type>,
 }
 #[derive(
@@ -1631,7 +1655,7 @@ pub(super) struct ForwardingDerefVisitor {
     proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct ForwardingBorrowVisitor {
-    errors: crate::types::DiagnosticMessages,
+    errors: crate::diagnostic_messages::DiagnosticMessages,
 }
 impl<'ast> syn::visit::Visit<'ast> for ForwardingBorrowVisitor {
     fn visit_item_impl(&mut self, item_impl: &'ast syn::ItemImpl) {
@@ -1750,7 +1774,7 @@ impl<'ast> syn::visit::Visit<'ast> for ForwardingDerefVisitor {
     proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct ForwardingDisplayVisitor {
-    errors: crate::types::DiagnosticMessages,
+    errors: crate::diagnostic_messages::DiagnosticMessages,
 }
 #[derive(
     proc_macro_getters::Getters,
@@ -1758,7 +1782,7 @@ pub(super) struct ForwardingDisplayVisitor {
     proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct ManualErrorImplVisitor {
-    errors: crate::types::DiagnosticMessages,
+    errors: crate::diagnostic_messages::DiagnosticMessages,
 }
 #[derive(
     proc_macro_getters::Getters,
@@ -1766,7 +1790,7 @@ pub(super) struct ManualErrorImplVisitor {
     proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct ManualNotImplVisitor {
-    errors: crate::types::DiagnosticMessages,
+    errors: crate::diagnostic_messages::DiagnosticMessages,
 }
 #[derive(
     proc_macro_getters::Getters,
@@ -1774,7 +1798,7 @@ pub(super) struct ManualNotImplVisitor {
     proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct ConstDisplayImplVisitor {
-    errors: crate::types::DiagnosticMessages,
+    errors: crate::diagnostic_messages::DiagnosticMessages,
 }
 impl<'ast> syn::visit::Visit<'ast> for ConstDisplayImplVisitor {
     fn visit_item_impl(&mut self, item_impl: &'ast syn::ItemImpl) {
@@ -1851,7 +1875,7 @@ impl<'ast> syn::visit::Visit<'ast> for ManualErrorImplVisitor {
     Default,
 )]
 pub(super) struct JsonCallVisitor {
-    found: crate::types::AnalyzerBool,
+    found: crate::analyzer_bool::AnalyzerBool,
 }
 impl<'ast> syn::visit::Visit<'ast> for JsonCallVisitor {
     fn visit_expr_call(&mut self, expr_call: &'ast syn::ExprCall) {
@@ -1873,8 +1897,8 @@ impl<'ast> syn::visit::Visit<'ast> for JsonCallVisitor {
     proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct JsonIntoResponseErrorVisitor<'names_lt> {
-    errors: crate::types::DiagnosticMessages,
-    thiserror_enum_names: &'names_lt crate::types::SourceTextBTreeSet,
+    errors: crate::diagnostic_messages::DiagnosticMessages,
+    thiserror_enum_names: &'names_lt crate::source_text_b_tree_set::SourceTextBTreeSet,
 }
 #[derive(
     proc_macro_getters::Getters,
@@ -1883,7 +1907,7 @@ pub(super) struct JsonIntoResponseErrorVisitor<'names_lt> {
     Default,
 )]
 pub(super) struct TupleResponseVisitor {
-    found: crate::types::AnalyzerBool,
+    found: crate::analyzer_bool::AnalyzerBool,
 }
 impl<'ast> syn::visit::Visit<'ast> for TupleResponseVisitor {
     fn visit_expr_call(&mut self, expr_call: &'ast syn::ExprCall) {
@@ -1927,7 +1951,7 @@ impl<'ast> syn::visit::Visit<'ast> for JsonIntoResponseErrorVisitor<'_> {
             syn::visit::Visit::visit_item_impl(&mut tuple_visitor, item_impl);
             if json_visitor.found.get() || tuple_visitor.found.get() {
                 let name = crate::code_style::item_impl_self_ty_identifier(
-                    crate::types::SynItemImplRef::from(item_impl),
+                    crate::syn_item_impl_ref::SynItemImplRef::from(item_impl),
                 )
                 .map_or_else(
                     || String::from(constants_str::NON_PATH_TARGET),
@@ -1950,8 +1974,8 @@ impl<'ast> syn::visit::Visit<'ast> for JsonIntoResponseErrorVisitor<'_> {
     Default,
 )]
 pub(super) struct ThiserrorEnumVisitor {
-    location_names: crate::types::SourceTextBTreeSet,
-    names: crate::types::SourceTextBTreeSet,
+    location_names: crate::source_text_b_tree_set::SourceTextBTreeSet,
+    names: crate::source_text_b_tree_set::SourceTextBTreeSet,
 }
 impl<'ast> syn::visit::Visit<'ast> for ThiserrorEnumVisitor {
     fn visit_item_enum(&mut self, item_enum: &'ast syn::ItemEnum) {
@@ -2021,8 +2045,8 @@ impl<'ast> syn::visit::Visit<'ast> for ThiserrorEnumVisitor {
     proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct ApiErrorLocationVisitor<'names_lt> {
-    errors: crate::types::DiagnosticMessages,
-    thiserror_location_enum_names: &'names_lt crate::types::SourceTextBTreeSet,
+    errors: crate::diagnostic_messages::DiagnosticMessages,
+    thiserror_location_enum_names: &'names_lt crate::source_text_b_tree_set::SourceTextBTreeSet,
 }
 #[derive(
     proc_macro_getters::Getters,
@@ -2031,7 +2055,7 @@ pub(super) struct ApiErrorLocationVisitor<'names_lt> {
     Default,
 )]
 pub(super) struct IntoResponseTypeVisitor {
-    names: crate::types::SourceTextBTreeSet,
+    names: crate::source_text_b_tree_set::SourceTextBTreeSet,
 }
 impl<'ast> syn::visit::Visit<'ast> for IntoResponseTypeVisitor {
     fn visit_item_impl(&mut self, item_impl: &'ast syn::ItemImpl) {
@@ -2042,7 +2066,7 @@ impl<'ast> syn::visit::Visit<'ast> for IntoResponseTypeVisitor {
         });
         if is_into_response
             && let Some(name) = crate::code_style::item_impl_self_ty_identifier(
-                crate::types::SynItemImplRef::from(item_impl),
+                crate::syn_item_impl_ref::SynItemImplRef::from(item_impl),
             )
         {
             let _: bool = self.names.insert(String::from(name));
@@ -2056,8 +2080,8 @@ impl<'ast> syn::visit::Visit<'ast> for IntoResponseTypeVisitor {
     proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct ApiErrorSourceVisitor<'names_lt> {
-    api_error_names: &'names_lt crate::types::SourceTextBTreeSet,
-    errors: crate::types::DiagnosticMessages,
+    api_error_names: &'names_lt crate::source_text_b_tree_set::SourceTextBTreeSet,
+    errors: crate::diagnostic_messages::DiagnosticMessages,
 }
 #[derive(
     proc_macro_getters::Getters,
@@ -2067,10 +2091,10 @@ pub(super) struct ApiErrorSourceVisitor<'names_lt> {
 )]
 #[getters(get_mut)]
 pub(super) struct RouteOperationErrorVisitor {
-    errors: crate::types::DiagnosticMessages,
-    names: crate::types::SourceTextBTreeSet,
-    operations: crate::types::SourceTextBTreeSet,
-    registered: crate::types::SourceTextBTreeSet,
+    errors: crate::diagnostic_messages::DiagnosticMessages,
+    names: crate::source_text_b_tree_set::SourceTextBTreeSet,
+    operations: crate::source_text_b_tree_set::SourceTextBTreeSet,
+    registered: crate::source_text_b_tree_set::SourceTextBTreeSet,
 }
 impl<'ast> syn::visit::Visit<'ast> for RouteOperationErrorVisitor {
     fn visit_item_fn(&mut self, item_fn: &'ast syn::ItemFn) {
@@ -2231,7 +2255,7 @@ impl<'ast> syn::visit::Visit<'ast> for ApiErrorLocationVisitor<'_> {
         });
         if is_into_response {
             let name = crate::code_style::item_impl_self_ty_identifier(
-                crate::types::SynItemImplRef::from(item_impl),
+                crate::syn_item_impl_ref::SynItemImplRef::from(item_impl),
             )
             .map_or_else(
                 || String::from(constants_str::NON_PATH_TARGET),
@@ -2349,7 +2373,7 @@ impl<'ast> syn::visit::Visit<'ast> for ForwardingDisplayVisitor {
     proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct ForwardingIntoIteratorVisitor {
-    errors: crate::types::DiagnosticMessages,
+    errors: crate::diagnostic_messages::DiagnosticMessages,
 }
 impl<'ast> syn::visit::Visit<'ast> for ForwardingIntoIteratorVisitor {
     fn visit_item_impl(&mut self, item_impl: &'ast syn::ItemImpl) {
@@ -2394,7 +2418,7 @@ impl<'ast> syn::visit::Visit<'ast> for ForwardingIntoIteratorVisitor {
     proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct PassthroughIntoInnerFromVisitor {
-    errors: crate::types::DiagnosticMessages,
+    errors: crate::diagnostic_messages::DiagnosticMessages,
     inner_types: std::collections::BTreeMap<String, syn::Type>,
 }
 #[derive(
@@ -2403,7 +2427,7 @@ pub(super) struct PassthroughIntoInnerFromVisitor {
     proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct PassthroughIntoMethodVisitor {
-    errors: crate::types::DiagnosticMessages,
+    errors: crate::diagnostic_messages::DiagnosticMessages,
     tuple_struct_names: std::collections::BTreeSet<String>,
 }
 impl<'ast> syn::visit::Visit<'ast> for PassthroughIntoMethodVisitor {
@@ -2554,7 +2578,7 @@ impl<'ast> syn::visit::Visit<'ast> for PassthroughIntoInnerFromVisitor {
     proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct PassthroughFromVisitor {
-    errors: crate::types::DiagnosticMessages,
+    errors: crate::diagnostic_messages::DiagnosticMessages,
     inner_types: std::collections::BTreeMap<String, syn::Type>,
 }
 impl<'ast> syn::visit::Visit<'ast> for PassthroughFromVisitor {
@@ -2641,7 +2665,7 @@ impl<'ast> syn::visit::Visit<'ast> for PassthroughFromVisitor {
     proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct TestStringLiteralVisitor {
-    values: crate::types::SourceTextList,
+    values: crate::source_text_list::SourceTextList,
 }
 impl<'ast> syn::visit::Visit<'ast> for TestStringLiteralVisitor {
     fn visit_expr_lit(&mut self, expr_lit: &'ast syn::ExprLit) {
@@ -2672,7 +2696,7 @@ impl<'ast> syn::visit::Visit<'ast> for TestStringLiteralVisitor {
     proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct ProductionStringLiteralVisitor {
-    values: crate::types::SourceTextList,
+    values: crate::source_text_list::SourceTextList,
 }
 impl<'ast> syn::visit::Visit<'ast> for ProductionStringLiteralVisitor {
     fn visit_attribute(&mut self, attribute: &'ast syn::Attribute) {
@@ -2698,8 +2722,8 @@ impl<'ast> syn::visit::Visit<'ast> for ProductionStringLiteralVisitor {
     reason = "alignment order required by optimal_memory_layout takes precedence over alphabetical field order"
 )]
 pub(super) struct StringConstantDeclarationVisitor {
-    errors: crate::types::DiagnosticMessages,
-    allow_generated_string_constants: crate::types::AnalyzerBool,
+    errors: crate::diagnostic_messages::DiagnosticMessages,
+    allow_generated_string_constants: crate::analyzer_bool::AnalyzerBool,
 }
 #[derive(
     proc_macro_getters::Getters,
@@ -2708,24 +2732,24 @@ pub(super) struct StringConstantDeclarationVisitor {
     Default,
 )]
 pub(super) struct ConstantInitializerStringLiteralVisitor {
-    found: crate::types::AnalyzerBool,
+    found: crate::analyzer_bool::AnalyzerBool,
 }
 impl ConstantInitializerStringLiteralVisitor {
-    fn contains(expr: &syn::Expr) -> crate::types::AnalyzerBool {
+    fn contains(expr: &syn::Expr) -> crate::analyzer_bool::AnalyzerBool {
         let mut visitor = Self::default();
         syn::visit::Visit::visit_expr(&mut visitor, expr);
         visitor.found
     }
-    fn static_type_is_string_constant(syn_type_ref: crate::types::SynTypeRef<'_>) -> bool {
+    fn static_type_is_string_constant(syn_type_ref: crate::syn_type_ref::SynTypeRef<'_>) -> bool {
         match syn_type_ref.get() {
             syn::Type::Array(array) => Self::static_type_is_string_constant(
-                crate::types::SynTypeRef::from(array.elem.as_ref()),
+                crate::syn_type_ref::SynTypeRef::from(array.elem.as_ref()),
             ),
             syn::Type::Group(group) => Self::static_type_is_string_constant(
-                crate::types::SynTypeRef::from(group.elem.as_ref()),
+                crate::syn_type_ref::SynTypeRef::from(group.elem.as_ref()),
             ),
             syn::Type::Paren(paren) => Self::static_type_is_string_constant(
-                crate::types::SynTypeRef::from(paren.elem.as_ref()),
+                crate::syn_type_ref::SynTypeRef::from(paren.elem.as_ref()),
             ),
             syn::Type::Path(path) => path.path.segments.last().is_some_and(|segment| {
                 matches!(
@@ -2734,13 +2758,13 @@ impl ConstantInitializerStringLiteralVisitor {
                 )
             }),
             syn::Type::Reference(reference) => Self::static_type_is_string_constant(
-                crate::types::SynTypeRef::from(reference.elem.as_ref()),
+                crate::syn_type_ref::SynTypeRef::from(reference.elem.as_ref()),
             ),
             syn::Type::Slice(slice) => Self::static_type_is_string_constant(
-                crate::types::SynTypeRef::from(slice.elem.as_ref()),
+                crate::syn_type_ref::SynTypeRef::from(slice.elem.as_ref()),
             ),
             syn::Type::Tuple(tuple) => tuple.elems.iter().any(|element| {
-                Self::static_type_is_string_constant(crate::types::SynTypeRef::from(element))
+                Self::static_type_is_string_constant(crate::syn_type_ref::SynTypeRef::from(element))
             }),
             syn::Type::FnPtr(_)
             | syn::Type::ImplTrait(_)
@@ -2777,7 +2801,7 @@ impl<'ast> syn::visit::Visit<'ast> for ConstantInitializerStringLiteralVisitor {
 impl<'ast> syn::visit::Visit<'ast> for StringConstantDeclarationVisitor {
     fn visit_expr_const(&mut self, expr_const: &'ast syn::ExprConst) {
         let mut literal_visitor = TestStringLiteralVisitor {
-            values: crate::types::SourceTextList::default(),
+            values: crate::source_text_list::SourceTextList::default(),
         };
         syn::visit::Visit::visit_block(&mut literal_visitor, &expr_const.block);
         if !literal_visitor.values.is_empty() {
@@ -2786,7 +2810,7 @@ impl<'ast> syn::visit::Visit<'ast> for StringConstantDeclarationVisitor {
         syn::visit::visit_expr_const(self, expr_const);
     }
     fn visit_impl_item_const(&mut self, impl_item_const: &'ast syn::ImplItemConst) {
-        if crate::code_style::type_stores_string_text(crate::types::SynTypeRef::from(
+        if crate::code_style::type_stores_string_text(crate::syn_type_ref::SynTypeRef::from(
             &impl_item_const.ty,
         ))
         .get()
@@ -2802,7 +2826,7 @@ impl<'ast> syn::visit::Visit<'ast> for StringConstantDeclarationVisitor {
     fn visit_impl_item_fn(&mut self, impl_item_fn: &'ast syn::ImplItemFn) {
         if impl_item_fn.sig.constness.is_some() {
             let mut literal_visitor = TestStringLiteralVisitor {
-                values: crate::types::SourceTextList::default(),
+                values: crate::source_text_list::SourceTextList::default(),
             };
             syn::visit::Visit::visit_block(&mut literal_visitor, &impl_item_fn.block);
             if !literal_visitor.values.is_empty() {
@@ -2815,7 +2839,7 @@ impl<'ast> syn::visit::Visit<'ast> for StringConstantDeclarationVisitor {
         syn::visit::visit_impl_item_fn(self, impl_item_fn);
     }
     fn visit_item_const(&mut self, item_const: &'ast syn::ItemConst) {
-        if crate::code_style::type_stores_string_text(crate::types::SynTypeRef::from(
+        if crate::code_style::type_stores_string_text(crate::syn_type_ref::SynTypeRef::from(
             item_const.ty.as_ref(),
         ))
         .get()
@@ -2831,7 +2855,7 @@ impl<'ast> syn::visit::Visit<'ast> for StringConstantDeclarationVisitor {
     fn visit_item_fn(&mut self, item_fn: &'ast syn::ItemFn) {
         if item_fn.sig.constness.is_some() {
             let mut literal_visitor = TestStringLiteralVisitor {
-                values: crate::types::SourceTextList::default(),
+                values: crate::source_text_list::SourceTextList::default(),
             };
             syn::visit::Visit::visit_block(&mut literal_visitor, &item_fn.block);
             if !literal_visitor.values.is_empty() {
@@ -2845,7 +2869,7 @@ impl<'ast> syn::visit::Visit<'ast> for StringConstantDeclarationVisitor {
     }
     fn visit_item_static(&mut self, item_static: &'ast syn::ItemStatic) {
         if ConstantInitializerStringLiteralVisitor::static_type_is_string_constant(
-            crate::types::SynTypeRef::from(item_static.ty.as_ref()),
+            crate::syn_type_ref::SynTypeRef::from(item_static.ty.as_ref()),
         ) || ConstantInitializerStringLiteralVisitor::contains(item_static.expr.as_ref()).get()
         {
             self.errors.push(format!(
@@ -2923,7 +2947,7 @@ impl<'ast> syn::visit::Visit<'ast> for StringConstantDeclarationVisitor {
         syn::visit::visit_macro(self, r#macro);
     }
     fn visit_trait_item_const(&mut self, trait_item_const: &'ast syn::TraitItemConst) {
-        if crate::code_style::type_stores_string_text(crate::types::SynTypeRef::from(
+        if crate::code_style::type_stores_string_text(crate::syn_type_ref::SynTypeRef::from(
             &trait_item_const.ty,
         ))
         .get()
@@ -2946,7 +2970,7 @@ impl<'ast> syn::visit::Visit<'ast> for StringConstantDeclarationVisitor {
             && let Some(block) = &trait_item_fn.default
         {
             let mut literal_visitor = TestStringLiteralVisitor {
-                values: crate::types::SourceTextList::default(),
+                values: crate::source_text_list::SourceTextList::default(),
             };
             syn::visit::Visit::visit_block(&mut literal_visitor, block);
             if !literal_visitor.values.is_empty() {
@@ -2965,7 +2989,7 @@ impl<'ast> syn::visit::Visit<'ast> for StringConstantDeclarationVisitor {
     proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct StringConstantVisitor {
-    errors: crate::types::DiagnosticMessages,
+    errors: crate::diagnostic_messages::DiagnosticMessages,
 }
 
 #[derive(
@@ -2975,7 +2999,7 @@ pub(super) struct StringConstantVisitor {
     Default,
 )]
 pub(super) struct TracingMessageLiteralVisitor {
-    values: crate::types::SourceTextList,
+    values: crate::source_text_list::SourceTextList,
 }
 
 impl<'ast> syn::visit::Visit<'ast> for TracingMessageLiteralVisitor {
@@ -3026,7 +3050,7 @@ impl<'ast> syn::visit::Visit<'ast> for StringConstantVisitor {
                 })
         ) {
             let mut literal_visitor = TestStringLiteralVisitor {
-                values: crate::types::SourceTextList::default(),
+                values: crate::source_text_list::SourceTextList::default(),
             };
             expr_call.args.iter().for_each(|arg| {
                 syn::visit::Visit::visit_expr(&mut literal_visitor, arg);
@@ -3072,7 +3096,8 @@ impl<'ast> syn::visit::Visit<'ast> for StringConstantVisitor {
         ) {
             let parser = syn::punctuated::Punctuated::<syn::Expr, syn::Token![,]>::parse_terminated;
             if let Ok(expressions) = syn::parse::Parser::parse2(parser, r#macro.tokens.clone()) {
-                let mut visitor = Self::new(crate::types::DiagnosticMessages::default());
+                let mut visitor =
+                    Self::new(crate::diagnostic_messages::DiagnosticMessages::default());
                 let required_expression_count = if matches!(
                     macro_name.as_str(),
                     constants_str::SHARED_VALUES_ASSERT | constants_str::SHARED_VALUES_DEBUG_ASSERT
@@ -3133,9 +3158,9 @@ impl<'ast> syn::visit::Visit<'ast> for StringConstantVisitor {
     proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct TestNameVisitor {
-    errors: crate::types::DiagnosticMessages,
-    module_names: crate::types::SourceTextList,
-    root_test_found: crate::types::AnalyzerBool,
+    errors: crate::diagnostic_messages::DiagnosticMessages,
+    module_names: crate::source_text_list::SourceTextList,
+    root_test_found: crate::analyzer_bool::AnalyzerBool,
 }
 impl<'ast> syn::visit::Visit<'ast> for TestNameVisitor {
     fn visit_item_fn(&mut self, item_fn: &'ast syn::ItemFn) {
@@ -3177,7 +3202,7 @@ impl<'ast> syn::visit::Visit<'ast> for TestNameVisitor {
                         self.errors.push(error);
                     }
                 }
-                None => self.root_test_found = crate::types::AnalyzerBool::from(true),
+                None => self.root_test_found = crate::analyzer_bool::AnalyzerBool::from(true),
                 Some(_) => {}
             }
         }

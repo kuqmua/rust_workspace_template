@@ -1,6 +1,6 @@
 #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
 pub(crate) enum StdAdminHtmlSelectedError {
-    #[error("administrator HTML form contains too many selected fields")]
+    #[error("{message}", message = constants_str::ADMIN_DIAGNOSTIC_ADMINISTRATOR_HTML_FORM_CONTAINS_TOO_MANY_SELECTED_FIELDS)]
     TooMany,
 }
 impl From<bounded_types::bounded_value_error::BoundedValueError> for StdAdminHtmlSelectedError {

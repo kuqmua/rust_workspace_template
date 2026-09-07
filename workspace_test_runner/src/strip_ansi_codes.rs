@@ -1,21 +1,6 @@
 pub(crate) fn strip_ansi_codes(
-    ansi_text_ref: crate::ansi_text_ref::AnsiTextRef<'_>,
+    tool_ansi_chars: macro_helpers::tool_ansi_chars::ToolAnsiChars<'_>,
 ) -> crate::clean_ansi_text::CleanAnsiText {
-    let clean = ansi_text_ref
-        .get()
-        .chars()
-        .fold(
-            (String::with_capacity(ansi_text_ref.get().len()), false),
-            |(mut accumulator, in_escape), ch| match (in_escape, ch) {
-                (true, 'm') => (accumulator, false),
-                (false, '\u{1b}') | (true, _) => (accumulator, true),
-                (false, _) => {
-                    accumulator.push(ch);
-                    (accumulator, false)
-                }
-            },
-        )
-        .0;
-    crate::clean_ansi_text::CleanAnsiText::try_from(clean)
+    crate::clean_ansi_text::CleanAnsiText::try_from(String::from(tool_ansi_chars))
         .unwrap_or_else(crate::clean_ansi_text::CleanAnsiText::from)
 }

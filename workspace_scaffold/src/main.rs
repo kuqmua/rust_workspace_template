@@ -54,7 +54,7 @@ pub mod template_fs_replace_file;
 pub mod template_fs_should_skip;
 pub mod template_fs_write_text;
 #[cfg(test)]
-pub mod test_tests;
+pub mod test_workspace_scaffold;
 pub mod update_env_name;
 
 fn workspace_root()
