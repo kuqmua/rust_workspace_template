@@ -16,13 +16,9 @@ use leptos::prelude::{AddAnyAttr, ClassAttribute, CustomAttribute, ElementChild}
     reason = "Leptos props own page data so the generated component factory can move it across reactive render closures"
 )]
 pub(crate) fn AdminDataGrid(
-    admin_bool: server_admin_contract::admin_bool::AdminBool,
     admin_csr_query: super::admin_csr_query::AdminCsrQuery,
     admin_data_table_view: server_admin_contract::admin_data_table_view::AdminDataTableView,
 ) -> impl leptos::prelude::IntoView {
-    let can_export = admin_data_table_view.table()
-        == server_admin_contract::admin_data_table::AdminDataTable::AuditLog
-        && bool::from(admin_bool);
     let supports_filters = bool::from(admin_data_table_view.table().supports_filters());
     let table_path = admin_data_table_view.table().frontend_path();
     let total = admin_data_table_view.total();
@@ -77,9 +73,6 @@ pub(crate) fn AdminDataGrid(
     let previous_limit = limit_text.clone();
     leptos::view! {
         <section class="table-page" data-renderer="csr">
-            {can_export.then(|| leptos::view! {
-                <crate::admin_audit_download::AdminAuditDownload admin_page_limit=admin_csr_query.limit() admin_page_offset=admin_csr_query.offset() />
-            })}
             {grid}
             <singlestage::Pagination attr:data-name="Pagination" attr:aria-label=constants_str::ADMIN_UI_TABLE_PAGES class="table-pagination mx-auto flex w-full items-center justify-center gap-2">
                 <singlestage::PaginationContent class="contents">

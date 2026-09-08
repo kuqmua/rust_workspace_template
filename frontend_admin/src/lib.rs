@@ -24,12 +24,6 @@ pub mod admin_api_url_with_suffix;
 pub mod admin_app;
 #[cfg(not(target_arch = "wasm32"))]
 pub mod admin_assets_error;
-#[cfg(target_arch = "wasm32")]
-pub mod admin_audit_download;
-#[cfg(target_arch = "wasm32")]
-pub mod admin_audit_download_state;
-#[cfg(any(target_arch = "wasm32", test))]
-pub mod admin_audit_download_url;
 pub mod admin_badge;
 pub mod admin_badge_variant;
 pub mod admin_button;

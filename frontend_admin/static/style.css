@@ -466,11 +466,22 @@ p {
 }
 
 @layer utilities {
-  .user-create-form [data-name="Label"] {
+  :is(.user-create-form, .role-create-form) [data-name="Label"] {
     width: 100% !important;
+    gap: 0 !important;
   }
 
-  .user-create-form [data-name="Label"] > span {
+  :is(.user-create-form, .role-create-form) [data-name="Label"] > span,
+  :is(.user-create-form, .role-create-form) [data-name="Input"],
+  :is(.user-create-form, .role-create-form) .crud-actions > button {
+    height: 36px !important;
+    min-height: 36px !important;
+    padding-block: 0 !important;
+  }
+
+  :is(.user-create-form, .role-create-form) [data-name="Label"] > span {
+    display: grid;
+    place-items: center;
     width: 100%;
     text-align: center;
   }
@@ -492,6 +503,7 @@ p {
 
   .table-scroll th,
   .table-scroll td {
+    padding-inline: calc(var(--spacing) * 2) !important;
     height: var(--header-height) !important;
     padding-block: 0 !important;
     white-space: nowrap;
@@ -506,10 +518,7 @@ p {
 
   .table-admin_users_page > .resource-actions > a,
   .table-admin_roles_page > .resource-actions > a,
-  .audit-download-actions button,
-  .audit-download-actions > a,
-  .user-create-page > .crud-heading > a,
-  .user-create-form .crud-actions > button,
+  :is(.user-create-form, .role-create-form) .crud-actions > button,
   .auth-card form button {
     width: 100% !important;
   }
@@ -529,12 +538,8 @@ p {
   min-height: 64px;
 }
 
-.user-create-page {
+:is(.user-create-page, .role-create-page) {
   gap: 0;
-}
-
-.user-create-page > .crud-heading {
-  min-height: 0;
 }
 
 .crud-heading h1,
@@ -581,11 +586,12 @@ p {
   padding: 4px 0;
 }
 
-.user-create-page .crud-form {
+:is(.user-create-page, .role-create-page) .crud-form {
   grid-template-columns: minmax(0, 1fr);
+  padding-bottom: 0;
 }
 
-.user-create-form {
+:is(.user-create-form, .role-create-form) {
   display: grid;
   gap: 0;
 }
@@ -1335,17 +1341,17 @@ pre {
   min-height: 100dvh;
   place-items: center;
   background: var(--surface);
-  padding: 32px 20px;
+  padding: 32px 0;
 }
 
 .auth-card {
   display: grid;
-  width: min(100%, 400px);
+  width: 100%;
   gap: 24px;
   border: 0;
   background: transparent;
   box-shadow: none;
-  padding: 34px;
+  padding: 0;
 }
 
 .auth-card h1 {
@@ -1370,6 +1376,7 @@ pre {
 .auth-card form label span {
   display: block;
   margin-bottom: 6px;
+  text-align: center;
 }
 
 .auth-card form button {
@@ -1636,11 +1643,7 @@ pre {
   }
 
   .auth-layout {
-    padding: 40px 16px;
-  }
-
-  .auth-card {
-    padding: 26px;
+    padding: 40px 0;
   }
 }
 
@@ -1654,10 +1657,6 @@ pre {
       padding-inline: 4px !important;
       font-size: 11px !important;
     }
-  }
-
-  .auth-card {
-    padding: 22px;
   }
 }
 
