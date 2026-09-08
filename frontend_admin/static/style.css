@@ -475,6 +475,21 @@ p {
 }
 
 @layer utilities {
+  .table-column-filter > button {
+    border-top-width: 0 !important;
+    border-bottom-width: 0 !important;
+    border-right-width: 0 !important;
+    box-shadow: none !important;
+    height: var(--header-height) !important;
+    min-height: var(--header-height) !important;
+    padding-block: 0 !important;
+    vertical-align: middle;
+  }
+
+  table tr > :is(th, td) + :is(th, td) {
+    border-left: 1px solid var(--border) !important;
+  }
+
   .topbar nav a:not(.active),
   .topbar nav li > form button {
     color: var(--text-secondary) !important;
@@ -1583,184 +1598,6 @@ pre {
   height: 1px;
   overflow: hidden;
   clip: rect(0, 0, 0, 0);
-}
-
-@media (max-width: 1080px) {
-  .crud-list {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .mutation-form:is(form) {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  table {
-    display: block;
-    overflow-x: auto;
-  }
-
-  th,
-  td {
-    min-width: 92px;
-  }
-}
-
-@media (max-width: 760px) {
-  :root {
-    --header-height: 36px;
-  }
-
-  .app-shell {
-    grid-template-rows: var(--header-height) minmax(0, 1fr);
-  }
-
-  .topbar {
-    min-height: 0;
-    height: var(--header-height);
-    border-right: 0;
-  }
-
-  .nav-menu {
-    position: relative;
-    width: 100%;
-    height: 100%;
-  }
-
-  .nav-menu-toggle {
-    display: none;
-  }
-
-  .topbar nav {
-    position: static;
-    display: flex;
-    height: 100%;
-  }
-
-
-  .topbar nav li > form button {
-    width: 100%;
-  }
-
-  .crud-heading,
-  .crud-delete {
-    align-items: stretch;
-    flex-direction: column;
-  }
-
-  .crud-form {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .crud-actions,
-  .crud-form > .ui-field:last-of-type:nth-of-type(3) {
-    grid-column: auto;
-  }
-
-  .crud-actions .ui-button,
-  .crud-delete .ui-button {
-    width: 100%;
-  }
-
-  .settings-form,
-  .mutation-form:is(form) {
-    grid-template-columns: 1fr;
-    gap: 14px;
-    padding: 16px;
-  }
-
-  .table-filter-operations {
-    padding: 20px 16px;
-  }
-
-  .table-filter-form {
-    grid-template-columns: 1fr;
-  }
-
-  .table-actions,
-  .table-options {
-    min-width: 0;
-  }
-
-  .settings-form button {
-    grid-column: auto;
-  }
-
-  table {
-    background: transparent;
-    overflow: visible;
-  }
-
-  table thead {
-    display: none;
-  }
-
-  table tbody {
-    display: grid;
-    gap: 12px;
-  }
-
-  table tr {
-    display: grid;
-    height: auto;
-    overflow: hidden;
-    border: 1px solid var(--border);
-    background: var(--surface);
-    box-shadow: var(--shadow-sm);
-  }
-
-  table td {
-    display: grid;
-    min-width: 0;
-    grid-template-columns: 92px minmax(0, 1fr);
-    gap: 12px;
-    border-top: 1px solid var(--border);
-    padding: 12px 14px;
-    overflow-wrap: anywhere;
-    align-items: center;
-    overflow-x: auto;
-  }
-
-  table td:first-child {
-    border-top: 0;
-  }
-
-  table td::before {
-    content: attr(data-label);
-    color: var(--muted);
-    font-size: 10px;
-    letter-spacing: 0.065em;
-    text-transform: none;
-  }
-
-  table td > form {
-    min-width: 0;
-  }
-
-  .security-card {
-    padding: 18px;
-  }
-
-  .profile-card,
-  .profile-grid > .security-card {
-    padding: 18px;
-  }
-
-  .auth-layout {
-    padding: 40px 0;
-  }
-}
-
-@media (max-width: 420px) {
-  @layer utilities {
-    .table-pagination {
-      gap: 4px !important;
-    }
-
-    .table-pagination button {
-      padding-inline: 4px !important;
-      font-size: 11px !important;
-    }
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {

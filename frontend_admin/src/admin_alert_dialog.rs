@@ -58,11 +58,11 @@ pub(crate) fn AdminAlertDialog(
             })).build()>
             <singlestage::DialogContent attr:data-name="AlertDialogContent" class="flex flex-col gap-4">
                 <div data-name="AlertDialogBody" class="contents">
-                    <singlestage::DialogHeader attr:data-name="AlertDialogHeader" class="flex flex-col gap-2 text-center sm:text-left">
+                    <singlestage::DialogHeader attr:data-name="AlertDialogHeader" class="flex flex-col gap-2 text-left">
                         <singlestage::DialogTitle attr:data-name="AlertDialogTitle" class="text-lg leading-none font-semibold">{title}</singlestage::DialogTitle>
                         <singlestage::DialogDescription attr:data-name="AlertDialogDescription" class="text-sm text-muted-foreground">{description}</singlestage::DialogDescription>
                     </singlestage::DialogHeader>
-                    <singlestage::DialogFooter attr:data-name="AlertDialogFooter" class="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+                    <singlestage::DialogFooter attr:data-name="AlertDialogFooter" class="flex flex-row gap-2 justify-end">
                         <crate::admin_button::AdminButton admin_button_variant=crate::admin_button_variant::AdminButtonVariant::Secondary>{constants_str::ADMIN_BUTTON_CANCEL}</crate::admin_button::AdminButton>
                         <crate::admin_button::AdminButton admin_button_variant=crate::admin_button_variant::AdminButtonVariant::Danger on_click=leptos::prelude::Callback::new(move |_event| callback.run(()))>{confirm}</crate::admin_button::AdminButton>
                     </singlestage::DialogFooter>
