@@ -467,6 +467,51 @@ p {
 }
 
 @layer utilities {
+  table :is(th, td, tr) {
+    padding-inline: 0 !important;
+  }
+
+  .table-admin_sessions_page td .table-actions,
+  .table-admin_sessions_page td .table-actions > div,
+  .table-admin_sessions_page td .table-actions button:not(dialog button) {
+    width: 100% !important;
+  }
+
+  #revoke-all-sessions {
+    max-width: none !important;
+    padding: 0 !important;
+    background: rgb(255 255 255 / 70%) !important;
+  }
+
+  #revoke-all-sessions > form {
+    display: flex;
+    width: 100%;
+    flex-direction: column !important;
+    gap: 0 !important;
+  }
+
+  #revoke-all-sessions > form button {
+    width: 100% !important;
+  }
+
+  .auth-card [data-name="Label"] {
+    gap: 0 !important;
+  }
+
+  .auth-card [data-name="Label"] > span,
+  .auth-card [data-name="Input"],
+  .auth-card form button {
+    height: 32px !important;
+    min-height: 32px !important;
+    padding-block: 0 !important;
+    margin-block: 0 !important;
+  }
+
+  .auth-card [data-name="Label"] > span {
+    display: grid !important;
+    place-items: center;
+  }
+
   .profile-grid > :is(.profile-card, .security-card) {
     border-top-width: 0 !important;
     box-shadow: none !important;
@@ -526,7 +571,7 @@ p {
 
   .table-scroll th,
   .table-scroll td {
-    padding-inline: calc(var(--spacing) * 2) !important;
+    padding-inline: 0 !important;
     height: var(--header-height) !important;
     padding-block: 0 !important;
     white-space: nowrap;
@@ -546,6 +591,8 @@ p {
 
   .table-admin_users_page > .resource-actions > a,
   .table-admin_roles_page > .resource-actions > a,
+  .table-admin_sessions_page > .resource-actions > div,
+  .table-admin_sessions_page > .resource-actions button:not(dialog button),
   :is(.user-create-form, .role-create-form) .crud-actions > button,
   .auth-card form button {
     width: 100% !important;
@@ -836,6 +883,7 @@ td form button:hover {
 }
 
 .singlestage-dialog {
+  margin: auto;
   width: min(32rem, calc(100% - 2rem));
   max-width: none;
   padding: 0;
@@ -845,6 +893,26 @@ td form button:hover {
 
 .singlestage-dialog::backdrop {
   background: rgb(0 0 0 / 50%);
+}
+
+.singlestage-dialog#revoke-all-sessions {
+  inset: 0;
+  width: 100vw;
+  height: 100dvh;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+}
+
+#revoke-all-sessions[open] {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  min-height: 100%;
+  max-width: none;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
 }
 
 .table-filter-operations:not(:popover-open) {
@@ -1381,8 +1449,8 @@ pre {
   gap: 0;
 }
 
-.auth-card form > [data-name="Field"] + [data-name="Field"] {
-  margin-top: 16px;
+.auth-card form > [data-name="Field"]:first-child {
+  border-top: 1px solid var(--border);
 }
 
 .auth-card .field-error + form {

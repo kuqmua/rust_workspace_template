@@ -23,7 +23,6 @@ pub(crate) fn AdminSessionsView(
         let session_id = item.id().to_string();
         let created_at = item.created_at().to_string();
         let expires_at = item.expires_at().to_string();
-        let is_current = bool::from(item.is_current());
         let current_text = item.is_current().to_string();
         let revoke_session_id = item.id().clone();
         let dialog_id = format!("revoke-session-{revoke_session_id}");
@@ -32,7 +31,7 @@ pub(crate) fn AdminSessionsView(
                 <crate::table_cell::TableCell data_label="session">{session_id}</crate::table_cell::TableCell>
                 <crate::table_cell::TableCell data_label="created">{created_at}</crate::table_cell::TableCell>
                 <crate::table_cell::TableCell data_label="expires">{expires_at}</crate::table_cell::TableCell>
-                <crate::table_cell::TableCell data_label="current"><crate::admin_badge::AdminBadge admin_badge_variant=if is_current { crate::admin_badge_variant::AdminBadgeVariant::Success } else { crate::admin_badge_variant::AdminBadgeVariant::Neutral }>{current_text}</crate::admin_badge::AdminBadge></crate::table_cell::TableCell>
+                <crate::table_cell::TableCell data_label="current">{current_text}</crate::table_cell::TableCell>
                 <crate::table_cell::TableCell data_label="actions" bool=true><div class="table-actions"><crate::admin_alert_dialog::AdminAlertDialog string=dialog_id title=constants_str::ADMIN_UI_REVOKE_SESSION description=constants_str::ADMIN_UI_THIS_ADMINISTRATOR_SESSION_WILL_BE_SIGNED_OUT_IMMEDIATELY trigger=constants_str::ADMIN_BUTTON_REVOKE_SESSION confirm=constants_str::ADMIN_BUTTON_REVOKE callback=leptos::prelude::Callback::new(move |()| {
                     if let Ok(path) = crate::admin_route_path_url::admin_route_path_url(&server_admin_contract::admin_parameterized_route_path::admin_parameterized_route_path::<server_admin_contract::admin_revoke_session_route::AdminRevokeSessionRoute>(&revoke_session_id)) {
                         crate::reload_after::reload_after(crate::admin_mutation_method::AdminMutationMethod::Delete, path, server_admin_contract::admin_no_body::AdminNoBody);
@@ -45,6 +44,7 @@ pub(crate) fn AdminSessionsView(
         <section class="table-admin_sessions_page" data-renderer="csr">
             <div class="resource-actions">
                 <crate::admin_alert_dialog::AdminAlertDialog
+                    compact=true
                     string=String::from(constants_str::ADMIN_REVOKE_ALL_SESSIONS_DIALOG)
                     title=constants_str::ADMIN_UI_REVOKE_ALL_SESSIONS
                     description=constants_str::ADMIN_UI_END_ALL_SESSIONS

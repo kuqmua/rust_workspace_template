@@ -11,7 +11,10 @@
     reason = "Leptos component macro expansion generates builders, fields, and bindings with framework-defined shapes"
 )]
 
-use leptos::prelude::{AddAnyAttr, Callable, ClassAttribute, CustomAttribute, ElementChild};
+use leptos::prelude::{
+    AddAnyAttr, AriaAttributes, Callable, ClassAttribute, CustomAttribute, ElementChild,
+    GlobalAttributes,
+};
 
 #[leptos::component]
 #[allow(
@@ -29,12 +32,24 @@ pub(crate) fn AdminAlertDialog(
     trigger: &'static str,
     confirm: &'static str,
     #[prop(optional)] bool: bool,
+    #[prop(optional)] compact: bool,
     callback: leptos::prelude::Callback<()>,
 ) -> impl leptos::prelude::IntoView {
     crate::with_owner::with_owner(move || {
         if bool {
             return leptos::prelude::IntoAny::into_any(leptos::view! {
                 <crate::admin_button::AdminButton admin_button_variant=crate::admin_button_variant::AdminButtonVariant::Danger admin_button_kind=crate::admin_button_kind::AdminButtonKind::Button bool=true>{trigger}</crate::admin_button::AdminButton>
+            });
+        }
+        if compact {
+            return leptos::prelude::IntoAny::into_any(leptos::view! {
+                <crate::admin_button::AdminButton admin_button_variant=crate::admin_button_variant::AdminButtonVariant::Danger admin_button_kind=crate::admin_button_kind::AdminButtonKind::Button attr:commandfor=string.clone() attr:command="show-modal">{trigger}</crate::admin_button::AdminButton>
+                <dialog id=string class="singlestage-dialog" aria-label=title>
+                    <form method="dialog">
+                        <crate::admin_button::AdminButton admin_button_variant=crate::admin_button_variant::AdminButtonVariant::Danger on_click=leptos::prelude::Callback::new(move |_event| callback.run(()))>{confirm}</crate::admin_button::AdminButton>
+                        <crate::admin_button::AdminButton admin_button_variant=crate::admin_button_variant::AdminButtonVariant::Secondary>{constants_str::ADMIN_BUTTON_CANCEL}</crate::admin_button::AdminButton>
+                    </form>
+                </dialog>
             });
         }
         leptos::prelude::IntoAny::into_any(leptos::view! {

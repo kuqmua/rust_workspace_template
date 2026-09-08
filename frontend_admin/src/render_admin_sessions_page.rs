@@ -21,7 +21,6 @@ pub fn render_admin_sessions_page(
         let form_id = format!("revoke-session-form-{hidden_session_id}");
         let created_at = item.created_at().to_string();
         let expires_at = item.expires_at().to_string();
-        let is_current = bool::from(item.is_current());
         let current_text = item.is_current().to_string();
         let confirm_form_id = form_id.clone();
         let dialog = crate::with_owner::with_owner(move || {
@@ -53,7 +52,7 @@ pub fn render_admin_sessions_page(
                 <crate::table_cell::TableCell data_label="session">{session_id}</crate::table_cell::TableCell>
                 <crate::table_cell::TableCell data_label="created">{created_at}</crate::table_cell::TableCell>
                 <crate::table_cell::TableCell data_label="expires">{expires_at}</crate::table_cell::TableCell>
-                <crate::table_cell::TableCell data_label="current"><crate::admin_badge::AdminBadge admin_badge_variant=if is_current { crate::admin_badge_variant::AdminBadgeVariant::Success } else { crate::admin_badge_variant::AdminBadgeVariant::Neutral }>{current_text}</crate::admin_badge::AdminBadge></crate::table_cell::TableCell>
+                <crate::table_cell::TableCell data_label="current">{current_text}</crate::table_cell::TableCell>
                 <crate::table_cell::TableCell data_label="actions" bool=true>
                     {dialog}
                 </crate::table_cell::TableCell>

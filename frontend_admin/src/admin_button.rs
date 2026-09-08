@@ -14,7 +14,7 @@
     reason = "Leptos component macro expansion generates builders, fields, and bindings with framework-defined shapes"
 )]
 
-use leptos::prelude::{Callable, ClassAttribute, ElementChild, OnAttribute};
+use leptos::prelude::{AddAnyAttr, Callable};
 
 #[leptos::component]
 #[allow(
@@ -43,7 +43,7 @@ pub(crate) fn AdminButton(
 ) -> impl leptos::prelude::IntoView {
     match on_click {
         Some(callback) => leptos::prelude::IntoAny::into_any(leptos::view! {
-            <span class="contents" on:click=move |event| callback.run(event)><singlestage::Button class=admin_button_variant.class() button_type=admin_button_kind.value() disabled=bool commandfor=command_for command=command.map(String::from) popovertarget=popover_target popovertargetaction=popover_target_action.map(String::from) aria_label=aria_label style=style form=form>{children()}</singlestage::Button></span>
+            <singlestage::Button on:click=move |event| callback.run(event) class=admin_button_variant.class() button_type=admin_button_kind.value() disabled=bool commandfor=command_for command=command.map(String::from) popovertarget=popover_target popovertargetaction=popover_target_action.map(String::from) aria_label=aria_label style=style form=form>{children()}</singlestage::Button>
         }),
         None => leptos::prelude::IntoAny::into_any(leptos::view! {
             <singlestage::Button class=admin_button_variant.class() button_type=admin_button_kind.value() disabled=bool commandfor=command_for command=command.map(String::from) popovertarget=popover_target popovertargetaction=popover_target_action.map(String::from) aria_label=aria_label style=style form=form>{children()}</singlestage::Button>
