@@ -3,7 +3,7 @@
     reason = "the screen-local Leptos view branches require different attribute traits after macro expansion"
 )]
 
-use leptos::prelude::{AddAnyAttr, ElementChild};
+use leptos::prelude::ElementChild;
 
 #[must_use]
 pub fn render_admin_profile_page(
@@ -20,11 +20,6 @@ pub fn render_admin_profile_page(
     let login = authenticated_admin.login().to_string();
     let content_view = leptos::view! {
         <crate::admin_card::AdminCard admin_card_variant=crate::admin_card_variant::AdminCardVariant::Profile><crate::admin_card_header::AdminCardHeader><crate::admin_card_title::AdminCardTitle>{display_name}</crate::admin_card_title::AdminCardTitle><crate::admin_card_description::AdminCardDescription>{login}</crate::admin_card_description::AdminCardDescription></crate::admin_card_header::AdminCardHeader><p>{roles}</p></crate::admin_card::AdminCard>
-        <crate::admin_card::AdminCard admin_card_variant=crate::admin_card_variant::AdminCardVariant::Security><form method="post" action=server_admin_contract::admin_html_action::AdminHtmlAction::ProfilePassword.get()>
-            <crate::admin_field::AdminField admin_field_label=constants_str::ADMIN_UI_CURRENT_PASSWORD><crate::admin_input::AdminInput admin_input_name="current_password" admin_input_kind=crate::admin_input_kind::AdminInputKind::Password required=true /></crate::admin_field::AdminField>
-            <crate::admin_field::AdminField admin_field_label=constants_str::ADMIN_UI_NEW_PASSWORD><crate::admin_input::AdminInput admin_input_name="new_password" admin_input_kind=crate::admin_input_kind::AdminInputKind::Password minlength=server_admin_contract::identity::ADMIN_NEW_PASSWORD_MIN_CHARS maxlength=server_admin_contract::identity::ADMIN_PASSWORD_MAX_CHARS required=true /><singlestage::FieldDescription attr:class="password-policy">{constants_str::ADMIN_UI_NEW_PASSWORDS_MUST_CONTAIN_12_TO_1024_CHARACTERS_INCLUDING_UPPERCASE_LOWERCASE_DIGIT_AND_SPECIAL_CHARACTERS_WITH_NO_WHITESPACE}</singlestage::FieldDescription></crate::admin_field::AdminField>
-            <crate::admin_card_footer::AdminCardFooter><crate::admin_button::AdminButton>{constants_str::ADMIN_BUTTON_CHANGE_PASSWORD}</crate::admin_button::AdminButton></crate::admin_card_footer::AdminCardFooter>
-        </form></crate::admin_card::AdminCard>
     };
     let content = crate::render_view::render_view(content_view);
     crate::render_admin_page_with_access::render_admin_page_with_access(

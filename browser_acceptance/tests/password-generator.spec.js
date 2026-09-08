@@ -5,47 +5,11 @@ test.afterEach(async ({ page }) => {
   await signOutIfAuthenticated(page);
 });
 
-test("test_profile_generates_reveals_and_replaces_password_in_input_without_submitting", async ({ page }) => {
+test("test_profile_displays_account_without_password_update_controls", async ({ page }) => {
   await signInInitialAdministrator(page);
   await page.goto("/admin/profile");
-  const password = page.locator('input[name="new_password"]');
-  const generate = page.getByRole("button", { name: "generate_password", exact: true });
-  let passwordChanges = 0;
-  page.on("request", request => {
-    if (request.method() === "POST" && request.url().endsWith("/v1/admin/auth/password")) {
-      passwordChanges += 1;
-    }
-  });
-
-  await generate.click();
-  await expect(password).not.toHaveValue("");
-  const first = await password.inputValue();
-  expect(first.length).toBe(68);
-  expect(/[A-Z]/.test(first) && /[a-z]/.test(first) && /[0-9]/.test(first) && /[^A-Za-z0-9\s]/.test(first) && !/\s/.test(first)).toBe(true);
-  await expect(password).toHaveAttribute("type", "password");
-  await expect(page.getByLabel("current_password", { exact: true })).toHaveValue("");
-  await expect(page.locator(".security-card code")).toHaveCount(0);
-  await page.getByRole("button", { name: "show_password", exact: true }).click();
-  await expect(password).toHaveAttribute("type", "text");
-  await expect(password).toHaveValue(first);
-  await expect(page.locator(".security-card code")).toHaveCount(0);
-  await page.getByRole("button", { name: "hide_password", exact: true }).click();
-  await expect(password).toHaveAttribute("type", "password");
-  await expect(password).toHaveValue(first);
-  await expect(page.locator(".security-card code")).toHaveCount(0);
-  await generate.click();
-  await expect(password).not.toHaveValue(first);
-  expect(passwordChanges).toBe(0);
-
-  const second = await password.inputValue();
-  await page.evaluate(() => {
-    Object.defineProperty(Crypto.prototype, "getRandomValues", {
-      configurable: true,
-      value() { throw new DOMException("Unavailable", "OperationError"); }
-    });
-  });
-  await generate.click();
-  await expect(page.getByText("password_generation_failed", { exact: true })).toBeVisible();
-  await expect(password).toHaveValue(second);
-  expect(passwordChanges).toBe(0);
+  const profile = page.locator(".profile-grid");
+  await expect(profile.locator('[data-name="Label"] > span:first-child')).toHaveText(["display_name", "login", "roles", "permissions"]);
+  await expect(profile.locator('[data-name="Label"] > span:last-child')).toHaveCount(4);
+  await expect(profile.locator("input, button, form, dl, dt, dd")).toHaveCount(0);
 });
