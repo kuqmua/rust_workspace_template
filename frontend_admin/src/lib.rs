@@ -33,7 +33,9 @@ pub mod admin_button_variant;
 pub mod admin_card;
 pub mod admin_card_description;
 pub mod admin_card_footer;
+#[cfg(not(target_arch = "wasm32"))]
 pub mod admin_card_header;
+#[cfg(not(target_arch = "wasm32"))]
 pub mod admin_card_title;
 pub mod admin_card_variant;
 pub mod admin_checkbox;

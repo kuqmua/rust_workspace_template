@@ -13,7 +13,8 @@ async function expectSharedTypography(page) {
       const samples = hasText || control ? [{
         element: element.tagName,
         family: getComputedStyle(element).fontFamily,
-        weight: getComputedStyle(element).fontWeight
+        weight: getComputedStyle(element).fontWeight,
+        size: getComputedStyle(element).fontSize
       }] : [];
       ["::before", "::after", "::marker", "::placeholder", "::file-selector-button"].forEach(pseudo => {
         const style = getComputedStyle(element, pseudo);
@@ -21,7 +22,7 @@ async function expectSharedTypography(page) {
         if (generated || (pseudo === "::marker" && getComputedStyle(element).display === "list-item") ||
             (pseudo === "::placeholder" && element.hasAttribute("placeholder")) ||
             (pseudo === "::file-selector-button" && element.matches('input[type="file"]'))) {
-          samples.push({ element: `${element.tagName}${pseudo}`, family: style.fontFamily, weight: style.fontWeight });
+          samples.push({ element: `${element.tagName}${pseudo}`, family: style.fontFamily, weight: style.fontWeight, size: style.fontSize });
         }
       });
       return samples;
@@ -32,6 +33,7 @@ async function expectSharedTypography(page) {
   expect(fonts.samples.length).toBeGreaterThan(0);
   expect(fonts.samples.filter(sample => sample.family !== fonts.family), page.url()).toEqual([]);
   expect(fonts.samples.filter(sample => sample.weight !== "400"), page.url()).toEqual([]);
+  expect(fonts.samples.filter(sample => sample.size !== "14px"), page.url()).toEqual([]);
 }
 
 test("test_sign_in_uses_regular_interface_typography", async ({ page }) => {
@@ -46,9 +48,9 @@ test("test_headings_emphasis_utilities_and_controls_use_regular_interface_typogr
   await page.evaluate(() => {
     const section = document.createElement("section");
     section.innerHTML = '<style>.font-fixture::before, .font-fixture::after {' +
-      'content: "Generated text"; font-family: monospace !important; font-weight: 900 !important; }</style>' +
+      'content: "Generated text"; font-family: monospace !important; font-weight: 900 !important; font-size: 28px !important; }</style>' +
       '<h1>Heading</h1><h2>Subheading</h2><strong>Important text</strong><b>Bold element</b>' +
-      '<span class="font-semibold">Semibold utility</span><span class="font-bold">Bold utility</span>' +
+      '<span class="text-lg">Large text utility</span><span style="font-size: 24px">Legacy size</span><span class="font-semibold">Semibold utility</span><span class="font-bold">Bold utility</span>' +
       '<span style="font-weight: 900">Explicit legacy weight</span><table><tr><th>Header</th></tr></table>' +
       '<pre>Preformatted text</pre><code class="font-mono">Code text</code>' +
       '<kbd>Keyboard shortcut</kbd><samp>Program output</samp>' +

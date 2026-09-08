@@ -5,7 +5,7 @@ test.afterEach(async ({ page }) => {
   await signOutIfAuthenticated(page);
 });
 
-test("profile generates, reveals, and replaces a password without submitting it", async ({ page }) => {
+test("test_profile_generates_reveals_and_replaces_password_in_input_without_submitting", async ({ page }) => {
   await signInInitialAdministrator(page);
   await page.goto("/admin/profile");
   const password = page.locator('input[name="new_password"]');
@@ -26,8 +26,12 @@ test("profile generates, reveals, and replaces a password without submitting it"
   await expect(page.getByLabel("current_password", { exact: true })).toHaveValue("");
   await expect(page.locator(".security-card code")).toHaveCount(0);
   await page.getByRole("button", { name: "show_password", exact: true }).click();
-  await expect(page.locator(".security-card code")).toHaveText(first);
+  await expect(password).toHaveAttribute("type", "text");
+  await expect(password).toHaveValue(first);
+  await expect(page.locator(".security-card code")).toHaveCount(0);
   await page.getByRole("button", { name: "hide_password", exact: true }).click();
+  await expect(password).toHaveAttribute("type", "password");
+  await expect(password).toHaveValue(first);
   await expect(page.locator(".security-card code")).toHaveCount(0);
   await generate.click();
   await expect(password).not.toHaveValue(first);

@@ -11,13 +11,6 @@ pub fn render_users(
         authenticated_admin
             .has_permission(server_admin_contract::admin_permission::AdminPermission::UsersCreate),
     );
-    let can_manage = bool::from(
-        authenticated_admin
-            .has_permission(server_admin_contract::admin_permission::AdminPermission::UsersUpdate),
-    ) || bool::from(
-        authenticated_admin
-            .has_permission(server_admin_contract::admin_permission::AdminPermission::UsersDelete),
-    );
     let rows = admin_users_page
         .items()
         .iter()
@@ -42,8 +35,7 @@ pub fn render_users(
     let content_view = leptos::view! {
         <section class="table-page table-admin_users_page">
         <div class="resource-actions">
-            {can_create.then(|| leptos::view! { <crate::admin_button_link::AdminButtonLink str=server_admin_contract::admin_frontend_path::AdminFrontendPath::UsersCreate.get()>{constants_str::ADMIN_BUTTON_CREATE_USER}</crate::admin_button_link::AdminButtonLink> })}
-            {can_manage.then(|| leptos::view! { <crate::admin_button_link::AdminButtonLink str=server_admin_contract::admin_frontend_path::AdminFrontendPath::UsersManage.get() admin_button_variant=crate::admin_button_variant::AdminButtonVariant::Secondary>{constants_str::ADMIN_BUTTON_MANAGE_USERS}</crate::admin_button_link::AdminButtonLink> })}
+            {can_create.then(|| leptos::view! { <crate::admin_button_link::AdminButtonLink str=server_admin_contract::admin_frontend_path::AdminFrontendPath::UsersCreate.get()>{constants_str::PG_CRUD_CREATE_PERMISSION_ACTION}</crate::admin_button_link::AdminButtonLink> })}
         </div>
         <crate::table_wrapper::TableWrapper><crate::table::Table><crate::table_header::TableHeader><crate::table_row::TableRow><crate::table_head::TableHead>"id"</crate::table_head::TableHead><crate::table_head::TableHead>"login"</crate::table_head::TableHead><crate::table_head::TableHead>"display_name"</crate::table_head::TableHead><crate::table_head::TableHead>"banned"</crate::table_head::TableHead><crate::table_head::TableHead>"roles"</crate::table_head::TableHead></crate::table_row::TableRow></crate::table_header::TableHeader>
         <crate::table_body::TableBody>{rows}</crate::table_body::TableBody></crate::table::Table></crate::table_wrapper::TableWrapper>
