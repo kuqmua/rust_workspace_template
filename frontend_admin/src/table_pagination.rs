@@ -1,12 +1,9 @@
 #![allow(
-    unused_imports,
     clippy::unused_trait_names,
     reason = "table pagination and data-grid Leptos views require different attribute traits after macro expansion"
 )]
 
-use leptos::prelude::{
-    AddAnyAttr, AriaAttributes, ClassAttribute, CustomAttribute, ElementChild, GlobalAttributes,
-};
+use leptos::prelude::{AddAnyAttr, ClassAttribute, ElementChild};
 
 pub(super) fn table_pagination(
     admin_page: server_admin_contract::admin_page::AdminPage,

@@ -10,6 +10,7 @@
     reason = "Leptos component macro expansion generates builders, fields, and bindings with framework-defined shapes"
 )]
 
+#[cfg(not(target_arch = "wasm32"))]
 use leptos::prelude::AddAnyAttr;
 
 #[cfg(not(target_arch = "wasm32"))]

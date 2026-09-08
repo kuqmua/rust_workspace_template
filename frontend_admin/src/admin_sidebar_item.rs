@@ -7,13 +7,12 @@
     clippy::same_name_method,
     clippy::shadow_reuse,
     clippy::unused_trait_names,
-    unused_imports,
     reason = "Leptos component macro expansion generates framework-defined shapes"
 )]
 
 #[allow(unused_import_braces, reason = "grouped Leptos prelude imports are required by workspace source policy")]
 #[rustfmt::skip]
-use leptos::prelude::{AddAnyAttr, ClassAttribute, CustomAttribute, ElementChild};
+use leptos::prelude::{ElementChild};
 
 #[leptos::component]
 #[allow(

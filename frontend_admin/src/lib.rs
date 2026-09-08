@@ -1,6 +1,5 @@
 #![allow(
     unused_crate_dependencies,
-    unused_imports,
     unreachable_pub,
     clippy::arbitrary_source_item_ordering,
     clippy::shadow_reuse,

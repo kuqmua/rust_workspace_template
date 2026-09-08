@@ -36,6 +36,8 @@ pub mod path_ref;
 #[cfg(test)]
 pub mod regex_regex_ref;
 #[cfg(test)]
+pub mod rs_source_files_ref;
+#[cfg(test)]
 pub mod runtime_analysis;
 #[cfg(test)]
 pub mod source_analysis;

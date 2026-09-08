@@ -1,13 +1,9 @@
 #![allow(
-    unused_imports,
     clippy::unused_trait_names,
     reason = "the administrator page shell requires its local set of document attribute traits"
 )]
 
-use leptos::prelude::{
-    AriaAttributes, ClassAttribute, CustomAttribute, ElementChild, GlobalAttributes,
-    InnerHtmlAttribute, StyleAttribute,
-};
+use leptos::prelude::{ClassAttribute, ElementChild, InnerHtmlAttribute, StyleAttribute};
 
 pub(super) fn page_render_with_table_access(
     admin_page: server_admin_contract::admin_page::AdminPage,

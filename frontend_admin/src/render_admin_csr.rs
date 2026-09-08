@@ -1,12 +1,9 @@
 #![allow(
-    unused_imports,
     clippy::unused_trait_names,
     reason = "the CSR loading-shell Leptos view requires attribute traits after macro expansion"
 )]
 
-use leptos::prelude::{
-    AriaAttributes, ClassAttribute, CustomAttribute, ElementChild, GlobalAttributes, StyleAttribute,
-};
+use leptos::prelude::{CustomAttribute, ElementChild, GlobalAttributes, StyleAttribute};
 
 #[must_use]
 #[allow(

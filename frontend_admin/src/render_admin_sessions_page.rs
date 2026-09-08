@@ -1,12 +1,10 @@
 #![allow(
-    unused_imports,
     clippy::unused_trait_names,
     reason = "the screen-local Leptos view branches require different attribute traits after macro expansion"
 )]
 
 use leptos::prelude::{
-    AddAnyAttr, AriaAttributes, ClassAttribute, CustomAttribute, ElementChild, GlobalAttributes,
-    InnerHtmlAttribute, StyleAttribute,
+    AddAnyAttr, ClassAttribute, CustomAttribute, ElementChild, GlobalAttributes,
 };
 
 #[must_use]

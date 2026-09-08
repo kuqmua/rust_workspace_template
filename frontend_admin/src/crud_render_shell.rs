@@ -1,15 +1,3 @@
-#![allow(
-    unused_imports,
-    reason = "the server-rendered CRUD forms require Leptos attribute traits after macro expansion"
-)]
-
-#[allow(
-    unused_import_braces,
-    reason = "grouped Leptos prelude imports are required by workspace source policy"
-)]
-#[rustfmt::skip]
-use leptos::prelude::{ClassAttribute, CustomAttribute, ElementChild, GlobalAttributes};
-
 pub(super) fn crud_render_shell(
     admin_page: server_admin_contract::admin_page::AdminPage,
     content: impl leptos::prelude::IntoAny,

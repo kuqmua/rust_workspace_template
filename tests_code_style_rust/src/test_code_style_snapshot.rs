@@ -37,6 +37,61 @@ struct CodebaseSourceSnapshot {
     workspace_crate_names: crate::source_text_b_tree_set::SourceTextBTreeSet,
     workspace_metadata: crate::cargo_metadata::CargoMetadata,
 }
+impl RsSourceFile {
+    pub(super) fn external_module_declaration(
+        &self,
+        path_ref: crate::path_ref::PathRef<'_>,
+    ) -> Option<crate::syn_item_ref::SynItemRef<'_>> {
+        if self.path.as_ref().parent() != path_ref.as_ref().parent()
+            || !self
+                .path
+                .as_ref()
+                .file_stem()
+                .and_then(std::ffi::OsStr::to_str)
+                .is_some_and(|stem| matches!(stem, constants_str::LIB | constants_str::MAIN))
+        {
+            return None;
+        }
+        self.ast
+            .as_ref()
+            .items
+            .iter()
+            .find(|item| {
+                matches!(item, syn::Item::Mod(item_mod) if item_mod.content.is_none()
+                && path_ref.as_ref().file_stem().and_then(std::ffi::OsStr::to_str)
+                    .is_some_and(|stem| item_mod.ident == stem))
+            })
+            .map(crate::syn_item_ref::SynItemRef::from)
+    }
+
+    fn parse(project_source_file: &ProjectSourceFile) -> Self {
+        let ast = syn::parse_file(project_source_file.content.as_ref()).unwrap_or_else(|error| {
+            std::panic::panic_any(
+                constants_str::PANIC_5E7A83EB
+                    .replacen(
+                        constants_str::PANIC_POSITIONAL_PLACEHOLDER,
+                        project_source_file
+                            .path
+                            .as_ref()
+                            .display()
+                            .to_string()
+                            .as_str(),
+                        1usize,
+                    )
+                    .replacen(
+                        constants_str::PANIC_PLACEHOLDER_81240055,
+                        error.to_string().as_str(),
+                        1usize,
+                    ),
+            )
+        });
+        Self {
+            ast: crate::syn_file::SynFile::from(ast),
+            content: project_source_file.content.clone(),
+            path: project_source_file.path.clone(),
+        }
+    }
+}
 impl CodebaseSnapshot {
     pub(super) fn cargo_toml_content(
         &self,
@@ -56,30 +111,10 @@ impl CodebaseSnapshot {
         &self,
         path_ref: crate::path_ref::PathRef<'_>,
     ) -> crate::analyzer_bool::AnalyzerBool {
-        crate::analyzer_bool::AnalyzerBool::from(self.rs_files.iter().any(|source_file| {
-            source_file.path.as_ref().parent() == path_ref.as_ref().parent()
-                && source_file
-                    .path
-                    .as_ref()
-                    .file_stem()
-                    .and_then(std::ffi::OsStr::to_str)
-                    .is_some_and(|stem| matches!(stem, constants_str::LIB | constants_str::MAIN))
-                && source_file.ast.as_ref().items.iter().any(|item| {
-                    let syn::Item::Mod(item_mod) = item else {
-                        return false;
-                    };
-                    item_mod.content.is_none()
-                        && path_ref
-                            .as_ref()
-                            .file_stem()
-                            .and_then(std::ffi::OsStr::to_str)
-                            .is_some_and(|stem| item_mod.ident == stem)
-                        && crate::code_style::cfg_test_attr_count(
-                            crate::syn_item_ref::SynItemRef::from(item),
-                        ) > constants_usize::ZERO
-                })
-        }))
+        crate::rs_source_files_ref::RsSourceFilesRef::from(self.rs_files.as_slice())
+            .is_test_module_path(path_ref)
     }
+
     pub(super) fn project_source_files(&self) -> &[ProjectSourceFile] {
         self.source.project_source_files.as_slice()
     }
@@ -291,30 +326,10 @@ pub(super) fn with_codebase_snapshot<R>(f: impl FnOnce(&CodebaseSnapshot) -> R) 
                         .and_then(std::ffi::OsStr::to_str)
                         == Some(constants_str::RS)
                 })
-                .map(|source_file| {
-                    let ast =
-                        syn::parse_file(source_file.content.as_ref()).unwrap_or_else(|error| {
-                            std::panic::panic_any(
-                                constants_str::PANIC_5E7A83EB
-                                    .replacen(
-                                        constants_str::PANIC_POSITIONAL_PLACEHOLDER,
-                                        source_file.path.as_ref().display().to_string().as_str(),
-                                        1usize,
-                                    )
-                                    .replacen(
-                                        constants_str::PANIC_PLACEHOLDER_81240055,
-                                        error.to_string().as_str(),
-                                        1usize,
-                                    ),
-                            )
-                        });
-                    RsSourceFile {
-                        ast: crate::syn_file::SynFile::from(ast),
-                        content: source_file.content.clone(),
-                        path: source_file.path.clone(),
-                    }
-                })
-                .collect();
+                .map(RsSourceFile::parse)
+                .collect::<Vec<RsSourceFile>>();
+            crate::rs_source_files_ref::RsSourceFilesRef::from(rs_files.as_slice())
+                .assert_external_modules_resolve();
             CodebaseSnapshot {
                 rs_files,
                 source: source_snapshot,
@@ -408,5 +423,166 @@ fn test_walk_error_fails_snapshot_loading() {
         })
         .is_err(),
         "6a6e2aac"
+    );
+}
+
+fn test_snapshot_source(
+    source_text_ref: crate::source_text_ref::SourceTextRef<'_>,
+    syn_file: crate::syn_file::SynFile,
+) -> RsSourceFile {
+    RsSourceFile {
+        ast: syn_file,
+        content: crate::source_text::SourceText::try_from(String::new())
+            .expect(constants_str::DIAGNOSTIC_E47E70D9),
+        path: crate::owned_path_buf::OwnedPathBuf::from(std::path::PathBuf::from(format!(
+            "{}.{}",
+            source_text_ref.as_ref(),
+            constants_str::RS
+        ))),
+    }
+}
+
+fn test_external_module_naming_fixture(
+    source_text_ref: crate::source_text_ref::SourceTextRef<'_>,
+    syn_file: crate::syn_file::SynFile,
+    analyzer_count: crate::analyzer_count::AnalyzerCount,
+) {
+    let module_ident = syn::Ident::new(source_text_ref.as_ref(), proc_macro2::Span::call_site());
+    let source_files = [
+        test_snapshot_source(
+            crate::source_text_ref::SourceTextRef::from(constants_str::LIB),
+            <crate::syn_file::SynFile as From<syn::File>>::from(syn::parse_quote! {
+                #[cfg(test)]
+                mod #module_ident;
+            }),
+        ),
+        test_snapshot_source(source_text_ref, syn_file),
+    ];
+    let rs_source_files_ref =
+        crate::rs_source_files_ref::RsSourceFilesRef::from(source_files.as_slice());
+    rs_source_files_ref.assert_external_modules_resolve();
+    let module_source = &source_files[constants_usize::ONE];
+    let module_names = rs_source_files_ref.module_names(crate::path_ref::PathRef::from(
+        module_source.path().as_ref(),
+    ));
+    assert_eq!(module_names.as_slice(), [source_text_ref.as_ref()]);
+    let mut visitor = crate::code_style::visit_syn_file(
+        crate::syn_file_ref::SynFileRef::from(module_source.ast().as_ref()),
+        crate::source_analysis::TestNameVisitor::new(
+            crate::diagnostic_messages::DiagnosticMessages::default(),
+            module_names,
+            crate::analyzer_bool::AnalyzerBool::default(),
+        ),
+    );
+    visitor.check_file_name(crate::path_ref::PathRef::from(
+        module_source.path().as_ref(),
+    ));
+    assert_eq!(visitor.get_errors().len(), analyzer_count.get());
+}
+
+#[test]
+#[allow(
+    clippy::needless_for_each,
+    reason = "the naming fixture matrix uses iterator traversal to comply with the workspace no-for-loop policy"
+)]
+fn test_external_module_names_and_root_filenames_are_checked() {
+    [
+        (
+            constants_str::CODE_STYLE_EXTERNAL_TEST_MODULE,
+            constants_usize::ZERO,
+        ),
+        (
+            constants_str::CODE_STYLE_UNPREFIXED_TEST_MODULE,
+            constants_usize::TWO,
+        ),
+        (constants_str::TEST_TESTS, constants_usize::ONE),
+        (constants_str::TESTS_ALT, constants_usize::ONE),
+    ]
+    .into_iter()
+    .for_each(|(module_name, expected_errors)| {
+        test_external_module_naming_fixture(
+            crate::source_text_ref::SourceTextRef::from(module_name),
+            <crate::syn_file::SynFile as From<syn::File>>::from(syn::parse_quote! {
+                #[test]
+                fn test_works() {}
+            }),
+            crate::analyzer_count::AnalyzerCount::from(expected_errors),
+        );
+    });
+}
+
+#[test]
+fn test_external_helper_owner_can_contain_canonical_inline_tests() {
+    test_external_module_naming_fixture(
+        crate::source_text_ref::SourceTextRef::from(
+            constants_str::CODE_STYLE_UNPREFIXED_TEST_MODULE,
+        ),
+        <crate::syn_file::SynFile as From<syn::File>>::from(syn::parse_quote! {
+            mod tests {
+                #[test]
+                fn test_works() {}
+            }
+            mod test_widget {
+                #[test]
+                fn test_other() {}
+            }
+        }),
+        crate::analyzer_count::AnalyzerCount::from(constants_usize::ZERO),
+    );
+}
+
+#[test]
+fn test_missing_external_module_source_fails_snapshot_validation() {
+    let source_files = [test_snapshot_source(
+        crate::source_text_ref::SourceTextRef::from(constants_str::LIB),
+        <crate::syn_file::SynFile as From<syn::File>>::from(syn::parse_quote! {
+            mod missing;
+        }),
+    )];
+    assert!(
+        std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            crate::rs_source_files_ref::RsSourceFilesRef::from(source_files.as_slice())
+                .assert_external_modules_resolve();
+        }))
+        .is_err()
+    );
+}
+
+#[test]
+fn test_malformed_rust_source_fails_snapshot_parsing() {
+    let project_source_file = ProjectSourceFile {
+        content: crate::source_text::SourceText::try_from(String::from(
+            constants_str::TEST_NAME_PREFIX,
+        ))
+        .expect(constants_str::DIAGNOSTIC_57E87204),
+        path: crate::owned_path_buf::OwnedPathBuf::from(std::path::PathBuf::from(
+            constants_str::VALUE_0544FC95,
+        )),
+    };
+    assert!(std::panic::catch_unwind(|| RsSourceFile::parse(&project_source_file)).is_err());
+}
+
+#[test]
+fn test_module_classification_preserves_all_crate_root_declarations() {
+    let source_files = [
+        test_snapshot_source(
+            crate::source_text_ref::SourceTextRef::from(constants_str::LIB),
+            <crate::syn_file::SynFile as From<syn::File>>::from(syn::parse_quote! {
+                mod test_widget;
+            }),
+        ),
+        test_snapshot_source(
+            crate::source_text_ref::SourceTextRef::from(constants_str::MAIN),
+            <crate::syn_file::SynFile as From<syn::File>>::from(syn::parse_quote! {
+                #[cfg(test)]
+                mod test_widget;
+            }),
+        ),
+    ];
+    let module_path = std::path::Path::new(constants_str::CODE_STYLE_EXTERNAL_TEST_FILE);
+    assert!(
+        crate::rs_source_files_ref::RsSourceFilesRef::from(source_files.as_slice())
+            .is_test_module_path(crate::path_ref::PathRef::from(module_path))
+            .get()
     );
 }

@@ -3867,31 +3867,26 @@ fn test_names_and_modules_start_with_test_prefix() {
         crate::static_str::StaticStr::from(constants_str::B6E2A9F4),
         crate::source_text_ref::SourceTextRef::from(constants_str::TEST_NAME_POLICY_CONTEXT),
         |path, ast, errors| {
-            let visitor = crate::code_style::visit_syn_file(
+            let mut visitor = crate::code_style::visit_syn_file(
                 crate::syn_file_ref::SynFileRef::from(ast),
                 super::source_analysis::TestNameVisitor::new(
                     crate::diagnostic_messages::DiagnosticMessages::default(),
-                    crate::source_text_list::SourceTextList::default(),
+                    crate::test_code_style_snapshot::with_codebase_snapshot(|snapshot| {
+                        crate::rs_source_files_ref::RsSourceFilesRef::from(
+                            snapshot.rs_files().as_slice(),
+                        )
+                        .module_names(crate::path_ref::PathRef::from(path))
+                    }),
                     crate::analyzer_bool::AnalyzerBool::default(),
                 ),
             );
+            visitor.check_file_name(crate::path_ref::PathRef::from(path));
             errors.extend(
                 visitor
                     .get_errors()
                     .iter()
                     .map(|error| format!("{}: {error}", path.display())),
             );
-            if visitor.get_root_test_found().get()
-                && path
-                    .file_stem()
-                    .and_then(std::ffi::OsStr::to_str)
-                    .is_none_or(|name| !name.starts_with(constants_str::TEST_NAME_PREFIX))
-            {
-                errors.push(format!(
-                    "{}: root test module must use a filename starting with `test_`",
-                    path.display()
-                ));
-            }
         },
     );
 }
@@ -4051,4 +4046,53 @@ fn test_empty_function_body_policy_checks_functions_methods_and_trait_defaults()
         EmptyFunctionBodyVisitor::default(),
     );
     assert_eq!(visitor.get_violations().len(), 3usize);
+}
+
+#[test]
+fn test_name_policy_rejects_redundant_declarations_and_orphan_file() {
+    let visit = |syn_file_ref: crate::syn_file_ref::SynFileRef<'_>| {
+        crate::code_style::visit_syn_file(
+            syn_file_ref,
+            crate::source_analysis::TestNameVisitor::new(
+                crate::diagnostic_messages::DiagnosticMessages::default(),
+                crate::source_text_list::SourceTextList::default(),
+                crate::analyzer_bool::AnalyzerBool::default(),
+            ),
+        )
+    };
+    let declaration = <crate::syn_file::SynFile as From<syn::File>>::from(syn::parse_quote! {
+        #[cfg(test)]
+        mod test_tests;
+    });
+    assert_eq!(
+        visit(crate::syn_file_ref::SynFileRef::from(declaration.as_ref()))
+            .get_errors()
+            .len(),
+        constants_usize::ONE,
+    );
+    let redundant_parent = <crate::syn_file::SynFile as From<syn::File>>::from(syn::parse_quote! {
+        mod test_tests {
+            mod tests {
+                #[test]
+                fn test_works() {}
+            }
+        }
+    });
+    assert_eq!(
+        visit(crate::syn_file_ref::SynFileRef::from(
+            redundant_parent.as_ref()
+        ))
+        .get_errors()
+        .len(),
+        constants_usize::ONE,
+    );
+    let source = <crate::syn_file::SynFile as From<syn::File>>::from(syn::parse_quote! {
+        #[test]
+        fn test_works() {}
+    });
+    let mut visitor = visit(crate::syn_file_ref::SynFileRef::from(source.as_ref()));
+    visitor.check_file_name(crate::path_ref::PathRef::from(std::path::Path::new(
+        format!("{}.{}", constants_str::TEST_TESTS, constants_str::RS).as_str(),
+    )));
+    assert_eq!(visitor.get_errors().len(), constants_usize::ONE);
 }

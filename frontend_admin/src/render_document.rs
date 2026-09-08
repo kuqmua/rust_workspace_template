@@ -1,13 +1,3 @@
-#![allow(
-    unused_imports,
-    reason = "document and shell Leptos view branches require different attribute traits after macro expansion"
-)]
-
-use leptos::prelude::{
-    AriaAttributes, ClassAttribute, CustomAttribute, ElementChild, GlobalAttributes,
-    InnerHtmlAttribute, StyleAttribute,
-};
-
 pub(crate) fn render_document(
     admin_ssr_text: &crate::admin_ssr_text::AdminSsrText,
     body: impl leptos::prelude::IntoAny,

@@ -1,3 +1,7 @@
+#[allow(
+    clippy::single_call_fn,
+    reason = "the named fixture CLI adapter keeps filesystem work and terminal diagnostics separate from root mode dispatch"
+)]
 pub(crate) fn run_admin_fixture_cli() -> crate::runner_cli_outcome::RunnerCliOutcome {
     let result = (|| {
         let render_admin_fixture_conversion_error = |admin_fixture_conversion_error: crate::admin_fixture_conversion_error::AdminFixtureConversionError| {
@@ -14,7 +18,7 @@ pub(crate) fn run_admin_fixture_cli() -> crate::runner_cli_outcome::RunnerCliOut
                     format_args!("{error}"),
                     constants_str::NEWLINE
                 )),
-            )
+            );
         })?;
         let routes = <server_admin_contract::admin_route::AdminAuthenticationRouteFamily as frontend_contract::route_family::RouteFamily>::schema_contracts()
                                     .as_ref()
@@ -79,7 +83,7 @@ pub(crate) fn run_admin_fixture_cli() -> crate::runner_cli_outcome::RunnerCliOut
                                 format_args!("{error}"),
                                 constants_str::NEWLINE
                             )),
-                        )
+                        );
                     })?,
                 crate::create_admin_fixture_string::create_admin_fixture_string::<
                     server_admin_contract::admin_login::AdminLogin,
@@ -96,7 +100,7 @@ pub(crate) fn run_admin_fixture_cli() -> crate::runner_cli_outcome::RunnerCliOut
                             format_args!("{error}"),
                             constants_str::NEWLINE
                         )),
-                    )
+                    );
                 })?,
                 server_admin_contract::admin_role_names::AdminRoleNames::try_from(vec![
                     crate::create_admin_fixture_string::create_admin_fixture_string::<
@@ -112,7 +116,7 @@ pub(crate) fn run_admin_fixture_cli() -> crate::runner_cli_outcome::RunnerCliOut
                             format_args!("{error}"),
                             constants_str::NEWLINE
                         )),
-                    )
+                    );
                 })?,
             );
         let users = (constants_i64::ZERO..25i64)
@@ -187,7 +191,7 @@ pub(crate) fn run_admin_fixture_cli() -> crate::runner_cli_outcome::RunnerCliOut
                             format_args!("{error}"),
                             constants_str::NEWLINE
                         )),
-                    )
+                    );
                 })?,
             server_admin_contract::admin_bool::AdminBool::from(false),
             crate::create_admin_fixture_string::create_admin_fixture_string::<
@@ -210,7 +214,7 @@ pub(crate) fn run_admin_fixture_cli() -> crate::runner_cli_outcome::RunnerCliOut
                         format_args!("{error}"),
                         constants_str::NEWLINE
                     )),
-                )
+                );
             })?,
         );
         let role_summaries = vec![role_summary];
@@ -389,7 +393,7 @@ pub(crate) fn run_admin_fixture_cli() -> crate::runner_cli_outcome::RunnerCliOut
                         format_args!("{error}"),
                         constants_str::NEWLINE
                     )),
-                )
+                );
             })?,
             server_admin_contract::admin_permission_summaries::AdminPermissionSummaries::try_from(
                 permission_summaries.clone(),
@@ -402,7 +406,7 @@ pub(crate) fn run_admin_fixture_cli() -> crate::runner_cli_outcome::RunnerCliOut
                         format_args!("{error}"),
                         constants_str::NEWLINE
                     )),
-                )
+                );
             })?,
             server_admin_contract::admin_page_total::AdminPageTotal::from(role_total),
         );

@@ -1,3 +1,7 @@
+#[allow(
+    clippy::single_call_fn,
+    reason = "the named measurement CLI adapter owns subprocess orchestration separately from root mode dispatch"
+)]
 pub(crate) fn run_measurements_cli() -> crate::runner_cli_outcome::RunnerCliOutcome {
     let render_cargo_measurement_error =
         |cargo_measurement_error: crate::cargo_measurement_error::CargoMeasurementError| {
@@ -19,7 +23,7 @@ pub(crate) fn run_measurements_cli() -> crate::runner_cli_outcome::RunnerCliOutc
                 )),
             );
         };
-    let result = (|| {
+    let result = {
         let allocation_tools_printed: Result<(), std::convert::Infallible> =
             crate::allocation_tools::allocation_tools()
                 .iter()
@@ -749,7 +753,7 @@ pub(crate) fn run_measurements_cli() -> crate::runner_cli_outcome::RunnerCliOutc
                 Err(())
             }
         }
-    })();
+    };
     match result {
         Ok(()) => crate::runner_cli_outcome::RunnerCliOutcome::Completed,
         Err(()) => crate::runner_cli_outcome::RunnerCliOutcome::Failed,

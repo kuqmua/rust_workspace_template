@@ -3162,17 +3162,75 @@ pub(super) struct TestNameVisitor {
     module_names: crate::source_text_list::SourceTextList,
     root_test_found: crate::analyzer_bool::AnalyzerBool,
 }
-impl<'ast> syn::visit::Visit<'ast> for TestNameVisitor {
-    fn visit_item_fn(&mut self, item_fn: &'ast syn::ItemFn) {
-        let is_test = |attrs: &[syn::Attribute]| {
-            attrs.iter().any(|attr| {
+impl TestNameVisitor {
+    pub(super) fn check_file_name(&mut self, path_ref: crate::path_ref::PathRef<'_>) {
+        let file_name = path_ref
+            .as_ref()
+            .file_stem()
+            .and_then(std::ffi::OsStr::to_str);
+        if file_name == Some(constants_str::TEST_TESTS) {
+            Self::check_module_name(
+                crate::diagnostic_messages_mut_ref::DiagnosticMessagesMutRef::from(
+                    &mut *self.errors,
+                ),
+                crate::source_text_ref::SourceTextRef::from(constants_str::TEST_TESTS),
+            );
+            return;
+        }
+        if self.root_test_found.get()
+            && file_name.is_none_or(|name| !name.starts_with(constants_str::TEST_NAME_PREFIX))
+        {
+            self.errors
+                .push(String::from(constants_str::CODE_STYLE_ROOT_TEST_FILENAME));
+        }
+    }
+
+    fn check_module_name(
+        mut diagnostic_messages_mut_ref: crate::diagnostic_messages_mut_ref::DiagnosticMessagesMutRef<'_>,
+        source_text_ref: crate::source_text_ref::SourceTextRef<'_>,
+    ) {
+        let module_name = source_text_ref.as_ref();
+        let module_name_error = if module_name == constants_str::TEST_TESTS {
+            Some(format!("test module `{module_name}` must be named `tests`"))
+        } else if module_name != constants_str::TESTS_ALT
+            && !module_name.starts_with(constants_str::TEST_NAME_PREFIX)
+        {
+            Some(format!(
+                "test module `{module_name}` must be named `tests` or start with `test_`"
+            ))
+        } else {
+            None
+        };
+        if let Some(error) = module_name_error
+            && !diagnostic_messages_mut_ref.contains(&error)
+        {
+            diagnostic_messages_mut_ref.push(error);
+        }
+    }
+
+    fn is_test_function(
+        syn_item_fn_ref: crate::syn_item_fn_ref::SynItemFnRef<'_>,
+    ) -> crate::analyzer_bool::AnalyzerBool {
+        crate::analyzer_bool::AnalyzerBool::from(syn_item_fn_ref.as_ref().attrs.iter().any(
+            |attr| {
                 attr.path()
                     .segments
                     .last()
                     .is_some_and(|segment| segment.ident == constants_str::TEST_ATTRIBUTE_NAME)
-            })
-        };
-        if is_test(item_fn.attrs.as_slice()) {
+            },
+        ))
+    }
+}
+impl<'ast> syn::visit::Visit<'ast> for TestNameVisitor {
+    fn visit_file(&mut self, file: &'ast syn::File) {
+        self.root_test_found = crate::analyzer_bool::AnalyzerBool::from(file.items.iter().any(|item| {
+            matches!(item, syn::Item::Fn(item_fn) if Self::is_test_function(crate::syn_item_fn_ref::SynItemFnRef::from(item_fn)).get())
+        }));
+        syn::visit::visit_file(self, file);
+    }
+
+    fn visit_item_fn(&mut self, item_fn: &'ast syn::ItemFn) {
+        if Self::is_test_function(crate::syn_item_fn_ref::SynItemFnRef::from(item_fn)).get() {
             if !item_fn
                 .sig
                 .ident
@@ -3184,31 +3242,27 @@ impl<'ast> syn::visit::Visit<'ast> for TestNameVisitor {
                     item_fn.sig.ident
                 ));
             }
-            match self.module_names.last() {
-                Some(module_name) if module_name == constants_str::TEST_TESTS => {
-                    let error = format!("test module `{module_name}` must be named `tests`");
-                    if !self.errors.contains(&error) {
-                        self.errors.push(error);
-                    }
-                }
-                Some(module_name)
-                    if module_name != constants_str::TESTS_ALT
-                        && !module_name.starts_with(constants_str::TEST_NAME_PREFIX) =>
-                {
-                    let error = format!(
-                        "test module `{module_name}` must be named `tests` or start with `test_`"
-                    );
-                    if !self.errors.contains(&error) {
-                        self.errors.push(error);
-                    }
-                }
-                None => self.root_test_found = crate::analyzer_bool::AnalyzerBool::from(true),
-                Some(_) => {}
+            if let Some(module_name) = self.module_names.last() {
+                Self::check_module_name(
+                    crate::diagnostic_messages_mut_ref::DiagnosticMessagesMutRef::from(
+                        &mut *self.errors,
+                    ),
+                    crate::source_text_ref::SourceTextRef::from(module_name.as_str()),
+                );
             }
         }
         syn::visit::visit_item_fn(self, item_fn);
     }
+
     fn visit_item_mod(&mut self, item_mod: &'ast syn::ItemMod) {
+        if item_mod.ident == constants_str::TEST_TESTS {
+            Self::check_module_name(
+                crate::diagnostic_messages_mut_ref::DiagnosticMessagesMutRef::from(
+                    &mut *self.errors,
+                ),
+                crate::source_text_ref::SourceTextRef::from(constants_str::TEST_TESTS),
+            );
+        }
         self.module_names.push(item_mod.ident.to_string());
         syn::visit::visit_item_mod(self, item_mod);
         drop(self.module_names.pop());

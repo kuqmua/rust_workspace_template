@@ -1,12 +1,9 @@
 #![allow(
-    unused_imports,
     clippy::unused_trait_names,
     reason = "the sign-in Leptos view requires its local set of document attribute traits"
 )]
 
-use leptos::prelude::{
-    AriaAttributes, ClassAttribute, CustomAttribute, ElementChild, GlobalAttributes, StyleAttribute,
-};
+use leptos::prelude::{ClassAttribute, ElementChild, StyleAttribute};
 
 #[must_use]
 pub fn render_sign_in(

@@ -1,5 +1,4 @@
 #![allow(
-    unused_imports,
     clippy::unused_trait_names,
     reason = "the server-rendered CRUD forms require Leptos attribute traits after macro expansion"
 )]
@@ -9,7 +8,7 @@
     reason = "grouped Leptos prelude imports are required by workspace source policy"
 )]
 #[rustfmt::skip]
-use leptos::prelude::{ClassAttribute, CustomAttribute, ElementChild, GlobalAttributes};
+use leptos::prelude::{ClassAttribute, ElementChild, GlobalAttributes};
 
 #[must_use]
 pub fn render_role_manage(
