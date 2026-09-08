@@ -3,9 +3,7 @@
     reason = "the screen-local Leptos view branches require different attribute traits after macro expansion"
 )]
 
-use leptos::prelude::{
-    AddAnyAttr, ClassAttribute, CustomAttribute, ElementChild, GlobalAttributes,
-};
+use leptos::prelude::{AddAnyAttr, AriaAttributes, ClassAttribute, ElementChild, GlobalAttributes};
 
 #[must_use]
 pub fn render_admin_sessions_page(
@@ -25,26 +23,15 @@ pub fn render_admin_sessions_page(
         let confirm_form_id = form_id.clone();
         let dialog = crate::with_owner::with_owner(move || {
             leptos::view! {
-                <singlestage::Dialog alert=true id=dialog_id class="w-full max-w-lg rounded-2xl border bg-background p-6 shadow-lg" dialog_trigger=singlestage::DialogTrigger::builder().children(leptos::prelude::ToChildren::to_children(move || leptos::view! {
-                    <crate::admin_button::AdminButton admin_button_variant=crate::admin_button_variant::AdminButtonVariant::Danger admin_button_kind=crate::admin_button_kind::AdminButtonKind::Button>{constants_str::ADMIN_BUTTON_REVOKE_SESSION}</crate::admin_button::AdminButton>
-                })).build()>
-                    <singlestage::DialogContent attr:data-name="AlertDialogContent" class="flex flex-col gap-4">
-                        <div data-name="AlertDialogBody" class="contents">
-                            <singlestage::DialogHeader attr:data-name="AlertDialogHeader" class="flex flex-col gap-2 text-left">
-                                <singlestage::DialogTitle attr:data-name="AlertDialogTitle" class="text-lg leading-none font-semibold">{constants_str::ADMIN_UI_REVOKE_SESSION}</singlestage::DialogTitle>
-                                <singlestage::DialogDescription attr:data-name="AlertDialogDescription" class="text-sm text-muted-foreground">{constants_str::ADMIN_UI_THIS_ADMINISTRATOR_SESSION_WILL_BE_SIGNED_OUT_IMMEDIATELY}</singlestage::DialogDescription>
-                            </singlestage::DialogHeader>
-                            <form id=form_id method="post" action=server_admin_contract::admin_html_action::AdminHtmlAction::SessionRevoke.get()>
-                                <input type="hidden" name="session_id" value=hidden_session_id />
-                                <singlestage::Label attr:data-name="Label" class="flex items-center gap-2 text-sm leading-none font-medium select-none"><crate::admin_checkbox::AdminCheckbox name="confirmation" value="true" bool=true />{constants_str::ADMIN_UI_CONFIRM_SESSION_REVOCATION}</singlestage::Label>
-                            </form>
-                            <singlestage::DialogFooter attr:data-name="AlertDialogFooter" class="flex flex-row gap-2 justify-end">
-                                <crate::admin_button::AdminButton admin_button_variant=crate::admin_button_variant::AdminButtonVariant::Secondary>{constants_str::ADMIN_BUTTON_CANCEL}</crate::admin_button::AdminButton>
-                                <crate::admin_button::AdminButton admin_button_variant=crate::admin_button_variant::AdminButtonVariant::Danger form=confirm_form_id>{constants_str::ADMIN_BUTTON_REVOKE_SESSION}</crate::admin_button::AdminButton>
-                            </singlestage::DialogFooter>
-                        </div>
-                    </singlestage::DialogContent>
-                </singlestage::Dialog>
+                <crate::admin_button::AdminButton admin_button_variant=crate::admin_button_variant::AdminButtonVariant::Danger admin_button_kind=crate::admin_button_kind::AdminButtonKind::Button command_for=dialog_id.clone() command="show-modal">{constants_str::ADMIN_BUTTON_REVOKE_SESSION}</crate::admin_button::AdminButton>
+                <dialog id=dialog_id class="singlestage-dialog" aria-label=constants_str::ADMIN_UI_REVOKE_SESSION>
+                    <form id=form_id method="post" action=server_admin_contract::admin_html_action::AdminHtmlAction::SessionRevoke.get()>
+                        <input type="hidden" name="session_id" value=hidden_session_id />
+                        <singlestage::Label attr:data-name="Label" class="flex items-center gap-2 text-sm leading-none font-medium select-none"><crate::admin_checkbox::AdminCheckbox name="confirmation" value="true" bool=true />{constants_str::ADMIN_UI_CONFIRM_SESSION_REVOCATION}</singlestage::Label>
+                        <crate::admin_button::AdminButton admin_button_variant=crate::admin_button_variant::AdminButtonVariant::Danger form=confirm_form_id>{constants_str::ADMIN_BUTTON_REVOKE_SESSION}</crate::admin_button::AdminButton>
+                        <crate::admin_button::AdminButton admin_button_variant=crate::admin_button_variant::AdminButtonVariant::Secondary attr:formmethod="dialog" attr:formnovalidate=true>{constants_str::ADMIN_BUTTON_CANCEL}</crate::admin_button::AdminButton>
+                    </form>
+                </dialog>
             }
         });
         leptos::view! {

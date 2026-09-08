@@ -44,7 +44,6 @@ pub(crate) fn AdminSessionsView(
         <section class="table-admin_sessions_page" data-renderer="csr">
             <div class="resource-actions">
                 <crate::admin_alert_dialog::AdminAlertDialog
-                    compact=true
                     string=String::from(constants_str::ADMIN_REVOKE_ALL_SESSIONS_DIALOG)
                     title=constants_str::ADMIN_UI_REVOKE_ALL_SESSIONS
                     description=constants_str::ADMIN_UI_END_ALL_SESSIONS

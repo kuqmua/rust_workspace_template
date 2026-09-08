@@ -12,8 +12,7 @@
 )]
 
 use leptos::prelude::{
-    AddAnyAttr, AriaAttributes, Callable, ClassAttribute, CustomAttribute, ElementChild,
-    GlobalAttributes,
+    AddAnyAttr, AriaAttributes, Callable, ClassAttribute, ElementChild, GlobalAttributes,
 };
 
 #[leptos::component]
@@ -32,7 +31,6 @@ pub(crate) fn AdminAlertDialog(
     trigger: &'static str,
     confirm: &'static str,
     #[prop(optional)] bool: bool,
-    #[prop(optional)] compact: bool,
     callback: leptos::prelude::Callback<()>,
 ) -> impl leptos::prelude::IntoView {
     crate::with_owner::with_owner(move || {
@@ -41,34 +39,14 @@ pub(crate) fn AdminAlertDialog(
                 <crate::admin_button::AdminButton admin_button_variant=crate::admin_button_variant::AdminButtonVariant::Danger admin_button_kind=crate::admin_button_kind::AdminButtonKind::Button bool=true>{trigger}</crate::admin_button::AdminButton>
             });
         }
-        if compact {
-            return leptos::prelude::IntoAny::into_any(leptos::view! {
-                <crate::admin_button::AdminButton admin_button_variant=crate::admin_button_variant::AdminButtonVariant::Danger admin_button_kind=crate::admin_button_kind::AdminButtonKind::Button attr:commandfor=string.clone() attr:command="show-modal">{trigger}</crate::admin_button::AdminButton>
-                <dialog id=string class="singlestage-dialog" aria-label=title>
-                    <form method="dialog">
-                        <crate::admin_button::AdminButton admin_button_variant=crate::admin_button_variant::AdminButtonVariant::Danger on_click=leptos::prelude::Callback::new(move |_event| callback.run(()))>{confirm}</crate::admin_button::AdminButton>
-                        <crate::admin_button::AdminButton admin_button_variant=crate::admin_button_variant::AdminButtonVariant::Secondary>{constants_str::ADMIN_BUTTON_CANCEL}</crate::admin_button::AdminButton>
-                    </form>
-                </dialog>
-            });
-        }
         leptos::prelude::IntoAny::into_any(leptos::view! {
-            <singlestage::Dialog alert=true id=string class="w-full max-w-lg rounded-2xl border bg-background p-6 shadow-lg" dialog_trigger=singlestage::DialogTrigger::builder().children(leptos::prelude::ToChildren::to_children(move || leptos::view! {
-                <crate::admin_button::AdminButton admin_button_variant=crate::admin_button_variant::AdminButtonVariant::Danger admin_button_kind=crate::admin_button_kind::AdminButtonKind::Button bool=bool>{trigger}</crate::admin_button::AdminButton>
-            })).build()>
-            <singlestage::DialogContent attr:data-name="AlertDialogContent" class="flex flex-col gap-4">
-                <div data-name="AlertDialogBody" class="contents">
-                    <singlestage::DialogHeader attr:data-name="AlertDialogHeader" class="flex flex-col gap-2 text-left">
-                        <singlestage::DialogTitle attr:data-name="AlertDialogTitle" class="text-lg leading-none font-semibold">{title}</singlestage::DialogTitle>
-                        <singlestage::DialogDescription attr:data-name="AlertDialogDescription" class="text-sm text-muted-foreground">{description}</singlestage::DialogDescription>
-                    </singlestage::DialogHeader>
-                    <singlestage::DialogFooter attr:data-name="AlertDialogFooter" class="flex flex-row gap-2 justify-end">
-                        <crate::admin_button::AdminButton admin_button_variant=crate::admin_button_variant::AdminButtonVariant::Secondary>{constants_str::ADMIN_BUTTON_CANCEL}</crate::admin_button::AdminButton>
-                        <crate::admin_button::AdminButton admin_button_variant=crate::admin_button_variant::AdminButtonVariant::Danger on_click=leptos::prelude::Callback::new(move |_event| callback.run(()))>{confirm}</crate::admin_button::AdminButton>
-                    </singlestage::DialogFooter>
-                </div>
-            </singlestage::DialogContent>
-            </singlestage::Dialog>
+            <crate::admin_button::AdminButton admin_button_variant=crate::admin_button_variant::AdminButtonVariant::Danger admin_button_kind=crate::admin_button_kind::AdminButtonKind::Button attr:commandfor=string.clone() attr:command="show-modal">{trigger}</crate::admin_button::AdminButton>
+            <dialog id=string class="singlestage-dialog" aria-label=title aria-description=description>
+                <form method="dialog">
+                    <crate::admin_button::AdminButton admin_button_variant=crate::admin_button_variant::AdminButtonVariant::Danger on_click=leptos::prelude::Callback::new(move |_event| callback.run(()))>{confirm}</crate::admin_button::AdminButton>
+                    <crate::admin_button::AdminButton admin_button_variant=crate::admin_button_variant::AdminButtonVariant::Secondary>{constants_str::ADMIN_BUTTON_CANCEL}</crate::admin_button::AdminButton>
+                </form>
+            </dialog>
         })
     })
 }

@@ -49,7 +49,7 @@
   --shadow-sm: 0 1px 2px rgb(20 29 48 / 4%);
   --shadow: 0 12px 32px rgb(20 29 48 / 7%);
   --header-font-size: 12px;
-  --header-height: 37px;
+  --header-height: 32px;
 }
 
 * {
@@ -231,6 +231,10 @@ p {
 .nav-menu-list > li {
   flex: 0 0 auto;
   width: auto;
+}
+
+.nav-menu-list > li + li {
+  border-left: 1px solid var(--border);
 }
 
 .topbar nav::-webkit-scrollbar {
@@ -475,13 +479,51 @@ p {
 }
 
 @layer utilities {
+  .table-cell-dialog :is(h2, .table-cell-content, button) {
+    box-sizing: border-box;
+    height: 32px !important;
+    min-height: 32px !important;
+    max-height: 32px !important;
+    flex: 0 0 32px;
+    margin: 0 !important;
+    padding-block: 0 !important;
+  }
+
+  .table-cell-dialog h2 {
+    display: grid;
+    place-items: center;
+    border-bottom: 1px solid var(--border) !important;
+  }
+
+  .table-cell-dialog > .table-cell-content {
+    line-height: 32px;
+    overflow: auto;
+  }
+
+  .table-actions > div {
+    display: flex;
+    align-items: center;
+  }
+
+  table td .table-actions button:not(dialog button),
+  table td button:not(dialog button) {
+    height: calc(var(--header-height) - 1px) !important;
+    min-height: 0 !important;
+    padding-block: 0 !important;
+  }
+
+  table :is(th, td) {
+    border-top-width: 0 !important;
+    border-bottom: 1px solid var(--border) !important;
+  }
+
   .table-column-filter > button {
     border-top-width: 0 !important;
     border-bottom-width: 0 !important;
     border-right-width: 0 !important;
     box-shadow: none !important;
-    height: var(--header-height) !important;
-    min-height: var(--header-height) !important;
+    height: calc(var(--header-height) - 1px) !important;
+    min-height: calc(var(--header-height) - 1px) !important;
     padding-block: 0 !important;
     vertical-align: middle;
   }
@@ -565,20 +607,20 @@ p {
     width: 100% !important;
   }
 
-  #revoke-all-sessions {
+  .singlestage-dialog {
     max-width: none !important;
     padding: 0 !important;
     background: rgb(255 255 255 / 70%) !important;
   }
 
-  #revoke-all-sessions > form {
+  .singlestage-dialog > form {
     display: flex;
     width: 100%;
     flex-direction: column !important;
     gap: 0 !important;
   }
 
-  #revoke-all-sessions > form button {
+  .singlestage-dialog > form button {
     width: 100% !important;
   }
 
@@ -983,7 +1025,7 @@ td form button:hover {
   background: rgb(0 0 0 / 50%);
 }
 
-.singlestage-dialog#revoke-all-sessions {
+.singlestage-dialog {
   inset: 0;
   width: 100vw;
   height: 100dvh;
@@ -992,7 +1034,7 @@ td form button:hover {
   margin: 0;
 }
 
-#revoke-all-sessions[open] {
+.singlestage-dialog[open] {
   display: grid;
   place-items: center;
   width: 100%;
@@ -1169,20 +1211,25 @@ td form button:hover {
   background: rgb(0 0 0 / 50%);
 }
 
-.table-cell-dialog > header {
-  display: flex;
-  flex: 0 0 auto;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 12px 16px;
-  border-bottom: 1px solid var(--border);
-}
 
 .table-cell-dialog h2 {
   margin: 0;
   overflow-wrap: anywhere;
   font-size: 16px;
+}
+
+@layer utilities {
+
+  .table-cell-dialog h2 {
+    text-align: center;
+    background: var(--surface-subtle);
+  }
+
+  .table-cell-dialog > .table-cell-content {
+    text-align: center;
+    background: var(--surface-subtle);
+  }
+
 }
 
 .table-cell-dialog button {
@@ -1192,7 +1239,7 @@ td form button:hover {
   background: var(--surface-subtle);
 }
 
-.table-cell-dialog > pre {
+.table-cell-dialog > .table-cell-content {
   min-height: 0;
   padding: 16px;
   user-select: text;
@@ -1623,4 +1670,50 @@ pre {
 body:has(a[href="/admin/version"][aria-current="page"]) .page-frame {
   justify-content: center;
   align-items: center;
+}
+
+@layer utilities {
+  .table-cell-dialog,
+  .table-filter-operations:popover-open {
+    position: fixed !important;
+    inset: 0 !important;
+    position-area: none !important;
+    width: 100vw !important;
+    height: 100dvh !important;
+    max-width: none !important;
+    max-height: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: rgb(255 255 255 / 70%) !important;
+    box-shadow: none !important;
+    overflow: auto !important;
+  }
+
+  .table-filter-operations:popover-open {
+    align-content: center;
+    gap: 0 !important;
+  }
+
+  .table-filter-operations button,
+  .table-cell-dialog button {
+    width: 100% !important;
+  }
+}
+
+@layer utilities {
+  .table-filter-form {
+    gap: 0 !important;
+  }
+  .table-cell-dialog[open] {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+}
+
+.table-cell-content {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
 }
