@@ -127,45 +127,6 @@ pub(crate) fn AdminSettingsView(
     }
     };
 
-    let reset = || {
-        let clear = server_admin_contract::admin_optional_settings::AdminOptionalSettings::try_from(
-            server_admin_contract::admin_optional_setting::AdminOptionalSetting::ALL.to_vec(),
-        );
-        let values = (
-            server_admin_contract::admin_default_route::AdminDefaultRoute::try_from(
-                server_admin_contract::admin_frontend_path::AdminFrontendPath::Users
-                    .get()
-                    .to_owned(),
-            ),
-            server_admin_contract::admin_site_name::AdminSiteName::try_from(
-                constants_str::ADMIN.to_owned(),
-            ),
-            clear,
-            crate::admin_api_url::admin_api_url(
-                server_admin_contract::admin_route::AdminRoute::UpdateSettings,
-            ),
-        );
-        if let (Ok(request_default_route), Ok(request_site_name), Ok(request_clear), Ok(path)) =
-            values
-        {
-            crate::reload_after::reload_after(
-            crate::admin_mutation_method::AdminMutationMethod::Patch,
-            path,
-            server_admin_contract::admin_update_settings_request::AdminUpdateSettingsRequest::new(
-                Some(request_default_route),
-                None,
-                None,
-                None,
-                None,
-                Some(request_site_name),
-                None,
-                None,
-                request_clear,
-            ),
-        );
-        }
-    };
-
     let can_update = bool::from(authenticated_admin.has_permission(
         server_admin_contract::admin_permission::AdminPermission::SystemSettingsUpdate,
     ));
@@ -178,12 +139,7 @@ pub(crate) fn AdminSettingsView(
             save(signals);
         }>
             {crate::admin_setting_inputs::admin_setting_inputs(signals, crate::admin_setting_disabled::AdminSettingDisabled::from(!can_update))}
-            <crate::admin_card_footer::AdminCardFooter>
-                <crate::admin_button::AdminButton bool=!can_update>{constants_str::ADMIN_BUTTON_SAVE_SETTINGS}</crate::admin_button::AdminButton>
-                <crate::admin_alert_dialog::AdminAlertDialog string=String::from("reset-settings-dialog") title=constants_str::ADMIN_UI_RESET_SETTINGS description=constants_str::ADMIN_UI_ALL_ADMINISTRATOR_SETTINGS_WILL_RETURN_TO_THE_TEMPLATE_DEFAULTS trigger=constants_str::ADMIN_BUTTON_RESET_TO_TEMPLATE_DEFAULTS confirm=constants_str::ADMIN_BUTTON_RESET_SETTINGS bool=!can_update callback=leptos::prelude::Callback::new(move |()| {
-                    reset();
-                }) />
-            </crate::admin_card_footer::AdminCardFooter>
+
         </form></crate::admin_card::AdminCard></section>
     }
 }

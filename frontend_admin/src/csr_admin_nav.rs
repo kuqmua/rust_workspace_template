@@ -49,7 +49,7 @@ pub(crate) fn CsrAdminNav(
                         server_admin_contract::admin_no_body::AdminNoBody,
                     );
                 }
-            }><crate::admin_button::AdminButton admin_button_variant=crate::admin_button_variant::AdminButtonVariant::Secondary>{server_admin_contract::admin_html_action::AdminHtmlAction::SignOut.route_name().as_ref().to_owned()}</crate::admin_button::AdminButton></form></crate::admin_sidebar_item::AdminSidebarItem>
+            }><button type="submit">{server_admin_contract::admin_html_action::AdminHtmlAction::SignOut.route_name().as_ref().to_owned()}</button></form></crate::admin_sidebar_item::AdminSidebarItem>
         </crate::admin_sidebar::AdminSidebar></header>
     }
 }

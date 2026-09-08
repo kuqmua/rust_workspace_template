@@ -206,12 +206,12 @@ p {
   flex-direction: row;
   align-items: stretch;
   margin: 0;
-  overflow-x: hidden;
-  overflow-y: auto;
-  overscroll-behavior-block: contain;
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-inline: contain;
   padding: 0;
   scroll-padding-block: 12px;
-  scrollbar-color: var(--border-strong) var(--surface-subtle);
+  scrollbar-color: var(--border-strong) transparent;
   scrollbar-width: thin;
 }
 
@@ -220,7 +220,7 @@ p {
   width: 100%;
   min-height: 0;
   flex-direction: row;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   align-items: center;
   gap: 4px;
   margin: 0;
@@ -229,27 +229,35 @@ p {
 }
 
 .nav-menu-list > li {
+  flex: 0 0 auto;
   width: auto;
 }
 
-.nav-menu-list > li:last-child {
-  margin-left: auto;
-}
-
 .topbar nav::-webkit-scrollbar {
-  height: 6px;
+  height: 4px;
 }
 
 .topbar nav::-webkit-scrollbar-track {
-  background: var(--surface-subtle);
+  background: transparent;
 }
 
 .topbar nav::-webkit-scrollbar-thumb {
   background: var(--border-strong);
 }
 
+.topbar nav::-webkit-scrollbar-button {
+  display: none;
+}
+
 .topbar nav::-webkit-scrollbar-thumb:hover {
   background: var(--muted);
+}
+
+@supports selector(::-webkit-scrollbar) {
+  .topbar nav {
+    scrollbar-width: auto;
+    scrollbar-color: auto;
+  }
 }
 
 .topbar nav a,
@@ -467,6 +475,71 @@ p {
 }
 
 @layer utilities {
+  .topbar nav a:not(.active),
+  .topbar nav li > form button {
+    color: var(--text-secondary) !important;
+    line-height: 20px !important;
+  }
+
+  .topbar nav a:not(.active):hover,
+  .topbar nav li > form button:hover {
+    color: var(--text) !important;
+    background: var(--surface-subtle) !important;
+  }
+
+  .settings-grid > .settings-card,
+  .settings-form {
+    border: 0 !important;
+    box-shadow: none !important;
+  }
+
+  .settings-form {
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 0 !important;
+  }
+
+  .settings-form > [data-name="Field"] [data-name="Label"],
+  .settings-form > [data-name="CardFooter"] {
+    width: 100% !important;
+    gap: 0 !important;
+  }
+
+  .settings-form > [data-name="CardFooter"] {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .settings-form > [data-name="Field"] :is(span, input, textarea) {
+    width: 100% !important;
+    min-height: 32px !important;
+    margin: 0 !important;
+    border: 0 !important;
+    border-bottom: 1px solid var(--border) !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    text-align: center !important;
+  }
+
+  .settings-form > [data-name="Field"] :is(span, input) {
+    height: 32px !important;
+  }
+
+  .settings-form > [data-name="Field"] span {
+    display: grid !important;
+    place-items: center;
+  }
+
+  .settings-form > [data-name="CardFooter"] button:not(dialog button) {
+    width: 100% !important;
+    height: 32px !important;
+    min-height: 32px !important;
+  }
+
+  body:has(a[href="/admin/settings"][aria-current="page"]) main,
+  body:has(a[href="/admin/settings"][aria-current="page"]) main * {
+    padding: 0 !important;
+  }
+
   table :is(th, td, tr) {
     padding-inline: 0 !important;
   }
@@ -1554,70 +1627,15 @@ pre {
   }
 
   .nav-menu-toggle {
-    display: flex;
-    height: 100%;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0;
-    color: var(--text-secondary);
-    cursor: pointer;
-    font-size: var(--header-font-size);
-    list-style: none;
-  }
-
-  .nav-menu-toggle > input {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip-path: inset(50%);
-    white-space: nowrap;
-  }
-
-  .nav-menu-toggle::after {
-    content: "+";
-    color: var(--accent);
-    font-size: 18px;
-    line-height: 1;
-  }
-
-  .nav-menu-toggle:has(input:checked)::after {
-    content: "−";
+    display: none;
   }
 
   .topbar nav {
-    position: absolute;
-    top: 100%;
-    left: 0;
-    display: none !important;
-    max-height: calc(100dvh - var(--header-height));
-    flex-wrap: wrap;
-    align-content: start;
-    gap: 4px;
-    border-bottom: 1px solid var(--border);
-    background: var(--surface);
-    box-shadow: var(--shadow);
-    scroll-padding: 10px;
+    position: static;
+    display: flex;
+    height: 100%;
   }
 
-  .nav-menu-toggle:has(input:checked) + nav {
-    display: flex !important;
-  }
-
-  .nav-menu-list > li {
-    flex: 1 1 140px;
-  }
-
-  .nav-menu-list > li:last-child {
-    margin-top: 0;
-    margin-left: 0;
-  }
-
-  .topbar nav a,
-  .topbar nav li > form button {
-    min-height: 36px;
-    flex: 1 1 140px;
-  }
 
   .topbar nav li > form button {
     width: 100%;
@@ -1756,4 +1774,16 @@ pre {
   .loading-spinner {
     animation: none;
   }
+}
+
+.version-value {
+  width: 100%;
+  margin: 0;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+body:has(a[href="/admin/version"][aria-current="page"]) .page-frame {
+  justify-content: center;
+  align-items: center;
 }

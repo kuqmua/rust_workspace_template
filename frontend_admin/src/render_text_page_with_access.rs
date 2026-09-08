@@ -13,8 +13,17 @@ pub fn render_text_page_with_access(
     authenticated_admin: &server_admin_contract::authenticated_admin::AuthenticatedAdmin,
     admin_branding_view: &server_admin_contract::admin_branding_view::AdminBrandingView,
 ) -> crate::admin_ssr_html::AdminSsrHtml {
-    let content_view = leptos::view! {
+    let content_view = if matches!(
+        admin_page,
+        server_admin_contract::admin_page::AdminPage::Version
+    ) {
+        leptos::prelude::IntoAny::into_any(leptos::view! {
+            <p class="version-value">{String::from(text)}</p>
+        })
+    } else {
+        leptos::prelude::IntoAny::into_any(leptos::view! {
         <section class:open-api-page=matches!(admin_page, server_admin_contract::admin_page::AdminPage::OpenApi)><crate::admin_card::AdminCard admin_card_variant=crate::admin_card_variant::AdminCardVariant::Code><singlestage::ScrollArea attr:data-name="CodeScrollArea" class="max-h-[70vh] overflow-auto"><pre>{String::from(text)}</pre></singlestage::ScrollArea></crate::admin_card::AdminCard></section>
+        })
     };
     let content = crate::render_view::render_view(content_view);
     crate::render_admin_page_with_access::render_admin_page_with_access(

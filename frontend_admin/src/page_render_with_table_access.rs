@@ -58,7 +58,7 @@ pub(super) fn page_render_with_table_access(
             <crate::admin_sidebar::AdminSidebar>
                 {tables}
                 {pages}
-                <crate::admin_sidebar_item::AdminSidebarItem><form method="post" action=server_admin_contract::admin_html_action::AdminHtmlAction::SignOut.get()><crate::admin_button::AdminButton admin_button_variant=crate::admin_button_variant::AdminButtonVariant::Secondary>{server_admin_contract::admin_html_action::AdminHtmlAction::SignOut.route_name().as_ref().to_owned()}</crate::admin_button::AdminButton></form></crate::admin_sidebar_item::AdminSidebarItem>
+                <crate::admin_sidebar_item::AdminSidebarItem><form method="post" action=server_admin_contract::admin_html_action::AdminHtmlAction::SignOut.get()><button type="submit">{server_admin_contract::admin_html_action::AdminHtmlAction::SignOut.route_name().as_ref().to_owned()}</button></form></crate::admin_sidebar_item::AdminSidebarItem>
             </crate::admin_sidebar::AdminSidebar>
         }
     };
