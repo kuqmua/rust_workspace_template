@@ -8,6 +8,10 @@
     strum_macros::IntoStaticStr,
 )]
 pub enum AdminFrontendPath {
+    #[strum(serialize = "/admin/branding")]
+    Branding,
+    #[strum(serialize = "/admin/health")]
+    Health,
     #[strum(serialize = "/admin/assets")]
     Assets,
     #[strum(serialize = "/admin/metrics")]

@@ -11,7 +11,9 @@ pub(super) fn crud_render_shell(
         server_admin_contract::admin_page::AdminPage::Roles => {
             Some(server_admin_contract::admin_data_table::AdminDataTable::Roles)
         }
-        server_admin_contract::admin_page::AdminPage::Metrics
+        server_admin_contract::admin_page::AdminPage::Health
+        | server_admin_contract::admin_page::AdminPage::Branding
+        | server_admin_contract::admin_page::AdminPage::Metrics
         | server_admin_contract::admin_page::AdminPage::OpenApi
         | server_admin_contract::admin_page::AdminPage::Permissions
         | server_admin_contract::admin_page::AdminPage::Profile

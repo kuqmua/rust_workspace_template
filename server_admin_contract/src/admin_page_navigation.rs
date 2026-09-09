@@ -9,6 +9,8 @@
     Ord,
 )]
 pub enum AdminPageNavigation {
+    Branding,
+    Health,
     OpenApi,
     Metrics,
     Profile,

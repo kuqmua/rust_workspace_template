@@ -338,14 +338,12 @@ fn main() -> server_exit_code::ServerExitCode {
                                 ));
                             axum_api_routes::AxumApiRoutes::from(
                                 axum::Router::new()
-                                    .nest(
-                                        server_admin_contract::admin_frontend_path::AdminFrontendPath::Root.get(),
+                                    .merge(
                                         axum::Router::from(server_admin::admin_auth_routes::admin_auth_routes(
                                             admin_auth_state,
                                         )),
                                     )
-                                    .nest(
-                                        server_admin_contract::admin_frontend_path::AdminFrontendPath::Root.get(),
+                                    .merge(
                                         secured_admin_routes,
                                     ),
                             )

@@ -360,3 +360,7 @@ mod validate_admin_access_claims;
 pub mod validate_catalog_schema;
 pub mod validate_table_sort;
 pub mod version;
+
+mod admin_branding_page;
+
+mod admin_health_page;

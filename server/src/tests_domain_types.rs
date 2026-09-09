@@ -47,7 +47,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_operational_routes_are_root_mounted_and_api_routes_are_v1_mounted() {
+    async fn test_operational_and_api_routes_are_root_mounted() {
         let operational_path = common_routes::common_route::CommonRoute::HealthLive.path();
         let router = axum::Router::from(crate::mount_service_routes::mount_service_routes(
             server_runtime_http::axum_router::AxumRouter::from(
@@ -84,11 +84,17 @@ mod tests {
             axum::http::StatusCode::NO_CONTENT
         );
         assert_eq!(
-            status(constants_str::VALUE_BB6C49D8)
+            status(constants_str::VALUE_87D0B7F8)
                 .await
                 .expect(constants_str::DIAGNOSTIC_6BB8E3F5)
                 .status(),
             axum::http::StatusCode::OK
+        );
+        assert_eq!(
+            status(constants_str::VALUE_BB6C49D8)
+                .await
+                .map(|response| response.status()),
+            Ok(axum::http::StatusCode::SEE_OTHER)
         );
         assert_eq!(
             status(constants_str::VALUE_A04A495F)

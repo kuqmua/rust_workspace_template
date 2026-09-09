@@ -24,6 +24,12 @@ pub mod admin_api_url_with_suffix;
 pub mod admin_app;
 #[cfg(not(target_arch = "wasm32"))]
 pub mod admin_assets_error;
+#[cfg(target_arch = "wasm32")]
+pub mod admin_audit_download;
+#[cfg(target_arch = "wasm32")]
+pub mod admin_audit_download_state;
+#[cfg(any(target_arch = "wasm32", test))]
+pub mod admin_audit_download_url;
 #[cfg(test)]
 pub mod admin_badge;
 pub mod admin_badge_variant;
@@ -225,3 +231,14 @@ const _: fn(&str) -> Result<(), bounded_types::bounded_string_error::BoundedStri
 
 #[cfg(test)]
 mod test_admin_ssr_html;
+
+#[cfg(target_arch = "wasm32")]
+mod admin_branding_details;
+
+#[cfg(target_arch = "wasm32")]
+mod admin_health_probe;
+#[cfg(target_arch = "wasm32")]
+mod admin_health_view;
+
+#[cfg(target_arch = "wasm32")]
+mod admin_health_wasm_bindgen_error;

@@ -16,12 +16,12 @@ pub fn render_admin_permissions_page(
         let id = item.id().to_string();
         let permission = item.name().to_string();
         leptos::view! {
-            <crate::table_row::TableRow><crate::table_cell::TableCell data_label="id">{id}</crate::table_cell::TableCell><crate::table_cell::TableCell data_label="permission">{permission}</crate::table_cell::TableCell></crate::table_row::TableRow>
+            <crate::table_row::TableRow><crate::table_cell::TableCell data_label="id">{id}</crate::table_cell::TableCell><crate::table_cell::TableCell data_label="permission">{permission}</crate::table_cell::TableCell><crate::table_cell::TableCell data_label=constants_str::ADMIN_UI_ACTIONS bool=true>{constants_str::EMPTY}</crate::table_cell::TableCell></crate::table_row::TableRow>
         }
     }).collect::<Vec<_>>();
     let content_view = leptos::view! {
         <section class="table-page">
-        <crate::table_wrapper::TableWrapper><crate::table::Table><crate::table_header::TableHeader><crate::table_row::TableRow><crate::table_head::TableHead>"id"</crate::table_head::TableHead><crate::table_head::TableHead>"permission"</crate::table_head::TableHead></crate::table_row::TableRow></crate::table_header::TableHeader>
+        <crate::table_wrapper::TableWrapper><crate::table::Table><crate::table_header::TableHeader><crate::table_row::TableRow><crate::table_head::TableHead>"id"</crate::table_head::TableHead><crate::table_head::TableHead>"permission"</crate::table_head::TableHead><crate::table_head::TableHead>{constants_str::ADMIN_UI_ACTIONS}</crate::table_head::TableHead></crate::table_row::TableRow></crate::table_header::TableHeader>
         <crate::table_body::TableBody>{rows}</crate::table_body::TableBody></crate::table::Table></crate::table_wrapper::TableWrapper>
         {crate::table_pagination::table_pagination(server_admin_contract::admin_page::AdminPage::Permissions, admin_table_query, admin_permissions_page.total(), None, None)}
         </section>

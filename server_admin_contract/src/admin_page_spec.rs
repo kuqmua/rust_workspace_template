@@ -57,6 +57,8 @@ impl AdminPageSpec {
     #[must_use]
     pub fn title(self) -> frontend_contract::contract_str::ContractStr {
         frontend_contract::contract_str::ContractStr::from(match self.title {
+            crate::admin_page_title::AdminPageTitle::Health => constants_str::ADMIN_UI_HEALTH,
+            crate::admin_page_title::AdminPageTitle::Branding => constants_str::ADMIN_UI_BRANDING,
             crate::admin_page_title::AdminPageTitle::Api => constants_str::ADMIN_UI_API,
             crate::admin_page_title::AdminPageTitle::Metrics => constants_str::ADMIN_UI_METRICS,
             crate::admin_page_title::AdminPageTitle::Permissions => {

@@ -472,6 +472,8 @@ fn test_data_tables_round_trip_and_require_read_permissions() {
     assert_eq!(
         crate::admin_page::AdminPage::navigation().collect::<Vec<_>>(),
         [
+            crate::admin_page::AdminPage::Branding,
+            crate::admin_page::AdminPage::Health,
             crate::admin_page::AdminPage::OpenApi,
             crate::admin_page::AdminPage::Metrics,
             crate::admin_page::AdminPage::Profile,
@@ -485,6 +487,8 @@ fn test_data_tables_round_trip_and_require_read_permissions() {
             .filter(|page| bool::from(page.supports_csr()))
             .collect::<Vec<_>>(),
         [
+            crate::admin_page::AdminPage::Health,
+            crate::admin_page::AdminPage::Branding,
             crate::admin_page::AdminPage::Users,
             crate::admin_page::AdminPage::Roles,
             crate::admin_page::AdminPage::Permissions,
@@ -509,6 +513,8 @@ fn test_data_tables_round_trip_and_require_read_permissions() {
             .map(|page| page.spec().route_name().to_string())
             .collect::<Vec<_>>(),
         [
+            String::from(constants_str::ADMIN_UI_BRANDING),
+            String::from(constants_str::ADMIN_UI_HEALTH),
             String::from(constants_str::VALUE_E16D1963),
             String::from(constants_str::VALUE_177A7EA3),
             String::from(constants_str::VALUE_1900EAB6),
@@ -643,4 +649,51 @@ fn test_administrator_identifiers_require_positive_database_values() {
             .expect_err(constants_str::VALUE_4556AA65);
     let _audit_error = crate::admin_audit_log_id::AdminAuditLogId::try_from(-constants_i64::ONE)
         .expect_err(constants_str::VALUE_18E48FFC);
+}
+
+#[test]
+#[allow(
+    clippy::needless_for_each,
+    reason = "The route inventory is checked with iterator traversal under the workspace no-for-loop policy"
+)]
+fn test_read_pages_are_navigable_and_resolve_from_their_paths() {
+    [
+        crate::admin_page::AdminPage::Branding,
+        crate::admin_page::AdminPage::Health,
+    ]
+    .into_iter()
+    .for_each(|page| {
+        assert!(crate::admin_page::AdminPage::navigation().any(|candidate| candidate == page));
+        assert_eq!(
+            crate::admin_page::AdminPage::from_path(
+                crate::admin_page_path_ref::AdminPagePathRef::from(
+                    page.spec().frontend_path().get()
+                )
+            ),
+            Some(page)
+        );
+        assert!(bool::from(page.supports_csr()));
+        assert_eq!(
+            page.spec().route().contract().method(),
+            frontend_contract::route_method::RouteMethod::Get
+        );
+    });
+}
+
+#[test]
+#[allow(
+    clippy::needless_for_each,
+    reason = "The route inventory is checked with iterator traversal under the workspace no-for-loop policy"
+)]
+fn test_health_api_paths_preserve_service_root() {
+    [
+        crate::admin_route::AdminRoute::Health,
+        crate::admin_route::AdminRoute::HealthCheck,
+        crate::admin_route::AdminRoute::HealthLive,
+        crate::admin_route::AdminRoute::HealthReady,
+    ]
+    .into_iter()
+    .for_each(|route| {
+        assert_eq!(route.path().as_ref(), route.contract().path().as_ref());
+    });
 }

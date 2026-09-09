@@ -199,13 +199,13 @@ let filter = {
                 })
                 .collect::<Vec<_>>();
             leptos::view! {
-                <crate::table_row::TableRow>{cells}</crate::table_row::TableRow>
+                <crate::table_row::TableRow>{cells}<crate::table_cell::TableCell data_label=constants_str::ADMIN_UI_ACTIONS bool=true>{constants_str::EMPTY}</crate::table_cell::TableCell></crate::table_row::TableRow>
             }
         })
         .collect::<Vec<_>>();
     leptos::view! {
         <crate::table_wrapper::TableWrapper><crate::table::Table>
-            <crate::table_header::TableHeader><crate::table_row::TableRow>{columns}</crate::table_row::TableRow></crate::table_header::TableHeader>
+            <crate::table_header::TableHeader><crate::table_row::TableRow>{columns}<crate::table_head::TableHead>{constants_str::ADMIN_UI_ACTIONS}</crate::table_head::TableHead></crate::table_row::TableRow></crate::table_header::TableHeader>
             <crate::table_body::TableBody>{rows}</crate::table_body::TableBody>
         </crate::table::Table></crate::table_wrapper::TableWrapper>
     }

@@ -222,7 +222,7 @@ p {
   flex-direction: row;
   flex-wrap: nowrap;
   align-items: center;
-  gap: 4px;
+  gap: 0;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -479,6 +479,24 @@ p {
 }
 
 @layer utilities {
+  .nav-menu-list {
+    gap: 0 !important;
+  }
+
+  .nav-menu-list > li:hover {
+    background: var(--surface-subtle);
+  }
+
+  .nav-menu-list > li:has(a.active) {
+    background: var(--accent-soft);
+  }
+
+  .topbar .nav-menu-list > li > a,
+  .topbar .nav-menu-list > li > form > button {
+    width: 100% !important;
+    border-radius: 0 !important;
+  }
+
   .table-cell-dialog :is(h2, .table-cell-content, button) {
     box-sizing: border-box;
     height: 32px !important;
@@ -1715,5 +1733,16 @@ body:has(a[href="/admin/version"][aria-current="page"]) .page-frame {
 
 .table-cell-content {
   white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.health-label,
+.health-result {
+  display: grid;
+  place-items: center;
+  min-height: 32px;
+  width: 100%;
+  border-bottom: 1px solid var(--border);
+  text-align: center;
   overflow-wrap: anywhere;
 }

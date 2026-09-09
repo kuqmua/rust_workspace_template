@@ -15,6 +15,28 @@
 pub enum AdminPage {
     #[page_catalog_page(
         capability = crate::admin_page_capability::AdminPageCapability::Always,
+        metadata = crate::admin_page_metadata::AdminPageMetadata::new(
+            crate::admin_page_client_mode::AdminPageClientMode::Csr,
+            Some(crate::admin_page_navigation::AdminPageNavigation::Health),
+        ),
+        path = crate::admin_frontend_path::AdminFrontendPath::Health,
+        route = crate::admin_route::AdminRoute::Health,
+        title = crate::admin_page_title::AdminPageTitle::Health,
+    )]
+    Health,
+    #[page_catalog_page(
+        capability = crate::admin_page_capability::AdminPageCapability::Always,
+        metadata = crate::admin_page_metadata::AdminPageMetadata::new(
+            crate::admin_page_client_mode::AdminPageClientMode::Csr,
+            Some(crate::admin_page_navigation::AdminPageNavigation::Branding),
+        ),
+        path = crate::admin_frontend_path::AdminFrontendPath::Branding,
+        route = crate::admin_route::AdminRoute::Branding,
+        title = crate::admin_page_title::AdminPageTitle::Branding,
+    )]
+    Branding,
+    #[page_catalog_page(
+        capability = crate::admin_page_capability::AdminPageCapability::Always,
         metadata = crate::admin_page_metadata::AdminPageMetadata::new(crate::admin_page_client_mode::AdminPageClientMode::CsrTableQuery, None),
         path = crate::admin_frontend_path::AdminFrontendPath::Users,
         route = crate::admin_route::AdminRoute::Users,

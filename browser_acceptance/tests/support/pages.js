@@ -16,19 +16,19 @@ export const adminPages = Object.freeze({
 export const tablePages = Object.freeze([
   Object.freeze({
     ...adminPages.users,
-    headers: Object.freeze(["id", "login", "display_name", "banned", "roles"]),
+    headers: Object.freeze(["id", "login", "display_name", "banned", "roles", "actions"]),
     pagination: true,
     readOnly: true
   }),
   Object.freeze({
     ...adminPages.roles,
-    headers: Object.freeze(["id", "name", "system", "permissions"]),
+    headers: Object.freeze(["id", "name", "system", "permissions", "actions"]),
     pagination: true,
     readOnly: true
   }),
   Object.freeze({
     ...adminPages.permissions,
-    headers: Object.freeze(["id", "permission"]),
+    headers: Object.freeze(["id", "permission", "actions"]),
     pagination: true,
     readOnly: true
   }),

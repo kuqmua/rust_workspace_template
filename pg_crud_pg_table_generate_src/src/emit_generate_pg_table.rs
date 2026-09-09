@@ -1216,6 +1216,11 @@ pub fn emit_generate_pg_table(
         naming_common::domain_types::ToTokensToSnakeCaseStr::case(&identifier);
     let identifier_snake_case_double_quoted_token_stream =
         generate_quotes::dq_token_stream::dq_token_stream(&identifier_snake_case_string);
+    let route_resource_name = generate_pg_table_input_model
+        .config
+        .db_table_name
+        .as_deref()
+        .unwrap_or(identifier_snake_case_string.as_str());
     let db_table_name_double_quoted_token_stream =
         generate_quotes::dq_token_stream::dq_token_stream(
             generate_pg_table_input_model
@@ -1639,9 +1644,7 @@ pub fn emit_generate_pg_table(
                     | Operation::DeleteOne
             )
         }
-        GeneratePgTableApiMode::ReadOnly => {
-            matches!(operation, Operation::ReadMany | Operation::ReadOne)
-        }
+        GeneratePgTableApiMode::ReadOnly => matches!(operation, Operation::ReadMany),
         GeneratePgTableApiMode::ReadUpdate => {
             matches!(
                 operation,
@@ -4812,7 +4815,7 @@ enum WrapIntoOptional {
         );
         let open_api_path_type_identifier =
             quote::format_ident!("__generated_path_{open_api_path_fn_identifier}");
-        let open_api_path = format!("/{identifier_snake_case_string}/{operation_snake_case_string}");
+        let open_api_path = format!("/{route_resource_name}/{operation_snake_case_string}");
         let open_api_operation_id =
             format!("{identifier_snake_case_string}_{operation_snake_case_string}");
         let open_api_path_double_quoted_token_stream = generate_quotes::dq_token_stream::dq_token_stream(&open_api_path);
@@ -5801,7 +5804,7 @@ enum WrapIntoOptional {
                                         );
                                         quote::quote! {
                                             #ExtraParametersSnakeCase,
-                                            "{prefix}{}",
+                                            " {}",
                                             #ts
                                         }
                                     }),
@@ -6471,7 +6474,7 @@ enum WrapIntoOptional {
                     quote::format_ident!("{}_route", operation.self_snake_case_str());
                 let operation_route_path = format!(
                     "/{}/{}",
-                    identifier_snake_case_string,
+                    route_resource_name,
                     operation.self_snake_case_str()
                 );
                 quote::quote! {
@@ -6494,7 +6497,7 @@ enum WrapIntoOptional {
                     operation.self_snake_case_str()
                 );
                 let operation_payload_example_route_path = format!(
-                    "/{identifier_snake_case_string}/{operation_payload_example_snake_case}"
+                    "/{route_resource_name}/{operation_payload_example_snake_case}"
                 );
                 let ts = wrap_into_axum_res_token_stream(
                     &{
@@ -7135,7 +7138,7 @@ enum WrapIntoOptional {
                     quote::format_ident!("{}", operation_descriptor.get_operation().to_string());
                 let path = format!(
                     "/{}/{}",
-                    identifier_snake_case_string,
+                    route_resource_name,
                     operation_descriptor.get_operation().self_snake_case_str()
                 );
                 quote::quote! {#identifier_operation_upper_camel_case::#operation => #path}
@@ -7148,7 +7151,7 @@ enum WrapIntoOptional {
                     quote::format_ident!("{}", operation_descriptor.get_operation().to_string());
                 let path = format!(
                     "/{}/{}",
-                    identifier_snake_case_string,
+                    route_resource_name,
                     operation_descriptor
                         .get_operation()
                         .operation_payload_example_snake_case()
@@ -7714,7 +7717,7 @@ enum WrapIntoOptional {
             .map(|operation_descriptor| {
             let operation = operation_descriptor.get_operation().self_snake_case_str();
             let open_api_operation_id = format!("{identifier_snake_case_string}_{operation}");
-            let path = format!("/{identifier_snake_case_string}/{operation}");
+            let path = format!("/{route_resource_name}/{operation}");
             let method = match crate::route_http_method::route_http_method(operation_descriptor) {
                 OperationHttpMethod::Post => constants_str::POST_ALT,
                 OperationHttpMethod::Patch => constants_str::PATCH_ALT,
@@ -7909,7 +7912,7 @@ enum WrapIntoOptional {
         pub fn #RoutesSnakeCase(#AppStateSnakeCase: #std_sync_arc_combination_of_app_state_logic_traits_token_stream) -> axum::Router {
             Self::#RoutesHSnakeCase(
                 #AppStateSnakeCase,
-                #self_table_name_call_token_stream,
+                #route_resource_name,
                 #self_db_table_name_call_token_stream,
             )
         }
@@ -7973,10 +7976,6 @@ enum WrapIntoOptional {
             generate_identifier_operation_payload_upper_camel_case(&Operation::ReadMany);
         let identifier_co_parameters_upper_camel_case =
             generate_identifier_operation_parameters_upper_camel_case(&Operation::CreateOne);
-        let identifier_ro_parameters_upper_camel_case =
-            generate_identifier_operation_parameters_upper_camel_case(&Operation::ReadOne);
-        let identifier_ro_payload_upper_camel_case =
-            generate_identifier_operation_payload_upper_camel_case(&Operation::ReadOne);
         let identifier_uo_parameters_upper_camel_case =
             generate_identifier_operation_parameters_upper_camel_case(&Operation::UpdateOne);
         let config_path_token_stream = quote::quote! {server_config::server_config::ServerConfig};
@@ -8164,14 +8163,14 @@ enum WrapIntoOptional {
                     }
                 },
                 &quote::quote! {
-                    generate_identifier_try_ro_execute_primary_key(
+                    generate_identifier_try_rm_execute_primary_key(
                         &#UrlSnakeCase,
                         #primary_key_read_clone_token_stream,
                         #SelectPrimaryKeySnakeCase.clone(),
                         &table_initialization
                     )
                     .await
-                    .expect("36b95e96 generate_assert_eq_token_stream invariant must hold")
+                    .expect("36b95e96 generate_assert_eq_token_stream invariant must hold").into_iter().next().expect("45f2c1b6 primary key filter must return the inserted record")
                 },
                 &quote::quote! {"3d9f2ec0"},
             );
@@ -8192,7 +8191,7 @@ enum WrapIntoOptional {
                     let primary_key_read = #primary_key_field_type_read_ids_into_read_read_ids_from_try_co_primary_key_field_token_stream;
                     #assert_eq_ro_primary_key_token_stream
                     #assert_eq_dlo_primary_key_token_stream
-                    generate_check_no_rows_from_identifier_try_ro_execute_primary_key(
+                    generate_check_no_rows_from_identifier_try_rm_execute_primary_key(
                         &url,
                         #primary_key_read_token_stream,
                         #select_default_all_with_max_page_size_clone_token_stream,
@@ -8674,14 +8673,14 @@ enum WrapIntoOptional {
                                     }
                                 },
                                 &quote::quote! {
-                                    generate_identifier_try_ro_execute_primary_key(
+                                    generate_identifier_try_rm_execute_primary_key(
                                         &url_cloned,
                                         #primary_key_field_type_read_ids_into_read_read_ids_from_try_co_primary_key_field_token_stream,
                                         #select_default_all_with_max_page_size_cloned_clone_token_stream,
                                         &table_co_cloned
                                     )
                                     .await
-                                    .expect("f8e1cb88 generate_read_ids_els_8a1ef027 invariant must hold")
+                                    .expect("f8e1cb88 generate_read_ids_els_8a1ef027 invariant must hold").into_iter().next().expect("80d8ac04 primary key filter must return the inserted record")
                                 },
                                 &quote::quote! {"5f2adbed"},
                             );
@@ -8712,7 +8711,7 @@ enum WrapIntoOptional {
                                     ).await;
                                     #assert_eq_co_ro_primary_key_token_stream
                                     #assert_eq_co_dlo_primary_key_token_stream
-                                    generate_check_no_rows_from_identifier_try_ro_execute_primary_key(
+                                    generate_check_no_rows_from_identifier_try_rm_execute_primary_key(
                                         &url_cloned,
                                         #primary_key_field_type_read_ids_into_read_read_ids_from_try_co_primary_key_field_token_stream,
                                         select_default_all_with_max_page_size_cloned,
@@ -8742,7 +8741,7 @@ enum WrapIntoOptional {
                         #primary_key_field_type_read_ids_into_read_read_ids_from_try_co_primary_key_field_token_stream,
                         &table_7e35b1ce
                     ).await.expect("93b4bf61 generate_read_ids_els_8a1ef027 invariant must hold");
-                    generate_check_no_rows_from_identifier_try_ro_execute_primary_key(
+                    generate_check_no_rows_from_identifier_try_rm_execute_primary_key(
                         &url_cloned,
                         #primary_key_field_type_read_ids_into_read_read_ids_from_try_co_primary_key_field_token_stream,
                         select_default_all_with_max_page_size_cloned,
@@ -9162,7 +9161,7 @@ enum WrapIntoOptional {
             &quote::quote! {table_ro_cloned},
             &quote::quote! {table_ro},
             &quote::quote! {
-                    generate_check_no_rows_from_identifier_try_ro_execute_primary_key(
+                    generate_check_no_rows_from_identifier_try_rm_execute_primary_key(
                         &url_cloned,
                         #primary_key_field_type_as_pg_type_read_token_stream::new(uuid::Uuid::from_u128(3u128)),
                         #select_default_all_with_max_page_size_cloned_clone_token_stream,
@@ -9424,13 +9423,13 @@ enum WrapIntoOptional {
                         let maybe_previous_read_token_stream = if fields_len_without_primary_key > 1
                         {
                             quote::quote! {
-                                let previous_read = generate_identifier_try_ro_execute_primary_key(
+                                let previous_read = generate_identifier_try_rm_execute_primary_key(
                                     &url_cloned,
                                     #primary_key_field_type_read_only_is_into_read_read_ids_element_primary_key_field_token_stream,
                                     #select_default_all_with_max_page_size_cloned_clone_token_stream,
                                     &table_uo_cloned
                                 )
-                                .await.expect("e6998b47 generate_read_ids_els_8a1ef027 invariant must hold");
+                                .await.expect("e6998b47 generate_read_ids_els_8a1ef027 invariant must hold").into_iter().next().expect("ea3bd472 primary key filter must return the inserted record");
                             }
                         } else {
                             proc_macro2::TokenStream::new()
@@ -9476,13 +9475,13 @@ enum WrapIntoOptional {
                         let assert_eq_uo_ro_token_stream = generate_assert_eq_token_stream(
                         &generate_identifier_read_initialization_token_stream(&identifier_read_fields_initialization_without_primary_key_after_uo_token_stream),
                         &quote::quote! {
-                            generate_identifier_try_ro_execute_primary_key(
+                            generate_identifier_try_rm_execute_primary_key(
                                 &url_cloned,
                                 #primary_key_field_type_read_only_is_into_read_read_ids_element_primary_key_field_token_stream,
                                 select_default_all_with_max_page_size_cloned,
                                 &table_uo_cloned
                             )
-                            .await.expect("75894c76 generate_read_ids_els_8a1ef027 invariant must hold")
+                            .await.expect("75894c76 generate_read_ids_els_8a1ef027 invariant must hold").into_iter().next().expect("1ff921ec primary key filter must return the inserted record")
                         },
                         &quote::quote! {"d5dec823"},
                     );
@@ -9626,13 +9625,13 @@ enum WrapIntoOptional {
                     #field_read_ids_and_create_into_optional_explicit_value_read_read_ids_from_co_create_token_stream
                 }},
                 &quote::quote! {
-                    generate_identifier_try_ro_execute_primary_key(
+                    generate_identifier_try_rm_execute_primary_key(
                         &url,
                         #primary_key_field_type_read_ids_into_read_read_ids_from_co_primary_key_field_token_stream,
                         #select_default_all_with_max_page_size_cloned_clone_token_stream,
                         &table_dlo_cloned
                     )
-                    .await.expect("c8c44c89 generate_read_ids_els_8a1ef027 invariant must hold")
+                    .await.expect("c8c44c89 generate_read_ids_els_8a1ef027 invariant must hold").into_iter().next().expect("c49d2140 primary key filter must return the inserted record")
                 },
                 &quote::quote! {"86ef08ae"},
             );
@@ -9681,7 +9680,7 @@ enum WrapIntoOptional {
                         let read_ids_from_co = generate_read_ids_from_try_co_default(&url_cloned, &table_dlo_cloned).await;
                         #assert_eq_dlo_ro_primary_key_token_stream
                         #assert_eq_dlo_delete_primary_key_token_stream
-                        generate_check_no_rows_from_identifier_try_ro_execute_primary_key(
+                        generate_check_no_rows_from_identifier_try_rm_execute_primary_key(
                             &url_cloned,
                             #primary_key_field_type_read_ids_into_read_read_ids_from_co_primary_key_field_token_stream,
                             #select_default_all_with_max_page_size_cloned_clone_token_stream,
@@ -9773,19 +9772,31 @@ enum WrapIntoOptional {
                 .await
             }
         };
-        let generate_identifier_try_ro_execute_primary_key_fn_token_stream = quote::quote! {
-            async fn generate_identifier_try_ro_execute_primary_key(
+        let primary_key_filter = generate_primary_key_where_eq_into_inner_token_stream(
+            &quote::quote! {primary_key_column},
+        );
+        let primary_key_where =
+            generate_where_primary_key_or_token_stream(&quote::quote! {vec![#primary_key_filter]});
+        let generate_identifier_try_rm_execute_primary_key_fn_token_stream = quote::quote! {
+            async fn generate_identifier_try_rm_execute_primary_key(
                 url: &str,
                 primary_key_column: #primary_key_field_type_as_pg_type_read_token_stream,
                 select: #import_token_stream not_empty_unique_vec::NotEmptyUniqueVec<#identifier_select_upper_camel_case>,
                 table: &str,
-            ) -> Result<#identifier_read_upper_camel_case, #identifier_try_ro_error_upper_camel_case> {
-                #identifier::try_ro_execute(
+            ) -> Result<Vec<#identifier_read_upper_camel_case>, #identifier_try_rm_error_upper_camel_case> {
+                #identifier::try_rm_execute(
                     url,
-                    #identifier_ro_parameters_upper_camel_case {
-                        payload: #identifier_ro_payload_upper_camel_case {
-                            primary_key_column,
+                    #identifier_rm_parameters_upper_camel_case {
+                        payload: #identifier_rm_payload_upper_camel_case {
+                            where_many: #optional_identifier_where_upper_camel_case(Some(#primary_key_where)),
                             select,
+                            order_by: #import_token_stream order_by::OrderBy::new(
+                                #identifier_select_upper_camel_case::#primary_key_field_upper_camel_case_token_stream(
+                                    #primary_key_field_type_as_pg_type_select_token_stream::default()
+                                ),
+                                Some(#import_token_stream order::Order::Ascending)
+                            ),
+                            pagination: #import_token_stream pagination_starts_with_zero::PaginationStartsWithZero::try_new(1, 0).expect("2475bd3f single record pagination must be valid"),
                         },
                     },
                     table,
@@ -9793,40 +9804,16 @@ enum WrapIntoOptional {
                 .await
             }
         };
-        let generate_check_no_rows_from_identifier_try_ro_execute_primary_key_fn_token_stream = {
-            let ts = generate_assert_token_stream(
-                &quote::quote! {pg == no_rows_by_a_query_that_expected_to_return_at_least_one_row()},
-                &quote::quote! {"58b9a6a4"},
-            );
-            quote::quote! {
-                async fn generate_check_no_rows_from_identifier_try_ro_execute_primary_key(
-                    url: &str,
-                    primary_key_column: #primary_key_field_type_as_pg_type_read_token_stream,
-                    select: #import_token_stream not_empty_unique_vec::NotEmptyUniqueVec<#identifier_select_upper_camel_case>,
-                    table: &str,
-                ) {
-                    if let Err(#ErrorSnakeCase) = generate_identifier_try_ro_execute_primary_key(
-                        url,
-                        primary_key_column,
-                        select,
-                        table
-                    ).await {
-                        if let #identifier_try_ro_error_upper_camel_case::#identifier_ro_error_with_serde_upper_camel_case {
-                            ro_error_with_serde,
-                            ..
-                        } = error {
-                            if let #identifier_ro_error_with_serde_upper_camel_case::Pg { pg, .. } = ro_error_with_serde {
-                                #ts
-                            } else {
-                                panic!("0ad0117b");
-                            }
-                        } else {
-                            panic!("c6695392")
-                        }
-                    } else {
-                        panic!("67e43b7a")
-                    }
-                }
+        let generate_check_no_rows_from_identifier_try_rm_execute_primary_key_fn_token_stream = quote::quote! {
+            async fn generate_check_no_rows_from_identifier_try_rm_execute_primary_key(
+                url: &str,
+                primary_key_column: #primary_key_field_type_as_pg_type_read_token_stream,
+                select: #import_token_stream not_empty_unique_vec::NotEmptyUniqueVec<#identifier_select_upper_camel_case>,
+                table: &str,
+            ) {
+                let rows = generate_identifier_try_rm_execute_primary_key(url, primary_key_column, select, table)
+                    .await.expect("a7bcd479 primary key filtered read must succeed");
+                assert!(rows.is_empty());
             }
         };
         let identifier_create_default_fn_token_stream = quote::quote! {
@@ -9921,8 +9908,8 @@ enum WrapIntoOptional {
                     #generate_pg_type_where_try_new_primary_key_fn_token_stream
                     #generate_pg_type_where_try_new_or_pks_fn_token_stream
                     #generate_try_rm_order_by_primary_key_with_big_pagination_fn_token_stream
-                    #generate_identifier_try_ro_execute_primary_key_fn_token_stream
-                    #generate_check_no_rows_from_identifier_try_ro_execute_primary_key_fn_token_stream
+                    #generate_identifier_try_rm_execute_primary_key_fn_token_stream
+                    #generate_check_no_rows_from_identifier_try_rm_execute_primary_key_fn_token_stream
                     #identifier_create_default_fn_token_stream
                     #generate_read_ids_from_try_co_fn_token_stream
                     #generate_read_ids_from_try_co_default_fn_token_stream

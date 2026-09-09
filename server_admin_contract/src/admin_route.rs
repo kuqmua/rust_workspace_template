@@ -97,6 +97,54 @@ pub enum AdminRoute {
             frontend_contract::authentication_requirement::AuthenticationRequirement::Public,
             frontend_contract::route_method::RouteMethod::Get,
             frontend_contract::mutation_kind::MutationKind::ReadOnly,
+            frontend_contract::contract_str::ContractStr::from("/health"),
+            frontend_contract::success_status::SuccessStatus::Code200,
+        ),
+        path = "/health",
+        exclude_from_family,
+    )]
+    Health,
+    #[route_catalog_route(
+        contract = frontend_contract::route_contract::RouteContract::new(
+            frontend_contract::authentication_requirement::AuthenticationRequirement::Public,
+            frontend_contract::route_method::RouteMethod::Get,
+            frontend_contract::mutation_kind::MutationKind::ReadOnly,
+            frontend_contract::contract_str::ContractStr::from("/health_check"),
+            frontend_contract::success_status::SuccessStatus::Code200,
+        ),
+        path = "/health_check",
+        exclude_from_family,
+    )]
+    HealthCheck,
+    #[route_catalog_route(
+        contract = frontend_contract::route_contract::RouteContract::new(
+            frontend_contract::authentication_requirement::AuthenticationRequirement::Public,
+            frontend_contract::route_method::RouteMethod::Get,
+            frontend_contract::mutation_kind::MutationKind::ReadOnly,
+            frontend_contract::contract_str::ContractStr::from("/health/live"),
+            frontend_contract::success_status::SuccessStatus::Code200,
+        ),
+        path = "/health/live",
+        exclude_from_family,
+    )]
+    HealthLive,
+    #[route_catalog_route(
+        contract = frontend_contract::route_contract::RouteContract::new(
+            frontend_contract::authentication_requirement::AuthenticationRequirement::Public,
+            frontend_contract::route_method::RouteMethod::Get,
+            frontend_contract::mutation_kind::MutationKind::ReadOnly,
+            frontend_contract::contract_str::ContractStr::from("/health/ready"),
+            frontend_contract::success_status::SuccessStatus::Code200,
+        ),
+        path = "/health/ready",
+        exclude_from_family,
+    )]
+    HealthReady,
+    #[route_catalog_route(
+        contract = frontend_contract::route_contract::RouteContract::new(
+            frontend_contract::authentication_requirement::AuthenticationRequirement::Public,
+            frontend_contract::route_method::RouteMethod::Get,
+            frontend_contract::mutation_kind::MutationKind::ReadOnly,
             frontend_contract::contract_str::ContractStr::from(constants_str::COMMON_ROUTES_GIT_INFO),
             frontend_contract::success_status::SuccessStatus::Code200,
         ),
@@ -109,7 +157,10 @@ impl AdminRoute {
     #[must_use]
     pub fn path(self) -> crate::admin_route_path::AdminRoutePath {
         let suffix = self.catalog_path();
-        if matches!(self, Self::Version) {
+        if matches!(
+            self,
+            Self::Version | Self::Health | Self::HealthCheck | Self::HealthLive | Self::HealthReady
+        ) {
             crate::admin_route_path::AdminRoutePath::try_from(String::from(suffix))
                 .unwrap_or_default()
         } else {

@@ -106,7 +106,7 @@ test("test_loading_state_has_snake_case_accessible_labels", async ({ page }) => 
   await signInInitialAdministrator(page);
   let release;
   const gate = new Promise(resolve => { release = resolve; });
-  await page.route("**/v1/admin/users**", async route => {
+  await page.route("**/users**", async route => {
     await gate;
     await route.continue();
   });

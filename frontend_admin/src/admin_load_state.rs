@@ -3,6 +3,11 @@ pub(crate) enum AdminLoadState {
     Empty(server_admin_contract::authenticated_admin::AuthenticatedAdmin),
     Error(super::admin_table_load_error::AdminTableLoadError),
     Loading,
+    Health(server_admin_contract::authenticated_admin::AuthenticatedAdmin),
+    Branding(
+        server_admin_contract::authenticated_admin::AuthenticatedAdmin,
+        server_admin_contract::admin_branding_view::AdminBrandingView,
+    ),
     Permissions(
         server_admin_contract::authenticated_admin::AuthenticatedAdmin,
         server_admin_contract::admin_permissions_page::AdminPermissionsPage,
@@ -35,7 +40,9 @@ impl AdminLoadState {
         &self,
     ) -> Option<&server_admin_contract::authenticated_admin::AuthenticatedAdmin> {
         match self {
-            Self::Permissions(admin, _)
+            Self::Health(admin)
+            | Self::Branding(admin, _)
+            | Self::Permissions(admin, _)
             | Self::Roles(admin, _)
             | Self::Sessions(admin, _)
             | Self::Settings(admin, _)

@@ -99,7 +99,7 @@ test.describe("authenticated button labels", () => {
 
   test("test_database_display_name_preserves_case_and_spaces", async ({ page }) => {
     const usersResponse = page.waitForResponse(response =>
-      new URL(response.url()).pathname === "/v1/admin/users" && response.request().method() === "GET"
+      new URL(response.url()).pathname === "/users" && response.request().method() === "GET"
     );
     await page.goto("/admin/users");
     const response = await usersResponse;

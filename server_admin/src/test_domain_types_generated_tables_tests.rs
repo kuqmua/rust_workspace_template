@@ -345,16 +345,16 @@ fn test_generated_admin_open_api_combines_enabled_routes_only() {
         .get(constants_str::PATHS)
         .and_then(serde_json::Value::as_object)
         .expect(constants_str::DIAGNOSTIC_274479A7);
-    assert_eq!(paths.len(), 34usize);
+    assert_eq!(paths.len(), 28usize);
     assert!(paths.contains_key(constants_str::VALUE_C764A505));
     assert!(!paths.contains_key(constants_str::VALUE_F772F137));
     assert!(paths.contains_key(constants_str::VALUE_356A53CE));
     assert!(paths.contains_key(constants_str::VALUE_2A3105E4));
     assert!(paths.contains_key(constants_str::ADMIN_USERS_READ_MANY));
-    assert!(paths.contains_key(constants_str::VALUE_1FB526B2));
+    assert!(!paths.contains_key(constants_str::VALUE_1FB526B2));
     assert!(!paths.contains_key(constants_str::VALUE_0878EE4E));
     assert!(paths.contains_key(constants_str::ADMIN_PERMISSIONS_READ_MANY));
-    assert!(paths.contains_key(constants_str::VALUE_C65AD851));
+    assert!(!paths.contains_key(constants_str::VALUE_C65AD851));
     assert!(!paths.contains_key(constants_str::VALUE_7B7625A7));
     assert!(!paths.contains_key(constants_str::VALUE_19E13078));
     assert!(paths.contains_key(constants_str::ADMIN_SYSTEM_SETTINGS_READ_MANY));
@@ -375,48 +375,24 @@ fn test_generated_payload_example_routes_have_contracts_and_named_clients() {
             crate::admin_users::AdminUsers::read_many_payload_example_route(),
         ),
         (
-            crate::admin_users::AdminUsers::read_one_route(),
-            crate::admin_users::AdminUsers::read_one_payload_example_route(),
-        ),
-        (
             crate::admin_user_roles::AdminUserRoles::read_many_route(),
             crate::admin_user_roles::AdminUserRoles::read_many_payload_example_route(),
-        ),
-        (
-            crate::admin_user_roles::AdminUserRoles::read_one_route(),
-            crate::admin_user_roles::AdminUserRoles::read_one_payload_example_route(),
         ),
         (
             crate::admin_role_permissions::AdminRolePermissions::read_many_route(),
             crate::admin_role_permissions::AdminRolePermissions::read_many_payload_example_route(),
         ),
         (
-            crate::admin_role_permissions::AdminRolePermissions::read_one_route(),
-            crate::admin_role_permissions::AdminRolePermissions::read_one_payload_example_route(),
-        ),
-        (
             crate::admin_roles::AdminRoles::read_many_route(),
             crate::admin_roles::AdminRoles::read_many_payload_example_route(),
-        ),
-        (
-            crate::admin_roles::AdminRoles::read_one_route(),
-            crate::admin_roles::AdminRoles::read_one_payload_example_route(),
         ),
         (
             crate::admin_permissions::AdminPermissions::read_many_route(),
             crate::admin_permissions::AdminPermissions::read_many_payload_example_route(),
         ),
         (
-            crate::admin_permissions::AdminPermissions::read_one_route(),
-            crate::admin_permissions::AdminPermissions::read_one_payload_example_route(),
-        ),
-        (
             crate::admin_system_settings::AdminSystemSettings::read_many_route(),
             crate::admin_system_settings::AdminSystemSettings::read_many_payload_example_route(),
-        ),
-        (
-            crate::admin_system_settings::AdminSystemSettings::read_one_route(),
-            crate::admin_system_settings::AdminSystemSettings::read_one_payload_example_route(),
         ),
     ]
     .into_iter()
@@ -437,28 +413,16 @@ fn test_generated_payload_example_routes_have_contracts_and_named_clients() {
     assert!(!contract.mutates());
     [
         size_of_val(&crate::admin_users::AdminUsersFrontendApiClient::<ClientTransport>::read_many_payload_example),
-        size_of_val(&crate::admin_users::AdminUsersFrontendApiClient::<ClientTransport>::read_one_payload_example),
         size_of_val(&crate::admin_user_roles::AdminUserRolesFrontendApiClient::<ClientTransport>::read_many_payload_example),
-        size_of_val(&crate::admin_user_roles::AdminUserRolesFrontendApiClient::<ClientTransport>::read_one_payload_example),
         size_of_val(
             &crate::admin_role_permissions::AdminRolePermissionsFrontendApiClient::<ClientTransport>::read_many_payload_example,
         ),
-        size_of_val(
-            &crate::admin_role_permissions::AdminRolePermissionsFrontendApiClient::<ClientTransport>::read_one_payload_example,
-        ),
         size_of_val(&crate::admin_roles::AdminRolesFrontendApiClient::<ClientTransport>::read_many_payload_example),
-        size_of_val(&crate::admin_roles::AdminRolesFrontendApiClient::<ClientTransport>::read_one_payload_example),
         size_of_val(
             &crate::admin_permissions::AdminPermissionsFrontendApiClient::<ClientTransport>::read_many_payload_example,
         ),
         size_of_val(
-            &crate::admin_permissions::AdminPermissionsFrontendApiClient::<ClientTransport>::read_one_payload_example,
-        ),
-        size_of_val(
             &crate::admin_system_settings::AdminSystemSettingsFrontendApiClient::<ClientTransport>::read_many_payload_example,
-        ),
-        size_of_val(
-            &crate::admin_system_settings::AdminSystemSettingsFrontendApiClient::<ClientTransport>::read_one_payload_example,
         ),
     ]
     .into_iter()

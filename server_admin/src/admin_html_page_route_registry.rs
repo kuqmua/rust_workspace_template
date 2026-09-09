@@ -1,6 +1,8 @@
 proc_macro_frontend_contract_endpoint_registry::endpoint_registry! {
     pub(crate);
     state = crate::shared_admin_auth_svc_state_arc::SharedAdminAuthSvcStateArc;
+    (server_admin_contract::admin_frontend_path::AdminFrontendPath::Health, crate::admin_health_page::admin_health_page),
+    (server_admin_contract::admin_frontend_path::AdminFrontendPath::Branding, crate::admin_branding_page::admin_branding_page),
     (server_admin_contract::admin_frontend_path::AdminFrontendPath::SignIn, crate::sign_in_page::sign_in_page),
     (server_admin_contract::admin_frontend_path::AdminFrontendPath::Tables, crate::data_tables::data_tables),
     (server_admin_contract::admin_frontend_path::AdminFrontendPath::Users, crate::users::users),

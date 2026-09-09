@@ -1,8 +1,15 @@
 # Administrator API coverage audit
 
 The typed registry in `server_admin/src/admin_auth_route_registry.rs` registers 28 API
-operations. Paths below are relative to `/v1/admin`. The frontend must follow the route,
+operations. Paths below are rooted at the server origin. The frontend must follow the route,
 permission, request, and table catalogs in `server_admin_contract`.
+
+Generated read APIs use the configured database resource name in their URL, independently
+of the Rust type name: `/users/read_many` and the corresponding
+`*_payload_example` routes. The same rule applies to `roles`, `permissions`,
+`system_settings`, `user_roles`, and `role_permissions`; these paths have no `admin_` prefix. Single-record reads use a primary-key equality
+filter with a limit of one and offset zero. Missing records return an empty list.
+The read-only resources do not expose `read_one` or `read_one_payload_example`.
 
 This audit maps each operation to its administrator integration. Validation evidence
 below covers user-visible workflows and direct API behavior.

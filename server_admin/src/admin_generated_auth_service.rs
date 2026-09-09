@@ -37,10 +37,8 @@ where
                 })
                 .map(|contract| (contract.permission(), contract.mutates(), contract.method()))
                 .or_else(|| {
-                    path.ends_with(
-                        server_admin_contract::admin_frontend_path::AdminFrontendPath::OpenApiDocument
-                            .get(),
-                    )
+                    (path == server_admin_contract::admin_route::AdminRoute::OpenApi.contract().path().as_ref()
+                        || path == server_admin_contract::admin_frontend_path::AdminFrontendPath::OpenApiDocument.get())
                     .then_some((
                         Some(server_admin_core::std_admin_str_ref::StdAdminStrRef::from(
                             server_admin_contract::admin_permission::AdminPermission::OpenApiRead
@@ -52,9 +50,8 @@ where
                     ))
                 })
                 .or_else(|| {
-                    path.ends_with(
-                        server_admin_contract::admin_frontend_path::AdminFrontendPath::Metrics.get(),
-                    )
+                    (path == server_admin_contract::admin_route::AdminRoute::Metrics.contract().path().as_ref()
+                        || path == server_admin_contract::admin_frontend_path::AdminFrontendPath::Metrics.get())
                     .then_some((
                         Some(server_admin_core::std_admin_str_ref::StdAdminStrRef::from(
                             server_admin_contract::admin_permission::AdminPermission::MetricsRead
