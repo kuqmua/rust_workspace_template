@@ -57,7 +57,7 @@ pub(crate) fn AdminApp() -> impl leptos::prelude::IntoView {
                     .search()
                     .map_err(|_error| crate::admin_table_load_error::AdminTableLoadError::Fetch)?;
                 let url = crate::admin_api_url_with_suffix::admin_api_url_with_suffix(
-                    server_admin_contract::admin_route::AdminRoute::DataTable(table),
+                    table.api_route(),
                     crate::admin_csr_api_url_suffix_ref::AdminCsrApiUrlSuffixRef::from(
                         table_search.as_str(),
                     ),

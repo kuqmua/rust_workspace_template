@@ -6,8 +6,7 @@ pub enum OperationKind {
     CreateOne,
     DeleteMany,
     DeleteOne,
-    ReadMany,
-    ReadOne,
+    Read,
     UpdateMany,
     UpdateOne,
 }

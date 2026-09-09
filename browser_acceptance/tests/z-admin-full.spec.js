@@ -58,7 +58,7 @@ test("read-only role rows and runtime branding persist", async ({ page }) => {
   let mutation = page.waitForResponse(
     response =>
       response.request().method() === "PATCH" &&
-      response.url().endsWith("/system_settings") &&
+      response.url().endsWith("/system_settings/update") &&
       response.status() === 204
   );
   await page.getByRole("button", { name: "save_settings" }).click();
@@ -70,7 +70,7 @@ test("read-only role rows and runtime branding persist", async ({ page }) => {
   mutation = page.waitForResponse(
     response =>
       response.request().method() === "PATCH" &&
-      response.url().endsWith("/system_settings") &&
+      response.url().endsWith("/system_settings/update") &&
       response.status() === 204
   );
   await page

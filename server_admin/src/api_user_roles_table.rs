@@ -6,23 +6,20 @@
     clippy::single_call_fn,
     reason = "typed route registration requires a named endpoint function"
 )]
-pub(crate) async fn api_data_table(
+pub(crate) async fn api_user_roles_table(
     admin_auth_request: crate::admin_auth_request::AdminAuthRequest,
-    axum_admin_path: crate::axum_admin_path::AxumAdminPath<
-        server_admin_contract::admin_prefixed_data_table::AdminPrefixedDataTable,
-    >,
     axum_admin_query: crate::axum_admin_query::AxumAdminQuery<
         server_admin_contract::admin_data_table_query::AdminDataTableQuery,
     >,
 ) -> Result<
     crate::axum_admin_response::AxumAdminResponse,
-    crate::application_auth::AdminDataTableError,
+    crate::application_auth::AdminUserRolesTableError,
 > {
     crate::data_tables_get::data_tables_get(
         admin_auth_request,
-        server_admin_contract::admin_data_table::AdminDataTable::from(*axum_admin_path),
+        server_admin_contract::admin_data_table::AdminDataTable::UserRoles,
         axum_admin_query,
     )
     .await
-    .map_err(crate::application_auth::AdminDataTableError::from)
+    .map_err(crate::application_auth::AdminUserRolesTableError::from)
 }

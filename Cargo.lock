@@ -1682,7 +1682,6 @@ dependencies = [
  "proc_macro_generate_pg_table_dm_logic",
  "proc_macro_generate_pg_table_generate_pg_table_config",
  "proc_macro_generate_pg_table_rm_logic",
- "proc_macro_generate_pg_table_ro_logic",
  "proc_macro_generate_pg_table_um_logic",
  "proc_macro_generate_pg_table_uo_logic",
  "proc_macro_optimal_memory_layout",
@@ -4175,20 +4174,6 @@ dependencies = [
 
 [[package]]
 name = "proc_macro_generate_pg_table_rm_logic"
-version = "0.1.0"
-dependencies = [
- "proc_macro_generate_pg_table_shared",
-]
-
-[[package]]
-name = "proc_macro_generate_pg_table_ro_error_variants"
-version = "0.1.0"
-dependencies = [
- "proc_macro_generate_pg_table_shared",
-]
-
-[[package]]
-name = "proc_macro_generate_pg_table_ro_logic"
 version = "0.1.0"
 dependencies = [
  "proc_macro_generate_pg_table_shared",

@@ -177,7 +177,7 @@ fn test_open_api_contains_auth_and_user_security_contracts() {
         .get(constants_str::PATHS)
         .and_then(serde_json::Value::as_object)
         .expect(constants_str::DIAGNOSTIC_6E15EDEC);
-    assert_eq!(paths.len(), 22usize);
+    assert_eq!(paths.len(), 29usize);
     assert!(!paths.contains_key(constants_str::VALUE_F772F137));
     assert!(!paths.contains_key(constants_str::VALUE_1DFB120F));
     assert!(!paths.contains_key(constants_str::VALUE_D1688529));

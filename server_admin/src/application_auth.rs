@@ -19,7 +19,6 @@ proc_macro_frontend_contract_api_operation_error::api_operation_error!(AdminSess
 proc_macro_frontend_contract_api_operation_error::api_operation_error!(
     AdminSetRolePermissionsError,
 );
-proc_macro_frontend_contract_api_operation_error::api_operation_error!(AdminSetUserBanError,);
 proc_macro_frontend_contract_api_operation_error::api_operation_error!(AdminSetUserPasswordError,);
 proc_macro_frontend_contract_api_operation_error::api_operation_error!(AdminSetUserRolesError,);
 proc_macro_frontend_contract_api_operation_error::api_operation_error!(AdminSettingsError,);
@@ -28,3 +27,20 @@ proc_macro_frontend_contract_api_operation_error::api_operation_error!(AdminSign
 proc_macro_frontend_contract_api_operation_error::api_operation_error!(AdminUpdateRoleError,);
 proc_macro_frontend_contract_api_operation_error::api_operation_error!(AdminUpdateSettingsError,);
 proc_macro_frontend_contract_api_operation_error::api_operation_error!(AdminUpdateUserError,);
+proc_macro_frontend_contract_api_operation_error::api_operation_error!(AdminUserRolesTableError,);
+proc_macro_frontend_contract_api_operation_error::api_operation_error!(
+    AdminRolePermissionsTableError,
+);
+proc_macro_frontend_contract_api_operation_error::api_operation_error!(
+    AdminRefreshTokensTableError,
+);
+proc_macro_frontend_contract_api_operation_error::api_operation_error!(
+    AdminAccessSessionsTableError,
+);
+proc_macro_frontend_contract_api_operation_error::api_operation_error!(
+    AdminLoginAttemptsTableError,
+);
+proc_macro_frontend_contract_api_operation_error::api_operation_error!(AdminRateLimitsTableError,);
+proc_macro_frontend_contract_api_operation_error::api_operation_error!(
+    AdminCleanupStatusTableError,
+);

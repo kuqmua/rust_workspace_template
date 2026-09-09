@@ -988,8 +988,8 @@ mod test_flow {
         let ban_response = tower::ServiceExt::oneshot(
             crate::router_with_pool(&pool).0,
             crate::request_with_peer(
-                super::HttpAdminApiTestMethod::from(http::Method::POST),
-                super::StdAdminApiTestStrRef::from(format!("/users/{limited_id}/ban").as_str()),
+                super::HttpAdminApiTestMethod::from(http::Method::PATCH),
+                super::StdAdminApiTestStrRef::from(format!("/users/{limited_id}").as_str()),
                 super::StdAdminApiTestStrRef::from(constants_str::IS_BANNED_TRUE),
                 Some(super::StdAdminApiTestStrRef::from(active_cookie.as_str())),
                 Some(super::StdAdminApiTestStrRef::from(

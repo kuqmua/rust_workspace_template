@@ -66,13 +66,13 @@ test("mutations reject missing, invalid, and cross-origin CSRF credentials", asy
     site_name: "CSRF must not persist"
   };
 
-  const missing = await page.request.patch("/system_settings", {
+  const missing = await page.request.patch("/system_settings/update", {
     data: update,
     headers: { Origin: adminOrigin }
   });
   expect([401, 403]).toContain(missing.status());
 
-  const invalid = await page.request.patch("/system_settings", {
+  const invalid = await page.request.patch("/system_settings/update", {
     data: update,
     headers: {
       Origin: adminOrigin,
@@ -90,7 +90,7 @@ test("mutations reject missing, invalid, and cross-origin CSRF credentials", asy
   );
   expect(otherCsrf).toBeTruthy();
   const otherSessionToken = await page.request.patch(
-    "/system_settings",
+    "/system_settings/update",
     {
       data: update,
       headers: {
@@ -102,7 +102,7 @@ test("mutations reject missing, invalid, and cross-origin CSRF credentials", asy
   expect([401, 403]).toContain(otherSessionToken.status());
   await otherContext.close();
 
-  const crossOrigin = await page.request.patch("/system_settings", {
+  const crossOrigin = await page.request.patch("/system_settings/update", {
     data: update,
     headers: {
       ...(await adminHeaders(page.context())),
@@ -217,7 +217,7 @@ test("oversized and invalid mutations fail without changing persisted state", as
   expect(originalResponse.status()).toBe(200);
   const original = await originalResponse.json();
 
-  const invalid = await page.request.patch("/system_settings", {
+  const invalid = await page.request.patch("/system_settings/update", {
     data: {
       clear: [],
       default_admin_route: "/outside-admin"
@@ -379,8 +379,21 @@ test("banning a user revokes active sessions and unbanning restores sign-in", as
   await signIn(userPage, "ban_lifecycle_user", "Ban-password1!");
   await expect(userPage).toHaveURL(/\/admin\/profile$/);
 
-  const banned = await page.request.post(
-    `/users/${userId}/ban`,
+  const originalUser = (await (await page.request.get("/users?limit=100")).json()).items
+    .find(user => user.id === userId);
+  const administrator = (await (await page.request.get("/users?limit=100")).json()).items
+    .find(user => user.login === "administrator");
+  const conflicting = await page.request.patch(`/users/${userId}`, {
+    data: { login: administrator.login, display_name: "Rejected Name", is_banned: true },
+    headers: await adminHeaders(page.context())
+  });
+  expect(conflicting.status()).toBe(409);
+  expect((await (await page.request.get("/users?limit=100")).json()).items
+    .find(user => user.id === userId)).toEqual(originalUser);
+  expect((await userPage.request.get("/auth/me")).status()).toBe(200);
+
+  const banned = await page.request.patch(
+    `/users/${userId}`,
     {
       data: { is_banned: true },
       headers: await adminHeaders(page.context())
@@ -390,12 +403,21 @@ test("banning a user revokes active sessions and unbanning restores sign-in", as
   expect(
     (await userPage.request.get("/auth/me")).status()
   ).toBe(401);
+  const renamed = await page.request.patch(`/users/${userId}`, {
+    data: { display_name: "Renamed Banned User" },
+    headers: await adminHeaders(page.context())
+  });
+  expect(renamed.status()).toBe(204);
+  expect((await (await page.request.get("/users?limit=100")).json()).items
+    .find(user => user.id === userId)).toMatchObject({
+      display_name: "Renamed Banned User", is_banned: true
+    });
   await userPage.goto("/admin/sign_in");
   await signIn(userPage, "ban_lifecycle_user", "Ban-password1!");
   await expect(userPage.getByRole("alert")).toBeVisible();
 
-  const unbanned = await page.request.post(
-    `/users/${userId}/ban`,
+  const unbanned = await page.request.patch(
+    `/users/${userId}`,
     {
       data: { is_banned: false },
       headers: await adminHeaders(page.context())
@@ -607,7 +629,7 @@ test("data-table filters constrain rows and reject malformed filter contracts", 
   expect(assigned.status()).toBe(204);
 
   const filtered = await page.request.get(
-    `/tables/role_permissions?filter_field=role_id&filter_operation=eq&filter_value=${roleId}&limit=100`
+    `/role_permissions?filter_field=role_id&filter_operation=eq&filter_value=${roleId}&limit=100`
   );
   expect(filtered.status()).toBe(200);
   const table = await filtered.json();
@@ -618,8 +640,8 @@ test("data-table filters constrain rows and reject malformed filter contracts", 
   expect(table.items[0].values).toContain(String(permission.id));
 
   for (const path of [
-    "/tables/role_permissions?filter_field=role_id&filter_operation=eq",
-    "/tables/role_permissions?filter_field=unknown&filter_operation=eq&filter_value=1"
+    "/role_permissions?filter_field=role_id&filter_operation=eq",
+    "/role_permissions?filter_field=unknown&filter_operation=eq&filter_value=1"
   ]) {
     const rejected = await page.request.get(path);
     expect(rejected.status()).toBe(422);
@@ -805,7 +827,7 @@ test("a failed settings mutation preserves input and reports the server error", 
   page.on("request", request => {
     if (request.url().endsWith("/auth/refresh")) refreshes += 1;
   });
-  await page.route("**/system_settings", async route => {
+  await page.route("**/system_settings/update", async route => {
     if (route.request().method() === "PATCH") {
       intercepted += 1;
       await route.fulfill({
@@ -830,7 +852,7 @@ test("a failed settings mutation preserves input and reports the server error", 
   expect(intercepted).toBe(1);
   expect(refreshes).toBe(0);
 
-  await page.unroute("**/system_settings");
+  await page.unroute("**/system_settings/update");
   const persisted = await page.request.get("/system_settings");
   expect(persisted.status()).toBe(200);
   expect((await persisted.json()).site_name).toBe(originalSiteName);

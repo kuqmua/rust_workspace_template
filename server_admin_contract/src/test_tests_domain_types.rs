@@ -28,7 +28,7 @@ impl frontend_contract::transport::Transport for ClientTransport {
 fn test_every_admin_api_route_has_named_route_and_client_functions() {
     assert_eq!(
         <crate::admin_route::AdminAuthenticationRouteFamily as frontend_contract::route_family::RouteFamily>::ROUTE_COUNT,
-        28usize
+        34usize
     );
     assert_eq!(
         crate::admin_route::metrics_route(),
@@ -62,7 +62,6 @@ fn test_every_admin_api_route_has_named_route_and_client_functions() {
         size_of_val(&crate::admin_revoke_session_route::revoke_session_route),
         size_of_val(&crate::admin_list_roles_route::list_roles_route),
         size_of_val(&crate::admin_set_role_permissions_route::set_role_permissions_route),
-        size_of_val(&crate::admin_set_user_ban_route::set_user_ban_route),
         size_of_val(&crate::admin_set_user_password_route::set_user_password_route),
         size_of_val(&crate::admin_set_user_roles_route::set_user_roles_route),
         size_of_val(&crate::admin_settings_route::settings_route),
@@ -97,7 +96,6 @@ fn test_every_admin_api_route_has_named_route_and_client_functions() {
         size_of_val(&crate::admin_revoke_session_route::revoke_session_client::<ClientTransport>),
         size_of_val(&crate::admin_list_roles_route::list_roles_client::<ClientTransport>),
         size_of_val(&crate::admin_set_role_permissions_route::set_role_permissions_client::<ClientTransport>),
-        size_of_val(&crate::admin_set_user_ban_route::set_user_ban_client::<ClientTransport>),
         size_of_val(&crate::admin_set_user_password_route::set_user_password_client::<ClientTransport>),
         size_of_val(&crate::admin_set_user_roles_route::set_user_roles_client::<ClientTransport>),
         size_of_val(&crate::admin_settings_route::settings_client::<ClientTransport>),
@@ -158,7 +156,7 @@ fn test_administrator_collections_enforce_item_limit_for_construction_and_deseri
 #[test]
 fn test_authentication_route_family_has_valid_coverage() {
     let descriptors = <crate::admin_route::AdminAuthenticationRouteFamily as frontend_contract::route_family::RouteFamily>::coverage_descriptors();
-    assert_eq!(descriptors.as_ref().len(), 28usize);
+    assert_eq!(descriptors.as_ref().len(), 34usize);
     assert_eq!(
         frontend_contract::validate_route_coverage::validate_route_coverage(descriptors.as_ref()),
         Ok(())
@@ -183,7 +181,7 @@ fn test_request_payloads_reject_unknown_fields() {
     assert_rejects_unknown_field::<
         crate::admin_set_user_password_request::AdminSetUserPasswordRequest,
     >(constants_str::PASSWORD_SECRET_UNKNOWN_TRUE);
-    assert_rejects_unknown_field::<crate::admin_set_user_ban_request::AdminSetUserBanRequest>(
+    assert_rejects_unknown_field::<crate::admin_update_user_request::AdminUpdateUserRequest>(
         constants_str::IS_BANNED_TRUE_UNKNOWN_TRUE,
     );
     assert_rejects_unknown_field::<crate::admin_create_role_request::AdminCreateRoleRequest>(
@@ -204,13 +202,13 @@ fn test_request_payloads_reject_unknown_fields() {
 }
 #[test]
 fn test_route_contract_keeps_custom_action_policy_and_path_together() {
-    let route = crate::admin_route::AdminRoute::SetUserBan(
+    let route = crate::admin_route::AdminRoute::UpdateUser(
         crate::admin_user_id::AdminUserId::try_from(7).expect(constants_str::DIAGNOSTIC_8BED843C),
     );
     assert_eq!(route.path().as_ref(), constants_str::VALUE_FC4871BE);
     assert_eq!(
         route.contract().method(),
-        frontend_contract::route_method::RouteMethod::Post
+        frontend_contract::route_method::RouteMethod::Patch
     );
     assert_eq!(
         route.contract().mutation(),
@@ -243,7 +241,7 @@ fn test_parameterized_admin_route_path_uses_typed_route_metadata() {
     assert_eq!(path.as_ref(), constants_str::VALUE_C0FE54AF);
     assert_eq!(
         String::from(crate::admin_data_table_route::read_data_table_route(
-            &crate::admin_data_table::AdminDataTable::Roles
+            &crate::admin_prefixed_data_table::AdminPrefixedDataTable::Roles
         )),
         constants_str::VALUE_BCEDACF8
     );
@@ -266,9 +264,7 @@ fn test_parameterized_admin_route_path_uses_typed_route_metadata() {
         constants_str::VALUE_BF4EA24D
     );
     assert_eq!(
-        String::from(crate::admin_set_user_ban_route::set_user_ban_route(
-            &user_id
-        )),
+        String::from(crate::admin_update_user_route::update_user_route(&user_id)),
         constants_str::VALUE_761F4C43
     );
     assert_eq!(
@@ -695,5 +691,82 @@ fn test_health_api_paths_preserve_service_root() {
     .into_iter()
     .for_each(|route| {
         assert_eq!(route.path().as_ref(), route.contract().path().as_ref());
+    });
+}
+
+#[test]
+#[allow(
+    clippy::needless_for_each,
+    reason = "iterator traversal follows the workspace no-for-loop policy"
+)]
+fn test_data_table_api_routes_keep_only_conflicting_resources_prefixed() {
+    crate::admin_data_table::AdminDataTable::ALL
+        .into_iter()
+        .for_each(|table| {
+            let route = table.api_route();
+            match table {
+                crate::admin_data_table::AdminDataTable::Users
+                | crate::admin_data_table::AdminDataTable::Roles
+                | crate::admin_data_table::AdminDataTable::Permissions
+                | crate::admin_data_table::AdminDataTable::AuditLog
+                | crate::admin_data_table::AdminDataTable::SystemSettings => {
+                    assert_eq!(
+                        crate::admin_data_table::AdminDataTable::from(
+                            crate::admin_prefixed_data_table::AdminPrefixedDataTable::try_from(
+                                table.as_str().get()
+                            )
+                            .expect(constants_str::DIAGNOSTIC_700CC2CC)
+                        ),
+                        table
+                    );
+                    assert_eq!(
+                        route.path().as_ref(),
+                        format!(
+                            "{}/{}",
+                            crate::admin_route::AdminRoute::DataTables.path(),
+                            table
+                        )
+                    );
+                }
+                crate::admin_data_table::AdminDataTable::UserRoles
+                | crate::admin_data_table::AdminDataTable::RolePermissions
+                | crate::admin_data_table::AdminDataTable::RefreshTokens
+                | crate::admin_data_table::AdminDataTable::AccessSessions
+                | crate::admin_data_table::AdminDataTable::LoginAttempts
+                | crate::admin_data_table::AdminDataTable::RateLimits
+                | crate::admin_data_table::AdminDataTable::CleanupStatus => {
+                    let _error =
+                        crate::admin_prefixed_data_table::AdminPrefixedDataTable::try_from(
+                            table.as_str().get(),
+                        )
+                        .expect_err(constants_str::DIAGNOSTIC_664DD271);
+                    assert_eq!(
+                        route.path().as_ref().strip_prefix(constants_str::SLASH),
+                        Some(table.as_str().get())
+                    );
+                    assert_eq!(route.path().as_ref(), route.contract().path().as_ref());
+                }
+            }
+        });
+}
+
+#[test]
+#[allow(
+    clippy::needless_for_each,
+    reason = "iterator traversal follows the workspace no-for-loop policy"
+)]
+fn test_update_user_ban_field_distinguishes_omission_from_false() {
+    [
+        (constants_str::DISPLAY_NAME_UPDATED_USER, None),
+        (constants_str::IS_BANNED_TRUE, Some(true)),
+        (constants_str::IS_BANNED_FALSE, Some(false)),
+    ]
+    .into_iter()
+    .for_each(|(source, expected)| {
+        let request = serde_json::from_str::<
+            crate::admin_update_user_request::AdminUpdateUserRequest,
+        >(source)
+        .expect(constants_str::DIAGNOSTIC_08066EB7);
+        assert_eq!(request.into_parts().2.map(bool::from), expected);
     });
 }

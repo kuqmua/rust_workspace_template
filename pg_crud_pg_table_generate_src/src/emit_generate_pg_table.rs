@@ -61,8 +61,7 @@ pub fn emit_generate_pg_table(
     enum Operation {
         CreateMany,
         CreateOne,
-        ReadMany,
-        ReadOne,
+        Read,
         UpdateMany,
         UpdateOne,
         DeleteMany,
@@ -74,8 +73,7 @@ pub fn emit_generate_pg_table(
                 Self::CreateMany | Self::CreateOne => {
                     macro_helpers::status_code::StatusCode::Created201
                 }
-                Self::ReadMany
-                | Self::ReadOne
+                Self::Read
                 | Self::UpdateMany
                 | Self::UpdateOne
                 | Self::DeleteMany
@@ -84,9 +82,7 @@ pub fn emit_generate_pg_table(
         }
         const fn http_method(self) -> OperationHttpMethod {
             match self {
-                Self::CreateMany | Self::CreateOne | Self::ReadMany | Self::ReadOne => {
-                    OperationHttpMethod::Post
-                }
+                Self::CreateMany | Self::CreateOne | Self::Read => OperationHttpMethod::Post,
                 Self::UpdateMany | Self::UpdateOne => OperationHttpMethod::Patch,
                 Self::DeleteMany | Self::DeleteOne => OperationHttpMethod::Delete,
             }
@@ -120,7 +116,7 @@ pub fn emit_generate_pg_table(
             )
         }
         const fn is_read(self) -> bool {
-            matches!(self, Self::ReadMany | Self::ReadOne)
+            matches!(self, Self::Read)
         }
         const fn requires_query_part_error(self) -> bool {
             !matches!(self, Self::DeleteOne)
@@ -151,8 +147,7 @@ pub fn emit_generate_pg_table(
                 match &self {
                     Self::CreateMany => "CreateMany",
                     Self::CreateOne => "CreateOne",
-                    Self::ReadMany => "ReadMany",
-                    Self::ReadOne => "ReadOne",
+                    Self::Read => "Read",
                     Self::UpdateMany => "UpdateMany",
                     Self::UpdateOne => "UpdateOne",
                     Self::DeleteMany => "DeleteMany",
@@ -173,16 +168,8 @@ pub fn emit_generate_pg_table(
     impl From<&RmOrDm> for Operation {
         fn from(value: &RmOrDm) -> Self {
             match &value {
-                RmOrDm::Rm => Self::ReadMany,
+                RmOrDm::Rm => Self::Read,
                 RmOrDm::Dm => Self::DeleteMany,
-            }
-        }
-    }
-    impl From<&RmOrRo> for Operation {
-        fn from(value: &RmOrRo) -> Self {
-            match &value {
-                RmOrRo::Rm => Self::ReadMany,
-                RmOrRo::Ro => Self::ReadOne,
             }
         }
     }
@@ -221,11 +208,10 @@ pub fn emit_generate_pg_table(
             macro_helpers::status_code::StatusCode,
         >
     {
-        const ALL: [Self; 8] = [
+        const ALL: [Self; 7] = [
             Self::from_operation(Operation::CreateMany),
             Self::from_operation(Operation::CreateOne),
-            Self::from_operation(Operation::ReadMany),
-            Self::from_operation(Operation::ReadOne),
+            Self::from_operation(Operation::Read),
             Self::from_operation(Operation::UpdateMany),
             Self::from_operation(Operation::UpdateOne),
             Self::from_operation(Operation::DeleteMany),
@@ -236,8 +222,7 @@ pub fn emit_generate_pg_table(
                 match operation {
                     Operation::CreateMany => GeneratePgTableAttr::CmErrorVariants,
                     Operation::CreateOne => GeneratePgTableAttr::CoErrorVariants,
-                    Operation::ReadMany => GeneratePgTableAttr::RmErrorVariants,
-                    Operation::ReadOne => GeneratePgTableAttr::RoErrorVariants,
+                    Operation::Read => GeneratePgTableAttr::RmErrorVariants,
                     Operation::UpdateMany => GeneratePgTableAttr::UmErrorVariants,
                     Operation::UpdateOne => GeneratePgTableAttr::UoErrorVariants,
                     Operation::DeleteMany => GeneratePgTableAttr::DmErrorVariants,
@@ -252,8 +237,7 @@ pub fn emit_generate_pg_table(
                 match operation {
                     Operation::CreateMany => GeneratePgTableAttr::CmLogic,
                     Operation::CreateOne => GeneratePgTableAttr::CoLogic,
-                    Operation::ReadMany => GeneratePgTableAttr::RmLogic,
-                    Operation::ReadOne => GeneratePgTableAttr::RoLogic,
+                    Operation::Read => GeneratePgTableAttr::RmLogic,
                     Operation::UpdateMany => GeneratePgTableAttr::UmLogic,
                     Operation::UpdateOne => GeneratePgTableAttr::UoLogic,
                     Operation::DeleteMany => GeneratePgTableAttr::DmLogic,
@@ -266,15 +250,14 @@ pub fn emit_generate_pg_table(
                     | Operation::CreateOne
                     | Operation::DeleteMany
                     | Operation::DeleteOne
-                    | Operation::ReadMany
-                    | Operation::ReadOne
+                    | Operation::Read
                     | Operation::UpdateMany => crate::optimistic_concurrency_capability::OptimisticConcurrencyCapability::Disabled,
                 },
                 match operation {
                     Operation::CreateMany | Operation::CreateOne => {
                         constants_str::PG_CRUD_CREATE_PERMISSION_ACTION
                     }
-                    Operation::ReadMany | Operation::ReadOne => constants_str::PG_CRUD_READ_PERMISSION_ACTION,
+                    Operation::Read => constants_str::PG_CRUD_READ_PERMISSION_ACTION,
                     Operation::UpdateMany | Operation::UpdateOne => {
                         constants_str::PG_CRUD_UPDATE_PERMISSION_ACTION
                     }
@@ -295,12 +278,6 @@ pub fn emit_generate_pg_table(
         Rm,
         Dm,
     }
-    #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
-    enum RmOrRo {
-        Rm,
-        Ro,
-    }
-
     #[allow(
         clippy::arbitrary_source_item_ordering,
         reason = "emit generate pg table keeps declaration order aligned with generated layout or processing flow"
@@ -320,7 +297,6 @@ pub fn emit_generate_pg_table(
         CmErrorVariants,
         CoErrorVariants,
         RmErrorVariants,
-        RoErrorVariants,
         UmErrorVariants,
         UoErrorVariants,
         DmErrorVariants,
@@ -329,7 +305,6 @@ pub fn emit_generate_pg_table(
         CmLogic,
         CoLogic,
         RmLogic,
-        RoLogic,
         UmLogic,
         UoLogic,
         DmLogic,
@@ -342,7 +317,6 @@ pub fn emit_generate_pg_table(
                 Self::CmErrorVariants => &naming::domain_types::CmErrorVariantsSnakeCase,
                 Self::CoErrorVariants => &naming::domain_types::CoErrorVariantsSnakeCase,
                 Self::RmErrorVariants => &naming::domain_types::RmErrorVariantsSnakeCase,
-                Self::RoErrorVariants => &naming::domain_types::RoErrorVariantsSnakeCase,
                 Self::UmErrorVariants => &naming::domain_types::UmErrorVariantsSnakeCase,
                 Self::UoErrorVariants => &naming::domain_types::UoErrorVariantsSnakeCase,
                 Self::DmErrorVariants => &naming::domain_types::DmErrorVariantsSnakeCase,
@@ -351,7 +325,6 @@ pub fn emit_generate_pg_table(
                 Self::CmLogic => &naming::domain_types::CmLogicSnakeCase,
                 Self::CoLogic => &naming::domain_types::CoLogicSnakeCase,
                 Self::RmLogic => &naming::domain_types::RmLogicSnakeCase,
-                Self::RoLogic => &naming::domain_types::RoLogicSnakeCase,
                 Self::UmLogic => &naming::domain_types::UmLogicSnakeCase,
                 Self::UoLogic => &naming::domain_types::UoLogicSnakeCase,
                 Self::DmLogic => &naming::domain_types::DmLogicSnakeCase,
@@ -865,7 +838,6 @@ pub fn emit_generate_pg_table(
                 GeneratePgTableAttr::CmErrorVariants,
                 GeneratePgTableAttr::CoErrorVariants,
                 GeneratePgTableAttr::RmErrorVariants,
-                GeneratePgTableAttr::RoErrorVariants,
                 GeneratePgTableAttr::UmErrorVariants,
                 GeneratePgTableAttr::UoErrorVariants,
                 GeneratePgTableAttr::DmErrorVariants,
@@ -978,7 +950,6 @@ pub fn emit_generate_pg_table(
                 GeneratePgTableAttr::CmLogic,
                 GeneratePgTableAttr::CoLogic,
                 GeneratePgTableAttr::RmLogic,
-                GeneratePgTableAttr::RoLogic,
                 GeneratePgTableAttr::UmLogic,
                 GeneratePgTableAttr::UoLogic,
                 GeneratePgTableAttr::DmLogic,
@@ -1160,8 +1131,6 @@ pub fn emit_generate_pg_table(
     let ResponseTextSnakeCase = naming::domain_types::ResponseTextSnakeCase;
     let RmErrorVariantsSnakeCase = naming::domain_types::RmErrorVariantsSnakeCase;
     let RmLogicSnakeCase = naming::domain_types::RmLogicSnakeCase;
-    let RoErrorVariantsSnakeCase = naming::domain_types::RoErrorVariantsSnakeCase;
-    let RoLogicSnakeCase = naming::domain_types::RoLogicSnakeCase;
     let RollbackSnakeCase = naming::domain_types::RollbackSnakeCase;
     let RoutesHSnakeCase = naming::domain_types::RoutesHSnakeCase;
     let RoutesSnakeCase = naming::domain_types::RoutesSnakeCase;
@@ -1622,37 +1591,33 @@ pub fn emit_generate_pg_table(
     let optimistic_revision_field_identifier = optimistic_revision_field_index
         .and_then(|field_index| fields.get(field_index))
         .map(|field| field.get_identifier().clone());
-    let operation_is_enabled = |operation: &Operation| match generate_pg_table_input_model
-        .config
-        .api_mode
-    {
-        GeneratePgTableApiMode::Crud => {
-            optimistic_revision_field_index.is_none() || !matches!(operation, Operation::UpdateMany)
-        }
-        GeneratePgTableApiMode::AppendOnly => matches!(
-            operation,
-            Operation::CreateMany | Operation::CreateOne | Operation::ReadMany | Operation::ReadOne
-        ),
-        GeneratePgTableApiMode::CreateReadDelete => {
-            matches!(
+    let operation_is_enabled =
+        |operation: &Operation| match generate_pg_table_input_model.config.api_mode {
+            GeneratePgTableApiMode::Crud => {
+                optimistic_revision_field_index.is_none()
+                    || !matches!(operation, Operation::UpdateMany)
+            }
+            GeneratePgTableApiMode::AppendOnly => matches!(
                 operation,
-                Operation::CreateMany
-                    | Operation::CreateOne
-                    | Operation::ReadMany
-                    | Operation::ReadOne
-                    | Operation::DeleteMany
-                    | Operation::DeleteOne
-            )
-        }
-        GeneratePgTableApiMode::ReadOnly => matches!(operation, Operation::ReadMany),
-        GeneratePgTableApiMode::ReadUpdate => {
-            matches!(
-                operation,
-                Operation::ReadMany | Operation::ReadOne | Operation::UpdateOne
-            ) || (optimistic_revision_field_index.is_none()
-                && matches!(operation, Operation::UpdateMany))
-        }
-    };
+                Operation::CreateMany | Operation::CreateOne | Operation::Read
+            ),
+            GeneratePgTableApiMode::CreateReadDelete => {
+                matches!(
+                    operation,
+                    Operation::CreateMany
+                        | Operation::CreateOne
+                        | Operation::Read
+                        | Operation::DeleteMany
+                        | Operation::DeleteOne
+                )
+            }
+            GeneratePgTableApiMode::ReadOnly => matches!(operation, Operation::Read),
+            GeneratePgTableApiMode::ReadUpdate => {
+                matches!(operation, Operation::Read | Operation::UpdateOne)
+                    || (optimistic_revision_field_index.is_none()
+                        && matches!(operation, Operation::UpdateMany))
+            }
+        };
     let mut frontend_field_order = frontend_fields
         .iter()
         .enumerate()
@@ -1712,7 +1677,7 @@ pub fn emit_generate_pg_table(
                 quote::quote! {frontend_contract::field_capability::FieldCapability::Disabled}
             };
             let readable_token_stream = if !read_field_is_excluded(field)
-                && (operation_is_enabled(&Operation::ReadMany) || operation_is_enabled(&Operation::ReadOne))
+                && operation_is_enabled(&Operation::Read)
             {
                 quote::quote! {frontend_contract::field_capability::FieldCapability::Enabled}
             } else {
@@ -1931,10 +1896,6 @@ pub fn emit_generate_pg_table(
         naming::parameter::SelfDloParametersUpperCamelCase::from_tokens(&identifier);
     let identifier_dlo_payload_upper_camel_case =
         naming::parameter::SelfDloPayloadUpperCamelCase::from_tokens(&identifier);
-    let identifier_try_ro_error_upper_camel_case =
-        naming::parameter::SelfTryRoErrorUpperCamelCase::from_tokens(&identifier);
-    let identifier_ro_error_with_serde_upper_camel_case =
-        naming::parameter::SelfRoErrorWithSerdeUpperCamelCase::from_tokens(&identifier);
     let identifier_try_dlo_error_upper_camel_case =
         naming::parameter::SelfTryDloErrorUpperCamelCase::from_tokens(&identifier);
     let identifier_dlo_error_with_serde_upper_camel_case =
@@ -3180,7 +3141,7 @@ pub fn emit_generate_pg_table(
         false,
     );
     let generate_match_identifier_read_try_from_sqlx_pg_pg_row_with_not_empty_unique_vec_identifier_select_token_stream =
-        |rm_or_ro: &RmOrRo| {
+        || {
             generate_match_ok_err_short_token_stream(
                 &quote::quote! {#identifier_read_upper_camel_case::#try_from_sqlx_pg_pg_row_with_not_empty_unique_vec_identifier_select_snake_case(
                     &v_b27d7d79,
@@ -3188,14 +3149,14 @@ pub fn emit_generate_pg_table(
                 )},
                 &quote::quote! {v_90535a1d},
                 &{
-                    let operation_error_initialization_eprintln_rm_or_ro_token_stream =
+                    let operation_error_initialization_eprintln_read_token_stream =
                         generate_operation_error_initialization_eprintln_res_token_stream(
-                            &Operation::from(rm_or_ro),
+                            &Operation::Read,
                             &pg_syn_variant,
                             std::panic::Location::caller(),
                         );
                     quote::quote! {{
-                        #operation_error_initialization_eprintln_rm_or_ro_token_stream
+                        #operation_error_initialization_eprintln_read_token_stream
                     }}
                 },
             )
@@ -3558,7 +3519,7 @@ enum WrapIntoOptional {
         quote::quote! {#identifier_try_operation_error}
     };
     let identifier_try_rm_error_upper_camel_case =
-        generate_identifier_try_operation_error_upper_camel_case(&Operation::ReadMany);
+        generate_identifier_try_operation_error_upper_camel_case(&Operation::Read);
     let generate_identifier_operation_error_with_serde_upper_camel_case =
         |operation: &Operation| {
             generate_identifier_operation_suffix_token_stream(
@@ -4665,8 +4626,7 @@ enum WrapIntoOptional {
             Operation::CreateOne => quote::quote! {#identifier_create_upper_camel_case},
             Operation::UpdateOne => quote::quote! {#identifier_update_upper_camel_case},
             Operation::CreateMany
-            | Operation::ReadMany
-            | Operation::ReadOne
+            | Operation::Read
             | Operation::UpdateMany
             | Operation::DeleteMany
             | Operation::DeleteOne => generate_identifier_operation_suffix_token_stream(
@@ -4681,8 +4641,7 @@ enum WrapIntoOptional {
     let generate_operation_result_type_token_stream =
         |operation: &Operation| -> &dyn quote::ToTokens {
             match operation {
-                Operation::ReadMany => &vec_struct_opts_identifier_token_stream,
-                Operation::ReadOne => &identifier_read_upper_camel_case,
+                Operation::Read => &vec_struct_opts_identifier_token_stream,
                 Operation::DeleteMany => &vec_primary_key_field_type_read_token_stream,
                 Operation::DeleteOne => &primary_key_field_type_as_pg_type_read_upper_camel_case,
                 Operation::CreateOne | Operation::UpdateOne => {
@@ -5636,8 +5595,7 @@ enum WrapIntoOptional {
                             #bulk_reservation_token_stream
                         },
                         Operation::CreateOne
-                        | Operation::ReadMany
-                        | Operation::ReadOne
+                        | Operation::Read
                         | Operation::DeleteMany
                         | Operation::DeleteOne => parameters_logic_ts0,
                         Operation::UpdateMany => quote::quote! {
@@ -5758,7 +5716,7 @@ enum WrapIntoOptional {
                                 )
                             }
                         }
-                        Operation::ReadMany => {
+                        Operation::Read => {
                             let select_query_part_parameters_payload_select_token_stream =
                                 generate_select_query_part_parameters_payload_select_token_stream(operation);
                             let extra_parameters_initialization_token_stream = generate_read_or_dm_extra_parameters_initialization_token_stream(
@@ -5840,24 +5798,6 @@ enum WrapIntoOptional {
                                     #if_write_is_err_curly_braces_1_token_stream
                                     #ExtraParametersSnakeCase
                                 })
-                            )}
-                        }
-                        Operation::ReadOne => {
-                            let select_query_part_parameters_payload_select_token_stream =
-                                generate_select_query_part_parameters_payload_select_token_stream(operation);
-                            let ts = generate_match_ok_err_update_token_stream(
-                                &quote::quote! {#pg_crud_pg_type_where_filter_query_part_token_stream(
-                                    &#ParametersSnakeCase.#PayloadSnakeCase.#primary_key_field_identifier,
-                                    &mut 0,
-                                    #import_token_stream sql_column_ref::SqlColumnRef::from(&Self::#PrimaryKeySnakeCase()),
-                                    #import_token_stream add_operator::AddOperator::from(false)
-                                )},
-                                &quote::quote! {v_be9e7b7d},
-                            );
-                            quote::quote! {pg_table::generate_ro_query_string::generate_ro_query_string(
-                                pg_table::pg_table_name_ref::PgTableNameRef::from(#TableSnakeCase),
-                                pg_table::pg_table_sql_fragment_ref::PgTableSqlFragmentRef::from(&#select_query_part_parameters_payload_select_token_stream),
-                                pg_table::pg_table_sql_fragment_ref::PgTableSqlFragmentRef::from(&#ts)
                             )}
                         }
                         Operation::UpdateMany => {
@@ -6088,7 +6028,7 @@ enum WrapIntoOptional {
                             &quote::quote! {#ParametersSnakeCase.#PayloadSnakeCase.#CreateQueryBindSnakeCase(#import_token_stream sqlx_postgres_query::SqlxPostgresQuery::from(#QuerySnakeCase)).map(#import_token_stream sqlx_postgres_query::SqlxPostgresQuery::into_inner).map_err(|error| error.to_string())},
                             &quote::quote! {v_06f852cd},
                         ),
-                        Operation::ReadMany => {
+                        Operation::Read => {
                             let query_pg_type_where_filter_query_bind_parameters_payload_where_query_token_stream = generate_query_pg_type_where_filter_query_bind_parameters_payload_where_query_token_stream(operation);
                             let ts = generate_match_query_bind_or_err_short_token_stream(
                                 &quote::quote! {#pg_crud_pg_type_where_filter_query_bind_token_stream(
@@ -6102,13 +6042,6 @@ enum WrapIntoOptional {
                                 #ts
                             }
                         }
-                        Operation::ReadOne => generate_match_query_bind_or_err_short_token_stream(
-                            &quote::quote! {#pg_crud_pg_type_where_filter_query_bind_token_stream(
-                                #ParametersSnakeCase.#PayloadSnakeCase.#primary_key_field_identifier,
-                                #import_token_stream sqlx_postgres_query::SqlxPostgresQuery::from(#QuerySnakeCase)
-                            ).map(#import_token_stream sqlx_postgres_query::SqlxPostgresQuery::into_inner).map_err(|error| error.to_string())},
-                            &quote::quote! {v_80ee6983},
-                        ),
                         Operation::UpdateMany => {
                             let fields_named_without_primary_key_update_assign_token_stream =
                                 generate_fields_named_without_primary_key_without_comma_token_stream(&|element: &macro_helpers::syn_field::SynField| {
@@ -6335,11 +6268,11 @@ enum WrapIntoOptional {
                             operation,
                             &generate_create_update_dlo_fetch_token_stream(&CreateOrUpdateOrDlo::Create),
                         ),
-                        Operation::ReadMany => {
+                        Operation::Read => {
                             let fetch_token_stream = generate_fetch_token_stream(
                                 &ExecutorAcquireSnakeCase,
                                 &{
-                                    let match_identifier_read_try_from_sqlx_pg_pg_row_with_not_empty_unique_vec_identifier_select_token_stream = generate_match_identifier_read_try_from_sqlx_pg_pg_row_with_not_empty_unique_vec_identifier_select_token_stream(&RmOrRo::Rm);
+                                    let match_identifier_read_try_from_sqlx_pg_pg_row_with_not_empty_unique_vec_identifier_select_token_stream = generate_match_identifier_read_try_from_sqlx_pg_pg_row_with_not_empty_unique_vec_identifier_select_token_stream();
                                     quote::quote! {Some(#match_identifier_read_try_from_sqlx_pg_pg_row_with_not_empty_unique_vec_identifier_select_token_stream)}
                                 },
                                 &generate_operation_error_initialization_eprintln_res_token_stream(
@@ -6353,11 +6286,6 @@ enum WrapIntoOptional {
                                 #fetch_token_stream
                             }}
                         },
-                        Operation::ReadOne => generate_fetch_one_token_stream(
-                            &ExecutorAcquireSnakeCase,
-                            &generate_match_identifier_read_try_from_sqlx_pg_pg_row_with_not_empty_unique_vec_identifier_select_token_stream(&RmOrRo::Ro),
-                            &generate_operation_error_initialization_eprintln_res_token_stream(operation, &pg_syn_variant, std::panic::Location::caller()),
-                        ),
                         Operation::UpdateMany => wrap_into_pg_transaction_begin_commit_token_stream(
                             operation,
                             &generate_create_update_dm_fetch_token_stream(&CreateOrUpdateOrDm::Update),
@@ -6628,7 +6556,7 @@ enum WrapIntoOptional {
                             }
                         }
                     }
-                    Operation::ReadMany => generate_parameters_payload_and_default_token_stream(
+                    Operation::Read => generate_parameters_payload_and_default_token_stream(
                         &quote::quote! {{
                             #pub_where_optional_identifier_where_token_stream,
                             #[schema(inline)]
@@ -6651,26 +6579,6 @@ enum WrapIntoOptional {
                                     ),
                                 ),
                                 #ts,
-                            }}
-                        },
-                    ),
-                    Operation::ReadOne => generate_parameters_payload_and_default_token_stream(
-                        &{
-                            let primary_key_field_token_stream =
-                                generate_primary_key_field_token_stream(
-                                    &naming::parameter::SelfReadUpperCamelCase::from_type_last_segment(primary_key_field_type),
-                                );
-                            quote::quote! {{
-                                #primary_key_field_token_stream,
-                                #[schema(no_recursion)]
-                                #pub_select_pg_crud_not_empty_unique_vec_identifier_select_token_stream,
-                            }}
-                        },
-                        &{
-                            let ts = generate_field_default_some_one_element_call_token_stream(&primary_key_field_identifier);
-                            quote::quote! {{
-                                #ts,
-                                #select_pg_crud_default_some_one_element_call_token_stream
                             }}
                         },
                     ),
@@ -6803,8 +6711,7 @@ enum WrapIntoOptional {
                         macro_helpers::derive_token_stream_builder::DCopy::False,
                     ),
                     Operation::CreateMany
-                    | Operation::ReadMany
-                    | Operation::ReadOne
+                    | Operation::Read
                     | Operation::UpdateMany
                     | Operation::UpdateOne
                     | Operation::DeleteMany => (
@@ -6992,7 +6899,7 @@ enum WrapIntoOptional {
                         .build_enum(&proc_macro2::TokenStream::new(), &generate_identifier_try_operation_error_upper_camel_case(operation), &proc_macro2::TokenStream::new(), &{
                         let mut syn_variants = Vec::with_capacity(common_http_req_syn_variants.len().saturating_add(constants_usize::ONE));
                         syn_variants.extend_from_slice(common_http_req_syn_variants.as_slice());
-                        if let Operation::ReadMany | Operation::ReadOne = &operation {
+                        if matches!(operation, Operation::Read) {
                             syn_variants.push(GeneratePgTableVariantEmissionRef::Syn(not_unique_field_syn_variant.variant()));
                         }
                         let identifier_operation_error_with_serde_upper_camel_case =
@@ -7185,8 +7092,7 @@ enum WrapIntoOptional {
             CreateOne,
             DeleteOne,
             DeleteMany,
-            ReadMany,
-            ReadOne,
+            Read,
             UpdateMany,
             UpdateOne,
         }
@@ -7628,24 +7534,24 @@ enum WrapIntoOptional {
         let api_mode_assertion_token_stream = match generate_pg_table_input_model.config.api_mode {
             GeneratePgTableApiMode::Crud if optimistic_revision_field_index.is_some() => {
                 quote::quote! {
-                    assert_eq!(#identifier_route_contract_upper_camel_case::ALL.len(), 7usize);
+                    assert_eq!(#identifier_route_contract_upper_camel_case::ALL.len(), 6usize);
                     assert!(#identifier_route_contract_upper_camel_case::ALL.into_iter().all(|contract| !matches!(contract.operation(), #identifier_operation_upper_camel_case::UpdateMany)));
                 }
             }
             GeneratePgTableApiMode::Crud => quote::quote! {
-                assert_eq!(#identifier_route_contract_upper_camel_case::ALL.len(), 8usize);
+                assert_eq!(#identifier_route_contract_upper_camel_case::ALL.len(), 7usize);
             },
             GeneratePgTableApiMode::AppendOnly => quote::quote! {
-                assert!(#identifier_route_contract_upper_camel_case::ALL.into_iter().all(|contract| matches!(contract.operation(), #identifier_operation_upper_camel_case::CreateMany | #identifier_operation_upper_camel_case::CreateOne | #identifier_operation_upper_camel_case::ReadMany | #identifier_operation_upper_camel_case::ReadOne)));
+                assert!(#identifier_route_contract_upper_camel_case::ALL.into_iter().all(|contract| matches!(contract.operation(), #identifier_operation_upper_camel_case::CreateMany | #identifier_operation_upper_camel_case::CreateOne | #identifier_operation_upper_camel_case::Read)));
             },
             GeneratePgTableApiMode::CreateReadDelete => quote::quote! {
-                assert!(#identifier_route_contract_upper_camel_case::ALL.into_iter().all(|contract| matches!(contract.operation(), #identifier_operation_upper_camel_case::CreateMany | #identifier_operation_upper_camel_case::CreateOne | #identifier_operation_upper_camel_case::ReadMany | #identifier_operation_upper_camel_case::ReadOne | #identifier_operation_upper_camel_case::DeleteMany | #identifier_operation_upper_camel_case::DeleteOne)));
+                assert!(#identifier_route_contract_upper_camel_case::ALL.into_iter().all(|contract| matches!(contract.operation(), #identifier_operation_upper_camel_case::CreateMany | #identifier_operation_upper_camel_case::CreateOne | #identifier_operation_upper_camel_case::Read | #identifier_operation_upper_camel_case::DeleteMany | #identifier_operation_upper_camel_case::DeleteOne)));
             },
             GeneratePgTableApiMode::ReadOnly => quote::quote! {
-                assert!(#identifier_route_contract_upper_camel_case::ALL.into_iter().all(|contract| matches!(contract.operation(), #identifier_operation_upper_camel_case::ReadMany | #identifier_operation_upper_camel_case::ReadOne)));
+                assert!(#identifier_route_contract_upper_camel_case::ALL.into_iter().all(|contract| matches!(contract.operation(), #identifier_operation_upper_camel_case::Read)));
             },
             GeneratePgTableApiMode::ReadUpdate => quote::quote! {
-                assert!(#identifier_route_contract_upper_camel_case::ALL.into_iter().all(|contract| matches!(contract.operation(), #identifier_operation_upper_camel_case::ReadMany | #identifier_operation_upper_camel_case::ReadOne | #identifier_operation_upper_camel_case::UpdateMany | #identifier_operation_upper_camel_case::UpdateOne)));
+                assert!(#identifier_route_contract_upper_camel_case::ALL.into_iter().all(|contract| matches!(contract.operation(), #identifier_operation_upper_camel_case::Read | #identifier_operation_upper_camel_case::UpdateMany | #identifier_operation_upper_camel_case::UpdateOne)));
             },
         };
         let round_trip_tests_token_stream = crate::operation_descriptor::OperationDescriptor::ALL.iter().map(|operation_descriptor| {
@@ -7656,7 +7562,7 @@ enum WrapIntoOptional {
                 identifier_snake_case_string,
                 operation.self_snake_case_str()
             );
-            let normalize_default_filter_token_stream = if matches!(operation, Operation::ReadMany | Operation::DeleteMany) {
+            let normalize_default_filter_token_stream = if matches!(operation, Operation::Read | Operation::DeleteMany) {
                 quote::quote! {
                     serialized.as_object_mut().expect("58c97ca7 collect_refs invariant must hold").insert(
                         "where_many".to_owned(),
@@ -7666,7 +7572,7 @@ enum WrapIntoOptional {
             } else {
                 proc_macro2::TokenStream::new()
             };
-            let mut_token_stream = matches!(operation, Operation::ReadMany | Operation::DeleteMany).then(|| quote::quote! { mut });
+            let mut_token_stream = matches!(operation, Operation::Read | Operation::DeleteMany).then(|| quote::quote! { mut });
             quote::quote! {
                 #[test]
                 fn #test_identifier() {
@@ -7679,7 +7585,7 @@ enum WrapIntoOptional {
                 }
             }
         });
-        let unknown_field_tests_token_stream = [Operation::ReadMany, Operation::ReadOne, Operation::DeleteMany, Operation::DeleteOne].into_iter().map(|operation| {
+        let unknown_field_tests_token_stream = [Operation::Read, Operation::DeleteMany, Operation::DeleteOne].into_iter().map(|operation| {
             let payload_type_token_stream = generate_identifier_operation_payload_upper_camel_case(&operation);
             let test_identifier = quote::format_ident!(
                 "{}_{}_payload_rejects_unknown_field",
@@ -7710,7 +7616,7 @@ enum WrapIntoOptional {
         let route_open_api_parity_test_identifier =
             quote::format_ident!("{}_route_open_api_parity", identifier_snake_case_string);
         let identifier_rm_payload_upper_camel_case =
-            generate_identifier_operation_payload_upper_camel_case(&Operation::ReadMany);
+            generate_identifier_operation_payload_upper_camel_case(&Operation::Read);
         let route_open_api_parity_assertions_token_stream = crate::operation_descriptor::OperationDescriptor::ALL
             .iter()
             .filter(|operation_descriptor| operation_is_enabled(operation_descriptor.get_operation()))
@@ -7969,11 +7875,11 @@ enum WrapIntoOptional {
         let identifier_cm_parameters_upper_camel_case =
             generate_identifier_operation_parameters_upper_camel_case(&Operation::CreateMany);
         let identifier_rm_parameters_upper_camel_case =
-            generate_identifier_operation_parameters_upper_camel_case(&Operation::ReadMany);
+            generate_identifier_operation_parameters_upper_camel_case(&Operation::Read);
         let identifier_cm_payload_upper_camel_case =
             generate_identifier_operation_payload_upper_camel_case(&Operation::CreateMany);
         let identifier_rm_payload_upper_camel_case =
-            generate_identifier_operation_payload_upper_camel_case(&Operation::ReadMany);
+            generate_identifier_operation_payload_upper_camel_case(&Operation::Read);
         let identifier_co_parameters_upper_camel_case =
             generate_identifier_operation_parameters_upper_camel_case(&Operation::CreateOne);
         let identifier_uo_parameters_upper_camel_case =
@@ -8155,7 +8061,7 @@ enum WrapIntoOptional {
             let ts = generate_explicit_value_initialization_token_stream0(
                 &primary_key_read_clone_token_stream,
             );
-            let assert_eq_ro_primary_key_token_stream = generate_assert_eq_token_stream(
+            let assert_eq_read_primary_key_token_stream = generate_assert_eq_token_stream(
                 &quote::quote! {
                     #identifier_read_upper_camel_case {
                         #primary_key_field_identifier: Some(#ts),
@@ -8189,7 +8095,7 @@ enum WrapIntoOptional {
                 let #CommonReadIdsFromCoSnakeCase = {
                     let read_ids_from_try_co = generate_read_ids_from_try_co_default(&#UrlSnakeCase, &table_initialization).await;
                     let primary_key_read = #primary_key_field_type_read_ids_into_read_read_ids_from_try_co_primary_key_field_token_stream;
-                    #assert_eq_ro_primary_key_token_stream
+                    #assert_eq_read_primary_key_token_stream
                     #assert_eq_dlo_primary_key_token_stream
                     generate_check_no_rows_from_identifier_try_rm_execute_primary_key(
                         &url,
@@ -8664,7 +8570,7 @@ enum WrapIntoOptional {
                         let ts = generate_explicit_value_initialization_token_stream0(&primary_key_field_type_read_ids_into_read_read_ids_from_try_co_primary_key_field_token_stream);
                         let field_type_optional_vec_create_or_vec_token_stream =
                             generate_field_type_optional_vec_create_or_vec_token_stream(field_type);
-                        let assert_eq_co_ro_primary_key_token_stream =
+                        let assert_eq_co_read_primary_key_token_stream =
                             generate_assert_eq_token_stream(
                                 &quote::quote! {
                                     #identifier_read_upper_camel_case {
@@ -8709,7 +8615,7 @@ enum WrapIntoOptional {
                                         identifier_create.clone(),
                                         &table_co_cloned
                                     ).await;
-                                    #assert_eq_co_ro_primary_key_token_stream
+                                    #assert_eq_co_read_primary_key_token_stream
                                     #assert_eq_co_dlo_primary_key_token_stream
                                     generate_check_no_rows_from_identifier_try_rm_execute_primary_key(
                                         &url_cloned,
@@ -9157,15 +9063,15 @@ enum WrapIntoOptional {
                 #read_ids_and_table_type_into_pg_type_optional_where_greater_than_token_stream
             }
         };
-        let ro_tests_token_stream = generate_accumulator_push_future_token_stream(
-            &quote::quote! {table_ro_cloned},
-            &quote::quote! {table_ro},
+        let read_empty_tests_token_stream = generate_accumulator_push_future_token_stream(
+            &quote::quote! {table_read_empty_cloned},
+            &quote::quote! {table_read_empty},
             &quote::quote! {
                     generate_check_no_rows_from_identifier_try_rm_execute_primary_key(
                         &url_cloned,
                         #primary_key_field_type_as_pg_type_read_token_stream::new(uuid::Uuid::from_u128(3u128)),
                         #select_default_all_with_max_page_size_cloned_clone_token_stream,
-                        &table_ro_cloned,
+                        &table_read_empty_cloned,
                     ).await;
             },
         );
@@ -9472,7 +9378,7 @@ enum WrapIntoOptional {
                             },
                             &quote::quote! {"564de31c"},
                         );
-                        let assert_eq_uo_ro_token_stream = generate_assert_eq_token_stream(
+                        let assert_eq_uo_read_token_stream = generate_assert_eq_token_stream(
                         &generate_identifier_read_initialization_token_stream(&identifier_read_fields_initialization_without_primary_key_after_uo_token_stream),
                         &quote::quote! {
                             generate_identifier_try_rm_execute_primary_key(
@@ -9493,7 +9399,7 @@ enum WrapIntoOptional {
                                     #maybe_previous_read_token_stream
                                     #uo_read_inner_into_update_token_stream
                                     #assert_eq_uo_read_ids_token_stream
-                                    #assert_eq_uo_ro_token_stream
+                                    #assert_eq_uo_read_token_stream
                                 },
                             );
                         quote::quote! {
@@ -9619,7 +9525,7 @@ enum WrapIntoOptional {
         };
         let dlo_tests_token_stream = {
             let ts = generate_explicit_value_initialization_token_stream0(&primary_key_field_type_read_ids_into_read_read_ids_from_co_primary_key_field_token_stream);
-            let assert_eq_dlo_ro_primary_key_token_stream = generate_assert_eq_token_stream(
+            let assert_eq_dlo_read_primary_key_token_stream = generate_assert_eq_token_stream(
                 &quote::quote! {#identifier_read_upper_camel_case {
                     #primary_key_field_identifier: Some(#ts),
                     #field_read_ids_and_create_into_optional_explicit_value_read_read_ids_from_co_create_token_stream
@@ -9678,7 +9584,7 @@ enum WrapIntoOptional {
                             panic!("9be62f9f")
                         }
                         let read_ids_from_co = generate_read_ids_from_try_co_default(&url_cloned, &table_dlo_cloned).await;
-                        #assert_eq_dlo_ro_primary_key_token_stream
+                        #assert_eq_dlo_read_primary_key_token_stream
                         #assert_eq_dlo_delete_primary_key_token_stream
                         generate_check_no_rows_from_identifier_try_rm_execute_primary_key(
                             &url_cloned,
@@ -9973,7 +9879,7 @@ enum WrapIntoOptional {
                         let table_test_rm_by_non_existent_pks = add_table_postfix("Test_rm_by_non_existent_pks");
                         let table_test_rm_by_eq_to_created_pks = add_table_postfix("Test_rm_by_eq_to_created_pks");
                         #(#table_fis_initialization_vec_token_stream)*
-                        let table_ro = add_table_postfix("ro");
+                        let table_read_empty = add_table_postfix("read_empty");
                         let table_um = add_table_postfix("um");
                         let table_uo = add_table_postfix("uo");
                         let table_dm = add_table_postfix("dm");
@@ -9985,7 +9891,7 @@ enum WrapIntoOptional {
                             &table_test_rm_by_non_existent_pks,
                             &table_test_rm_by_eq_to_created_pks,
                             #(#table_test_name_fis_vec_token_stream)*
-                            &table_ro,
+                            &table_read_empty,
                             &table_um,
                             &table_uo,
                             &table_dm,
@@ -10064,7 +9970,7 @@ enum WrapIntoOptional {
                                 #cm_tests_token_stream
                                 #co_tests_token_stream
                                 #rm_tests_token_stream
-                                #ro_tests_token_stream
+                                #read_empty_tests_token_stream
                                 #um_tests_token_stream
                                 #uo_tests_token_stream
                                 #dm_tests_token_stream

@@ -21,8 +21,6 @@ pub mod generate_dlo_query_string;
 pub mod generate_dm_query_string;
 pub mod generate_insert_query_string;
 pub mod generate_rm_query_string;
-pub mod generate_ro_query_string;
-pub mod generate_select_query_string;
 pub mod generate_um_query_string;
 pub mod generate_uo_query_string;
 pub mod generate_update_query_string;
@@ -62,7 +60,6 @@ pub mod pg_tbl_idempotency_route_max_bytes;
 pub mod pg_tbl_idempotency_text_max_bytes;
 pub mod pg_tbl_string_wrapper_max_len;
 pub mod release_pg_table_idempotency;
-pub mod select_where_fmt;
 pub mod sqlx_pg_table_idempotency_error;
 pub mod sqlx_pg_table_pg_connection_ref;
 #[cfg(test)]

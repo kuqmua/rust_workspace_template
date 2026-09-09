@@ -52,17 +52,6 @@ fn test_generate_rm_query_string_is_expected() {
     );
 }
 #[test]
-fn test_generate_ro_query_string_is_expected() {
-    assert_q(
-        &crate::generate_ro_query_string::generate_ro_query_string(
-            table(constants_str::USERS_ALT),
-            sql(constants_str::ID_NAME),
-            sql(constants_str::ID_DOLLAR_1),
-        ),
-        constants_str::SELECT_ID_NAME_FROM_USERS_WHERE_ID_DOLLAR_1,
-    );
-}
-#[test]
 fn test_generate_column_eq_v_comma_uo_query_part_is_expected() {
     assert_q(
         &crate::generate_column_eq_v_comma_uo_query_part::generate_column_eq_v_comma_uo_query_part(

@@ -26,7 +26,6 @@ mod tests {
             #[proc_macro_generate_pg_table_cm_logic::cm_logic{}]
             #[proc_macro_generate_pg_table_co_logic::co_logic{}]
             #[proc_macro_generate_pg_table_rm_logic::rm_logic{}]
-            #[proc_macro_generate_pg_table_ro_logic::ro_logic{}]
             #[proc_macro_generate_pg_table_um_logic::um_logic{}]
             #[proc_macro_generate_pg_table_uo_logic::uo_logic{}]
             #[proc_macro_generate_pg_table_dm_logic::dm_logic{}]
@@ -47,6 +46,46 @@ mod tests {
             constants_str::OPERATION_RM,
         ))
         .expect(constants_str::DIAGNOSTIC_F9F9AF71);
+    }
+    #[test]
+    #[cfg_attr(
+        miri,
+        ignore = "full table source generation is covered by native generator tests and is prohibitively slow under interpretation"
+    )]
+    fn test_generated_crud_contract_excludes_single_record_read() {
+        let input = table_input(&quote::quote! {
+            column_0: pg_types_numeric::generate_pg_types_mod::I16AsNonNullInt2,
+        });
+        let generated = generate_pg_table_src::generate_pg_table::generate_pg_table(
+            macro_helpers::proc_macro2_token_stream_ref::ProcMacro2TokenStreamRef::from(&input),
+        )
+        .to_string();
+        assert!(
+            generated.contains(
+                &quote::quote! {
+                    enum TableExampleOperation {
+                        CreateMany,
+                        CreateOne,
+                        DeleteOne,
+                        DeleteMany,
+                        Read,
+                        UpdateMany,
+                        UpdateOne,
+                    }
+                }
+                .to_string()
+            )
+        );
+        assert!(
+            [
+                quote::quote! { ReadOne },
+                quote::quote! { read_one },
+                quote::quote! { ro_logic },
+                quote::quote! { ro_error_variants },
+            ]
+            .iter()
+            .all(|token_stream| !generated.contains(&token_stream.to_string()))
+        );
     }
     #[test]
     fn test_duplicate_frontend_order_is_rejected_during_generation() {
@@ -144,7 +183,6 @@ mod tests {
                             "cm_write_into_file": "False",
                             "co_write_into_file": "False",
                             "rm_write_into_file": "False",
-                            "ro_write_into_file": "False",
                             "um_write_into_file": "False",
                             "uo_write_into_file": "False",
                             "dm_write_into_file": "False",
@@ -165,7 +203,6 @@ mod tests {
                         #[proc_macro_generate_pg_table_cm_logic::cm_logic{}]
                         #[proc_macro_generate_pg_table_co_logic::co_logic{}]
                         #[proc_macro_generate_pg_table_rm_logic::rm_logic{}]
-                        #[proc_macro_generate_pg_table_ro_logic::ro_logic{}]
                         #[proc_macro_generate_pg_table_um_logic::um_logic{}]
                         #[proc_macro_generate_pg_table_uo_logic::uo_logic{}]
                         #[proc_macro_generate_pg_table_dm_logic::dm_logic{}]

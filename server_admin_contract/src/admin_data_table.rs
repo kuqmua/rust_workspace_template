@@ -42,6 +42,34 @@ pub enum AdminDataTable {
 }
 
 impl AdminDataTable {
+    #[must_use]
+    pub const fn api_route(self) -> crate::admin_route::AdminRoute {
+        match self {
+            Self::UserRoles => crate::admin_route::AdminRoute::UserRolesTable,
+            Self::RolePermissions => crate::admin_route::AdminRoute::RolePermissionsTable,
+            Self::RefreshTokens => crate::admin_route::AdminRoute::RefreshTokensTable,
+            Self::AccessSessions => crate::admin_route::AdminRoute::AccessSessionsTable,
+            Self::LoginAttempts => crate::admin_route::AdminRoute::LoginAttemptsTable,
+            Self::RateLimits => crate::admin_route::AdminRoute::RateLimitsTable,
+            Self::CleanupStatus => crate::admin_route::AdminRoute::CleanupStatusTable,
+            Self::Users => crate::admin_route::AdminRoute::DataTable(
+                crate::admin_prefixed_data_table::AdminPrefixedDataTable::Users,
+            ),
+            Self::Roles => crate::admin_route::AdminRoute::DataTable(
+                crate::admin_prefixed_data_table::AdminPrefixedDataTable::Roles,
+            ),
+            Self::Permissions => crate::admin_route::AdminRoute::DataTable(
+                crate::admin_prefixed_data_table::AdminPrefixedDataTable::Permissions,
+            ),
+            Self::AuditLog => crate::admin_route::AdminRoute::DataTable(
+                crate::admin_prefixed_data_table::AdminPrefixedDataTable::AuditLog,
+            ),
+            Self::SystemSettings => crate::admin_route::AdminRoute::DataTable(
+                crate::admin_prefixed_data_table::AdminPrefixedDataTable::SystemSettings,
+            ),
+        }
+    }
+
     pub const PG_ORDER: [Self; 12] = [
         Self::Users,
         Self::Roles,

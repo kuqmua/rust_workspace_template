@@ -94,8 +94,6 @@ members = [
   "proc_macro_generate_pg_table_generate_pg_table_config",
   "proc_macro_generate_pg_table_rm_error_variants",
   "proc_macro_generate_pg_table_rm_logic",
-  "proc_macro_generate_pg_table_ro_error_variants",
-  "proc_macro_generate_pg_table_ro_logic",
   "proc_macro_generate_pg_table_shared",
   "proc_macro_generate_pg_table_um_error_variants",
   "proc_macro_generate_pg_table_um_logic",
@@ -460,7 +458,6 @@ proc_macro_generate_pg_table_shared = { path = "./proc_macro_generate_pg_table_s
 proc_macro_generate_pg_table_generate_pg_table_config = { path = "./proc_macro_generate_pg_table_generate_pg_table_config" }
 proc_macro_generate_pg_table_cm_error_variants = { path = "./proc_macro_generate_pg_table_cm_error_variants" }
 proc_macro_generate_pg_table_co_error_variants = { path = "./proc_macro_generate_pg_table_co_error_variants" }
-proc_macro_generate_pg_table_ro_error_variants = { path = "./proc_macro_generate_pg_table_ro_error_variants" }
 proc_macro_generate_pg_table_rm_error_variants = { path = "./proc_macro_generate_pg_table_rm_error_variants" }
 proc_macro_generate_pg_table_uo_error_variants = { path = "./proc_macro_generate_pg_table_uo_error_variants" }
 proc_macro_generate_pg_table_um_error_variants = { path = "./proc_macro_generate_pg_table_um_error_variants" }
@@ -470,7 +467,6 @@ proc_macro_generate_pg_table_common_error_variants = { path = "./proc_macro_gene
 proc_macro_generate_pg_table_cm_logic = { path = "./proc_macro_generate_pg_table_cm_logic" }
 proc_macro_generate_pg_table_co_logic = { path = "./proc_macro_generate_pg_table_co_logic" }
 proc_macro_generate_pg_table_rm_logic = { path = "./proc_macro_generate_pg_table_rm_logic" }
-proc_macro_generate_pg_table_ro_logic = { path = "./proc_macro_generate_pg_table_ro_logic" }
 proc_macro_generate_pg_table_um_logic = { path = "./proc_macro_generate_pg_table_um_logic" }
 proc_macro_generate_pg_table_uo_logic = { path = "./proc_macro_generate_pg_table_uo_logic" }
 proc_macro_generate_pg_table_dm_logic = { path = "./proc_macro_generate_pg_table_dm_logic" }

@@ -1,15 +1,15 @@
 # Administrator API coverage audit
 
-The typed registry in `server_admin/src/admin_auth_route_registry.rs` registers 28 API
+The typed registry in `server_admin/src/admin_auth_route_registry.rs` registers 34 API
 operations. Paths below are rooted at the server origin. The frontend must follow the route,
 permission, request, and table catalogs in `server_admin_contract`.
 
 Generated read APIs use the configured database resource name in their URL, independently
-of the Rust type name: `/users/read_many` and the corresponding
+of the Rust type name: `/users/read` and the corresponding
 `*_payload_example` routes. The same rule applies to `roles`, `permissions`,
 `system_settings`, `user_roles`, and `role_permissions`; these paths have no `admin_` prefix. Single-record reads use a primary-key equality
 filter with a limit of one and offset zero. Missing records return an empty list.
-The read-only resources do not expose `read_one` or `read_one_payload_example`.
+The table generator exposes reads through `read`; `read_one` and `read_one_payload_example` have been removed from every API mode.
 
 This audit maps each operation to its administrator integration. Validation evidence
 below covers user-visible workflows and direct API behavior.
@@ -29,7 +29,6 @@ below covers user-visible workflows and direct API behavior.
 | PATCH `/users/{user_id}` | Manage-users page: login and display name |
 | DELETE `/users/{user_id}` | Manage-users page: delete account |
 | POST `/users/{user_id}/password` | Manage-users page: reset password |
-| POST `/users/{user_id}/ban` | Manage-users page: ban/unban account |
 | PUT `/users/{user_id}/roles` | Manage-users page: role assignment |
 | GET `/roles` | Roles list, pagination, and role management |
 | POST `/roles` | Create-role page; server-rendered HTML adapter |
@@ -40,10 +39,10 @@ below covers user-visible workflows and direct API behavior.
 | GET `/audit_log` | Audit view uses the catalog table endpoint; browser coverage also verifies the dedicated query and redacted mutation records |
 | GET `/audit_log/export` | Prepare/download controls export the current audit page using its limit and offset; export permission governs visibility |
 | GET `/system_settings` | Settings form |
-| PATCH `/system_settings` | Save settings and reset supported settings to defaults |
+| PATCH `/system_settings/update` | Save settings and reset supported settings to defaults |
 | GET `/branding` | Shared branding in server-rendered pages |
 | GET `/tables` | Catalog defines available database views; navigation follows the shared table specification |
-| GET `/tables/{table}` | Catalog-driven columns, filters, ordering, and pagination |
+| GET `/tables/{table}` (`users`, `roles`, `permissions`, `audit_log`, `system_settings`) | Catalog-driven columns, filters, ordering, and pagination |
 
 The 12 table views are `users`, `roles`, `permissions`, `user_roles`, `role_permissions`,
 `refresh_tokens`, `access_sessions`, `login_attempts`, `audit_log`, `system_settings`,
@@ -102,3 +101,11 @@ Database integration also verified two corrections discovered during acceptance:
 administrator initialization creates the shared `pg_table_idempotency` schema under a
 transaction lock, and session revocation timestamps preserve creation-time constraints.
 User, role, and permission sorting follows the API's ascending/descending wire values.
+
+The table views for `user_roles`, `role_permissions`, `refresh_tokens`,
+`access_sessions`, `login_attempts`, `rate_limits`, and `cleanup_status` use
+GET routes at `/{resource}`. Their former `/tables/{resource}` paths are rejected.
+
+`PATCH /users/{user_id}` accepts optional `display_name`, `login`, and `is_banned`.
+Omitting `is_banned` preserves the current state. Banning retains the self-ban and
+last-active-administrator checks, session revocation, and transactional audit.

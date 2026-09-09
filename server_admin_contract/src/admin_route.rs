@@ -12,6 +12,22 @@
     body_limit = crate::admin_api_body_max_bytes::ADMIN_API_BODY_MAX_BYTES_VALUE,
 )]
 pub enum AdminRoute {
+    #[route_catalog_route(crate::admin_cleanup_status_table_route::AdminCleanupStatusTableRoute)]
+    CleanupStatusTable,
+    #[route_catalog_route(crate::admin_rate_limits_table_route::AdminRateLimitsTableRoute)]
+    RateLimitsTable,
+    #[route_catalog_route(crate::admin_login_attempts_table_route::AdminLoginAttemptsTableRoute)]
+    LoginAttemptsTable,
+    #[route_catalog_route(crate::admin_access_sessions_table_route::AdminAccessSessionsTableRoute)]
+    AccessSessionsTable,
+    #[route_catalog_route(crate::admin_refresh_tokens_table_route::AdminRefreshTokensTableRoute)]
+    RefreshTokensTable,
+    #[route_catalog_route(
+        crate::admin_role_permissions_table_route::AdminRolePermissionsTableRoute
+    )]
+    RolePermissionsTable,
+    #[route_catalog_route(crate::admin_user_roles_table_route::AdminUserRolesTableRoute)]
+    UserRolesTable,
     #[route_catalog_route(crate::admin_audit_log_route::AdminAuditLogRoute)]
     Audit,
     #[route_catalog_route(crate::admin_audit_export_route::AdminAuditExportRoute)]
@@ -19,7 +35,7 @@ pub enum AdminRoute {
     #[route_catalog_route(crate::admin_branding_route::AdminBrandingRoute)]
     Branding,
     #[route_catalog_route(crate::admin_data_table_route::AdminDataTableRoute)]
-    DataTable(crate::admin_data_table::AdminDataTable),
+    DataTable(crate::admin_prefixed_data_table::AdminPrefixedDataTable),
     #[route_catalog_route(crate::admin_data_tables_route::AdminDataTablesRoute)]
     DataTables,
     #[route_catalog_route(crate::admin_change_own_password_route::AdminChangeOwnPasswordRoute)]
@@ -70,8 +86,6 @@ pub enum AdminRoute {
     Roles,
     #[route_catalog_route(crate::admin_set_role_permissions_route::AdminSetRolePermissionsRoute)]
     SetRolePermissions(crate::admin_role_id::AdminRoleId),
-    #[route_catalog_route(crate::admin_set_user_ban_route::AdminSetUserBanRoute)]
-    SetUserBan(crate::admin_user_id::AdminUserId),
     #[route_catalog_route(crate::admin_set_user_password_route::AdminSetUserPasswordRoute)]
     SetUserPassword(crate::admin_user_id::AdminUserId),
     #[route_catalog_route(crate::admin_set_user_roles_route::AdminSetUserRolesRoute)]

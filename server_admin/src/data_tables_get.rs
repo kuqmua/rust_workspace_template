@@ -1,12 +1,6 @@
-#[allow(
-    clippy::single_call_fn,
-    reason = "data tables get remains a named owner because its boundary role is clearer and directly testable"
-)]
 pub(crate) async fn data_tables_get(
     admin_auth_request: crate::admin_auth_request::AdminAuthRequest,
-    axum_admin_path: crate::axum_admin_path::AxumAdminPath<
-        server_admin_contract::admin_data_table::AdminDataTable,
-    >,
+    admin_data_table: server_admin_contract::admin_data_table::AdminDataTable,
     axum_admin_query: crate::axum_admin_query::AxumAdminQuery<
         server_admin_contract::admin_data_table_query::AdminDataTableQuery,
     >,
@@ -15,7 +9,7 @@ pub(crate) async fn data_tables_get(
         admin_auth_request.get_state().as_ref(),
         crate::http_admin_header_map_ref::HttpAdminHeaderMapRef::from(admin_auth_request.get_headers().as_ref()),
         *admin_auth_request.get_peer(),
-        axum_admin_path.permission().as_str(),
+        admin_data_table.permission().as_str(),
         server_admin_core::std_admin_bool::StdAdminBool::from(false),
     )
     .await?;
@@ -23,12 +17,12 @@ pub(crate) async fn data_tables_get(
         admin_auth_request.get_state().as_ref().get_pool().as_ref(),
     );
     let view = async {
-            let spec = axum_admin_path.spec();
+            let spec = admin_data_table.spec();
             let columns = {
                 let column_names = spec.columns();
                 (|| {
                         let generated_fields =
-                            crate::admin_generated_table::AdminGeneratedTable::for_data_table(*axum_admin_path)
+                            crate::admin_generated_table::AdminGeneratedTable::for_data_table(admin_data_table)
                                 .map(crate::admin_generated_table::AdminGeneratedTable::field_contracts);
                         let columns = column_names
                             .get()
@@ -72,8 +66,8 @@ pub(crate) async fn data_tables_get(
                 })()
             }?;
             let (base_count_sql, base_sql) = (|| {
-                    let base_spec = axum_admin_path.spec();
-                    let table_name = axum_admin_path.to_string();
+                    let base_spec = admin_data_table.spec();
+                    let table_name = admin_data_table.to_string();
                     let mut count = constants_str::SERVER_ADMIN_DATA_COUNT_PREFIX.to_owned();
                     count.push_str(table_name.as_str());
                     let mut data = base_spec.columns().get().split(',').enumerate().fold(
@@ -101,7 +95,7 @@ pub(crate) async fn data_tables_get(
                     ))
             })()?;
             let filter = crate::data_filter::data_filter(
-                *axum_admin_path,
+                admin_data_table,
                 axum_admin_query.filter(),
             )?;
             let mut increment = pg_crud_common::query_part_increment::QueryPartIncrement::from(constants_u64::ZERO);
@@ -223,7 +217,7 @@ pub(crate) async fn data_tables_get(
                     columns,
                     server_admin_contract::admin_data_rows::AdminDataRows::try_from(items)
                         .map_err(|_error| crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue)?,
-                    *axum_admin_path,
+                    admin_data_table,
                     crate::repository_page_total::repository_page_total(crate::admin_page_total_count::AdminPageTotalCount::from(total))?,
                 ),
             )

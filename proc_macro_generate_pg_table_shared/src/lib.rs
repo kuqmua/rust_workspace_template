@@ -22,12 +22,6 @@ pub fn co_error_variants(
 ) -> proc_macro2::TokenStream {
     item
 }
-pub fn ro_error_variants(
-    _attr: proc_macro2::TokenStream,
-    item: proc_macro2::TokenStream,
-) -> proc_macro2::TokenStream {
-    item
-}
 pub fn rm_error_variants(
     _attr: proc_macro2::TokenStream,
     item: proc_macro2::TokenStream,
@@ -77,12 +71,6 @@ pub fn co_logic(
     item
 }
 pub fn rm_logic(
-    _attr: proc_macro2::TokenStream,
-    item: proc_macro2::TokenStream,
-) -> proc_macro2::TokenStream {
-    item
-}
-pub fn ro_logic(
     _attr: proc_macro2::TokenStream,
     item: proc_macro2::TokenStream,
 ) -> proc_macro2::TokenStream {

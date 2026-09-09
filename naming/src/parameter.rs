@@ -50,8 +50,6 @@ proc_macro_naming_generate_self_upper_camel_case_and_snake_case_str_and_token_st
         ["self", "dm", "payload"],
         ["self", "dlo", "parameters"],
         ["self", "dlo", "payload"],
-        ["self", "try", "ro", "error"],
-        ["self", "ro", "error", "with", "serde"],
         ["self", "um", "parameters"],
         ["self", "um", "payload"],
         ["self", "try", "dlo", "error"],

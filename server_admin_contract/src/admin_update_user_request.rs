@@ -12,4 +12,5 @@
 pub struct AdminUpdateUserRequest {
     display_name: Option<crate::admin_display_name::AdminDisplayName>,
     login: Option<crate::admin_login::AdminLogin>,
+    is_banned: Option<crate::admin_bool::AdminBool>,
 }

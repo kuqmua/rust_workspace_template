@@ -13,6 +13,7 @@ pub(crate) async fn update_user(
     let request = server_admin_contract::admin_update_user_request::AdminUpdateUserRequest::new(
         Some(axum_admin_form.get_display_name().clone()),
         Some(axum_admin_form.get_login().clone()),
+        None,
     );
     crate::action_result_impl::action_result_impl(
         crate::user_mutations_update::user_mutations_update(
