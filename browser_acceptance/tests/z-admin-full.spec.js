@@ -1,3 +1,4 @@
+import { readUsers } from "./support/users.js";
 import { expect, test } from "@playwright/test";
 import {
   adminHeaders,
@@ -17,7 +18,7 @@ test("direct API access is denied and refresh restores an access session", async
   page,
   request
 }) => {
-  const forbidden = await request.get("/users");
+  const forbidden = await readUsers(request);
   expect(forbidden.status()).toBe(401);
 
   await signInAdministrator(page);

@@ -725,6 +725,32 @@ impl<'ast> syn::visit::Visit<'ast> for DeclaredDomainTypeVisitor {
             generated_error_name.push_str(constants_str::TRYFROMSTRINGERROR);
             let _: bool = self.names.insert(generated_error_name);
         }
+        if item_struct.attrs.iter().any(|attr| {
+            attr.path().is_ident(constants_str::DERIVE)
+                && attr
+                    .parse_args_with(
+                        syn::punctuated::Punctuated::<syn::Path, syn::Token![,]>::parse_terminated,
+                    )
+                    .is_ok_and(|paths| {
+                        paths.iter().any(|path| {
+                            crate::code_style::path_ends_with(
+                                crate::syn_path_ref::SynPathRef::from(path),
+                                crate::static_str_slice_ref::StaticStrSliceRef::from(
+                                    [
+                                        constants_str::PG_CRUD_TABLE_DERIVE_CRATE,
+                                        constants_str::PG_CRUD_TABLE_DERIVE_NAME,
+                                    ]
+                                    .as_slice(),
+                                ),
+                            )
+                            .get()
+                        })
+                    })
+        }) {
+            let mut generated_read_name = item_struct.ident.to_string();
+            generated_read_name.push_str(constants_str::PG_CRUD_TABLE_READ_SUFFIX);
+            let _: bool = self.names.insert(generated_read_name);
+        }
         syn::visit::visit_item_struct(self, item_struct);
     }
     fn visit_item_trait(&mut self, item_trait: &'ast syn::ItemTrait) {

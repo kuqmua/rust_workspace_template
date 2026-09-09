@@ -69,7 +69,6 @@ pub mod admin_html_action;
 pub mod admin_id_try_from_i64_error;
 pub mod admin_list_permissions_route;
 pub mod admin_list_roles_route;
-pub mod admin_list_users_route;
 pub mod admin_login;
 pub mod admin_login_attempts_table_route;
 pub mod admin_main_logo;
@@ -113,6 +112,12 @@ pub mod admin_permissions_page;
 pub mod admin_prefixed_data_table;
 pub mod admin_primary_color;
 pub mod admin_rate_limits_table_route;
+pub mod admin_read_field;
+pub mod admin_read_page;
+pub mod admin_read_user_column;
+pub mod admin_read_user_order;
+pub mod admin_read_user_selection;
+pub mod admin_read_users_route;
 pub mod admin_refresh_route;
 pub mod admin_refresh_tokens_table_route;
 pub mod admin_revoke_all_sessions_route;
@@ -128,6 +133,7 @@ pub mod admin_roles_page;
 pub mod admin_route;
 pub mod admin_route_path;
 pub mod admin_route_path_error;
+pub mod admin_selected_value;
 pub mod admin_session_identifier;
 pub mod admin_session_timestamp;
 pub mod admin_session_view;
@@ -176,6 +182,7 @@ pub mod admin_user_roles_table_route;
 pub mod admin_user_summaries;
 pub mod admin_user_summary;
 pub mod admin_users_page;
+pub mod admin_users_read_request;
 #[cfg(test)]
 mod test_audit_branding_tests {
     #[test]
@@ -232,3 +239,9 @@ mod test_table_sort_tests {
         );
     }
 }
+pub mod admin_update_users_request;
+pub mod admin_update_users_route;
+pub mod admin_user_update;
+pub mod admin_user_updates;
+#[cfg(test)]
+mod test_update_users_contract;

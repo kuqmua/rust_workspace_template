@@ -15,7 +15,7 @@ pub(crate) fn AdminAuditDownload(
     admin_page_limit: server_admin_contract::admin_page_limit::AdminPageLimit,
     admin_page_offset: server_admin_contract::admin_page_offset::AdminPageOffset,
 ) -> impl leptos::prelude::IntoView {
-    let state = leptos::prelude::RwSignal::new(
+    let state = leptos::prelude::RwSignal::new_local(
         crate::admin_audit_download_state::AdminAuditDownloadState::Idle,
     );
     let prepare = leptos::prelude::Callback::new(move |_event| {

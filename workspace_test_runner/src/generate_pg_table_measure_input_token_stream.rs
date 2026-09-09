@@ -9,12 +9,9 @@ pub(crate) fn generate_pg_table_measure_input_token_stream(
             #[derive(Debug, Clone, Copy, proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
             #[proc_macro_generate_pg_table_generate_pg_table_config::generate_pg_table_config{{
                 "cm_write_into_file": "False",
-                "co_write_into_file": "False",
                 "rm_write_into_file": "False",
                 "um_write_into_file": "False",
-                "uo_write_into_file": "False",
                 "dm_write_into_file": "False",
-                "dlo_write_into_file": "False",
                 "tests_write_into_file": #tests_write_into_file,
                 "common_write_into_file": "False",
                 "whole_write_into_file": "False"
@@ -29,12 +26,9 @@ pub(crate) fn generate_pg_table_measure_input_token_stream(
                 }
             }]
             #[proc_macro_generate_pg_table_cm_logic::cm_logic{}]
-            #[proc_macro_generate_pg_table_co_logic::co_logic{}]
             #[proc_macro_generate_pg_table_rm_logic::rm_logic{}]
             #[proc_macro_generate_pg_table_um_logic::um_logic{}]
-            #[proc_macro_generate_pg_table_uo_logic::uo_logic{}]
             #[proc_macro_generate_pg_table_dm_logic::dm_logic{}]
-            #[proc_macro_generate_pg_table_dlo_logic::dlo_logic{}]
             #[proc_macro_generate_pg_table_common_logic::common_logic{}]
             pub struct TableExample {
                 #[generate_pg_table_primary_key]

@@ -1189,3 +1189,23 @@ fn test_external_leaf_wrapper_type_rule_has_no_name_exceptions() {
         "e7340ba2"
     );
 }
+
+#[test]
+fn test_domain_type_collector_recognizes_generated_table_read_types() {
+    let file: syn::File = syn::parse_quote! {
+        #[derive(proc_macro_generate_pg_table_derive_generate_pg_table::GeneratePgTable)]
+        struct ExampleTable;
+        #[derive(other::GeneratePgTable)]
+        struct UnrelatedTable;
+        struct PlainTable;
+    };
+    let visitor = crate::code_style::visit_syn_file(
+        crate::syn_file_ref::SynFileRef::from(&file),
+        super::domain_analysis::DeclaredDomainTypeVisitor::new(
+            crate::source_text_b_tree_set::SourceTextBTreeSet::default(),
+        ),
+    );
+    assert!(visitor.get_names().contains(stringify!(ExampleTableRead)));
+    assert!(!visitor.get_names().contains(stringify!(UnrelatedTableRead)));
+    assert!(!visitor.get_names().contains(stringify!(PlainTableRead)));
+}

@@ -1,3 +1,7 @@
+#[allow(
+    clippy::single_call_fn,
+    reason = "the SSR user-management loader owns authorization and repository access independently of the CRUD page presentation boundary"
+)]
 pub(crate) async fn queries_users_page(
     admin_auth_request: crate::admin_auth_request::AdminAuthRequest,
     axum_admin_query: crate::axum_admin_query::AxumAdminQuery<
@@ -93,66 +97,9 @@ pub(crate) async fn queries_users_page(
     }
     .await
     .map_err(crate::map_repository_error::map_repository_error)?;
-    let roles = async {
-        let role_catalog_pool = admin_auth_request.get_state().as_ref().get_pool().as_ref();
-        let rows =
-            sqlx::query_as::<_, (i64, String, bool)>(constants_str::SERVER_ADMIN_LIST_ROLES_SQL)
-                .fetch_all(role_catalog_pool)
-                .await
-                .map_err(crate::sqlx_admin_error::SqlxAdminError::from)?;
-        let role_ids = rows.iter().map(|row| row.0).collect::<Vec<_>>();
-        let links = sqlx::query_as::<_, (i64, i64)>(
-            constants_str::SERVER_ADMIN_LIST_ROLE_PERMISSION_IDS_SQL,
-        )
-        .bind(role_ids.as_slice())
-        .fetch_all(role_catalog_pool)
-        .await
-        .map_err(crate::sqlx_admin_error::SqlxAdminError::from)?;
-        let mut permission_ids_by_role = links.into_iter().try_fold(
-            std::collections::HashMap::<
-                i64,
-                Vec<server_admin_contract::admin_permission_id::AdminPermissionId>,
-            >::with_capacity(role_ids.len()),
-            |mut values, (role_id, permission_id)| {
-                values.entry(role_id).or_default().push(
-                    server_admin_contract::admin_permission_id::AdminPermissionId::try_from(
-                        permission_id,
-                    )
-                    .map_err(|_error| {
-                        crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue
-                    })?,
-                );
-                Ok::<_, crate::admin_repository_error::AdminRepositoryError>(values)
-            },
-        )?;
-        let values = rows
-            .into_iter()
-            .map(|(id, name, is_system)| {
-                Ok(server_admin_contract::admin_role_summary::AdminRoleSummary::new(
-                    server_admin_contract::admin_role_id::AdminRoleId::try_from(id).map_err(
-                        |_error| {
-                            crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue
-                        },
-                    )?,
-                    server_admin_contract::admin_bool::AdminBool::from(is_system),
-                    server_admin_contract::admin_role_name::AdminRoleName::try_from(name).map_err(
-                        |_error| {
-                            crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue
-                        },
-                    )?,
-                    server_admin_contract::admin_permission_ids::AdminPermissionIds::try_from(
-                        permission_ids_by_role.remove(&id).unwrap_or_default(),
-                    )
-                    .map_err(|_error| {
-                        crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue
-                    })?,
-                ))
-            })
-            .collect::<Result<Vec<_>, crate::admin_repository_error::AdminRepositoryError>>()?;
-        server_admin_contract::admin_role_summaries::AdminRoleSummaries::try_from(values).map_err(
-            |_error| crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue,
-        )
-    }
+    let roles = crate::load_users_role_catalog::load_users_role_catalog(
+        app_state::sqlx_pg_pool_ref::SqlxPgPoolRef::from(user_pool),
+    )
     .await
     .map_err(crate::map_repository_error::map_repository_error)?;
     Ok(

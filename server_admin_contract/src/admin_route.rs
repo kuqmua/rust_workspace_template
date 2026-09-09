@@ -104,7 +104,13 @@ pub enum AdminRoute {
     UpdateSettings,
     #[route_catalog_route(crate::admin_update_user_route::AdminUpdateUserRoute)]
     UpdateUser(crate::admin_user_id::AdminUserId),
-    #[route_catalog_route(crate::admin_list_users_route::AdminListUsersRoute)]
+    #[route_catalog_route(crate::admin_update_users_route::AdminUpdateUsersRoute)]
+    UpdateUsers,
+    #[route_catalog_route(
+        contract = <crate::admin_read_users_route::AdminReadUsersRoute as frontend_contract::typed_route::TypedRoute>::metadata().contract(),
+        path = frontend_contract::typed_route_path::typed_route_path::<crate::admin_read_users_route::AdminReadUsersRoute>(),
+        exclude_from_family,
+    )]
     Users,
     #[route_catalog_route(
         contract = frontend_contract::route_contract::RouteContract::new(

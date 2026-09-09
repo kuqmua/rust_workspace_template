@@ -8,8 +8,11 @@ Generated read APIs use the configured database resource name in their URL, inde
 of the Rust type name: `/users/read` and the corresponding
 `*_payload_example` routes. The same rule applies to `roles`, `permissions`,
 `system_settings`, `user_roles`, and `role_permissions`; these paths have no `admin_` prefix. Single-record reads use a primary-key equality
-filter with a limit of one and offset zero. Missing records return an empty list.
+filter with a limit of one and offset zero. Missing records return empty items; `/users/read` returns `{ items, roles, total }`.
 The table generator exposes reads through `read`; `read_one` and `read_one_payload_example` have been removed from every API mode.
+Mutations use `create_many`, `update_many`, and `delete_many`; the corresponding `_one` routes and payload examples have been removed. Single-record creation submits a one-element array. Single-record updates submit a one-element array keyed by the primary key; deletions use an equality filter on the primary key. Revision-aware bulk updates require `If-Match` and roll back the entire batch if any key is missing or its revision does not match.
+
+The legacy `GET /users` endpoint has been removed. The users CSR client sends a typed JSON request to `/users/read`; the generated read registry owns its full request and response schemas.
 
 This audit maps each operation to its administrator integration. Validation evidence
 below covers user-visible workflows and direct API behavior.
@@ -24,8 +27,9 @@ below covers user-visible workflows and direct API behavior.
 | GET `/auth/sessions` | Sessions page |
 | DELETE `/auth/sessions/{session_id}` | Per-session confirmation dialog |
 | DELETE `/auth/sessions` | Revoke-all confirmation dialog; includes the current session |
-| GET `/users` | Users list, pagination, and user management |
-| POST `/users` | Create-user page; server-rendered HTML adapter |
+| POST `/users/read` | Users list with selected fields, combined search and filters, sorting, pagination, role assignments, and total count |
+| POST `/users/create` | Create-user page; server-rendered HTML adapter |
+| PATCH `/users/update_many` | Atomic batch updates through the typed API; uses the same user validation, administrator protection, audit, and session revocation as single-user updates |
 | PATCH `/users/{user_id}` | Manage-users page: login and display name |
 | DELETE `/users/{user_id}` | Manage-users page: delete account |
 | POST `/users/{user_id}/password` | Manage-users page: reset password |
@@ -109,3 +113,28 @@ GET routes at `/{resource}`. Their former `/tables/{resource}` paths are rejecte
 `PATCH /users/{user_id}` accepts optional `display_name`, `login`, and `is_banned`.
 Omitting `is_banned` preserves the current state. Banning retains the self-ban and
 last-active-administrator checks, session revocation, and transactional audit.
+
+## User batch updates
+
+`PATCH /users/update_many` requires `users:update`, a valid session, an allowed Origin,
+and a CSRF token. It returns `204 No Content` after all changes commit.
+
+```json
+{
+  "updates": [
+    { "user_id": 12, "changes": { "display_name": "Updated Name" } },
+    { "user_id": 13, "changes": { "is_banned": true } }
+  ]
+}
+```
+
+Each item can change `login`, `display_name`, and `is_banned`. Omitted fields remain
+unchanged. Empty batches, duplicate user identifiers, empty changes, and invalid field
+values are rejected. The existing administrator collection limit is 10,000 items, and
+the route also enforces the common request body limit.
+
+A missing user, a conflicting login, self-blocking, or removal of the last active
+administrator rolls back the entire batch, including its audit records and session
+revocations. Unblocking updates run before blocking updates so a valid administrator
+replacement does not depend on request item order. Password and role changes retain
+their dedicated endpoints. `PATCH /users/{user_id}` remains available.

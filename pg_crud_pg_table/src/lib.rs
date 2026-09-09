@@ -4,7 +4,7 @@
     reason = "private root-owned modules preserve SQL-helper grouping and the compatibility facade vocabulary inherited from the former owner module"
 )]
 
-pub mod add_uo_optimistic_revision_predicate;
+pub mod add_update_optimistic_revision_predicate;
 pub mod begin_pg_table_idempotency;
 pub mod calculate_pg_table_idempotency_request_hash;
 pub mod cleanup_pg_table_idempotency;
@@ -13,19 +13,11 @@ pub mod complete_pg_table_idempotency;
 pub mod complete_pg_table_idempotency_in_connection;
 pub mod ensure_pg_table_idempotency_schema;
 pub mod generate_cm_query_string;
-pub mod generate_co_query_string;
-pub mod generate_column_eq_v_comma_uo_query_part;
 pub mod generate_column_eqs_case_accumulator_else_column_end_comma_um_query_part;
-pub mod generate_delete_query_string;
-pub mod generate_dlo_query_string;
 pub mod generate_dm_query_string;
-pub mod generate_insert_query_string;
 pub mod generate_rm_query_string;
 pub mod generate_um_query_string;
-pub mod generate_uo_query_string;
-pub mod generate_update_query_string;
 pub mod generate_when_column_id_then_v_um_query_part;
-pub mod insert_values_fmt;
 pub mod new_pg_table_idempotency_key;
 pub mod pg_table_idempotency_actor;
 pub mod pg_table_idempotency_begin;
@@ -66,5 +58,4 @@ pub mod sqlx_pg_table_pg_connection_ref;
 pub mod test_pg_crud_pg_table;
 #[cfg(test)]
 pub mod test_tests_domain_types_idempotency;
-pub mod update_selector_fmt;
 mod validate_pg_table_idempotency_text;

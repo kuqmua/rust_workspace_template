@@ -200,6 +200,7 @@ pub mod query_sort_order;
 pub mod read_query_bind_index_non_zero_u32;
 pub mod read_query_plan;
 pub mod read_query_plan_error;
+pub mod read_search;
 pub mod reconcile_pg_counter;
 pub mod resolve_list_total_source;
 pub mod resolve_pg_operational_limit_update;

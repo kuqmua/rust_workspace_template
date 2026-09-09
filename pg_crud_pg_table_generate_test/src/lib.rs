@@ -24,12 +24,9 @@ mod tests {
                 "whole_write_into_file": "False"
             }}]
             #[proc_macro_generate_pg_table_cm_logic::cm_logic{}]
-            #[proc_macro_generate_pg_table_co_logic::co_logic{}]
             #[proc_macro_generate_pg_table_rm_logic::rm_logic{}]
             #[proc_macro_generate_pg_table_um_logic::um_logic{}]
-            #[proc_macro_generate_pg_table_uo_logic::uo_logic{}]
             #[proc_macro_generate_pg_table_dm_logic::dm_logic{}]
-            #[proc_macro_generate_pg_table_dlo_logic::dlo_logic{}]
             #[proc_macro_generate_pg_table_common_logic::common_logic{}]
             pub struct TableExample {
                 #[generate_pg_table_primary_key]
@@ -52,7 +49,7 @@ mod tests {
         miri,
         ignore = "full table source generation is covered by native generator tests and is prohibitively slow under interpretation"
     )]
-    fn test_generated_crud_contract_excludes_single_record_read() {
+    fn test_generated_crud_contract_excludes_single_record_operations() {
         let input = table_input(&quote::quote! {
             column_0: pg_types_numeric::generate_pg_types_mod::I16AsNonNullInt2,
         });
@@ -65,12 +62,9 @@ mod tests {
                 &quote::quote! {
                     enum TableExampleOperation {
                         CreateMany,
-                        CreateOne,
-                        DeleteOne,
                         DeleteMany,
                         Read,
                         UpdateMany,
-                        UpdateOne,
                     }
                 }
                 .to_string()
@@ -79,6 +73,10 @@ mod tests {
         assert!(
             [
                 quote::quote! { ReadOne },
+                quote::quote! { CreateOne },
+                quote::quote! { DeleteOne },
+                quote::quote! { create_one },
+                quote::quote! { delete_one },
                 quote::quote! { read_one },
                 quote::quote! { ro_logic },
                 quote::quote! { ro_error_variants },
@@ -163,14 +161,27 @@ mod tests {
                     False,
                     True,
                 }
+                #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Copy)]
+                enum FixtureRevisionMode {
+                    Disabled,
+                    Enabled,
+                }
                 let allow_clippy_arbitrary_src_item_ordering =
                     token_patterns::AllowClippyArbitrarySrcItemOrdering;
-                let generate_table_example_token_stream = |add_generate_pg_table_primary_key: AddGeneratePgTablePrimaryKey| {
+                let generate_table_example_token_stream = |add_generate_pg_table_primary_key: AddGeneratePgTablePrimaryKey, fixture_revision_mode: FixtureRevisionMode| {
                     let maybe_generate_pg_table_primary_key_token_stream = match add_generate_pg_table_primary_key {
                         AddGeneratePgTablePrimaryKey::False => proc_macro2::TokenStream::new(),
                         AddGeneratePgTablePrimaryKey::True => {
                             quote::quote! {#[generate_pg_table_primary_key]}
                         }
+                    };
+                    let (identifier, revision_config, revision_field) = match fixture_revision_mode {
+                        FixtureRevisionMode::Disabled => (quote::quote! { TableExample }, proc_macro2::TokenStream::new(), proc_macro2::TokenStream::new()),
+                        FixtureRevisionMode::Enabled => (
+                            quote::quote! { RevisionTableExample },
+                            quote::quote! { "optimistic_revision_field": "revision", "idempotent_mutations": true, },
+                            quote::quote! { revision: pg_types_numeric::generate_pg_types_mod::I64AsNonNullInt8, },
+                        ),
                     };
                     quote::quote! {
                         #allow_clippy_arbitrary_src_item_ordering
@@ -180,13 +191,11 @@ mod tests {
                         )]
                         #[derive(Debug, Clone, Copy, proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
                         #[proc_macro_generate_pg_table_generate_pg_table_config::generate_pg_table_config{{
+                            #revision_config
                             "cm_write_into_file": "False",
-                            "co_write_into_file": "False",
                             "rm_write_into_file": "False",
                             "um_write_into_file": "False",
-                            "uo_write_into_file": "False",
                             "dm_write_into_file": "False",
-                            "dlo_write_into_file": "False",
                             "tests_write_into_file": "False",
                             "common_write_into_file": "False",
                             "whole_write_into_file": "False"
@@ -201,36 +210,33 @@ mod tests {
                             }
                         }]
                         #[proc_macro_generate_pg_table_cm_logic::cm_logic{}]
-                        #[proc_macro_generate_pg_table_co_logic::co_logic{}]
                         #[proc_macro_generate_pg_table_rm_logic::rm_logic{}]
                         #[proc_macro_generate_pg_table_um_logic::um_logic{}]
-                        #[proc_macro_generate_pg_table_uo_logic::uo_logic{}]
                         #[proc_macro_generate_pg_table_dm_logic::dm_logic{}]
-                        #[proc_macro_generate_pg_table_dlo_logic::dlo_logic{}]
                         #[proc_macro_generate_pg_table_common_logic::common_logic{}]
-                        pub struct TableExample {
+                        pub struct #identifier {
                             #maybe_generate_pg_table_primary_key_token_stream
                             primary_key_column:
                                 pg_types_text_misc::generate_pg_types_mod::SqlxTypesUuidUuidAsNonNullUuidV4InitializationByPg,
+                            #revision_field
                             column_0: pg_types_numeric::generate_pg_types_mod::I16AsNonNullInt2,
                             column_1: pg_types_numeric::generate_pg_types_mod::OptionalI16AsNullableInt2,
                             column_2: pg_types_numeric::generate_pg_types_mod::I32AsNonNullInt4,
                         }
                     }
                 };
-                let generate_pg_table_input_token_stream = generate_table_example_token_stream(AddGeneratePgTablePrimaryKey::True);
-                let ts = generate_pg_table_src::generate_pg_table::generate_pg_table(
-                    macro_helpers::proc_macro2_token_stream_ref::ProcMacro2TokenStreamRef::from(&generate_pg_table_input_token_stream),
-                );
-                let repeated_token_stream = generate_pg_table_src::generate_pg_table::generate_pg_table(
-                    macro_helpers::proc_macro2_token_stream_ref::ProcMacro2TokenStreamRef::from(&generate_pg_table_input_token_stream),
-                );
-                assert_eq!(ts.to_string(), repeated_token_stream.to_string());
-                let table_struct_token_stream = generate_table_example_token_stream(AddGeneratePgTablePrimaryKey::False);
-                quote::quote! {
-                    #ts
-                    #table_struct_token_stream
-                }
+                [FixtureRevisionMode::Disabled, FixtureRevisionMode::Enabled].into_iter().map(|fixture_revision_mode| {
+                    let input = generate_table_example_token_stream(AddGeneratePgTablePrimaryKey::True, fixture_revision_mode);
+                    let generated = generate_pg_table_src::generate_pg_table::generate_pg_table(
+                        macro_helpers::proc_macro2_token_stream_ref::ProcMacro2TokenStreamRef::from(&input),
+                    );
+                    let repeated = generate_pg_table_src::generate_pg_table::generate_pg_table(
+                        macro_helpers::proc_macro2_token_stream_ref::ProcMacro2TokenStreamRef::from(&input),
+                    );
+                    assert_eq!(generated.to_string(), repeated.to_string());
+                    let table = generate_table_example_token_stream(AddGeneratePgTablePrimaryKey::False, fixture_revision_mode);
+                    quote::quote! { #generated #table }
+                }).collect::<proc_macro2::TokenStream>()
             }
             .to_string(),
         );

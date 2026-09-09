@@ -10,7 +10,11 @@
     Eq,
     PartialEq,
     proc_macro_newtype_into_inner_from::IntoInnerFrom,
+    serde::Serialize,
+    serde::Deserialize,
+    utoipa::ToSchema,
 )]
+#[serde(try_from = "i64")]
 pub struct ListTotal(i64);
 
 impl TryFrom<i64> for ListTotal {

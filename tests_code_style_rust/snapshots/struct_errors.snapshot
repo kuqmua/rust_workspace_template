@@ -2,6 +2,10 @@
 ../administrator_account_initialization_and_password_reset/src/sqlx_administrator_database_connection_error.rs:SqlxAdministratorDatabaseConnectionError
 ../config_lib/src/env_var_error.rs:EnvVarError
 ../file_storage/src/file_storage_io_error.rs:FileStorageIoError
+../frontend_admin/src/admin_health_wasm_bindgen_error.rs:AdminHealthWasmBindgenError
+../frontend_admin/src/std_rc_serde_json_error.rs:StdRcSerdeJsonError
+../frontend_admin/src/std_str_utf8_error.rs:StdStrUtf8Error
+../frontend_admin/src/wasm_bindgen_admin_read_error.rs:WasmBindgenAdminReadError
 ../frontend_contract_validation/src/serde_json_open_api_serialization_error.rs:SerdeJsonOpenApiSerializationError
 ../init_env_files/src/init_io_error.rs:InitIoError
 ../init_env_files/src/toml_init_error.rs:TomlInitError

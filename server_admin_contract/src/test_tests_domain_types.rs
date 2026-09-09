@@ -71,7 +71,7 @@ fn test_every_admin_api_route_has_named_route_and_client_functions() {
         size_of_val(&crate::admin_update_role_route::update_role_route),
         size_of_val(&crate::admin_update_settings_route::update_settings_route),
         size_of_val(&crate::admin_update_user_route::update_user_route),
-        size_of_val(&crate::admin_list_users_route::list_users_route),
+        size_of_val(&crate::admin_read_users_route::read_users_route),
         size_of_val(&crate::admin_route::version_route),
     ]
     .into_iter()
@@ -105,7 +105,7 @@ fn test_every_admin_api_route_has_named_route_and_client_functions() {
         size_of_val(&crate::admin_update_role_route::update_role_client::<ClientTransport>),
         size_of_val(&crate::admin_update_settings_route::update_settings_client::<ClientTransport>),
         size_of_val(&crate::admin_update_user_route::update_user_client::<ClientTransport>),
-        size_of_val(&crate::admin_list_users_route::list_users_client::<ClientTransport>),
+        size_of_val(&crate::admin_read_users_route::read_users_client::<ClientTransport>),
         size_of_val(&crate::admin_route::version_client::<ClientTransport>),
     ]
     .into_iter()

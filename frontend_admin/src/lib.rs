@@ -136,6 +136,10 @@ pub mod domain_types_shared_settings_input;
 pub mod domain_types_ssr_tests;
 #[cfg(target_arch = "wasm32")]
 pub mod fetch_json;
+#[cfg(target_arch = "wasm32")]
+pub mod fetch_json_request;
+#[cfg(target_arch = "wasm32")]
+pub mod fetch_users_read;
 pub mod join_text;
 pub mod leptos_admin_filter_operation_signal;
 pub mod leptos_admin_input_signal;
@@ -242,3 +246,10 @@ mod admin_health_view;
 
 #[cfg(target_arch = "wasm32")]
 mod admin_health_wasm_bindgen_error;
+
+#[cfg(target_arch = "wasm32")]
+mod std_rc_serde_json_error;
+#[cfg(target_arch = "wasm32")]
+mod std_str_utf8_error;
+#[cfg(target_arch = "wasm32")]
+mod wasm_bindgen_admin_read_error;

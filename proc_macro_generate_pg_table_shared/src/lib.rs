@@ -16,31 +16,13 @@ pub fn cm_error_variants(
 ) -> proc_macro2::TokenStream {
     item
 }
-pub fn co_error_variants(
-    _attr: proc_macro2::TokenStream,
-    item: proc_macro2::TokenStream,
-) -> proc_macro2::TokenStream {
-    item
-}
 pub fn rm_error_variants(
     _attr: proc_macro2::TokenStream,
     item: proc_macro2::TokenStream,
 ) -> proc_macro2::TokenStream {
     item
 }
-pub fn uo_error_variants(
-    _attr: proc_macro2::TokenStream,
-    item: proc_macro2::TokenStream,
-) -> proc_macro2::TokenStream {
-    item
-}
 pub fn um_error_variants(
-    _attr: proc_macro2::TokenStream,
-    item: proc_macro2::TokenStream,
-) -> proc_macro2::TokenStream {
-    item
-}
-pub fn dlo_error_variants(
     _attr: proc_macro2::TokenStream,
     item: proc_macro2::TokenStream,
 ) -> proc_macro2::TokenStream {
@@ -64,12 +46,6 @@ pub fn cm_logic(
 ) -> proc_macro2::TokenStream {
     item
 }
-pub fn co_logic(
-    _attr: proc_macro2::TokenStream,
-    item: proc_macro2::TokenStream,
-) -> proc_macro2::TokenStream {
-    item
-}
 pub fn rm_logic(
     _attr: proc_macro2::TokenStream,
     item: proc_macro2::TokenStream,
@@ -82,19 +58,7 @@ pub fn um_logic(
 ) -> proc_macro2::TokenStream {
     item
 }
-pub fn uo_logic(
-    _attr: proc_macro2::TokenStream,
-    item: proc_macro2::TokenStream,
-) -> proc_macro2::TokenStream {
-    item
-}
 pub fn dm_logic(
-    _attr: proc_macro2::TokenStream,
-    item: proc_macro2::TokenStream,
-) -> proc_macro2::TokenStream {
-    item
-}
-pub fn dlo_logic(
     _attr: proc_macro2::TokenStream,
     item: proc_macro2::TokenStream,
 ) -> proc_macro2::TokenStream {

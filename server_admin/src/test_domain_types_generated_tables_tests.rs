@@ -345,7 +345,7 @@ fn test_generated_admin_open_api_combines_enabled_routes_only() {
         .get(constants_str::PATHS)
         .and_then(serde_json::Value::as_object)
         .expect(constants_str::DIAGNOSTIC_274479A7);
-    assert_eq!(paths.len(), 35usize);
+    assert_eq!(paths.len(), 36usize);
     assert!(paths.contains_key(constants_str::VALUE_C764A505));
     assert!(!paths.contains_key(constants_str::VALUE_F772F137));
     assert!(paths.contains_key(constants_str::VALUE_356A53CE));
@@ -539,4 +539,137 @@ fn test_generated_frontend_filter_metadata_matches_api_filter_schema() {
         .and_then(serde_json::Value::as_array)
         .map(Vec::len);
     assert_eq!(variants, Some(login.filters().len()));
+}
+
+#[test]
+fn test_users_read_page_preserves_selected_fields_and_role_ids() {
+    let decoded = serde_json::from_value::<crate::admin_users_read_page::AdminUsersReadPage>(
+        serde_json::json!({
+            (constants_str::ITEMS): [{(constants_str::LOGIN): {(stringify!(value)): constants_str::ADMIN}, (stringify!(role_ids)): [1i64]}],
+            (constants_str::ROLES_TABLE): [],
+            (constants_str::ADMIN_UI_TOTAL): 7i64
+        }),
+    );
+    assert!(decoded.is_ok(), "{decoded:?}");
+    let encoded = decoded.and_then(serde_json::to_value);
+    assert_eq!(
+        encoded.ok(),
+        Some(serde_json::json!({
+            (constants_str::ITEMS): [{(constants_str::LOGIN): {(stringify!(value)): constants_str::ADMIN}, (stringify!(role_ids)): [1i64]}],
+            (constants_str::ROLES_TABLE): [],
+            (constants_str::ADMIN_UI_TOTAL): 7i64
+        })),
+    );
+}
+
+#[test]
+fn test_users_read_openapi_exposes_search_and_enriched_page() {
+    let document = serde_json::to_value(utoipa::openapi::OpenApi::from(
+        crate::generated_open_api::generated_open_api(),
+    ));
+    assert!(document.is_ok());
+    assert!(document.is_ok_and(|document| {
+        let schemas = document.pointer(constants_str::COMPONENTS_SCHEMAS_ALT);
+        [
+            (
+                constants_str::ADMIN_USERS_READ_PAYLOAD,
+                constants_str::SEARCH_ALT,
+            ),
+            (
+                stringify!(AdminUsersReadPage),
+                constants_str::ADMIN_UI_TOTAL,
+            ),
+            (stringify!(AdminUsersReadPage), constants_str::ROLES_TABLE),
+        ]
+        .into_iter()
+        .all(|(schema, property)| {
+            schemas
+                .and_then(|schemas| schemas.get(schema))
+                .and_then(|schema| schema.get(constants_str::PROPERTIES))
+                .and_then(|properties| properties.get(property))
+                .is_some_and(serde_json::Value::is_object)
+        })
+    }));
+}
+
+#[test]
+fn test_users_read_selection_schema_uses_wire_field_names() {
+    let schema = serde_json::to_value(
+        <crate::admin_users::AdminUsersSelect as utoipa::PartialSchema>::schema(),
+    );
+    assert!(schema.is_ok_and(|schema| {
+        schema
+            .get(constants_str::VALUE_780713E0)
+            .and_then(serde_json::Value::as_array)
+            .is_some_and(|variants| {
+                variants.iter().any(|variant| {
+                    variant
+                        .get(constants_str::PROPERTIES)
+                        .and_then(|properties| properties.get(constants_str::LOGIN))
+                        .is_some()
+                })
+            })
+    }));
+}
+
+#[test]
+fn test_users_read_client_request_is_accepted_by_generated_contract() {
+    let client_request =
+        server_admin_contract::admin_users_read_request::AdminUsersReadRequest::try_from(
+            &server_admin_contract::admin_table_query::AdminTableQuery::default(),
+        )
+        .expect(constants_str::DIAGNOSTIC_8F53BBB4);
+    let client_json =
+        serde_json::to_value(client_request).expect(constants_str::DIAGNOSTIC_66DAD9EF);
+    let generated_request =
+        serde_json::from_value::<crate::admin_users::AdminUsersReadPayload>(client_json.clone())
+            .expect(constants_str::DIAGNOSTIC_F28CAA74);
+    assert_eq!(
+        serde_json::to_value(generated_request).expect(constants_str::DIAGNOSTIC_5E6CEA0A),
+        client_json
+    );
+}
+
+#[test]
+fn test_users_read_client_decodes_selected_user_fields() {
+    let page = serde_json::from_value::<server_admin_contract::admin_users_page::AdminUsersPage>(
+        serde_json::json!({
+            (constants_str::ITEMS): [{
+                (constants_str::SQL_NAMES_ID): {(stringify!(value)): 1i64},
+                (constants_str::LOGIN): {(stringify!(value)): constants_str::ADMIN_ALT},
+                (constants_str::DISPLAY_NAME): {(stringify!(value)): constants_str::ADMIN},
+                (constants_str::IS_BANNED): {(stringify!(value)): false},
+                (stringify!(role_ids)): [1i64]
+            }],
+            (constants_str::ROLES_TABLE): [],
+            (constants_str::ADMIN_UI_TOTAL): 1i64
+        }),
+    )
+    .expect(constants_str::DIAGNOSTIC_1B4285EA);
+    let user = page
+        .items()
+        .first()
+        .expect(constants_str::DIAGNOSTIC_C0D314C3);
+    assert_eq!(user.login().as_ref(), constants_str::ADMIN_ALT);
+    assert_eq!(user.role_ids().len(), 1usize);
+}
+
+#[test]
+fn test_legacy_users_get_is_absent_from_openapi() {
+    let document = serde_json::to_value(utoipa::openapi::OpenApi::from(
+        crate::generated_open_api::generated_open_api(),
+    ))
+    .expect(constants_str::DIAGNOSTIC_BE9ECC89);
+    assert!(
+        document
+            .get(constants_str::PATHS)
+            .and_then(|paths| paths.get(constants_str::ADMIN_REMOVED_USERS_PATH))
+            .is_none()
+    );
+    assert_eq!(
+        server_admin_contract::admin_route::AdminRoute::Users
+            .path()
+            .as_ref(),
+        constants_str::ADMIN_USERS_READ
+    );
 }

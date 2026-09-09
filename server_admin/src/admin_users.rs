@@ -16,6 +16,12 @@
     "create_exclude_fields": ["password_hash", "must_change_password", "created_at", "updated_at"],
     "read_exclude_fields": ["password_hash", "must_change_password"],
     "permission_prefix": "users",
+    "read_page": {
+        "search_columns": ["login", "display_name"],
+        "response": "crate::admin_users_read_page::AdminUsersReadPage",
+        "enrich": "crate::enrich_users_read_page::enrich_users_read_page",
+        "error": "crate::admin_users_read_page_error::AdminUsersReadPageError"
+    },
     "tests_write_into_file": "False",
     "common_write_into_file": "False",
     "whole_write_into_file": "False"

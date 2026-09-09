@@ -9,6 +9,321 @@
 mod test_data_tables {
     #[tokio::test]
     #[ignore = "requires PostgreSQL; run through workspace_test_runner database"]
+    async fn test_postgresql_users_update_many_is_atomic_and_revokes_sessions() {
+        let fixture = crate::admin_html_test_fixture().await;
+        let password_hash = sqlx::query_scalar::<_, String>(
+            constants_str::SELECT_PASSWORD_HASH_FROM_ADMIN_USERS_WHERE_LOGIN_ADMIN,
+        )
+        .fetch_one(&fixture.pool.0)
+        .await
+        .expect(constants_str::DIAGNOSTIC_F68DA3BC);
+        futures::StreamExt::fold(
+            futures::stream::iter([constants_str::VALUE_2562E0C2, constants_str::VALUE_A582339C]),
+            (),
+            async |(), login| {
+                let _inserted = sqlx::query(constants_str::INSERT_ADMIN_USER_POLICY_PROBE)
+                    .bind(login)
+                    .bind(constants_str::ADMIN)
+                    .bind(&password_hash)
+                    .execute(&fixture.pool.0)
+                    .await
+                    .expect(constants_str::DIAGNOSTIC_A21F6AA0);
+            },
+        )
+        .await;
+        let first = sqlx::query_as::<_, (i64, String, String, bool)>(constants_str::VALUE_1B03D1AA)
+            .bind(constants_str::VALUE_2562E0C2)
+            .fetch_one(&fixture.pool.0)
+            .await
+            .expect(constants_str::DIAGNOSTIC_550A9228);
+        let second =
+            sqlx::query_as::<_, (i64, String, String, bool)>(constants_str::VALUE_1B03D1AA)
+                .bind(constants_str::VALUE_A582339C)
+                .fetch_one(&fixture.pool.0)
+                .await
+                .expect(constants_str::DIAGNOSTIC_E98B04AE);
+        let actor = sqlx::query_scalar::<_, i64>(
+            constants_str::SELECT_ID_FROM_ADMIN_USERS_WHERE_LOGIN_ADMIN,
+        )
+        .fetch_one(&fixture.pool.0)
+        .await
+        .expect(constants_str::DIAGNOSTIC_6D0E7C46);
+        let send_batch = async |admin_html_test_body: crate::AdminHtmlTestBody| {
+            let response = tower::ServiceExt::oneshot(
+                crate::router_with_pool(&fixture.pool).0,
+                crate::request_with_peer(
+                    crate::HttpAdminApiTestMethod::from(http::Method::PATCH),
+                    crate::StdAdminApiTestStrRef::from(
+                        server_admin_contract::admin_route::AdminRoute::UpdateUsers
+                            .path()
+                            .as_ref(),
+                    ),
+                    crate::StdAdminApiTestStrRef::from(admin_html_test_body.0.as_ref()),
+                    Some(crate::StdAdminApiTestStrRef::from(
+                        fixture.cookie.0.as_str(),
+                    )),
+                    Some(crate::StdAdminApiTestStrRef::from(fixture.csrf.0.as_str())),
+                )
+                .0,
+            )
+            .await
+            .expect(constants_str::DIAGNOSTIC_D795E6C8);
+            crate::HttpAdminHtmlTestResponse::from(response)
+        };
+        let sign_in = serde_json::json!({
+            (stringify!(login)): first.1,
+            (stringify!(password)): serde_json::from_str::<String>(constants_str::CORRECT_PASSWORD).expect(constants_str::DIAGNOSTIC_CBB37010)
+        }).to_string();
+        let signed_in = tower::ServiceExt::oneshot(
+            crate::router_with_pool(&fixture.pool).0,
+            crate::request_with_peer(
+                crate::HttpAdminApiTestMethod::from(http::Method::POST),
+                crate::StdAdminApiTestStrRef::from(
+                    server_admin_contract::admin_route::AdminRoute::SignIn
+                        .path()
+                        .as_ref(),
+                ),
+                crate::StdAdminApiTestStrRef::from(sign_in.as_str()),
+                None,
+                None,
+            )
+            .0,
+        )
+        .await
+        .expect(constants_str::DIAGNOSTIC_63DB200F);
+        assert_eq!(signed_in.status(), http::StatusCode::OK);
+        let before_audit = sqlx::query_scalar::<_, i64>(constants_str::ADMIN_TEST_AUDIT_COUNT_SQL)
+            .fetch_one(&fixture.pool.0)
+            .await
+            .expect(constants_str::DIAGNOSTIC_F9560E60);
+        futures::StreamExt::fold(
+            futures::stream::iter([
+                (serde_json::json!([]), http::StatusCode::UNPROCESSABLE_ENTITY),
+                (serde_json::json!([{(stringify!(user_id)): first.0, (stringify!(changes)): {}}]), http::StatusCode::UNPROCESSABLE_ENTITY),
+                (serde_json::json!([
+                    {(stringify!(user_id)): first.0, (stringify!(changes)): {(stringify!(display_name)): constants_str::VALUE_79B22AC4}},
+                    {(stringify!(user_id)): first.0, (stringify!(changes)): {(stringify!(is_banned)): true}}
+                ]), http::StatusCode::UNPROCESSABLE_ENTITY),
+                (serde_json::json!([
+                    {(stringify!(user_id)): first.0, (stringify!(changes)): {(stringify!(is_banned)): true}},
+                    {(stringify!(user_id)): i64::MAX, (stringify!(changes)): {(stringify!(is_banned)): true}}
+                ]), http::StatusCode::CONFLICT),
+                (serde_json::json!([
+                    {(stringify!(user_id)): second.0, (stringify!(changes)): {(stringify!(display_name)): constants_str::VALUE_79B22AC4}},
+                    {(stringify!(user_id)): actor, (stringify!(changes)): {(stringify!(is_banned)): true}}
+                ]), http::StatusCode::CONFLICT),
+                (serde_json::json!([
+                    {(stringify!(user_id)): first.0, (stringify!(changes)): {(stringify!(login)): constants_str::LOGIN}},
+                    {(stringify!(user_id)): second.0, (stringify!(changes)): {(stringify!(login)): constants_str::LOGIN}}
+                ]), http::StatusCode::CONFLICT),
+            ]),
+            (),
+            async |(), (updates, expected_status)| {
+                let response = send_batch(crate::AdminHtmlTestBody::try_from(
+                    serde_json::json!({(stringify!(updates)): updates}).to_string(),
+                ).expect(constants_str::DIAGNOSTIC_7A13A27B)).await;
+                assert_eq!(response.status(), expected_status);
+                let unchanged_first = sqlx::query_as::<_, (i64, String, String, bool)>(constants_str::VALUE_1B03D1AA)
+                    .bind(&first.1).fetch_one(&fixture.pool.0).await.expect(constants_str::DIAGNOSTIC_7FF72E43);
+                let unchanged_second = sqlx::query_as::<_, (i64, String, String, bool)>(constants_str::VALUE_1B03D1AA)
+                    .bind(&second.1).fetch_one(&fixture.pool.0).await.expect(constants_str::DIAGNOSTIC_407A142C);
+                assert_eq!(unchanged_first, first);
+                assert_eq!(unchanged_second, second);
+                let active_sessions = sqlx::query_scalar::<_, i64>(constants_str::SERVER_ADMIN_COUNT_ACTIVE_SESSIONS_SQL)
+                    .bind(first.0).fetch_one(&fixture.pool.0).await.expect(constants_str::DIAGNOSTIC_70724CFD);
+                assert_eq!(active_sessions, 1);
+                let audit_count = sqlx::query_scalar::<_, i64>(constants_str::ADMIN_TEST_AUDIT_COUNT_SQL)
+                    .fetch_one(&fixture.pool.0).await.expect(constants_str::DIAGNOSTIC_A34144A5);
+                assert_eq!(audit_count, before_audit);
+            },
+        ).await;
+        let response = send_batch(crate::AdminHtmlTestBody::try_from(serde_json::json!({
+            (stringify!(updates)): [
+                {(stringify!(user_id)): first.0, (stringify!(changes)): {(stringify!(is_banned)): true}},
+                {(stringify!(user_id)): second.0, (stringify!(changes)): {(stringify!(display_name)): constants_str::VALUE_79B22AC4}}
+            ]
+        }).to_string()).expect(constants_str::DIAGNOSTIC_02430D49)).await;
+        assert_eq!(response.status(), http::StatusCode::NO_CONTENT);
+        let active_sessions =
+            sqlx::query_scalar::<_, i64>(constants_str::SERVER_ADMIN_COUNT_ACTIVE_SESSIONS_SQL)
+                .bind(first.0)
+                .fetch_one(&fixture.pool.0)
+                .await
+                .expect(constants_str::DIAGNOSTIC_5E4B4872);
+        assert_eq!(active_sessions, 0);
+        let updated_second =
+            sqlx::query_as::<_, (i64, String, String, bool)>(constants_str::VALUE_1B03D1AA)
+                .bind(&second.1)
+                .fetch_one(&fixture.pool.0)
+                .await
+                .expect(constants_str::DIAGNOSTIC_E7B4D388);
+        assert_eq!(updated_second.2, constants_str::VALUE_79B22AC4);
+        let audit_count = sqlx::query_scalar::<_, i64>(constants_str::ADMIN_TEST_AUDIT_COUNT_SQL)
+            .fetch_one(&fixture.pool.0)
+            .await
+            .expect(constants_str::DIAGNOSTIC_08A9B724);
+        assert_eq!(audit_count, before_audit + 2);
+        let permissions =
+            sqlx::query_as::<_, (i64, String)>(constants_str::SERVER_ADMIN_LIST_PERMISSIONS_SQL)
+                .fetch_all(&fixture.pool.0)
+                .await
+                .expect(constants_str::DIAGNOSTIC_6A833474);
+        let update_permission = permissions
+            .into_iter()
+            .find(|(_, name)| {
+                name == server_admin_contract::admin_permission::AdminPermission::UsersUpdate
+                    .as_str()
+                    .get()
+            })
+            .expect(constants_str::DIAGNOSTIC_AFF16000)
+            .0;
+        let role = sqlx::query_scalar::<_, i64>(constants_str::SERVER_ADMIN_INSERT_ROLE_SQL)
+            .bind(constants_str::LOGIN)
+            .fetch_one(&fixture.pool.0)
+            .await
+            .expect(constants_str::DIAGNOSTIC_540CEA0A);
+        let _permissions =
+            sqlx::query(constants_str::SERVER_ADMIN_REPLACE_ROLE_PERMISSIONS_INSERT_SQL)
+                .bind(role)
+                .bind([update_permission].as_slice())
+                .execute(&fixture.pool.0)
+                .await
+                .expect(constants_str::DIAGNOSTIC_FDCA2AAF);
+        futures::StreamExt::fold(
+            futures::stream::iter([first.0, second.0]),
+            (),
+            async |(), user_id| {
+                let _role = sqlx::query(constants_str::SERVER_ADMIN_INSERT_ADMIN_ROLE_SQL)
+                    .bind(user_id)
+                    .execute(&fixture.pool.0)
+                    .await
+                    .expect(constants_str::DIAGNOSTIC_241A22D3);
+            },
+        )
+        .await;
+        let _removed = sqlx::query(constants_str::SERVER_ADMIN_REPLACE_USER_ROLES_DELETE_SQL)
+            .bind(actor)
+            .execute(&fixture.pool.0)
+            .await
+            .expect(constants_str::DIAGNOSTIC_27DC41DE);
+        let _assigned = sqlx::query(constants_str::SERVER_ADMIN_REPLACE_USER_ROLES_INSERT_SQL)
+            .bind(actor)
+            .bind([role].as_slice())
+            .execute(&fixture.pool.0)
+            .await
+            .expect(constants_str::DIAGNOSTIC_159BA143);
+        let replacement = send_batch(crate::AdminHtmlTestBody::try_from(serde_json::json!({
+            (stringify!(updates)): [
+                {(stringify!(user_id)): second.0, (stringify!(changes)): {(stringify!(is_banned)): true}},
+                {(stringify!(user_id)): first.0, (stringify!(changes)): {(stringify!(is_banned)): false}}
+            ]
+        }).to_string()).expect(constants_str::DIAGNOSTIC_AB2A4B1E)).await;
+        assert_eq!(replacement.status(), http::StatusCode::NO_CONTENT);
+        let replacement_administrator_count =
+            sqlx::query_scalar::<_, i64>(constants_str::SERVER_ADMIN_ACTIVE_ADMIN_COUNT_SQL)
+                .fetch_one(&fixture.pool.0)
+                .await
+                .expect(constants_str::DIAGNOSTIC_F5B17590);
+        assert_eq!(replacement_administrator_count, 1);
+        let unblock = send_batch(crate::AdminHtmlTestBody::try_from(serde_json::json!({
+            (stringify!(updates)): [{(stringify!(user_id)): second.0, (stringify!(changes)): {(stringify!(is_banned)): false}}]
+        }).to_string()).expect(constants_str::DIAGNOSTIC_932A8C6B)).await;
+        assert_eq!(unblock.status(), http::StatusCode::NO_CONTENT);
+        let remove_all = send_batch(crate::AdminHtmlTestBody::try_from(serde_json::json!({
+            (stringify!(updates)): [
+                {(stringify!(user_id)): first.0, (stringify!(changes)): {(stringify!(is_banned)): true}},
+                {(stringify!(user_id)): second.0, (stringify!(changes)): {(stringify!(is_banned)): true}}
+            ]
+        }).to_string()).expect(constants_str::DIAGNOSTIC_8D00D760)).await;
+        assert_eq!(remove_all.status(), http::StatusCode::CONFLICT);
+        let active_administrators =
+            sqlx::query_scalar::<_, i64>(constants_str::SERVER_ADMIN_ACTIVE_ADMIN_COUNT_SQL)
+                .fetch_one(&fixture.pool.0)
+                .await
+                .expect(constants_str::DIAGNOSTIC_28D21509);
+        assert_eq!(active_administrators, 2);
+        fixture
+            .lock
+            .0
+            .rollback()
+            .await
+            .expect(constants_str::DIAGNOSTIC_7E259CFB);
+    }
+
+    #[tokio::test]
+    #[ignore = "requires PostgreSQL; run through workspace_test_runner database"]
+    #[allow(
+        clippy::needless_for_each,
+        reason = "repository policy requires iterator traversal for assertions over returned rows"
+    )]
+    async fn test_postgresql_users_read_search_filters_roles_and_empty_page_total() {
+        let fixture = crate::admin_html_test_fixture().await;
+        let payload = serde_json::from_str::<serde_json::Value>(
+            crate::admin_users_read_test_payload().0.as_ref(),
+        )
+        .expect(constants_str::DIAGNOSTIC_5B4F4458);
+        futures::StreamExt::fold(
+            futures::stream::iter([
+                (constants_str::ADMIN_ALT, false, 0i32, 1i64, 1usize),
+                (constants_str::ADMIN_ALT, false, 1i32, 1i64, 0usize),
+                (constants_str::ADMIN_ALT, true, 0i32, 0i64, 0usize),
+                (constants_str::LOGIN, false, 0i32, 0i64, 0usize),
+            ]),
+            (),
+            async |(), (search, is_banned, offset, total, count)| {
+                let mut request_payload = payload.as_object().expect(constants_str::DIAGNOSTIC_B272225A).clone();
+                let _previous_search_alt = request_payload.insert(constants_str::SEARCH_ALT.to_owned(), serde_json::json!(search));
+                let _previous_where_many = request_payload.insert(constants_str::WHERE_MANY.to_owned(), serde_json::json!({
+                    (constants_str::IS_BANNED): {
+                        (constants_str::PG_CRUD_OPERATOR_FIELD): constants_str::SERVER_ADMIN_FILTER_OPERATOR_AND,
+                        (constants_str::PG_CRUD_VALUES_FIELD): [{
+                            (stringify!(Eq)): {
+                                (constants_str::PG_CRUD_OPERATOR_FIELD): constants_str::SERVER_ADMIN_FILTER_OPERATOR_AND,
+                                (constants_str::PG_CRUD_VALUES_FIELD): is_banned
+                            }
+                        }]
+                    }
+                }));
+                let _previous_select_alt_3 = request_payload.insert(constants_str::SELECT_ALT_3.to_owned(), serde_json::json!([{(constants_str::LOGIN): null}]));
+                let _previous_pagination = request_payload.insert(constants_str::PAGINATION.to_owned(), serde_json::json!({(stringify!(limit)): 1i32, (stringify!(offset)): offset}));
+                let body = serde_json::to_string(&request_payload).expect(constants_str::DIAGNOSTIC_B0B639F8);
+                let parsed = serde_json::from_str::<server_admin::admin_users::AdminUsersReadPayload>(&body);
+                assert!(parsed.is_ok(), "{parsed:?}");
+                let response = tower::ServiceExt::oneshot(
+                    crate::router_with_pool(&fixture.pool).0,
+                    crate::request_with_peer(
+                        super::HttpAdminApiTestMethod::from(http::Method::POST),
+                        super::StdAdminApiTestStrRef::from(server_admin::admin_users::AdminUsers::read_route().as_ref()),
+                        super::StdAdminApiTestStrRef::from(body.as_str()),
+                        Some(super::StdAdminApiTestStrRef::from(fixture.cookie.0.as_str())),
+                        Some(super::StdAdminApiTestStrRef::from(fixture.csrf.0.as_str())),
+                    ).0,
+                ).await.expect(constants_str::DIAGNOSTIC_ED94D110);
+                let status = response.status();
+                let bytes = axum::body::to_bytes(response.into_body(), constants_usize::VALUE_1_048_576).await.expect(constants_str::DIAGNOSTIC_8A2D68CD);
+                assert_eq!(status, http::StatusCode::OK, "{bytes:?}");
+                let page = serde_json::from_slice::<serde_json::Value>(&bytes).expect(constants_str::DIAGNOSTIC_A7367D89);
+                assert_eq!(page.get(constants_str::ADMIN_UI_TOTAL).expect(constants_str::DIAGNOSTIC_D35E769C), &serde_json::json!(total));
+                let items = page.get(constants_str::ITEMS).and_then(serde_json::Value::as_array).expect(constants_str::DIAGNOSTIC_FED7A6A4);
+                assert_eq!(items.len(), count);
+                assert!(!page.get(constants_str::ROLES_TABLE).and_then(serde_json::Value::as_array).expect(constants_str::DIAGNOSTIC_722BB8E3).is_empty());
+                items.iter().for_each(|item| {
+                    assert!(item.get(constants_str::SQL_NAMES_ID).is_none());
+                    assert!(item.get(constants_str::DISPLAY_NAME).is_none());
+                    assert_eq!(item.get(constants_str::LOGIN).and_then(|login| login.get(stringify!(value))).and_then(serde_json::Value::as_str), Some(constants_str::ADMIN_ALT));
+                    assert!(!item.get(stringify!(role_ids)).and_then(serde_json::Value::as_array).expect(constants_str::DIAGNOSTIC_46BD0E83).is_empty());
+                });
+            },
+        ).await;
+        fixture
+            .lock
+            .0
+            .rollback()
+            .await
+            .expect(constants_str::DIAGNOSTIC_2154DBC9);
+    }
+    #[tokio::test]
+    #[ignore = "requires PostgreSQL; run through workspace_test_runner database"]
     async fn test_postgresql_data_table_api_reads_every_public_field_from_every_table() {
         let fixture = crate::admin_html_test_fixture().await;
         let _cleanup_status = sqlx::query(constants_str::VALUE_6E1CBD4B)
@@ -25,7 +340,7 @@ mod test_data_tables {
             ),
             (),
             async |(), table| {
-                let uri = format!("/tables/{table}?limit=100&offset=0");
+                let uri = format!("{}?limit=100&offset=0", table.api_route().path().as_ref());
                 let response = tower::ServiceExt::oneshot(
                     crate::router_with_pool(&fixture.pool).0,
                     crate::request_with_peer(
@@ -800,7 +1115,7 @@ mod test_flow {
         crate::router_with_pool(&pool).0,
         crate::request_with_peer(
             super::HttpAdminApiTestMethod::from(http::Method::POST),
-            super::StdAdminApiTestStrRef::from(frontend_contract::typed_route_path::typed_route_path::<server_admin_contract::admin_list_users_route::AdminListUsersRoute>().as_ref()),
+            super::StdAdminApiTestStrRef::from(frontend_contract::typed_route_path::typed_route_path::<server_admin_contract::admin_create_user_route::AdminCreateUserRoute>().as_ref()),
             super::StdAdminApiTestStrRef::from(constants_str::LOGIN_LIMITED_USER_DISPLAY_NAME_LIMITED_USER_PASSWORD_LIMITED_PASSWORD),
             Some(super::StdAdminApiTestStrRef::from(active_cookie.as_str())),
             Some(super::StdAdminApiTestStrRef::from(refreshed_csrf.0.as_str())),
@@ -843,7 +1158,7 @@ mod test_flow {
         crate::router_with_pool(&pool).0,
         crate::request_with_peer(
             super::HttpAdminApiTestMethod::from(http::Method::POST),
-            super::StdAdminApiTestStrRef::from(frontend_contract::typed_route_path::typed_route_path::<server_admin_contract::admin_list_users_route::AdminListUsersRoute>().as_ref()),
+            super::StdAdminApiTestStrRef::from(frontend_contract::typed_route_path::typed_route_path::<server_admin_contract::admin_create_user_route::AdminCreateUserRoute>().as_ref()),
             super::StdAdminApiTestStrRef::from(constants_str::LOGIN_LIMITED_USER_DISPLAY_NAME_LIMITED_USER_PASSWORD_LIMITED_PASSWORD),
             Some(super::StdAdminApiTestStrRef::from(active_cookie.as_str())),
             None,
@@ -857,7 +1172,7 @@ mod test_flow {
         crate::router_with_pool(&pool).0,
         crate::request_with_peer(
             super::HttpAdminApiTestMethod::from(http::Method::POST),
-            super::StdAdminApiTestStrRef::from(frontend_contract::typed_route_path::typed_route_path::<server_admin_contract::admin_list_users_route::AdminListUsersRoute>().as_ref()),
+            super::StdAdminApiTestStrRef::from(frontend_contract::typed_route_path::typed_route_path::<server_admin_contract::admin_create_user_route::AdminCreateUserRoute>().as_ref()),
             super::StdAdminApiTestStrRef::from(constants_str::LOGIN_LIMITED_USER_DISPLAY_NAME_LIMITED_USER_PASSWORD_LIMITED_PASSWORD),
             Some(super::StdAdminApiTestStrRef::from(active_cookie.as_str())),
             Some(super::StdAdminApiTestStrRef::from(refreshed_csrf.0.as_str())),
@@ -906,10 +1221,10 @@ mod test_flow {
         let forbidden_response = tower::ServiceExt::oneshot(
             crate::router_with_pool(&pool).0,
             crate::request_with_peer(
-                super::HttpAdminApiTestMethod::from(http::Method::GET),
+                super::HttpAdminApiTestMethod::from(http::Method::POST),
                 super::StdAdminApiTestStrRef::from(
                     frontend_contract::typed_route_path::typed_route_path::<
-                        server_admin_contract::admin_list_users_route::AdminListUsersRoute,
+                        server_admin_contract::admin_read_users_route::AdminReadUsersRoute,
                     >()
                     .as_ref(),
                 ),
@@ -1047,14 +1362,16 @@ mod test_flow {
         let list_users_response = tower::ServiceExt::oneshot(
             crate::router_with_pool(&pool).0,
             crate::request_with_peer(
-                super::HttpAdminApiTestMethod::from(http::Method::GET),
+                super::HttpAdminApiTestMethod::from(http::Method::POST),
                 super::StdAdminApiTestStrRef::from(
                     frontend_contract::typed_route_path::typed_route_path::<
-                        server_admin_contract::admin_list_users_route::AdminListUsersRoute,
+                        server_admin_contract::admin_read_users_route::AdminReadUsersRoute,
                     >()
                     .as_ref(),
                 ),
-                super::StdAdminApiTestStrRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
+                super::StdAdminApiTestStrRef::from(
+                    crate::admin_users_read_test_payload().0.as_ref(),
+                ),
                 Some(super::StdAdminApiTestStrRef::from(active_cookie.as_str())),
                 None,
             )
@@ -3260,9 +3577,10 @@ mod test_routing {
         let response = tower::ServiceExt::oneshot(
             crate::admin_api_test_router().0,
             http::Request::builder()
+                .method(http::Method::POST)
                 .uri(
                     frontend_contract::typed_route_path::typed_route_path::<
-                        server_admin_contract::admin_list_users_route::AdminListUsersRoute,
+                        server_admin_contract::admin_read_users_route::AdminReadUsersRoute,
                     >()
                     .as_ref(),
                 )
@@ -3706,6 +4024,65 @@ struct AdminHtmlTestBody(bounded_types::bounded_string::BoundedString<0usize, 1_
 )]
 #[bounded_string(max = 65_536)]
 struct AdminHtmlTestFormBody(bounded_types::bounded_string::BoundedString<0usize, 65_536, false>);
+#[derive(
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_new::New,
+    proc_macro_getters::Getters,
+)]
+#[allow(
+    clippy::arbitrary_source_item_ordering,
+    reason = "test state fields follow descending alignment required by OptimalMemoryLayout"
+)]
+struct AdminGeneratedApiTestState {
+    maximum_size_of_http_body_in_bytes:
+        config_lib::maximum_size_of_http_body_in_bytes::MaximumSizeOfHttpBodyInBytes,
+    sqlx_admin_api_test_pool: SqlxAdminApiTestPool,
+    resource_budget: server_runtime_core::resource_budget::ResourceBudget,
+    chrono_timezone: config_lib::chrono_timezone::ChronoTimezone,
+    source_place_type: config_lib::source_place_type::SourcePlaceType,
+    enable_api_git_commit_check: config_lib::domain_types::EnableApiGitCommitCheck,
+}
+impl config_lib::domain_types::EnableApiGitCommitCheckProvider for AdminGeneratedApiTestState {
+    fn enable_api_git_commit_check(&self) -> &bool {
+        self.get_enable_api_git_commit_check().get_inner()
+    }
+}
+impl config_lib::maximum_size_of_http_body_in_bytes::MaximumSizeOfHttpBodyInBytesProvider
+    for AdminGeneratedApiTestState
+{
+    fn maximum_size_of_http_body_in_bytes(&self) -> &usize {
+        self.get_maximum_size_of_http_body_in_bytes()
+    }
+}
+impl config_lib::domain_types::SourcePlaceTypeProvider for AdminGeneratedApiTestState {
+    fn source_place_type(&self) -> &config_lib::source_place_type::SourcePlaceType {
+        self.get_source_place_type()
+    }
+}
+impl config_lib::chrono_timezone::ChronoTimezoneProvider for AdminGeneratedApiTestState {
+    fn chrono_timezone(&self) -> &sqlx::types::chrono::FixedOffset {
+        self.get_chrono_timezone()
+    }
+}
+impl app_state::sqlx_pg_pool_provider::SqlxPgPoolProvider for AdminGeneratedApiTestState {
+    fn sqlx_pg_pool(&self) -> app_state::sqlx_pg_pool_ref::SqlxPgPoolRef<'_> {
+        app_state::sqlx_pg_pool_ref::SqlxPgPoolRef::from(&self.get_sqlx_admin_api_test_pool().0)
+    }
+}
+impl server_runtime_core::bulk_item_resource_budget_provider::BulkItemResourceBudgetProvider
+    for AdminGeneratedApiTestState
+{
+    fn bulk_item_resource_budget(&self) -> &server_runtime_core::resource_budget::ResourceBudget {
+        self.get_resource_budget()
+    }
+}
+impl server_runtime_core::idempotency_response_resource_budget_provider::IdempotencyResponseResourceBudgetProvider for AdminGeneratedApiTestState {
+    fn idempotency_response_resource_budget(&self) -> &server_runtime_core::resource_budget::ResourceBudget { self.get_resource_budget() }
+}
+impl pg_table::combination_of_app_state_logic_traits::CombinationOfAppStateLogicTraits
+    for AdminGeneratedApiTestState
+{
+}
 #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
 struct AdminHtmlTestFixture {
     cookie: StdAdminApiTestCookie,
@@ -3743,6 +4120,17 @@ impl AdminHtmlSettingsTestValues<'_> {
     }
 }
 
+fn admin_users_read_test_payload() -> AdminHtmlTestBody {
+    let request = server_admin_contract::admin_users_read_request::AdminUsersReadRequest::try_from(
+        &server_admin_contract::admin_table_query::AdminTableQuery::default(),
+    )
+    .expect(constants_str::DIAGNOSTIC_9C3E3F67);
+    AdminHtmlTestBody::try_from(
+        serde_json::to_string(&request).expect(constants_str::DIAGNOSTIC_247711CA),
+    )
+    .expect(constants_str::DIAGNOSTIC_7012F613)
+}
+
 fn one_admin_role_id(
     admin_role_id: server_admin_contract::admin_role_id::AdminRoleId,
 ) -> server_admin_contract::admin_role_ids::AdminRoleIds {
@@ -3768,51 +4156,7 @@ fn admin_api_test_router() -> AxumAdminApiTestRouter {
     let pool = sqlx::postgres::PgPoolOptions::new()
         .connect_lazy(constants_str::POSTGRES_ADMIN_INTEGRATION_ONLY_127_0_0_1_ADMIN_INTEGRATION)
         .expect(constants_str::DIAGNOSTIC_27DB915C);
-    let state = server_admin::admin_auth_svc_state::AdminAuthSvcState::try_new(
-        app_state::sqlx_pg_pool::SqlxPgPool::from(pool),
-        &env::<config_lib::admin_jwt_secret::AdminJwtSecret>(StdAdminApiTestStrRef::from(
-            constants_str::INTEGRATION_TEST_JWT_SECRET_AT_LEAST_32_BYTES,
-        )),
-        &env::<config_lib::admin_access_token_ttl_seconds::AdminAccessTokenTtlSeconds>(
-            StdAdminApiTestStrRef::from(constants_str::VALUE_900),
-        ),
-        &env::<config_lib::admin_refresh_token_ttl_seconds::AdminRefreshTokenTtlSeconds>(
-            StdAdminApiTestStrRef::from(constants_str::VALUE_3600),
-        ),
-        &env::<config_lib::admin_session_limit::AdminSessionLimit>(StdAdminApiTestStrRef::from(
-            constants_str::VALUE_20,
-        )),
-        &env::<config_lib::admin_sign_in_rate_limit::AdminSignInRateLimit>(
-            StdAdminApiTestStrRef::from(constants_str::VALUE_2),
-        ),
-        &env::<config_lib::admin_login_failure_limit::AdminLoginFailureLimit>(
-            StdAdminApiTestStrRef::from(constants_str::VALUE_10),
-        ),
-        &env::<config_lib::admin_password_hash_concurrency::AdminPasswordHashConcurrency>(
-            StdAdminApiTestStrRef::from(constants_str::VALUE_1),
-        ),
-        &env::<config_lib::admin_cookie_secure::AdminCookieSecure>(StdAdminApiTestStrRef::from(
-            constants_str::FALSE,
-        )),
-        &env::<config_lib::admin_token_issuer::AdminTokenIssuer>(StdAdminApiTestStrRef::from(
-            constants_str::INTEGRATION_TEST,
-        )),
-        &env::<config_lib::admin_token_audience::AdminTokenAudience>(StdAdminApiTestStrRef::from(
-            constants_str::INTEGRATION_TEST_ADMIN,
-        )),
-        &config_lib::domain_types::CorsAllowOrigin::try_from(
-            constants_str::HTTP_LOCALHOST.to_owned(),
-        )
-        .expect(constants_str::DIAGNOSTIC_396509B1),
-    )
-    .expect(constants_str::DIAGNOSTIC_F7D8C961);
-    AxumAdminApiTestRouter::from(axum::Router::from(
-        server_admin::admin_auth_routes::admin_auth_routes(
-            server_admin::shared_admin_auth_svc_state_arc::SharedAdminAuthSvcStateArc::from(
-                std::sync::Arc::new(state),
-            ),
-        ),
-    ))
+    router_with_pool(&SqlxAdminApiTestPool::from(pool))
 }
 fn router_with_pool(sqlx_admin_api_test_pool: &SqlxAdminApiTestPool) -> AxumAdminApiTestRouter {
     let state = server_admin::admin_auth_svc_state::AdminAuthSvcState::try_new(
@@ -3853,13 +4197,41 @@ fn router_with_pool(sqlx_admin_api_test_pool: &SqlxAdminApiTestPool) -> AxumAdmi
         .expect(constants_str::DIAGNOSTIC_192C6B7A),
     )
     .expect(constants_str::DIAGNOSTIC_A59D73C1);
-    AxumAdminApiTestRouter::from(axum::Router::from(
-        server_admin::admin_auth_routes::admin_auth_routes(
-            server_admin::shared_admin_auth_svc_state_arc::SharedAdminAuthSvcStateArc::from(
-                std::sync::Arc::new(state),
-            ),
+    let shared_auth_state =
+        server_admin::shared_admin_auth_svc_state_arc::SharedAdminAuthSvcStateArc::from(
+            std::sync::Arc::new(state),
+        );
+    let generated_state: std::sync::Arc<
+        dyn pg_table::combination_of_app_state_logic_traits::CombinationOfAppStateLogicTraits,
+    > = std::sync::Arc::new(AdminGeneratedApiTestState::new(
+        config_lib::maximum_size_of_http_body_in_bytes::MaximumSizeOfHttpBodyInBytes::try_from(
+            constants_usize::VALUE_1_048_576,
+        )
+        .expect(constants_str::DIAGNOSTIC_2493C570),
+        SqlxAdminApiTestPool::from(sqlx_admin_api_test_pool.0.clone()),
+        server_runtime_core::resource_budget::ResourceBudget::new(
+            server_runtime_core::resource_budget_maximum::ResourceBudgetMaximum::try_from(
+                constants_usize::VALUE_1_048_576,
+            )
+            .expect(constants_str::DIAGNOSTIC_D1035E00),
         ),
-    ))
+        env::<config_lib::chrono_timezone::ChronoTimezone>(StdAdminApiTestStrRef::from(
+            constants_str::VALUE_0,
+        )),
+        config_lib::source_place_type::SourcePlaceType::default(),
+        env::<config_lib::domain_types::EnableApiGitCommitCheck>(StdAdminApiTestStrRef::from(
+            constants_str::FALSE,
+        )),
+    ));
+    let generated_routes = axum::Router::from(server_admin::generated_routes::generated_routes(
+        &server_admin::shared_admin_generated_table_state_arc::SharedAdminGeneratedTableStateArc::from(generated_state),
+    )).route_layer(server_admin::admin_generated_auth_layer::AdminGeneratedAuthLayer::from(shared_auth_state.clone()));
+    AxumAdminApiTestRouter::from(
+        axum::Router::from(server_admin::admin_auth_routes::admin_auth_routes(
+            shared_auth_state,
+        ))
+        .merge(generated_routes),
+    )
 }
 fn request_with_peer(
     http_admin_api_test_method: HttpAdminApiTestMethod,

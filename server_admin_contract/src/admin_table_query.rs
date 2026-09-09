@@ -2,6 +2,7 @@
 #[getters(bare)]
 #[derive(
     proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_new::New,
     Clone,
     Debug,
     Default,

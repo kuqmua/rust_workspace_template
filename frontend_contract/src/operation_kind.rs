@@ -3,10 +3,7 @@
 )]
 pub enum OperationKind {
     CreateMany,
-    CreateOne,
     DeleteMany,
-    DeleteOne,
     Read,
     UpdateMany,
-    UpdateOne,
 }

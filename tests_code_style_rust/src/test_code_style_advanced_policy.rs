@@ -1288,7 +1288,7 @@ fn test_arc_lock_and_trait_object_usage_matches_reviewed_inventory() {
         ),
         (
             constants_str::VALUE_7FE2AF02,
-            (0, 0, 179, constants_str::VALUE_7FA1ACFA),
+            (0, 0, 175, constants_str::VALUE_7FA1ACFA),
         ),
         (
             constants_str::VALUE_D405F3E1,
@@ -1409,7 +1409,7 @@ fn test_ignored_map_err_bindings_match_reviewed_inventory() {
         ),
         (
             constants_str::CODE_STYLE_SERVER_ADMIN_OWNER,
-            (105usize, constants_str::CODE_STYLE_MAP_ERR_OWNER_REASON),
+            (103usize, constants_str::CODE_STYLE_MAP_ERR_OWNER_REASON),
         ),
         (
             constants_str::CODE_STYLE_SERVER_ADMIN_CONTRACT_OWNER,
@@ -1490,10 +1490,6 @@ fn test_ignored_map_err_bindings_match_reviewed_inventory() {
         (
             constants_str::VALUE_939FFBC6,
             (6usize, constants_str::VALUE_FD41C49E),
-        ),
-        (
-            constants_str::VALUE_F3169686,
-            (5usize, constants_str::VALUE_FAE4D1C8),
         ),
         (
             constants_str::VALUE_9E7DB142,

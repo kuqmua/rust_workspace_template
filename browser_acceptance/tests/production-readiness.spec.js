@@ -1,3 +1,4 @@
+import { readUsers, usersReadPage } from "./support/users.js";
 import { expect, test } from "@playwright/test";
 import { readFile } from "node:fs/promises";
 import {
@@ -23,7 +24,7 @@ test.skip(
 );
 
 async function createUser(page, login, displayName, password) {
-  const response = await page.request.post("/users", {
+  const response = await page.request.post("/users/create", {
     data: {
       display_name: displayName,
       login,
@@ -228,7 +229,7 @@ test("oversized and invalid mutations fail without changing persisted state", as
 
   const headers = await adminHeaders(page.context());
   const oversizedStatus = await page.evaluate(async csrfToken => {
-    const response = await fetch("/users", {
+    const response = await fetch("/users/create", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -247,9 +248,7 @@ test("oversized and invalid mutations fail without changing persisted state", as
   const unchanged = await page.request.get("/system_settings");
   expect(unchanged.status()).toBe(200);
   expect(await unchanged.json()).toEqual(original);
-  const absent = await page.request.get(
-    "/users?search=oversized_user"
-  );
+  const absent = await readUsers(page.request, "search=oversized_user");
   expect(absent.status()).toBe(200);
   expect((await absent.json()).items).toHaveLength(0);
 });
@@ -265,7 +264,7 @@ test("user CRUD rejects duplicates and is visible through the read-only UI", asy
     "Production-password3!"
   );
 
-  const duplicate = await page.request.post("/users", {
+  const duplicate = await page.request.post("/users/create", {
     data: {
       display_name: "Duplicate User",
       login: "production_user",
@@ -379,16 +378,16 @@ test("banning a user revokes active sessions and unbanning restores sign-in", as
   await signIn(userPage, "ban_lifecycle_user", "Ban-password1!");
   await expect(userPage).toHaveURL(/\/admin\/profile$/);
 
-  const originalUser = (await (await page.request.get("/users?limit=100")).json()).items
+  const originalUser = (await usersReadPage(await readUsers(page.request, "limit=100"))).items
     .find(user => user.id === userId);
-  const administrator = (await (await page.request.get("/users?limit=100")).json()).items
+  const administrator = (await usersReadPage(await readUsers(page.request, "limit=100"))).items
     .find(user => user.login === "administrator");
   const conflicting = await page.request.patch(`/users/${userId}`, {
     data: { login: administrator.login, display_name: "Rejected Name", is_banned: true },
     headers: await adminHeaders(page.context())
   });
   expect(conflicting.status()).toBe(409);
-  expect((await (await page.request.get("/users?limit=100")).json()).items
+  expect((await usersReadPage(await readUsers(page.request, "limit=100"))).items
     .find(user => user.id === userId)).toEqual(originalUser);
   expect((await userPage.request.get("/auth/me")).status()).toBe(200);
 
@@ -408,7 +407,7 @@ test("banning a user revokes active sessions and unbanning restores sign-in", as
     headers: await adminHeaders(page.context())
   });
   expect(renamed.status()).toBe(204);
-  expect((await (await page.request.get("/users?limit=100")).json()).items
+  expect((await usersReadPage(await readUsers(page.request, "limit=100"))).items
     .find(user => user.id === userId)).toMatchObject({
       display_name: "Renamed Banned User", is_banned: true
     });
@@ -517,12 +516,12 @@ test("pagination has stable non-overlapping pages and rejects invalid bounds", a
     );
   }
 
-  const firstResponse = await page.request.get("/users?limit=2&offset=0");
-  const secondResponse = await page.request.get("/users?limit=2&offset=2");
+  const firstResponse = await readUsers(page.request, "limit=2&offset=0");
+  const secondResponse = await readUsers(page.request, "limit=2&offset=2");
   expect(firstResponse.status()).toBe(200);
   expect(secondResponse.status()).toBe(200);
-  const first = await firstResponse.json();
-  const second = await secondResponse.json();
+  const first = await usersReadPage(firstResponse);
+  const second = await usersReadPage(secondResponse);
   expect(first.items).toHaveLength(2);
   expect(second.items).toHaveLength(2);
   expect(new Set(first.items.map(item => item.id)).size).toBe(2);
@@ -532,9 +531,9 @@ test("pagination has stable non-overlapping pages and rejects invalid bounds", a
   expect(first.total).toBeGreaterThanOrEqual(4);
   expect(second.total).toBe(first.total);
 
-  for (const query of ["limit=0", "limit=101", "offset=-1", "limit=invalid"]) {
-    const rejected = await page.request.get(`/users?${query}`);
-    expect(rejected.status()).toBe(422);
+  for (const query of ["limit=0", "limit=1e100", "offset=-1", "limit=invalid"]) {
+    const rejected = await readUsers(page.request, query);
+    expect(rejected.status()).toBe(400);
   }
 });
 
@@ -555,16 +554,12 @@ test("search and sorting are deterministic and survive UI reloads", async ({
     "Query-password2!"
   );
 
-  const ascendingResponse = await page.request.get(
-    "/users?search=query_&sort=login&direction=ascending&limit=100"
-  );
-  const descendingResponse = await page.request.get(
-    "/users?search=query_&sort=login&direction=descending&limit=100"
-  );
+  const ascendingResponse = await readUsers(page.request, "search=query_&sort=login&direction=ascending&limit=100");
+  const descendingResponse = await readUsers(page.request, "search=query_&sort=login&direction=descending&limit=100");
   expect(ascendingResponse.status()).toBe(200);
   expect(descendingResponse.status()).toBe(200);
-  const ascending = (await ascendingResponse.json()).items.map(item => item.login);
-  const descending = (await descendingResponse.json()).items.map(item => item.login);
+  const ascending = (await usersReadPage(ascendingResponse)).items.map(item => item.login);
+  const descending = (await usersReadPage(descendingResponse)).items.map(item => item.login);
   expect(ascending).toEqual(["query_alpha_user", "query_zeta_user"]);
   expect(descending).toEqual(["query_zeta_user", "query_alpha_user"]);
 
@@ -587,10 +582,8 @@ test("search and sorting are deterministic and survive UI reloads", async ({
     );
   }
 
-  const unknownSort = await page.request.get(
-    "/users?sort=unknown_column"
-  );
-  expect(unknownSort.status()).toBe(422);
+  const unknownSort = await readUsers(page.request, "sort=unknown_column");
+  expect(unknownSort.status()).toBe(400);
 
   const query =
     "search=query_alpha_user&sort=login&direction=descending&limit=1&offset=0";
@@ -802,7 +795,7 @@ test("a read-only administrator sees only authorized navigation and mutations fa
   const forbiddenPage = await reader.goto("/admin/roles");
   expect(forbiddenPage).not.toBeNull();
   expect(forbiddenPage.status()).toBe(403);
-  const forbiddenApi = await reader.request.post("/users", {
+  const forbiddenApi = await reader.request.post("/users/create", {
     data: {
       display_name: "Forbidden User",
       login: "forbidden_user",

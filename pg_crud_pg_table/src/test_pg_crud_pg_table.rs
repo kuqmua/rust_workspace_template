@@ -4,15 +4,7 @@ fn table(str: &'static str) -> crate::pg_table_name_ref::PgTableNameRef<'static>
 fn sql(str: &'static str) -> crate::pg_table_sql_fragment_ref::PgTableSqlFragmentRef<'static> {
     crate::pg_table_sql_fragment_ref::PgTableSqlFragmentRef::from(str)
 }
-fn users_base() -> (
-    crate::pg_table_name_ref::PgTableNameRef<'static>,
-    crate::pg_table_sql_fragment_ref::PgTableSqlFragmentRef<'static>,
-) {
-    (
-        table(constants_str::USERS_ALT),
-        sql(constants_str::SQL_NAMES_ID),
-    )
-}
+
 fn assert_q(actual: &str, expected: &'static str) {
     assert_eq!(actual, expected);
 }
@@ -29,18 +21,6 @@ fn test_generate_cm_query_string_is_expected() {
     );
 }
 #[test]
-fn test_generate_co_query_string_is_expected() {
-    assert_q(
-        &crate::generate_co_query_string::generate_co_query_string(
-            table(constants_str::USERS_ALT),
-            sql(constants_str::ID_NAME),
-            sql(constants_str::DOLLAR_1_DOLLAR_2),
-            sql(constants_str::SQL_NAMES_ID),
-        ),
-        constants_str::INSERT_INTO_USERS_ID_NAME_VALUES_DOLLAR_1_DOLLAR_2_RETURNING_ID,
-    );
-}
-#[test]
 fn test_generate_rm_query_string_is_expected() {
     assert_q(
         &crate::generate_rm_query_string::generate_rm_query_string(
@@ -49,16 +29,6 @@ fn test_generate_rm_query_string_is_expected() {
             sql(constants_str::ORDER_BY_ID),
         ),
         constants_str::SELECT_ID_NAME_FROM_USERS_ORDER_BY_ID,
-    );
-}
-#[test]
-fn test_generate_column_eq_v_comma_uo_query_part_is_expected() {
-    assert_q(
-        &crate::generate_column_eq_v_comma_uo_query_part::generate_column_eq_v_comma_uo_query_part(
-            sql(constants_str::NAME),
-            sql(constants_str::DOLLAR_2),
-        ),
-        constants_str::NAME_DOLLAR_2_ALT,
     );
 }
 #[test]
@@ -96,31 +66,19 @@ fn test_generate_um_query_string_is_expected() {
     );
 }
 #[test]
-fn test_generate_uo_query_string_is_expected() {
-    assert_q(
-        &crate::generate_uo_query_string::generate_uo_query_string(
-            table(constants_str::USERS_ALT),
-            sql(constants_str::NAME_DOLLAR_2),
-            sql(constants_str::SQL_NAMES_ID),
-            sql(constants_str::DOLLAR_1_ALT),
-            sql(constants_str::ID_NAME),
-        ),
-        constants_str::UPDATE_USERS_SET_NAME_DOLLAR_2_WHERE_ID_DOLLAR_1_RETURNING_ID,
-    );
-}
-#[test]
-fn test_optimistic_uo_query_requires_matching_revision() {
-    let query = crate::add_uo_optimistic_revision_predicate::add_uo_optimistic_revision_predicate(
-        crate::generate_uo_query_string::generate_uo_query_string(
-            table(constants_str::USERS_ALT),
-            sql(constants_str::NAME_DOLLAR_1_REVISION_REVISION_PLUS_1),
-            sql(constants_str::SQL_NAMES_ID),
-            sql(constants_str::DOLLAR_2),
-            sql(constants_str::ID_REVISION),
-        ),
-        sql(constants_str::REVISION),
-        sql(constants_str::DOLLAR_3),
-    );
+fn test_optimistic_bulk_update_query_requires_matching_revision() {
+    let query =
+        crate::add_update_optimistic_revision_predicate::add_update_optimistic_revision_predicate(
+            crate::generate_um_query_string::generate_um_query_string(
+                table(constants_str::USERS_ALT),
+                sql(constants_str::NAME_DOLLAR_1_REVISION_REVISION_PLUS_1),
+                sql(constants_str::SQL_NAMES_ID),
+                sql(constants_str::DOLLAR_2),
+                sql(constants_str::ID_REVISION),
+            ),
+            sql(constants_str::REVISION),
+            sql(constants_str::DOLLAR_3),
+        );
     assert_q(
         &query,
         constants_str::UPDATE_USERS_SET_NAME_DOLLAR_1_REVISION_REVISION_PLUS_1_WHERE_ID,
@@ -157,14 +115,6 @@ fn test_generate_dm_query_string_is_expected() {
     );
 }
 #[test]
-fn test_generate_dlo_query_string_is_expected() {
-    let (table, primary_key) = users_base();
-    assert_q(
-        &crate::generate_dlo_query_string::generate_dlo_query_string(table, primary_key),
-        constants_str::DELETE_FROM_USERS_WHERE_ID_DOLLAR_1_RETURNING_ID,
-    );
-}
-#[test]
 fn test_generate_um_query_string_wraps_primary_key_selector_for_in_clause() {
     let v = crate::generate_um_query_string::generate_um_query_string(
         table(constants_str::USERS_ALT),
@@ -176,45 +126,16 @@ fn test_generate_um_query_string_wraps_primary_key_selector_for_in_clause() {
     assert!(v.contains(constants_str::WHERE_ID_IN_DOLLAR_1_DOLLAR_2));
 }
 #[test]
-fn test_generate_delete_query_string_uses_provided_filter_without_rewrite() {
-    let (table, primary_key) = users_base();
+fn test_generate_dm_query_string_preserves_filtered_batch_selector() {
+    let table = table(constants_str::USERS_ALT);
+    let primary_key = sql(constants_str::SQL_NAMES_ID);
     assert_q(
-        &crate::generate_delete_query_string::generate_delete_query_string(
+        &crate::generate_dm_query_string::generate_dm_query_string(
             table,
+            sql(constants_str::WHERE_ID_IN_DOLLAR_1_DOLLAR_2_AND_ACTIVE_TRUE),
             primary_key,
-            Some(sql(
-                constants_str::WHERE_ID_IN_DOLLAR_1_DOLLAR_2_AND_ACTIVE_TRUE,
-            )),
         ),
         constants_str::DELETE_FROM_USERS_WHERE_ID_IN_DOLLAR_1_DOLLAR_2_AND_ACTIVE,
-    );
-}
-#[test]
-fn test_generate_update_query_string_eq_keeps_selector_without_extra_wrapping() {
-    assert_q(
-        &crate::generate_update_query_string::generate_update_query_string(
-            table(constants_str::USERS_ALT),
-            sql(constants_str::NAME_DOLLAR_2),
-            sql(constants_str::SQL_NAMES_ID),
-            sql(constants_str::DOLLAR_1_ALT),
-            sql(constants_str::ID_NAME),
-            crate::update_selector_fmt::UpdateSelectorFmt::Eq,
-        ),
-        constants_str::UPDATE_USERS_SET_NAME_DOLLAR_2_WHERE_ID_DOLLAR_1_RETURNING_ID,
-    );
-}
-#[test]
-fn test_generate_update_query_string_in_list_wraps_selector_once() {
-    assert_q(
-        &crate::generate_update_query_string::generate_update_query_string(
-            table(constants_str::USERS_ALT),
-            sql(constants_str::NAME_CASE_END),
-            sql(constants_str::SQL_NAMES_ID),
-            sql(constants_str::DOLLAR_1_DOLLAR_2),
-            sql(constants_str::ID_NAME),
-            crate::update_selector_fmt::UpdateSelectorFmt::InList,
-        ),
-        constants_str::UPDATE_USERS_SET_NAME_CASE_END_WHERE_ID_IN_DOLLAR_1_DOLLAR,
     );
 }
 #[test]

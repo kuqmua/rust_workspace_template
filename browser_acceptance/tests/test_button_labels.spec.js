@@ -1,3 +1,4 @@
+import { readUsers, usersReadPage } from "./support/users.js";
 import { expect, test } from "@playwright/test";
 import { signInInitialAdministrator, signOutIfAuthenticated } from "./support/admin.js";
 import { navigationAdminPaths } from "./support/pages.js";
@@ -98,13 +99,10 @@ test.describe("authenticated button labels", () => {
   });
 
   test("test_database_display_name_preserves_case_and_spaces", async ({ page }) => {
-    const usersResponse = page.waitForResponse(response =>
-      new URL(response.url()).pathname === "/users" && response.request().method() === "GET"
-    );
     await page.goto("/admin/users");
-    const response = await usersResponse;
+    const response = await readUsers(page.request);
     expect(response.ok()).toBe(true);
-    const users = await response.json();
+    const users = await usersReadPage(response);
     const administrator = users.items.find(user => user.login === "administrator");
     expect(administrator).toBeDefined();
     expect(administrator.display_name).toBe("Initial Administrator");

@@ -47,6 +47,11 @@ pub(crate) fn AdminApp() -> impl leptos::prelude::IntoView {
             server_admin_contract::admin_page::AdminPage::Profile => {
                 return Ok(crate::admin_load_state::AdminLoadState::Profile(admin));
             }
+            server_admin_contract::admin_page::AdminPage::Users => {
+                return crate::fetch_users_read::fetch_users_read(admin_csr_query)
+                    .await
+                    .map(|page| crate::admin_load_state::AdminLoadState::Users(admin, page));
+            }
             server_admin_contract::admin_page::AdminPage::Tables => {
                 let Some(table) = admin_csr_query.table() else {
                     return Ok(crate::admin_load_state::AdminLoadState::Empty(admin));
@@ -70,8 +75,7 @@ pub(crate) fn AdminApp() -> impl leptos::prelude::IntoView {
             | server_admin_contract::admin_page::AdminPage::Permissions
             | server_admin_contract::admin_page::AdminPage::Roles
             | server_admin_contract::admin_page::AdminPage::Sessions
-            | server_admin_contract::admin_page::AdminPage::Settings
-            | server_admin_contract::admin_page::AdminPage::Users => admin_page.spec().route(),
+            | server_admin_contract::admin_page::AdminPage::Settings => admin_page.spec().route(),
             server_admin_contract::admin_page::AdminPage::Metrics
             | server_admin_contract::admin_page::AdminPage::OpenApi
             | server_admin_contract::admin_page::AdminPage::Version => {
@@ -123,7 +127,7 @@ pub(crate) fn AdminApp() -> impl leptos::prelude::IntoView {
                 Ok(crate::admin_load_state::AdminLoadState::Empty(admin))
             }
             server_admin_contract::admin_page::AdminPage::Users => {
-                crate::fetch_json::fetch_json(&url)
+                crate::fetch_users_read::fetch_users_read(admin_csr_query)
                     .await
                     .map(|value| crate::admin_load_state::AdminLoadState::Users(admin, value))
             }
@@ -170,7 +174,7 @@ pub(crate) fn AdminApp() -> impl leptos::prelude::IntoView {
             crate::admin_load_state::AdminLoadState::Error(error.clone())
         }
     };
-    let state = leptos::prelude::RwSignal::new(initial_state);
+    let state = leptos::prelude::RwSignal::new_local(initial_state);
     if let (Ok(page), Ok(query)) = (page_result, query_result.clone()) {
         wasm_bindgen_futures::spawn_local(async move {
             let next_state = match fetch_page(page, &query).await {
@@ -180,6 +184,7 @@ pub(crate) fn AdminApp() -> impl leptos::prelude::IntoView {
             leptos::prelude::Set::set(&state, next_state);
         });
     }
+    let query = query_result.unwrap_or_default();
     leptos::view! {
         <div class="app-shell">
         {move || {
@@ -189,15 +194,18 @@ pub(crate) fn AdminApp() -> impl leptos::prelude::IntoView {
                     crate::admin_load_state::AdminLoadState::Health(_admin) => leptos::prelude::IntoAny::into_any(leptos::view! { <super::admin_health_view::AdminHealthView /> }),
                 crate::admin_load_state::AdminLoadState::Branding(_admin, page) => leptos::prelude::IntoAny::into_any(leptos::view! { <super::admin_branding_details::AdminBrandingDetails admin_branding_view=page /> }),
                 crate::admin_load_state::AdminLoadState::Empty(_admin) => leptos::prelude::IntoAny::into_any(leptos::view! { <crate::admin_empty::AdminEmpty>{constants_str::ADMIN_UI_CHOOSE_A_TABLE}</crate::admin_empty::AdminEmpty> }),
-                crate::admin_load_state::AdminLoadState::Error(error) => leptos::prelude::IntoAny::into_any(leptos::view! { <crate::admin_alert::AdminAlert>{error.to_string()}</crate::admin_alert::AdminAlert> }),
+                crate::admin_load_state::AdminLoadState::Error(error) => {
+                    let message = error.to_string();
+                    leptos::prelude::IntoAny::into_any(leptos::view! { <crate::admin_alert::AdminAlert>{message}</crate::admin_alert::AdminAlert> })
+                },
                 crate::admin_load_state::AdminLoadState::Loading => leptos::prelude::IntoAny::into_any(leptos::view! { <crate::admin_spinner::AdminSpinner /> }),
-                crate::admin_load_state::AdminLoadState::Permissions(_admin, page) => leptos::prelude::IntoAny::into_any(leptos::view! { <super::admin_permissions_view::AdminPermissionsView admin_permissions_page=page admin_csr_query=query_result.clone().unwrap_or_default() /> }),
+                crate::admin_load_state::AdminLoadState::Permissions(_admin, page) => leptos::prelude::IntoAny::into_any(leptos::view! { <super::admin_permissions_view::AdminPermissionsView admin_permissions_page=page admin_csr_query=query.clone() /> }),
                 crate::admin_load_state::AdminLoadState::Profile(admin) => leptos::prelude::IntoAny::into_any(leptos::view! { <super::admin_profile_view::AdminProfileView authenticated_admin=admin /> }),
-                crate::admin_load_state::AdminLoadState::Roles(admin, page) => leptos::prelude::IntoAny::into_any(leptos::view! { <super::admin_roles_view::AdminRolesView authenticated_admin=admin admin_roles_page=page admin_csr_query=query_result.clone().unwrap_or_default() /> }),
+                crate::admin_load_state::AdminLoadState::Roles(admin, page) => leptos::prelude::IntoAny::into_any(leptos::view! { <super::admin_roles_view::AdminRolesView authenticated_admin=admin admin_roles_page=page admin_csr_query=query.clone() /> }),
                 crate::admin_load_state::AdminLoadState::Sessions(_admin, page) => leptos::prelude::IntoAny::into_any(leptos::view! { <super::admin_sessions_view::AdminSessionsView admin_sessions_page=page /> }),
                 crate::admin_load_state::AdminLoadState::Settings(admin, page) => leptos::prelude::IntoAny::into_any(leptos::view! { <super::admin_settings_view::AdminSettingsView authenticated_admin=admin admin_settings_view=page /> }),
-                crate::admin_load_state::AdminLoadState::Table(admin, view) => leptos::prelude::IntoAny::into_any(leptos::view! { <super::admin_data_grid::AdminDataGrid admin_bool=admin.has_permission(server_admin_contract::admin_permission::AdminPermission::AuditLogExport) admin_data_table_view=view admin_csr_query=query_result.clone().unwrap_or_default() /> }),
-                crate::admin_load_state::AdminLoadState::Users(admin, page) => leptos::prelude::IntoAny::into_any(leptos::view! { <super::admin_users_view::AdminUsersView authenticated_admin=admin admin_users_page=page admin_csr_query=query_result.clone().unwrap_or_default() /> }),
+                crate::admin_load_state::AdminLoadState::Table(admin, view) => leptos::prelude::IntoAny::into_any(leptos::view! { <super::admin_data_grid::AdminDataGrid admin_bool=admin.has_permission(server_admin_contract::admin_permission::AdminPermission::AuditLogExport) admin_data_table_view=view admin_csr_query=query.clone() /> }),
+                crate::admin_load_state::AdminLoadState::Users(admin, page) => leptos::prelude::IntoAny::into_any(leptos::view! { <super::admin_users_view::AdminUsersView authenticated_admin=admin admin_users_page=page admin_csr_query=query.clone() /> }),
             };
             leptos::view! { <super::csr_admin_nav::CsrAdminNav option=navigation_admin admin_bool=server_admin_contract::admin_bool::AdminBool::from(password_change_required) /><main class="main-content"><div class="page-frame">{password_change_required.then(|| leptos::view! { <crate::admin_alert::AdminAlert>{constants_str::ADMIN_UI_CHANGE_YOUR_INITIAL_PASSWORD_TO_UNLOCK_ADMINISTRATOR_NAVIGATION}</crate::admin_alert::AdminAlert> })}{content}</div></main> }
         }}</div>
