@@ -14,6 +14,7 @@ pub(crate) async fn create_user(
         axum_admin_form.get_display_name().clone(),
         axum_admin_form.get_login().clone(),
         axum_admin_form.get_password().clone(),
+        None,
     );
     crate::action_result_impl::action_result_impl(
         crate::user_mutations_create::user_mutations_create(

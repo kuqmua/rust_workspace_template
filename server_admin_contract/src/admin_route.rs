@@ -86,8 +86,6 @@ pub enum AdminRoute {
     Roles,
     #[route_catalog_route(crate::admin_set_role_permissions_route::AdminSetRolePermissionsRoute)]
     SetRolePermissions(crate::admin_role_id::AdminRoleId),
-    #[route_catalog_route(crate::admin_set_user_roles_route::AdminSetUserRolesRoute)]
-    SetUserRoles(crate::admin_user_id::AdminUserId),
     #[route_catalog_route(crate::admin_settings_route::AdminSettingsRoute)]
     Settings,
     #[route_catalog_route(crate::admin_sign_in_route::AdminSignInRoute)]

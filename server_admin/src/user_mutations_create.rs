@@ -9,8 +9,15 @@ pub(crate) async fn user_mutations_create(
         server_admin_contract::admin_permission::AdminPermission::UsersCreate,
     )
     .await?;
-    let (contract_display_name, contract_login, contract_password) =
+    let (contract_display_name, contract_login, contract_password, role_ids) =
         axum_admin_json.into_inner().into_parts();
+    if role_ids.is_some() {
+        let _role_actor = crate::authorize_custom::authorize_custom(
+            &admin_auth_request,
+            server_admin_contract::admin_permission::AdminPermission::UserRolesUpdate,
+        )
+        .await?;
+    }
     let display_name = server_admin_contract::admin_display_name::AdminDisplayName::try_from(
         contract_display_name.into_inner(),
     )
@@ -37,6 +44,12 @@ pub(crate) async fn user_mutations_create(
         .begin()
         .await
         .map_err(crate::admin_error::AdminError::from)?;
+    crate::lock_last_admin::lock_last_admin(
+        crate::sqlx_admin_repository_connection_mut_ref::SqlxAdminRepositoryConnectionMutRef::from(
+            &mut *tx,
+        ),
+    )
+    .await?;
     let user_id = crate::insert_user::insert_user(
         crate::sqlx_admin_repository_connection_mut_ref::SqlxAdminRepositoryConnectionMutRef::from(
             &mut *tx,
@@ -47,6 +60,14 @@ pub(crate) async fn user_mutations_create(
     )
     .await
     .map_err(|error| crate::map_unique_violation::map_unique_violation(error.into_inner()))?;
+    if let Some(admin_role_ids) = role_ids.as_ref() {
+        crate::replace_user_roles_in_connection::replace_user_roles_in_connection(
+            crate::sqlx_admin_repository_connection_mut_ref::SqlxAdminRepositoryConnectionMutRef::from(&mut *tx),
+            server_admin_core::admin_user_record_id::AdminUserRecordId::from(user_id.value()),
+            admin_role_ids,
+            None,
+        ).await?;
+    }
     crate::finalize_audited_transaction::finalize_audited_transaction(
         crate::sqlx_admin_transaction::SqlxAdminTransaction::from(tx),
         crate::admin_audit_success_ref::AdminAuditSuccessRef::new(

@@ -18,7 +18,6 @@ proc_macro_frontend_contract_api_operation_error::api_operation_error!(AdminSess
 proc_macro_frontend_contract_api_operation_error::api_operation_error!(
     AdminSetRolePermissionsError,
 );
-proc_macro_frontend_contract_api_operation_error::api_operation_error!(AdminSetUserRolesError,);
 proc_macro_frontend_contract_api_operation_error::api_operation_error!(AdminSettingsError,);
 proc_macro_frontend_contract_api_operation_error::api_operation_error!(AdminSignInError,);
 proc_macro_frontend_contract_api_operation_error::api_operation_error!(AdminSignOutError,);

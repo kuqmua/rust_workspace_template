@@ -79,3 +79,34 @@ fn test_update_users_password_validates_and_redacts() {
         })
     );
 }
+
+#[test]
+fn test_user_role_fields_preserve_empty_and_omitted_assignments() {
+    assert!(serde_json::from_value::<crate::admin_update_user_request::AdminUpdateUserRequest>(
+        serde_json::json!({(stringify!(expected_role_ids)): [1i64], (stringify!(role_ids)): []}),
+    ).is_ok_and(|assignment| {
+        assignment.expected_role_ids().is_some_and(|identifiers| AsRef::<[crate::admin_role_id::AdminRoleId]>::as_ref(identifiers).len() == 1)
+            && assignment.role_ids().is_some_and(|identifiers| AsRef::<[crate::admin_role_id::AdminRoleId]>::as_ref(identifiers).is_empty())
+    }));
+    assert!(
+        [
+            serde_json::json!({}),
+            serde_json::json!({(stringify!(role_ids)): null, (stringify!(expected_role_ids)): null})
+        ]
+        .into_iter()
+        .all(|value| serde_json::from_value::<
+            crate::admin_update_user_request::AdminUpdateUserRequest,
+        >(value)
+        .is_ok_and(|assignment| assignment.role_ids().is_none()
+            && assignment.expected_role_ids().is_none()))
+    );
+    assert!([0i64, -1i64].into_iter().all(|identifier| {
+        serde_json::from_value::<crate::admin_update_user_request::AdminUpdateUserRequest>(
+            serde_json::json!({(stringify!(role_ids)): [identifier]}),
+        )
+        .is_err()
+    }));
+    assert!(serde_json::from_value::<crate::admin_create_user_request::AdminCreateUserRequest>(
+        serde_json::json!({(stringify!(login)): constants_str::LOGIN, (stringify!(display_name)): constants_str::ADMIN, (stringify!(password)): constants_str::VALUE_4EDBB68D, (stringify!(role_ids)): [1i64]}),
+    ).is_ok_and(|creation| creation.into_parts().3.is_some_and(|identifiers| AsRef::<[crate::admin_role_id::AdminRoleId]>::as_ref(&identifiers).len() == 1)));
+}

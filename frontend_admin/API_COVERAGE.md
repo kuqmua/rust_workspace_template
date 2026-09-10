@@ -1,6 +1,6 @@
 # Administrator API coverage audit
 
-The typed registry in `server_admin/src/admin_auth_route_registry.rs` registers 32 API
+The typed registry in `server_admin/src/admin_auth_route_registry.rs` registers 31 API
 operations. Paths below are rooted at the server origin. The frontend must follow the route,
 permission, request, and table catalogs in `server_admin_contract`.
 
@@ -31,7 +31,6 @@ below covers user-visible workflows and direct API behavior.
 | POST `/users/create` | Create-user page; server-rendered HTML adapter |
 | PATCH `/users/update` | Atomic batch updates through the typed API; uses the same user validation, administrator protection, audit, and session revocation as single-user updates |
 | DELETE `/users/delete` | Atomic deletion of users matching a required filter |
-| PUT `/users/{user_id}/roles` | Manage-users page: role assignment |
 | GET `/roles` | Roles list, pagination, and role management |
 | POST `/roles` | Create-role page; server-rendered HTML adapter |
 | PATCH `/roles/{role_id}` | Manage-roles page: rename role |
@@ -108,7 +107,8 @@ The table views for `user_roles`, `role_permissions`, `refresh_tokens`,
 `access_sessions`, `login_attempts`, `rate_limits`, and `cleanup_status` use
 GET routes at `/{resource}`. Their former `/tables/{resource}` paths are rejected.
 
-The `changes` object in `PATCH /users/update` accepts optional `display_name`, `login`, `is_banned`, and `password`.
+The `changes` object in `PATCH /users/update` accepts optional `display_name`, `login`, `is_banned`, `password`,
+and the paired `role_ids` / `expected_role_ids` arrays.
 Omitting `is_banned` preserves the current state. Banning retains the self-ban and
 last-active-administrator checks, session revocation, and transactional audit.
 
@@ -126,7 +126,7 @@ and a CSRF token. It returns `204 No Content` after all changes commit.
 }
 ```
 
-Each item can change `login`, `display_name`, `is_banned`, and `password`. Omitted fields remain
+Each item can change `login`, `display_name`, `is_banned`, `password`, and role assignments. Omitted fields remain
 unchanged. Empty batches, duplicate user identifiers, empty changes, and invalid field
 values are rejected. The existing administrator collection limit is 10,000 items, and
 the route also enforces the common request body limit.
@@ -134,7 +134,7 @@ the route also enforces the common request body limit.
 A missing user, a conflicting login, self-blocking, or removal of the last active
 administrator rolls back the entire batch, including its audit records and session
 revocations. Unblocking updates run before blocking updates so a valid administrator
-replacement does not depend on request item order. Role changes retain their dedicated endpoint. User updates use `/users/update` for both individual users and groups.
+replacement does not depend on request item order. Role assignments are updated through the same endpoint with `role_ids` and `expected_role_ids`. User updates use `/users/update` for both individual users and groups.
 
 Each update contains `filter` and `changes`. Filters support exact matches on
 `user_id`, `login`, `display_name`, and `is_banned`; supplied conditions are combined
@@ -187,3 +187,27 @@ output and excluded from audit details.
 The separate `POST /users/{user_id}/password` route has been removed. The account
 creation route still accepts its initial password, and `/auth/password` still
 handles a user's own password change.
+
+## Role assignments
+
+`POST /users/create` accepts optional `role_ids` to assign roles during creation.
+Omission or null creates the user without roles. A supplied array, including an
+empty array, requires `UserRolesUpdate` in addition to `UsersCreate`.
+
+`PATCH /users/update` accepts `role_ids` and `expected_role_ids` together in
+`changes`. Both arrays are required when changing roles. Omitted or null arrays
+leave roles unchanged; an empty `role_ids` array removes all roles. The expected
+array must match each selected user's current role set, irrespective of order.
+A group filter replaces every selected user's roles with the supplied set.
+
+```json
+{"updates":[{"filter":{"user_id":12},"changes":{"expected_role_ids":[1],"role_ids":[2,3]}}]}
+```
+
+Role updates require both `UsersUpdate` and `UserRolesUpdate`. Duplicate identifiers
+and unknown roles are rejected. A stale expected set returns a conflict and rolls
+back the entire request. Session revocation and audit commit with the user changes.
+The transaction must preserve an active administrator when one existed before it;
+this is checked against the final batch state so an administrator role can be
+transferred between users atomically. The former `PUT /users/{user_id}/roles` route
+is removed; the HTML assignment form uses the shared update workflow.

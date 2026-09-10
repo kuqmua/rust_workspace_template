@@ -74,7 +74,6 @@ proc_macro_frontend_contract_route_registry::route_registry! {
     (server_admin_contract::admin_create_user_route::AdminCreateUserRoute, crate::api_create_user::api_create_user),
     (server_admin_contract::admin_update_users_route::AdminUpdateUsersRoute, crate::api_update_users::api_update_users),
     (server_admin_contract::admin_delete_users_route::AdminDeleteUsersRoute, crate::api_delete_users::api_delete_users),
-    (server_admin_contract::admin_set_user_roles_route::AdminSetUserRolesRoute, crate::api_set_user_roles::api_set_user_roles),
     (server_admin_contract::admin_list_roles_route::AdminListRolesRoute, crate::api_list_roles::api_list_roles),
     (server_admin_contract::admin_create_role_route::AdminCreateRoleRoute, crate::api_create_role::api_create_role),
     (server_admin_contract::admin_update_role_route::AdminUpdateRoleRoute, crate::api_update_role::api_update_role),

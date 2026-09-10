@@ -13,4 +13,5 @@ pub struct AdminCreateUserRequest {
     display_name: crate::admin_display_name::AdminDisplayName,
     login: crate::admin_login::AdminLogin,
     password: crate::admin_new_password::AdminNewPassword,
+    role_ids: Option<crate::admin_role_ids::AdminRoleIds>,
 }

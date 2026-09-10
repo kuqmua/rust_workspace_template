@@ -729,11 +729,11 @@ test("a read-only administrator sees only authorized navigation and mutations fa
     "Production Reader",
     "Reader-password4!"
   );
-  const userRoles = await page.request.put(`/users/${userId}/roles`, {
-    data: {
+  const userRoles = await page.request.patch("/users/update", {
+    data: { updates: [{ filter: { user_id: userId }, changes: {
       expected_role_ids: [],
       role_ids: [roleId]
-    },
+    } }] },
     headers: await adminHeaders(page.context())
   });
   expect(userRoles.status()).toBe(204);

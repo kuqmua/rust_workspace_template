@@ -15,6 +15,8 @@ pub(crate) async fn update_user(
         Some(axum_admin_form.get_login().clone()),
         None,
         None,
+        None,
+        None,
     );
     crate::action_result_impl::action_result_impl(
         crate::user_mutations_update::user_mutations_update(

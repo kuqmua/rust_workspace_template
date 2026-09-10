@@ -141,8 +141,6 @@ pub mod admin_sessions_page;
 pub mod admin_sessions_route;
 pub mod admin_set_role_permissions_request;
 pub mod admin_set_role_permissions_route;
-pub mod admin_set_user_roles_request;
-pub mod admin_set_user_roles_route;
 pub mod admin_setting;
 pub mod admin_setting_input_kind;
 pub mod admin_setting_label;

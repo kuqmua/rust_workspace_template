@@ -421,6 +421,217 @@ mod test_data_tables {
                 .is_ok_and(|removed| removed.status() == http::StatusCode::NOT_FOUND)
         );
 
+        let administrator_role =
+            sqlx::query_scalar::<_, i64>(constants_str::SERVER_ADMIN_READ_ADMIN_ROLE_ID_SQL)
+                .fetch_one(&fixture.pool.0)
+                .await
+                .expect(constants_str::DIAGNOSTIC_6996C5D1);
+        let grant_permission =
+            async |admin_permission: server_admin_contract::admin_permission::AdminPermission| {
+                let catalog = sqlx::query_as::<_, (i64, String)>(
+                    constants_str::SERVER_ADMIN_LIST_PERMISSIONS_SQL,
+                )
+                .fetch_all(&fixture.pool.0)
+                .await
+                .expect(constants_str::DIAGNOSTIC_F26CD0F7);
+                let identifier = catalog
+                    .into_iter()
+                    .find(|(_, name)| name == admin_permission.as_str().get())
+                    .expect(constants_str::DIAGNOSTIC_58049C6C)
+                    .0;
+                let _granted_role_permission =
+                    sqlx::query(constants_str::SERVER_ADMIN_REPLACE_ROLE_PERMISSIONS_INSERT_SQL)
+                        .bind(role)
+                        .bind([identifier].as_slice())
+                        .execute(&fixture.pool.0)
+                        .await
+                        .expect(constants_str::DIAGNOSTIC_7859230C);
+            };
+        grant_permission(server_admin_contract::admin_permission::AdminPermission::UsersCreate)
+            .await;
+        let create_with_roles =
+            async |admin_role_ids: server_admin_contract::admin_role_ids::AdminRoleIds| {
+                let creation_body = serde_json::json!({
+                    (stringify!(login)): constants_str::LOGIN,
+                    (stringify!(display_name)): constants_str::ADMIN_UPDATED_USER_NAME,
+                    (stringify!(password)): constants_str::VALUE_4EDBB68D,
+                    (stringify!(role_ids)): admin_role_ids,
+                })
+                .to_string();
+                let creation_response = tower::ServiceExt::oneshot(
+                    crate::router_with_pool(&fixture.pool).0,
+                    crate::request_with_peer(
+                        crate::HttpAdminApiTestMethod::from(http::Method::POST),
+                        crate::StdAdminApiTestStrRef::from(
+                            server_admin_contract::admin_route::AdminRoute::CreateUser
+                                .path()
+                                .as_ref(),
+                        ),
+                        crate::StdAdminApiTestStrRef::from(creation_body.as_str()),
+                        Some(crate::StdAdminApiTestStrRef::from(
+                            fixture.cookie.0.as_str(),
+                        )),
+                        Some(crate::StdAdminApiTestStrRef::from(fixture.csrf.0.as_str())),
+                    )
+                    .0,
+                )
+                .await
+                .expect(constants_str::DIAGNOSTIC_F34A85FF);
+                crate::HttpAdminHtmlTestResponse::from(creation_response)
+            };
+        let denied_role_creation = create_with_roles(crate::empty_admin_role_ids()).await;
+        assert_eq!(denied_role_creation.status(), http::StatusCode::FORBIDDEN);
+        let denied_role_update = send_batch(crate::AdminHtmlTestBody::try_from(serde_json::json!({
+            (stringify!(updates)): [{(stringify!(filter)): {(stringify!(user_id)): first.0}, (stringify!(changes)): {(stringify!(expected_role_ids)): [administrator_role], (stringify!(role_ids)): [administrator_role]}}]
+        }).to_string()).expect(constants_str::DIAGNOSTIC_29F8374A)).await;
+        assert_eq!(denied_role_update.status(), http::StatusCode::FORBIDDEN);
+        grant_permission(server_admin_contract::admin_permission::AdminPermission::UserRolesUpdate)
+            .await;
+        futures::StreamExt::fold(
+            futures::stream::iter([vec![role, role], vec![i64::MAX]]),
+            (),
+            async |(), identifiers| {
+                let invalid_creation = create_with_roles(
+                    server_admin_contract::admin_role_ids::AdminRoleIds::try_from(
+                        identifiers
+                            .into_iter()
+                            .map(|identifier| {
+                                server_admin_contract::admin_role_id::AdminRoleId::try_from(
+                                    identifier,
+                                )
+                                .expect(constants_str::DIAGNOSTIC_B772801C)
+                            })
+                            .collect::<Vec<_>>(),
+                    )
+                    .expect(constants_str::DIAGNOSTIC_B30FE107),
+                )
+                .await;
+                assert_eq!(
+                    invalid_creation.status(),
+                    http::StatusCode::UNPROCESSABLE_ENTITY
+                );
+                let absent_creation =
+                    sqlx::query_as::<_, (i64, String, String, bool)>(constants_str::VALUE_1B03D1AA)
+                        .bind(constants_str::LOGIN)
+                        .fetch_optional(&fixture.pool.0)
+                        .await
+                        .expect(constants_str::DIAGNOSTIC_E0B3F4AF);
+                assert!(absent_creation.is_none());
+            },
+        )
+        .await;
+        let assigned_creation = create_with_roles(crate::one_admin_role_id(
+            server_admin_contract::admin_role_id::AdminRoleId::try_from(role)
+                .expect(constants_str::DIAGNOSTIC_472519F4),
+        ))
+        .await;
+        assert_eq!(assigned_creation.status(), http::StatusCode::CREATED);
+        let created_role_user =
+            sqlx::query_as::<_, (i64, String, String, bool)>(constants_str::VALUE_1B03D1AA)
+                .bind(constants_str::LOGIN)
+                .fetch_one(&fixture.pool.0)
+                .await
+                .expect(constants_str::DIAGNOSTIC_D8C26417);
+        let created_assignments =
+            sqlx::query_scalar::<_, i64>(constants_str::SERVER_ADMIN_READ_USER_ROLE_IDS_SQL)
+                .bind(created_role_user.0)
+                .fetch_all(&fixture.pool.0)
+                .await
+                .expect(constants_str::DIAGNOSTIC_6983B4BB);
+        assert_eq!(created_assignments, [role]);
+        let roles_session = password_login(
+            server_admin_contract::admin_login::AdminLogin::try_from(first.1.clone())
+                .expect(constants_str::DIAGNOSTIC_EEDA6551),
+            serde_json::from_str(constants_str::CORRECT_PASSWORD)
+                .expect(constants_str::DIAGNOSTIC_4308BC94),
+        )
+        .await;
+        assert_eq!(roles_session.status(), http::StatusCode::OK);
+        let role_audit_before =
+            sqlx::query_scalar::<_, i64>(constants_str::ADMIN_TEST_AUDIT_COUNT_SQL)
+                .fetch_one(&fixture.pool.0)
+                .await
+                .expect(constants_str::DIAGNOSTIC_FF24D8FA);
+        futures::StreamExt::fold(futures::stream::iter([
+            (serde_json::json!([{(stringify!(filter)): {(stringify!(user_id)): first.0}, (stringify!(changes)): {(stringify!(role_ids)): []}}]), http::StatusCode::UNPROCESSABLE_ENTITY),
+            (serde_json::json!([{(stringify!(filter)): {(stringify!(user_id)): first.0}, (stringify!(changes)): {(stringify!(expected_role_ids)): [administrator_role]}}]), http::StatusCode::UNPROCESSABLE_ENTITY),
+            (serde_json::json!([{(stringify!(filter)): {(stringify!(user_id)): first.0}, (stringify!(changes)): {(stringify!(expected_role_ids)): [administrator_role, administrator_role], (stringify!(role_ids)): []}}]), http::StatusCode::UNPROCESSABLE_ENTITY),
+            (serde_json::json!([{(stringify!(filter)): {(stringify!(user_id)): first.0}, (stringify!(changes)): {(stringify!(expected_role_ids)): [administrator_role], (stringify!(role_ids)): [role, role]}}]), http::StatusCode::UNPROCESSABLE_ENTITY),
+            (serde_json::json!([{(stringify!(filter)): {(stringify!(user_id)): first.0}, (stringify!(changes)): {(stringify!(expected_role_ids)): [administrator_role], (stringify!(role_ids)): [i64::MAX]}}]), http::StatusCode::UNPROCESSABLE_ENTITY),
+            (serde_json::json!([{(stringify!(filter)): {(stringify!(display_name)): constants_str::ADMIN_ALT}, (stringify!(changes)): {(stringify!(expected_role_ids)): [administrator_role], (stringify!(role_ids)): []}}]), http::StatusCode::CONFLICT),
+            (serde_json::json!([
+                {(stringify!(filter)): {(stringify!(user_id)): first.0}, (stringify!(changes)): {(stringify!(display_name)): constants_str::ADMIN_UPDATED_USER_NAME, (stringify!(expected_role_ids)): [administrator_role], (stringify!(role_ids)): [administrator_role, role]}},
+                {(stringify!(filter)): {(stringify!(user_id)): second.0}, (stringify!(changes)): {(stringify!(expected_role_ids)): [], (stringify!(role_ids)): [role]}}
+            ]), http::StatusCode::CONFLICT),
+        ]), (), async |(), (updates, expected_status)| {
+            let rejected_roles = send_batch(crate::AdminHtmlTestBody::try_from(serde_json::json!({(stringify!(updates)): updates}).to_string()).expect(constants_str::DIAGNOSTIC_735F8CA2)).await;
+            assert_eq!(rejected_roles.status(), expected_status);
+            let preserved_assignments = sqlx::query_scalar::<_, i64>(constants_str::SERVER_ADMIN_READ_USER_ROLE_IDS_SQL)
+                .bind(first.0).fetch_all(&fixture.pool.0).await.expect(constants_str::DIAGNOSTIC_5D5C9C26);
+            assert_eq!(preserved_assignments, [administrator_role]);
+            let preserved_profile = sqlx::query_as::<_, (i64, String, String, bool)>(constants_str::VALUE_1B03D1AA)
+                .bind(&first.1).fetch_one(&fixture.pool.0).await.expect(constants_str::DIAGNOSTIC_6C2E4A9F);
+            assert_eq!(preserved_profile.2, constants_str::ADMIN_ALT);
+            let preserved_role_sessions = sqlx::query_scalar::<_, i64>(constants_str::SERVER_ADMIN_COUNT_ACTIVE_SESSIONS_SQL)
+                .bind(first.0).fetch_one(&fixture.pool.0).await.expect(constants_str::DIAGNOSTIC_AA3C580A);
+            assert_eq!(preserved_role_sessions, 1);
+            let preserved_role_audit = sqlx::query_scalar::<_, i64>(constants_str::ADMIN_TEST_AUDIT_COUNT_SQL)
+                .fetch_one(&fixture.pool.0).await.expect(constants_str::DIAGNOSTIC_D0BD069A);
+            assert_eq!(preserved_role_audit, role_audit_before);
+        }).await;
+        let group_roles = send_batch(crate::AdminHtmlTestBody::try_from(serde_json::json!({
+            (stringify!(updates)): [{(stringify!(filter)): {(stringify!(display_name)): constants_str::ADMIN_ALT}, (stringify!(changes)): {(stringify!(expected_role_ids)): [administrator_role], (stringify!(role_ids)): [administrator_role, role]}}]
+        }).to_string()).expect(constants_str::DIAGNOSTIC_77F4F24B)).await;
+        assert_eq!(group_roles.status(), http::StatusCode::NO_CONTENT);
+        let role_audit_after =
+            sqlx::query_scalar::<_, i64>(constants_str::ADMIN_TEST_AUDIT_COUNT_SQL)
+                .fetch_one(&fixture.pool.0)
+                .await
+                .expect(constants_str::DIAGNOSTIC_B0D4CD63);
+        assert_eq!(role_audit_after, role_audit_before + 2);
+        let revoked_role_sessions =
+            sqlx::query_scalar::<_, i64>(constants_str::SERVER_ADMIN_COUNT_ACTIVE_SESSIONS_SQL)
+                .bind(first.0)
+                .fetch_one(&fixture.pool.0)
+                .await
+                .expect(constants_str::DIAGNOSTIC_755AC0B4);
+        assert_eq!(revoked_role_sessions, 0);
+        futures::StreamExt::fold(futures::stream::iter([
+            serde_json::json!([
+                {(stringify!(filter)): {(stringify!(user_id)): first.0}, (stringify!(changes)): {(stringify!(expected_role_ids)): [role, administrator_role], (stringify!(role_ids)): [administrator_role]}},
+                {(stringify!(filter)): {(stringify!(user_id)): second.0}, (stringify!(changes)): {(stringify!(expected_role_ids)): [role, administrator_role], (stringify!(role_ids)): []}}
+            ]),
+            serde_json::json!([
+                {(stringify!(filter)): {(stringify!(user_id)): first.0}, (stringify!(changes)): {(stringify!(expected_role_ids)): [administrator_role], (stringify!(role_ids)): []}},
+                {(stringify!(filter)): {(stringify!(user_id)): second.0}, (stringify!(changes)): {(stringify!(expected_role_ids)): [], (stringify!(role_ids)): [administrator_role]}}
+            ]),
+            serde_json::json!([
+                {(stringify!(filter)): {(stringify!(user_id)): first.0}, (stringify!(changes)): {(stringify!(expected_role_ids)): [], (stringify!(role_ids)): [administrator_role]}},
+                {(stringify!(filter)): {(stringify!(user_id)): second.0}, (stringify!(changes)): {(stringify!(expected_role_ids)): [administrator_role], (stringify!(role_ids)): [administrator_role]}}
+            ]),
+        ]), (), async |(), updates| {
+            let transfer_roles = send_batch(crate::AdminHtmlTestBody::try_from(serde_json::json!({(stringify!(updates)): updates}).to_string()).expect(constants_str::DIAGNOSTIC_FFF8E3C7)).await;
+            assert_eq!(transfer_roles.status(), http::StatusCode::NO_CONTENT);
+        }).await;
+        let removed_roles_route = tower::ServiceExt::oneshot(
+            crate::router_with_pool(&fixture.pool).0,
+            crate::request_with_peer(
+                crate::HttpAdminApiTestMethod::from(http::Method::PUT),
+                crate::StdAdminApiTestStrRef::from(constants_str::VALUE_EF3D9D78),
+                crate::StdAdminApiTestStrRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
+                Some(crate::StdAdminApiTestStrRef::from(
+                    fixture.cookie.0.as_str(),
+                )),
+                Some(crate::StdAdminApiTestStrRef::from(fixture.csrf.0.as_str())),
+            )
+            .0,
+        )
+        .await;
+        assert!(
+            removed_roles_route
+                .is_ok_and(|removed| removed.status() == http::StatusCode::NOT_FOUND)
+        );
+
         let send_delete = async |admin_html_test_body: crate::AdminHtmlTestBody| {
             let delete_response = tower::ServiceExt::oneshot(
                 crate::router_with_pool(&fixture.pool).0,
@@ -1741,20 +1952,17 @@ mod test_flow {
         .await
         .expect(constants_str::DIAGNOSTIC_1E53A0C7);
         let assign_role_body = serde_json::to_string(
-            &server_admin_contract::admin_set_user_roles_request::AdminSetUserRolesRequest::new(
-                crate::empty_admin_role_ids(),
-                crate::one_admin_role_id(
+            &serde_json::json!({(stringify!(updates)): [{(stringify!(filter)): {(stringify!(user_id)): limited_id}, (stringify!(changes)): {(stringify!(expected_role_ids)): crate::empty_admin_role_ids(), (stringify!(role_ids)): crate::one_admin_role_id(
                     server_admin_contract::admin_role_id::AdminRoleId::try_from(role_id)
                         .expect(constants_str::DIAGNOSTIC_A82FC2E5),
-                ),
-            ),
+                )}}]}),
         )
         .expect(constants_str::DIAGNOSTIC_BF02E516);
         let assign_role_response = tower::ServiceExt::oneshot(
             crate::router_with_pool(&pool).0,
             crate::request_with_peer(
-                super::HttpAdminApiTestMethod::from(http::Method::PUT),
-                super::StdAdminApiTestStrRef::from(format!("/users/{limited_id}/roles").as_str()),
+                super::HttpAdminApiTestMethod::from(http::Method::PATCH),
+                super::StdAdminApiTestStrRef::from(constants_str::ADMIN_USERS_UPDATE_PATH),
                 super::StdAdminApiTestStrRef::from(assign_role_body.as_str()),
                 Some(super::StdAdminApiTestStrRef::from(active_cookie.as_str())),
                 Some(super::StdAdminApiTestStrRef::from(
@@ -1767,17 +1975,14 @@ mod test_flow {
         .expect(constants_str::DIAGNOSTIC_F74095EB);
         assert_eq!(assign_role_response.status(), http::StatusCode::NO_CONTENT);
         let stale_role_body = serde_json::to_string(
-            &server_admin_contract::admin_set_user_roles_request::AdminSetUserRolesRequest::new(
-                crate::empty_admin_role_ids(),
-                crate::empty_admin_role_ids(),
-            ),
+            &serde_json::json!({(stringify!(updates)): [{(stringify!(filter)): {(stringify!(user_id)): limited_id}, (stringify!(changes)): {(stringify!(expected_role_ids)): crate::empty_admin_role_ids(), (stringify!(role_ids)): crate::empty_admin_role_ids()}}]}),
         )
         .expect(constants_str::DIAGNOSTIC_1FD845D3);
         let stale_role_response = tower::ServiceExt::oneshot(
             crate::router_with_pool(&pool).0,
             crate::request_with_peer(
-                super::HttpAdminApiTestMethod::from(http::Method::PUT),
-                super::StdAdminApiTestStrRef::from(format!("/users/{limited_id}/roles").as_str()),
+                super::HttpAdminApiTestMethod::from(http::Method::PATCH),
+                super::StdAdminApiTestStrRef::from(constants_str::ADMIN_USERS_UPDATE_PATH),
                 super::StdAdminApiTestStrRef::from(stale_role_body.as_str()),
                 Some(super::StdAdminApiTestStrRef::from(active_cookie.as_str())),
                 Some(super::StdAdminApiTestStrRef::from(
@@ -1790,20 +1995,17 @@ mod test_flow {
         .expect(constants_str::DIAGNOSTIC_170158FB);
         assert_eq!(stale_role_response.status(), http::StatusCode::CONFLICT);
         let remove_role_body = serde_json::to_string(
-            &server_admin_contract::admin_set_user_roles_request::AdminSetUserRolesRequest::new(
-                crate::one_admin_role_id(
+            &serde_json::json!({(stringify!(updates)): [{(stringify!(filter)): {(stringify!(user_id)): limited_id}, (stringify!(changes)): {(stringify!(expected_role_ids)): crate::one_admin_role_id(
                     server_admin_contract::admin_role_id::AdminRoleId::try_from(role_id)
                         .expect(constants_str::DIAGNOSTIC_C8994C27),
-                ),
-                crate::empty_admin_role_ids(),
-            ),
+                ), (stringify!(role_ids)): crate::empty_admin_role_ids()}}]}),
         )
         .expect(constants_str::DIAGNOSTIC_23C416A1);
         let remove_role_response = tower::ServiceExt::oneshot(
             crate::router_with_pool(&pool).0,
             crate::request_with_peer(
-                super::HttpAdminApiTestMethod::from(http::Method::PUT),
-                super::StdAdminApiTestStrRef::from(format!("/users/{limited_id}/roles").as_str()),
+                super::HttpAdminApiTestMethod::from(http::Method::PATCH),
+                super::StdAdminApiTestStrRef::from(constants_str::ADMIN_USERS_UPDATE_PATH),
                 super::StdAdminApiTestStrRef::from(remove_role_body.as_str()),
                 Some(super::StdAdminApiTestStrRef::from(active_cookie.as_str())),
                 Some(super::StdAdminApiTestStrRef::from(
@@ -1896,20 +2098,17 @@ mod test_flow {
                 .await
                 .expect(constants_str::DIAGNOSTIC_20B5FB03);
         let remove_last_admin_role_body = serde_json::to_string(
-            &server_admin_contract::admin_set_user_roles_request::AdminSetUserRolesRequest::new(
-                crate::one_admin_role_id(
+            &serde_json::json!({(stringify!(updates)): [{(stringify!(filter)): {(stringify!(user_id)): admin_id}, (stringify!(changes)): {(stringify!(expected_role_ids)): crate::one_admin_role_id(
                     server_admin_contract::admin_role_id::AdminRoleId::try_from(admin_role_id)
                         .expect(constants_str::DIAGNOSTIC_84FE96C8),
-                ),
-                crate::empty_admin_role_ids(),
-            ),
+                ), (stringify!(role_ids)): crate::empty_admin_role_ids()}}]}),
         )
         .expect(constants_str::DIAGNOSTIC_1528B0D3);
         let remove_last_admin_role_response = tower::ServiceExt::oneshot(
             crate::router_with_pool(&pool).0,
             crate::request_with_peer(
-                super::HttpAdminApiTestMethod::from(http::Method::PUT),
-                super::StdAdminApiTestStrRef::from(format!("/users/{admin_id}/roles").as_str()),
+                super::HttpAdminApiTestMethod::from(http::Method::PATCH),
+                super::StdAdminApiTestStrRef::from(constants_str::ADMIN_USERS_UPDATE_PATH),
                 super::StdAdminApiTestStrRef::from(remove_last_admin_role_body.as_str()),
                 Some(super::StdAdminApiTestStrRef::from(active_cookie.as_str())),
                 Some(super::StdAdminApiTestStrRef::from(

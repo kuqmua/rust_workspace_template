@@ -18,6 +18,8 @@ pub(crate) async fn user_mutation_form_action(
                                 None,
                                 None,
                                 None,
+                                None,
+                                None,
                                 Some(*form.get_is_banned()),
                             ),
                         ),
@@ -38,7 +40,7 @@ pub(crate) async fn user_mutation_form_action(
                         ),
                         crate::axum_admin_json::AxumAdminJson::from(
                             server_admin_contract::admin_update_user_request::AdminUpdateUserRequest::new(
-                                None, None, Some(form.get_password().clone()), None,
+                                None, None, Some(form.get_password().clone()), None, None, None,
                             ),
                         ),
                     )

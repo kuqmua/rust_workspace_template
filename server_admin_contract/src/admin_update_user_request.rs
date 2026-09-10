@@ -16,5 +16,7 @@ pub struct AdminUpdateUserRequest {
     login: Option<crate::admin_login::AdminLogin>,
     #[schema(write_only)]
     password: Option<crate::admin_new_password::AdminNewPassword>,
+    expected_role_ids: Option<crate::admin_role_ids::AdminRoleIds>,
+    role_ids: Option<crate::admin_role_ids::AdminRoleIds>,
     is_banned: Option<crate::admin_bool::AdminBool>,
 }

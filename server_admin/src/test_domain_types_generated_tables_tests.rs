@@ -345,7 +345,7 @@ fn test_generated_admin_open_api_combines_enabled_routes_only() {
         .get(constants_str::PATHS)
         .and_then(serde_json::Value::as_object)
         .expect(constants_str::DIAGNOSTIC_274479A7);
-    assert_eq!(paths.len(), 35usize);
+    assert_eq!(paths.len(), 34usize);
     assert!(paths.contains_key(constants_str::VALUE_C764A505));
     assert!(!paths.contains_key(constants_str::VALUE_F772F137));
     assert!(paths.contains_key(constants_str::VALUE_356A53CE));

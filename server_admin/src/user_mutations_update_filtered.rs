@@ -17,29 +17,12 @@ pub(crate) async fn user_mutations_update_filtered(
         && admin_update_user_request.display_name().is_none()
         && is_banned.is_none()
         && admin_update_user_request.password().is_none()
+        && admin_update_user_request.role_ids().is_none()
     {
         return Err(crate::admin_error::AdminError::Validation);
     }
     if is_banned == Some(true) && runtime_authenticated_admin.id() == admin_user_record_id {
         return Err(crate::admin_error::AdminError::Conflict);
-    }
-    if is_banned.is_some() {
-        crate::lock_last_admin::lock_last_admin(
-            crate::sqlx_admin_repository_connection_mut_ref::SqlxAdminRepositoryConnectionMutRef::from(
-                &mut **sqlx_admin_repository_connection_mut_ref,
-            ),
-        ).await?;
-        if is_banned == Some(true) {
-            let state = crate::read_last_admin_state::read_last_admin_state(
-                crate::sqlx_admin_repository_connection_mut_ref::SqlxAdminRepositoryConnectionMutRef::from(
-                    &mut **sqlx_admin_repository_connection_mut_ref,
-                ),
-                admin_user_record_id,
-            ).await?;
-            if state.would_remove_last().get() {
-                return Err(crate::admin_error::AdminError::Conflict);
-            }
-        }
     }
     let _stored_is_banned =
         sqlx::query_scalar::<_, bool>(constants_str::SERVER_ADMIN_UPDATE_USER_SQL)
@@ -74,7 +57,15 @@ pub(crate) async fn user_mutations_update_filtered(
             crate::admin_password_change_required::AdminPasswordChangeRequired::from(true),
         ).await?.get().then_some(()).ok_or(crate::admin_error::AdminError::Conflict)?;
     }
-    if is_banned == Some(true) || admin_update_user_request.password().is_some() {
+    if let Some(admin_role_ids) = admin_update_user_request.role_ids() {
+        crate::replace_user_roles_in_connection::replace_user_roles_in_connection(
+            crate::sqlx_admin_repository_connection_mut_ref::SqlxAdminRepositoryConnectionMutRef::from(&mut **sqlx_admin_repository_connection_mut_ref),
+            admin_user_record_id,
+            admin_role_ids,
+            admin_update_user_request.expected_role_ids(),
+        ).await?;
+    }
+    if is_banned == Some(true) || admin_update_user_request.password().is_some() || admin_update_user_request.role_ids().is_some() {
         crate::revoke_user_sessions::revoke_user_sessions(
             crate::sqlx_admin_repository_connection_mut_ref::SqlxAdminRepositoryConnectionMutRef::from(
                 &mut **sqlx_admin_repository_connection_mut_ref,
@@ -111,10 +102,22 @@ pub(crate) async fn user_mutations_update_filtered(
                 || (changes.login().is_none()
                     && changes.display_name().is_none()
                     && changes.is_banned().is_none()
-                    && changes.password().is_none())
+                    && changes.password().is_none()
+                    && changes.role_ids().is_none())
+                || (changes.role_ids().is_some() != changes.expected_role_ids().is_some())
         })
     {
         return Err(crate::admin_error::AdminError::Validation);
+    }
+    if updates
+        .iter()
+        .any(|update| update.changes().role_ids().is_some())
+    {
+        let _role_actor = crate::authorize_custom::authorize_custom(
+            &admin_auth_request,
+            server_admin_contract::admin_permission::AdminPermission::UserRolesUpdate,
+        )
+        .await?;
     }
     let mut transaction = admin_auth_request
         .get_state()
@@ -128,6 +131,13 @@ pub(crate) async fn user_mutations_update_filtered(
         crate::sqlx_admin_repository_connection_mut_ref::SqlxAdminRepositoryConnectionMutRef::from(
             &mut *transaction,
         ),
+    )
+    .await?;
+    let initial_admin_state = crate::read_last_admin_state::read_last_admin_state(
+        crate::sqlx_admin_repository_connection_mut_ref::SqlxAdminRepositoryConnectionMutRef::from(
+            &mut *transaction,
+        ),
+        actor.id(),
     )
     .await?;
     let (selected_transaction, _, mut selected) = futures::TryStreamExt::try_fold(
@@ -162,7 +172,7 @@ pub(crate) async fn user_mutations_update_filtered(
             identifier.get(),
         )
     });
-    let completed_transaction = futures::TryStreamExt::try_fold(
+    let mut completed_transaction = futures::TryStreamExt::try_fold(
         futures::stream::iter(selected.into_iter().map(Ok::<_, crate::admin_error::AdminError>)),
         selected_transaction,
         async |mut sqlx_admin_transaction, (admin_user_record_id, changes)| {
@@ -176,6 +186,14 @@ pub(crate) async fn user_mutations_update_filtered(
             Ok(sqlx_admin_transaction)
         },
     ).await?;
+    let final_active_administrators =
+        sqlx::query_scalar::<_, i64>(constants_str::SERVER_ADMIN_ACTIVE_ADMIN_COUNT_SQL)
+            .fetch_one(&mut **completed_transaction)
+            .await
+            .map_err(crate::sqlx_admin_error::SqlxAdminError::from)?;
+    if *initial_admin_state.get_active_count().get_inner() > 0 && final_active_administrators == 0 {
+        return Err(crate::admin_error::AdminError::Conflict);
+    }
     sqlx::Transaction::from(completed_transaction)
         .commit()
         .await

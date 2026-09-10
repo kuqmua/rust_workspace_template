@@ -25,11 +25,13 @@ pub(crate) async fn assignment_form_action(
                 form.get_selected(),
                 crate::role_ids_impl::role_ids_impl,
                 server_admin_contract::admin_frontend_path::AdminFrontendPath::Users,
-                server_admin_contract::admin_set_user_roles_request::AdminSetUserRolesRequest::new,
+                |expected, selected| server_admin_contract::admin_update_user_request::AdminUpdateUserRequest::new(
+                    None, None, None, Some(expected), Some(selected), None,
+                ),
                 crate::axum_admin_path::AxumAdminPath::from(crate::user_path_impl::user_path_impl(
                     *form.get_user_id(),
                 )),
-                crate::mutations_set_roles::mutations_set_roles,
+                crate::user_mutations_update::user_mutations_update,
             )
             .await
         }
