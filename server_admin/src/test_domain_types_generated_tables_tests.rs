@@ -345,7 +345,7 @@ fn test_generated_admin_open_api_combines_enabled_routes_only() {
         .get(constants_str::PATHS)
         .and_then(serde_json::Value::as_object)
         .expect(constants_str::DIAGNOSTIC_274479A7);
-    assert_eq!(paths.len(), 34usize);
+    assert_eq!(paths.len(), 35usize);
     assert!(paths.contains_key(constants_str::VALUE_C764A505));
     assert!(!paths.contains_key(constants_str::VALUE_F772F137));
     assert!(paths.contains_key(constants_str::VALUE_356A53CE));
@@ -671,5 +671,88 @@ fn test_legacy_users_get_is_absent_from_openapi() {
             .path()
             .as_ref(),
         constants_str::ADMIN_USERS_READ
+    );
+}
+
+#[test]
+fn test_roles_read_client_request_matches_generated_payload() {
+    assert!(
+        server_admin_contract::admin_roles_read_request::AdminRolesReadRequest::try_from(
+            &server_admin_contract::admin_table_query::AdminTableQuery::default(),
+        )
+        .is_ok_and(|request| serde_json::to_value(request).is_ok_and(|value| {
+            serde_json::from_value::<crate::admin_roles::AdminRolesReadPayload>(value).is_ok()
+        }))
+    );
+    assert_eq!(
+        server_admin_contract::admin_route::AdminRoute::Roles
+            .path()
+            .as_ref(),
+        constants_str::ADMIN_ROLES_READ,
+    );
+    assert_eq!(
+        server_admin_contract::admin_route::AdminRoute::Roles
+            .contract()
+            .method(),
+        frontend_contract::route_method::RouteMethod::Post,
+    );
+}
+
+#[test]
+fn test_roles_creation_openapi_contains_only_the_unified_route() {
+    assert!(
+        serde_json::to_value(utoipa::openapi::OpenApi::from(
+            crate::generated_open_api::generated_open_api()
+        ))
+        .is_ok_and(
+            |document| document.get(constants_str::PATHS).is_some_and(|paths| {
+                paths
+                    .get(constants_str::ADMIN_ROLES_LEGACY_CREATE)
+                    .is_none()
+                    && paths
+                        .get(constants_str::ADMIN_ROLES_LEGACY_CREATE_MANY)
+                        .is_none()
+                    && paths
+                        .get(
+                            server_admin_contract::admin_create_roles_route::create_roles_route()
+                                .as_ref(),
+                        )
+                        .is_some_and(|operations| operations.get(constants_str::POST_ALT).is_some())
+            })
+        )
+    );
+}
+
+#[test]
+fn test_role_update_openapi_uses_only_the_filtered_route() {
+    assert!(
+        serde_json::to_value(utoipa::openapi::OpenApi::from(
+            crate::generated_open_api::generated_open_api()
+        ))
+        .is_ok_and(
+            |document| document.get(constants_str::PATHS).is_some_and(|paths| {
+                paths
+                    .get(
+                        frontend_contract::typed_route_path::typed_route_path::<
+                            server_admin_contract::admin_delete_role_route::AdminDeleteRoleRoute,
+                        >()
+                        .as_ref(),
+                    )
+                    .is_some_and(|operations| {
+                        operations.get(constants_str::PATCH_ALT).is_none()
+                            && operations
+                                .get(constants_str::PG_CRUD_DELETE_PERMISSION_ACTION)
+                                .is_some()
+                    })
+                    && paths
+                        .get(
+                            server_admin_contract::admin_update_roles_route::update_roles_route()
+                                .as_ref(),
+                        )
+                        .is_some_and(|operations| {
+                            operations.get(constants_str::PATCH_ALT).is_some()
+                        })
+            })
+        )
     );
 }

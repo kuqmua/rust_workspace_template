@@ -40,8 +40,8 @@ pub enum AdminRoute {
     DataTables,
     #[route_catalog_route(crate::admin_change_own_password_route::AdminChangeOwnPasswordRoute)]
     ChangeOwnPassword,
-    #[route_catalog_route(crate::admin_create_role_route::AdminCreateRoleRoute)]
-    CreateRole,
+    #[route_catalog_route(crate::admin_create_roles_route::AdminCreateRolesRoute)]
+    CreateRoles,
     #[route_catalog_route(crate::admin_create_user_route::AdminCreateUserRoute)]
     CreateUser,
     #[route_catalog_route(crate::admin_delete_role_route::AdminDeleteRoleRoute)]
@@ -82,7 +82,11 @@ pub enum AdminRoute {
     RevokeAllSessions,
     #[route_catalog_route(crate::admin_revoke_session_route::AdminRevokeSessionRoute)]
     RevokeSession,
-    #[route_catalog_route(crate::admin_list_roles_route::AdminListRolesRoute)]
+    #[route_catalog_route(
+        contract = <crate::admin_read_roles_route::AdminReadRolesRoute as frontend_contract::typed_route::TypedRoute>::metadata().contract(),
+        path = frontend_contract::typed_route_path::typed_route_path::<crate::admin_read_roles_route::AdminReadRolesRoute>(),
+        exclude_from_family,
+    )]
     Roles,
     #[route_catalog_route(crate::admin_set_role_permissions_route::AdminSetRolePermissionsRoute)]
     SetRolePermissions(crate::admin_role_id::AdminRoleId),
@@ -94,8 +98,8 @@ pub enum AdminRoute {
     SignOut,
     #[route_catalog_route(crate::admin_sessions_route::AdminSessionsRoute)]
     Sessions,
-    #[route_catalog_route(crate::admin_update_role_route::AdminUpdateRoleRoute)]
-    UpdateRole(crate::admin_role_id::AdminRoleId),
+    #[route_catalog_route(crate::admin_update_roles_route::AdminUpdateRolesRoute)]
+    UpdateRoles,
     #[route_catalog_route(crate::admin_update_settings_route::AdminUpdateSettingsRoute)]
     UpdateSettings,
     #[route_catalog_route(crate::admin_update_users_route::AdminUpdateUsersRoute)]

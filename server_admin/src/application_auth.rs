@@ -2,14 +2,12 @@ proc_macro_frontend_contract_api_operation_error::api_operation_error!(AdminAudi
 proc_macro_frontend_contract_api_operation_error::api_operation_error!(AdminAuditExportError,);
 proc_macro_frontend_contract_api_operation_error::api_operation_error!(AdminBrandingError,);
 proc_macro_frontend_contract_api_operation_error::api_operation_error!(AdminChangeOwnPasswordError,);
-proc_macro_frontend_contract_api_operation_error::api_operation_error!(AdminCreateRoleError,);
 proc_macro_frontend_contract_api_operation_error::api_operation_error!(AdminCreateUserError,);
 proc_macro_frontend_contract_api_operation_error::api_operation_error!(AdminDataTableError,);
 proc_macro_frontend_contract_api_operation_error::api_operation_error!(AdminDataTablesError,);
 proc_macro_frontend_contract_api_operation_error::api_operation_error!(AdminDeleteRoleError,);
 proc_macro_frontend_contract_api_operation_error::api_operation_error!(AdminDeleteUsersError,);
 proc_macro_frontend_contract_api_operation_error::api_operation_error!(AdminListPermissionsError,);
-proc_macro_frontend_contract_api_operation_error::api_operation_error!(AdminListRolesError,);
 proc_macro_frontend_contract_api_operation_error::api_operation_error!(AdminMeError,);
 proc_macro_frontend_contract_api_operation_error::api_operation_error!(AdminRefreshError,);
 proc_macro_frontend_contract_api_operation_error::api_operation_error!(AdminRevokeAllSessionsError,);
@@ -21,7 +19,6 @@ proc_macro_frontend_contract_api_operation_error::api_operation_error!(
 proc_macro_frontend_contract_api_operation_error::api_operation_error!(AdminSettingsError,);
 proc_macro_frontend_contract_api_operation_error::api_operation_error!(AdminSignInError,);
 proc_macro_frontend_contract_api_operation_error::api_operation_error!(AdminSignOutError,);
-proc_macro_frontend_contract_api_operation_error::api_operation_error!(AdminUpdateRoleError,);
 proc_macro_frontend_contract_api_operation_error::api_operation_error!(AdminUpdateSettingsError,);
 proc_macro_frontend_contract_api_operation_error::api_operation_error!(AdminUpdateUsersError,);
 proc_macro_frontend_contract_api_operation_error::api_operation_error!(AdminUserRolesTableError,);
@@ -41,3 +38,6 @@ proc_macro_frontend_contract_api_operation_error::api_operation_error!(AdminRate
 proc_macro_frontend_contract_api_operation_error::api_operation_error!(
     AdminCleanupStatusTableError,
 );
+
+proc_macro_frontend_contract_api_operation_error::api_operation_error!(AdminCreateRolesError,);
+proc_macro_frontend_contract_api_operation_error::api_operation_error!(AdminUpdateRolesError,);

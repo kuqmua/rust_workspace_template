@@ -12,11 +12,6 @@ pub(crate) async fn api_update_users(
     crate::axum_admin_response::AxumAdminResponse,
     crate::application_auth::AdminUpdateUsersError,
 > {
-    let request = axum_admin_json.into_inner();
-    crate::user_mutations_update_filtered::user_mutations_update_filtered(
-        admin_auth_request,
-        crate::admin_user_update_slice::AdminUserUpdateSlice::from(request.updates().as_ref()),
-    )
-    .await
-    .map_err(crate::application_auth::AdminUpdateUsersError::from)
+    crate::dispatch_filtered_update::dispatch_filtered_update(admin_auth_request, axum_admin_json)
+        .await
 }

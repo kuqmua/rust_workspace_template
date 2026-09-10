@@ -16,6 +16,12 @@
     "create_exclude_fields": ["created_at", "updated_at"],
     "db_unique_keys": [["name"]],
     "permission_prefix": "roles",
+    "read_page": {
+        "search_columns": ["name"],
+        "response": "crate::admin_roles_read_page::AdminRolesReadPage",
+        "enrich": "crate::enrich_roles_read_page::enrich_roles_read_page",
+        "error": "crate::admin_roles_read_page_error::AdminRolesReadPageError"
+    },
     "tests_write_into_file": "False",
     "common_write_into_file": "False",
     "whole_write_into_file": "False"

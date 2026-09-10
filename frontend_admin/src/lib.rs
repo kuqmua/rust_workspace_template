@@ -135,11 +135,11 @@ pub mod domain_types_shared_settings_input;
 #[cfg(test)]
 pub mod domain_types_ssr_tests;
 #[cfg(target_arch = "wasm32")]
+pub mod fetch_account_read;
+#[cfg(target_arch = "wasm32")]
 pub mod fetch_json;
 #[cfg(target_arch = "wasm32")]
 pub mod fetch_json_request;
-#[cfg(target_arch = "wasm32")]
-pub mod fetch_users_read;
 pub mod join_text;
 pub mod leptos_admin_filter_operation_signal;
 pub mod leptos_admin_input_signal;

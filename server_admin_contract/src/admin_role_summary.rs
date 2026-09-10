@@ -14,10 +14,13 @@
 pub struct AdminRoleSummary {
     #[getters(skip)]
     #[contract_struct_api(copy_ref)]
+    #[serde(deserialize_with = "crate::admin_read_field::AdminReadField::deserialize_value")]
     id: crate::admin_role_id::AdminRoleId,
     #[getters(skip)]
     #[contract_struct_api(copy_ref)]
+    #[serde(deserialize_with = "crate::admin_read_field::AdminReadField::deserialize_value")]
     is_system: crate::admin_bool::AdminBool,
+    #[serde(deserialize_with = "crate::admin_read_field::AdminReadField::deserialize_value")]
     name: crate::admin_role_name::AdminRoleName,
     #[serde(default)]
     #[getters(skip)]

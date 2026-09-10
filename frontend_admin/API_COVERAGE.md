@@ -1,6 +1,6 @@
 # Administrator API coverage audit
 
-The typed registry in `server_admin/src/admin_auth_route_registry.rs` registers 31 API
+The typed registry in `server_admin/src/admin_auth_route_registry.rs` registers 30 API
 operations. Paths below are rooted at the server origin. The frontend must follow the route,
 permission, request, and table catalogs in `server_admin_contract`.
 
@@ -31,9 +31,9 @@ below covers user-visible workflows and direct API behavior.
 | POST `/users/create` | Create-user page; server-rendered HTML adapter |
 | PATCH `/users/update` | Atomic batch updates through the typed API; uses the same user validation, administrator protection, audit, and session revocation as single-user updates |
 | DELETE `/users/delete` | Atomic deletion of users matching a required filter |
-| GET `/roles` | Roles list, pagination, and role management |
-| POST `/roles` | Create-role page; server-rendered HTML adapter |
-| PATCH `/roles/{role_id}` | Manage-roles page: rename role |
+| POST `/roles/read` | Roles list with search, filters, sorting, pagination, permission assignments, and total count |
+| POST `/roles/create` | Atomic creation of multiple roles through the typed API |
+| PATCH `/roles/update` | Atomic renaming of multiple roles through the typed API |
 | DELETE `/roles/{role_id}` | Manage-roles page: delete role |
 | PUT `/roles/{role_id}/permissions` | Manage-roles page: permission assignment |
 | GET `/permissions` | Read-only permissions list |
@@ -211,3 +211,44 @@ The transaction must preserve an active administrator when one existed before it
 this is checked against the final batch state so an administrator role can be
 transferred between users atomically. The former `PUT /users/{user_id}/roles` route
 is removed; the HTML assignment form uses the shared update workflow.
+
+## Role reads
+
+`GET /roles` has been removed. Use `POST /roles/read` with the generated selection,
+filter, ordering, search, and pagination body. The response contains `items`,
+`permissions`, and `total`; every selected row includes its `permission_ids`.
+The role name search is case-insensitive. Reading requires `RolesRead` and a valid
+session. Role creation uses `POST /roles/create`.
+
+### Bulk role creation
+
+`POST /roles/create` accepts a JSON array of 1 to 10,000 role objects,
+for example `[{"name":"editor"},{"name":"reviewer"}]`. It returns HTTP 201
+with a JSON array of role identifiers in input order. The standard 65,536-byte
+request body limit also applies, so the effective batch size depends on name lengths.
+All roles are non-system.
+Role names use the same validation as single creation; unknown fields are rejected.
+The complete batch and one audit entry per role commit in one transaction.
+Duplicate or existing names return HTTP 409 and roll back the complete batch.
+An empty batch returns HTTP 422. The route requires `roles:create`, an authenticated
+session, a valid CSRF token, and the same origin checks as single creation.
+`POST /roles` and `POST /roles/create_many` have been removed. To create one role,
+send a one-element array to `POST /roles/create`; the response is still an ID array.
+The server-rendered create-role form uses the same transactional workflow.
+
+### Filtered role updates
+
+`PATCH /roles/update` accepts
+`{"updates":[{"filter":{"role_id":2},"changes":{"name":"editor"}}]}` and returns
+HTTP 204 without a body. Filter fields are optional `role_id`, `name`, and
+`is_system`; supplied values are combined with AND using exact equality.
+At least one non-null filter field is required. Every change requires a valid name.
+Unknown fields, empty batches or filters, and overlapping selections return HTTP 422.
+The collection and selected-role limits are 10,000; the standard 65,536-byte body limit applies.
+All selections are resolved and locked before changes are applied. A missing match,
+a system role, or a name conflict returns HTTP 409 and rolls back the entire batch
+including its audit entries. Role names are unique, so assigning one name to multiple
+selected roles fails atomically. Name swaps that violate the unique constraint are rejected.
+The route requires `roles:update`, authentication, CSRF, and the usual origin checks.
+The former `PATCH /roles/{role_id}` route and flat-array update body have been removed.
+The HTML rename form submits an ID filter to the shared transaction workflow.

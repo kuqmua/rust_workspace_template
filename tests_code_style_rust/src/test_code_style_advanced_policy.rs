@@ -1409,7 +1409,7 @@ fn test_ignored_map_err_bindings_match_reviewed_inventory() {
         ),
         (
             constants_str::CODE_STYLE_SERVER_ADMIN_OWNER,
-            (103usize, constants_str::CODE_STYLE_MAP_ERR_OWNER_REASON),
+            (101usize, constants_str::CODE_STYLE_MAP_ERR_OWNER_REASON),
         ),
         (
             constants_str::CODE_STYLE_SERVER_ADMIN_CONTRACT_OWNER,

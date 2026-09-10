@@ -48,9 +48,15 @@ pub(crate) fn AdminApp() -> impl leptos::prelude::IntoView {
                 return Ok(crate::admin_load_state::AdminLoadState::Profile(admin));
             }
             server_admin_contract::admin_page::AdminPage::Users => {
-                return crate::fetch_users_read::fetch_users_read(admin_csr_query)
-                    .await
-                    .map(|page| crate::admin_load_state::AdminLoadState::Users(admin, page));
+                return crate::fetch_account_read::fetch_account_read::<
+                    server_admin_contract::admin_users_read_request::AdminUsersReadRequest,
+                    _,
+                >(
+                    admin_csr_query,
+                    server_admin_contract::admin_route::AdminRoute::Users,
+                )
+                .await
+                .map(|page| crate::admin_load_state::AdminLoadState::Users(admin, page));
             }
             server_admin_contract::admin_page::AdminPage::Tables => {
                 let Some(table) = admin_csr_query.table() else {
@@ -109,9 +115,15 @@ pub(crate) fn AdminApp() -> impl leptos::prelude::IntoView {
                 Ok(crate::admin_load_state::AdminLoadState::Profile(admin))
             }
             server_admin_contract::admin_page::AdminPage::Roles => {
-                crate::fetch_json::fetch_json(&url)
-                    .await
-                    .map(|value| crate::admin_load_state::AdminLoadState::Roles(admin, value))
+                crate::fetch_account_read::fetch_account_read::<
+                    server_admin_contract::admin_roles_read_request::AdminRolesReadRequest,
+                    _,
+                >(
+                    admin_csr_query,
+                    server_admin_contract::admin_route::AdminRoute::Roles,
+                )
+                .await
+                .map(|value| crate::admin_load_state::AdminLoadState::Roles(admin, value))
             }
             server_admin_contract::admin_page::AdminPage::Sessions => {
                 crate::fetch_json::fetch_json(&url)
@@ -127,9 +139,15 @@ pub(crate) fn AdminApp() -> impl leptos::prelude::IntoView {
                 Ok(crate::admin_load_state::AdminLoadState::Empty(admin))
             }
             server_admin_contract::admin_page::AdminPage::Users => {
-                crate::fetch_users_read::fetch_users_read(admin_csr_query)
-                    .await
-                    .map(|value| crate::admin_load_state::AdminLoadState::Users(admin, value))
+                crate::fetch_account_read::fetch_account_read::<
+                    server_admin_contract::admin_users_read_request::AdminUsersReadRequest,
+                    _,
+                >(
+                    admin_csr_query,
+                    server_admin_contract::admin_route::AdminRoute::Users,
+                )
+                .await
+                .map(|value| crate::admin_load_state::AdminLoadState::Users(admin, value))
             }
             server_admin_contract::admin_page::AdminPage::Metrics
             | server_admin_contract::admin_page::AdminPage::OpenApi

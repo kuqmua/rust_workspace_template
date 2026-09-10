@@ -10,17 +10,22 @@ pub(crate) async fn update_role(
     let Ok(auth) = crate::form_auth_impl::form_auth_impl(admin_auth_request) else {
         return axum::response::IntoResponse::into_response(crate::admin_error::AdminError::Csrf);
     };
-    crate::action_result_impl::action_result_impl(
-        crate::role_mutations_update::role_mutations_update(
-            auth,
-            crate::axum_admin_path::AxumAdminPath::from(crate::role_path_impl::role_path_impl(
-                *axum_admin_form.get_role_id(),
-            )),
-            crate::axum_admin_json::AxumAdminJson::from(
-                server_admin_contract::admin_update_role_request::AdminUpdateRoleRequest::new(
-                    axum_admin_form.get_name().clone(),
-                ),
+    let updates = [
+        server_admin_contract::admin_role_update::AdminRoleUpdate::new(
+            server_admin_contract::admin_update_role_request::AdminUpdateRoleRequest::new(
+                axum_admin_form.get_name().clone(),
             ),
+            server_admin_contract::admin_role_filter::AdminRoleFilter::new(
+                Some(*axum_admin_form.get_role_id()),
+                None,
+                None,
+            ),
+        ),
+    ];
+    crate::action_result_impl::action_result_impl(
+        crate::role_mutations_update_many::role_mutations_update_many(
+            auth,
+            crate::admin_role_update_slice::AdminRoleUpdateSlice::from(updates.as_slice()),
         )
         .await,
         server_admin_contract::admin_frontend_path::AdminFrontendPath::Roles,
