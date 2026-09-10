@@ -28,7 +28,7 @@ impl frontend_contract::transport::Transport for ClientTransport {
 fn test_every_admin_api_route_has_named_route_and_client_functions() {
     assert_eq!(
         <crate::admin_route::AdminAuthenticationRouteFamily as frontend_contract::route_family::RouteFamily>::ROUTE_COUNT,
-        34usize
+        33usize
     );
     assert_eq!(
         crate::admin_route::metrics_route(),
@@ -70,7 +70,7 @@ fn test_every_admin_api_route_has_named_route_and_client_functions() {
         size_of_val(&crate::admin_sessions_route::sessions_route),
         size_of_val(&crate::admin_update_role_route::update_role_route),
         size_of_val(&crate::admin_update_settings_route::update_settings_route),
-        size_of_val(&crate::admin_update_user_route::update_user_route),
+        size_of_val(&crate::admin_update_users_route::update_users_route),
         size_of_val(&crate::admin_read_users_route::read_users_route),
         size_of_val(&crate::admin_route::version_route),
     ]
@@ -104,7 +104,7 @@ fn test_every_admin_api_route_has_named_route_and_client_functions() {
         size_of_val(&crate::admin_sessions_route::sessions_client::<ClientTransport>),
         size_of_val(&crate::admin_update_role_route::update_role_client::<ClientTransport>),
         size_of_val(&crate::admin_update_settings_route::update_settings_client::<ClientTransport>),
-        size_of_val(&crate::admin_update_user_route::update_user_client::<ClientTransport>),
+        size_of_val(&crate::admin_update_users_route::update_users_client::<ClientTransport>),
         size_of_val(&crate::admin_read_users_route::read_users_client::<ClientTransport>),
         size_of_val(&crate::admin_route::version_client::<ClientTransport>),
     ]
@@ -156,7 +156,7 @@ fn test_administrator_collections_enforce_item_limit_for_construction_and_deseri
 #[test]
 fn test_authentication_route_family_has_valid_coverage() {
     let descriptors = <crate::admin_route::AdminAuthenticationRouteFamily as frontend_contract::route_family::RouteFamily>::coverage_descriptors();
-    assert_eq!(descriptors.as_ref().len(), 34usize);
+    assert_eq!(descriptors.as_ref().len(), 33usize);
     assert_eq!(
         frontend_contract::validate_route_coverage::validate_route_coverage(descriptors.as_ref()),
         Ok(())
@@ -202,10 +202,11 @@ fn test_request_payloads_reject_unknown_fields() {
 }
 #[test]
 fn test_route_contract_keeps_custom_action_policy_and_path_together() {
-    let route = crate::admin_route::AdminRoute::UpdateUser(
-        crate::admin_user_id::AdminUserId::try_from(7).expect(constants_str::DIAGNOSTIC_8BED843C),
+    let route = crate::admin_route::AdminRoute::UpdateUsers;
+    assert_eq!(
+        route.path().as_ref(),
+        constants_str::ADMIN_USERS_UPDATE_PATH
     );
-    assert_eq!(route.path().as_ref(), constants_str::VALUE_FC4871BE);
     assert_eq!(
         route.contract().method(),
         frontend_contract::route_method::RouteMethod::Patch
@@ -264,8 +265,8 @@ fn test_parameterized_admin_route_path_uses_typed_route_metadata() {
         constants_str::VALUE_BF4EA24D
     );
     assert_eq!(
-        String::from(crate::admin_update_user_route::update_user_route(&user_id)),
-        constants_str::VALUE_761F4C43
+        String::from(crate::admin_update_users_route::update_users_route()),
+        constants_str::ADMIN_USERS_UPDATE_PATH
     );
     assert_eq!(
         String::from(crate::admin_set_user_password_route::set_user_password_route(&user_id)),
@@ -280,10 +281,6 @@ fn test_parameterized_admin_route_path_uses_typed_route_metadata() {
     assert_eq!(
         String::from(crate::admin_update_role_route::update_role_route(&role_id)),
         constants_str::VALUE_5DE652EF
-    );
-    assert_eq!(
-        String::from(crate::admin_update_user_route::update_user_route(&user_id)),
-        constants_str::VALUE_769BBFA3
     );
 }
 #[test]

@@ -176,7 +176,6 @@ pub mod admin_update_role_route;
 pub mod admin_update_settings_request;
 pub mod admin_update_settings_route;
 pub mod admin_update_user_request;
-pub mod admin_update_user_route;
 pub mod admin_user_id;
 pub mod admin_user_roles_table_route;
 pub mod admin_user_summaries;
@@ -241,6 +240,7 @@ mod test_table_sort_tests {
 }
 pub mod admin_update_users_request;
 pub mod admin_update_users_route;
+pub mod admin_user_filter;
 pub mod admin_user_update;
 pub mod admin_user_updates;
 #[cfg(test)]

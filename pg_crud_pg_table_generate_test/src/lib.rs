@@ -64,7 +64,7 @@ mod tests {
                         CreateMany,
                         DeleteMany,
                         Read,
-                        UpdateMany,
+                        Update,
                     }
                 }
                 .to_string()

@@ -102,8 +102,6 @@ pub enum AdminRoute {
     UpdateRole(crate::admin_role_id::AdminRoleId),
     #[route_catalog_route(crate::admin_update_settings_route::AdminUpdateSettingsRoute)]
     UpdateSettings,
-    #[route_catalog_route(crate::admin_update_user_route::AdminUpdateUserRoute)]
-    UpdateUser(crate::admin_user_id::AdminUserId),
     #[route_catalog_route(crate::admin_update_users_route::AdminUpdateUsersRoute)]
     UpdateUsers,
     #[route_catalog_route(

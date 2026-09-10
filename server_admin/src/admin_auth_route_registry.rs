@@ -72,7 +72,6 @@ proc_macro_frontend_contract_route_registry::route_registry! {
     (server_admin_contract::admin_revoke_session_route::AdminRevokeSessionRoute, crate::api_revoke_session::api_revoke_session),
     (server_admin_contract::admin_revoke_all_sessions_route::AdminRevokeAllSessionsRoute, crate::api_revoke_all_sessions::api_revoke_all_sessions),
     (server_admin_contract::admin_create_user_route::AdminCreateUserRoute, crate::api_create_user::api_create_user),
-    (server_admin_contract::admin_update_user_route::AdminUpdateUserRoute, crate::api_update_user::api_update_user),
     (server_admin_contract::admin_update_users_route::AdminUpdateUsersRoute, crate::api_update_users::api_update_users),
     (server_admin_contract::admin_delete_user_route::AdminDeleteUserRoute, crate::api_delete_user::api_delete_user),
     (server_admin_contract::admin_set_user_password_route::AdminSetUserPasswordRoute, crate::api_set_user_password::api_set_user_password),

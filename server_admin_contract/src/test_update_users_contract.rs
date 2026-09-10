@@ -4,8 +4,8 @@ fn test_update_users_request_preserves_individual_changes() {
         crate::admin_update_users_request::AdminUpdateUsersRequest,
     >(serde_json::json!({
         (stringify!(updates)): [
-            {(stringify!(user_id)): 1i64, (stringify!(changes)): {(stringify!(login)): constants_str::ADMIN_ALT}},
-            {(stringify!(user_id)): 2i64, (stringify!(changes)): {(stringify!(is_banned)): false}}
+            {(stringify!(filter)): {(stringify!(user_id)): 1i64}, (stringify!(changes)): {(stringify!(login)): constants_str::ADMIN_ALT}},
+            {(stringify!(filter)): {(stringify!(user_id)): 2i64}, (stringify!(changes)): {(stringify!(is_banned)): false}}
         ]
     }));
     assert!(request.is_ok_and(|admin_update_users_request| {
@@ -28,9 +28,12 @@ fn test_update_users_request_preserves_individual_changes() {
 #[test]
 fn test_update_users_request_rejects_invalid_identifiers_fields_and_values() {
     assert!([
-        serde_json::json!({(stringify!(user_id)): 0i64, (stringify!(changes)): {(stringify!(login)): constants_str::ADMIN_ALT}}),
-        serde_json::json!({(stringify!(user_id)): 1i64, (stringify!(changes)): {(stringify!(login)): constants_str::PG_CRUD_EMPTY_SQL_SUFFIX}}),
-        serde_json::json!({(stringify!(user_id)): 1i64, (stringify!(changes)): {(stringify!(password_hash)): constants_str::ADMIN_ALT}}),
+        serde_json::json!({(stringify!(filter)): {(stringify!(user_id)): 0i64}, (stringify!(changes)): {(stringify!(login)): constants_str::ADMIN_ALT}}),
+        serde_json::json!({(stringify!(filter)): {(stringify!(user_id)): 1i64}, (stringify!(changes)): {(stringify!(login)): constants_str::PG_CRUD_EMPTY_SQL_SUFFIX}}),
+        serde_json::json!({(stringify!(filter)): {(stringify!(user_id)): 1i64}, (stringify!(changes)): {(stringify!(password_hash)): constants_str::ADMIN_ALT}}),
+        serde_json::json!({(stringify!(filter)): {(stringify!(login)): constants_str::PG_CRUD_EMPTY_SQL_SUFFIX}, (stringify!(changes)): {(stringify!(is_banned)): false}}),
+        serde_json::json!({(stringify!(filter)): {(stringify!(password_hash)): constants_str::ADMIN_ALT}, (stringify!(changes)): {(stringify!(is_banned)): false}}),
+        serde_json::json!({(stringify!(user_id)): 1i64, (stringify!(changes)): {(stringify!(is_banned)): false}}),
     ].into_iter().all(|update| {
         serde_json::from_value::<crate::admin_update_users_request::AdminUpdateUsersRequest>(
             serde_json::json!({(stringify!(updates)): [update]}),

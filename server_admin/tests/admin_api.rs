@@ -9,7 +9,7 @@
 mod test_data_tables {
     #[tokio::test]
     #[ignore = "requires PostgreSQL; run through workspace_test_runner database"]
-    async fn test_postgresql_users_update_many_is_atomic_and_revokes_sessions() {
+    async fn test_postgresql_users_update_is_atomic_and_revokes_sessions() {
         let fixture = crate::admin_html_test_fixture().await;
         let password_hash = sqlx::query_scalar::<_, String>(
             constants_str::SELECT_PASSWORD_HASH_FROM_ADMIN_USERS_WHERE_LOGIN_ADMIN,
@@ -99,22 +99,28 @@ mod test_data_tables {
         futures::StreamExt::fold(
             futures::stream::iter([
                 (serde_json::json!([]), http::StatusCode::UNPROCESSABLE_ENTITY),
-                (serde_json::json!([{(stringify!(user_id)): first.0, (stringify!(changes)): {}}]), http::StatusCode::UNPROCESSABLE_ENTITY),
+                (serde_json::json!([{(stringify!(filter)): {}, (stringify!(changes)): {(stringify!(is_banned)): true}}]), http::StatusCode::UNPROCESSABLE_ENTITY),
+                (serde_json::json!([{(stringify!(filter)): {(stringify!(user_id)): first.0, (stringify!(login)): second.1}, (stringify!(changes)): {(stringify!(is_banned)): true}}]), http::StatusCode::CONFLICT),
                 (serde_json::json!([
-                    {(stringify!(user_id)): first.0, (stringify!(changes)): {(stringify!(display_name)): constants_str::VALUE_79B22AC4}},
-                    {(stringify!(user_id)): first.0, (stringify!(changes)): {(stringify!(is_banned)): true}}
+                    {(stringify!(filter)): {(stringify!(user_id)): first.0}, (stringify!(changes)): {(stringify!(is_banned)): true}},
+                    {(stringify!(filter)): {(stringify!(login)): first.1}, (stringify!(changes)): {(stringify!(is_banned)): false}}
+                ]), http::StatusCode::UNPROCESSABLE_ENTITY),
+                (serde_json::json!([{(stringify!(filter)): {(stringify!(user_id)): first.0}, (stringify!(changes)): {}}]), http::StatusCode::UNPROCESSABLE_ENTITY),
+                (serde_json::json!([
+                    {(stringify!(filter)): {(stringify!(user_id)): first.0}, (stringify!(changes)): {(stringify!(display_name)): constants_str::VALUE_79B22AC4}},
+                    {(stringify!(filter)): {(stringify!(user_id)): first.0}, (stringify!(changes)): {(stringify!(is_banned)): true}}
                 ]), http::StatusCode::UNPROCESSABLE_ENTITY),
                 (serde_json::json!([
-                    {(stringify!(user_id)): first.0, (stringify!(changes)): {(stringify!(is_banned)): true}},
-                    {(stringify!(user_id)): i64::MAX, (stringify!(changes)): {(stringify!(is_banned)): true}}
+                    {(stringify!(filter)): {(stringify!(user_id)): first.0}, (stringify!(changes)): {(stringify!(is_banned)): true}},
+                    {(stringify!(filter)): {(stringify!(user_id)): i64::MAX}, (stringify!(changes)): {(stringify!(is_banned)): true}}
                 ]), http::StatusCode::CONFLICT),
                 (serde_json::json!([
-                    {(stringify!(user_id)): second.0, (stringify!(changes)): {(stringify!(display_name)): constants_str::VALUE_79B22AC4}},
-                    {(stringify!(user_id)): actor, (stringify!(changes)): {(stringify!(is_banned)): true}}
+                    {(stringify!(filter)): {(stringify!(user_id)): second.0}, (stringify!(changes)): {(stringify!(display_name)): constants_str::VALUE_79B22AC4}},
+                    {(stringify!(filter)): {(stringify!(user_id)): actor}, (stringify!(changes)): {(stringify!(is_banned)): true}}
                 ]), http::StatusCode::CONFLICT),
                 (serde_json::json!([
-                    {(stringify!(user_id)): first.0, (stringify!(changes)): {(stringify!(login)): constants_str::LOGIN}},
-                    {(stringify!(user_id)): second.0, (stringify!(changes)): {(stringify!(login)): constants_str::LOGIN}}
+                    {(stringify!(filter)): {(stringify!(user_id)): first.0}, (stringify!(changes)): {(stringify!(login)): constants_str::LOGIN}},
+                    {(stringify!(filter)): {(stringify!(user_id)): second.0}, (stringify!(changes)): {(stringify!(login)): constants_str::LOGIN}}
                 ]), http::StatusCode::CONFLICT),
             ]),
             (),
@@ -139,8 +145,8 @@ mod test_data_tables {
         ).await;
         let response = send_batch(crate::AdminHtmlTestBody::try_from(serde_json::json!({
             (stringify!(updates)): [
-                {(stringify!(user_id)): first.0, (stringify!(changes)): {(stringify!(is_banned)): true}},
-                {(stringify!(user_id)): second.0, (stringify!(changes)): {(stringify!(display_name)): constants_str::VALUE_79B22AC4}}
+                {(stringify!(filter)): {(stringify!(user_id)): first.0}, (stringify!(changes)): {(stringify!(is_banned)): true}},
+                {(stringify!(filter)): {(stringify!(user_id)): second.0}, (stringify!(changes)): {(stringify!(display_name)): constants_str::VALUE_79B22AC4}}
             ]
         }).to_string()).expect(constants_str::DIAGNOSTIC_02430D49)).await;
         assert_eq!(response.status(), http::StatusCode::NO_CONTENT);
@@ -214,8 +220,8 @@ mod test_data_tables {
             .expect(constants_str::DIAGNOSTIC_159BA143);
         let replacement = send_batch(crate::AdminHtmlTestBody::try_from(serde_json::json!({
             (stringify!(updates)): [
-                {(stringify!(user_id)): second.0, (stringify!(changes)): {(stringify!(is_banned)): true}},
-                {(stringify!(user_id)): first.0, (stringify!(changes)): {(stringify!(is_banned)): false}}
+                {(stringify!(filter)): {(stringify!(user_id)): second.0}, (stringify!(changes)): {(stringify!(is_banned)): true}},
+                {(stringify!(filter)): {(stringify!(user_id)): first.0}, (stringify!(changes)): {(stringify!(is_banned)): false}}
             ]
         }).to_string()).expect(constants_str::DIAGNOSTIC_AB2A4B1E)).await;
         assert_eq!(replacement.status(), http::StatusCode::NO_CONTENT);
@@ -226,13 +232,13 @@ mod test_data_tables {
                 .expect(constants_str::DIAGNOSTIC_F5B17590);
         assert_eq!(replacement_administrator_count, 1);
         let unblock = send_batch(crate::AdminHtmlTestBody::try_from(serde_json::json!({
-            (stringify!(updates)): [{(stringify!(user_id)): second.0, (stringify!(changes)): {(stringify!(is_banned)): false}}]
+            (stringify!(updates)): [{(stringify!(filter)): {(stringify!(user_id)): second.0}, (stringify!(changes)): {(stringify!(is_banned)): false}}]
         }).to_string()).expect(constants_str::DIAGNOSTIC_932A8C6B)).await;
         assert_eq!(unblock.status(), http::StatusCode::NO_CONTENT);
         let remove_all = send_batch(crate::AdminHtmlTestBody::try_from(serde_json::json!({
             (stringify!(updates)): [
-                {(stringify!(user_id)): first.0, (stringify!(changes)): {(stringify!(is_banned)): true}},
-                {(stringify!(user_id)): second.0, (stringify!(changes)): {(stringify!(is_banned)): true}}
+                {(stringify!(filter)): {(stringify!(user_id)): first.0}, (stringify!(changes)): {(stringify!(is_banned)): true}},
+                {(stringify!(filter)): {(stringify!(user_id)): second.0}, (stringify!(changes)): {(stringify!(is_banned)): true}}
             ]
         }).to_string()).expect(constants_str::DIAGNOSTIC_8D00D760)).await;
         assert_eq!(remove_all.status(), http::StatusCode::CONFLICT);
@@ -242,6 +248,33 @@ mod test_data_tables {
                 .await
                 .expect(constants_str::DIAGNOSTIC_28D21509);
         assert_eq!(active_administrators, 2);
+
+        let group_setup = send_batch(crate::AdminHtmlTestBody::try_from(serde_json::json!({
+            (stringify!(updates)): [
+                {(stringify!(filter)): {(stringify!(user_id)): first.0, (stringify!(login)): first.1, (stringify!(is_banned)): false}, (stringify!(changes)): {(stringify!(display_name)): constants_str::ADMIN_UPDATED_USER_NAME}},
+                {(stringify!(filter)): {(stringify!(user_id)): second.0, (stringify!(login)): second.1, (stringify!(is_banned)): false}, (stringify!(changes)): {(stringify!(display_name)): constants_str::ADMIN_UPDATED_USER_NAME}}
+            ]
+        }).to_string()).expect(constants_str::DIAGNOSTIC_A3982607)).await;
+        assert_eq!(group_setup.status(), http::StatusCode::NO_CONTENT);
+        let group_response = send_batch(crate::AdminHtmlTestBody::try_from(serde_json::json!({
+            (stringify!(updates)): [{(stringify!(filter)): {(stringify!(display_name)): constants_str::ADMIN_UPDATED_USER_NAME, (stringify!(is_banned)): false}, (stringify!(changes)): {(stringify!(display_name)): constants_str::ADMIN_ALT}}]
+        }).to_string()).expect(constants_str::DIAGNOSTIC_989607B5)).await;
+        assert_eq!(group_response.status(), http::StatusCode::NO_CONTENT);
+        futures::StreamExt::fold(
+            futures::stream::iter([&first.1, &second.1]),
+            (),
+            async |(), login| {
+                let changed =
+                    sqlx::query_as::<_, (i64, String, String, bool)>(constants_str::VALUE_1B03D1AA)
+                        .bind(login)
+                        .fetch_one(&fixture.pool.0)
+                        .await
+                        .expect(constants_str::DIAGNOSTIC_9F508C16);
+                assert_eq!(changed.2, constants_str::ADMIN_ALT);
+            },
+        )
+        .await;
+
         fixture
             .lock
             .0
@@ -1288,8 +1321,8 @@ mod test_flow {
             crate::router_with_pool(&pool).0,
             crate::request_with_peer(
                 super::HttpAdminApiTestMethod::from(http::Method::PATCH),
-                super::StdAdminApiTestStrRef::from(format!("/users/{limited_id}").as_str()),
-                super::StdAdminApiTestStrRef::from(constants_str::DISPLAY_NAME_UPDATED_USER),
+                super::StdAdminApiTestStrRef::from(server_admin_contract::admin_route::AdminRoute::UpdateUsers.path().as_ref()),
+                super::StdAdminApiTestStrRef::from(serde_json::json!({(stringify!(updates)): [{(stringify!(filter)): {(stringify!(user_id)): limited_id}, (stringify!(changes)): {(stringify!(display_name)): constants_str::ADMIN_UPDATED_USER_NAME}}]}).to_string().as_str()),
                 Some(super::StdAdminApiTestStrRef::from(active_cookie.as_str())),
                 Some(super::StdAdminApiTestStrRef::from(
                     refreshed_csrf.0.as_str(),
@@ -1304,8 +1337,8 @@ mod test_flow {
             crate::router_with_pool(&pool).0,
             crate::request_with_peer(
                 super::HttpAdminApiTestMethod::from(http::Method::PATCH),
-                super::StdAdminApiTestStrRef::from(format!("/users/{limited_id}").as_str()),
-                super::StdAdminApiTestStrRef::from(constants_str::IS_BANNED_TRUE),
+                super::StdAdminApiTestStrRef::from(server_admin_contract::admin_route::AdminRoute::UpdateUsers.path().as_ref()),
+                super::StdAdminApiTestStrRef::from(serde_json::json!({(stringify!(updates)): [{(stringify!(filter)): {(stringify!(user_id)): limited_id}, (stringify!(changes)): {(stringify!(is_banned)): true}}]}).to_string().as_str()),
                 Some(super::StdAdminApiTestStrRef::from(active_cookie.as_str())),
                 Some(super::StdAdminApiTestStrRef::from(
                     refreshed_csrf.0.as_str(),

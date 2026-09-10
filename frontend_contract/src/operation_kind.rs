@@ -5,5 +5,5 @@ pub enum OperationKind {
     CreateMany,
     DeleteMany,
     Read,
-    UpdateMany,
+    Update,
 }

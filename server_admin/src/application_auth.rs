@@ -25,7 +25,6 @@ proc_macro_frontend_contract_api_operation_error::api_operation_error!(AdminSign
 proc_macro_frontend_contract_api_operation_error::api_operation_error!(AdminSignOutError,);
 proc_macro_frontend_contract_api_operation_error::api_operation_error!(AdminUpdateRoleError,);
 proc_macro_frontend_contract_api_operation_error::api_operation_error!(AdminUpdateSettingsError,);
-proc_macro_frontend_contract_api_operation_error::api_operation_error!(AdminUpdateUserError,);
 proc_macro_frontend_contract_api_operation_error::api_operation_error!(AdminUpdateUsersError,);
 proc_macro_frontend_contract_api_operation_error::api_operation_error!(AdminUserRolesTableError,);
 proc_macro_frontend_contract_api_operation_error::api_operation_error!(

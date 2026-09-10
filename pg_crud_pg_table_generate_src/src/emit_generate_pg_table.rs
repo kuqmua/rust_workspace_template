@@ -61,14 +61,14 @@ pub fn emit_generate_pg_table(
     enum Operation {
         CreateMany,
         Read,
-        UpdateMany,
+        Update,
         DeleteMany,
     }
     impl Operation {
         const fn desirable_status_code(self) -> macro_helpers::status_code::StatusCode {
             match self {
                 Self::CreateMany => macro_helpers::status_code::StatusCode::Created201,
-                Self::Read | Self::UpdateMany | Self::DeleteMany => {
+                Self::Read | Self::Update | Self::DeleteMany => {
                     macro_helpers::status_code::StatusCode::Ok200
                 }
             }
@@ -76,7 +76,7 @@ pub fn emit_generate_pg_table(
         const fn http_method(self) -> OperationHttpMethod {
             match self {
                 Self::CreateMany | Self::Read => OperationHttpMethod::Post,
-                Self::UpdateMany => OperationHttpMethod::Patch,
+                Self::Update => OperationHttpMethod::Patch,
                 Self::DeleteMany => OperationHttpMethod::Delete,
             }
         }
@@ -98,13 +98,13 @@ pub fn emit_generate_pg_table(
             quote::quote! {#identifier}
         }
         const fn supports_idempotency(self) -> bool {
-            matches!(self, Self::CreateMany | Self::UpdateMany | Self::DeleteMany)
+            matches!(self, Self::CreateMany | Self::Update | Self::DeleteMany)
         }
         const fn is_read(self) -> bool {
             matches!(self, Self::Read)
         }
         const fn requires_row_and_rollback_error(self) -> bool {
-            matches!(self, Self::CreateMany | Self::UpdateMany | Self::DeleteMany)
+            matches!(self, Self::CreateMany | Self::Update | Self::DeleteMany)
         }
         const fn payload_uses_generated_accessors(self) -> bool {
             !matches!(self, Self::CreateMany)
@@ -118,7 +118,7 @@ pub fn emit_generate_pg_table(
                 match &self {
                     Self::CreateMany => "CreateMany",
                     Self::Read => "Read",
-                    Self::UpdateMany => "UpdateMany",
+                    Self::Update => "Update",
                     Self::DeleteMany => "DeleteMany",
                 }
             )
@@ -128,7 +128,7 @@ pub fn emit_generate_pg_table(
         fn from(value: &CreateOrUpdateOrDm) -> Self {
             match &value {
                 CreateOrUpdateOrDm::Create => Self::CreateMany,
-                CreateOrUpdateOrDm::Update => Self::UpdateMany,
+                CreateOrUpdateOrDm::Update => Self::Update,
                 CreateOrUpdateOrDm::Delete => Self::DeleteMany,
             }
         }
@@ -169,7 +169,7 @@ pub fn emit_generate_pg_table(
         const ALL: [Self; 4] = [
             Self::from_operation(Operation::CreateMany),
             Self::from_operation(Operation::Read),
-            Self::from_operation(Operation::UpdateMany),
+            Self::from_operation(Operation::Update),
             Self::from_operation(Operation::DeleteMany),
         ];
         const fn from_operation(operation: Operation) -> Self {
@@ -177,7 +177,7 @@ pub fn emit_generate_pg_table(
                 match operation {
                     Operation::CreateMany => GeneratePgTableAttr::CmErrorVariants,
                     Operation::Read => GeneratePgTableAttr::RmErrorVariants,
-                    Operation::UpdateMany => GeneratePgTableAttr::UmErrorVariants,
+                    Operation::Update => GeneratePgTableAttr::UmErrorVariants,
                     Operation::DeleteMany => GeneratePgTableAttr::DmErrorVariants,
                 },
                 operation.http_method(),
@@ -189,12 +189,12 @@ pub fn emit_generate_pg_table(
                 match operation {
                     Operation::CreateMany => GeneratePgTableAttr::CmLogic,
                     Operation::Read => GeneratePgTableAttr::RmLogic,
-                    Operation::UpdateMany => GeneratePgTableAttr::UmLogic,
+                    Operation::Update => GeneratePgTableAttr::UmLogic,
                     Operation::DeleteMany => GeneratePgTableAttr::DmLogic,
                 },
                 operation,
                 match operation {
-                    Operation::UpdateMany => crate::optimistic_concurrency_capability::OptimisticConcurrencyCapability::Enabled,
+                    Operation::Update => crate::optimistic_concurrency_capability::OptimisticConcurrencyCapability::Enabled,
                     Operation::CreateMany
                     | Operation::DeleteMany
                     | Operation::Read
@@ -205,7 +205,7 @@ pub fn emit_generate_pg_table(
                         constants_str::PG_CRUD_CREATE_PERMISSION_ACTION
                     }
                     Operation::Read => constants_str::PG_CRUD_READ_PERMISSION_ACTION,
-                    Operation::UpdateMany => {
+                    Operation::Update => {
                         constants_str::PG_CRUD_UPDATE_PERMISSION_ACTION
                     }
                     Operation::DeleteMany => {
@@ -1555,7 +1555,7 @@ pub fn emit_generate_pg_table(
             ),
             GeneratePgTableApiMode::ReadOnly => matches!(operation, Operation::Read),
             GeneratePgTableApiMode::ReadUpdate => {
-                matches!(operation, Operation::Read | Operation::UpdateMany)
+                matches!(operation, Operation::Read | Operation::Update)
             }
         };
     let mut frontend_field_order = frontend_fields
@@ -1624,7 +1624,7 @@ pub fn emit_generate_pg_table(
                 quote::quote! {frontend_contract::field_capability::FieldCapability::Disabled}
             };
             let updatable_token_stream = if *field_index != primary_key_field_index.get()
-                && operation_is_enabled(&Operation::UpdateMany)
+                && operation_is_enabled(&Operation::Update)
             {
                 quote::quote! {frontend_contract::field_capability::FieldCapability::Enabled}
             } else {
@@ -3464,9 +3464,8 @@ enum WrapIntoOptional {
     let identifier_update_upper_camel_case =
         naming::parameter::SelfUpdateUpperCamelCase::from_tokens(&identifier);
     let identifier_um_parameters_upper_camel_case =
-        quote::format_ident!("{identifier}UpdateManyParameters");
-    let identifier_um_payload_upper_camel_case =
-        quote::format_ident!("{identifier}UpdateManyPayload");
+        quote::format_ident!("{identifier}UpdateParameters");
+    let identifier_um_payload_upper_camel_case = quote::format_ident!("{identifier}UpdatePayload");
     let identifier_update_try_new_error_upper_camel_case =
         naming::parameter::SelfUpdateTryNewErrorUpperCamelCase::from_tokens(&identifier);
     let identifier_update_for_query_upper_camel_case =
@@ -4556,9 +4555,7 @@ enum WrapIntoOptional {
             match operation {
                 Operation::Read => &read_result_type_token_stream,
                 Operation::DeleteMany => &vec_primary_key_field_type_read_token_stream,
-                Operation::CreateMany | Operation::UpdateMany => {
-                    &vec_identifier_read_ids_token_stream
-                }
+                Operation::CreateMany | Operation::Update => &vec_identifier_read_ids_token_stream,
             }
         };
     let primary_key_field_type_origin_token_stream = if let syn::Type::Path(type_path) =
@@ -5529,7 +5526,7 @@ enum WrapIntoOptional {
                         Operation::Read
                         | Operation::DeleteMany
                         => parameters_logic_ts0,
-                        Operation::UpdateMany => quote::quote! {
+                        Operation::Update => quote::quote! {
                             #parameters_logic_ts0
                             #bulk_reservation_token_stream
                             let #UpdateForQueryVecSnakeCase = #ParametersSnakeCase.#PayloadSnakeCase.into_vec().into_iter()
@@ -5742,7 +5739,7 @@ enum WrapIntoOptional {
                                 })
                             )}
                         }
-                        Operation::UpdateMany => {
+                        Operation::Update => {
                             let generate_match_update_query_part_primary_key_operation_token_stream =
                                 |ts: &dyn quote::ToTokens| generate_match_update_query_part_primary_key_token_stream(operation, &ts);
                             let ts0 = generate_accumulator_string_pop_accumulator_token_stream(
@@ -5928,7 +5925,7 @@ enum WrapIntoOptional {
                                 #ts
                             }
                         }
-                        Operation::UpdateMany => {
+                        Operation::Update => {
                             let fields_named_without_primary_key_update_assign_token_stream =
                                 generate_fields_named_without_primary_key_without_comma_token_stream(&|element: &macro_helpers::syn_field::SynField| {
                                     if optimistic_revision_field_identifier.as_ref() == Some(element.get_identifier()) {
@@ -6106,7 +6103,7 @@ enum WrapIntoOptional {
                                 #fetch_token_stream
                             }}
                         },
-                        Operation::UpdateMany => {
+                        Operation::Update => {
                             let fetch = generate_create_update_dm_fetch_token_stream(&CreateOrUpdateOrDm::Update);
                             let verify_revision = if optimistic_concurrency_enabled {
                                 let rollback_failed = generate_operation_error_initialization_eprintln_res_token_stream(
@@ -6440,7 +6437,7 @@ enum WrapIntoOptional {
                         },
                     )
                     },
-                    Operation::UpdateMany => {
+                    Operation::Update => {
                         let identifier_operation_payload_upper_camel_case = generate_identifier_operation_payload_upper_camel_case(operation);
                         let vec_identifier_update_token_stream = pg_crud_macro_common::generate_vec_tokens_declaration_token_stream::generate_vec_tokens_declaration_token_stream(&identifier_update_upper_camel_case);
                         let vec_identifier_update_schema_token_stream = generate_pg_table_input_model.config.um_max_items.map_or_else(
@@ -6924,7 +6921,7 @@ enum WrapIntoOptional {
             CreateMany,
             DeleteMany,
             Read,
-            UpdateMany,
+            Update,
         }
         #[derive(Clone, Copy, Debug, Eq, PartialEq)]
         pub enum #identifier_success_status_upper_camel_case {
@@ -7039,7 +7036,7 @@ enum WrapIntoOptional {
             }
             #[must_use]
             pub const fn mutates(self) -> bool {
-                !self.payload_example && matches!(self.operation(), #identifier_operation_upper_camel_case::CreateMany | #identifier_operation_upper_camel_case::UpdateMany | #identifier_operation_upper_camel_case::DeleteMany)
+                !self.payload_example && matches!(self.operation(), #identifier_operation_upper_camel_case::CreateMany | #identifier_operation_upper_camel_case::Update | #identifier_operation_upper_camel_case::DeleteMany)
             }
             #[must_use]
             pub const fn path(self) -> &'static str {
@@ -7375,7 +7372,7 @@ enum WrapIntoOptional {
                 assert!(#identifier_route_contract_upper_camel_case::ALL.into_iter().all(|contract| matches!(contract.operation(), #identifier_operation_upper_camel_case::Read)));
             },
             GeneratePgTableApiMode::ReadUpdate => quote::quote! {
-                assert!(#identifier_route_contract_upper_camel_case::ALL.into_iter().all(|contract| matches!(contract.operation(), #identifier_operation_upper_camel_case::Read | #identifier_operation_upper_camel_case::UpdateMany)));
+                assert!(#identifier_route_contract_upper_camel_case::ALL.into_iter().all(|contract| matches!(contract.operation(), #identifier_operation_upper_camel_case::Read | #identifier_operation_upper_camel_case::Update)));
             },
         };
         let round_trip_tests_token_stream = crate::operation_descriptor::OperationDescriptor::ALL.iter().map(|operation_descriptor| {
@@ -7485,7 +7482,7 @@ enum WrapIntoOptional {
         });
         let bulk_limit_tests_token_stream = [
             (Operation::CreateMany, generate_pg_table_input_model.config.cm_max_items),
-            (Operation::UpdateMany, generate_pg_table_input_model.config.um_max_items),
+            (Operation::Update, generate_pg_table_input_model.config.um_max_items),
         ]
         .into_iter()
         .filter_map(|(operation, optional_limit)| {
@@ -9075,7 +9072,7 @@ enum WrapIntoOptional {
                                 }
                             ]},
                             &quote::quote! {
-                                #identifier::try_update_many_execute(
+                                #identifier::try_update_execute(
                                     &reqwest::Client::new(),
                                     &url_cloned,
                                     #identifier_um_parameters_upper_camel_case {
@@ -9190,7 +9187,7 @@ enum WrapIntoOptional {
                                 #identifier_read_ids_upper_fields_initialization_without_primary_key_token_stream
                             }},
                             &quote::quote! {
-                                #identifier::try_update_many_execute(
+                                #identifier::try_update_execute(
                                     &reqwest::Client::new(),
                                     &url_cloned,
                                     #identifier_um_parameters_upper_camel_case {

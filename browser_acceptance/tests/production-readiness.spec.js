@@ -274,10 +274,12 @@ test("user CRUD rejects duplicates and is visible through the read-only UI", asy
   });
   expect([409, 422]).toContain(duplicate.status());
 
-  const renamed = await page.request.patch(`/users/${userId}`, {
+  const renamed = await page.request.patch("/users/update", {
     data: {
-      display_name: "Renamed Production User",
-      login: null
+      updates: [{
+        filter: { user_id: userId },
+        changes: { display_name: "Renamed Production User", login: null }
+      }]
     },
     headers: await adminHeaders(page.context())
   });
@@ -382,8 +384,8 @@ test("banning a user revokes active sessions and unbanning restores sign-in", as
     .find(user => user.id === userId);
   const administrator = (await usersReadPage(await readUsers(page.request, "limit=100"))).items
     .find(user => user.login === "administrator");
-  const conflicting = await page.request.patch(`/users/${userId}`, {
-    data: { login: administrator.login, display_name: "Rejected Name", is_banned: true },
+  const conflicting = await page.request.patch("/users/update", {
+    data: { updates: [{ filter: { user_id: userId }, changes: { login: administrator.login, display_name: "Rejected Name", is_banned: true } }] },
     headers: await adminHeaders(page.context())
   });
   expect(conflicting.status()).toBe(409);
@@ -391,19 +393,16 @@ test("banning a user revokes active sessions and unbanning restores sign-in", as
     .find(user => user.id === userId)).toEqual(originalUser);
   expect((await userPage.request.get("/auth/me")).status()).toBe(200);
 
-  const banned = await page.request.patch(
-    `/users/${userId}`,
-    {
-      data: { is_banned: true },
-      headers: await adminHeaders(page.context())
-    }
-  );
+  const banned = await page.request.patch("/users/update", {
+    data: { updates: [{ filter: { user_id: userId }, changes: { is_banned: true } }] },
+    headers: await adminHeaders(page.context())
+  });
   expect(banned.status()).toBe(204);
   expect(
     (await userPage.request.get("/auth/me")).status()
   ).toBe(401);
-  const renamed = await page.request.patch(`/users/${userId}`, {
-    data: { display_name: "Renamed Banned User" },
+  const renamed = await page.request.patch("/users/update", {
+    data: { updates: [{ filter: { user_id: userId }, changes: { display_name: "Renamed Banned User" } }] },
     headers: await adminHeaders(page.context())
   });
   expect(renamed.status()).toBe(204);
@@ -415,13 +414,10 @@ test("banning a user revokes active sessions and unbanning restores sign-in", as
   await signIn(userPage, "ban_lifecycle_user", "Ban-password1!");
   await expect(userPage.getByRole("alert")).toBeVisible();
 
-  const unbanned = await page.request.patch(
-    `/users/${userId}`,
-    {
-      data: { is_banned: false },
-      headers: await adminHeaders(page.context())
-    }
-  );
+  const unbanned = await page.request.patch("/users/update", {
+    data: { updates: [{ filter: { user_id: userId }, changes: { is_banned: false } }] },
+    headers: await adminHeaders(page.context())
+  });
   expect(unbanned.status()).toBe(204);
   await signIn(userPage, "ban_lifecycle_user", "Ban-password1!");
   await expect(userPage).toHaveURL(/\/admin\/profile$/);

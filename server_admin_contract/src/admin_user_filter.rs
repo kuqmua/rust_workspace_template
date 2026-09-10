@@ -10,7 +10,9 @@
 )]
 #[getters(bare)]
 #[serde(deny_unknown_fields)]
-pub struct AdminUserUpdate {
-    changes: crate::admin_update_user_request::AdminUpdateUserRequest,
-    filter: crate::admin_user_filter::AdminUserFilter,
+pub struct AdminUserFilter {
+    user_id: Option<crate::admin_user_id::AdminUserId>,
+    login: Option<crate::admin_login::AdminLogin>,
+    display_name: Option<crate::admin_display_name::AdminDisplayName>,
+    is_banned: Option<crate::admin_bool::AdminBool>,
 }
