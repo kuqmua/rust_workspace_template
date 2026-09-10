@@ -46,8 +46,8 @@ pub enum AdminRoute {
     CreateUser,
     #[route_catalog_route(crate::admin_delete_role_route::AdminDeleteRoleRoute)]
     DeleteRole(crate::admin_role_id::AdminRoleId),
-    #[route_catalog_route(crate::admin_delete_user_route::AdminDeleteUserRoute)]
-    DeleteUser(crate::admin_user_id::AdminUserId),
+    #[route_catalog_route(crate::admin_delete_users_route::AdminDeleteUsersRoute)]
+    DeleteUsers,
     #[route_catalog_route(crate::admin_me_route::AdminMeRoute)]
     Me,
     #[route_catalog_route(
@@ -86,8 +86,6 @@ pub enum AdminRoute {
     Roles,
     #[route_catalog_route(crate::admin_set_role_permissions_route::AdminSetRolePermissionsRoute)]
     SetRolePermissions(crate::admin_role_id::AdminRoleId),
-    #[route_catalog_route(crate::admin_set_user_password_route::AdminSetUserPasswordRoute)]
-    SetUserPassword(crate::admin_user_id::AdminUserId),
     #[route_catalog_route(crate::admin_set_user_roles_route::AdminSetUserRolesRoute)]
     SetUserRoles(crate::admin_user_id::AdminUserId),
     #[route_catalog_route(crate::admin_settings_route::AdminSettingsRoute)]

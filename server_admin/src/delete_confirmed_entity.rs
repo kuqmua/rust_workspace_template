@@ -24,13 +24,17 @@ pub(crate) async fn delete_confirmed_entity(
                 admin_auth_request,
                 *form.get_confirmation(),
                 server_admin_contract::admin_frontend_path::AdminFrontendPath::Users,
-                |auth| {
-                    crate::user_mutations_delete::user_mutations_delete(
-                        auth,
-                        crate::axum_admin_path::AxumAdminPath::from(
-                            crate::user_path_impl::user_path_impl(*form.get_user_id()),
-                        ),
+                async |auth| {
+                    let filter = server_admin_contract::admin_user_filter::AdminUserFilter::new(
+                        Some(*form.get_user_id()),
+                        None,
+                        None,
+                        None,
+                    );
+                    crate::user_mutations_delete_filtered::user_mutations_delete_filtered(
+                        auth, &filter,
                     )
+                    .await
                 },
             )
             .await

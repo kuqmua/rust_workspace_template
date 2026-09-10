@@ -345,11 +345,11 @@ fn test_generated_admin_open_api_combines_enabled_routes_only() {
         .get(constants_str::PATHS)
         .and_then(serde_json::Value::as_object)
         .expect(constants_str::DIAGNOSTIC_274479A7);
-    assert_eq!(paths.len(), 36usize);
+    assert_eq!(paths.len(), 35usize);
     assert!(paths.contains_key(constants_str::VALUE_C764A505));
     assert!(!paths.contains_key(constants_str::VALUE_F772F137));
     assert!(paths.contains_key(constants_str::VALUE_356A53CE));
-    assert!(paths.contains_key(constants_str::VALUE_2A3105E4));
+    assert!(!paths.contains_key(constants_str::VALUE_2A3105E4));
     assert!(paths.contains_key(constants_str::ADMIN_USERS_READ));
     assert!(!paths.contains_key(constants_str::VALUE_1FB526B2));
     assert!(!paths.contains_key(constants_str::VALUE_0878EE4E));

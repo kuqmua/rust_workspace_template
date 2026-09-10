@@ -9,7 +9,7 @@
 mod test_data_tables {
     #[tokio::test]
     #[ignore = "requires PostgreSQL; run through workspace_test_runner database"]
-    async fn test_postgresql_users_update_is_atomic_and_revokes_sessions() {
+    async fn test_postgresql_user_mutations_are_atomic_and_revoke_sessions() {
         let fixture = crate::admin_html_test_fixture().await;
         let password_hash = sqlx::query_scalar::<_, String>(
             constants_str::SELECT_PASSWORD_HASH_FROM_ADMIN_USERS_WHERE_LOGIN_ADMIN,
@@ -275,6 +275,287 @@ mod test_data_tables {
         )
         .await;
 
+        let password_login = async |admin_login: server_admin_contract::admin_login::AdminLogin,
+                                    admin_password: server_admin_contract::admin_password::AdminPassword| {
+            let _cleared_password_login_limits = sqlx::query(constants_str::ADMIN_TEST_CLEAR_LOGIN_LIMITS_SQL)
+                .execute(&fixture.pool.0).await.expect(constants_str::DIAGNOSTIC_0CF9703C);
+            let body = serde_json::json!({(stringify!(login)): admin_login, (stringify!(password)): admin_password}).to_string();
+            let login_response = tower::ServiceExt::oneshot(
+                crate::router_with_pool(&fixture.pool).0,
+                crate::request_with_peer(
+                    crate::HttpAdminApiTestMethod::from(http::Method::POST),
+                    crate::StdAdminApiTestStrRef::from(server_admin_contract::admin_route::AdminRoute::SignIn.path().as_ref()),
+                    crate::StdAdminApiTestStrRef::from(body.as_str()), None, None,
+                ).0,
+            ).await.expect(constants_str::DIAGNOSTIC_86CBE2D9);
+            crate::HttpAdminHtmlTestResponse::from(login_response)
+        };
+        futures::StreamExt::fold(
+            futures::stream::iter([&first.1, &second.1]),
+            (),
+            async |(), login| {
+                let initial_login = password_login(
+                    server_admin_contract::admin_login::AdminLogin::try_from(login.clone())
+                        .expect(constants_str::DIAGNOSTIC_74512176),
+                    serde_json::from_str(constants_str::CORRECT_PASSWORD)
+                        .expect(constants_str::DIAGNOSTIC_9D0C90F0),
+                )
+                .await;
+                assert_eq!(initial_login.status(), http::StatusCode::OK);
+            },
+        )
+        .await;
+        let password_audit_before =
+            sqlx::query_scalar::<_, i64>(constants_str::ADMIN_TEST_AUDIT_COUNT_SQL)
+                .fetch_one(&fixture.pool.0)
+                .await
+                .expect(constants_str::DIAGNOSTIC_0EF1521F);
+        let password_rollback = send_batch(crate::AdminHtmlTestBody::try_from(serde_json::json!({
+            (stringify!(updates)): [
+                {(stringify!(filter)): {(stringify!(user_id)): first.0}, (stringify!(changes)): {(stringify!(password)): constants_str::VALUE_4EDBB68D}},
+                {(stringify!(filter)): {(stringify!(user_id)): second.0}, (stringify!(changes)): {(stringify!(login)): first.1}}
+            ]
+        }).to_string()).expect(constants_str::DIAGNOSTIC_99A82D3F)).await;
+        assert_eq!(password_rollback.status(), http::StatusCode::CONFLICT);
+        futures::StreamExt::fold(
+            futures::stream::iter([first.0, second.0]),
+            (),
+            async |(), identifier| {
+                let preserved_password = sqlx::query_as::<_, (String, bool)>(
+                    constants_str::ADMIN_TEST_USER_PASSWORD_STATE_SQL,
+                )
+                .bind(identifier)
+                .fetch_one(&fixture.pool.0)
+                .await
+                .expect(constants_str::DIAGNOSTIC_BD0AE781);
+                assert_eq!(preserved_password.0, password_hash);
+                let preserved_sessions = sqlx::query_scalar::<_, i64>(
+                    constants_str::SERVER_ADMIN_COUNT_ACTIVE_SESSIONS_SQL,
+                )
+                .bind(identifier)
+                .fetch_one(&fixture.pool.0)
+                .await
+                .expect(constants_str::DIAGNOSTIC_B1DE2B1B);
+                assert!(preserved_sessions > 0);
+            },
+        )
+        .await;
+        let password_audit_rollback =
+            sqlx::query_scalar::<_, i64>(constants_str::ADMIN_TEST_AUDIT_COUNT_SQL)
+                .fetch_one(&fixture.pool.0)
+                .await
+                .expect(constants_str::DIAGNOSTIC_AFB059A0);
+        assert_eq!(password_audit_rollback, password_audit_before);
+        let password_group = send_batch(crate::AdminHtmlTestBody::try_from(serde_json::json!({
+            (stringify!(updates)): [{(stringify!(filter)): {(stringify!(display_name)): constants_str::ADMIN_ALT}, (stringify!(changes)): {(stringify!(password)): constants_str::VALUE_4EDBB68D}}]
+        }).to_string()).expect(constants_str::DIAGNOSTIC_26E1C3B4)).await;
+        assert_eq!(password_group.status(), http::StatusCode::NO_CONTENT);
+        let password_audit_after =
+            sqlx::query_scalar::<_, i64>(constants_str::ADMIN_TEST_AUDIT_COUNT_SQL)
+                .fetch_one(&fixture.pool.0)
+                .await
+                .expect(constants_str::DIAGNOSTIC_53E1DE4D);
+        assert_eq!(password_audit_after, password_audit_before + 2);
+        futures::StreamExt::fold(
+            futures::stream::iter([&first, &second]),
+            (),
+            async |(), target| {
+                let replaced_password = sqlx::query_as::<_, (String, bool)>(
+                    constants_str::ADMIN_TEST_USER_PASSWORD_STATE_SQL,
+                )
+                .bind(target.0)
+                .fetch_one(&fixture.pool.0)
+                .await
+                .expect(constants_str::DIAGNOSTIC_177888D3);
+                assert_ne!(replaced_password.0, password_hash);
+                assert!(replaced_password.1);
+                let revoked_sessions = sqlx::query_scalar::<_, i64>(
+                    constants_str::SERVER_ADMIN_COUNT_ACTIVE_SESSIONS_SQL,
+                )
+                .bind(target.0)
+                .fetch_one(&fixture.pool.0)
+                .await
+                .expect(constants_str::DIAGNOSTIC_2DBC1CC6);
+                assert_eq!(revoked_sessions, 0);
+                let obsolete_login = password_login(
+                    server_admin_contract::admin_login::AdminLogin::try_from(target.1.clone())
+                        .expect(constants_str::DIAGNOSTIC_1E8F5D4B),
+                    serde_json::from_str(constants_str::CORRECT_PASSWORD)
+                        .expect(constants_str::DIAGNOSTIC_3B12293B),
+                )
+                .await;
+                assert_eq!(obsolete_login.status(), http::StatusCode::UNAUTHORIZED);
+                let replacement_login = password_login(
+                    server_admin_contract::admin_login::AdminLogin::try_from(target.1.clone())
+                        .expect(constants_str::DIAGNOSTIC_E6776EB4),
+                    server_admin_contract::admin_password::AdminPassword::try_from(
+                        constants_str::VALUE_4EDBB68D.to_owned(),
+                    )
+                    .expect(constants_str::DIAGNOSTIC_64CB0D1E),
+                )
+                .await;
+                assert_eq!(replacement_login.status(), http::StatusCode::OK);
+            },
+        )
+        .await;
+        let password_restore = send_batch(crate::AdminHtmlTestBody::try_from(serde_json::json!({
+            (stringify!(updates)): [{(stringify!(filter)): {(stringify!(display_name)): constants_str::ADMIN_ALT}, (stringify!(changes)): {(stringify!(password)): serde_json::from_str::<String>(constants_str::CORRECT_PASSWORD).expect(constants_str::DIAGNOSTIC_30E5AD67)}}]
+        }).to_string()).expect(constants_str::DIAGNOSTIC_B9F65939)).await;
+        assert_eq!(password_restore.status(), http::StatusCode::NO_CONTENT);
+        let removed_password_route = tower::ServiceExt::oneshot(
+            crate::router_with_pool(&fixture.pool).0,
+            crate::request_with_peer(
+                crate::HttpAdminApiTestMethod::from(http::Method::POST),
+                crate::StdAdminApiTestStrRef::from(constants_str::VALUE_21E2A4C7),
+                crate::StdAdminApiTestStrRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
+                Some(crate::StdAdminApiTestStrRef::from(
+                    fixture.cookie.0.as_str(),
+                )),
+                Some(crate::StdAdminApiTestStrRef::from(fixture.csrf.0.as_str())),
+            )
+            .0,
+        )
+        .await;
+        assert!(
+            removed_password_route
+                .is_ok_and(|removed| removed.status() == http::StatusCode::NOT_FOUND)
+        );
+
+        let send_delete = async |admin_html_test_body: crate::AdminHtmlTestBody| {
+            let delete_response = tower::ServiceExt::oneshot(
+                crate::router_with_pool(&fixture.pool).0,
+                crate::request_with_peer(
+                    crate::HttpAdminApiTestMethod::from(http::Method::DELETE),
+                    crate::StdAdminApiTestStrRef::from(
+                        server_admin_contract::admin_route::AdminRoute::DeleteUsers
+                            .path()
+                            .as_ref(),
+                    ),
+                    crate::StdAdminApiTestStrRef::from(admin_html_test_body.0.as_ref()),
+                    Some(crate::StdAdminApiTestStrRef::from(
+                        fixture.cookie.0.as_str(),
+                    )),
+                    Some(crate::StdAdminApiTestStrRef::from(fixture.csrf.0.as_str())),
+                )
+                .0,
+            )
+            .await
+            .expect(constants_str::DIAGNOSTIC_70A044E0);
+            crate::HttpAdminHtmlTestResponse::from(delete_response)
+        };
+        let denied = send_delete(
+            crate::AdminHtmlTestBody::try_from(
+                serde_json::json!({
+                    (stringify!(filter)): {(stringify!(display_name)): constants_str::ADMIN_ALT}
+                })
+                .to_string(),
+            )
+            .expect(constants_str::DIAGNOSTIC_B9F2C5C9),
+        )
+        .await;
+        assert_eq!(denied.status(), http::StatusCode::FORBIDDEN);
+        let delete_permissions =
+            sqlx::query_as::<_, (i64, String)>(constants_str::SERVER_ADMIN_LIST_PERMISSIONS_SQL)
+                .fetch_all(&fixture.pool.0)
+                .await
+                .expect(constants_str::DIAGNOSTIC_6A20CE27);
+        let delete_permission = delete_permissions
+            .into_iter()
+            .find(|(_, name)| {
+                name == server_admin_contract::admin_permission::AdminPermission::UsersDelete
+                    .as_str()
+                    .get()
+            })
+            .expect(constants_str::DIAGNOSTIC_4112388D)
+            .0;
+        let _delete_permission_assignment =
+            sqlx::query(constants_str::SERVER_ADMIN_REPLACE_ROLE_PERMISSIONS_INSERT_SQL)
+                .bind(role)
+                .bind([delete_permission].as_slice())
+                .execute(&fixture.pool.0)
+                .await
+                .expect(constants_str::DIAGNOSTIC_F7349B40);
+        let before_delete_audit =
+            sqlx::query_scalar::<_, i64>(constants_str::ADMIN_TEST_AUDIT_COUNT_SQL)
+                .fetch_one(&fixture.pool.0)
+                .await
+                .expect(constants_str::DIAGNOSTIC_52639304);
+        futures::StreamExt::fold(futures::stream::iter([
+            (serde_json::json!({}), http::StatusCode::UNPROCESSABLE_ENTITY),
+            (serde_json::json!({(stringify!(user_id)): i64::MAX}), http::StatusCode::CONFLICT),
+            (serde_json::json!({(stringify!(user_id)): actor}), http::StatusCode::CONFLICT),
+            (serde_json::json!({(stringify!(user_id)): first.0, (stringify!(login)): second.1}), http::StatusCode::CONFLICT),
+            (serde_json::json!({(stringify!(display_name)): constants_str::ADMIN_ALT}), http::StatusCode::CONFLICT),
+        ]), (), async |(), (filter, expected_status)| {
+            let rejected = send_delete(crate::AdminHtmlTestBody::try_from(
+                serde_json::json!({(stringify!(filter)): filter}).to_string()
+            ).expect(constants_str::DIAGNOSTIC_C596EFE7)).await;
+            assert_eq!(rejected.status(), expected_status);
+            let retained_administrators = sqlx::query_scalar::<_, i64>(constants_str::SERVER_ADMIN_ACTIVE_ADMIN_COUNT_SQL)
+                .fetch_one(&fixture.pool.0).await.expect(constants_str::DIAGNOSTIC_046EFEAF);
+            assert_eq!(retained_administrators, 2);
+            let retained_audit = sqlx::query_scalar::<_, i64>(constants_str::ADMIN_TEST_AUDIT_COUNT_SQL)
+                .fetch_one(&fixture.pool.0).await.expect(constants_str::DIAGNOSTIC_20DC29D1);
+            assert_eq!(retained_audit, before_delete_audit);
+        }).await;
+        let _restore_actor_admin = sqlx::query(constants_str::SERVER_ADMIN_INSERT_ADMIN_ROLE_SQL)
+            .bind(actor)
+            .execute(&fixture.pool.0)
+            .await
+            .expect(constants_str::DIAGNOSTIC_5A99CDDF);
+        let target_session = tower::ServiceExt::oneshot(
+            crate::router_with_pool(&fixture.pool).0,
+            crate::request_with_peer(
+                crate::HttpAdminApiTestMethod::from(http::Method::POST),
+                crate::StdAdminApiTestStrRef::from(
+                    server_admin_contract::admin_route::AdminRoute::SignIn
+                        .path()
+                        .as_ref(),
+                ),
+                crate::StdAdminApiTestStrRef::from(sign_in.as_str()),
+                None,
+                None,
+            )
+            .0,
+        )
+        .await
+        .expect(constants_str::DIAGNOSTIC_3C5A33D0);
+        assert_eq!(target_session.status(), http::StatusCode::OK);
+        let final_delete_audit =
+            sqlx::query_scalar::<_, i64>(constants_str::ADMIN_TEST_AUDIT_COUNT_SQL)
+                .fetch_one(&fixture.pool.0)
+                .await
+                .expect(constants_str::DIAGNOSTIC_C201B8CB);
+        let deleted_group = send_delete(crate::AdminHtmlTestBody::try_from(serde_json::json!({
+            (stringify!(filter)): {(stringify!(display_name)): constants_str::ADMIN_ALT, (stringify!(is_banned)): false}
+        }).to_string()).expect(constants_str::DIAGNOSTIC_6AFD7A4A)).await;
+        assert_eq!(deleted_group.status(), http::StatusCode::NO_CONTENT);
+        futures::StreamExt::fold(
+            futures::stream::iter([&first.1, &second.1]),
+            (),
+            async |(), login| {
+                let missing =
+                    sqlx::query_as::<_, (i64, String, String, bool)>(constants_str::VALUE_1B03D1AA)
+                        .bind(login)
+                        .fetch_optional(&fixture.pool.0)
+                        .await
+                        .expect(constants_str::DIAGNOSTIC_6680C102);
+                assert!(missing.is_none());
+            },
+        )
+        .await;
+        let deleted_sessions =
+            sqlx::query_scalar::<_, i64>(constants_str::SERVER_ADMIN_COUNT_ACTIVE_SESSIONS_SQL)
+                .bind(first.0)
+                .fetch_one(&fixture.pool.0)
+                .await
+                .expect(constants_str::DIAGNOSTIC_E37243A3);
+        assert_eq!(deleted_sessions, 0);
+        let delete_audit = sqlx::query_scalar::<_, i64>(constants_str::ADMIN_TEST_AUDIT_COUNT_SQL)
+            .fetch_one(&fixture.pool.0)
+            .await
+            .expect(constants_str::DIAGNOSTIC_F844DB48);
+        assert_eq!(delete_audit, final_delete_audit + 2);
         fixture
             .lock
             .0
@@ -1566,12 +1847,39 @@ mod test_flow {
         .await
         .expect(constants_str::DIAGNOSTIC_D7E1862C);
         assert_eq!(delete_role_response.status(), http::StatusCode::NO_CONTENT);
+        let removed_delete_route = tower::ServiceExt::oneshot(
+            crate::router_with_pool(&pool).0,
+            crate::request_with_peer(
+                super::HttpAdminApiTestMethod::from(http::Method::DELETE),
+                super::StdAdminApiTestStrRef::from(constants_str::VALUE_769BBFA3),
+                super::StdAdminApiTestStrRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
+                Some(super::StdAdminApiTestStrRef::from(active_cookie.as_str())),
+                Some(super::StdAdminApiTestStrRef::from(
+                    refreshed_csrf.0.as_str(),
+                )),
+            )
+            .0,
+        )
+        .await;
+        assert!(
+            removed_delete_route.is_ok_and(
+                |removed_response| removed_response.status() == http::StatusCode::NOT_FOUND
+            )
+        );
         let delete_user_response = tower::ServiceExt::oneshot(
             crate::router_with_pool(&pool).0,
             crate::request_with_peer(
                 super::HttpAdminApiTestMethod::from(http::Method::DELETE),
-                super::StdAdminApiTestStrRef::from(format!("/users/{limited_id}").as_str()),
-                super::StdAdminApiTestStrRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
+                super::StdAdminApiTestStrRef::from(
+                    server_admin_contract::admin_route::AdminRoute::DeleteUsers
+                        .path()
+                        .as_ref(),
+                ),
+                super::StdAdminApiTestStrRef::from(
+                    serde_json::json!({(stringify!(filter)): {(stringify!(user_id)): limited_id}})
+                        .to_string()
+                        .as_str(),
+                ),
                 Some(super::StdAdminApiTestStrRef::from(active_cookie.as_str())),
                 Some(super::StdAdminApiTestStrRef::from(
                     refreshed_csrf.0.as_str(),
@@ -1620,8 +1928,16 @@ mod test_flow {
             crate::router_with_pool(&pool).0,
             crate::request_with_peer(
                 super::HttpAdminApiTestMethod::from(http::Method::DELETE),
-                super::StdAdminApiTestStrRef::from(format!("/users/{admin_id}").as_str()),
-                super::StdAdminApiTestStrRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
+                super::StdAdminApiTestStrRef::from(
+                    server_admin_contract::admin_route::AdminRoute::DeleteUsers
+                        .path()
+                        .as_ref(),
+                ),
+                super::StdAdminApiTestStrRef::from(
+                    serde_json::json!({(stringify!(filter)): {(stringify!(user_id)): admin_id}})
+                        .to_string()
+                        .as_str(),
+                ),
                 Some(super::StdAdminApiTestStrRef::from(active_cookie.as_str())),
                 Some(super::StdAdminApiTestStrRef::from(
                     refreshed_csrf.0.as_str(),

@@ -290,7 +290,8 @@ test("user CRUD rejects duplicates and is visible through the read-only UI", asy
   await expect(row).toContainText("Renamed Production User");
   await expect(row.locator("button, input, select, textarea")).toHaveCount(0);
 
-  const deleted = await page.request.delete(`/users/${userId}`, {
+  const deleted = await page.request.delete("/users/delete", {
+    data: { filter: { user_id: userId } },
     headers: await adminHeaders(page.context())
   });
   expect(deleted.status()).toBe(204);
@@ -327,10 +328,10 @@ test("administrator password reset invalidates the old session and credentials",
     (await userPage.request.get("/auth/me")).status()
   ).toBe(200);
 
-  const reset = await page.request.post(
-    `/users/${userId}/password`,
+  const reset = await page.request.patch(
+    "/users/update",
     {
-      data: { password: "Lifecycle-password3!" },
+      data: { updates: [{ filter: { user_id: userId }, changes: { password: "Lifecycle-password3!" } }] },
       headers: await adminHeaders(page.context())
     }
   );

@@ -40,3 +40,42 @@ fn test_update_users_request_rejects_invalid_identifiers_fields_and_values() {
         ).is_err()
     }));
 }
+
+#[test]
+fn test_update_users_password_validates_and_redacts() {
+    let password_request = serde_json::from_value::<
+        crate::admin_update_users_request::AdminUpdateUsersRequest,
+    >(serde_json::json!({(stringify!(updates)): [{
+        (stringify!(filter)): {(stringify!(user_id)): 1i64},
+        (stringify!(changes)): {(stringify!(password)): constants_str::VALUE_4EDBB68D}
+    }]}));
+    assert!(password_request.is_ok_and(|validated_request| {
+        validated_request
+            .updates()
+            .as_ref()
+            .first()
+            .is_some_and(|update| {
+                update.changes().password().is_some()
+                    && !format!("{validated_request:?}").contains(constants_str::VALUE_4EDBB68D)
+            })
+    }));
+    assert!(
+        serde_json::from_value::<crate::admin_update_user_request::AdminUpdateUserRequest>(
+            serde_json::json!({(stringify!(password)): constants_str::ADMIN}),
+        )
+        .is_err_and(|error| error.is_data())
+    );
+    assert!(
+        [
+            serde_json::json!({(stringify!(password)): null}),
+            serde_json::json!({}),
+        ]
+        .into_iter()
+        .all(|value| {
+            serde_json::from_value::<crate::admin_update_user_request::AdminUpdateUserRequest>(
+                value,
+            )
+            .is_ok_and(|unchanged_request| unchanged_request.password().is_none())
+        })
+    );
+}

@@ -58,7 +58,6 @@ pub mod admin_data_tables_route;
 pub mod admin_default_page_limit;
 pub mod admin_default_route;
 pub mod admin_delete_role_route;
-pub mod admin_delete_user_route;
 pub mod admin_display_name;
 pub mod admin_empty_collection;
 pub mod admin_filter_field;
@@ -142,8 +141,6 @@ pub mod admin_sessions_page;
 pub mod admin_sessions_route;
 pub mod admin_set_role_permissions_request;
 pub mod admin_set_role_permissions_route;
-pub mod admin_set_user_password_request;
-pub mod admin_set_user_password_route;
 pub mod admin_set_user_roles_request;
 pub mod admin_set_user_roles_route;
 pub mod admin_setting;
@@ -238,10 +235,14 @@ mod test_table_sort_tests {
         );
     }
 }
+pub mod admin_delete_users_request;
+pub mod admin_delete_users_route;
 pub mod admin_update_users_request;
 pub mod admin_update_users_route;
 pub mod admin_user_filter;
 pub mod admin_user_update;
 pub mod admin_user_updates;
+#[cfg(test)]
+mod test_delete_users_contract;
 #[cfg(test)]
 mod test_update_users_contract;

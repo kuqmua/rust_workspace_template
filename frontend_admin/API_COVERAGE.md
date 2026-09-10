@@ -1,6 +1,6 @@
 # Administrator API coverage audit
 
-The typed registry in `server_admin/src/admin_auth_route_registry.rs` registers 33 API
+The typed registry in `server_admin/src/admin_auth_route_registry.rs` registers 32 API
 operations. Paths below are rooted at the server origin. The frontend must follow the route,
 permission, request, and table catalogs in `server_admin_contract`.
 
@@ -30,8 +30,7 @@ below covers user-visible workflows and direct API behavior.
 | POST `/users/read` | Users list with selected fields, combined search and filters, sorting, pagination, role assignments, and total count |
 | POST `/users/create` | Create-user page; server-rendered HTML adapter |
 | PATCH `/users/update` | Atomic batch updates through the typed API; uses the same user validation, administrator protection, audit, and session revocation as single-user updates |
-| DELETE `/users/{user_id}` | Manage-users page: delete account |
-| POST `/users/{user_id}/password` | Manage-users page: reset password |
+| DELETE `/users/delete` | Atomic deletion of users matching a required filter |
 | PUT `/users/{user_id}/roles` | Manage-users page: role assignment |
 | GET `/roles` | Roles list, pagination, and role management |
 | POST `/roles` | Create-role page; server-rendered HTML adapter |
@@ -109,7 +108,7 @@ The table views for `user_roles`, `role_permissions`, `refresh_tokens`,
 `access_sessions`, `login_attempts`, `rate_limits`, and `cleanup_status` use
 GET routes at `/{resource}`. Their former `/tables/{resource}` paths are rejected.
 
-The `changes` object in `PATCH /users/update` accepts optional `display_name`, `login`, and `is_banned`.
+The `changes` object in `PATCH /users/update` accepts optional `display_name`, `login`, `is_banned`, and `password`.
 Omitting `is_banned` preserves the current state. Banning retains the self-ban and
 last-active-administrator checks, session revocation, and transactional audit.
 
@@ -127,7 +126,7 @@ and a CSRF token. It returns `204 No Content` after all changes commit.
 }
 ```
 
-Each item can change `login`, `display_name`, and `is_banned`. Omitted fields remain
+Each item can change `login`, `display_name`, `is_banned`, and `password`. Omitted fields remain
 unchanged. Empty batches, duplicate user identifiers, empty changes, and invalid field
 values are rejected. The existing administrator collection limit is 10,000 items, and
 the route also enforces the common request body limit.
@@ -135,8 +134,7 @@ the route also enforces the common request body limit.
 A missing user, a conflicting login, self-blocking, or removal of the last active
 administrator rolls back the entire batch, including its audit records and session
 revocations. Unblocking updates run before blocking updates so a valid administrator
-replacement does not depend on request item order. Password and role changes retain
-their dedicated endpoints. User updates use `/users/update` for both individual users and groups.
+replacement does not depend on request item order. Role changes retain their dedicated endpoint. User updates use `/users/update` for both individual users and groups.
 
 Each update contains `filter` and `changes`. Filters support exact matches on
 `user_id`, `login`, `display_name`, and `is_banned`; supplied conditions are combined
@@ -147,3 +145,45 @@ An empty selection returns 409. Empty filters, overlapping selections, empty
 changes, and more than 10,000 selected users across the batch return 422.
 The entire request rolls back on any error. HTML user actions use this same
 filtered update workflow.
+
+## User batch deletion
+
+`DELETE /users/delete` accepts a required filter:
+
+```json
+{"filter": {"display_name": "Inactive accounts", "is_banned": true}}
+```
+
+The filter has the same exact-match fields and AND semantics as user updates:
+`user_id`, `login`, `display_name`, and `is_banned`. At least one non-null condition
+is required. The route requires `users:delete`, an authenticated session, an allowed
+Origin, and a CSRF token. Success returns `204 No Content`.
+
+At most 10,000 users can be deleted in one transaction. An empty filter or an
+oversized selection returns 422; no matches, selection of the acting user, or
+removal of the last active administrator returns 409. Any failure rolls back all
+deletions and audit records. Related sessions and role assignments follow the
+existing database deletion rules. Each deleted user receives an audit record.
+Single-user deletion uses `DELETE /users/delete` with `{"filter":{"user_id":12}}`.
+The former `DELETE /users/{user_id}` route has been removed.
+
+## Password updates
+
+Set `password` inside an update entry's `changes` object:
+
+```json
+{"updates":[{"filter":{"user_id":12},"changes":{"password":"Replacement-password1!"}}]}
+```
+
+A group filter sets the same supplied password for every selected user. Each user
+receives an independently salted hash through the existing password hasher. The
+existing new-password policy applies; omitted or null `password` leaves the
+password unchanged. Password updates revoke all target sessions and require a
+password change at the next sign-in. Profile changes, password changes, session
+revocations, and one audit record per user commit in the same transaction. Any
+failure rolls back the complete batch. Password values are redacted in Debug
+output and excluded from audit details.
+
+The separate `POST /users/{user_id}/password` route has been removed. The account
+creation route still accepts its initial password, and `/auth/password` still
+handles a user's own password change.

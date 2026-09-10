@@ -177,7 +177,8 @@ fn test_open_api_contains_auth_and_user_security_contracts() {
         .get(constants_str::PATHS)
         .and_then(serde_json::Value::as_object)
         .expect(constants_str::DIAGNOSTIC_6E15EDEC);
-    assert_eq!(paths.len(), 30usize);
+    assert_eq!(paths.len(), 29usize);
+    assert!(!paths.contains_key(constants_str::VALUE_2C49C991));
     assert!(!paths.contains_key(constants_str::VALUE_F772F137));
     assert!(!paths.contains_key(constants_str::VALUE_1DFB120F));
     assert!(!paths.contains_key(constants_str::VALUE_D1688529));
@@ -218,7 +219,7 @@ fn test_open_api_contains_auth_and_user_security_contracts() {
     assert_eq!(documented_route_contracts, contracted_route_contracts);
     assert!(paths.contains_key(constants_str::VALUE_C764A505));
     assert!(paths.contains_key(constants_str::VALUE_356A53CE));
-    assert!(paths.contains_key(constants_str::VALUE_2A3105E4));
+    assert!(!paths.contains_key(constants_str::VALUE_2A3105E4));
     assert!(paths.contains_key(constants_str::VALUE_FD625302));
     assert!(paths.contains_key(constants_str::VALUE_4690F648));
     assert!(paths.contains_key(constants_str::VALUE_FF2134BE));
