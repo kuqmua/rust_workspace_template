@@ -237,7 +237,7 @@ base16ct = { version = "=1.0.0", default-features = false, features = ["alloc"] 
 cap-std = { version = "=4.0.3", default-features = false }
 cookie = { version = "=0.18.2", default-features = false }
 geojson = { version = "=1.0.0", default-features = false }
-ipnet = { version = "=2.12.1", default-features = false, features = ["std"] }
+ipnet = { version = "=2.12.2", default-features = false, features = ["std"] }
 mime = { version = "=0.3.17", default-features = false }
 percent-encoding = { version = "=2.3.2", default-features = false, features = ["alloc"] }
 uuid = { version = "=1.26.0", default-features = false, features = [
