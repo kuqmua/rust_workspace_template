@@ -25,6 +25,7 @@ members = [
   "generate_quotes",
   "git_info",
   "init_env_files",
+  "initialize_environment_files",
   "location_lib",
   "location_lib_location_test",
   "macro_clippy_check_test_common",
@@ -469,6 +470,7 @@ proc_macro_generate_where_filters = { path = "./proc_macro_generate_where_filter
 generate_where_filters_src = { path = "./pg_crud_where_filters_generate_src", default-features = false }
 git_info = { path = "./git_info" }
 init_env_files = { path = "./init_env_files" }
+initialize_environment_files = { path = "./initialize_environment_files" }
 location_lib = { path = "./location_lib" }
 proc_macro_location_bang = { path = "./proc_macro_location_bang" }
 proc_macro_location_shared = { path = "./proc_macro_location_shared" }

@@ -23,7 +23,6 @@ fn test_crate_names_follow_workspace_vocabulary() {
                     matches!(
                         part,
                         constants_str::VALUE_875B9380
-                            | constants_str::VALUE_BA528516
                             | constants_str::POSTGRESQL
                             | constants_str::VALUE_D665A09C
                             | constants_str::VALUE_F4853BC8
@@ -32,7 +31,7 @@ fn test_crate_names_follow_workspace_vocabulary() {
                 || name.contains(constants_str::VALUE_2C90A5F7);
             if !valid_chars || has_nonstandard_word {
                 errors.push(format!(
-                    "{}: crate `{name}` must use snake_case workspace vocabulary (`dev`, `env`, `pg`, `accessor`, `macro_helpers`)",
+                    "{}: crate `{name}` must use snake_case workspace vocabulary (`dev`, `pg`, `accessor`, `macro_helpers`)",
                     path.display()
                 ));
             }
