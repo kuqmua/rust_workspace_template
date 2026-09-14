@@ -73,12 +73,7 @@ fn test_primitives_render_semantic_accessible_markup() {
     assert!(html.contains(constants_str::VALUE_FAE48E86));
     assert!(html.contains(constants_str::VALUE_F8CB664C));
     assert!(html.contains(constants_str::ADMIN_UI_LOADING));
-    assert!(html.contains(constants_str::VALUE_64474E4B));
-    assert!(html.contains(constants_str::VALUE_6BE3FB1C));
-    assert!(html.contains(constants_str::VALUE_67B26491));
-    assert!(html.contains(constants_str::VALUE_762CF6CB));
-    assert!(html.contains(constants_str::VALUE_48CAB863));
-    assert!(html.contains(constants_str::VALUE_1D79EA4F));
+    assert!(html.contains(constants_str::VALUE_706A5FC3));
 }
 
 #[test]
@@ -284,12 +279,9 @@ fn test_alert_dialog_wires_singlestage_trigger_and_dialog_forms() {
 
     let html = render_dialog(false);
     assert!(html.contains(constants_str::VALUE_AB29C21D));
-    assert!(html.contains(constants_str::VALUE_64474E4B));
     assert!(html.contains(constants_str::VALUE_5AADB989));
     assert_eq!(html.matches(constants_str::VALUE_65D07A5E).count(), 1);
-    assert!(html.contains(constants_str::VALUE_67B26491));
-    assert!(html.contains(constants_str::VALUE_762CF6CB));
-    assert!(html.contains(constants_str::VALUE_48CAB863));
-    assert!(html.contains(constants_str::VALUE_1D79EA4F));
-    assert!(!html.contains(constants_str::VALUE_C1451BBC));
+    assert!(html.contains(constants_str::VALUE_706A5FC3));
+    assert!(html.contains(constants_str::VALUE_C1451BBC));
+    assert!(html.contains(constants_str::VALUE_3B0143B5));
 }

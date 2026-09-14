@@ -5301,7 +5301,10 @@ fn router_with_pool(sqlx_admin_api_test_pool: &SqlxAdminApiTestPool) -> AxumAdmi
         axum::Router::from(server_admin::admin_auth_routes::admin_auth_routes(
             shared_auth_state,
         ))
-        .merge(generated_routes),
+        .merge(generated_routes)
+        .method_not_allowed_fallback(async || {
+            frontend_contract::api_problem_error::ApiProblemError::MethodNotAllowed
+        }),
     )
 }
 fn request_with_peer(

@@ -10070,12 +10070,6 @@ enum WrapIntoOptional {
                             &format!("/{table}"),
                             axum::Router::new()
                             #(#operation_routes_token_stream)*
-                            .method_not_allowed_fallback(|| async {
-                                frontend_contract::api_problem_error::ApiProblemError::MethodNotAllowed
-                            })
-                            .fallback(|| async {
-                                frontend_contract::api_problem_error::ApiProblemError::NotFound
-                            })
                             .with_state(#AppStateSnakeCase)
                         )
                     }

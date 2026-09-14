@@ -308,8 +308,7 @@ fn main() -> server_exit_code::ServerExitCode {
                                 )
                             } else {
                                 generated_table_routes
-                            }
-                            .method_not_allowed_fallback(async || frontend_contract::api_problem_error::ApiProblemError::MethodNotAllowed);
+                            };
                             let metrics_contract = server_admin_contract::admin_route::AdminRoute::Metrics.contract();
                             let secured_admin_routes = documented_admin_routes
                                 .route(
@@ -345,7 +344,8 @@ fn main() -> server_exit_code::ServerExitCode {
                                     )
                                     .merge(
                                         secured_admin_routes,
-                                    ),
+                                    )
+                                    .method_not_allowed_fallback(async || frontend_contract::api_problem_error::ApiProblemError::MethodNotAllowed),
                             )
                         };
                         let operational_routes = axum::Router::from(common_routes::common_routes::common_routes(

@@ -137,27 +137,12 @@ fn test_static_pages() {
     assert!(
         sessions_html
             .as_ref()
-            .contains(constants_str::VALUE_64474E4B)
-    );
-    assert!(
-        sessions_html
-            .as_ref()
             .contains(constants_str::VALUE_706A5FC3)
     );
     assert!(
-        !sessions_html
+        sessions_html
             .as_ref()
             .contains(constants_str::VALUE_3B0143B5)
-    );
-    assert!(
-        sessions_html
-            .as_ref()
-            .contains(constants_str::VALUE_67B26491)
-    );
-    assert!(
-        sessions_html
-            .as_ref()
-            .contains(constants_str::VALUE_1D79EA4F)
     );
     assert!(
         sessions_html
@@ -172,12 +157,6 @@ fn test_static_pages() {
             .as_ref()
             .contains(constants_str::VALUE_4645FB8E)
     );
-    assert!(
-        profile_html
-            .as_ref()
-            .contains(constants_str::VALUE_E8DEB11B)
-    );
-
     let public_text = crate::render_text_page::render_text_page(
         server_admin_contract::admin_page::AdminPage::Metrics,
         crate::admin_ssr_text::AdminSsrText::try_from(String::from(

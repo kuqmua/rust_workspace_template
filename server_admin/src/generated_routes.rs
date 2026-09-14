@@ -9,6 +9,7 @@ pub fn generated_routes(
                 routes.merge(axum::Router::from(
                     table.routes(shared_admin_generated_table_state_arc),
                 ))
-            }),
+            })
+            .fallback(async || frontend_contract::api_problem_error::ApiProblemError::NotFound),
     )
 }
