@@ -8,13 +8,16 @@ pub(crate) async fn delete_confirmed_entity(
                 admin_auth_request,
                 *form.get_confirmation(),
                 server_admin_contract::admin_frontend_path::AdminFrontendPath::Roles,
-                |auth| {
-                    crate::role_mutations_delete::role_mutations_delete(
-                        auth,
-                        crate::axum_admin_path::AxumAdminPath::from(
-                            crate::role_path_impl::role_path_impl(*form.get_role_id()),
-                        ),
+                async |auth| {
+                    let filter = server_admin_contract::admin_role_filter::AdminRoleFilter::new(
+                        Some(*form.get_role_id()),
+                        None,
+                        None,
+                    );
+                    crate::role_mutations_delete_filtered::role_mutations_delete_filtered(
+                        auth, &filter,
                     )
+                    .await
                 },
             )
             .await

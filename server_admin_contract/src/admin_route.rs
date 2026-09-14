@@ -7,6 +7,10 @@
     Eq,
     proc_macro_frontend_contract_derive_route_catalog::RouteCatalog,
 )]
+#[allow(
+    variant_size_differences,
+    reason = "the role-permissions route is the sole remaining parameterized administrator route"
+)]
 #[route_catalog(
     family = AdminAuthenticationRouteFamily,
     body_limit = crate::admin_api_body_max_bytes::ADMIN_API_BODY_MAX_BYTES_VALUE,
@@ -44,8 +48,8 @@ pub enum AdminRoute {
     CreateRoles,
     #[route_catalog_route(crate::admin_create_user_route::AdminCreateUserRoute)]
     CreateUser,
-    #[route_catalog_route(crate::admin_delete_role_route::AdminDeleteRoleRoute)]
-    DeleteRole(crate::admin_role_id::AdminRoleId),
+    #[route_catalog_route(crate::admin_delete_roles_route::AdminDeleteRolesRoute)]
+    DeleteRoles,
     #[route_catalog_route(crate::admin_delete_users_route::AdminDeleteUsersRoute)]
     DeleteUsers,
     #[route_catalog_route(crate::admin_me_route::AdminMeRoute)]

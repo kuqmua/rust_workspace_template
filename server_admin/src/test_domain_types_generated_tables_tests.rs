@@ -724,7 +724,7 @@ fn test_roles_creation_openapi_contains_only_the_unified_route() {
 }
 
 #[test]
-fn test_role_update_openapi_uses_only_the_filtered_route() {
+fn test_role_update_openapi_uses_only_filtered_routes() {
     assert!(
         serde_json::to_value(utoipa::openapi::OpenApi::from(
             crate::generated_open_api::generated_open_api()
@@ -733,10 +733,8 @@ fn test_role_update_openapi_uses_only_the_filtered_route() {
             |document| document.get(constants_str::PATHS).is_some_and(|paths| {
                 paths
                     .get(
-                        frontend_contract::typed_route_path::typed_route_path::<
-                            server_admin_contract::admin_delete_role_route::AdminDeleteRoleRoute,
-                        >()
-                        .as_ref(),
+                        server_admin_contract::admin_delete_roles_route::delete_roles_route()
+                            .as_ref(),
                     )
                     .is_some_and(|operations| {
                         operations.get(constants_str::PATCH_ALT).is_none()

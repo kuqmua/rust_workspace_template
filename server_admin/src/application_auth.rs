@@ -5,7 +5,7 @@ proc_macro_frontend_contract_api_operation_error::api_operation_error!(AdminChan
 proc_macro_frontend_contract_api_operation_error::api_operation_error!(AdminCreateUserError,);
 proc_macro_frontend_contract_api_operation_error::api_operation_error!(AdminDataTableError,);
 proc_macro_frontend_contract_api_operation_error::api_operation_error!(AdminDataTablesError,);
-proc_macro_frontend_contract_api_operation_error::api_operation_error!(AdminDeleteRoleError,);
+proc_macro_frontend_contract_api_operation_error::api_operation_error!(AdminDeleteRolesError,);
 proc_macro_frontend_contract_api_operation_error::api_operation_error!(AdminDeleteUsersError,);
 proc_macro_frontend_contract_api_operation_error::api_operation_error!(AdminListPermissionsError,);
 proc_macro_frontend_contract_api_operation_error::api_operation_error!(AdminMeError,);

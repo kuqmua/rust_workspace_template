@@ -34,29 +34,14 @@ pub(crate) async fn role_mutations_update_many(
             Vec::new(),
         ),
         async |(mut sqlx_admin_transaction, mut identifiers, mut selected_updates), update| {
-            let filter = update.filter();
-            let matches =
-                sqlx::query_scalar::<_, i64>(constants_str::SERVER_ADMIN_SELECT_FILTERED_ROLES_SQL)
-                    .bind(filter.get_role_id().copied().map(i64::from))
-                    .bind(filter.get_name().map(|name| name.as_ref().as_str()))
-                    .bind(filter.get_is_system().copied().map(bool::from))
-                    .fetch_all(&mut **sqlx_admin_transaction)
-                    .await
-                    .map_err(crate::admin_error::AdminError::from)?;
-            if matches.is_empty() {
-                return Err(crate::admin_error::AdminError::Conflict);
-            }
+            let matches = Vec::from(crate::select_filtered_role_ids::select_filtered_role_ids(
+                crate::sqlx_admin_repository_connection_mut_ref::SqlxAdminRepositoryConnectionMutRef::from(&mut **sqlx_admin_transaction),
+                update.filter(),
+            ).await?);
             if selected_updates.len().saturating_add(matches.len()) > 10_000 {
                 return Err(crate::admin_error::AdminError::Validation);
             }
-            matches.into_iter().try_for_each(|value| {
-                let identifier =
-                    server_admin_core::admin_role_record_id::AdminRoleRecordId::try_from(value)
-                        .map_err(|error| {
-                            crate::admin_error::AdminError::from(sqlx::Error::Decode(Box::new(
-                                error,
-                            )))
-                        })?;
+            matches.into_iter().try_for_each(|identifier| {
                 if !identifiers.insert(identifier) {
                     return Err(crate::admin_error::AdminError::Validation);
                 }

@@ -55,7 +55,6 @@ pub mod admin_data_tables;
 pub mod admin_data_tables_route;
 pub mod admin_default_page_limit;
 pub mod admin_default_route;
-pub mod admin_delete_role_route;
 pub mod admin_display_name;
 pub mod admin_empty_collection;
 pub mod admin_filter_field;
@@ -249,8 +248,12 @@ pub mod admin_roles_read_request;
 
 pub mod admin_create_roles_request;
 pub mod admin_create_roles_route;
+pub mod admin_delete_roles_request;
+pub mod admin_delete_roles_route;
 pub mod admin_role_filter;
 pub mod admin_role_update;
 pub mod admin_role_updates;
 pub mod admin_update_roles_request;
 pub mod admin_update_roles_route;
+#[cfg(test)]
+mod test_delete_roles_contract;

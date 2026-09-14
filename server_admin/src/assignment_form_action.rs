@@ -11,9 +11,11 @@ pub(crate) async fn assignment_form_action(
                 crate::permission_ids_impl::permission_ids_impl,
                 server_admin_contract::admin_frontend_path::AdminFrontendPath::Roles,
                 server_admin_contract::admin_set_role_permissions_request::AdminSetRolePermissionsRequest::new,
-                crate::axum_admin_path::AxumAdminPath::from(crate::role_path_impl::role_path_impl(
-                    *form.get_role_id(),
-                )),
+                crate::axum_admin_path::AxumAdminPath::from(
+                    server_admin_core::admin_role_record_id::AdminRoleRecordId::from(
+                        form.get_role_id().value(),
+                    ),
+                ),
                 crate::mutations_set_permissions::mutations_set_permissions,
             )
             .await

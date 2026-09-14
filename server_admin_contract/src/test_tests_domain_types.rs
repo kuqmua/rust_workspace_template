@@ -51,7 +51,7 @@ fn test_every_admin_api_route_has_named_route_and_client_functions() {
         size_of_val(&crate::admin_change_own_password_route::change_own_password_route),
         size_of_val(&crate::admin_create_roles_route::create_roles_route),
         size_of_val(&crate::admin_create_user_route::create_user_route),
-        size_of_val(&crate::admin_delete_role_route::delete_role_route),
+        size_of_val(&crate::admin_delete_roles_route::delete_roles_route),
         size_of_val(&crate::admin_delete_users_route::delete_users_route),
         size_of_val(&crate::admin_me_route::me_route),
         size_of_val(&crate::admin_route::metrics_route),
@@ -83,7 +83,7 @@ fn test_every_admin_api_route_has_named_route_and_client_functions() {
         size_of_val(&crate::admin_change_own_password_route::change_own_password_client::<ClientTransport>),
         size_of_val(&crate::admin_create_roles_route::create_roles_client::<ClientTransport>),
         size_of_val(&crate::admin_create_user_route::create_user_client::<ClientTransport>),
-        size_of_val(&crate::admin_delete_role_route::delete_role_client::<ClientTransport>),
+        size_of_val(&crate::admin_delete_roles_route::delete_roles_client::<ClientTransport>),
         size_of_val(&crate::admin_delete_users_route::delete_users_client::<ClientTransport>),
         size_of_val(&crate::admin_me_route::me_client::<ClientTransport>),
         size_of_val(&crate::admin_route::metrics_client::<ClientTransport>),
@@ -239,10 +239,6 @@ fn test_parameterized_admin_route_path_uses_typed_route_metadata() {
             &crate::admin_prefixed_data_table::AdminPrefixedDataTable::Roles
         )),
         constants_str::VALUE_BCEDACF8
-    );
-    assert_eq!(
-        String::from(crate::admin_delete_role_route::delete_role_route(&role_id)),
-        constants_str::VALUE_5DE652EF
     );
     assert_eq!(
         String::from(crate::admin_revoke_session_route::revoke_session_route(

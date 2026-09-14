@@ -35,15 +35,7 @@ mod test_data_tables {
             crate::request_with_peer(
                 crate::HttpAdminApiTestMethod::from(http::Method::PATCH),
                 crate::StdAdminApiTestStrRef::from(
-                    String::from(
-                        server_admin_contract::admin_delete_role_route::delete_role_route(
-                            &server_admin_contract::admin_role_id::AdminRoleId::try_from(
-                                first_role,
-                            )
-                            .expect(constants_str::DIAGNOSTIC_770CADED),
-                        ),
-                    )
-                    .as_str(),
+                    server_admin_contract::admin_delete_roles_route::delete_roles_route().as_ref(),
                 ),
                 crate::StdAdminApiTestStrRef::from(constants_str::NAME_RENAMED_ROLE),
                 Some(crate::StdAdminApiTestStrRef::from(
@@ -2484,8 +2476,14 @@ mod test_flow {
             crate::router_with_pool(&pool).0,
             crate::request_with_peer(
                 super::HttpAdminApiTestMethod::from(http::Method::DELETE),
-                super::StdAdminApiTestStrRef::from(format!("/roles/{role_id}").as_str()),
-                super::StdAdminApiTestStrRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
+                super::StdAdminApiTestStrRef::from(
+                    server_admin_contract::admin_delete_roles_route::delete_roles_route().as_ref(),
+                ),
+                super::StdAdminApiTestStrRef::from(
+                    serde_json::json!({(stringify!(filter)): {(stringify!(role_id)): role_id}})
+                        .to_string()
+                        .as_str(),
+                ),
                 Some(super::StdAdminApiTestStrRef::from(active_cookie.as_str())),
                 Some(super::StdAdminApiTestStrRef::from(
                     refreshed_csrf.0.as_str(),

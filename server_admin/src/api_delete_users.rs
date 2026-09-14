@@ -12,10 +12,9 @@ pub(crate) async fn api_delete_users(
     crate::axum_admin_response::AxumAdminResponse,
     crate::application_auth::AdminDeleteUsersError,
 > {
-    let request = axum_admin_json.into_inner();
     crate::user_mutations_delete_filtered::user_mutations_delete_filtered(
         admin_auth_request,
-        request.filter(),
+        axum_admin_json.into_inner().filter(),
     )
     .await
     .map_err(crate::application_auth::AdminDeleteUsersError::from)

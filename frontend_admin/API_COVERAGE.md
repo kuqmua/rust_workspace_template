@@ -34,7 +34,7 @@ below covers user-visible workflows and direct API behavior.
 | POST `/roles/read` | Roles list with search, filters, sorting, pagination, permission assignments, and total count |
 | POST `/roles/create` | Atomic creation of multiple roles through the typed API |
 | PATCH `/roles/update` | Atomic renaming of multiple roles through the typed API |
-| DELETE `/roles/{role_id}` | Manage-roles page: delete role |
+| DELETE `/roles/delete` | Atomic deletion of non-system roles matching a required filter |
 | PUT `/roles/{role_id}/permissions` | Manage-roles page: permission assignment |
 | GET `/permissions` | Read-only permissions list |
 | GET `/audit_log` | Audit view uses the catalog table endpoint; browser coverage also verifies the dedicated query and redacted mutation records |
