@@ -13,11 +13,18 @@ pub(crate) struct NotificationServiceEnvironmentFile {
 }
 
 impl NotificationServiceEnvironmentFile {
-    pub(crate) const fn content(&self) -> &'static [u8] {
-        match self.get_notification_database_url() {
-            crate::configuration_field::ConfigurationField::Declared => {
-                crate::notification_service_environment_content::NOTIFICATION_SERVICE_ENVIRONMENT_CONTENT
-            }
-        }
+    pub(crate) fn content(&self) -> crate::std_byte_vector::StdByteVector {
+        let mut std_byte_vector = crate::std_byte_vector::StdByteVector::default();
+        self.get_notification_database_url()
+            .append_to(&mut std_byte_vector);
+        self.get_notification_service_socket_address()
+            .append_to(&mut std_byte_vector);
+        self.get_pg_pool_max_connections()
+            .append_to(&mut std_byte_vector);
+        self.get_request_timeout_seconds()
+            .append_to(&mut std_byte_vector);
+        self.get_svc_mode().append_to(&mut std_byte_vector);
+        self.get_tracing_format().append_to(&mut std_byte_vector);
+        std_byte_vector
     }
 }

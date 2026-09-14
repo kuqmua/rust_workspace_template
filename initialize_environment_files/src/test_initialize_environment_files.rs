@@ -30,15 +30,28 @@ fn test_generation_creates_and_replaces_every_owned_file() {
         super::generate_environment_files::generate_environment_files(workspace_root.as_path()),
         Ok(())
     ));
+    let repository_root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .parent()
+        .into_iter()
+        .collect::<Vec<_>>();
+    let expected = |relative_path| {
+        let path = repository_root
+            .first()
+            .map(|path| path.join(relative_path))?;
+        std::fs::read(path).ok()
+    };
     assert!(
         std::fs::read(
             workspace_root
                 .join(constants_str::VALUE_B3EACD33)
                 .join(constants_str::ENV)
         )
-        .is_ok_and(
-            |content| content == super::server_environment_content::SERVER_ENVIRONMENT_CONTENT
-        )
+        .is_ok_and(|content| {
+            expected(
+                std::path::PathBuf::from(constants_str::VALUE_B3EACD33).join(constants_str::ENV),
+            )
+            .is_some_and(|expected_content| content == expected_content)
+        })
     );
     assert!(
         std::fs::read(
@@ -46,13 +59,18 @@ fn test_generation_creates_and_replaces_every_owned_file() {
                 .join(constants_str::VALUE_B3EACD33)
                 .join(constants_str::ENV_EXAMPLE)
         )
-        .is_ok_and(
-            |content| content == super::server_environment_content::SERVER_ENVIRONMENT_CONTENT
-        )
+        .is_ok_and(|content| {
+            expected(
+                std::path::PathBuf::from(constants_str::VALUE_B3EACD33).join(constants_str::ENV),
+            )
+            .is_some_and(|expected_content| content == expected_content)
+        })
     );
     assert!(
-        std::fs::read(workspace_root.join(constants_str::VALUE_0A7A2313)).is_ok_and(|content| content
-            == super::notification_service_environment_content::NOTIFICATION_SERVICE_ENVIRONMENT_CONTENT)
+        std::fs::read(workspace_root.join(constants_str::VALUE_0A7A2313)).is_ok_and(|content| {
+            expected(std::path::PathBuf::from(constants_str::VALUE_0A7A2313))
+                .is_some_and(|expected_content| content == expected_content)
+        })
     );
     assert!(
         std::fs::read(
@@ -60,12 +78,16 @@ fn test_generation_creates_and_replaces_every_owned_file() {
                 .join(constants_str::WORKSPACE_SCAFFOLD_NOTIFICATION_CONFIG)
                 .join(constants_str::ENV)
         )
-        .is_ok_and(|content| content
-            == super::notification_service_environment_content::NOTIFICATION_SERVICE_ENVIRONMENT_CONTENT)
+        .is_ok_and(|content| {
+            expected(std::path::PathBuf::from(constants_str::VALUE_0A7A2313))
+                .is_some_and(|expected_content| content == expected_content)
+        })
     );
     assert!(
-        std::fs::read(workspace_root.join(constants_str::VALUE_E45E45BA))
-            .is_ok_and(|content| content == super::docker_compose_content::DOCKER_COMPOSE_CONTENT)
+        std::fs::read(workspace_root.join(constants_str::VALUE_E45E45BA)).is_ok_and(|content| {
+            expected(std::path::PathBuf::from(constants_str::VALUE_E45E45BA))
+                .is_some_and(|expected_content| content == expected_content)
+        })
     );
     assert!(matches!(std::fs::remove_dir_all(workspace_root), Ok(())));
 }

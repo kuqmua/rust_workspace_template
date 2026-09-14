@@ -19,8 +19,18 @@ impl DockerComposeFile {
         clippy::single_call_fn,
         reason = "the typed Docker Compose model owns access to its generated file content"
     )]
-    pub(crate) const fn content(&self) -> &'static [u8] {
-        let _database = self.get_database();
-        crate::docker_compose_content::DOCKER_COMPOSE_CONTENT
+    pub(crate) fn content(&self) -> crate::std_byte_vector::StdByteVector {
+        let mut std_byte_vector = crate::std_byte_vector::StdByteVector::default();
+        crate::configuration_field::ConfigurationField::from(b"services:\n".as_slice())
+            .append_to(&mut std_byte_vector);
+        std_byte_vector.append_std_byte_vector(&self.get_database().content());
+        std_byte_vector.append_std_byte_vector(&self.get_notification_database().content());
+        std_byte_vector.append_std_byte_vector(&self.get_server_migrate().content());
+        std_byte_vector.append_std_byte_vector(&self.get_server().content());
+        std_byte_vector.append_std_byte_vector(&self.get_notification_service_migrate().content());
+        std_byte_vector.append_std_byte_vector(&self.get_notification_service().content());
+        self.get_networks().append_to(&mut std_byte_vector);
+        self.get_volumes().append_to(&mut std_byte_vector);
+        std_byte_vector
     }
 }

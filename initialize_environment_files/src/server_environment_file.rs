@@ -38,11 +38,60 @@ pub(crate) struct ServerEnvironmentFile {
 }
 
 impl ServerEnvironmentFile {
-    pub(crate) const fn content(&self) -> &'static [u8] {
-        match self.get_admin_access_token_ttl_seconds() {
-            crate::configuration_field::ConfigurationField::Declared => {
-                crate::server_environment_content::SERVER_ENVIRONMENT_CONTENT
-            }
-        }
+    pub(crate) fn content(&self) -> crate::std_byte_vector::StdByteVector {
+        let mut std_byte_vector = crate::std_byte_vector::StdByteVector::default();
+        self.get_admin_access_token_ttl_seconds()
+            .append_to(&mut std_byte_vector);
+        self.get_admin_cookie_secure()
+            .append_to(&mut std_byte_vector);
+        self.get_admin_jwt_secret().append_to(&mut std_byte_vector);
+        self.get_admin_login_failure_limit()
+            .append_to(&mut std_byte_vector);
+        self.get_admin_password_hash_concurrency()
+            .append_to(&mut std_byte_vector);
+        self.get_admin_refresh_token_ttl_seconds()
+            .append_to(&mut std_byte_vector);
+        self.get_admin_session_limit()
+            .append_to(&mut std_byte_vector);
+        self.get_admin_sign_in_rate_limit()
+            .append_to(&mut std_byte_vector);
+        self.get_admin_swagger_enabled()
+            .append_to(&mut std_byte_vector);
+        self.get_admin_token_audience()
+            .append_to(&mut std_byte_vector);
+        self.get_admin_token_issuer()
+            .append_to(&mut std_byte_vector);
+        self.get_content_security_policy()
+            .append_to(&mut std_byte_vector);
+        self.get_cors_allow_origin().append_to(&mut std_byte_vector);
+        self.get_database_url().append_to(&mut std_byte_vector);
+        self.get_enable_api_git_commit_check()
+            .append_to(&mut std_byte_vector);
+        self.get_http_gzip_enabled().append_to(&mut std_byte_vector);
+        self.get_maximum_size_of_http_body_in_bytes()
+            .append_to(&mut std_byte_vector);
+        self.get_pg_pool_acquire_timeout_seconds()
+            .append_to(&mut std_byte_vector);
+        self.get_pg_pool_idle_timeout_seconds()
+            .append_to(&mut std_byte_vector);
+        self.get_pg_pool_max_connections()
+            .append_to(&mut std_byte_vector);
+        self.get_pg_pool_max_lifetime_seconds()
+            .append_to(&mut std_byte_vector);
+        self.get_pg_pool_min_connections()
+            .append_to(&mut std_byte_vector);
+        self.get_production_mode().append_to(&mut std_byte_vector);
+        self.get_request_timeout_seconds()
+            .append_to(&mut std_byte_vector);
+        self.get_service_socket_address()
+            .append_to(&mut std_byte_vector);
+        self.get_source_place_type().append_to(&mut std_byte_vector);
+        self.get_svc_mode().append_to(&mut std_byte_vector);
+        self.get_timezone().append_to(&mut std_byte_vector);
+        self.get_tracing_format().append_to(&mut std_byte_vector);
+        self.get_tracing_level().append_to(&mut std_byte_vector);
+        self.get_trusted_proxy_ranges_text()
+            .append_to(&mut std_byte_vector);
+        std_byte_vector
     }
 }
