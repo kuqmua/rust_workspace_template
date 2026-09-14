@@ -10,6 +10,133 @@ fn test_rate_limit_scopes_are_distinct() {
     let unique = scopes.into_iter().collect::<std::collections::HashSet<_>>();
     assert_eq!(unique.len(), 4usize);
 }
+#[tokio::test]
+async fn test_create_user_payload_example_matches_create_request_contract() {
+    let result = crate::api_create_user_payload_example::api_create_user_payload_example().await;
+    assert!(result.is_ok());
+    if let Ok(axum_admin_response) = result {
+        let response = axum::response::Response::from(axum_admin_response);
+        assert_eq!(response.status(), http::StatusCode::OK);
+        let body = axum::body::to_bytes(response.into_body(), 16_384usize).await;
+        assert!(body.is_ok());
+        if let Ok(bytes) = body {
+            let payload = serde_json::from_slice::<
+                server_admin_contract::admin_create_user_request::AdminCreateUserRequest,
+            >(bytes.as_ref());
+            assert!(payload.is_ok());
+            if let Ok(request) = payload {
+                let (display_name, login, password, role_ids) = request.into_parts();
+                assert_eq!(
+                    display_name.as_ref(),
+                    constants_str::ADMIN_FIXTURE_ALPHA_DISPLAY_NAME
+                );
+                assert_eq!(login.as_ref(), constants_str::ADMIN_FIXTURE_ALPHA_LOGIN);
+                assert_eq!(password.as_ref(), constants_str::TEST_STRONG_PASSWORD);
+                assert!(role_ids.is_none());
+            }
+        }
+    }
+}
+#[tokio::test]
+async fn test_delete_users_payload_example_matches_delete_request_contract() {
+    let result = crate::api_delete_users_payload_example::api_delete_users_payload_example().await;
+    assert!(result.is_ok());
+    if let Ok(axum_admin_response) = result {
+        let response = axum::response::Response::from(axum_admin_response);
+        assert_eq!(response.status(), http::StatusCode::OK);
+        let body = axum::body::to_bytes(response.into_body(), 16_384usize).await;
+        assert!(body.is_ok());
+        if let Ok(bytes) = body {
+            let payload = serde_json::from_slice::<
+                server_admin_contract::admin_delete_users_request::AdminDeleteUsersRequest,
+            >(bytes.as_ref());
+            assert!(payload.is_ok_and(|request| {
+                request
+                    .filter()
+                    .user_id()
+                    .copied()
+                    .is_some_and(|user_id| i64::from(user_id) == constants_i64::ONE)
+            }));
+        }
+    }
+}
+#[tokio::test]
+async fn test_role_payload_examples_match_role_mutation_request_contracts() {
+    let create_result =
+        crate::api_create_roles_payload_example::api_create_roles_payload_example().await;
+    let update_result =
+        crate::api_update_roles_payload_example::api_update_roles_payload_example().await;
+    let delete_result =
+        crate::api_delete_roles_payload_example::api_delete_roles_payload_example().await;
+    assert!(create_result.is_ok());
+    assert!(update_result.is_ok());
+    assert!(delete_result.is_ok());
+    if let (Ok(create), Ok(update), Ok(delete)) = (create_result, update_result, delete_result) {
+        let create_body = axum::body::to_bytes(
+            axum::response::Response::from(create).into_body(),
+            16_384usize,
+        )
+        .await;
+        let update_body = axum::body::to_bytes(
+            axum::response::Response::from(update).into_body(),
+            16_384usize,
+        )
+        .await;
+        let delete_body = axum::body::to_bytes(
+            axum::response::Response::from(delete).into_body(),
+            16_384usize,
+        )
+        .await;
+        assert!(create_body.is_ok_and(|bytes| {
+            serde_json::from_slice::<
+                server_admin_contract::admin_create_roles_request::AdminCreateRolesRequest,
+            >(bytes.as_ref())
+            .is_ok_and(|request| request.as_ref().len() == 1usize)
+        }));
+        assert!(update_body.is_ok_and(|bytes| {
+            serde_json::from_slice::<
+                server_admin_contract::admin_update_roles_request::AdminUpdateRolesRequest,
+            >(bytes.as_ref())
+            .is_ok_and(|request| request.updates().as_ref().len() == 1usize)
+        }));
+        assert!(delete_body.is_ok_and(|bytes| {
+            serde_json::from_slice::<
+                server_admin_contract::admin_delete_roles_request::AdminDeleteRolesRequest,
+            >(bytes.as_ref())
+            .is_ok_and(|request| request.filter().get_role_id().is_some())
+        }));
+    }
+}
+#[tokio::test]
+async fn test_update_users_payload_example_matches_update_request_contract() {
+    let result = crate::api_update_users_payload_example::api_update_users_payload_example().await;
+    assert!(result.is_ok());
+    if let Ok(axum_admin_response) = result {
+        let response = axum::response::Response::from(axum_admin_response);
+        assert_eq!(response.status(), http::StatusCode::OK);
+        let body = axum::body::to_bytes(response.into_body(), 16_384usize).await;
+        assert!(body.is_ok());
+        if let Ok(bytes) = body {
+            let payload = serde_json::from_slice::<
+                server_admin_contract::admin_update_users_request::AdminUpdateUsersRequest,
+            >(bytes.as_ref());
+            assert!(payload.is_ok_and(|request| {
+                request.updates().as_ref().first().is_some_and(|update| {
+                    update
+                        .filter()
+                        .user_id()
+                        .copied()
+                        .is_some_and(|user_id| i64::from(user_id) == constants_i64::ONE)
+                        && update
+                            .changes()
+                            .is_banned()
+                            .copied()
+                            .is_some_and(|is_banned| !bool::from(is_banned))
+                }) && request.updates().as_ref().len() == 1usize
+            }));
+        }
+    }
+}
 #[test]
 fn test_rate_limited_error_includes_retry_after_header() {
     let response =
@@ -172,7 +299,13 @@ fn test_open_api_contains_auth_and_user_security_contracts() {
         .get(constants_str::PATHS)
         .and_then(serde_json::Value::as_object)
         .expect(constants_str::DIAGNOSTIC_6E15EDEC);
-    assert_eq!(paths.len(), 27usize);
+    assert_eq!(paths.len(), 33usize);
+    assert!(paths.contains_key(constants_str::ADMIN_ROLES_CREATE_PAYLOAD_EXAMPLE_READ));
+    assert!(paths.contains_key(constants_str::ADMIN_ROLES_UPDATE_PAYLOAD_EXAMPLE_READ));
+    assert!(paths.contains_key(constants_str::ADMIN_ROLES_DELETE_PAYLOAD_EXAMPLE_READ));
+    assert!(paths.contains_key(constants_str::ADMIN_USERS_CREATE_PAYLOAD_EXAMPLE_READ));
+    assert!(paths.contains_key(constants_str::ADMIN_USERS_DELETE_PAYLOAD_EXAMPLE_READ));
+    assert!(paths.contains_key(constants_str::ADMIN_USERS_UPDATE_PAYLOAD_EXAMPLE_READ));
     assert!(!paths.contains_key(constants_str::VALUE_2C49C991));
     assert!(!paths.contains_key(constants_str::VALUE_F772F137));
     assert!(!paths.contains_key(constants_str::VALUE_1DFB120F));

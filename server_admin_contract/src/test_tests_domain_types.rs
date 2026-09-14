@@ -28,7 +28,7 @@ impl frontend_contract::transport::Transport for ClientTransport {
 fn test_every_admin_api_route_has_named_route_and_client_functions() {
     assert_eq!(
         <crate::admin_route::AdminAuthenticationRouteFamily as frontend_contract::route_family::RouteFamily>::ROUTE_COUNT,
-        27usize
+        33usize
     );
     assert_eq!(
         crate::admin_route::metrics_route(),
@@ -49,9 +49,21 @@ fn test_every_admin_api_route_has_named_route_and_client_functions() {
         size_of_val(&crate::admin_data_tables_route::list_data_tables_route),
         size_of_val(&crate::admin_change_own_password_route::change_own_password_route),
         size_of_val(&crate::admin_create_roles_route::create_roles_route),
+        size_of_val(
+            &crate::admin_create_roles_payload_example_route::create_roles_payload_example_route,
+        ),
         size_of_val(&crate::admin_create_user_route::create_user_route),
+        size_of_val(
+            &crate::admin_create_user_payload_example_route::create_user_payload_example_route,
+        ),
         size_of_val(&crate::admin_delete_roles_route::delete_roles_route),
+        size_of_val(
+            &crate::admin_delete_roles_payload_example_route::delete_roles_payload_example_route,
+        ),
         size_of_val(&crate::admin_delete_users_route::delete_users_route),
+        size_of_val(
+            &crate::admin_delete_users_payload_example_route::delete_users_payload_example_route,
+        ),
         size_of_val(&crate::admin_me_route::me_route),
         size_of_val(&crate::admin_route::metrics_route),
         size_of_val(&crate::admin_route::open_api_route),
@@ -64,8 +76,14 @@ fn test_every_admin_api_route_has_named_route_and_client_functions() {
         size_of_val(&crate::admin_sign_out_route::sign_out_route),
         size_of_val(&crate::admin_sessions_route::sessions_route),
         size_of_val(&crate::admin_update_roles_route::update_roles_route),
+        size_of_val(
+            &crate::admin_update_roles_payload_example_route::update_roles_payload_example_route,
+        ),
         size_of_val(&crate::admin_update_settings_route::update_settings_route),
         size_of_val(&crate::admin_update_users_route::update_users_route),
+        size_of_val(
+            &crate::admin_update_users_payload_example_route::update_users_payload_example_route,
+        ),
         size_of_val(&crate::admin_read_users_route::read_users_route),
         size_of_val(&crate::admin_route::version_route),
     ]
@@ -80,9 +98,29 @@ fn test_every_admin_api_route_has_named_route_and_client_functions() {
             &crate::admin_change_own_password_route::change_own_password_client::<ClientTransport>,
         ),
         size_of_val(&crate::admin_create_roles_route::create_roles_client::<ClientTransport>),
+        size_of_val(
+            &crate::admin_create_roles_payload_example_route::create_roles_payload_example_client::<
+                ClientTransport,
+            >,
+        ),
         size_of_val(&crate::admin_create_user_route::create_user_client::<ClientTransport>),
+        size_of_val(
+            &crate::admin_create_user_payload_example_route::create_user_payload_example_client::<
+                ClientTransport,
+            >,
+        ),
         size_of_val(&crate::admin_delete_roles_route::delete_roles_client::<ClientTransport>),
+        size_of_val(
+            &crate::admin_delete_roles_payload_example_route::delete_roles_payload_example_client::<
+                ClientTransport,
+            >,
+        ),
         size_of_val(&crate::admin_delete_users_route::delete_users_client::<ClientTransport>),
+        size_of_val(
+            &crate::admin_delete_users_payload_example_route::delete_users_payload_example_client::<
+                ClientTransport,
+            >,
+        ),
         size_of_val(&crate::admin_me_route::me_client::<ClientTransport>),
         size_of_val(&crate::admin_route::metrics_client::<ClientTransport>),
         size_of_val(&crate::admin_route::open_api_client::<ClientTransport>),
@@ -97,8 +135,18 @@ fn test_every_admin_api_route_has_named_route_and_client_functions() {
         size_of_val(&crate::admin_sign_out_route::sign_out_client::<ClientTransport>),
         size_of_val(&crate::admin_sessions_route::sessions_client::<ClientTransport>),
         size_of_val(&crate::admin_update_roles_route::update_roles_client::<ClientTransport>),
+        size_of_val(
+            &crate::admin_update_roles_payload_example_route::update_roles_payload_example_client::<
+                ClientTransport,
+            >,
+        ),
         size_of_val(&crate::admin_update_settings_route::update_settings_client::<ClientTransport>),
         size_of_val(&crate::admin_update_users_route::update_users_client::<ClientTransport>),
+        size_of_val(
+            &crate::admin_update_users_payload_example_route::update_users_payload_example_client::<
+                ClientTransport,
+            >,
+        ),
         size_of_val(&crate::admin_read_users_route::read_users_client::<ClientTransport>),
         size_of_val(&crate::admin_route::version_client::<ClientTransport>),
     ]
@@ -150,7 +198,7 @@ fn test_administrator_collections_enforce_item_limit_for_construction_and_deseri
 #[test]
 fn test_authentication_route_family_has_valid_coverage() {
     let descriptors = <crate::admin_route::AdminAuthenticationRouteFamily as frontend_contract::route_family::RouteFamily>::coverage_descriptors();
-    assert_eq!(descriptors.as_ref().len(), 27usize);
+    assert_eq!(descriptors.as_ref().len(), 33usize);
     assert_eq!(
         frontend_contract::validate_route_coverage::validate_route_coverage(descriptors.as_ref()),
         Ok(())
@@ -245,6 +293,87 @@ fn test_parameterized_admin_route_path_uses_typed_route_metadata() {
     assert_eq!(
         String::from(crate::admin_update_users_route::update_users_route()),
         constants_str::ADMIN_USERS_UPDATE_PATH
+    );
+}
+#[test]
+fn test_create_user_payload_example_route_matches_create_request() {
+    let route = crate::admin_route::AdminRoute::CreateUserPayloadExample;
+    assert_eq!(
+        route.path().as_ref(),
+        constants_str::ADMIN_USERS_CREATE_PAYLOAD_EXAMPLE_READ
+    );
+    assert_eq!(
+        route.contract().method(),
+        frontend_contract::route_method::RouteMethod::Get
+    );
+    assert_eq!(
+        route.contract().mutation(),
+        frontend_contract::mutation_kind::MutationKind::ReadOnly
+    );
+}
+#[test]
+fn test_delete_users_payload_example_route_matches_delete_request() {
+    let route = crate::admin_route::AdminRoute::DeleteUsersPayloadExample;
+    assert_eq!(
+        route.path().as_ref(),
+        constants_str::ADMIN_USERS_DELETE_PAYLOAD_EXAMPLE_READ
+    );
+    assert_eq!(
+        route.contract().method(),
+        frontend_contract::route_method::RouteMethod::Get
+    );
+    assert_eq!(
+        route.contract().mutation(),
+        frontend_contract::mutation_kind::MutationKind::ReadOnly
+    );
+}
+#[test]
+#[allow(
+    clippy::needless_for_each,
+    reason = "route contract assertions use iterator traversal to comply with the workspace no-for-loop policy"
+)]
+fn test_role_payload_example_routes_match_role_mutation_requests() {
+    [
+        (
+            crate::admin_route::AdminRoute::CreateRolesPayloadExample,
+            constants_str::ADMIN_ROLES_CREATE_PAYLOAD_EXAMPLE_READ,
+        ),
+        (
+            crate::admin_route::AdminRoute::UpdateRolesPayloadExample,
+            constants_str::ADMIN_ROLES_UPDATE_PAYLOAD_EXAMPLE_READ,
+        ),
+        (
+            crate::admin_route::AdminRoute::DeleteRolesPayloadExample,
+            constants_str::ADMIN_ROLES_DELETE_PAYLOAD_EXAMPLE_READ,
+        ),
+    ]
+    .into_iter()
+    .for_each(|(route, path)| {
+        assert_eq!(route.path().as_ref(), path);
+        assert_eq!(
+            route.contract().method(),
+            frontend_contract::route_method::RouteMethod::Get
+        );
+        assert_eq!(
+            route.contract().mutation(),
+            frontend_contract::mutation_kind::MutationKind::ReadOnly
+        );
+    });
+}
+#[test]
+fn test_update_users_payload_example_route_matches_update_request() {
+    let route = crate::admin_route::AdminRoute::UpdateUsersPayloadExample;
+    assert_eq!(
+        route.path().as_ref(),
+        constants_str::ADMIN_USERS_UPDATE_PAYLOAD_EXAMPLE_READ
+    );
+    assert_eq!(
+        route.contract().method(),
+        frontend_contract::route_method::RouteMethod::Get
+    );
+    assert_eq!(
+        route.contract().mutation(),
+        frontend_contract::mutation_kind::MutationKind::ReadOnly
     );
 }
 #[test]

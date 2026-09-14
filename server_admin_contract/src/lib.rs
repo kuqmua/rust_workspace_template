@@ -28,6 +28,8 @@ pub mod admin_cleanup_status_table_route;
 pub mod admin_collection_error;
 pub mod admin_collection_max_items;
 pub mod admin_create_role_request;
+pub mod admin_create_roles_payload_example_route;
+pub mod admin_create_user_payload_example_route;
 pub mod admin_create_user_request;
 pub mod admin_create_user_response;
 pub mod admin_create_user_route;
@@ -223,8 +225,10 @@ mod test_table_sort_tests {
         );
     }
 }
+pub mod admin_delete_users_payload_example_route;
 pub mod admin_delete_users_request;
 pub mod admin_delete_users_route;
+pub mod admin_update_users_payload_example_route;
 pub mod admin_update_users_request;
 pub mod admin_update_users_route;
 pub mod admin_user_filter;
@@ -243,11 +247,13 @@ pub mod admin_roles_read_request;
 
 pub mod admin_create_roles_request;
 pub mod admin_create_roles_route;
+pub mod admin_delete_roles_payload_example_route;
 pub mod admin_delete_roles_request;
 pub mod admin_delete_roles_route;
 pub mod admin_role_filter;
 pub mod admin_role_update;
 pub mod admin_role_updates;
+pub mod admin_update_roles_payload_example_route;
 pub mod admin_update_roles_request;
 pub mod admin_update_roles_route;
 #[cfg(test)]

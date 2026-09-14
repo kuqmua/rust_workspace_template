@@ -40,12 +40,28 @@ pub enum AdminRoute {
     ChangeOwnPassword,
     #[route_catalog_route(crate::admin_create_roles_route::AdminCreateRolesRoute)]
     CreateRoles,
+    #[route_catalog_route(
+        crate::admin_create_roles_payload_example_route::AdminCreateRolesPayloadExampleRoute
+    )]
+    CreateRolesPayloadExample,
+    #[route_catalog_route(
+        crate::admin_create_user_payload_example_route::AdminCreateUserPayloadExampleRoute
+    )]
+    CreateUserPayloadExample,
     #[route_catalog_route(crate::admin_create_user_route::AdminCreateUserRoute)]
     CreateUser,
     #[route_catalog_route(crate::admin_delete_roles_route::AdminDeleteRolesRoute)]
     DeleteRoles,
+    #[route_catalog_route(
+        crate::admin_delete_roles_payload_example_route::AdminDeleteRolesPayloadExampleRoute
+    )]
+    DeleteRolesPayloadExample,
     #[route_catalog_route(crate::admin_delete_users_route::AdminDeleteUsersRoute)]
     DeleteUsers,
+    #[route_catalog_route(
+        crate::admin_delete_users_payload_example_route::AdminDeleteUsersPayloadExampleRoute
+    )]
+    DeleteUsersPayloadExample,
     #[route_catalog_route(crate::admin_me_route::AdminMeRoute)]
     Me,
     #[route_catalog_route(
@@ -94,10 +110,18 @@ pub enum AdminRoute {
     Sessions,
     #[route_catalog_route(crate::admin_update_roles_route::AdminUpdateRolesRoute)]
     UpdateRoles,
+    #[route_catalog_route(
+        crate::admin_update_roles_payload_example_route::AdminUpdateRolesPayloadExampleRoute
+    )]
+    UpdateRolesPayloadExample,
     #[route_catalog_route(crate::admin_update_settings_route::AdminUpdateSettingsRoute)]
     UpdateSettings,
     #[route_catalog_route(crate::admin_update_users_route::AdminUpdateUsersRoute)]
     UpdateUsers,
+    #[route_catalog_route(
+        crate::admin_update_users_payload_example_route::AdminUpdateUsersPayloadExampleRoute
+    )]
+    UpdateUsersPayloadExample,
     #[route_catalog_route(
         contract = <crate::admin_read_users_route::AdminReadUsersRoute as frontend_contract::typed_route::TypedRoute>::metadata().contract(),
         path = frontend_contract::typed_route_path::typed_route_path::<crate::admin_read_users_route::AdminReadUsersRoute>(),
