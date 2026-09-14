@@ -3,7 +3,7 @@
     proc_macro_getters::Getters,
     proc_macro_new::New,
 )]
-pub(crate) struct NotificationServiceEnvironmentFile {
+pub(crate) struct NotificationServiceEnvironment {
     notification_database_url: crate::configuration_field::ConfigurationField,
     notification_service_socket_address: crate::configuration_field::ConfigurationField,
     pg_pool_max_connections: crate::configuration_field::ConfigurationField,
@@ -12,7 +12,7 @@ pub(crate) struct NotificationServiceEnvironmentFile {
     tracing_format: crate::configuration_field::ConfigurationField,
 }
 
-impl NotificationServiceEnvironmentFile {
+impl NotificationServiceEnvironment {
     pub(crate) fn content(&self) -> crate::std_byte_vector::StdByteVector {
         let mut std_byte_vector = crate::std_byte_vector::StdByteVector::default();
         self.get_notification_database_url()

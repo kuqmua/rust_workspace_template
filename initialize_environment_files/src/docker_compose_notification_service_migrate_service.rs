@@ -6,7 +6,7 @@
 pub(crate) struct DockerComposeNotificationServiceMigrateService {
     depends_on: crate::configuration_field::ConfigurationField,
     env_file: crate::configuration_field::ConfigurationField,
-    environment: crate::configuration_field::ConfigurationField,
+    environment: crate::notification_service_environment::NotificationServiceEnvironment,
     image: crate::configuration_field::ConfigurationField,
     networks: crate::configuration_field::ConfigurationField,
     profiles: crate::configuration_field::ConfigurationField,
@@ -26,7 +26,7 @@ impl DockerComposeNotificationServiceMigrateService {
         self.get_image().append_to(&mut std_byte_vector);
         self.get_depends_on().append_to(&mut std_byte_vector);
         self.get_env_file().append_to(&mut std_byte_vector);
-        self.get_environment().append_to(&mut std_byte_vector);
+        std_byte_vector.append_std_byte_vector(&self.get_environment().content());
         self.get_networks().append_to(&mut std_byte_vector);
         self.get_read_only().append_to(&mut std_byte_vector);
         self.get_restart().append_to(&mut std_byte_vector);

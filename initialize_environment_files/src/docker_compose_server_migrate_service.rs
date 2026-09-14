@@ -6,7 +6,7 @@
 pub(crate) struct DockerComposeServerMigrateService {
     depends_on: crate::configuration_field::ConfigurationField,
     env_file: crate::configuration_field::ConfigurationField,
-    environment: crate::configuration_field::ConfigurationField,
+    environment: crate::docker_compose_server_environment::DockerComposeServerEnvironment,
     image: crate::configuration_field::ConfigurationField,
     networks: crate::configuration_field::ConfigurationField,
     profiles: crate::configuration_field::ConfigurationField,
@@ -24,7 +24,9 @@ impl DockerComposeServerMigrateService {
         self.get_image().append_to(&mut std_byte_vector);
         self.get_depends_on().append_to(&mut std_byte_vector);
         self.get_env_file().append_to(&mut std_byte_vector);
-        self.get_environment().append_to(&mut std_byte_vector);
+        std_byte_vector.append_std_byte_vector(&self.get_environment().content(
+            &crate::docker_compose_server_environment_order::DockerComposeServerEnvironmentOrder::Migrate,
+        ));
         self.get_networks().append_to(&mut std_byte_vector);
         self.get_read_only().append_to(&mut std_byte_vector);
         self.get_restart().append_to(&mut std_byte_vector);

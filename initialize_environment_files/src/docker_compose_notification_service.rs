@@ -7,7 +7,7 @@ pub(crate) struct DockerComposeNotificationService {
     build: crate::configuration_field::ConfigurationField,
     depends_on: crate::configuration_field::ConfigurationField,
     env_file: crate::configuration_field::ConfigurationField,
-    environment: crate::configuration_field::ConfigurationField,
+    environment: crate::notification_service_environment::NotificationServiceEnvironment,
     healthcheck: crate::configuration_field::ConfigurationField,
     image: crate::configuration_field::ConfigurationField,
     networks: crate::configuration_field::ConfigurationField,
@@ -35,7 +35,7 @@ impl DockerComposeNotificationService {
         self.get_image().append_to(&mut std_byte_vector);
         self.get_depends_on().append_to(&mut std_byte_vector);
         self.get_env_file().append_to(&mut std_byte_vector);
-        self.get_environment().append_to(&mut std_byte_vector);
+        std_byte_vector.append_std_byte_vector(&self.get_environment().content());
         self.get_healthcheck().append_to(&mut std_byte_vector);
         self.get_networks().append_to(&mut std_byte_vector);
         self.get_ports().append_to(&mut std_byte_vector);

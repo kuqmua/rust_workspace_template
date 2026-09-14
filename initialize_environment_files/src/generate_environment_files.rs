@@ -44,7 +44,7 @@ pub(crate) fn generate_environment_files(workspace_root: &std::path::Path) -> st
         field(b"TRUSTED_PROXY_RANGES_TEXT=127.0.0.1/32,::1/128\n".as_slice()),
     );
     let notification_service_environment_file =
-        crate::notification_service_environment_file::NotificationServiceEnvironmentFile::new(
+        crate::notification_service_environment::NotificationServiceEnvironment::new(
             field(
                 b"NOTIFICATION_DATABASE_URL=postgres://notification_service:change-me@127.0.0.1:5433/notification_service\n"
                     .as_slice(),
@@ -88,7 +88,14 @@ pub(crate) fn generate_environment_files(workspace_root: &std::path::Path) -> st
             field(b"    build:\n      context: .\n      dockerfile: notification_service/Dockerfile\n".as_slice()),
             field(b"    depends_on:\n      notification_database:\n        condition: service_healthy\n      notification_service_migrate:\n        condition: service_completed_successfully\n".as_slice()),
             field(b"    env_file:\n      - notification_service_config/.env\n".as_slice()),
-            field(b"    environment:\n      NOTIFICATION_DATABASE_URL: \"postgres://notification_service:change-me@notification_database:5432/notification_service\"\n      # BEGIN GENERATED COMPOSE SOCKET notification_service\n      NOTIFICATION_SERVICE_SOCKET_ADDRESS: \"0.0.0.0:8081\"\n      # END GENERATED COMPOSE SOCKET notification_service\n      PG_POOL_MAX_CONNECTIONS: \"10\"\n      REQUEST_TIMEOUT_SECONDS: \"30\"\n      SVC_MODE: serve\n      TRACING_FORMAT: text\n".as_slice()),
+            crate::notification_service_environment::NotificationServiceEnvironment::new(
+                field(b"    environment:\n      NOTIFICATION_DATABASE_URL: \"postgres://notification_service:change-me@notification_database:5432/notification_service\"\n".as_slice()),
+                field(b"      # BEGIN GENERATED COMPOSE SOCKET notification_service\n      NOTIFICATION_SERVICE_SOCKET_ADDRESS: \"0.0.0.0:8081\"\n      # END GENERATED COMPOSE SOCKET notification_service\n".as_slice()),
+                field(b"      PG_POOL_MAX_CONNECTIONS: \"10\"\n".as_slice()),
+                field(b"      REQUEST_TIMEOUT_SECONDS: \"30\"\n".as_slice()),
+                field(b"      SVC_MODE: serve\n".as_slice()),
+                field(b"      TRACING_FORMAT: text\n".as_slice()),
+            ),
             field(b"    healthcheck:\n      # BEGIN GENERATED COMPOSE HEALTH notification_service\n      test: [\"CMD\", \"curl\", \"--fail\", \"--silent\", \"http://127.0.0.1:8081/health/ready/read\"]\n      # END GENERATED COMPOSE HEALTH notification_service\n      interval: 10s\n      timeout: 5s\n      retries: 12\n      start_period: 20s\n".as_slice()),
             field(b"    image: rust-workspace-template-notification-service:local\n".as_slice()),
             field(b"    networks:\n      - application\n".as_slice()),
@@ -101,7 +108,14 @@ pub(crate) fn generate_environment_files(workspace_root: &std::path::Path) -> st
         crate::docker_compose_notification_service_migrate_service::DockerComposeNotificationServiceMigrateService::new(
             field(b"    depends_on:\n      notification_database:\n        condition: service_healthy\n".as_slice()),
             field(b"    env_file:\n      - notification_service_config/.env\n".as_slice()),
-            field(b"    environment:\n      NOTIFICATION_DATABASE_URL: \"postgres://notification_service:change-me@notification_database:5432/notification_service\"\n      NOTIFICATION_SERVICE_SOCKET_ADDRESS: \"0.0.0.0:8081\"\n      PG_POOL_MAX_CONNECTIONS: \"10\"\n      REQUEST_TIMEOUT_SECONDS: \"30\"\n      SVC_MODE: migrate\n      TRACING_FORMAT: text\n".as_slice()),
+            crate::notification_service_environment::NotificationServiceEnvironment::new(
+                field(b"    environment:\n      NOTIFICATION_DATABASE_URL: \"postgres://notification_service:change-me@notification_database:5432/notification_service\"\n".as_slice()),
+                field(b"      NOTIFICATION_SERVICE_SOCKET_ADDRESS: \"0.0.0.0:8081\"\n".as_slice()),
+                field(b"      PG_POOL_MAX_CONNECTIONS: \"10\"\n".as_slice()),
+                field(b"      REQUEST_TIMEOUT_SECONDS: \"30\"\n".as_slice()),
+                field(b"      SVC_MODE: migrate\n".as_slice()),
+                field(b"      TRACING_FORMAT: text\n".as_slice()),
+            ),
             field(b"    image: rust-workspace-template-notification-service:local\n".as_slice()),
             field(b"    networks:\n      - application\n".as_slice()),
             field(b"    profiles: [application]\n".as_slice()),
@@ -113,7 +127,11 @@ pub(crate) fn generate_environment_files(workspace_root: &std::path::Path) -> st
             field(b"    build:\n      context: .\n      dockerfile: Dockerfile\n".as_slice()),
             field(b"    depends_on:\n      database:\n        condition: service_healthy\n      server_migrate:\n        condition: service_completed_successfully\n".as_slice()),
             field(b"    env_file:\n      - server/.env\n".as_slice()),
-            field(b"    environment:\n      DATABASE_URL: \"postgres://postgres:change-me@database:5432/rust_workspace_template\"\n      SVC_MODE: serve\n      # BEGIN GENERATED COMPOSE SOCKET server\n      SERVICE_SOCKET_ADDRESS: \"0.0.0.0:8080\"\n      # END GENERATED COMPOSE SOCKET server\n".as_slice()),
+            crate::docker_compose_server_environment::DockerComposeServerEnvironment::new(
+                field(b"    environment:\n      DATABASE_URL: \"postgres://postgres:change-me@database:5432/rust_workspace_template\"\n".as_slice()),
+                field(b"      # BEGIN GENERATED COMPOSE SOCKET server\n      SERVICE_SOCKET_ADDRESS: \"0.0.0.0:8080\"\n      # END GENERATED COMPOSE SOCKET server\n".as_slice()),
+                field(b"      SVC_MODE: serve\n".as_slice()),
+            ),
             field(b"    healthcheck:\n      # BEGIN GENERATED COMPOSE HEALTH server\n      test: [\"CMD\", \"curl\", \"--fail\", \"--silent\", \"http://127.0.0.1:8080/health/ready/read\"]\n      # END GENERATED COMPOSE HEALTH server\n      interval: 10s\n      timeout: 5s\n      retries: 12\n      start_period: 20s\n".as_slice()),
             field(b"    image: rust-workspace-template-application:local\n".as_slice()),
             field(b"    networks:\n      - application\n".as_slice()),
@@ -126,7 +144,11 @@ pub(crate) fn generate_environment_files(workspace_root: &std::path::Path) -> st
         crate::docker_compose_server_migrate_service::DockerComposeServerMigrateService::new(
             field(b"    depends_on:\n      database:\n        condition: service_healthy\n".as_slice()),
             field(b"    env_file:\n      - server/.env\n".as_slice()),
-            field(b"    environment:\n      DATABASE_URL: \"postgres://postgres:change-me@database:5432/rust_workspace_template\"\n      SERVICE_SOCKET_ADDRESS: \"0.0.0.0:8080\"\n      SVC_MODE: migrate\n".as_slice()),
+            crate::docker_compose_server_environment::DockerComposeServerEnvironment::new(
+                field(b"    environment:\n      DATABASE_URL: \"postgres://postgres:change-me@database:5432/rust_workspace_template\"\n".as_slice()),
+                field(b"      SERVICE_SOCKET_ADDRESS: \"0.0.0.0:8080\"\n".as_slice()),
+                field(b"      SVC_MODE: migrate\n".as_slice()),
+            ),
             field(b"    image: rust-workspace-template-application:local\n".as_slice()),
             field(b"    networks:\n      - application\n".as_slice()),
             field(b"    profiles: [application]\n".as_slice()),
