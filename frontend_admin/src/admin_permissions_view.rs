@@ -16,11 +16,11 @@ use leptos::prelude::{ClassAttribute, CustomAttribute, ElementChild};
     reason = "Leptos props own page data so the generated component factory can move it across reactive render closures"
 )]
 pub(crate) fn AdminPermissionsView(
-    admin_permissions_page: server_admin_contract::admin_permissions_page::AdminPermissionsPage,
+    admin_permissions_page: server_admin_contract::admin_roles_page::AdminRolesPage,
     admin_csr_query: super::admin_csr_query::AdminCsrQuery,
 ) -> impl leptos::prelude::IntoView {
-    let total = admin_permissions_page.total();
-    let rows = admin_permissions_page.items().iter().map(|item| {
+    let total = admin_permissions_page.permissions_total();
+    let rows = admin_permissions_page.permissions().iter().map(|item| {
         let id = item.id().to_string();
         let permission = item.name().to_string();
         leptos::view! {

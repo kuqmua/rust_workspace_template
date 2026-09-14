@@ -12,5 +12,6 @@
 #[serde(deny_unknown_fields)]
 pub struct AdminUpdateRoleRequest {
     #[contract_struct_api(into)]
-    name: crate::admin_role_name::AdminRoleName,
+    name: Option<crate::admin_role_name::AdminRoleName>,
+    permissions: Option<crate::admin_set_role_permissions_request::AdminSetRolePermissionsRequest>,
 }

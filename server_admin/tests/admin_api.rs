@@ -53,6 +53,10 @@ mod test_data_tables {
             (serde_json::json!({(stringify!(updates)): [{(stringify!(filter)): {}, (stringify!(changes)): {(stringify!(name)): constants_str::LOGIN}}]}), http::StatusCode::UNPROCESSABLE_ENTITY, true, true),
             (serde_json::json!({(stringify!(updates)): [{(stringify!(filter)): {(stringify!(role_id)): null}, (stringify!(changes)): {(stringify!(name)): constants_str::LOGIN}}]}), http::StatusCode::UNPROCESSABLE_ENTITY, true, true),
             (serde_json::json!({(stringify!(updates)): [{(stringify!(filter)): {(stringify!(role_id)): first_role}, (stringify!(changes)): {}}]}), http::StatusCode::UNPROCESSABLE_ENTITY, true, true),
+            (serde_json::json!({(stringify!(updates)): [{(stringify!(filter)): {(stringify!(name)): constants_str::VALUE_2562E0C2}, (stringify!(changes)): {(stringify!(permissions)): {(stringify!(expected_permission_ids)): [], (stringify!(permission_ids)): []}}}]}), http::StatusCode::UNPROCESSABLE_ENTITY, true, true),
+            (serde_json::json!({(stringify!(updates)): [{(stringify!(filter)): {(stringify!(role_id)): first_role}, (stringify!(changes)): {(stringify!(permissions)): {(stringify!(expected_permission_ids)): [], (stringify!(permission_ids)): [1i64, 1i64]}}}]}), http::StatusCode::UNPROCESSABLE_ENTITY, true, true),
+            (serde_json::json!({(stringify!(updates)): [{(stringify!(filter)): {(stringify!(role_id)): first_role}, (stringify!(changes)): {(stringify!(permissions)): {(stringify!(expected_permission_ids)): [i64::MAX], (stringify!(permission_ids)): []}}}]}), http::StatusCode::CONFLICT, true, true),
+            (serde_json::json!({(stringify!(updates)): [{(stringify!(filter)): {(stringify!(role_id)): system_role}, (stringify!(changes)): {(stringify!(permissions)): {(stringify!(expected_permission_ids)): [], (stringify!(permission_ids)): []}}}]}), http::StatusCode::CONFLICT, true, true),
             (serde_json::json!({(stringify!(updates)): [{(stringify!(filter)): {(stringify!(role_id)): first_role, (stringify!(name)): constants_str::VALUE_A582339C}, (stringify!(changes)): {(stringify!(name)): constants_str::LOGIN}}]}), http::StatusCode::CONFLICT, true, true),
             (serde_json::json!({(stringify!(updates)): [{(stringify!(filter)): {(stringify!(role_id)): first_role}, (stringify!(changes)): {(stringify!(name)): constants_str::LOGIN}}, {(stringify!(filter)): {(stringify!(name)): constants_str::VALUE_2562E0C2}, (stringify!(changes)): {(stringify!(name)): constants_str::USERNAME}}]}), http::StatusCode::UNPROCESSABLE_ENTITY, true, true),
             (serde_json::json!({(stringify!(updates)): [{(stringify!(filter)): {(stringify!(is_system)): false}, (stringify!(changes)): {(stringify!(name)): constants_str::LOGIN}}]}), http::StatusCode::CONFLICT, true, true),
@@ -82,7 +86,11 @@ mod test_data_tables {
             assert!(roles.iter().any(|(identifier, name, system)| *identifier == system_role && name == constants_str::ADMIN_ALT && *system));
             assert_eq!(sqlx::query_scalar::<_, i64>(constants_str::ADMIN_TEST_AUDIT_COUNT_SQL).fetch_one(&fixture.pool.0).await.expect(constants_str::DIAGNOSTIC_E0EF9145), audit_before);
         }).await;
-        let body = serde_json::json!({(stringify!(updates)): [{(stringify!(filter)): {(stringify!(name)): constants_str::VALUE_A582339C}, (stringify!(changes)): {(stringify!(name)): constants_str::USERNAME}}, {(stringify!(filter)): {(stringify!(role_id)): first_role, (stringify!(name)): constants_str::VALUE_2562E0C2, (stringify!(is_system)): false}, (stringify!(changes)): {(stringify!(name)): constants_str::LOGIN}}]}).to_string();
+        let permission = sqlx::query_scalar::<_, i64>(constants_str::VALUE_1491D3FA)
+            .fetch_one(&fixture.pool.0)
+            .await
+            .expect(constants_str::DIAGNOSTIC_1D69F24C);
+        let body = serde_json::json!({(stringify!(updates)): [{(stringify!(filter)): {(stringify!(name)): constants_str::VALUE_A582339C}, (stringify!(changes)): {(stringify!(name)): constants_str::USERNAME}}, {(stringify!(filter)): {(stringify!(role_id)): first_role}, (stringify!(changes)): {(stringify!(name)): constants_str::LOGIN, (stringify!(permissions)): {(stringify!(expected_permission_ids)): [], (stringify!(permission_ids)): [permission]}}}]}).to_string();
         let response = tower::ServiceExt::oneshot(
             crate::router_with_pool(&fixture.pool).0,
             crate::request_with_peer(
@@ -117,6 +125,14 @@ mod test_data_tables {
                 .iter()
                 .any(|(identifier, name, _)| *identifier == first_role
                     && name == constants_str::LOGIN)
+        );
+        assert_eq!(
+            sqlx::query_scalar::<_, i64>(constants_str::SERVER_ADMIN_READ_ROLE_PERMISSION_IDS_SQL)
+                .bind(first_role)
+                .fetch_all(&fixture.pool.0)
+                .await
+                .expect(constants_str::DIAGNOSTIC_FD625302),
+            [permission]
         );
         assert!(
             roles
@@ -309,19 +325,29 @@ mod test_data_tables {
             },
         )
         .await;
-        let role_permission =
+        let stored_permissions =
             sqlx::query_as::<_, (i64, String)>(constants_str::SERVER_ADMIN_LIST_PERMISSIONS_SQL)
                 .fetch_all(&fixture.pool.0)
                 .await
-                .expect(constants_str::DIAGNOSTIC_43D66DF8)
-                .into_iter()
-                .find(|(_, name)| {
-                    name == server_admin_contract::admin_permission::AdminPermission::UsersRead
-                        .as_str()
-                        .get()
-                })
-                .expect(constants_str::DIAGNOSTIC_75AD5646)
-                .0;
+                .expect(constants_str::DIAGNOSTIC_43D66DF8);
+        let role_permission = stored_permissions
+            .iter()
+            .find(|(_, name)| {
+                name == server_admin_contract::admin_permission::AdminPermission::UsersRead
+                    .as_str()
+                    .get()
+            })
+            .expect(constants_str::DIAGNOSTIC_75AD5646)
+            .0;
+        let permissions_read_permission = stored_permissions
+            .iter()
+            .find(|(_, name)| {
+                name == server_admin_contract::admin_permission::AdminPermission::PermissionsRead
+                    .as_str()
+                    .get()
+            })
+            .expect(constants_str::DIAGNOSTIC_C14A8E72)
+            .0;
         futures::StreamExt::fold(
             futures::stream::iter(&role_identifiers),
             (),
@@ -329,7 +355,7 @@ mod test_data_tables {
                 let _assignment =
                     sqlx::query(constants_str::SERVER_ADMIN_REPLACE_ROLE_PERMISSIONS_INSERT_SQL)
                         .bind(identifier)
-                        .bind([role_permission].as_slice())
+                        .bind([role_permission, permissions_read_permission].as_slice())
                         .execute(&fixture.pool.0)
                         .await
                         .expect(constants_str::DIAGNOSTIC_4FCEE24A);
@@ -343,6 +369,13 @@ mod test_data_tables {
             (0u32, true, 0u64, None),
         ]), (), async |(), (offset, is_system, total, expected_name)| {
             let read_body = serde_json::json!({
+                (stringify!(permissions_query)): {
+                    (stringify!(search)): server_admin_contract::admin_permission::AdminPermission::UsersRead.as_str().get(),
+                    (stringify!(sort)): constants_str::NAME,
+                    (stringify!(offset)): 0u32,
+                    (stringify!(limit)): 1u16,
+                    (stringify!(direction)): server_admin_contract::admin_sort_direction::AdminSortDirection::Ascending
+                },
                 (stringify!(select)): [{(stringify!(id)): null}, {(stringify!(name)): null}, {(stringify!(is_system)): null}],
                 (stringify!(search)): constants_str::VALUE_2562E0C2.to_uppercase(),
                 (stringify!(where_many)): {(stringify!(is_system)): {
@@ -368,7 +401,9 @@ mod test_data_tables {
             let value = serde_json::from_slice::<serde_json::Value>(&bytes).expect(constants_str::DIAGNOSTIC_8E7012EF);
             assert_eq!(value.get(constants_str::ADMIN_UI_TOTAL), Some(&serde_json::json!(total)));
             let page = serde_json::from_slice::<server_admin_contract::admin_roles_page::AdminRolesPage>(&bytes).expect(constants_str::DIAGNOSTIC_6065FF9E);
-            assert!(!page.permissions().is_empty());
+            assert_eq!(page.permissions().len(), 1);
+            assert_eq!(u64::from(page.permissions_total()), 1u64);
+            assert_eq!(page.permissions().first().map(|permission| permission.name().as_ref().as_str()), Some(server_admin_contract::admin_permission::AdminPermission::UsersRead.as_str().get()));
             assert_eq!(page.items().first().map(|item| item.name().as_ref().as_str()), expected_name);
             page.items().iter().for_each(|item| {
                 assert_eq!(item.permission_ids().len(), 1);
@@ -434,6 +469,49 @@ mod test_data_tables {
             },
         )
         .await;
+        let permissions_read_body = serde_json::json!({
+            (stringify!(permissions_query)): {
+                (stringify!(search)): server_admin_contract::admin_permission::AdminPermission::UsersRead.as_str().get(),
+                (stringify!(sort)): constants_str::NAME,
+                (stringify!(offset)): 0u32,
+                (stringify!(limit)): 1u16,
+                (stringify!(direction)): server_admin_contract::admin_sort_direction::AdminSortDirection::Ascending
+            },
+            (stringify!(select)): [{(stringify!(id)): null}],
+            (stringify!(search)): null,
+            (stringify!(where_many)): null,
+            (stringify!(order_by)): {(stringify!(column)): {(stringify!(id)): null}, (stringify!(order)): server_admin_contract::admin_sort_direction::AdminSortDirection::Ascending},
+            (stringify!(pagination)): {(stringify!(limit)): 1u16, (stringify!(offset)): 0u32}
+        })
+        .to_string();
+        let permissions_read = tower::ServiceExt::oneshot(
+            crate::router_with_pool(&fixture.pool).0,
+            crate::request_with_peer(
+                crate::HttpAdminApiTestMethod::from(http::Method::POST),
+                crate::StdAdminApiTestStrRef::from(constants_str::ADMIN_ROLES_READ),
+                crate::StdAdminApiTestStrRef::from(permissions_read_body.as_str()),
+                Some(crate::StdAdminApiTestStrRef::from(
+                    fixture.cookie.0.as_str(),
+                )),
+                None,
+            )
+            .0,
+        )
+        .await
+        .expect(constants_str::DIAGNOSTIC_6D2EC7A5);
+        assert_eq!(permissions_read.status(), http::StatusCode::OK);
+        let permissions_read_bytes = axum::body::to_bytes(
+            permissions_read.into_body(),
+            constants_usize::VALUE_1_048_576,
+        )
+        .await
+        .expect(constants_str::DIAGNOSTIC_F73B4C18);
+        let permissions_read_page = serde_json::from_slice::<
+            server_admin_contract::admin_roles_page::AdminRolesPage,
+        >(&permissions_read_bytes)
+        .expect(constants_str::DIAGNOSTIC_A91E5D64);
+        assert!(permissions_read_page.items().is_empty());
+        assert_eq!(permissions_read_page.permissions().len(), 1);
         fixture
             .lock
             .0
@@ -2731,7 +2809,7 @@ mod test_flow {
             super::HttpAdminApiTestMethod::from(http::Method::GET),
             super::StdAdminApiTestStrRef::from(
                 format!(
-                    "/tables/users?filter_field=login&filter_operation=eq&filter_value={}&limit=20&offset=0",
+                    "/tables/users/read?filter_field=login&filter_operation=eq&filter_value={}&limit=20&offset=0",
                     constants_str::ADMIN_ALT
                 )
                 .as_str(),

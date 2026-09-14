@@ -4,7 +4,7 @@ import { signInInitialAdministrator, signOutIfAuthenticated } from "./support/ad
 test("test_table_views_use_unprefixed_api_paths", async ({ page }) => {
   await signInInitialAdministrator(page);
   try {
-    const document = await (await page.request.get("/openapi.json")).json();
+    const document = await (await page.request.get("/openapi.json/read")).json();
     const resources = ["user_roles", "role_permissions", "refresh_tokens", "access_sessions", "login_attempts", "rate_limits", "cleanup_status"];
     await resources.reduce(async (previous, resource) => {
       await previous;
@@ -21,9 +21,9 @@ test("test_table_views_use_unprefixed_api_paths", async ({ page }) => {
     }, Promise.resolve());
     await ["users", "roles", "permissions", "audit_log", "system_settings"].reduce(async (previous, resource) => {
       await previous;
-      expect((await page.request.get(`/tables/${resource}`)).status(), resource).toBe(200);
+      expect((await page.request.get(`/tables/${resource}/read`)).status(), resource).toBe(200);
     }, Promise.resolve());
-    expect((await page.request.get("/tables")).status()).toBe(200);
+    expect((await page.request.get("/tables/read")).status()).toBe(200);
   } finally {
     await signOutIfAuthenticated(page);
   }

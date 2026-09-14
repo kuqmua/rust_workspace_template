@@ -15,8 +15,6 @@
 pub enum AdminPermission {
     #[wire("access_sessions:read")]
     AccessSessionsRead,
-    #[wire("audit_log:export")]
-    AuditLogExport,
     #[wire("audit_log:read")]
     AuditLogRead,
     #[wire("cleanup_status:read")]

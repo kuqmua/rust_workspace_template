@@ -22,17 +22,17 @@ test("test_health_probe_bounds_reads_and_preserves_failures", async () => {
         cancelled = true;
       },
     }));
-    await assert.rejects(fetchHealthText("/health"), /health_response_too_large/);
+    await assert.rejects(fetchHealthText("/health/read"), /health_response_too_large/);
     assert.equal(cancelled, true);
 
     const failure = new Error("network_failure");
     globalThis.fetch = async () => { throw failure; };
-    await assert.rejects(fetchHealthText("/health"), error => error === failure);
+    await assert.rejects(fetchHealthText("/health/read"), error => error === failure);
 
     globalThis.fetch = async () => new Response(
       '{"status":"unavailable"}', { status: 503 },
     );
-    assert.equal(await fetchHealthText("/health"), '503 {"status":"unavailable"}');
+    assert.equal(await fetchHealthText("/health/read"), '503 {"status":"unavailable"}');
   } finally {
     globalThis.fetch = originalFetch;
   }

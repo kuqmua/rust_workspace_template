@@ -13,7 +13,7 @@
     mutation = frontend_contract::route_mutation::RouteMutation::ReadOnly,
     obligations = frontend_contract::route_coverage_obligation::PUBLIC_READ_ROUTE_COVERAGE_OBLIGATIONS,
     openapi_operation_id = "health",
-    path = "/health",
+    path = "/health/read",
     request = crate::common_no_body::CommonNoBody,
     response = crate::health_report::HealthReport,
     success_status = frontend_contract::success_status::SuccessStatus::Code200,

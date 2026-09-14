@@ -91,13 +91,6 @@ test.describe("authenticated button labels", () => {
     await expect(dialog).not.toBeVisible();
   });
 
-  test("test_audit_download_button_labels_use_snake_case", async ({ page }) => {
-    await page.goto("/admin/audit_log");
-    await page.getByRole("button", { name: "prepare_page_csv", exact: true }).click();
-    await expect(page.getByRole("link", { name: "download_page_csv", exact: true })).toBeVisible();
-    await expectSnakeCaseButtonLabels(page);
-  });
-
   test("test_database_display_name_preserves_case_and_spaces", async ({ page }) => {
     await page.goto("/admin/users");
     const response = await readUsers(page.request);

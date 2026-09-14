@@ -153,11 +153,18 @@ pub(crate) async fn crud_resource_page(
                         )
                         .await
                         .map_err(crate::map_repository_error::map_repository_error)?;
+                    let permissions_total = crate::page_total::page_total(
+                        crate::admin_page_total_count::AdminPageTotalCount::from(
+                            i64::try_from(permissions.as_ref().len())
+                                .map_err(|_error| crate::admin_error::AdminError::Validation)?,
+                        ),
+                    )?;
                     Ok(
                         server_admin_contract::admin_roles_page::AdminRolesPage::new(
                             roles,
                             permissions,
                             crate::page_total::page_total(total)?,
+                            permissions_total,
                         ),
                     )
                 };

@@ -16,4 +16,7 @@ pub struct AdminRolesPage {
     #[schema(value_type = u64)]
     #[contract_struct_api(copy_ref)]
     total: crate::admin_page_total::AdminPageTotal,
+    #[schema(value_type = u64)]
+    #[contract_struct_api(copy_ref)]
+    permissions_total: crate::admin_page_total::AdminPageTotal,
 }

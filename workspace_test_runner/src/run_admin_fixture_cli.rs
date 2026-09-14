@@ -381,6 +381,16 @@ pub(crate) fn run_admin_fixture_cli() -> crate::runner_cli_outcome::RunnerCliOut
                 )),
             );
         })?;
+        let permission_total = u64::try_from(permission_summaries.len()).map_err(|error| {
+            macro_helpers::tool_console_stream::ToolConsoleStream::write_or_exit(
+                macro_helpers::tool_console_stream::ToolConsoleStream::StandardError,
+                macro_helpers::std_fmt_arguments::StdFmtArguments::from(format_args!(
+                    "{}{}",
+                    format_args!("{error}"),
+                    constants_str::NEWLINE
+                )),
+            );
+        })?;
         let roles_page = server_admin_contract::admin_roles_page::AdminRolesPage::new(
             server_admin_contract::admin_role_summaries::AdminRoleSummaries::try_from(
                 role_summaries,
@@ -409,17 +419,8 @@ pub(crate) fn run_admin_fixture_cli() -> crate::runner_cli_outcome::RunnerCliOut
                 );
             })?,
             server_admin_contract::admin_page_total::AdminPageTotal::from(role_total),
+            server_admin_contract::admin_page_total::AdminPageTotal::from(permission_total),
         );
-        let permission_total = u64::try_from(permission_summaries.len()).map_err(|error| {
-            macro_helpers::tool_console_stream::ToolConsoleStream::write_or_exit(
-                macro_helpers::tool_console_stream::ToolConsoleStream::StandardError,
-                macro_helpers::std_fmt_arguments::StdFmtArguments::from(format_args!(
-                    "{}{}",
-                    format_args!("{error}"),
-                    constants_str::NEWLINE
-                )),
-            );
-        })?;
         let permissions_page = server_admin_contract::admin_permissions_page::AdminPermissionsPage::new(
             server_admin_contract::admin_permission_summaries::AdminPermissionSummaries::try_from(
                 permission_summaries,

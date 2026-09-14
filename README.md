@@ -123,10 +123,10 @@ and execution mode. Published database and HTTP ports bind only to `127.0.0.1`.
 Health endpoints:
 
 ```text
-http://127.0.0.1:8080/health/live
-http://127.0.0.1:8080/health/ready
-http://127.0.0.1:8081/health/live
-http://127.0.0.1:8081/health/ready
+http://127.0.0.1:8080/health/live/read
+http://127.0.0.1:8080/health/ready/read
+http://127.0.0.1:8081/health/live/read
+http://127.0.0.1:8081/health/ready/read
 ```
 
 ## Distributed tracing

@@ -11,7 +11,7 @@ spec:
       app.kubernetes.io/name: application
   endpoints:
     - port: http
-      path: /metrics
+      path: /metrics/read
       interval: 30s
       scrapeTimeout: 10s
 ---
@@ -28,6 +28,6 @@ spec:
       app.kubernetes.io/name: notification-service
   endpoints:
     - port: http
-      path: /metrics
+      path: /metrics/read
       interval: 30s
       scrapeTimeout: 10s

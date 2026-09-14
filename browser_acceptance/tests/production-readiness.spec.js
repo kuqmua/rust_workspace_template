@@ -1,6 +1,5 @@
 import { readUsers, usersReadPage } from "./support/users.js";
 import { expect, test } from "@playwright/test";
-import { readFile } from "node:fs/promises";
 import {
   adminHeaders,
   adminOrigin,
@@ -45,6 +44,25 @@ async function createRole(page, name) {
   return (await response.json()).id;
 }
 
+async function readPermissions(request) {
+  return request.post("/roles/read", {
+    data: {
+      permissions_query: {
+        search: "",
+        sort: "",
+        offset: 0,
+        limit: 100,
+        direction: "ascending"
+      },
+      search: null,
+      pagination: { offset: 0, limit: 1 },
+      select: [{ id: null }],
+      order_by: { column: { id: null }, order: "ascending" },
+      where_many: null
+    }
+  });
+}
+
 async function changeRequiredPassword(page, currentPassword, newPassword) {
   await expect(page).toHaveURL(/\/admin\/profile$/);
   await changePassword(page, currentPassword, newPassword);
@@ -59,7 +77,7 @@ test("mutations reject missing, invalid, and cross-origin CSRF credentials", asy
   page
 }) => {
   await signInAdministrator(page);
-  const original = await page.request.get("/system_settings");
+  const original = await page.request.get("/system_settings/read");
   expect(original.status()).toBe(200);
   const originalSettings = await original.json();
   const update = {
@@ -112,7 +130,7 @@ test("mutations reject missing, invalid, and cross-origin CSRF credentials", asy
   });
   expect([401, 403]).toContain(crossOrigin.status());
 
-  const unchanged = await page.request.get("/system_settings");
+  const unchanged = await page.request.get("/system_settings/read");
   expect(unchanged.status()).toBe(200);
   expect(await unchanged.json()).toEqual(originalSettings);
 });
@@ -187,12 +205,12 @@ test("HTML success and error responses retain production security headers", asyn
 test("public health, branding, and static asset endpoints are deployable", async ({
   request
 }) => {
-  for (const path of ["/health/live", "/health/ready"]) {
+  for (const path of ["/health/live/read", "/health/ready/read"]) {
     const response = await request.get(path);
     expect(response.status()).toBe(200);
   }
 
-  const branding = await request.get("/branding");
+  const branding = await request.get("/branding/read");
   expect(branding.status()).toBe(200);
   expect(await branding.json()).toEqual(
     expect.objectContaining({
@@ -213,7 +231,7 @@ test("oversized and invalid mutations fail without changing persisted state", as
 }) => {
   await signInAdministrator(page);
   const originalResponse = await page.request.get(
-    "/system_settings"
+    "/system_settings/read"
   );
   expect(originalResponse.status()).toBe(200);
   const original = await originalResponse.json();
@@ -245,7 +263,7 @@ test("oversized and invalid mutations fail without changing persisted state", as
   }, headers["X-CSRF-Token"]);
   expect(oversizedStatus).toBe(413);
 
-  const unchanged = await page.request.get("/system_settings");
+  const unchanged = await page.request.get("/system_settings/read");
   expect(unchanged.status()).toBe(200);
   expect(await unchanged.json()).toEqual(original);
   const absent = await readUsers(page.request, "search=oversized_user");
@@ -325,7 +343,7 @@ test("administrator password reset invalidates the old session and credentials",
     "Lifecycle-password2!"
   );
   expect(
-    (await userPage.request.get("/auth/me")).status()
+    (await userPage.request.get("/auth/me/read")).status()
   ).toBe(200);
 
   const reset = await page.request.patch(
@@ -337,7 +355,7 @@ test("administrator password reset invalidates the old session and credentials",
   );
   expect(reset.status()).toBe(204);
   expect(
-    (await userPage.request.get("/auth/me")).status()
+    (await userPage.request.get("/auth/me/read")).status()
   ).toBe(401);
   await userContext.close();
 
@@ -350,7 +368,7 @@ test("administrator password reset invalidates the old session and credentials",
   );
   await expect(oldPage.getByRole("alert")).toBeVisible();
   expect(
-    (await oldPage.request.get("/auth/me")).status()
+    (await oldPage.request.get("/auth/me/read")).status()
   ).toBe(401);
   await oldContext.close();
 
@@ -392,7 +410,7 @@ test("banning a user revokes active sessions and unbanning restores sign-in", as
   expect(conflicting.status()).toBe(409);
   expect((await usersReadPage(await readUsers(page.request, "limit=100"))).items
     .find(user => user.id === userId)).toEqual(originalUser);
-  expect((await userPage.request.get("/auth/me")).status()).toBe(200);
+  expect((await userPage.request.get("/auth/me/read")).status()).toBe(200);
 
   const banned = await page.request.patch("/users/update", {
     data: { updates: [{ filter: { user_id: userId }, changes: { is_banned: true } }] },
@@ -400,7 +418,7 @@ test("banning a user revokes active sessions and unbanning restores sign-in", as
   });
   expect(banned.status()).toBe(204);
   expect(
-    (await userPage.request.get("/auth/me")).status()
+    (await userPage.request.get("/auth/me/read")).status()
   ).toBe(401);
   const renamed = await page.request.patch("/users/update", {
     data: { updates: [{ filter: { user_id: userId }, changes: { display_name: "Renamed Banned User" } }] },
@@ -442,11 +460,9 @@ test("role lifecycle enforces uniqueness, stale-assignment conflicts, and deleti
   });
   expect(renamed.status()).toBe(204);
 
-  const permissionsResponse = await page.request.get(
-    "/permissions?limit=100"
-  );
+  const permissionsResponse = await readPermissions(page.request);
   expect(permissionsResponse.status()).toBe(200);
-  const permission = (await permissionsResponse.json()).items.find(
+  const permission = (await permissionsResponse.json()).permissions.find(
     item => item.name === "users:read"
   );
   expect(permission).toBeTruthy();
@@ -598,11 +614,9 @@ test("data-table filters constrain rows and reject malformed filter contracts", 
 }) => {
   await signInAdministrator(page);
   const roleId = await createRole(page, "filter_contract_role");
-  const permissionsResponse = await page.request.get(
-    "/permissions?limit=100"
-  );
+  const permissionsResponse = await readPermissions(page.request);
   expect(permissionsResponse.status()).toBe(200);
-  const permission = (await permissionsResponse.json()).items.find(
+  const permission = (await permissionsResponse.json()).permissions.find(
     item => item.name === "users:read"
   );
   expect(permission).toBeTruthy();
@@ -619,7 +633,7 @@ test("data-table filters constrain rows and reject malformed filter contracts", 
   expect(assigned.status()).toBe(204);
 
   const filtered = await page.request.get(
-    `/role_permissions?filter_field=role_id&filter_operation=eq&filter_value=${roleId}&limit=100`
+    `/role_permissions/read?filter_field=role_id&filter_operation=eq&filter_value=${roleId}&limit=100`
   );
   expect(filtered.status()).toBe(200);
   const table = await filtered.json();
@@ -630,26 +644,26 @@ test("data-table filters constrain rows and reject malformed filter contracts", 
   expect(table.items[0].values).toContain(String(permission.id));
 
   for (const path of [
-    "/role_permissions?filter_field=role_id&filter_operation=eq",
-    "/role_permissions?filter_field=unknown&filter_operation=eq&filter_value=1"
+    "/role_permissions/read?filter_field=role_id&filter_operation=eq",
+    "/role_permissions/read?filter_field=unknown&filter_operation=eq&filter_value=1"
   ]) {
     const rejected = await page.request.get(path);
     expect(rejected.status()).toBe(422);
   }
 });
 
-test("audit export records mutations without exposing submitted passwords", async ({
+test("audit records mutations without exposing submitted passwords", async ({
   page
 }) => {
   await signInAdministrator(page);
   const password = "Audit-secret-password7!";
   const userId = await createUser(
     page,
-    "audit_export_user",
+    "audit_record_user",
     "Audit Export User",
     password
   );
-  const auditResponse = await page.request.get("/audit_log?limit=100");
+  const auditResponse = await page.request.get("/audit_log/read?limit=100");
   expect(auditResponse.status()).toBe(200);
   const auditPage = await auditResponse.json();
   expect(auditPage.items).toEqual(expect.arrayContaining([
@@ -661,32 +675,6 @@ test("audit export records mutations without exposing submitted passwords", asyn
     })
   ]));
   expect(JSON.stringify(auditPage)).not.toContain(password);
-  const exported = await page.request.get(
-    "/audit_log/export?limit=100"
-  );
-  expect(exported.status()).toBe(200);
-  const body = await exported.json();
-  expect(body.csv).toContain(
-    `\"create\",\"user\",\"${userId}\",\"true\"`
-  );
-  expect(body.csv).not.toContain(password);
-  await page.goto("/admin/audit_log?limit=100&offset=0");
-  await expect(page.locator('[data-renderer="csr"]')).toBeVisible();
-  const exportResponse = page.waitForResponse(response =>
-    response.url().endsWith("/audit_log/export?limit=100&offset=0")
-  );
-  await page.getByRole("button", { name: "prepare_page_csv" }).click();
-  const response = await exportResponse;
-  expect(response.status()).toBe(200);
-  const exportBody = await response.json();
-  const downloadEvent = page.waitForEvent("download");
-  await page.getByRole("link", { name: "download_page_csv" }).click();
-  const download = await downloadEvent;
-  expect(download.suggestedFilename()).toBe("audit_log.csv");
-  const file = await download.path();
-  expect(file).not.toBeNull();
-  expect(await readFile(file, "utf8")).toBe(exportBody.csv);
-  expect(exportBody.csv).not.toContain(password);
 });
 
 test("a read-only administrator sees only authorized navigation and mutations fail", async ({
@@ -695,11 +683,9 @@ test("a read-only administrator sees only authorized navigation and mutations fa
 }) => {
   await signInAdministrator(page);
   const roleId = await createRole(page, "production_reader");
-  const permissionsResponse = await page.request.get(
-    "/permissions?limit=100"
-  );
+  const permissionsResponse = await readPermissions(page.request);
   expect(permissionsResponse.status()).toBe(200);
-  const permissions = (await permissionsResponse.json()).items;
+  const permissions = (await permissionsResponse.json()).permissions;
   const usersRead = permissions.find(permission => permission.name === "users:read");
   const tablesRead = permissions.find(permission => permission.name === "tables:read");
   const auditRead = permissions.find(permission => permission.name === "audit_log:read");
@@ -767,8 +753,6 @@ test("a read-only administrator sees only authorized navigation and mutations fa
 
   await reader.goto("/admin/audit_log");
   await expect(reader.locator('[data-renderer="csr"]')).toBeVisible();
-  await expect(reader.getByRole("button", { name: "prepare_page_csv" })).toHaveCount(0);
-  expect((await reader.request.get("/audit_log/export")).status()).toBe(403);
 
   await reader.goto("/admin/settings");
   await expect(reader.locator('[data-renderer="csr"]')).toBeVisible();
@@ -843,7 +827,7 @@ test("a failed settings mutation preserves input and reports the server error", 
   expect(refreshes).toBe(0);
 
   await page.unroute("**/system_settings/update");
-  const persisted = await page.request.get("/system_settings");
+  const persisted = await page.request.get("/system_settings/read");
   expect(persisted.status()).toBe(200);
   expect((await persisted.json()).site_name).toBe(originalSiteName);
 });
@@ -898,44 +882,6 @@ test("primary pages emit no uncaught errors, failed requests, or console errors"
   expect(pageErrors).toEqual([]);
 });
 
-
-test("expired access cookies recover an audit download once", async ({ context, page }) => {
-  await signInAdministrator(page);
-  await page.goto("/admin/audit_log");
-  const prepare = page.getByRole("button", { name: "prepare_page_csv" });
-  await expect(prepare).toBeVisible();
-  await context.clearCookies({ name: /admin_(access_token|csrf_token)/ });
-  const responses = [];
-  page.on("response", response => {
-    if (response.url().includes("/audit_log/export") ||
-        response.url().endsWith("/auth/refresh")) {
-      responses.push([response.request().method(), response.status()]);
-    }
-  });
-  await prepare.click();
-  await expect(page.getByRole("link", { name: "download_page_csv" })).toBeVisible();
-  expect(responses).toEqual([["GET", 401], ["POST", 200], ["GET", 200]]);
-});
-
-test("missing credentials stop audit recovery after one refresh", async ({ context, page }) => {
-  await signInAdministrator(page);
-  await page.goto("/admin/audit_log");
-  const prepare = page.getByRole("button", { name: "prepare_page_csv" });
-  await expect(prepare).toBeVisible();
-  await context.clearCookies();
-  const responses = [];
-  page.on("response", response => {
-    if (response.url().includes("/audit_log/export") ||
-        response.url().endsWith("/auth/refresh")) {
-      responses.push([response.request().method(), response.status()]);
-    }
-  });
-  await prepare.click();
-  await expect(page.getByRole("alert")).toBeVisible();
-  await expect(prepare).toBeVisible();
-  await expect(page.getByRole("link", { name: "download_page_csv" })).toHaveCount(0);
-  expect(responses).toEqual([["GET", 401], ["POST", 401], ["GET", 401]]);
-});
 
 test("expired CSRF cookies recover a settings mutation without replaying it", async ({ context, page }) => {
   await signInAdministrator(page);

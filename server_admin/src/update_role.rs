@@ -13,7 +13,8 @@ pub(crate) async fn update_role(
     let updates = [
         server_admin_contract::admin_role_update::AdminRoleUpdate::new(
             server_admin_contract::admin_update_role_request::AdminUpdateRoleRequest::new(
-                axum_admin_form.get_name().clone(),
+                Some(axum_admin_form.get_name().clone()),
+                None,
             ),
             server_admin_contract::admin_role_filter::AdminRoleFilter::new(
                 Some(*axum_admin_form.get_role_id()),

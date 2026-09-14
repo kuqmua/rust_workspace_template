@@ -19,8 +19,8 @@ docker compose up --build
 ```
 
 The application listens on `127.0.0.1:8080`; the notification service listens on
-`127.0.0.1:8081`. Their liveness and readiness endpoints are `/health/live` and
-`/health/ready`.
+`127.0.0.1:8081`. Their liveness and readiness endpoints are `/health/live/read` and
+`/health/ready/read`.
 
 To run only the application locally, make sure `server/.env` points to a reachable PostgreSQL
 database and run:

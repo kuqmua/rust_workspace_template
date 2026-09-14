@@ -17,10 +17,10 @@ pub enum NotificationOperationalRoute {
             frontend_contract::authentication_requirement::AuthenticationRequirement::Public,
             frontend_contract::route_method::RouteMethod::Get,
             frontend_contract::mutation_kind::MutationKind::ReadOnly,
-            frontend_contract::contract_str::ContractStr::from("/metrics"),
+            frontend_contract::contract_str::ContractStr::from("/metrics/read"),
             frontend_contract::success_status::SuccessStatus::Code200,
         ),
-        path = "/metrics",
+        path = "/metrics/read",
         exclude_from_family,
     )]
     Metrics,
@@ -29,10 +29,10 @@ pub enum NotificationOperationalRoute {
             frontend_contract::authentication_requirement::AuthenticationRequirement::Public,
             frontend_contract::route_method::RouteMethod::Get,
             frontend_contract::mutation_kind::MutationKind::ReadOnly,
-            frontend_contract::contract_str::ContractStr::from("/openapi.json"),
+            frontend_contract::contract_str::ContractStr::from("/openapi.json/read"),
             frontend_contract::success_status::SuccessStatus::Code200,
         ),
-        path = "/openapi.json",
+        path = "/openapi.json/read",
         exclude_from_family,
     )]
     OpenApi,
@@ -46,8 +46,8 @@ impl frontend_contract::route_registration_contract::RouteRegistrationContract
     }
     fn path(self) -> frontend_contract::registered_route_path::RegisteredRoutePath {
         frontend_contract::registered_route_path::RegisteredRoutePath::from(match self {
-            Self::Metrics => constants_str::METRICS,
-            Self::OpenApi => constants_str::OPENAPI_JSON,
+            Self::Metrics => constants_str::METRICS_READ,
+            Self::OpenApi => constants_str::OPENAPI_JSON_READ,
         })
     }
 }

@@ -1,19 +1,14 @@
 #[test]
 fn test_rate_limit_scopes_are_distinct() {
     let scopes = [
-        crate::admin_rate_limit_scope::AdminRateLimitScope::AuditExport,
         crate::admin_rate_limit_scope::AdminRateLimitScope::Mutation,
         crate::admin_rate_limit_scope::AdminRateLimitScope::RefreshIp,
         crate::admin_rate_limit_scope::AdminRateLimitScope::SignInIp,
         crate::admin_rate_limit_scope::AdminRateLimitScope::SignInIpLogin,
     ]
     .map(crate::admin_rate_limit_scope::AdminRateLimitScope::as_str);
-    assert_eq!(
-        scopes[0].as_ref(),
-        constants_str::SERVER_ADMIN_RATE_LIMIT_AUDIT_EXPORT
-    );
     let unique = scopes.into_iter().collect::<std::collections::HashSet<_>>();
-    assert_eq!(unique.len(), 5usize);
+    assert_eq!(unique.len(), 4usize);
 }
 #[test]
 fn test_rate_limited_error_includes_retry_after_header() {
@@ -177,7 +172,7 @@ fn test_open_api_contains_auth_and_user_security_contracts() {
         .get(constants_str::PATHS)
         .and_then(serde_json::Value::as_object)
         .expect(constants_str::DIAGNOSTIC_6E15EDEC);
-    assert_eq!(paths.len(), 29usize);
+    assert_eq!(paths.len(), 27usize);
     assert!(!paths.contains_key(constants_str::VALUE_2C49C991));
     assert!(!paths.contains_key(constants_str::VALUE_F772F137));
     assert!(!paths.contains_key(constants_str::VALUE_1DFB120F));
@@ -209,6 +204,20 @@ fn test_open_api_contains_auth_and_user_security_contracts() {
             .copied()
             .map(|descriptor| {
                 let metadata = descriptor.get_metadata();
+                if matches!(
+                    metadata.route_method(),
+                    frontend_contract::route_method::RouteMethod::Get
+                        | frontend_contract::route_method::RouteMethod::Post
+                ) && metadata.mutation()
+                    == frontend_contract::route_mutation::RouteMutation::ReadOnly
+                {
+                    assert!(
+                        metadata
+                            .path()
+                            .as_ref()
+                            .ends_with(constants_str::READ_ROUTE_SUFFIX)
+                    );
+                }
                 (
                     metadata.method().as_ref().to_ascii_lowercase(),
                     metadata.openapi_operation_id().as_ref().to_owned(),
@@ -220,10 +229,9 @@ fn test_open_api_contains_auth_and_user_security_contracts() {
     assert!(paths.contains_key(constants_str::VALUE_C764A505));
     assert!(paths.contains_key(constants_str::VALUE_356A53CE));
     assert!(!paths.contains_key(constants_str::VALUE_2A3105E4));
-    assert!(paths.contains_key(constants_str::VALUE_FD625302));
-    assert!(paths.contains_key(constants_str::VALUE_4690F648));
-    assert!(paths.contains_key(constants_str::VALUE_FF2134BE));
-    assert!(paths.contains_key(constants_str::VALUE_E40BCD1D));
+    assert!(!paths.contains_key(constants_str::VALUE_4690F648));
+    assert!(!paths.contains_key(constants_str::VALUE_FF2134BE));
+    assert!(!paths.contains_key(constants_str::VALUE_E40BCD1D));
     assert_eq!(
         document
             .pointer(constants_str::ADMIN_OPENAPI_SIGN_IN_OPERATION_ID_POINTER)

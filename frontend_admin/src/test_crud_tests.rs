@@ -78,6 +78,7 @@ fn test_crud() {
         )
         .expect(constants_str::DIAGNOSTIC_B1A319F1),
         server_admin_contract::admin_page_total::AdminPageTotal::from(1u64),
+        server_admin_contract::admin_page_total::AdminPageTotal::from(0u64),
     );
 
     let user_create = crate::render_user_create::render_user_create(&admin, &branding);

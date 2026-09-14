@@ -9,6 +9,7 @@
     proc_macro_getters::Getters,
 )]
 pub struct AdminRolesReadRequest {
+    permissions_query: Option<crate::admin_table_query::AdminTableQuery>,
     search: Option<crate::admin_table_search::AdminTableSearch>,
     pagination: crate::admin_read_page::AdminReadPage,
     select: crate::admin_read_role_selection::AdminReadRoleSelection,
@@ -50,11 +51,26 @@ impl TryFrom<&crate::admin_table_query::AdminTableQuery> for AdminRolesReadReque
             value.direction()
         };
         Ok(Self::new(
+            None,
             Some(value.search().clone()),
             crate::admin_read_page::AdminReadPage::new(value.offset(), value.limit()),
             crate::admin_read_role_selection::AdminReadRoleSelection::default(),
             crate::admin_read_role_order::AdminReadRoleOrder::new(column, order),
             None,
         ))
+    }
+}
+
+impl AdminRolesReadRequest {
+    pub fn with_permissions_query(
+        admin_table_query: &crate::admin_table_query::AdminTableQuery,
+    ) -> Result<
+        Self,
+        crate::admin_table_sort_field_try_from_key_error::AdminTableSortFieldTryFromKeyError,
+    > {
+        let mut admin_roles_read_request =
+            Self::try_from(&crate::admin_table_query::AdminTableQuery::default())?;
+        admin_roles_read_request.permissions_query = Some(admin_table_query.clone());
+        Ok(admin_roles_read_request)
     }
 }

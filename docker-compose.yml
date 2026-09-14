@@ -76,7 +76,7 @@ services:
       # END GENERATED COMPOSE SOCKET server
     healthcheck:
       # BEGIN GENERATED COMPOSE HEALTH server
-      test: ["CMD", "curl", "--fail", "--silent", "http://127.0.0.1:8080/health/ready"]
+      test: ["CMD", "curl", "--fail", "--silent", "http://127.0.0.1:8080/health/ready/read"]
       # END GENERATED COMPOSE HEALTH server
       interval: 10s
       timeout: 5s
@@ -139,7 +139,7 @@ services:
       TRACING_FORMAT: text
     healthcheck:
       # BEGIN GENERATED COMPOSE HEALTH notification_service
-      test: ["CMD", "curl", "--fail", "--silent", "http://127.0.0.1:8081/health/ready"]
+      test: ["CMD", "curl", "--fail", "--silent", "http://127.0.0.1:8081/health/ready/read"]
       # END GENERATED COMPOSE HEALTH notification_service
       interval: 10s
       timeout: 5s

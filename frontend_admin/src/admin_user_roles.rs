@@ -129,6 +129,7 @@ mod tests {
             ])
             .expect(constants_str::DIAGNOSTIC_349CA278),
             server_admin_contract::admin_page_total::AdminPageTotal::from(1u64),
+            server_admin_contract::admin_page_total::AdminPageTotal::from(2u64),
         );
 
         let html = crate::admin_role_permissions::admin_role_permissions(

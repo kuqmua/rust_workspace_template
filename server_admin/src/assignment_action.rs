@@ -12,7 +12,7 @@ where
     Parse: Fn(
         &crate::admin_html_form_text::AdminHtmlFormText,
     ) -> Result<Ids, crate::admin_error::AdminError>,
-    BuildRequest: FnOnce(Ids, Ids) -> Request,
+    BuildRequest: FnOnce(Ids, Ids) -> Result<Request, crate::admin_error::AdminError>,
     Run: FnOnce(
         crate::admin_auth_request::AdminAuthRequest,
         Target,
@@ -62,11 +62,15 @@ where
         Ok(values) => values,
         Err(error) => return axum::response::IntoResponse::into_response(error),
     };
+    let request = match build_request(expected, selected) {
+        Ok(request) => request,
+        Err(error) => return axum::response::IntoResponse::into_response(error),
+    };
     crate::action_result_impl::action_result_impl(
         run(
             auth,
             target,
-            crate::axum_admin_json::AxumAdminJson::from(build_request(expected, selected)),
+            crate::axum_admin_json::AxumAdminJson::from(request),
         )
         .await,
         admin_frontend_path,

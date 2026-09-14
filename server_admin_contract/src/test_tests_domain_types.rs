@@ -28,7 +28,7 @@ impl frontend_contract::transport::Transport for ClientTransport {
 fn test_every_admin_api_route_has_named_route_and_client_functions() {
     assert_eq!(
         <crate::admin_route::AdminAuthenticationRouteFamily as frontend_contract::route_family::RouteFamily>::ROUTE_COUNT,
-        30usize
+        27usize
     );
     assert_eq!(
         crate::admin_route::metrics_route(),
@@ -44,7 +44,6 @@ fn test_every_admin_api_route_has_named_route_and_client_functions() {
     );
     [
         size_of_val(&crate::admin_audit_log_route::audit_log_route),
-        size_of_val(&crate::admin_audit_export_route::export_audit_log_route),
         size_of_val(&crate::admin_branding_route::branding_route),
         size_of_val(&crate::admin_data_table_route::read_data_table_route),
         size_of_val(&crate::admin_data_tables_route::list_data_tables_route),
@@ -56,12 +55,10 @@ fn test_every_admin_api_route_has_named_route_and_client_functions() {
         size_of_val(&crate::admin_me_route::me_route),
         size_of_val(&crate::admin_route::metrics_route),
         size_of_val(&crate::admin_route::open_api_route),
-        size_of_val(&crate::admin_list_permissions_route::list_permissions_route),
         size_of_val(&crate::admin_refresh_route::refresh_route),
         size_of_val(&crate::admin_revoke_all_sessions_route::revoke_all_sessions_route),
         size_of_val(&crate::admin_revoke_session_route::revoke_session_route),
         size_of_val(&crate::admin_read_roles_route::read_roles_route),
-        size_of_val(&crate::admin_set_role_permissions_route::set_role_permissions_route),
         size_of_val(&crate::admin_settings_route::settings_route),
         size_of_val(&crate::admin_sign_in_route::sign_in_route),
         size_of_val(&crate::admin_sign_out_route::sign_out_route),
@@ -76,11 +73,12 @@ fn test_every_admin_api_route_has_named_route_and_client_functions() {
     .for_each(|size| assert_eq!(size, constants_usize::ZERO));
     [
         size_of_val(&crate::admin_audit_log_route::audit_log_client::<ClientTransport>),
-        size_of_val(&crate::admin_audit_export_route::export_audit_log_client::<ClientTransport>),
         size_of_val(&crate::admin_branding_route::branding_client::<ClientTransport>),
         size_of_val(&crate::admin_data_table_route::read_data_table_client::<ClientTransport>),
         size_of_val(&crate::admin_data_tables_route::list_data_tables_client::<ClientTransport>),
-        size_of_val(&crate::admin_change_own_password_route::change_own_password_client::<ClientTransport>),
+        size_of_val(
+            &crate::admin_change_own_password_route::change_own_password_client::<ClientTransport>,
+        ),
         size_of_val(&crate::admin_create_roles_route::create_roles_client::<ClientTransport>),
         size_of_val(&crate::admin_create_user_route::create_user_client::<ClientTransport>),
         size_of_val(&crate::admin_delete_roles_route::delete_roles_client::<ClientTransport>),
@@ -88,12 +86,12 @@ fn test_every_admin_api_route_has_named_route_and_client_functions() {
         size_of_val(&crate::admin_me_route::me_client::<ClientTransport>),
         size_of_val(&crate::admin_route::metrics_client::<ClientTransport>),
         size_of_val(&crate::admin_route::open_api_client::<ClientTransport>),
-        size_of_val(&crate::admin_list_permissions_route::list_permissions_client::<ClientTransport>),
         size_of_val(&crate::admin_refresh_route::refresh_client::<ClientTransport>),
-        size_of_val(&crate::admin_revoke_all_sessions_route::revoke_all_sessions_client::<ClientTransport>),
+        size_of_val(
+            &crate::admin_revoke_all_sessions_route::revoke_all_sessions_client::<ClientTransport>,
+        ),
         size_of_val(&crate::admin_revoke_session_route::revoke_session_client::<ClientTransport>),
         size_of_val(&crate::admin_read_roles_route::read_roles_client::<ClientTransport>),
-        size_of_val(&crate::admin_set_role_permissions_route::set_role_permissions_client::<ClientTransport>),
         size_of_val(&crate::admin_settings_route::settings_client::<ClientTransport>),
         size_of_val(&crate::admin_sign_in_route::sign_in_client::<ClientTransport>),
         size_of_val(&crate::admin_sign_out_route::sign_out_client::<ClientTransport>),
@@ -152,7 +150,7 @@ fn test_administrator_collections_enforce_item_limit_for_construction_and_deseri
 #[test]
 fn test_authentication_route_family_has_valid_coverage() {
     let descriptors = <crate::admin_route::AdminAuthenticationRouteFamily as frontend_contract::route_family::RouteFamily>::coverage_descriptors();
-    assert_eq!(descriptors.as_ref().len(), 30usize);
+    assert_eq!(descriptors.as_ref().len(), 27usize);
     assert_eq!(
         frontend_contract::validate_route_coverage::validate_route_coverage(descriptors.as_ref()),
         Ok(())
@@ -228,8 +226,6 @@ fn test_parameterized_admin_route_path_uses_typed_route_metadata() {
         String::from(constants_str::VALUE_4943E43B),
     )
     .expect(constants_str::DIAGNOSTIC_84D51132);
-    let role_id = crate::admin_role_id::AdminRoleId::try_from(7i64)
-        .expect(constants_str::DIAGNOSTIC_1D69F24C);
     let path = crate::admin_parameterized_route_path::admin_parameterized_route_path::<
         crate::admin_revoke_session_route::AdminRevokeSessionRoute,
     >(&session_id);
@@ -245,10 +241,6 @@ fn test_parameterized_admin_route_path_uses_typed_route_metadata() {
             &session_id
         )),
         constants_str::VALUE_FEF7B989
-    );
-    assert_eq!(
-        String::from(crate::admin_set_role_permissions_route::set_role_permissions_route(&role_id)),
-        constants_str::VALUE_BF4EA24D
     );
     assert_eq!(
         String::from(crate::admin_update_users_route::update_users_route()),
@@ -329,7 +321,6 @@ fn test_administrator_routes_use_snake_case_segments() {
     assert!(
         [
             crate::admin_route::AdminRoute::Audit,
-            crate::admin_route::AdminRoute::AuditExport,
             crate::admin_route::AdminRoute::Settings,
             crate::admin_route::AdminRoute::SignIn,
             crate::admin_route::AdminRoute::SignOut,
@@ -342,6 +333,19 @@ fn test_administrator_routes_use_snake_case_segments() {
         crate::admin_html_action::AdminHtmlAction::ALL
             .iter()
             .all(|action| !action.get().contains('-'))
+    );
+}
+
+#[test]
+fn test_system_settings_read_route_uses_read_path() {
+    let route = crate::admin_route::AdminRoute::Settings;
+    assert_eq!(
+        route.path().as_ref(),
+        constants_str::ADMIN_SYSTEM_SETTINGS_READ
+    );
+    assert_eq!(
+        route.contract().method(),
+        frontend_contract::route_method::RouteMethod::Get
     );
 }
 
@@ -690,11 +694,12 @@ fn test_data_table_api_routes_keep_only_conflicting_resources_prefixed() {
                     );
                     assert_eq!(
                         route.path().as_ref(),
-                        format!(
-                            "{}/{}",
-                            crate::admin_route::AdminRoute::DataTables.path(),
-                            table
-                        )
+                        String::from(crate::admin_data_table_route::read_data_table_route(
+                            &crate::admin_prefixed_data_table::AdminPrefixedDataTable::try_from(
+                                table.as_str().get()
+                            )
+                            .expect(constants_str::DIAGNOSTIC_700CC2CC)
+                        ))
                     );
                 }
                 crate::admin_data_table::AdminDataTable::UserRoles
@@ -711,7 +716,7 @@ fn test_data_table_api_routes_keep_only_conflicting_resources_prefixed() {
                         .expect_err(constants_str::DIAGNOSTIC_664DD271);
                     assert_eq!(
                         route.path().as_ref().strip_prefix(constants_str::SLASH),
-                        Some(table.as_str().get())
+                        Some(format!("{table}{}", constants_str::READ_ROUTE_SUFFIX).as_str())
                     );
                     assert_eq!(route.path().as_ref(), route.contract().path().as_ref());
                 }
@@ -795,6 +800,20 @@ fn test_role_update_batch_validates_ids_names_and_collection_bound() {
         AsRef::<[crate::admin_role_update::AdminRoleUpdate]>::as_ref(request.updates()).len(),
         1
     );
+    assert!(matches!(
+        serde_json::from_value::<crate::admin_update_roles_request::AdminUpdateRolesRequest>(
+            serde_json::json!({(stringify!(updates)): [{
+                (stringify!(filter)): {(stringify!(role_id)): 1i64},
+                (stringify!(changes)): {
+                    (stringify!(permissions)): {
+                        (stringify!(expected_permission_ids)): [1i64],
+                        (stringify!(permission_ids)): [2i64]
+                    }
+                }
+            }]})
+        ),
+        Ok(_request)
+    ));
     assert!([
         serde_json::json!([]),
         serde_json::json!({(stringify!(updates)): [{(stringify!(filter)): {(stringify!(role_id)): 0i64}, (stringify!(changes)): {(stringify!(name)): constants_str::LOGIN}}]}),

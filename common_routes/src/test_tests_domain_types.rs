@@ -292,6 +292,12 @@ async fn test_default_service_routes_return_success_statuses_and_match_openapi()
     crate::common_route::CommonRoute::ALL
         .into_iter()
         .for_each(|route| {
+            assert!(
+                route
+                    .path()
+                    .as_ref()
+                    .ends_with(constants_str::READ_ROUTE_SUFFIX)
+            );
             let escaped_path = route
                 .path()
                 .as_ref()

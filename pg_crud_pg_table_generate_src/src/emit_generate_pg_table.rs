@@ -333,6 +333,13 @@ pub fn emit_generate_pg_table(
         response: GeneratePgTableReadRustPath,
         enrich: GeneratePgTableReadRustPath,
         error: GeneratePgTableReadRustPath,
+        #[serde(default)]
+        context_field: Option<GeneratePgTableReadPageContextConfig>,
+    }
+    #[derive(Debug, serde::Deserialize, proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
+    struct GeneratePgTableReadPageContextConfig {
+        rust_type: GeneratePgTableReadRustPath,
+        name: String,
     }
     #[derive(
         proc_macro_optimal_memory_layout::OptimalMemoryLayout,
@@ -1498,6 +1505,21 @@ pub fn emit_generate_pg_table(
                 _ => return quote::quote! { compile_error!("read page extension paths must be valid Rust paths"); }.into(),
             }
         }
+        None => None,
+    };
+    let read_page_context = match generate_pg_table_input_model
+        .config
+        .read_page
+        .as_ref()
+        .and_then(|config| config.context_field.as_ref())
+    {
+        Some(context) => match (
+            syn::parse_str::<syn::Type>(context.rust_type.as_ref()),
+            syn::parse_str::<syn::Ident>(context.name.as_str()),
+        ) {
+            (Ok(rust_type), Ok(name)) => Some((rust_type, name)),
+            _ => return quote::quote! { compile_error!("read page context field must contain a valid Rust type and identifier"); }.into(),
+        },
         None => None,
     };
 
@@ -5094,7 +5116,9 @@ enum WrapIntoOptional {
                 | generate_quotes::dq_token_stream::dq_token_stream(&format!("/{v}"));
                 (
                     generate_token_stream(&operation.self_snake_case_str()),
-                    generate_token_stream(&operation_payload_example_snake_case)
+                    generate_quotes::dq_token_stream::dq_token_stream(&format!(
+                        "/{operation_payload_example_snake_case}/read"
+                    ))
                 )
             };
             quote::quote! {
@@ -6202,6 +6226,9 @@ enum WrapIntoOptional {
                 let read_page_enrich = if operation.is_read() {
                     read_page_paths.as_ref().zip(read_page_error_variant.as_ref()).map(|((_, enrich, error_type), variant)| {
                         let failed = generate_operation_error_initialization_eprintln_res_token_stream(operation, variant, std::panic::Location::caller());
+                        let context_argument = read_page_context.as_ref().map(|(_, name)| {
+                            quote::quote! {#ParametersSnakeCase.payload.#name.as_ref()}
+                        });
                         quote::quote! {
                             drop(#PoolConnectionSnakeCase);
                             let read_total = match pg_crud_common::list_total::ListTotal::try_from(read_total) {
@@ -6213,6 +6240,7 @@ enum WrapIntoOptional {
                                 pg_crud_common::list_items::ListItems::from(read_page_primary_keys),
                                 read_total,
                                 app_state::sqlx_pg_pool_ref::SqlxPgPoolRef::from(#AppStateSnakeCase.sqlx_pg_pool().as_ref()),
+                                #context_argument
                             ).await {
                                 Ok(value) => value,
                                 Err(#Error0) => { #failed }
@@ -6277,7 +6305,7 @@ enum WrapIntoOptional {
                     operation.self_snake_case_str()
                 );
                 let operation_payload_example_route_path = format!(
-                    "/{route_resource_name}/{operation_payload_example_snake_case}"
+                    "/{route_resource_name}/{operation_payload_example_snake_case}/read"
                 );
                 let ts = wrap_into_axum_res_token_stream(
                     &{
@@ -6403,6 +6431,11 @@ enum WrapIntoOptional {
                         }
                     }
                     Operation::Read => {
+                        let context_field = read_page_context.as_ref().map(|(rust_type, name)| quote::quote! {
+                            #[serde(default)]
+                            #name: Option<#rust_type>,
+                        });
+                        let context_default = read_page_context.as_ref().map(|(_, name)| quote::quote! { #name: None, });
                         let search_field = read_page_paths.as_ref().map(|_| quote::quote! {
                             #[serde(default)]
                             search: Option<pg_crud_common::read_search::ReadSearch>,
@@ -6412,6 +6445,7 @@ enum WrapIntoOptional {
                         &quote::quote! {{
                             #pub_where_optional_identifier_where_token_stream,
                             #search_field
+                            #context_field
                             #[schema(inline)]
                             #pub_select_pg_crud_not_empty_unique_vec_identifier_select_token_stream,
                             #[schema(inline)]
@@ -6423,6 +6457,7 @@ enum WrapIntoOptional {
                             quote::quote! {{
                                 #where_many_pg_crud_default_some_one_element_call_token_stream,
                                 #search_default
+                                #context_default
                                 #select_pg_crud_default_some_one_element_call_token_stream,
                                 #OrderBySnakeCase: #import_token_stream order_by::OrderBy::new(
                                     #identifier_select_upper_camel_case::#primary_key_field_upper_camel_case_token_stream(
@@ -6887,7 +6922,7 @@ enum WrapIntoOptional {
                 let operation =
                     quote::format_ident!("{}", operation_descriptor.get_operation().to_string());
                 let path = format!(
-                    "/{}/{}",
+                    "/{}/{}/read",
                     route_resource_name,
                     operation_descriptor
                         .get_operation()

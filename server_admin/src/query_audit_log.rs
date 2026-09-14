@@ -1,3 +1,7 @@
+#[allow(
+    clippy::single_call_fn,
+    reason = "the audit repository query remains a named boundary so SQL retrieval and transport authorization stay separated"
+)]
 pub(crate) async fn query_audit_log(
     sqlx_admin_repository_pool_ref: crate::sqlx_admin_repository_pool_ref::SqlxAdminRepositoryPoolRef<'_>,
     admin_audit_query: crate::admin_audit_query::AdminAuditQuery,

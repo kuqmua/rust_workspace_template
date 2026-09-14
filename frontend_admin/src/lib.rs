@@ -24,12 +24,6 @@ pub mod admin_api_url_with_suffix;
 pub mod admin_app;
 #[cfg(not(target_arch = "wasm32"))]
 pub mod admin_assets_error;
-#[cfg(target_arch = "wasm32")]
-pub mod admin_audit_download;
-#[cfg(target_arch = "wasm32")]
-pub mod admin_audit_download_state;
-#[cfg(any(target_arch = "wasm32", test))]
-pub mod admin_audit_download_url;
 #[cfg(test)]
 pub mod admin_badge;
 pub mod admin_badge_variant;
@@ -137,9 +131,13 @@ pub mod domain_types_ssr_tests;
 #[cfg(target_arch = "wasm32")]
 pub mod fetch_account_read;
 #[cfg(target_arch = "wasm32")]
+pub mod fetch_account_read_request;
+#[cfg(target_arch = "wasm32")]
 pub mod fetch_json;
 #[cfg(target_arch = "wasm32")]
 pub mod fetch_json_request;
+#[cfg(target_arch = "wasm32")]
+pub mod fetch_permissions_read;
 pub mod join_text;
 pub mod leptos_admin_filter_operation_signal;
 pub mod leptos_admin_input_signal;

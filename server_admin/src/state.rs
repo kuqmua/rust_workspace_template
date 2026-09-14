@@ -65,7 +65,6 @@ impl crate::admin_auth_svc_state::AdminAuthSvcState {
                     i64::try_from(admin_sign_in_rate_limit.get()).unwrap_or(i64::MAX),
                 );
                 crate::admin_auth_policy::AdminAuthPolicy::new(
-                    crate::std_admin_rate_limit_count::StdAdminRateLimitCount::from(60i64),
                     crate::std_admin_failure_delay_millis::StdAdminFailureDelayMillis::from(200u64),
                     failure_threshold,
                     crate::std_admin_rate_limit_count::StdAdminRateLimitCount::from(300i64),
@@ -74,7 +73,6 @@ impl crate::admin_auth_svc_state::AdminAuthSvcState {
                         sign_in_limit.get_inner().saturating_mul(5i64),
                     ),
                     sign_in_limit,
-                    crate::std_admin_rate_limit_window_seconds::StdAdminRateLimitWindowSeconds::from(60i32),
                     crate::std_admin_rate_limit_window_seconds::StdAdminRateLimitWindowSeconds::from(60i32),
                     crate::std_admin_rate_limit_window_seconds::StdAdminRateLimitWindowSeconds::from(900i32),
                     crate::std_admin_rate_limit_window_seconds::StdAdminRateLimitWindowSeconds::from(900i32),

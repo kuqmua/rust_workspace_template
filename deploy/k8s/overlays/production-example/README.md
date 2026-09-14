@@ -26,7 +26,7 @@ The overlay supplies non-secret configuration for the notification service. A re
 must supply that service's Secret or explicitly remove the workload.
 
 The example intentionally exposes only the application workload to the ingress namespace. The
-notification service, including its `/metrics` endpoint, accepts traffic from the application pods
+notification service, including its `/metrics/read` endpoint, accepts traffic from the application pods
 only. Supply `database-url` and `admin-jwt-secret` in `application-secrets`, and
 `notification-database-url` in `notification-service-secrets` through the deployment secret
 provider.

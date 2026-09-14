@@ -11,6 +11,11 @@ pub enum AdminRolesReadPageError {
     #[error("{message}", message = constants_str::ADMIN_DIAGNOSTIC_STORED_ADMIN_VALUE_DOES_NOT_SATISFY_ITS_CONTRACT)]
     Collection(#[from] server_admin_contract::admin_collection_error::AdminCollectionError),
     #[error("{message}", message = constants_str::ADMIN_DIAGNOSTIC_STORED_ADMIN_VALUE_DOES_NOT_SATISFY_ITS_CONTRACT)]
+    PermissionSort(
+        #[from]
+        server_admin_contract::admin_table_sort_field_try_from_key_error::AdminTableSortFieldTryFromKeyError,
+    ),
+    #[error("{message}", message = constants_str::ADMIN_DIAGNOSTIC_STORED_ADMIN_VALUE_DOES_NOT_SATISFY_ITS_CONTRACT)]
     Total(#[from] pg_crud_common::list_total_error::ListTotalError),
 }
 

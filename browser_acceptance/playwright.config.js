@@ -44,7 +44,7 @@ export default defineConfig({
   webServer: {
     command: "./run-server.sh",
     cwd: import.meta.dirname,
-    url: "http://127.0.0.1:18080/health/live",
+    url: "http://127.0.0.1:18080/health/live/read",
     reuseExistingServer: !process.env.CI,
     timeout: 600_000
   }

@@ -28,17 +28,17 @@ where
         std::mem::swap(&mut inner, &mut self.inner);
         let state = self.get_state().clone();
         Box::pin(async move {
-            let path = request.uri().path();
+            let path = request.uri().path().to_owned();
             let contract = crate::admin_generated_table::AdminGeneratedTable::ALL
                 .iter()
                 .copied()
                 .find_map(|table| {
-                    table.route_contract(server_admin_core::std_admin_str_ref::StdAdminStrRef::from(path))
+                    table.route_contract(server_admin_core::std_admin_str_ref::StdAdminStrRef::from(path.as_str()))
                 })
                 .map(|contract| (contract.permission(), contract.mutates(), contract.method()))
                 .or_else(|| {
-                    (path == server_admin_contract::admin_route::AdminRoute::OpenApi.contract().path().as_ref()
-                        || path == server_admin_contract::admin_frontend_path::AdminFrontendPath::OpenApiDocument.get())
+                    (path.as_str() == server_admin_contract::admin_route::AdminRoute::OpenApi.contract().path().as_ref()
+                        || path.as_str() == server_admin_contract::admin_frontend_path::AdminFrontendPath::OpenApiDocument.get())
                     .then_some((
                         Some(server_admin_core::std_admin_str_ref::StdAdminStrRef::from(
                             server_admin_contract::admin_permission::AdminPermission::OpenApiRead
@@ -50,8 +50,8 @@ where
                     ))
                 })
                 .or_else(|| {
-                    (path == server_admin_contract::admin_route::AdminRoute::Metrics.contract().path().as_ref()
-                        || path == server_admin_contract::admin_frontend_path::AdminFrontendPath::Metrics.get())
+                    (path.as_str() == server_admin_contract::admin_route::AdminRoute::Metrics.contract().path().as_ref()
+                        || path.as_str() == server_admin_contract::admin_frontend_path::AdminFrontendPath::Metrics.get())
                     .then_some((
                         Some(server_admin_core::std_admin_str_ref::StdAdminStrRef::from(
                             server_admin_contract::admin_permission::AdminPermission::MetricsRead
@@ -102,6 +102,46 @@ where
                 return Ok(axum::response::IntoResponse::into_response(
                     crate::admin_error::AdminError::Authentication,
                 ));
+            };
+            let permissions_query = if path.as_str()
+                == server_admin_contract::admin_route::AdminRoute::Roles
+                    .contract()
+                    .path()
+                    .as_ref()
+                && request.method() == http::Method::POST
+            {
+                let (parts, body) = request.into_parts();
+                let body = match axum::body::to_bytes(
+                    body,
+                    server_admin_contract::default_admin_api_body_max_bytes::default_admin_api_body_max_bytes()
+                        .get(),
+                )
+                .await
+                {
+                    Ok(value) => value,
+                    Err(_error) => {
+                        return Ok(axum::response::IntoResponse::into_response(
+                            crate::admin_error::AdminError::PayloadTooLarge,
+                        ));
+                    }
+                };
+                let permissions_query = serde_json::from_slice::<
+                    crate::admin_roles::AdminRolesReadPayload,
+                >(body.as_ref())
+                .is_ok_and(|payload| payload.get_permissions_query().is_some());
+                request = axum::extract::Request::from_parts(parts, axum::body::Body::from(body));
+                permissions_query
+            } else {
+                false
+            };
+            let permission = if permissions_query {
+                server_admin_core::std_admin_str_ref::StdAdminStrRef::from(
+                    server_admin_contract::admin_permission::AdminPermission::PermissionsRead
+                        .as_str()
+                        .get(),
+                )
+            } else {
+                permission
             };
             let authenticated =
                 match crate::authorization_authorize_generated_request::authorization_authorize_generated_request(

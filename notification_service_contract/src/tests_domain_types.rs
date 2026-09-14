@@ -56,6 +56,20 @@ mod tests {
                 .contract()
                 .path()
         );
+        assert!(
+            [
+                crate::notification_operational_route::NotificationOperationalRoute::Metrics,
+                crate::notification_operational_route::NotificationOperationalRoute::OpenApi,
+            ]
+            .into_iter()
+            .all(|route| {
+                route
+                    .contract()
+                    .path()
+                    .as_ref()
+                    .ends_with(constants_str::READ_ROUTE_SUFFIX)
+            })
+        );
         assert_eq!(
             size_of_val(&crate::notification_operational_route::metrics_client::<ClientTransport>),
             constants_usize::ZERO

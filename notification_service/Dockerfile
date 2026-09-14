@@ -21,5 +21,5 @@ COPY --from=builder /workspace/target/release/notification_service /application/
 USER 10001:10001
 EXPOSE 8081
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
-    CMD curl --fail --silent http://127.0.0.1:8081/health/ready || exit 1
+    CMD curl --fail --silent http://127.0.0.1:8081/health/ready/read || exit 1
 ENTRYPOINT ["/application/notification_service"]

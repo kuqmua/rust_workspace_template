@@ -7,10 +7,6 @@
     Eq,
     proc_macro_frontend_contract_derive_route_catalog::RouteCatalog,
 )]
-#[allow(
-    variant_size_differences,
-    reason = "the role-permissions route is the sole remaining parameterized administrator route"
-)]
 #[route_catalog(
     family = AdminAuthenticationRouteFamily,
     body_limit = crate::admin_api_body_max_bytes::ADMIN_API_BODY_MAX_BYTES_VALUE,
@@ -34,8 +30,6 @@ pub enum AdminRoute {
     UserRolesTable,
     #[route_catalog_route(crate::admin_audit_log_route::AdminAuditLogRoute)]
     Audit,
-    #[route_catalog_route(crate::admin_audit_export_route::AdminAuditExportRoute)]
-    AuditExport,
     #[route_catalog_route(crate::admin_branding_route::AdminBrandingRoute)]
     Branding,
     #[route_catalog_route(crate::admin_data_table_route::AdminDataTableRoute)]
@@ -59,10 +53,10 @@ pub enum AdminRoute {
             crate::admin_permission_requirement::admin_permission_requirement(crate::admin_permission::AdminPermission::MetricsRead),
             frontend_contract::route_method::RouteMethod::Get,
             frontend_contract::mutation_kind::MutationKind::ReadOnly,
-            frontend_contract::contract_str::ContractStr::from(constants_str::METRICS),
+            frontend_contract::contract_str::ContractStr::from(constants_str::METRICS_READ),
             frontend_contract::success_status::SuccessStatus::Code200,
         ),
-        path = constants_str::METRICS,
+        path = constants_str::METRICS_READ,
         exclude_from_family,
     )]
     Metrics,
@@ -71,15 +65,13 @@ pub enum AdminRoute {
             crate::admin_permission_requirement::admin_permission_requirement(crate::admin_permission::AdminPermission::OpenApiRead),
             frontend_contract::route_method::RouteMethod::Get,
             frontend_contract::mutation_kind::MutationKind::ReadOnly,
-            frontend_contract::contract_str::ContractStr::from(constants_str::OPENAPI_JSON),
+            frontend_contract::contract_str::ContractStr::from(constants_str::OPENAPI_JSON_READ),
             frontend_contract::success_status::SuccessStatus::Code200,
         ),
-        path = constants_str::OPENAPI_JSON,
+        path = constants_str::OPENAPI_JSON_READ,
         exclude_from_family,
     )]
     OpenApi,
-    #[route_catalog_route(crate::admin_list_permissions_route::AdminListPermissionsRoute)]
-    Permissions,
     #[route_catalog_route(crate::admin_refresh_route::AdminRefreshRoute)]
     Refresh,
     #[route_catalog_route(crate::admin_revoke_all_sessions_route::AdminRevokeAllSessionsRoute)]
@@ -92,8 +84,6 @@ pub enum AdminRoute {
         exclude_from_family,
     )]
     Roles,
-    #[route_catalog_route(crate::admin_set_role_permissions_route::AdminSetRolePermissionsRoute)]
-    SetRolePermissions(crate::admin_role_id::AdminRoleId),
     #[route_catalog_route(crate::admin_settings_route::AdminSettingsRoute)]
     Settings,
     #[route_catalog_route(crate::admin_sign_in_route::AdminSignInRoute)]
@@ -119,10 +109,10 @@ pub enum AdminRoute {
             frontend_contract::authentication_requirement::AuthenticationRequirement::Public,
             frontend_contract::route_method::RouteMethod::Get,
             frontend_contract::mutation_kind::MutationKind::ReadOnly,
-            frontend_contract::contract_str::ContractStr::from("/health"),
+            frontend_contract::contract_str::ContractStr::from("/health/read"),
             frontend_contract::success_status::SuccessStatus::Code200,
         ),
-        path = "/health",
+        path = "/health/read",
         exclude_from_family,
     )]
     Health,
@@ -131,10 +121,10 @@ pub enum AdminRoute {
             frontend_contract::authentication_requirement::AuthenticationRequirement::Public,
             frontend_contract::route_method::RouteMethod::Get,
             frontend_contract::mutation_kind::MutationKind::ReadOnly,
-            frontend_contract::contract_str::ContractStr::from("/health_check"),
+            frontend_contract::contract_str::ContractStr::from("/health_check/read"),
             frontend_contract::success_status::SuccessStatus::Code200,
         ),
-        path = "/health_check",
+        path = "/health_check/read",
         exclude_from_family,
     )]
     HealthCheck,
@@ -143,10 +133,10 @@ pub enum AdminRoute {
             frontend_contract::authentication_requirement::AuthenticationRequirement::Public,
             frontend_contract::route_method::RouteMethod::Get,
             frontend_contract::mutation_kind::MutationKind::ReadOnly,
-            frontend_contract::contract_str::ContractStr::from("/health/live"),
+            frontend_contract::contract_str::ContractStr::from("/health/live/read"),
             frontend_contract::success_status::SuccessStatus::Code200,
         ),
-        path = "/health/live",
+        path = "/health/live/read",
         exclude_from_family,
     )]
     HealthLive,
@@ -155,10 +145,10 @@ pub enum AdminRoute {
             frontend_contract::authentication_requirement::AuthenticationRequirement::Public,
             frontend_contract::route_method::RouteMethod::Get,
             frontend_contract::mutation_kind::MutationKind::ReadOnly,
-            frontend_contract::contract_str::ContractStr::from("/health/ready"),
+            frontend_contract::contract_str::ContractStr::from("/health/ready/read"),
             frontend_contract::success_status::SuccessStatus::Code200,
         ),
-        path = "/health/ready",
+        path = "/health/ready/read",
         exclude_from_family,
     )]
     HealthReady,
@@ -167,10 +157,10 @@ pub enum AdminRoute {
             frontend_contract::authentication_requirement::AuthenticationRequirement::Public,
             frontend_contract::route_method::RouteMethod::Get,
             frontend_contract::mutation_kind::MutationKind::ReadOnly,
-            frontend_contract::contract_str::ContractStr::from(constants_str::COMMON_ROUTES_GIT_INFO),
+            frontend_contract::contract_str::ContractStr::from(constants_str::COMMON_ROUTES_GIT_INFO_READ),
             frontend_contract::success_status::SuccessStatus::Code200,
         ),
-        path = constants_str::COMMON_ROUTES_GIT_INFO,
+        path = constants_str::COMMON_ROUTES_GIT_INFO_READ,
         exclude_from_family,
     )]
     Version,

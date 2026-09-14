@@ -41,18 +41,18 @@ spec:
           # BEGIN GENERATED KUBERNETES PROBES notification-service
           startupProbe:
             httpGet:
-              path: /health/ready
+              path: /health/ready/read
               port: http
             failureThreshold: 30
             periodSeconds: 2
           readinessProbe:
             httpGet:
-              path: /health/ready
+              path: /health/ready/read
               port: http
             periodSeconds: 5
           livenessProbe:
             httpGet:
-              path: /health/live
+              path: /health/live/read
               port: http
             periodSeconds: 10
           # END GENERATED KUBERNETES PROBES notification-service

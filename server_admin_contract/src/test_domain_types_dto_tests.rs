@@ -14,6 +14,13 @@ fn test_authenticated_admin_checks_owned_permissions() {
                     .get()
                     .to_owned(),
             )
+            .expect(constants_str::DIAGNOSTIC_8BF39D41),
+            crate::admin_permission_value::AdminPermissionValue::try_from(
+                crate::admin_permission::AdminPermission::PermissionsRead
+                    .as_str()
+                    .get()
+                    .to_owned(),
+            )
             .expect(constants_str::VALUE_785335E9),
         ])
         .expect(constants_str::DIAGNOSTIC_BD2806F1),
@@ -31,6 +38,9 @@ fn test_authenticated_admin_checks_owned_permissions() {
     ));
     assert!(!bool::from(
         admin.can_access(crate::admin_page::AdminPage::Roles)
+    ));
+    assert!(bool::from(
+        admin.can_access(crate::admin_page::AdminPage::Permissions)
     ));
     assert!(bool::from(
         admin.can_access(crate::admin_page::AdminPage::Profile)

@@ -29,5 +29,5 @@ COPY --from=builder /workspace/frontend_admin/static /application/admin/static
 USER 10001:10001
 EXPOSE 8080
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
-    CMD curl --fail --silent http://127.0.0.1:8080/health/ready || exit 1
+    CMD curl --fail --silent http://127.0.0.1:8080/health/ready/read || exit 1
 ENTRYPOINT ["/application/server"]

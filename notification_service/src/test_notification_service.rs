@@ -81,7 +81,7 @@ async fn test_default_service_routes_return_success_statuses() {
     let open_api_response = tower::ServiceExt::oneshot(
         router.clone(),
         http::Request::builder()
-            .uri(constants_str::OPENAPI_JSON)
+            .uri(constants_str::OPENAPI_JSON_READ)
             .body(axum::body::Body::empty())
             .expect(constants_str::DIAGNOSTIC_789DB8F3),
     )

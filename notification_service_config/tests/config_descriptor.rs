@@ -123,7 +123,7 @@ mod tests {
         let compose_source = repository_file(std::path::Path::new(constants_str::VALUE_E45E45BA));
         [
             format!("NOTIFICATION_SERVICE_SOCKET_ADDRESS: \"0.0.0.0:{port}\""),
-            format!("http://127.0.0.1:{port}/health/ready"),
+            format!("http://127.0.0.1:{port}/health/ready/read"),
             format!("\"127.0.0.1:{port}:{port}\""),
         ]
         .into_iter()

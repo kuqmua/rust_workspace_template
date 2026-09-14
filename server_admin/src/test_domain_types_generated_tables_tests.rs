@@ -210,7 +210,7 @@ fn test_every_typed_route_query_parameter_matches_open_api_individually() {
             .copied()
             .for_each(|metadata| {
                 let expected: &[&str] = match metadata.openapi_operation_id().as_ref() {
-                    constants_str::AUDIT_LOG_ALT | constants_str::VALUE_6476FE13 => &[constants_str::ACTION, constants_str::CREATED_AFTER, constants_str::CREATED_BEFORE, constants_str::VALUE_6A0FB903, constants_str::VALUE_5089D2D4, constants_str::LIMIT, constants_str::OFFSET_ALT, constants_str::RESOURCE, constants_str::RESOURCE_ID, constants_str::SUCCEEDED, constants_str::USER_ID, constants_str::USER_LOGIN],
+                    constants_str::AUDIT_LOG_ALT => &[constants_str::ACTION, constants_str::CREATED_AFTER, constants_str::CREATED_BEFORE, constants_str::VALUE_6A0FB903, constants_str::VALUE_5089D2D4, constants_str::LIMIT, constants_str::OFFSET_ALT, constants_str::RESOURCE, constants_str::RESOURCE_ID, constants_str::SUCCEEDED, constants_str::USER_ID, constants_str::USER_LOGIN],
                     constants_str::VALUE_AF9B619C | constants_str::VALUE_48ED1531 | constants_str::VALUE_73CF19F8 | constants_str::SESSIONS => &[constants_str::LIMIT, constants_str::OFFSET_ALT, constants_str::SEARCH_ALT, constants_str::SORT_ALT, constants_str::DIRECTION],
                     _ if server_admin_contract::admin_data_table::AdminDataTable::ALL.into_iter().any(|table| table.api_route().contract().path() == metadata.path()) => &[constants_str::VALUE_2521B522, constants_str::VALUE_67B4BFF9, constants_str::VALUE_7316023B, constants_str::VALUE_5C154525, constants_str::LIMIT, constants_str::OFFSET_ALT, constants_str::SEARCH_ALT, constants_str::SORT_ALT, constants_str::DIRECTION],
                     _ => &[],
@@ -345,7 +345,7 @@ fn test_generated_admin_open_api_combines_enabled_routes_only() {
         .get(constants_str::PATHS)
         .and_then(serde_json::Value::as_object)
         .expect(constants_str::DIAGNOSTIC_274479A7);
-    assert_eq!(paths.len(), 35usize);
+    assert_eq!(paths.len(), 30usize);
     assert!(paths.contains_key(constants_str::VALUE_C764A505));
     assert!(!paths.contains_key(constants_str::VALUE_F772F137));
     assert!(paths.contains_key(constants_str::VALUE_356A53CE));
@@ -359,7 +359,7 @@ fn test_generated_admin_open_api_combines_enabled_routes_only() {
     assert!(!paths.contains_key(constants_str::VALUE_19E13078));
     assert!(paths.contains_key(constants_str::ADMIN_SYSTEM_SETTINGS_READ));
     assert!(!paths.contains_key(constants_str::VALUE_C988BF92));
-    assert!(paths.contains_key(constants_str::VALUE_E40BCD1D));
+    assert!(!paths.contains_key(constants_str::VALUE_E40BCD1D));
     assert!(!paths.contains_key(constants_str::VALUE_6CC4B99E));
     assert!(!paths.contains_key(constants_str::VALUE_3768D146));
 }
@@ -399,7 +399,7 @@ fn test_generated_payload_example_routes_have_contracts_and_named_clients() {
     .for_each(|(operation, example)| {
         assert_eq!(
             example.as_ref(),
-            format!("{}_payload_example", operation.as_ref())
+            format!("{}_payload_example/read", operation.as_ref())
         );
     });
     let contract = crate::admin_users::AdminUsersRouteContract::for_path(
@@ -434,10 +434,15 @@ fn test_every_admin_open_api_operation_has_a_unique_identifier() {
         crate::generated_open_api::generated_open_api(),
     ))
     .expect(constants_str::DIAGNOSTIC_C731D604);
-    let operation_ids = document
+    let paths = document
         .get(constants_str::PATHS)
         .and_then(serde_json::Value::as_object)
-        .expect(constants_str::DIAGNOSTIC_F9B402AC)
+        .expect(constants_str::DIAGNOSTIC_F9B402AC);
+    assert!(paths.iter().all(|(path, operations)| {
+        operations.get(constants_str::GET_ALT).is_none()
+            || path.ends_with(constants_str::READ_ROUTE_SUFFIX)
+    }));
+    let operation_ids = paths
         .values()
         .filter_map(serde_json::Value::as_object)
         .flat_map(|operations| operations.values())
@@ -474,6 +479,7 @@ fn test_generated_read_routes_expose_filter_sort_and_pagination_contract() {
     ]
     .into_iter()
     .for_each(|path| {
+        assert!(path.ends_with(constants_str::READ_ROUTE_SUFFIX));
         assert!(
             paths
                 .get(path)
@@ -695,6 +701,18 @@ fn test_roles_read_client_request_matches_generated_payload() {
             .contract()
             .method(),
         frontend_contract::route_method::RouteMethod::Post,
+    );
+}
+
+#[test]
+fn test_roles_read_permissions_query_matches_generated_payload() {
+    assert!(
+        server_admin_contract::admin_roles_read_request::AdminRolesReadRequest::with_permissions_query(
+            &server_admin_contract::admin_table_query::AdminTableQuery::default(),
+        )
+        .is_ok_and(|request| serde_json::to_value(request).is_ok_and(|value| {
+            serde_json::from_value::<crate::admin_roles::AdminRolesReadPayload>(value).is_ok()
+        }))
     );
 }
 

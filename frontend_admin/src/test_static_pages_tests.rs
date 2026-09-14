@@ -98,6 +98,7 @@ fn test_static_pages() {
         )
         .expect(constants_str::DIAGNOSTIC_C306D98A),
         server_admin_contract::admin_page_total::AdminPageTotal::from(1u64),
+        server_admin_contract::admin_page_total::AdminPageTotal::from(2u64),
     );
     let roles_html = crate::render_roles::render_roles(&roles, &query, &admin, &branding);
     assert!(roles_html.as_ref().contains(constants_str::VALUE_91121F81));

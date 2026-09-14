@@ -22,7 +22,7 @@ below covers user-visible workflows and direct API behavior.
 | POST `/auth/sign_in` | Sign-in form; server-rendered HTML adapter |
 | POST `/auth/sign_out` | Navigation sign-out action |
 | POST `/auth/refresh` | CSR reads and mutations recover expired access/CSRF cookies with one refresh and one retry; full-page requests preserve the server sign-in redirect |
-| GET `/auth/me` | Authenticated shell permissions and profile |
+| GET `/auth/me/read` | Authenticated shell permissions and profile |
 | POST `/auth/password` | Profile password form and mandatory initial password replacement |
 | GET `/auth/sessions` | Sessions page |
 | DELETE `/auth/sessions/{session_id}` | Per-session confirmation dialog |
@@ -31,19 +31,16 @@ below covers user-visible workflows and direct API behavior.
 | POST `/users/create` | Create-user page; server-rendered HTML adapter |
 | PATCH `/users/update` | Atomic batch updates through the typed API; uses the same user validation, administrator protection, audit, and session revocation as single-user updates |
 | DELETE `/users/delete` | Atomic deletion of users matching a required filter |
-| POST `/roles/read` | Roles list with search, filters, sorting, pagination, permission assignments, and total count |
+| POST `/roles/read` | Roles list plus the permission catalog; an optional `permissions_query` adds permission search, sorting, pagination, and an independent total count |
 | POST `/roles/create` | Atomic creation of multiple roles through the typed API |
-| PATCH `/roles/update` | Atomic renaming of multiple roles through the typed API |
+| PATCH `/roles/update` | Atomic name and permission updates through the typed API |
 | DELETE `/roles/delete` | Atomic deletion of non-system roles matching a required filter |
-| PUT `/roles/{role_id}/permissions` | Manage-roles page: permission assignment |
-| GET `/permissions` | Read-only permissions list |
-| GET `/audit_log` | Audit view uses the catalog table endpoint; browser coverage also verifies the dedicated query and redacted mutation records |
-| GET `/audit_log/export` | Prepare/download controls export the current audit page using its limit and offset; export permission governs visibility |
-| GET `/system_settings` | Settings form |
+| GET `/audit_log/read` | Audit view uses the catalog table endpoint; browser coverage also verifies the dedicated query and redacted mutation records |
+| GET `/system_settings/read` | Settings form |
 | PATCH `/system_settings/update` | Save settings and reset supported settings to defaults |
-| GET `/branding` | Shared branding in server-rendered pages |
-| GET `/tables` | Catalog defines available database views; navigation follows the shared table specification |
-| GET `/tables/{table}` (`users`, `roles`, `permissions`, `audit_log`, `system_settings`) | Catalog-driven columns, filters, ordering, and pagination |
+| GET `/branding/read` | Shared branding in server-rendered pages |
+| GET `/tables/read` | Catalog defines available database views; navigation follows the shared table specification |
+| GET `/tables/{table}/read` (`users`, `roles`, `permissions`, `audit_log`, `system_settings`) | Catalog-driven columns, filters, ordering, and pagination |
 
 The 12 table views are `users`, `roles`, `permissions`, `user_roles`, `role_permissions`,
 `refresh_tokens`, `access_sessions`, `login_attempts`, `audit_log`, `system_settings`,
@@ -105,7 +102,7 @@ User, role, and permission sorting follows the API's ascending/descending wire v
 
 The table views for `user_roles`, `role_permissions`, `refresh_tokens`,
 `access_sessions`, `login_attempts`, `rate_limits`, and `cleanup_status` use
-GET routes at `/{resource}`. Their former `/tables/{resource}` paths are rejected.
+GET routes at `/{resource}/read`. Their former `/tables/{resource}` paths are rejected.
 
 The `changes` object in `PATCH /users/update` accepts optional `display_name`, `login`, `is_banned`, `password`,
 and the paired `role_ids` / `expected_role_ids` arrays.
