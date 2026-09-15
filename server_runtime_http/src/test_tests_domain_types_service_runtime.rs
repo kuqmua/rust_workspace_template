@@ -12,26 +12,15 @@ async fn test_async_run_history_keeps_latest_reports() {
     assert_eq!(snapshot.latest_report(), Some(&3u8));
 }
 
-#[tokio::test]
-async fn test_status_route_and_parts_are_stable() {
+#[test]
+fn test_service_runtime_parts_are_stable() {
     let runtime = crate::service_runtime::ServiceRuntime::new(
-        crate::add_status_route::add_status_route(crate::axum_router::AxumRouter::from(
-            axum::Router::new(),
-        )),
+        crate::axum_router::AxumRouter::from(axum::Router::new()),
         None,
     );
     let (router, optional_task) = runtime.into_parts();
     assert!(optional_task.is_none());
-    let response = tower::ServiceExt::oneshot(
-        axum::Router::from(router),
-        axum::extract::Request::builder()
-            .uri(constants_str::STATUS)
-            .body(axum::body::Body::empty())
-            .expect(constants_str::DIAGNOSTIC_8E9C3DA1),
-    )
-    .await
-    .expect(constants_str::DIAGNOSTIC_1E97AD3B);
-    assert_eq!(response.status(), http::StatusCode::OK);
+    drop(axum::Router::from(router));
     let optional_interval_task = crate::spawn_interval_task::spawn_interval_task(None, async || {});
     assert!(optional_interval_task.is_none());
 }

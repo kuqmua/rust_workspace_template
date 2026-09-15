@@ -2170,9 +2170,17 @@ impl<'ast> syn::visit::Visit<'ast> for RouteOperationErrorVisitor {
         syn::visit::visit_item_fn(self, item_fn);
     }
     fn visit_item_macro(&mut self, item_macro: &'ast syn::ItemMacro) {
+        let is_legacy_route_registry = item_macro.mac.path.segments.last().is_some_and(|segment| {
+            segment.ident == constants_str::CODE_STYLE_ROUTE_REGISTRY_IDENTIFIER
+        }) && !matches!(
+            item_macro.mac.tokens.clone().into_iter().next(),
+            Some(proc_macro2::TokenTree::Punct(punctuation))
+                if punctuation.as_char() == '#'
+        );
         if item_macro.mac.path.segments.last().is_some_and(|segment| {
             segment.ident == constants_str::CODE_STYLE_ENDPOINT_REGISTRY_IDENTIFIER
-        }) {
+        }) || is_legacy_route_registry
+        {
             item_macro
                 .mac
                 .tokens

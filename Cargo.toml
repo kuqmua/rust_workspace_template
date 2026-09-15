@@ -71,7 +71,6 @@ members = [
   "proc_macro_frontend_contract_derive_typed_route",
   "proc_macro_frontend_contract_derive_unit_enum_catalog",
   "proc_macro_frontend_contract_derive_unit_enum_index",
-  "proc_macro_frontend_contract_endpoint_registry",
   "proc_macro_frontend_contract_route_error",
   "proc_macro_frontend_contract_route_openapi",
   "proc_macro_frontend_contract_route_operation",
@@ -430,7 +429,6 @@ file_storage = { path = "./file_storage" }
 frontend_contract = { path = "./frontend_contract" }
 frontend_contract_validation = { path = "./frontend_contract_validation" }
 proc_macro_frontend_contract_shared = { path = "./proc_macro_frontend_contract_shared" }
-proc_macro_frontend_contract_endpoint_registry = { path = "./proc_macro_frontend_contract_endpoint_registry" }
 proc_macro_frontend_contract_route_openapi = { path = "./proc_macro_frontend_contract_route_openapi" }
 proc_macro_frontend_contract_derive_contract_struct_api = { path = "./proc_macro_frontend_contract_derive_contract_struct_api" }
 proc_macro_frontend_contract_route_registry = { path = "./proc_macro_frontend_contract_route_registry" }

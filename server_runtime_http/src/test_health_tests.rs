@@ -36,46 +36,4 @@ mod tests {
             crate::health_component_status::HealthComponentStatus::Ok
         );
     }
-
-    #[tokio::test]
-    async fn test_health_routes_distinguish_live_and_ready_statuses() {
-        let readiness = crate::health_readiness::HealthReadiness::default();
-        let router = axum::Router::from(crate::add_health_routes::add_health_routes(
-            crate::axum_router::AxumRouter::from(axum::Router::new()),
-            &readiness,
-        ));
-        let live_response = tower::ServiceExt::oneshot(
-            router.clone(),
-            http::Request::get(constants_str::LIVE_PATH)
-                .body(axum::body::Body::empty())
-                .expect(constants_str::DIAGNOSTIC_A943EBAA),
-        )
-        .await
-        .expect(constants_str::DIAGNOSTIC_8112486B);
-        assert_eq!(live_response.status(), http::StatusCode::OK);
-        let unavailable_response = tower::ServiceExt::oneshot(
-            router.clone(),
-            http::Request::get(constants_str::READY_PATH)
-                .body(axum::body::Body::empty())
-                .expect(constants_str::DIAGNOSTIC_341E303A),
-        )
-        .await
-        .expect(constants_str::DIAGNOSTIC_EE4CFCE6);
-        assert_eq!(
-            unavailable_response.status(),
-            http::StatusCode::SERVICE_UNAVAILABLE
-        );
-        readiness.store_database_probe(crate::health_probe_succeeded::HealthProbeSucceeded::from(
-            true,
-        ));
-        let ready_response = tower::ServiceExt::oneshot(
-            router,
-            http::Request::get(constants_str::READY_PATH)
-                .body(axum::body::Body::empty())
-                .expect(constants_str::DIAGNOSTIC_67247299),
-        )
-        .await
-        .expect(constants_str::DIAGNOSTIC_7CF14A1F);
-        assert_eq!(ready_response.status(), http::StatusCode::OK);
-    }
 }

@@ -3137,7 +3137,6 @@ dependencies = [
  "metrics-exporter-prometheus",
  "notification_service_config",
  "notification_service_contract",
- "proc_macro_frontend_contract_endpoint_registry",
  "proc_macro_frontend_contract_route_openapi",
  "proc_macro_frontend_contract_route_operation",
  "proc_macro_frontend_contract_route_registry",
@@ -3989,13 +3988,6 @@ dependencies = [
 
 [[package]]
 name = "proc_macro_frontend_contract_derive_unit_enum_index"
-version = "0.1.0"
-dependencies = [
- "proc_macro_frontend_contract_shared",
-]
-
-[[package]]
-name = "proc_macro_frontend_contract_endpoint_registry"
 version = "0.1.0"
 dependencies = [
  "proc_macro_frontend_contract_shared",
@@ -5773,6 +5765,8 @@ dependencies = [
  "metrics-exporter-prometheus",
  "num_cpus",
  "pg_table",
+ "proc_macro_frontend_contract_route_operation",
+ "proc_macro_frontend_contract_route_registry",
  "proc_macro_newtype_deref_target",
  "proc_macro_newtype_from_inner",
  "proc_macro_newtype_get_inner",
@@ -5825,7 +5819,6 @@ dependencies = [
  "pg_types_text_misc",
  "proc_macro_frontend_contract_api_operation_error",
  "proc_macro_frontend_contract_derive_unit_enum_catalog",
- "proc_macro_frontend_contract_endpoint_registry",
  "proc_macro_frontend_contract_route_error",
  "proc_macro_frontend_contract_route_openapi",
  "proc_macro_frontend_contract_route_operation",

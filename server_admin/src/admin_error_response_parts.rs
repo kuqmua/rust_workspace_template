@@ -1,6 +1,6 @@
 pub(crate) fn admin_error_response_parts(
     route_error_status: frontend_contract::route_error_status::RouteErrorStatus,
-    option: Option<server_runtime_http::http_error_diagnostic::HttpErrorDiagnostic>,
+    http_error_diagnostic: Option<server_runtime_http::http_error_diagnostic::HttpErrorDiagnostic>,
 ) -> axum::response::Response {
     let problem_status = frontend_contract::api_problem_status::ApiProblemStatus::try_from(
         u16::from(route_error_status.transport_status()),
@@ -10,11 +10,15 @@ pub(crate) fn admin_error_response_parts(
             frontend_contract::known_http_status::KnownHttpStatus::InternalServerError,
         )
     });
-    let mut response = axum::response::IntoResponse::into_response(
+    let response = axum::response::IntoResponse::into_response(
         frontend_contract::api_problem_error::ApiProblemError::from_status(problem_status),
     );
-    if let Some(diagnostic) = option {
-        let _previous_diagnostic = response.extensions_mut().insert(diagnostic);
+    if let Some(http_error_diagnostic) = http_error_diagnostic {
+        server_runtime_http::attach_http_error_diagnostic::attach_http_error_diagnostic(
+            response,
+            http_error_diagnostic,
+        )
+    } else {
+        response
     }
-    response
 }

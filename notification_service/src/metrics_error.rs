@@ -15,19 +15,19 @@ impl axum::response::IntoResponse for MetricsError {
                 let error_type = server_runtime_http::http_error_type::HttpErrorType::from(
                     constants_str::NOTIFICATION_API_ERROR_TYPE,
                 );
-                let mut response = axum::response::IntoResponse::into_response(
+                let response = axum::response::IntoResponse::into_response(
                     frontend_contract::api_problem_error::ApiProblemError::Internal(
                         frontend_contract::api_problem_status::ApiProblemStatus::from(
                             frontend_contract::known_http_status::KnownHttpStatus::InternalServerError,
                         ),
                     ),
                 );
-                let _previous = response.extensions_mut().insert(
+                server_runtime_http::attach_http_error_diagnostic::attach_http_error_diagnostic(
+                    response,
                     server_runtime_http::http_error_diagnostic::HttpErrorDiagnostic::from_observed(
                         error_type, &error,
                     ),
-                );
-                response
+                )
             }
         }
     }

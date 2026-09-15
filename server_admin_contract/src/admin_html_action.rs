@@ -53,10 +53,10 @@ impl AdminHtmlAction {
     }
 }
 impl frontend_contract::route_registration_contract::RouteRegistrationContract for AdminHtmlAction {
-    fn method(self) -> frontend_contract::route_method::RouteMethod {
+    fn registration_method(self) -> frontend_contract::route_method::RouteMethod {
         frontend_contract::route_method::RouteMethod::Post
     }
-    fn path(self) -> frontend_contract::registered_route_path::RegisteredRoutePath {
-        frontend_contract::registered_route_path::RegisteredRoutePath::from(self.get())
+    fn registration_path(self) -> frontend_contract::contract_str::ContractStr {
+        frontend_contract::contract_str::ContractStr::from(self.get())
     }
 }

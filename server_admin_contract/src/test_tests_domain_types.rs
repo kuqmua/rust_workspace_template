@@ -628,29 +628,29 @@ fn test_data_tables_round_trip_and_require_read_permissions() {
         constants_str::SIGN_OUT
     );
     assert_eq!(
-        frontend_contract::route_registration_contract::RouteRegistrationContract::method(
+        frontend_contract::route_registration_contract::RouteRegistrationContract::registration_method(
             crate::admin_html_action::AdminHtmlAction::SignOut
         ),
         frontend_contract::route_method::RouteMethod::Post
     );
     assert_eq!(
-        frontend_contract::route_registration_contract::RouteRegistrationContract::path(
+        frontend_contract::route_registration_contract::RouteRegistrationContract::registration_path(
             crate::admin_html_action::AdminHtmlAction::SignOut
         )
-        .get(),
+        .as_ref(),
         crate::admin_html_action::AdminHtmlAction::SignOut.get()
     );
     assert_eq!(
-        frontend_contract::route_registration_contract::RouteRegistrationContract::method(
+        frontend_contract::route_registration_contract::RouteRegistrationContract::registration_method(
             crate::admin_frontend_path::AdminFrontendPath::Settings
         ),
         frontend_contract::route_method::RouteMethod::Get
     );
     assert_eq!(
-        frontend_contract::route_registration_contract::RouteRegistrationContract::path(
+        frontend_contract::route_registration_contract::RouteRegistrationContract::registration_path(
             crate::admin_frontend_path::AdminFrontendPath::Settings
         )
-        .get(),
+        .as_ref(),
         crate::admin_frontend_path::AdminFrontendPath::Settings.get()
     );
     assert!(crate::admin_page::AdminPage::navigation().all(|page| {

@@ -41,13 +41,10 @@ pub enum NotificationOperationalRoute {
 impl frontend_contract::route_registration_contract::RouteRegistrationContract
     for NotificationOperationalRoute
 {
-    fn method(self) -> frontend_contract::route_method::RouteMethod {
-        frontend_contract::route_method::RouteMethod::Get
+    fn registration_method(self) -> frontend_contract::route_method::RouteMethod {
+        self.contract().method()
     }
-    fn path(self) -> frontend_contract::registered_route_path::RegisteredRoutePath {
-        frontend_contract::registered_route_path::RegisteredRoutePath::from(match self {
-            Self::Metrics => constants_str::METRICS_READ,
-            Self::OpenApi => constants_str::OPENAPI_JSON_READ,
-        })
+    fn registration_path(self) -> frontend_contract::contract_str::ContractStr {
+        self.contract().path()
     }
 }

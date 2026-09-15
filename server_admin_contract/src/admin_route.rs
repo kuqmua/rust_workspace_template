@@ -204,3 +204,12 @@ impl AdminRoute {
         }
     }
 }
+impl frontend_contract::route_registration_contract::RouteRegistrationContract for AdminRoute {
+    fn registration_method(self) -> frontend_contract::route_method::RouteMethod {
+        self.contract().method()
+    }
+
+    fn registration_path(self) -> frontend_contract::contract_str::ContractStr {
+        self.contract().path()
+    }
+}

@@ -202,14 +202,16 @@ pub fn endpoint_registry(token_stream: proc_macro2::TokenStream) -> proc_macro2:
         .collect::<Vec<_>>();
     quote::quote! {
         #visibility fn router() -> axum::Router<#state> {
-            axum::Router::new()
-                #(.route(
-                    frontend_contract::route_registration_contract::RouteRegistrationContract::path(#contracts).get(),
+            let router = axum::Router::new();
+            #(let router = axum::Router::from(frontend_contract::register_route::register_route(
+                    frontend_contract::frontend_contract_axum_router::FrontendContractAxumRouter::from(router),
+                    frontend_contract::route_registration_contract::RouteRegistrationContract::registration_path(#contracts),
                     frontend_contract::route_method_router::route_method_router(
-                        frontend_contract::route_registration_contract::RouteRegistrationContract::method(#contracts),
+                        frontend_contract::route_registration_contract::RouteRegistrationContract::registration_method(#contracts),
                         #endpoints,
-                    ).into(),
-                ))*
+                    ),
+                ));)*
+            router
         }
     }
     .into()
@@ -850,10 +852,11 @@ pub fn route_registry(token_stream: proc_macro2::TokenStream) -> proc_macro2::To
             {
             }
             #(assert_route_family_membership::<#routes>();)*
-            axum::Router::new()
-                #(.route(
-                    frontend_contract::typed_route_path::typed_route_path::<#routes>().as_ref(),
-                    axum::routing::on(
+            let router = axum::Router::new();
+            #(let router = axum::Router::from(frontend_contract::register_route::register_route(
+                    frontend_contract::frontend_contract_axum_router::FrontendContractAxumRouter::from(router),
+                    frontend_contract::typed_route_path::typed_route_path::<#routes>(),
+                    frontend_contract::axum_route_method_router::AxumRouteMethodRouter::from(axum::routing::on(
                         axum::routing::MethodFilter::from(
                             frontend_contract::to_axum_method_filter::to_axum_method_filter(
                                 <#routes as frontend_contract::typed_route::TypedRoute>::metadata()
@@ -862,8 +865,17 @@ pub fn route_registry(token_stream: proc_macro2::TokenStream) -> proc_macro2::To
                             )
                         ),
                         #endpoints,
-                    ),
-                ))*
+                    )),
+                ));)*
+            router
+        }
+        #visibility fn router_with_body_limit() -> axum::Router<#state> {
+            match <#family as frontend_contract::route_family::RouteFamily>::body_limit() {
+                Some(route_body_limit) => router().layer(
+                    axum::extract::DefaultBodyLimit::max(route_body_limit.get()),
+                ),
+                None => router(),
+            }
         }
     }
     .into()

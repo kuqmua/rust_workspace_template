@@ -24,7 +24,6 @@ axum = { workspace = true }
 common_routes = { workspace = true }
 config_lib = { workspace = true }
 frontend_contract = { workspace = true }
-proc_macro_frontend_contract_endpoint_registry = { workspace = true }
 proc_macro_frontend_contract_route_openapi = { workspace = true }
 proc_macro_frontend_contract_route_registry = { workspace = true }
 proc_macro_frontend_contract_route_operation = { workspace = true }

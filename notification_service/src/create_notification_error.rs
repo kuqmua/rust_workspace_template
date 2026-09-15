@@ -40,14 +40,18 @@ impl axum::response::IntoResponse for CreateNotificationError {
                         frontend_contract::known_http_status::KnownHttpStatus::InternalServerError,
                     )
                 });
-        let mut response = axum::response::IntoResponse::into_response(
+        let response = axum::response::IntoResponse::into_response(
             frontend_contract::api_problem_error::ApiProblemError::from_status(problem_status),
         );
-        if let Some(diagnostic) = optional_diagnostic {
-            let _previous = response.extensions_mut().insert(diagnostic);
+        if let Some(http_error_diagnostic) = optional_diagnostic {
+            server_runtime_http::attach_http_error_diagnostic::attach_http_error_diagnostic(
+                response,
+                http_error_diagnostic,
+            )
         } else {
-            let _previous = response.extensions_mut().insert(telemetry);
+            server_runtime_http::attach_http_error_telemetry::attach_http_error_telemetry(
+                response, telemetry,
+            )
         }
-        response
     }
 }

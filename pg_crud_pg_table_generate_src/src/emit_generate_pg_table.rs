@@ -5122,7 +5122,10 @@ enum WrapIntoOptional {
                 )
             };
             quote::quote! {
-                .route(#slash_operation_double_quoted_token_stream, axum::routing::#method_token_stream({
+                let router = axum::Router::from(frontend_contract::register_route::register_route(
+                    frontend_contract::frontend_contract_axum_router::FrontendContractAxumRouter::from(router),
+                    frontend_contract::contract_str::ContractStr::from(#slash_operation_double_quoted_token_stream),
+                    frontend_contract::axum_route_method_router::AxumRouteMethodRouter::from(axum::routing::#method_token_stream({
                     let table_owned = #db_table_snake_case.to_owned();
                     let requests_metric = metrics::counter!("pg_table_requests_total", "table" => #identifier_snake_case_double_quoted_token_stream, "operation" => #operation_snake_case_string);
                     let duration_metric = metrics::histogram!("pg_table_request_duration_seconds", "table" => #identifier_snake_case_double_quoted_token_stream, "operation" => #operation_snake_case_string);
@@ -5175,8 +5178,13 @@ enum WrapIntoOptional {
                         }
                         response
                     }
-                }))
-                .route(#slash_operation_payload_example_double_quoted_token_stream, axum::routing::get(async move||Self::#operation_payload_example_snake_case()))
+                    })),
+                ));
+                let router = axum::Router::from(frontend_contract::register_route::register_route(
+                    frontend_contract::frontend_contract_axum_router::FrontendContractAxumRouter::from(router),
+                    frontend_contract::contract_str::ContractStr::from(#slash_operation_payload_example_double_quoted_token_stream),
+                    frontend_contract::axum_route_method_router::AxumRouteMethodRouter::from(axum::routing::get(async move||Self::#operation_payload_example_snake_case())),
+                ));
             }
         });
         }
@@ -10068,9 +10076,11 @@ enum WrapIntoOptional {
                     ) -> axum::Router {
                         axum::Router::new().nest(
                             &format!("/{table}"),
-                            axum::Router::new()
-                            #(#operation_routes_token_stream)*
-                            .with_state(#AppStateSnakeCase)
+                            {
+                                let router = axum::Router::new();
+                                #(#operation_routes_token_stream)*
+                                router.with_state(#AppStateSnakeCase)
+                            }
                         )
                     }
                 }

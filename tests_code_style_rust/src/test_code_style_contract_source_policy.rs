@@ -109,11 +109,19 @@ fn test_admin_frontend_api_urls_come_from_typed_routes() {
 fn test_service_route_endpoint_composition_uses_shared_registries() {
     super::test_code_style_snapshot::with_codebase_snapshot(|snapshot| {
         [
-            (constants_str::VALUE_3EB7B056, constants_usize::EIGHT),
-            (constants_str::VALUE_629EE5ED, constants_usize::ONE),
+            (
+                constants_str::VALUE_3EB7B056,
+                constants_str::VALUE_9E679F3D,
+                constants_usize::EIGHT,
+            ),
+            (
+                constants_str::VALUE_629EE5ED,
+                constants_str::VALUE_9E679F3D,
+                constants_usize::ONE,
+            ),
         ]
         .iter()
-        .for_each(|(path_suffix, expected_registry_count)| {
+        .for_each(|(path_suffix, registry_macro, expected_registry_count)| {
             let source = snapshot
                 .rs_files()
                 .iter()
@@ -133,7 +141,7 @@ fn test_service_route_endpoint_composition_uses_shared_registries() {
                 .map(|file| file.content().as_ref())
                 .collect::<String>();
             assert_eq!(
-                source.matches(constants_str::VALUE_9E53E428).count(),
+                source.matches(*registry_macro).count(),
                 *expected_registry_count,
                 "26aa4162"
             );

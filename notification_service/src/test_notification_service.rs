@@ -92,10 +92,10 @@ async fn test_default_service_routes_return_success_statuses() {
         router.clone(),
         http::Request::builder()
             .uri(
-                frontend_contract::route_registration_contract::RouteRegistrationContract::path(
+                frontend_contract::route_registration_contract::RouteRegistrationContract::registration_path(
                     notification_service_contract::notification_operational_route::NotificationOperationalRoute::Metrics,
                 )
-                .get(),
+                .as_ref(),
             )
             .body(axum::body::Body::empty())
             .expect(constants_str::DIAGNOSTIC_F9A73C10),

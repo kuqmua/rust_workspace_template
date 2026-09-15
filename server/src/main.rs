@@ -1,5 +1,12 @@
+pub mod admin_metrics;
 pub mod admin_metrics_error;
+pub mod admin_metrics_page;
+pub mod admin_metrics_page_route_registry;
+pub mod admin_metrics_route_registry;
+pub mod admin_open_api;
+pub mod admin_open_api_route_registry;
 pub mod axum_api_routes;
+pub mod axum_metrics_exporter_prometheus_renderer;
 pub mod frontend_fallback_routes;
 pub mod http_body_maximum_bytes;
 pub mod make_postgresql_pool;
@@ -230,50 +237,8 @@ fn main() -> server_exit_code::ServerExitCode {
                             admin_auth_state.clone(),
                             server_admin::admin_html_swagger_enabled::AdminHtmlSwaggerEnabled::from(swagger_enabled),
                         );
-                        let html_metrics_renderer = metrics_renderer.clone();
-                        let admin_metrics_routes = axum::Router::new()
-                            .route(
-                                server_admin_contract::admin_frontend_path::AdminFrontendPath::Metrics.get(),
-                                axum::routing::get(async move || {
-                                    server_runtime_http::metrics_response_body::MetricsResponseBody::try_from(
-                                        metrics_exporter_prometheus::PrometheusHandle::from(html_metrics_renderer)
-                                            .render(),
-                                    )
-                                    .map_or_else(
-                                        |_error| {
-                                            axum::response::IntoResponse::into_response(
-                                                axum::http::StatusCode::INTERNAL_SERVER_ERROR,
-                                            )
-                                        },
-                                        |body| {
-                                            let title_result =
-                                                frontend_admin::admin_ssr_text::AdminSsrText::try_from(
-                                                    constants_str::METRICS_ALT.to_owned(),
-                                                );
-                                            let text_result =
-                                                frontend_admin::admin_ssr_text::AdminSsrText::try_from(
-                                                    body.into_inner(),
-                                                );
-                                            match (title_result, text_result) {
-                                                (Ok(title), Ok(text)) => axum::response::IntoResponse::into_response(
-                                                    axum::response::Html(String::from(
-                                                        frontend_admin::render_text_page::render_text_page(
-                                                            server_admin_contract::admin_page::AdminPage::Metrics,
-                                                            title,
-                                                            text,
-                                                        ),
-                                                    )),
-                                                ),
-                                                (Err(_error), _) | (_, Err(_error)) => {
-                                                    axum::response::IntoResponse::into_response(
-                                                        axum::http::StatusCode::INTERNAL_SERVER_ERROR,
-                                                    )
-                                                }
-                                            }
-                                        },
-                                    )
-                                }),
-                            )
+                        let admin_metrics_routes = admin_metrics_page_route_registry::router()
+                            .with_state(metrics_renderer.clone())
                             .route_layer(server_admin::admin_generated_auth_layer::AdminGeneratedAuthLayer::from(
                                 admin_auth_state.clone(),
                             ));
@@ -291,46 +256,18 @@ fn main() -> server_exit_code::ServerExitCode {
                             let generated_table_routes = axum::Router::from(
                                 server_admin::generated_routes::generated_routes(&generated_table_state),
                             );
-                            let open_api_contract = server_admin_contract::admin_route::AdminRoute::OpenApi.contract();
                             let documented_admin_routes = if swagger_enabled {
-                                generated_table_routes.route(
-                                    open_api_contract.path().as_ref(),
-                                    axum::routing::on(
-                                        axum::routing::MethodFilter::from(frontend_contract::to_axum_method_filter::to_axum_method_filter(
-                                            open_api_contract.method(),
-                                        )),
-                                        async || {
-                                            axum::Json(utoipa::openapi::OpenApi::from(
-                                                server_admin::generated_open_api::generated_open_api(),
-                                            ))
-                                        },
-                                    ),
+                                generated_table_routes.merge(
+                                    admin_open_api_route_registry::router()
+                                        .with_state(metrics_renderer.clone()),
                                 )
                             } else {
                                 generated_table_routes
                             };
-                            let metrics_contract = server_admin_contract::admin_route::AdminRoute::Metrics.contract();
                             let secured_admin_routes = documented_admin_routes
-                                .route(
-                                    metrics_contract.path().as_ref(),
-                                    axum::routing::on(
-                                        axum::routing::MethodFilter::from(frontend_contract::to_axum_method_filter::to_axum_method_filter(
-                                            metrics_contract.method(),
-                                        )),
-                                        async move || {
-                                            server_runtime_http::metrics_response_body::MetricsResponseBody::try_from(
-                                                metrics_exporter_prometheus::PrometheusHandle::from(metrics_renderer)
-                                                    .render(),
-                                            )
-                                            .map(|body| {
-                                                axum::response::IntoResponse::into_response((
-                                                    axum::http::StatusCode::OK,
-                                                    body.into_inner(),
-                                                ))
-                                            })
-                                            .map_err(admin_metrics_error::AdminMetricsError::Render)
-                                        },
-                                    ),
+                                .merge(
+                                    admin_metrics_route_registry::router()
+                                        .with_state(metrics_renderer),
                                 )
                                 .route_layer(server_admin::admin_generated_auth_layer::AdminGeneratedAuthLayer::from(
                                     generated_admin_auth_state,
