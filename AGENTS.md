@@ -25,6 +25,8 @@
 - Avoid allocations inside hot loops.
 - Preserve behavior and semantics unless a change is requested; never change semantics silently.
 - Keep diffs minimal.
+- Minimize token usage while completing tasks; keep reasoning, updates, and tool output concise
+  without sacrificing correctness, required scope, or verification.
 - Keep generated functions and closures inside usage scope.
 - Define every repeated ASCII word in `constants_str` exactly once in a macro fragment block and
   compose constants from those word fragments. Every declared fragment must contain one word and
