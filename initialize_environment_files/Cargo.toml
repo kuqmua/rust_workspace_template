@@ -11,9 +11,11 @@ edition.workspace = true
 [dependencies]
 bounded_types = { workspace = true }
 constants_str = { workspace = true }
+notification_service_config = { workspace = true }
 proc_macro_getters = { workspace = true }
 proc_macro_new = { workspace = true }
 proc_macro_optimal_memory_layout = { workspace = true }
+server_config = { workspace = true }
 
 [lints]
 workspace = true

@@ -2403,9 +2403,11 @@ version = "0.1.0"
 dependencies = [
  "bounded_types",
  "constants_str",
+ "notification_service_config",
  "proc_macro_getters",
  "proc_macro_new",
  "proc_macro_optimal_memory_layout",
+ "server_config",
 ]
 
 [[package]]

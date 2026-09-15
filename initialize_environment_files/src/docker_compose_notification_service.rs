@@ -7,7 +7,7 @@ pub(crate) struct DockerComposeNotificationService {
     build: crate::configuration_field::ConfigurationField,
     depends_on: crate::configuration_field::ConfigurationField,
     env_file: crate::configuration_field::ConfigurationField,
-    environment: crate::notification_service_environment::NotificationServiceEnvironment,
+    environment: crate::docker_compose_notification_service_environment::DockerComposeNotificationServiceEnvironment,
     healthcheck: crate::configuration_field::ConfigurationField,
     image: crate::configuration_field::ConfigurationField,
     networks: crate::configuration_field::ConfigurationField,

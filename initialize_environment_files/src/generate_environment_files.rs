@@ -4,57 +4,6 @@
 )]
 pub(crate) fn generate_environment_files(workspace_root: &std::path::Path) -> std::io::Result<()> {
     let field = |bytes| crate::configuration_field::ConfigurationField::from(bytes);
-    let server_environment_file = crate::server_environment_file::ServerEnvironmentFile::new(
-        field(b"ADMIN_ACCESS_TOKEN_TTL_SECONDS=900\n".as_slice()),
-        field(b"ADMIN_COOKIE_SECURE=false\n".as_slice()),
-        field(b"ADMIN_JWT_SECRET=change-me-development-secret-000\n".as_slice()),
-        field(b"ADMIN_LOGIN_FAILURE_LIMIT=10\n".as_slice()),
-        field(b"ADMIN_PASSWORD_HASH_CONCURRENCY=2\n".as_slice()),
-        field(b"ADMIN_REFRESH_TOKEN_TTL_SECONDS=604800\n".as_slice()),
-        field(b"ADMIN_SESSION_LIMIT=8\n".as_slice()),
-        field(b"ADMIN_SIGN_IN_RATE_LIMIT=10\n".as_slice()),
-        field(b"ADMIN_SWAGGER_ENABLED=true\n".as_slice()),
-        field(b"ADMIN_TOKEN_AUDIENCE=rust-workspace-template\n".as_slice()),
-        field(b"ADMIN_TOKEN_ISSUER=rust-workspace-template\n".as_slice()),
-        field(
-            b"CONTENT_SECURITY_POLICY=\"default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; object-src 'none'; frame-ancestors 'none'\"\n"
-                .as_slice(),
-        ),
-        field(b"CORS_ALLOW_ORIGIN=http://127.0.0.1:8080\n".as_slice()),
-        field(
-            b"DATABASE_URL=postgres://postgres:change-me@127.0.0.1:5432/rust_workspace_template\n"
-                .as_slice(),
-        ),
-        field(b"ENABLE_API_GIT_COMMIT_CHECK=true\n".as_slice()),
-        field(b"HTTP_GZIP_ENABLED=true\n".as_slice()),
-        field(b"MAXIMUM_SIZE_OF_HTTP_BODY_IN_BYTES=1048576\n".as_slice()),
-        field(b"PG_POOL_ACQUIRE_TIMEOUT_SECONDS=10\n".as_slice()),
-        field(b"PG_POOL_IDLE_TIMEOUT_SECONDS=600\n".as_slice()),
-        field(b"PG_POOL_MAX_CONNECTIONS=10\n".as_slice()),
-        field(b"PG_POOL_MAX_LIFETIME_SECONDS=1800\n".as_slice()),
-        field(b"PG_POOL_MIN_CONNECTIONS=1\n".as_slice()),
-        field(b"PRODUCTION_MODE=false\n".as_slice()),
-        field(b"REQUEST_TIMEOUT_SECONDS=30\n".as_slice()),
-        field(b"SERVICE_SOCKET_ADDRESS=127.0.0.1:8080\n".as_slice()),
-        field(b"SOURCE_PLACE_TYPE=src\n".as_slice()),
-        field(b"SVC_MODE=serve\n".as_slice()),
-        field(b"TIMEZONE=10800\n".as_slice()),
-        field(b"TRACING_FORMAT=text\n".as_slice()),
-        field(b"TRACING_LEVEL=info\n".as_slice()),
-        field(b"TRUSTED_PROXY_RANGES_TEXT=127.0.0.1/32,::1/128\n".as_slice()),
-    );
-    let notification_service_environment_file =
-        crate::notification_service_environment::NotificationServiceEnvironment::new(
-            field(
-                b"NOTIFICATION_DATABASE_URL=postgres://notification_service:change-me@127.0.0.1:5433/notification_service\n"
-                    .as_slice(),
-            ),
-            field(b"NOTIFICATION_SERVICE_SOCKET_ADDRESS=127.0.0.1:8081\n".as_slice()),
-            field(b"PG_POOL_MAX_CONNECTIONS=10\n".as_slice()),
-            field(b"REQUEST_TIMEOUT_SECONDS=30\n".as_slice()),
-            field(b"SVC_MODE=serve\n".as_slice()),
-            field(b"TRACING_FORMAT=text\n".as_slice()),
-        );
     let docker_compose_file = crate::docker_compose_file::DockerComposeFile::new(
         crate::docker_compose_database_service::DockerComposeDatabaseService::new(
             field(br#"    environment:
@@ -88,7 +37,7 @@ pub(crate) fn generate_environment_files(workspace_root: &std::path::Path) -> st
             field(b"    build:\n      context: .\n      dockerfile: notification_service/Dockerfile\n".as_slice()),
             field(b"    depends_on:\n      notification_database:\n        condition: service_healthy\n      notification_service_migrate:\n        condition: service_completed_successfully\n".as_slice()),
             field(b"    env_file:\n      - notification_service_config/.env\n".as_slice()),
-            crate::notification_service_environment::NotificationServiceEnvironment::new(
+            crate::docker_compose_notification_service_environment::DockerComposeNotificationServiceEnvironment::new(
                 field(b"    environment:\n      NOTIFICATION_DATABASE_URL: \"postgres://notification_service:change-me@notification_database:5432/notification_service\"\n".as_slice()),
                 field(b"      # BEGIN GENERATED COMPOSE SOCKET notification_service\n      NOTIFICATION_SERVICE_SOCKET_ADDRESS: \"0.0.0.0:8081\"\n      # END GENERATED COMPOSE SOCKET notification_service\n".as_slice()),
                 field(b"      PG_POOL_MAX_CONNECTIONS: \"10\"\n".as_slice()),
@@ -108,7 +57,7 @@ pub(crate) fn generate_environment_files(workspace_root: &std::path::Path) -> st
         crate::docker_compose_notification_service_migrate_service::DockerComposeNotificationServiceMigrateService::new(
             field(b"    depends_on:\n      notification_database:\n        condition: service_healthy\n".as_slice()),
             field(b"    env_file:\n      - notification_service_config/.env\n".as_slice()),
-            crate::notification_service_environment::NotificationServiceEnvironment::new(
+            crate::docker_compose_notification_service_environment::DockerComposeNotificationServiceEnvironment::new(
                 field(b"    environment:\n      NOTIFICATION_DATABASE_URL: \"postgres://notification_service:change-me@notification_database:5432/notification_service\"\n".as_slice()),
                 field(b"      NOTIFICATION_SERVICE_SOCKET_ADDRESS: \"0.0.0.0:8081\"\n".as_slice()),
                 field(b"      PG_POOL_MAX_CONNECTIONS: \"10\"\n".as_slice()),
@@ -158,8 +107,6 @@ pub(crate) fn generate_environment_files(workspace_root: &std::path::Path) -> st
         ),
         field(b"volumes:\n  notification_postgres_data:\n  postgres_local_data:\n".as_slice()),
     );
-    let server_environment_content = server_environment_file.content();
-    let notification_service_environment_content = notification_service_environment_file.content();
     let docker_compose_content = docker_compose_file.content();
     std::fs::write(
         workspace_root.join(constants_str::VALUE_E45E45BA),
@@ -169,26 +116,22 @@ pub(crate) fn generate_environment_files(workspace_root: &std::path::Path) -> st
         workspace_root
             .join(constants_str::VALUE_B3EACD33)
             .join(constants_str::ENV),
-        server_environment_content.get_bounded_string().as_str(),
+        server_config::server_config::ServerConfig::env_example(),
     )?;
     std::fs::write(
         workspace_root
             .join(constants_str::VALUE_B3EACD33)
             .join(constants_str::ENV_EXAMPLE),
-        server_environment_content.get_bounded_string().as_str(),
+        server_config::server_config::ServerConfig::env_example(),
     )?;
     std::fs::write(
         workspace_root.join(constants_str::VALUE_0A7A2313),
-        notification_service_environment_content
-            .get_bounded_string()
-            .as_str(),
+        notification_service_config::notification_service_config::NotificationServiceConfig::env_example(),
     )?;
     std::fs::write(
         workspace_root
             .join(constants_str::WORKSPACE_SCAFFOLD_NOTIFICATION_CONFIG)
             .join(constants_str::ENV),
-        notification_service_environment_content
-            .get_bounded_string()
-            .as_str(),
+        notification_service_config::notification_service_config::NotificationServiceConfig::env_example(),
     )
 }
