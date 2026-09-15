@@ -200,7 +200,6 @@ pub mod delete_user;
 pub mod encode_access_token;
 pub mod enforce_rate_limit;
 pub mod enrich_users_read_page;
-pub mod extractors;
 mod finalize_audited_transaction;
 pub mod find_admin_cookie;
 pub mod form_auth_impl;
@@ -286,7 +285,6 @@ pub mod sqlx_admin_migrator_ref;
 pub mod sqlx_admin_repository_connection_mut_ref;
 pub mod sqlx_admin_repository_pool_ref;
 mod sqlx_admin_transaction;
-pub mod state;
 pub mod std_admin_access_token;
 pub mod std_admin_access_ttl_seconds;
 pub mod std_admin_cookie;
@@ -381,7 +379,6 @@ mod enrich_assignment_rows;
 
 mod load_role_permission_catalog;
 
-mod admin_filtered_update_operation;
 mod admin_role_update_slice;
 mod api_create_roles;
 mod api_update_roles;

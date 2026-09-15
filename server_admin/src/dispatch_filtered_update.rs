@@ -1,14 +1,17 @@
-pub(crate) async fn dispatch_filtered_update<Request, Error>(
+pub(crate) async fn dispatch_filtered_update<Error>(
     admin_auth_request: crate::admin_auth_request::AdminAuthRequest,
-    axum_admin_json: crate::axum_admin_json::AxumAdminJson<Request>,
+    axum_admin_json: crate::axum_admin_json::AxumAdminJson<
+        server_admin_contract::admin_update_roles_request::AdminUpdateRolesRequest,
+    >,
 ) -> Result<crate::axum_admin_response::AxumAdminResponse, Error>
 where
-    Request: crate::admin_filtered_update_operation::AdminFilteredUpdateOperation + Send,
     Error: From<crate::admin_error::AdminError>,
 {
-    crate::admin_filtered_update_operation::AdminFilteredUpdateOperation::apply(
-        axum_admin_json.into_inner(),
+    crate::role_mutations_update_many::role_mutations_update_many(
         admin_auth_request,
+        crate::admin_role_update_slice::AdminRoleUpdateSlice::from(
+            axum_admin_json.into_inner().updates(),
+        ),
     )
     .await
     .map_err(Error::from)

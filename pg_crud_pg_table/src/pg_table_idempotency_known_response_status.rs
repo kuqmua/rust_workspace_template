@@ -9,9 +9,3 @@
 pub enum PgTableIdempotencyKnownResponseStatus {
     InternalServerError,
 }
-impl crate::pg_table_idempotency_response_status::PgTableIdempotencyResponseStatus {
-    #[must_use]
-    pub fn internal_server_error() -> Self {
-        Self::from(PgTableIdempotencyKnownResponseStatus::InternalServerError)
-    }
-}

@@ -74,6 +74,93 @@ fn test_custom_type_names_are_unique_across_workspace() {
 }
 
 #[test]
+fn test_struct_implementations_share_their_declaration_module() {
+    super::test_code_style_snapshot::with_codebase_snapshot(|snapshot| {
+        let production_files = snapshot.rs_files().iter().filter(|source_file| {
+            !crate::code_style::is_test_source_path(crate::path_ref::PathRef::from(
+                source_file.path().as_ref(),
+            ))
+            .get()
+        });
+        let declarations = production_files
+            .clone()
+            .flat_map(|source_file| {
+                source_file.ast().as_ref().items.iter().filter_map(|item| {
+                    let syn::Item::Struct(item_struct) = item else {
+                        return None;
+                    };
+                    Some((
+                        item_struct.ident.to_string(),
+                        source_file.path().as_ref().to_path_buf(),
+                    ))
+                })
+            })
+            .collect::<std::collections::BTreeMap<_, _>>();
+        let violations = production_files
+            .flat_map(|source_file| {
+                source_file.ast().as_ref().items.iter().filter_map(|item| {
+                    let syn::Item::Impl(item_impl) = item else {
+                        return None;
+                    };
+                    let identifier = crate::code_style::item_impl_self_ty_identifier(
+                        crate::syn_item_impl_ref::SynItemImplRef::from(item_impl),
+                    )?;
+                    let declaration_path = declarations.get(identifier.as_ref())?;
+                    (declaration_path != source_file.path().as_ref()).then(|| {
+                        format!(
+                            "{}: implementation for struct `{}` must be in its declaration module `{}`",
+                            source_file.path().as_ref().display(),
+                            identifier.as_ref(),
+                            declaration_path.display()
+                        )
+                    })
+                })
+            })
+            .collect::<Vec<_>>();
+        assert!(
+            violations.is_empty(),
+            "struct inherent and trait implementations must share the struct declaration module:\n{}",
+            violations.join("\n")
+        );
+    });
+}
+
+#[test]
+fn test_struct_implementation_module_rule_covers_inherent_and_trait_implementations() {
+    let declaration_path = std::path::Path::new("policy_struct.rs");
+    let other_path = std::path::Path::new("other.rs");
+    let inherent_impl: syn::ItemImpl = syn::parse_quote! {
+        impl PolicyStruct {
+            fn enabled(&self) -> bool {
+                true
+            }
+        }
+    };
+    let trait_impl: syn::ItemImpl = syn::parse_quote! {
+        impl PolicyTrait for PolicyStruct {
+            fn enabled(&self) -> bool {
+                true
+            }
+        }
+    };
+    let implementation_violates_rule = |implementation_path, item_impl: &syn::ItemImpl| {
+        crate::code_style::item_impl_self_ty_identifier(
+            crate::syn_item_impl_ref::SynItemImplRef::from(item_impl),
+        )
+        .is_some_and(|identifier| {
+            identifier.as_ref() == "PolicyStruct" && implementation_path != declaration_path
+        })
+    };
+    assert!(!implementation_violates_rule(
+        declaration_path,
+        &inherent_impl
+    ));
+    assert!(!implementation_violates_rule(declaration_path, &trait_impl));
+    assert!(implementation_violates_rule(other_path, &inherent_impl));
+    assert!(implementation_violates_rule(other_path, &trait_impl));
+}
+
+#[test]
 fn test_custom_type_name_visitor_covers_all_rust_type_declarations() {
     let ast = syn::parse_file(constants_str::CODE_STYLE_TYPE_DECLARATIONS_FIXTURE)
         .expect(constants_str::DIAGNOSTIC_A9EA85B6);

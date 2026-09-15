@@ -9,3 +9,8 @@ pub struct HttpErrorTelemetry {
     #[constructor(order = 0)]
     error_type: crate::http_error_type::HttpErrorType,
 }
+impl From<&crate::http_error_diagnostic::HttpErrorDiagnostic> for HttpErrorTelemetry {
+    fn from(value: &crate::http_error_diagnostic::HttpErrorDiagnostic) -> Self {
+        *value.telemetry()
+    }
+}

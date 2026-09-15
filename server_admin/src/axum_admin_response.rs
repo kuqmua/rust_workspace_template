@@ -7,3 +7,8 @@
 )]
 #[getters(get_mut)]
 pub struct AxumAdminResponse(axum::response::Response);
+impl axum::response::IntoResponse for AxumAdminResponse {
+    fn into_response(self) -> axum::response::Response {
+        axum::response::Response::from(self)
+    }
+}

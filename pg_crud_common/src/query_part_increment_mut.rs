@@ -2,15 +2,6 @@ pub trait QueryPartIncrementMut {
     fn checked_add_one(&mut self) -> Option<crate::query_part_increment::QueryPartIncrement>;
 }
 
-impl QueryPartIncrementMut for crate::query_part_increment::QueryPartIncrement {
-    fn checked_add_one(&mut self) -> Option<crate::query_part_increment::QueryPartIncrement> {
-        self.get().checked_add(1).map(|value| {
-            *self = Self::from(value);
-            Self::from(value)
-        })
-    }
-}
-
 impl QueryPartIncrementMut for u64 {
     fn checked_add_one(&mut self) -> Option<crate::query_part_increment::QueryPartIncrement> {
         self.checked_add(1).map(|value| {

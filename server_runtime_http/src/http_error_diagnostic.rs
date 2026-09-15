@@ -100,11 +100,6 @@ impl HttpErrorDiagnostic {
     }
 }
 
-impl From<&HttpErrorDiagnostic> for crate::http_error_telemetry::HttpErrorTelemetry {
-    fn from(value: &HttpErrorDiagnostic) -> Self {
-        value.telemetry
-    }
-}
 #[cfg(test)]
 mod tests {
     #[test]

@@ -265,6 +265,10 @@ fn test_substantial_function_bodies_have_one_source_of_truth() {
             locations: constants_str::VALUE_51DBE253,
             reason: constants_str::VALUE_91B4F7EC,
         },
+        ReviewedDuplicateGroup {
+            locations: constants_str::VALUE_88A7A661,
+            reason: constants_str::VALUE_91B4F7EC,
+        },
     ];
     reviewed_groups.extend(
         constants_str::CODE_STYLE_SPLIT_OWNER_DUPLICATE_GROUPS

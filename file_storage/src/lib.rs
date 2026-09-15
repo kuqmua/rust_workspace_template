@@ -1,4 +1,3 @@
-pub mod adapters;
 pub mod atomic_replace_durability;
 pub mod disk_cache_budget_error;
 pub mod disk_cache_entry;
@@ -24,6 +23,8 @@ pub mod std_storage_operation_id;
 pub mod storage_directory_name_ref;
 pub mod storage_path_ref;
 pub mod storage_relative_path_buf;
+#[cfg(test)]
+mod test_adapters;
 
 #[cfg(test)]
 pub mod test_file_storage;

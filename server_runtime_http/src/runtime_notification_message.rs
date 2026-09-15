@@ -24,3 +24,8 @@ impl TryFrom<String> for RuntimeNotificationMessage {
         }
     }
 }
+impl From<crate::notification_request::NotificationRequest> for RuntimeNotificationMessage {
+    fn from(value: crate::notification_request::NotificationRequest) -> Self {
+        value.into_message()
+    }
+}

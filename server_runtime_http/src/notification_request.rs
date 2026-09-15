@@ -10,9 +10,10 @@
 pub struct NotificationRequest {
     message: crate::runtime_notification_message::RuntimeNotificationMessage,
 }
-
-impl From<NotificationRequest> for crate::runtime_notification_message::RuntimeNotificationMessage {
-    fn from(value: NotificationRequest) -> Self {
-        value.message
+impl NotificationRequest {
+    pub(crate) fn into_message(
+        self,
+    ) -> crate::runtime_notification_message::RuntimeNotificationMessage {
+        self.message
     }
 }

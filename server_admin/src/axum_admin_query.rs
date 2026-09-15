@@ -7,3 +7,19 @@
     proc_macro_getters::Getters,
 )]
 pub(crate) struct AxumAdminQuery<Value>(Value);
+impl<S, Value> axum::extract::FromRequestParts<S> for AxumAdminQuery<Value>
+where
+    S: Send + Sync,
+    Value: serde::de::DeserializeOwned + Send,
+{
+    type Rejection = crate::admin_error::AdminError;
+    async fn from_request_parts(
+        parts: &mut http::request::Parts,
+        s: &S,
+    ) -> Result<Self, Self::Rejection> {
+        axum::extract::Query::<Value>::from_request_parts(parts, s)
+            .await
+            .map(|axum::extract::Query(value)| Self::from(value))
+            .map_err(|_error| crate::admin_error::AdminError::Validation)
+    }
+}

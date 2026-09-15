@@ -13,23 +13,6 @@ pub mod generated_crate_steps_tests;
 pub mod remove_dir_on_drop;
 
 #[cfg(feature = "test-utils")]
-impl Drop for remove_dir_on_drop::RemoveDirOnDrop {
-    fn drop(&mut self) {
-        remove_dir_all_if_exists(self.get_path(), constants_str::E28698F2);
-        if let Some(parent) = self.get_path().parent()
-            && let Err(error) = std::fs::remove_dir(parent)
-            && error.kind() != std::io::ErrorKind::NotFound
-            && error.kind() != std::io::ErrorKind::DirectoryNotEmpty
-        {
-            std::panic::panic_any(constants_str::PANIC_A83F7C18.replacen(
-                constants_str::PANIC_PLACEHOLDER_81240055,
-                error.to_string().as_str(),
-                1usize,
-            ));
-        }
-    }
-}
-#[cfg(feature = "test-utils")]
 fn remove_dir_all_if_exists(path: &std::path::Path, str: &str) {
     if let Err(error) = std::fs::remove_dir_all(path)
         && error.kind() != std::io::ErrorKind::NotFound

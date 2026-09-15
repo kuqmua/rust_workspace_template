@@ -8,3 +8,19 @@
 )]
 #[getters(get_mut)]
 pub struct HttpAdminHeaderMap(http::HeaderMap);
+#[allow(
+    unused_variables,
+    reason = "extractor trait implementation preserves the repository type-based parameter name"
+)]
+impl<S> axum::extract::FromRequestParts<S> for HttpAdminHeaderMap
+where
+    S: Send + Sync,
+{
+    type Rejection = std::convert::Infallible;
+    fn from_request_parts(
+        parts: &mut http::request::Parts,
+        s: &S,
+    ) -> impl Future<Output = Result<Self, Self::Rejection>> {
+        std::future::ready(Ok(Self::from(parts.headers.clone())))
+    }
+}

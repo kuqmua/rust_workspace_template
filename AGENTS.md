@@ -81,6 +81,8 @@
   `unimplemented!()` in source.
 - Keep custom type names and free-function names unique across the workspace; method names may
   repeat.
+- Keep every inherent method implementation and trait implementation for a struct in the same
+  module as that struct's declaration.
 - Use a single underscore between words in module and function names. Avoid unclear short forms in
   module, function, field, and serde names, and use explicit resource names for identifiers.
 - Keep external `mod` declarations in crate roots, do not use `#[path]`, and do not bypass module

@@ -18,3 +18,14 @@ impl DbTableSnapshot {
         }
     }
 }
+impl crate::snapshot_mismatch::SnapshotMismatch for DbTableSnapshot {
+    fn mismatch(
+        expected: Self,
+        observed: Self,
+    ) -> crate::db_schema_conformance_error::DbSchemaConformanceError {
+        crate::db_schema_conformance_error::DbSchemaConformanceError::Mismatch {
+            expected,
+            observed,
+        }
+    }
+}

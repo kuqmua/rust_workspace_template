@@ -7,3 +7,22 @@
     proc_macro_getters::Getters,
 )]
 pub(crate) struct AxumAdminJson<Value>(Value);
+impl<S, Value> axum::extract::FromRequest<S> for AxumAdminJson<Value>
+where
+    S: Send + Sync,
+    Value: serde::de::DeserializeOwned + Send,
+{
+    type Rejection = crate::admin_error::AdminError;
+    async fn from_request(request: axum::extract::Request, s: &S) -> Result<Self, Self::Rejection> {
+        axum::Json::<Value>::from_request(request, s)
+            .await
+            .map(|axum::Json(value)| Self::from(value))
+            .map_err(|error| {
+                crate::admin_error::AdminError::body_rejection(
+                    server_admin_core::std_admin_bool::StdAdminBool::from(
+                        error.status() == http::StatusCode::PAYLOAD_TOO_LARGE,
+                    ),
+                )
+            })
+    }
+}

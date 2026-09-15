@@ -12,3 +12,14 @@ impl DbCatalogSnapshot {
         }
     }
 }
+impl crate::snapshot_mismatch::SnapshotMismatch for DbCatalogSnapshot {
+    fn mismatch(
+        expected: Self,
+        observed: Self,
+    ) -> crate::db_schema_conformance_error::DbSchemaConformanceError {
+        crate::db_schema_conformance_error::DbSchemaConformanceError::CatalogMismatch {
+            expected,
+            observed,
+        }
+    }
+}

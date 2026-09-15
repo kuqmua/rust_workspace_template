@@ -36,7 +36,7 @@ pub(crate) async fn assignment_form_action(
                 },
                 server_admin_contract::admin_frontend_path::AdminFrontendPath::Roles,
                 |admin_auth_request, _admin_frontend_path, axum_admin_json| {
-                    crate::dispatch_filtered_update::dispatch_filtered_update::<_, crate::admin_error::AdminError>(
+                    crate::dispatch_filtered_update::dispatch_filtered_update::<crate::admin_error::AdminError>(
                         admin_auth_request,
                         axum_admin_json,
                     )

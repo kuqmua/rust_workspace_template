@@ -32,3 +32,11 @@ impl From<crate::pg_table_idempotency_known_response_status::PgTableIdempotencyK
         }
     }
 }
+impl PgTableIdempotencyResponseStatus {
+    #[must_use]
+    pub fn internal_server_error() -> Self {
+        Self::from(
+            crate::pg_table_idempotency_known_response_status::PgTableIdempotencyKnownResponseStatus::InternalServerError,
+        )
+    }
+}
