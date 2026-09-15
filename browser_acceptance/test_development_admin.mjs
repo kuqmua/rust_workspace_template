@@ -9,7 +9,7 @@ test("test_development_admin_documented_password_signs_in", {
     : false,
   timeout: 30_000
 }, async () => {
-  const documentation = await readFile(new URL("../DEVELOPMENT_ADMIN.md", import.meta.url), "utf8");
+  const documentation = await readFile(new URL("../ADMIN_LOGIN_AND_PASSWORD.md", import.meta.url), "utf8");
   const login = documentation.match(/^- Login: `([^`]+)`$/m)?.[1];
   const password = documentation.match(/^- Password: `([^`]+)`$/m)?.[1];
   assert.ok(login, "The development administrator login must be documented");

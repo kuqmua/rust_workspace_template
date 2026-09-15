@@ -2,6 +2,8 @@
 
 - URL: http://127.0.0.1:8080/admin/users
 - Database: rust_workspace_template
+- Database user: `postgres`
+- Database password: `Dev-admin-2026-Ready!`
 - Login: `admin`
 - Password: `Dev-admin-2026-Ready!`
 

@@ -4,7 +4,7 @@ services:
     image: ghcr.io/kuqmua/postgresql_16_with_pg_jsonschema@sha256:e95f0b8fce882a4cadbd7a1e01451a1440b356299af7a2a17859018914d0c178
     environment:
       POSTGRES_DB: rust_workspace_template
-      POSTGRES_PASSWORD: "change-me"
+      POSTGRES_PASSWORD: "Dev-admin-2026-Ready!"
       POSTGRES_USER: postgres
     healthcheck:
       test: ["CMD-SHELL", "PGPASSWORD=\"$$POSTGRES_PASSWORD\" psql -h 127.0.0.1 -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\" -v ON_ERROR_STOP=1 -c 'SELECT 1' >/dev/null"]
@@ -44,7 +44,7 @@ services:
     env_file:
       - server/.env
     environment:
-      DATABASE_URL: "postgres://postgres:change-me@database:5432/rust_workspace_template"
+      DATABASE_URL: "postgres://postgres:Dev-admin-2026-Ready!@database:5432/rust_workspace_template"
       SERVICE_SOCKET_ADDRESS: "0.0.0.0:8080"
       SVC_MODE: migrate
     networks:
@@ -69,7 +69,7 @@ services:
     env_file:
       - server/.env
     environment:
-      DATABASE_URL: "postgres://postgres:change-me@database:5432/rust_workspace_template"
+      DATABASE_URL: "postgres://postgres:Dev-admin-2026-Ready!@database:5432/rust_workspace_template"
       SVC_MODE: serve
       # BEGIN GENERATED COMPOSE SOCKET server
       SERVICE_SOCKET_ADDRESS: "0.0.0.0:8080"

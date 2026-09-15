@@ -7,16 +7,17 @@ The repository uses the nightly toolchain pinned in `rust-toolchain.toml`.
 Create the untracked service environment files:
 
 ```bash
-cargo run -p init_env_files
+cargo run -p initialize_environment_files
 ```
 
 Start both services and their isolated PostgreSQL databases:
 
 ```bash
-POSTGRES_PASSWORD=development-only \
-NOTIFICATION_POSTGRES_PASSWORD=development-only \
 docker compose up --build
 ```
+
+The application PostgreSQL credential is listed in `ADMIN_LOGIN_AND_PASSWORD.md`. The notification
+database uses its separate development-only credential generated in its environment file.
 
 The application listens on `127.0.0.1:8080`; the notification service listens on
 `127.0.0.1:8081`. Their liveness and readiness endpoints are `/health/live/read` and

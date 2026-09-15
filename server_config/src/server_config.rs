@@ -19,7 +19,9 @@ pub struct ServerConfig {
     )]
     content_security_policy: config_lib::content_security_policy::ContentSecurityPolicy,
     #[config(secret)]
-    #[config(example = "postgres://postgres:change-me@127.0.0.1:5432/rust_workspace_template")]
+    #[config(
+        example = "postgres://postgres:Dev-admin-2026-Ready!@127.0.0.1:5432/rust_workspace_template"
+    )]
     database_url: config_lib::domain_types::DatabaseUrl,
     #[config(secret)]
     #[config(example = "change-me-development-secret-000")]

@@ -97,9 +97,10 @@ a TCP connection with the configured password. Wait for a healthy database befor
 the migrations; `docker compose up -d --wait database` performs this check automatically.
 
 The initializer also creates `notification_service_config/.env` from its example. Both
-local environment files use the same defaults as their examples and Compose: database
-password `change-me`, connection pool limit `10`, request timeout `30`, and text tracing.
-The databases retain separate users and database names.
+local environment files use the same defaults as their examples and Compose. The application
+database password is documented in `ADMIN_LOGIN_AND_PASSWORD.md`; the notification database password is
+`change-me`. Both use connection pool limit `10`, request timeout `30`, and text tracing. The
+databases retain separate users and database names.
 
 Only the application database starts by default. To build and start both applications,
 their migration jobs, and both databases from the same root Compose file:
