@@ -127,8 +127,8 @@ fn test_struct_implementations_share_their_declaration_module() {
 
 #[test]
 fn test_struct_implementation_module_rule_covers_inherent_and_trait_implementations() {
-    let declaration_path = std::path::Path::new("policy_struct.rs");
-    let other_path = std::path::Path::new("other.rs");
+    let declaration_path = std::path::Path::new(constants_str::CODE_STYLE_POLICY_STRUCT_RS);
+    let other_path = std::path::Path::new(constants_str::CODE_STYLE_OTHER_RS);
     let inherent_impl: syn::ItemImpl = syn::parse_quote! {
         impl PolicyStruct {
             fn enabled(&self) -> bool {
@@ -143,12 +143,18 @@ fn test_struct_implementation_module_rule_covers_inherent_and_trait_implementati
             }
         }
     };
+    let declaration_identifier = crate::code_style::item_impl_self_ty_identifier(
+        crate::syn_item_impl_ref::SynItemImplRef::from(&inherent_impl),
+    );
     let implementation_violates_rule = |implementation_path, item_impl: &syn::ItemImpl| {
         crate::code_style::item_impl_self_ty_identifier(
             crate::syn_item_impl_ref::SynItemImplRef::from(item_impl),
         )
         .is_some_and(|identifier| {
-            identifier.as_ref() == "PolicyStruct" && implementation_path != declaration_path
+            declaration_identifier
+                .as_ref()
+                .is_some_and(|source_text| identifier.as_ref() == source_text.as_ref())
+                && implementation_path != declaration_path
         })
     };
     assert!(!implementation_violates_rule(

@@ -36,7 +36,9 @@ pub mod auth_session_refresh_outcome;
 pub mod auth_session_refresh_state;
 pub mod authenticated_transport;
 pub mod authentication_requirement;
+#[cfg(not(target_arch = "wasm32"))]
 pub mod axum_method_filter;
+#[cfg(not(target_arch = "wasm32"))]
 pub mod axum_route_method_router;
 pub mod capability_support;
 pub mod client_error;
@@ -70,6 +72,7 @@ pub mod form_value;
 pub mod form_value_contract;
 pub mod form_value_error;
 pub mod form_value_ref;
+#[cfg(not(target_arch = "wasm32"))]
 pub mod frontend_contract_axum_router;
 pub mod frontend_contract_body_error;
 pub mod has_filter_contracts;
@@ -97,6 +100,7 @@ pub mod problem_tests;
 pub mod public_transport;
 pub mod register_openapi_route_schemas;
 pub mod register_openapi_schema;
+#[cfg(not(target_arch = "wasm32"))]
 pub mod register_route;
 pub mod required_test_categories;
 pub mod route_access;
@@ -119,6 +123,7 @@ pub mod route_json_body_usage;
 pub mod route_metadata;
 pub mod route_metadata_list;
 pub mod route_method;
+#[cfg(not(target_arch = "wasm32"))]
 pub mod route_method_router;
 pub mod route_mutation;
 pub mod route_registration_contract;
@@ -139,6 +144,7 @@ pub mod server_route_metadata;
 pub mod success_status;
 #[cfg(test)]
 pub mod test_frontend_contract;
+#[cfg(not(target_arch = "wasm32"))]
 pub mod to_axum_method_filter;
 pub mod transport;
 pub mod transport_body;
