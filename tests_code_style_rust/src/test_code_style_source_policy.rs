@@ -29,14 +29,43 @@ struct DuplicateConfigurationTestVisitor {
 #[derive(
     proc_macro_getters::Getters, Default, proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
-struct DirectNumericIndexVisitor {
+struct ProductionSourcePolicyVisitor {
+    axum_from_function_violations: crate::diagnostic_messages::DiagnosticMessages,
     #[getters(copy)]
-    violation: Option<usize>,
+    direct_numeric_index: Option<usize>,
+    identity_mapper_violations: crate::diagnostic_messages::DiagnosticMessages,
 }
 
-impl<'syntax> syn::visit::Visit<'syntax> for DirectNumericIndexVisitor {
+impl<'syntax> syn::visit::Visit<'syntax> for ProductionSourcePolicyVisitor {
+    fn visit_expr_call(&mut self, expression_call: &'syntax syn::ExprCall) {
+        if let syn::Expr::Path(function_path) = expression_call.func.as_ref()
+            && function_path
+                .path
+                .segments
+                .iter()
+                .map(|segment| segment.ident.to_string())
+                .eq([
+                    stringify!(axum),
+                    stringify!(middleware),
+                    stringify!(from_fn),
+                ]
+                .map(String::from))
+        {
+            self.axum_from_function_violations.push(
+                function_path
+                    .path
+                    .segments
+                    .iter()
+                    .map(|segment| segment.ident.to_string())
+                    .collect::<Vec<String>>()
+                    .join(concat!(":", ":")),
+            );
+        }
+        syn::visit::visit_expr_call(self, expression_call);
+    }
+
     fn visit_expr_index(&mut self, expression_index: &'syntax syn::ExprIndex) {
-        if self.violation.is_none()
+        if self.direct_numeric_index.is_none()
             && let syn::Expr::Lit(syn::ExprLit {
                 lit: syn::Lit::Int(index_literal),
                 ..
@@ -44,31 +73,75 @@ impl<'syntax> syn::visit::Visit<'syntax> for DirectNumericIndexVisitor {
             && let Ok(numeric_index) = index_literal.base10_parse::<usize>()
             && matches!(numeric_index, 0usize | 1usize)
         {
-            self.violation = Some(numeric_index);
+            self.direct_numeric_index = Some(numeric_index);
             return;
         }
         syn::visit::visit_expr_index(self, expression_index);
     }
 
     fn visit_item_fn(&mut self, item_fn: &'syntax syn::ItemFn) {
-        if !item_fn.attrs.iter().any(|attribute| {
-            attribute.path().is_ident(stringify!(test))
-                || crate::code_style::attr_is_test_only_cfg(
-                    crate::syn_attribute_ref::SynAttributeRef::from(attribute),
-                )
-                .get()
-        }) {
-            syn::visit::visit_item_fn(self, item_fn);
+        if crate::code_style::item_fn_is_unit_test(crate::syn_item_fn_ref::SynItemFnRef::from(
+            item_fn,
+        ))
+        .get()
+        {
+            return;
         }
+        let parameter = match item_fn.sig.inputs.first() {
+            Some(syn::FnArg::Typed(parameter)) if item_fn.sig.inputs.len() == 1usize => parameter,
+            _ => {
+                syn::visit::visit_item_fn(self, item_fn);
+                return;
+            }
+        };
+        let Some(parameter_name) = (match parameter.pat.as_ref() {
+            syn::Pat::Ident(parameter_name) => Some(&parameter_name.ident),
+            syn::Pat::Const(_)
+            | syn::Pat::Guard(_)
+            | syn::Pat::Lit(_)
+            | syn::Pat::Macro(_)
+            | syn::Pat::Or(_)
+            | syn::Pat::Paren(_)
+            | syn::Pat::Path(_)
+            | syn::Pat::Range(_)
+            | syn::Pat::Reference(_)
+            | syn::Pat::Rest(_)
+            | syn::Pat::Slice(_)
+            | syn::Pat::Struct(_)
+            | syn::Pat::Tuple(_)
+            | syn::Pat::TupleStruct(_)
+            | syn::Pat::Type(_)
+            | syn::Pat::Verbatim(_)
+            | syn::Pat::Wild(_)
+            | _ => None,
+        }) else {
+            syn::visit::visit_item_fn(self, item_fn);
+            return;
+        };
+        let syn::ReturnType::Type(_, return_type) = &item_fn.sig.output else {
+            syn::visit::visit_item_fn(self, item_fn);
+            return;
+        };
+        let returns_parameter = matches!(
+            item_fn.block.stmts.as_slice(),
+            [syn::Stmt::Expr(syn::Expr::Path(path), None)] if path.path.is_ident(parameter_name)
+        );
+        if item_fn.sig.ident.to_string().starts_with(stringify!(map))
+            && returns_parameter
+            && parameter.ty.as_ref() == return_type.as_ref()
+        {
+            self.identity_mapper_violations
+                .push(item_fn.sig.ident.to_string());
+        }
+        syn::visit::visit_item_fn(self, item_fn);
     }
 
     fn visit_item_mod(&mut self, item_mod: &'syntax syn::ItemMod) {
-        if !item_mod.attrs.iter().any(|attribute| {
-            crate::code_style::attr_is_test_only_cfg(
-                crate::syn_attribute_ref::SynAttributeRef::from(attribute),
-            )
-            .get()
-        }) {
+        if !crate::code_style::attrs_contain_test_only_cfg(
+            crate::syn_attribute_list_ref::SynAttributeListRef::from(item_mod.attrs.as_slice()),
+        )
+        .get()
+        {
             syn::visit::visit_item_mod(self, item_mod);
         }
     }
@@ -950,9 +1023,9 @@ fn test_production_code_avoids_direct_zero_or_one_indexing() {
                 .get()
             })
             .filter_map(|source_file| {
-                let mut visitor = DirectNumericIndexVisitor::default();
+                let mut visitor = ProductionSourcePolicyVisitor::default();
                 syn::visit::Visit::visit_file(&mut visitor, source_file.ast().as_ref());
-                visitor.get_violation().map(|index| {
+                visitor.get_direct_numeric_index().map(|index| {
                     format!(
                         "{} directly indexes element {index}",
                         source_file.path().as_ref().display()
@@ -963,6 +1036,74 @@ fn test_production_code_avoids_direct_zero_or_one_indexing() {
         assert!(
             violations.is_empty(),
             "ff218d4c production code must use checked access or destructuring: {violations:#?}"
+        );
+    });
+}
+
+#[test]
+fn test_repository_error_mappers_do_not_hide_identity_conversions() {
+    super::test_code_style_snapshot::with_codebase_snapshot(|snapshot| {
+        let violations = snapshot
+            .rs_files()
+            .iter()
+            .filter(|source_file| {
+                !crate::code_style::is_test_crate_source_path(crate::path_ref::PathRef::from(
+                    source_file.path().as_ref(),
+                ))
+                .get()
+            })
+            .flat_map(|source_file| {
+                let mut visitor = ProductionSourcePolicyVisitor::default();
+                syn::visit::Visit::visit_file(&mut visitor, source_file.ast().as_ref());
+                visitor
+                    .get_identity_mapper_violations()
+                    .clone()
+                    .into_iter()
+                    .map(|name| {
+                        format!(
+                            "{}: identity mapper `{name}`",
+                            source_file.path().as_ref().display()
+                        )
+                    })
+            })
+            .collect::<Vec<String>>();
+        assert!(
+            violations.is_empty(),
+            "91d2a73e identity mapper functions hide duplicate sources of truth: {violations:#?}"
+        );
+    });
+}
+
+#[test]
+fn test_production_code_does_not_use_axum_from_function_middleware() {
+    super::test_code_style_snapshot::with_codebase_snapshot(|snapshot| {
+        let violations = snapshot
+            .rs_files()
+            .iter()
+            .filter(|source_file| {
+                !crate::code_style::is_test_crate_source_path(crate::path_ref::PathRef::from(
+                    source_file.path().as_ref(),
+                ))
+                .get()
+            })
+            .flat_map(|source_file| {
+                let mut visitor = ProductionSourcePolicyVisitor::default();
+                syn::visit::Visit::visit_file(&mut visitor, source_file.ast().as_ref());
+                visitor
+                    .get_axum_from_function_violations()
+                    .clone()
+                    .into_iter()
+                    .map(|path| {
+                        format!(
+                            "{}: forbidden middleware `{path}`",
+                            source_file.path().as_ref().display()
+                        )
+                    })
+            })
+            .collect::<Vec<String>>();
+        assert!(
+            violations.is_empty(),
+            "263a8c55 use typed tower services instead of axum from-function middleware: {violations:#?}"
         );
     });
 }

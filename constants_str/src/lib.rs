@@ -13,6 +13,9 @@ pub const DIAGNOSTIC_4409E8DD: &str = "4409e8dd";
 pub const DIAGNOSTIC_606519AE: &str = "606519ae";
 pub const DIAGNOSTIC_4CEB7ACC: &str = "4ceb7acc";
 pub const DIAGNOSTIC_B787C90B: &str = "b787c90b";
+pub const DIAGNOSTIC_137D944F: &str = "137d944f";
+pub const DIAGNOSTIC_AEC6B72D: &str = "aec6b72d";
+pub const DIAGNOSTIC_87E62A51: &str = "87e62a51";
 
 pub const MACRO_CLIPPY_CARGO_CHECK_ALL_TARGETS_ALL_FEATURES_ARGS: [&str; 4] = [
     SHARED_VALUES_CHECK,

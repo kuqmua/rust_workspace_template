@@ -75,6 +75,61 @@ fn test_repository_toolchain_uses_nightly_rust() {
 }
 
 #[test]
+fn test_workspace_uses_resolver_two() {
+    let manifest = std::fs::read_to_string(constants_str::CODE_STYLE_WORKSPACE_MANIFEST_PATH)
+        .expect(constants_str::DIAGNOSTIC_137D944F)
+        .parse::<toml::Table>()
+        .expect(constants_str::DIAGNOSTIC_AEC6B72D);
+    assert_eq!(
+        manifest
+            .get(stringify!(workspace))
+            .and_then(|workspace| workspace.get(stringify!(resolver)))
+            .and_then(toml::Value::as_str),
+        Some(stringify!(2)),
+        concat!("822d4f3a ", "workspace must keep Cargo feature resolver 2")
+    );
+}
+
+#[test]
+fn test_workspace_manifest_does_not_use_placeholder_repository_metadata() {
+    let placeholder = concat!(
+        "repository = ",
+        "\"",
+        "https",
+        "://",
+        "github",
+        ".",
+        "com",
+        "/",
+        "user",
+        "/",
+        "repo",
+        "\""
+    );
+    crate::code_style::assert_crate_manifest_cargo_policy(
+        crate::static_str::StaticStr::from(concat!(
+            "c7876ba1 ",
+            "workspace crate manifests must not contain placeholder repository metadata"
+        )),
+        |path, parsed, errors| {
+            if parsed.to_string().contains(placeholder) {
+                errors.push(path.display().to_string());
+            }
+        },
+    );
+    let workspace_manifest =
+        std::fs::read_to_string(constants_str::CODE_STYLE_WORKSPACE_MANIFEST_PATH)
+            .expect(constants_str::DIAGNOSTIC_87E62A51);
+    assert!(
+        !workspace_manifest.contains(placeholder),
+        concat!(
+            "3dd32f60 ",
+            "workspace manifest must not contain placeholder repository metadata"
+        )
+    );
+}
+
+#[test]
 fn test_crate_names_follow_workspace_vocabulary() {
     crate::code_style::assert_crate_manifest_cargo_policy(
         crate::static_str::StaticStr::from(constants_str::VALUE_4CE7AB5C),

@@ -63,6 +63,25 @@ fn test_continuous_integration_contains_required_security_and_quality_commands()
         constants_str::CARGO_LLVM_COV_WORKSPACE_ALL_FEATURES_SUMMARY_ONLY,
         constants_str::AQUASECURITY_TRIVY_ACTION,
         constants_str::CARGO_PLUS_NIGHTLY_UDEPS_WORKSPACE_ALL_TARGETS_ALL_FEATURES_LOCKED,
+        concat!("cargo", " ", "metadata --locked --format-version 1"),
+        concat!("cargo", " ", "fmt --all -- --check"),
+        concat!("taplo", " ", "fmt --check"),
+        concat!("taplo", " ", "lint"),
+        concat!("run", ":", " ", "typos"),
+        concat!(
+            "cargo",
+            " ",
+            "clippy --locked --all-targets --all-features -- -D warnings"
+        ),
+        concat!("cargo", " ", "deny check"),
+        concat!("cargo", " ", "audit"),
+        concat!("cargo", " ", "hack check --workspace --feature-powerset"),
+        concat!("cargo", " ", "semver-checks"),
+        concat!("gitleaks", " ", "git --redact"),
+        concat!("cargo", " ", "bench --locked"),
+        concat!("--", "save-baseline ci"),
+        concat!("--", "baseline ci"),
+        concat!("cargo", " ", "flamegraph"),
     ]
     .into_iter()
     .for_each(|required| assert!(workflow.as_ref().contains(required), "missing `{required}`"));
