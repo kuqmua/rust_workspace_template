@@ -212,7 +212,7 @@ fn test_data_grid() {
             .contains(constants_str::VALUE_DDF681C4)
     );
     assert!(
-        filters_html
+        !filters_html
             .as_ref()
             .contains(constants_str::ADMIN_UI_EXPECT_VALUE_FF2F6A65)
     );
@@ -222,17 +222,17 @@ fn test_data_grid() {
             .contains(constants_str::VALUE_FEA2007C)
     );
     assert!(
-        !filters_html
+        filters_html
             .as_ref()
             .contains(constants_str::ADMIN_UI_EXPECT_VALUE_D8E97E9A)
     );
     assert!(
-        filters_html
+        !filters_html
             .as_ref()
             .contains(constants_str::ADMIN_UI_EXPECT_VALUE_8C4051D1)
     );
     assert!(
-        filters_html
+        !filters_html
             .as_ref()
             .contains(constants_str::ADMIN_UI_EXPECT_VALUE_69FA33B8)
     );

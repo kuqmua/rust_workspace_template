@@ -9,11 +9,16 @@
     proc_macro_getters::Getters,
 )]
 pub struct AdminUsersReadRequest {
+    #[constructor(order = 4)]
+    where_many: Option<crate::admin_where_many::AdminWhereMany>,
+    #[constructor(order = 0)]
     search: Option<crate::admin_table_search::AdminTableSearch>,
+    #[constructor(order = 1)]
     pagination: crate::admin_read_page::AdminReadPage,
+    #[constructor(order = 2)]
     select: crate::admin_read_user_selection::AdminReadUserSelection,
+    #[constructor(order = 3)]
     order_by: crate::admin_read_user_order::AdminReadUserOrder,
-    where_many: Option<crate::admin_no_body::AdminNoBody>,
 }
 impl TryFrom<&crate::admin_table_query::AdminTableQuery> for AdminUsersReadRequest {
     type Error =

@@ -33,6 +33,27 @@ pub(crate) fn data_filter(
         if !field_contract.filters().contains(&operation) {
             return Err(crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue);
         }
+        if field.as_ref() == constants_str::SQL_NAMES_ID
+            || field_contract.type_contract().input_kind()
+                == frontend_contract::input_kind::InputKind::Checkbox
+            || (field_contract.type_contract().input_kind()
+                == frontend_contract::input_kind::InputKind::Text
+                && matches!(
+                    operation,
+                    frontend_contract::filter_operation::FilterOperation::Eq
+                        | frontend_contract::filter_operation::FilterOperation::In
+                ))
+        {
+            return match server_admin_contract::admin_where_many::AdminWhereMany::try_from_filter(
+                admin_data_table_filter_query,
+                field_contract.type_contract().input_kind(),
+            ) {
+                Ok(admin_where_many) => Ok(admin_where_many),
+                Err(_error) => {
+                    Err(crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue)
+                }
+            };
+        }
         let parse_value = |value: &server_admin_contract::admin_filter_value::AdminFilterValue| {
             let wire_value =
                 crate::admin_generated_table::AdminGeneratedTable::for_data_table(admin_data_table)
@@ -182,15 +203,14 @@ pub(crate) fn data_filter(
             field.as_ref().to_owned(),
             serde_json::Value::Object(field_filters),
         );
-        let json =
-            serde_json::to_string(&serde_json::Value::Object(where_many)).map_err(|_error| {
-                crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue
-            })?;
-        crate::data_flt_json::DataFltJson::try_from(json)
-            .map(Some)
-            .map_err(|_error| {
-                crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue
-            })
+        match server_admin_contract::admin_where_many::AdminWhereMany::try_from(
+            serde_json::Value::Object(where_many).to_string(),
+        ) {
+            Ok(admin_where_many) => Ok(Some(admin_where_many)),
+            Err(_error) => {
+                Err(crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue)
+            }
+        }
     })()?;
     let Some(payload_wrapper) = payload else {
         return Ok(None);

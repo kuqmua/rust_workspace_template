@@ -1723,7 +1723,6 @@ version = "0.1.0"
 dependencies = [
  "chrono",
  "constants_str",
- "constants_usize",
  "frontend_contract",
  "generate_pg_types_src",
  "macro_clippy_check_test_common",
@@ -5832,7 +5831,6 @@ dependencies = [
  "proc_macro_new",
  "proc_macro_newtype_as_ref_inner",
  "proc_macro_newtype_as_ref_owned",
- "proc_macro_newtype_as_ref_str",
  "proc_macro_newtype_as_ref_target",
  "proc_macro_newtype_bounded_string_wrapper",
  "proc_macro_newtype_debug_redacted",

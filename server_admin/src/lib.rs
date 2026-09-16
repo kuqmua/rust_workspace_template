@@ -183,7 +183,6 @@ pub mod crud_resource_page;
 pub mod csr_page;
 pub mod data_filter;
 pub mod data_flt;
-pub mod data_flt_json;
 pub mod data_permissions_flt;
 pub mod data_role_permissions_flt;
 pub mod data_roles_flt;

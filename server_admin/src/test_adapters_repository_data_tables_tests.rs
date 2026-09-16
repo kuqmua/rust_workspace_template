@@ -102,6 +102,7 @@ fn test_generated_table_fields_supply_client_column_metadata() {
             .collect::<Vec<_>>(),
         [
             frontend_contract::filter_operation::FilterOperation::Eq,
+            frontend_contract::filter_operation::FilterOperation::In,
             frontend_contract::filter_operation::FilterOperation::Regex,
         ]
     );
@@ -131,6 +132,212 @@ fn test_generated_where_filter_builds_typed_table_predicate() {
     assert!(fragment.as_ref().contains(constants_str::LOGIN));
     assert!(fragment.as_ref().contains(constants_str::DOLLAR_1_ALT));
     assert_eq!(increment.get(), 1u64);
+}
+
+#[test]
+fn test_generated_text_membership_filter_builds_typed_table_predicate() {
+    let values = [constants_str::ADMIN, constants_str::ADMIN_ALT].join(constants_str::TEXT_ALT_7);
+    let query = filter_query(
+        constants_str::LOGIN,
+        frontend_contract::filter_operation::FilterOperation::In,
+        Some(values.as_str()),
+        None,
+    );
+    let result = (|| {
+        let filter = crate::data_filter::data_filter(
+            server_admin_contract::admin_data_table::AdminDataTable::Users,
+            query.filter(),
+        )
+        .map_err(|error| error.to_string())?
+        .ok_or_else(String::new)?;
+        let mut increment =
+            pg_crud_common::query_part_increment::QueryPartIncrement::from(constants_u64::ZERO);
+        let fragment = filter
+            .query_part(&mut increment)
+            .map_err(|error| error.to_string())?;
+        if fragment.as_ref().contains(constants_str::LOGIN) {
+            Ok(increment.get())
+        } else {
+            Err(String::new())
+        }
+    })();
+    assert_eq!(result, Ok(2u64));
+}
+
+#[test]
+fn test_generated_boolean_filter_reuses_shared_where_many_builder() {
+    let query = filter_query(
+        constants_str::IS_BANNED,
+        frontend_contract::filter_operation::FilterOperation::Eq,
+        Some(constants_str::TRUE),
+        None,
+    );
+    let result = (|| {
+        let filter = crate::data_filter::data_filter(
+            server_admin_contract::admin_data_table::AdminDataTable::Users,
+            query.filter(),
+        )
+        .map_err(|error| error.to_string())?
+        .ok_or_else(String::new)?;
+        let mut increment =
+            pg_crud_common::query_part_increment::QueryPartIncrement::from(constants_u64::ZERO);
+        let fragment = filter
+            .query_part(&mut increment)
+            .map_err(|error| error.to_string())?;
+        if fragment.as_ref().contains(constants_str::IS_BANNED) {
+            Ok(increment.get())
+        } else {
+            Err(String::new())
+        }
+    })();
+    assert_eq!(result, Ok(1u64));
+}
+
+#[test]
+fn test_generated_role_system_equality_filter_reuses_shared_where_many_builder() {
+    let query = filter_query(
+        constants_str::IS_SYSTEM,
+        frontend_contract::filter_operation::FilterOperation::Eq,
+        Some(stringify!(true)),
+        None,
+    );
+    let result = (|| {
+        let filter = crate::data_filter::data_filter(
+            server_admin_contract::admin_data_table::AdminDataTable::Roles,
+            query.filter(),
+        )
+        .map_err(|error| error.to_string())?
+        .ok_or_else(String::new)?;
+        let mut increment =
+            pg_crud_common::query_part_increment::QueryPartIncrement::from(constants_u64::ZERO);
+        let fragment = filter
+            .query_part(&mut increment)
+            .map_err(|error| error.to_string())?;
+        if fragment.as_ref().contains(constants_str::IS_SYSTEM) {
+            Ok(increment.get())
+        } else {
+            Err(String::new())
+        }
+    })();
+    assert_eq!(result, Ok(1u64));
+}
+
+#[test]
+fn test_generated_role_name_membership_filter_builds_typed_table_predicate() {
+    let values = [constants_str::ADMIN, constants_str::ADMIN_ALT].join(constants_str::TEXT_ALT_7);
+    let query = filter_query(
+        constants_str::NAME,
+        frontend_contract::filter_operation::FilterOperation::In,
+        Some(values.as_str()),
+        None,
+    );
+    let result = (|| {
+        let filter = crate::data_filter::data_filter(
+            server_admin_contract::admin_data_table::AdminDataTable::Roles,
+            query.filter(),
+        )
+        .map_err(|error| error.to_string())?
+        .ok_or_else(String::new)?;
+        let mut increment =
+            pg_crud_common::query_part_increment::QueryPartIncrement::from(constants_u64::ZERO);
+        let fragment = filter
+            .query_part(&mut increment)
+            .map_err(|error| error.to_string())?;
+        if fragment.as_ref().contains(constants_str::NAME) {
+            Ok(increment.get())
+        } else {
+            Err(String::new())
+        }
+    })();
+    assert_eq!(result, Ok(2u64));
+}
+
+#[test]
+fn test_generated_user_display_name_equality_filter_builds_typed_table_predicate() {
+    let query = filter_query(
+        constants_str::DISPLAY_NAME,
+        frontend_contract::filter_operation::FilterOperation::Eq,
+        Some(constants_str::ADMIN),
+        None,
+    );
+    let result = (|| {
+        let filter = crate::data_filter::data_filter(
+            server_admin_contract::admin_data_table::AdminDataTable::Users,
+            query.filter(),
+        )
+        .map_err(|error| error.to_string())?
+        .ok_or_else(String::new)?;
+        let mut increment =
+            pg_crud_common::query_part_increment::QueryPartIncrement::from(constants_u64::ZERO);
+        let fragment = filter
+            .query_part(&mut increment)
+            .map_err(|error| error.to_string())?;
+        if fragment.as_ref().contains(constants_str::DISPLAY_NAME) {
+            Ok(increment.get())
+        } else {
+            Err(String::new())
+        }
+    })();
+    assert_eq!(result, Ok(1u64));
+}
+
+#[test]
+fn test_generated_user_display_name_membership_filter_builds_typed_table_predicate() {
+    let values = [constants_str::ADMIN, constants_str::ADMIN_ALT].join(constants_str::TEXT_ALT_7);
+    let query = filter_query(
+        constants_str::DISPLAY_NAME,
+        frontend_contract::filter_operation::FilterOperation::In,
+        Some(values.as_str()),
+        None,
+    );
+    let result = (|| {
+        let filter = crate::data_filter::data_filter(
+            server_admin_contract::admin_data_table::AdminDataTable::Users,
+            query.filter(),
+        )
+        .map_err(|error| error.to_string())?
+        .ok_or_else(String::new)?;
+        let mut increment =
+            pg_crud_common::query_part_increment::QueryPartIncrement::from(constants_u64::ZERO);
+        let fragment = filter
+            .query_part(&mut increment)
+            .map_err(|error| error.to_string())?;
+        if fragment.as_ref().contains(constants_str::DISPLAY_NAME) {
+            Ok(increment.get())
+        } else {
+            Err(String::new())
+        }
+    })();
+    assert_eq!(result, Ok(2u64));
+}
+
+#[test]
+fn test_generated_role_name_equality_filter_builds_typed_table_predicate() {
+    let query = filter_query(
+        constants_str::NAME,
+        frontend_contract::filter_operation::FilterOperation::Eq,
+        Some(constants_str::ADMIN),
+        None,
+    );
+    let result = (|| {
+        let filter = crate::data_filter::data_filter(
+            server_admin_contract::admin_data_table::AdminDataTable::Roles,
+            query.filter(),
+        )
+        .map_err(|error| error.to_string())?
+        .ok_or_else(String::new)?;
+        let mut increment =
+            pg_crud_common::query_part_increment::QueryPartIncrement::from(constants_u64::ZERO);
+        let fragment = filter
+            .query_part(&mut increment)
+            .map_err(|error| error.to_string())?;
+        if fragment.as_ref().contains(constants_str::NAME) {
+            Ok(increment.get())
+        } else {
+            Err(String::new())
+        }
+    })();
+    assert_eq!(result, Ok(1u64));
 }
 
 #[test]

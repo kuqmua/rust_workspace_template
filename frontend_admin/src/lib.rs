@@ -39,6 +39,7 @@ pub mod admin_card_header;
 pub mod admin_card_title;
 pub mod admin_card_variant;
 pub mod admin_checkbox;
+pub mod admin_column_filter;
 #[cfg(target_arch = "wasm32")]
 pub mod admin_csr_api_url;
 #[cfg(target_arch = "wasm32")]
@@ -60,6 +61,8 @@ pub mod admin_filter_hidden_inputs;
 pub mod admin_frontend_routes;
 #[cfg(target_arch = "wasm32")]
 pub mod admin_http_status;
+#[cfg(target_arch = "wasm32")]
+pub mod admin_identifier_filter_query;
 pub mod admin_input;
 pub mod admin_input_group;
 pub mod admin_input_kind;
@@ -111,6 +114,8 @@ pub mod admin_ssr_text_try_from_string_error;
 pub mod admin_ssr_view_ext_tests;
 #[cfg(target_arch = "wasm32")]
 pub mod admin_table_load_error;
+#[cfg(target_arch = "wasm32")]
+pub mod admin_table_query;
 pub mod admin_table_query_direction;
 pub mod admin_table_query_hidden_inputs;
 pub mod admin_textarea;
@@ -137,6 +142,10 @@ pub mod fetch_json;
 pub mod fetch_json_request;
 #[cfg(target_arch = "wasm32")]
 pub mod fetch_permissions_read;
+#[cfg(target_arch = "wasm32")]
+pub mod fetch_roles_read;
+#[cfg(target_arch = "wasm32")]
+pub mod fetch_users_read;
 pub mod join_text;
 pub mod leptos_admin_filter_operation_signal;
 pub mod leptos_admin_input_signal;

@@ -1409,7 +1409,7 @@ fn test_ignored_map_err_bindings_match_reviewed_inventory() {
         ),
         (
             constants_str::CODE_STYLE_SERVER_ADMIN_OWNER,
-            (98usize, constants_str::CODE_STYLE_MAP_ERR_OWNER_REASON),
+            (96usize, constants_str::CODE_STYLE_MAP_ERR_OWNER_REASON),
         ),
         (
             constants_str::CODE_STYLE_SERVER_ADMIN_CONTRACT_OWNER,
@@ -1421,7 +1421,7 @@ fn test_ignored_map_err_bindings_match_reviewed_inventory() {
         ),
         (
             constants_str::CODE_STYLE_FRONTEND_OWNER,
-            (24usize, constants_str::CODE_STYLE_MAP_ERR_OWNER_REASON),
+            (25usize, constants_str::CODE_STYLE_MAP_ERR_OWNER_REASON),
         ),
         (
             constants_str::CODE_STYLE_SERVER_RUNTIME_HTTP_OWNER,

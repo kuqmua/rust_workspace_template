@@ -62,6 +62,7 @@ pub mod admin_filter_value;
 pub mod admin_frontend_path;
 pub mod admin_html_action;
 pub mod admin_id_try_from_i64_error;
+pub mod admin_identifier_filter_error;
 pub mod admin_login;
 pub mod admin_login_attempts_table_route;
 pub mod admin_main_logo;
@@ -169,6 +170,8 @@ pub mod admin_user_summaries;
 pub mod admin_user_summary;
 pub mod admin_users_page;
 pub mod admin_users_read_request;
+pub mod admin_where_many;
+pub mod admin_where_many_try_from_string_error;
 #[cfg(test)]
 mod test_audit_branding_tests {
     #[test]

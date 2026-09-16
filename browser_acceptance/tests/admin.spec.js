@@ -295,7 +295,7 @@ test("Rust UI primitives expose their semantic component contracts", async ({ pa
   await expect(dialog).not.toBeVisible();
 });
 
-test("data-table filter places a full-width Close control below Apply", async ({
+test("data-table filter places a full-width Close control directly below Apply", async ({
   page
 }) => {
   await signInAdministrator(page);
@@ -311,27 +311,108 @@ test("data-table filter places a full-width Close control below Apply", async ({
   await expect(dialog).toHaveAttribute("data-name", "PopoverContent");
   await expect(dialog.locator('[data-name="RadioButtonGroup"]')).toHaveCount(1);
   await expect(dialog.getByRole("radio", { name: "eq", exact: true })).toBeChecked();
+  await expect(dialog.getByRole("heading", { level: 2 })).toHaveText("role_id");
   await expect(close).toContainText("close");
+  await expect(dialog.locator(".table-filter-input-label > span")).toHaveCount(0);
+
+  const filterInputs = await dialog.locator(".table-filter-input-label input").evaluateAll(inputs =>
+    inputs.map(input => ({
+      name: input.name,
+      operation: input.closest(".table-filter-option").querySelector('input[type="radio"]').value,
+      placeholder: input.placeholder
+    }))
+  );
+  expect(filterInputs).toEqual([
+    { name: "filter_value", operation: "eq", placeholder: "value" },
+    { name: "filter_value", operation: "greater_than", placeholder: "value" },
+    { name: "filter_value", operation: "between", placeholder: "start" },
+    { name: "filter_end", operation: "between", placeholder: "end" },
+    { name: "filter_value", operation: "in", placeholder: "value" }
+  ]);
 
   const controls = await filter.evaluate(element => {
     const buttons = element.querySelectorAll("button");
+    const dialogRect = element.querySelector('[role="dialog"]').getBoundingClientRect();
+    const header = element.querySelector(".table-filter-header");
+    const headerRect = header.getBoundingClientRect();
+    const headerStyle = getComputedStyle(header);
+    const heading = element.querySelector("h2");
+    const headingRange = document.createRange();
+    headingRange.selectNodeContents(heading);
+    const headingTextRect = headingRange.getBoundingClientRect();
+    const optionRects = Array.from(
+      element.querySelectorAll(".table-filter-option"),
+      option => option.getBoundingClientRect()
+    );
+    const optionsRect = element
+      .querySelector(".table-filter-options")
+      .getBoundingClientRect();
     const applyRect = buttons.item(1).getBoundingClientRect();
-    const closeRect = buttons.item(2).getBoundingClientRect();
+    const closeButton = buttons.item(2);
+    const closeRect = closeButton.getBoundingClientRect();
+    const closeStyle = getComputedStyle(closeButton);
     return {
       applyBottom: applyRect.bottom,
       applyHeight: applyRect.height,
+      applyTop: applyRect.top,
       applyWidth: applyRect.width,
+      closeBorderColor: closeStyle.borderColor,
       closeHeight: closeRect.height,
       closeTop: closeRect.top,
-      closeWidth: closeRect.width
+      closeWidth: closeRect.width,
+      contentCenterOffset:
+        (headerRect.top + closeRect.bottom) / 2 - window.innerHeight / 2,
+      headingCenterOffset:
+        headingTextRect.left +
+        headingTextRect.width / 2 -
+        (headerRect.left + headerRect.width / 2),
+      headerBackgroundColor: headerStyle.backgroundColor,
+      headerBorderColor: headerStyle.borderColor,
+      headerShadow: headerStyle.boxShadow,
+      headerWidth: headerRect.width,
+      dialogWidth: dialogRect.width,
+      firstOptionTop: optionRects[0].top,
+      headerBottom: headerRect.bottom,
+      optionGaps: optionRects
+        .slice(1)
+        .map((optionRect, index) => optionRect.top - optionRects[index].bottom),
+      optionsBottom: optionsRect.bottom
     };
   });
-  expect(controls.closeTop).toBeGreaterThan(controls.applyBottom);
+  expect(Math.abs(controls.contentCenterOffset)).toBeLessThanOrEqual(0.5);
+  expect(Math.abs(controls.headingCenterOffset)).toBeLessThanOrEqual(0.5);
+  expect(controls.headerBackgroundColor).toBe("rgb(255, 255, 255)");
+  expect(controls.headerBorderColor).toBe("rgb(211, 216, 224)");
+  expect(controls.headerShadow).not.toBe("none");
+  expect(controls.headerWidth).toBe(controls.dialogWidth);
+  expect(controls.firstOptionTop).toBe(controls.headerBottom);
+  expect(controls.optionGaps.length).toBeGreaterThan(0);
+  expect(controls.optionGaps.every(gap => gap === 0)).toBe(true);
+  expect(controls.applyTop).toBe(controls.optionsBottom);
+  expect(controls.closeTop).toBe(controls.applyBottom);
+  expect(controls.closeBorderColor).toBe("rgba(0, 0, 0, 0)");
   expect(controls.closeWidth).toBe(controls.applyWidth);
   expect(controls.closeHeight).toBe(controls.applyHeight);
 
   await close.click();
   await expect(dialog).not.toBeVisible();
+});
+
+test("boolean filter dialogs expose equality without membership", async ({ page }) => {
+  await signInAdministrator(page);
+
+  for (const { path, field } of [
+    { path: "/admin/users", field: "is_banned" },
+    { path: "/admin/roles", field: "is_system" }
+  ]) {
+    await page.goto(path);
+    const filter = page.locator(`th[data-field="${field}"] .table-column-filter`);
+    await filter.getByRole("button", { name: `filter_${field}` }).click();
+    const dialog = filter.getByRole("dialog");
+    await expect(dialog.getByRole("radio", { name: "eq", exact: true })).toBeChecked();
+    await expect(dialog.getByRole("radio", { name: "in", exact: true })).toHaveCount(0);
+    await dialog.getByRole("button", { name: "close", exact: true }).click();
+  }
 });
 
 test("keyboard navigation reaches every primary administrator route", async ({ page }) => {

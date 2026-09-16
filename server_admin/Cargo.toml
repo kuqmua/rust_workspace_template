@@ -49,7 +49,6 @@ jsonwebtoken = { workspace = true }
 location_lib = { workspace = true }
 metrics = { workspace = true }
 proc_macro_newtype_as_ref_owned = { workspace = true }
-proc_macro_newtype_as_ref_str = { workspace = true }
 proc_macro_newtype_as_ref_target = { workspace = true }
 proc_macro_newtype_debug_redacted = { workspace = true }
 proc_macro_newtype_debug_transparent = { workspace = true }

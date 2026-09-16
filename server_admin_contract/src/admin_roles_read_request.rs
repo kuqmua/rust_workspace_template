@@ -9,12 +9,18 @@
     proc_macro_getters::Getters,
 )]
 pub struct AdminRolesReadRequest {
+    #[constructor(order = 5)]
+    where_many: Option<crate::admin_where_many::AdminWhereMany>,
+    #[constructor(order = 0)]
     permissions_query: Option<crate::admin_table_query::AdminTableQuery>,
+    #[constructor(order = 1)]
     search: Option<crate::admin_table_search::AdminTableSearch>,
+    #[constructor(order = 2)]
     pagination: crate::admin_read_page::AdminReadPage,
+    #[constructor(order = 3)]
     select: crate::admin_read_role_selection::AdminReadRoleSelection,
+    #[constructor(order = 4)]
     order_by: crate::admin_read_role_order::AdminReadRoleOrder,
-    where_many: Option<crate::admin_no_body::AdminNoBody>,
 }
 impl TryFrom<&crate::admin_table_query::AdminTableQuery> for AdminRolesReadRequest {
     type Error =

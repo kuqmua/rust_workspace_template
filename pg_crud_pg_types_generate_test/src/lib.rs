@@ -378,6 +378,11 @@ mod tests {
     }
     #[test]
     fn test_generated_frontend_filters_follow_the_same_descriptor_matrix() {
+        let boolean = <pg_types_numeric::generate_pg_types_mod::BoolAsNonNullBool as frontend_contract::has_filter_contracts::HasFilterContracts>::filter_contracts();
+        assert_eq!(
+            boolean.as_ref().to_vec(),
+            [frontend_contract::filter_operation::FilterOperation::Eq]
+        );
         let number = <pg_types_numeric::generate_pg_types_mod::I16AsNonNullInt2 as frontend_contract::has_filter_contracts::HasFilterContracts>::filter_contracts();
         assert_eq!(
             number.as_ref().to_vec(),
@@ -393,13 +398,12 @@ mod tests {
             text.as_ref().to_vec(),
             [
                 frontend_contract::filter_operation::FilterOperation::Eq,
+                frontend_contract::filter_operation::FilterOperation::In,
                 frontend_contract::filter_operation::FilterOperation::Regex,
             ]
         );
         assert_eq!(
-            text.as_ref()
-                .get(constants_usize::ONE)
-                .map(|filter| filter.value_shape()),
+            text.as_ref().get(2usize).map(|filter| filter.value_shape()),
             Some(frontend_contract::filter_value_shape::FilterValueShape::Regex)
         );
     }

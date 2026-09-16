@@ -1360,6 +1360,190 @@ mod test_data_tables {
             .await
             .expect(constants_str::DIAGNOSTIC_2154DBC9);
     }
+
+    #[tokio::test]
+    #[ignore = "requires PostgreSQL; run through workspace_test_runner database"]
+    async fn test_postgresql_users_read_endpoint_supports_every_identifier_filter_and_logical_operator()
+     {
+        let fixture = crate::admin_html_test_fixture().await;
+        let administrator_identifier = sqlx::query_scalar::<_, i64>(
+            constants_str::SELECT_ID_FROM_ADMIN_USERS_WHERE_LOGIN_ADMIN,
+        )
+        .fetch_one(&fixture.pool.0)
+        .await
+        .expect(constants_str::DIAGNOSTIC_B6A4842A);
+        let operators = [
+            stringify!(And),
+            stringify!(AndNot),
+            stringify!(Or),
+            stringify!(OrNot),
+        ];
+        let cases = [
+            (
+                stringify!(Eq),
+                serde_json::json!(administrator_identifier.saturating_add(1i64)),
+                false,
+            ),
+            (
+                stringify!(GreaterThan),
+                serde_json::json!(administrator_identifier.saturating_sub(1i64)),
+                true,
+            ),
+            (
+                stringify!(Between),
+                serde_json::json!({
+                    (constants_str::PG_CRUD_START_FIELD): administrator_identifier.saturating_sub(1i64),
+                    (constants_str::PG_CRUD_END_FIELD): administrator_identifier.saturating_add(1i64)
+                }),
+                true,
+            ),
+            (
+                stringify!(In),
+                serde_json::json!([administrator_identifier]),
+                true,
+            ),
+        ]
+        .into_iter()
+        .flat_map(|(variant, values, variant_matches)| {
+            operators.into_iter().flat_map(move |field_operator| {
+                let field_values = values.clone();
+                operators.into_iter().map(move |predicate_operator| {
+                    let identifier_group_matches = match predicate_operator {
+                        stringify!(And) => variant_matches,
+                        stringify!(AndNot) => !variant_matches,
+                        stringify!(Or) | stringify!(OrNot) => true,
+                        _ => false,
+                    };
+                        (
+                            variant,
+                            field_values.clone(),
+                            field_operator,
+                            predicate_operator,
+                            identifier_group_matches,
+                        )
+                    })
+            })
+        })
+        .collect::<Vec<_>>();
+        futures::StreamExt::fold(
+            futures::stream::iter(cases),
+            (),
+            async |(), (
+                variant,
+                values,
+                field_operator,
+                predicate_operator,
+                identifier_group_matches,
+            )| {
+                let mut request_payload = serde_json::from_str::<serde_json::Value>(
+                    crate::admin_users_read_test_payload().0.as_ref(),
+                )
+                .expect(constants_str::DIAGNOSTIC_1DE52602);
+                let request_object = request_payload
+                    .as_object_mut()
+                    .expect(constants_str::DIAGNOSTIC_B983F09F);
+                let _previous_where_many = request_object.insert(
+                    constants_str::WHERE_MANY.to_owned(),
+                    serde_json::json!({
+                        (constants_str::SQL_NAMES_ID): {
+                            (constants_str::PG_CRUD_OPERATOR_FIELD): constants_str::SERVER_ADMIN_FILTER_OPERATOR_AND,
+                            (constants_str::PG_CRUD_VALUES_FIELD): [
+                                {
+                                    (stringify!(Eq)): {
+                                        (constants_str::PG_CRUD_OPERATOR_FIELD): constants_str::SERVER_ADMIN_FILTER_OPERATOR_AND,
+                                        (constants_str::PG_CRUD_VALUES_FIELD): administrator_identifier
+                                    }
+                                },
+                                {
+                                    (variant): {
+                                        (constants_str::PG_CRUD_OPERATOR_FIELD): predicate_operator,
+                                        (constants_str::PG_CRUD_VALUES_FIELD): values
+                                    }
+                                }
+                            ]
+                        },
+                        (constants_str::LOGIN): {
+                            (constants_str::PG_CRUD_OPERATOR_FIELD): field_operator,
+                            (constants_str::PG_CRUD_VALUES_FIELD): [{
+                                (stringify!(Eq)): {
+                                    (constants_str::PG_CRUD_OPERATOR_FIELD): constants_str::SERVER_ADMIN_FILTER_OPERATOR_AND,
+                                    (constants_str::PG_CRUD_VALUES_FIELD): constants_str::ADMIN_ALT
+                                }
+                            }]
+                        }
+                    }),
+                );
+                let _previous_select = request_object.insert(
+                    constants_str::SELECT_ALT_3.to_owned(),
+                    serde_json::json!([
+                        {(constants_str::SQL_NAMES_ID): null},
+                        {(constants_str::LOGIN): null}
+                    ]),
+                );
+                let body = serde_json::to_string(&request_payload)
+                    .expect(constants_str::DIAGNOSTIC_B6096484);
+                let parsed = serde_json::from_str::<
+                    server_admin::admin_users::AdminUsersReadPayload,
+                >(&body);
+                assert!(
+                    parsed.is_ok(),
+                    "filter {variant} {field_operator} {predicate_operator}: {parsed:?}"
+                );
+                let response = tower::ServiceExt::oneshot(
+                    crate::router_with_pool(&fixture.pool).0,
+                    crate::request_with_peer(
+                        super::HttpAdminApiTestMethod::from(http::Method::POST),
+                        super::StdAdminApiTestStrRef::from(
+                            server_admin::admin_users::AdminUsers::read_route().as_ref(),
+                        ),
+                        super::StdAdminApiTestStrRef::from(body.as_str()),
+                        Some(super::StdAdminApiTestStrRef::from(fixture.cookie.0.as_str())),
+                        Some(super::StdAdminApiTestStrRef::from(fixture.csrf.0.as_str())),
+                    )
+                    .0,
+                )
+                .await
+                .expect(constants_str::DIAGNOSTIC_957332BD);
+                let status = response.status();
+                let bytes = axum::body::to_bytes(
+                    response.into_body(),
+                    constants_usize::VALUE_1_048_576,
+                )
+                .await
+                .expect(constants_str::DIAGNOSTIC_A71FFB13);
+                assert_eq!(
+                    status,
+                    http::StatusCode::OK,
+                    "filter {variant} {field_operator} {predicate_operator}: {bytes:?}"
+                );
+                let page = serde_json::from_slice::<serde_json::Value>(&bytes)
+                    .expect(constants_str::DIAGNOSTIC_97C36AB0);
+                let contains_administrator = page
+                    .get(constants_str::ITEMS)
+                    .and_then(serde_json::Value::as_array)
+                    .expect(constants_str::DIAGNOSTIC_2CE764AA)
+                    .iter()
+                    .any(|item| {
+                        item.get(constants_str::SQL_NAMES_ID)
+                            .and_then(|identifier| identifier.get(stringify!(value)))
+                            .and_then(serde_json::Value::as_i64)
+                            == Some(administrator_identifier)
+                    });
+                let expected_administrator = field_operator == stringify!(Or)
+                    || ([stringify!(And), stringify!(OrNot)].contains(&field_operator)
+                        && identifier_group_matches);
+                assert_eq!(contains_administrator, expected_administrator);
+            },
+        )
+        .await;
+        fixture
+            .lock
+            .0
+            .rollback()
+            .await
+            .expect(constants_str::DIAGNOSTIC_B76F8670);
+    }
+
     #[tokio::test]
     #[ignore = "requires PostgreSQL; run through workspace_test_runner database"]
     async fn test_postgresql_data_table_api_reads_every_public_field_from_every_table() {

@@ -1,3 +1,5 @@
+@layer interface-controls, interface-typography, interface-shape;
+
 @layer interface-typography {
   *,
   *::before,
@@ -1016,9 +1018,26 @@ td form button:hover {
   position: relative;
 }
 
+@layer interface-controls {
+  .table-column-filter > button {
+    width: calc(var(--header-height) - 1px) !important;
+    min-width: calc(var(--header-height) - 1px) !important;
+    padding-inline: 0 !important;
+  }
+
+  .table-filter-options {
+    gap: 0 !important;
+  }
+}
+
+.table-column-filter-icon {
+  width: 1em;
+  height: 1em;
+}
+
 .table-filter-operations {
   display: grid;
-  align-content: start;
+  align-content: safe center;
   gap: 16px;
   width: min(960px, 100%);
   margin: 0 auto;
@@ -1068,7 +1087,13 @@ td form button:hover {
 }
 
 .table-filter-header {
+  display: grid;
+  place-items: center;
+  width: 100%;
   min-height: 42px;
+  border: 1px solid var(--border-strong);
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
 }
 
 .table-filter-operations h2 {
@@ -1082,8 +1107,8 @@ td form button:hover {
   grid-template-columns: minmax(0, 1fr);
   align-items: stretch;
   gap: 12px;
-  border-top: 1px solid var(--border);
-  padding-top: 16px;
+  border-top: 0;
+  padding-top: 0;
 }
 
 .table-filter-form span {
@@ -1096,9 +1121,8 @@ td form button:hover {
   gap: 6px;
 }
 
-.table-filter-options {
+.table-filter-form .table-filter-options {
   display: grid;
-  gap: 12px;
 }
 
 .table-filter-option {
@@ -1124,8 +1148,8 @@ td form button:hover {
   position: sticky;
   bottom: 0;
   display: grid;
-  gap: 12px;
-  padding-top: 12px;
+  gap: 0;
+  padding-top: 0;
   background: var(--surface);
 }
 
@@ -1140,6 +1164,10 @@ td form button:hover {
 
 .table-filter-form button:hover {
   background: var(--accent-hover);
+}
+
+.table-filter-actions .ui-button-secondary {
+  border-color: transparent;
 }
 
 .table-filter-form .table-filter-close {

@@ -51,11 +51,30 @@ pub(crate) fn AdminPagination(
         ),
         admin_csr_query.limit(),
     );
+    let page_size_filter = crate::admin_filter_hidden_inputs::admin_filter_hidden_inputs(
+        admin_csr_query.filter_field(),
+        admin_csr_query.filter_operation(),
+        admin_csr_query.filter_value(),
+        admin_csr_query.filter_end(),
+    );
+    let previous_filter = crate::admin_filter_hidden_inputs::admin_filter_hidden_inputs(
+        admin_csr_query.filter_field(),
+        admin_csr_query.filter_operation(),
+        admin_csr_query.filter_value(),
+        admin_csr_query.filter_end(),
+    );
+    let next_filter = crate::admin_filter_hidden_inputs::admin_filter_hidden_inputs(
+        admin_csr_query.filter_field(),
+        admin_csr_query.filter_operation(),
+        admin_csr_query.filter_value(),
+        admin_csr_query.filter_end(),
+    );
     leptos::view! {
         <singlestage::Pagination attr:data-name="Pagination" attr:aria-label=constants_str::ADMIN_UI_TABLE_PAGES class="table-pagination mx-auto flex w-full items-center justify-center gap-2">
             <singlestage::PaginationContent class="contents">
             <singlestage::PaginationItem class="contents"><form class="table-page-size" method="get" action=admin_frontend_path.get()>
                 {page_size_query}
+                {page_size_filter}
                 <input type="hidden" name="offset" value="0" />
                 <crate::admin_input_group::AdminInputGroup>
                     <crate::admin_field::AdminField admin_field_label=constants_str::ADMIN_UI_ROWS><crate::admin_input::AdminInput admin_input_name="limit" admin_input_kind=crate::admin_input_kind::AdminInputKind::Number min=server_admin_contract::admin_page_limit::AdminPageLimit::MIN max=server_admin_contract::admin_page_limit::AdminPageLimit::MAX initial_value=limit /></crate::admin_field::AdminField>
@@ -64,11 +83,13 @@ pub(crate) fn AdminPagination(
             </form></singlestage::PaginationItem>
             <singlestage::PaginationItem class="contents"><form method="get" action=admin_frontend_path.get()>
                 {previous_query}
+                {previous_filter}
                 <input type="hidden" name="offset" value=u32::from(range.previous_offset()).to_string() /><crate::admin_button::AdminButton admin_button_variant=crate::admin_button_variant::AdminButtonVariant::Secondary bool=bool::from(range.previous_disabled())>{constants_str::ADMIN_BUTTON_PREVIOUS}</crate::admin_button::AdminButton>
             </form></singlestage::PaginationItem>
             <singlestage::PaginationItem class="contents"><span>{format!("{}_{}_{}_{}_{}", u64::from(range.start()), constants_str::ADMIN_UI_TO, u64::from(range.end()), constants_str::ADMIN_UI_OF, total_value)}</span></singlestage::PaginationItem>
             <singlestage::PaginationItem class="contents"><form method="get" action=admin_frontend_path.get()>
                 {next_query}
+                {next_filter}
                 <input type="hidden" name="offset" value=u32::from(range.next_offset()).to_string() /><crate::admin_button::AdminButton admin_button_variant=crate::admin_button_variant::AdminButtonVariant::Secondary bool=bool::from(range.next_disabled())>{constants_str::ADMIN_BUTTON_NEXT}</crate::admin_button::AdminButton>
             </form></singlestage::PaginationItem>
             </singlestage::PaginationContent>

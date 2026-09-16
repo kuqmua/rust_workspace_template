@@ -3025,14 +3025,14 @@ pub(super) enum IsConst {
                         };
                         match pg_type.spec().get_filter_kind() {
                             crate::filter_kind::FilterKind::Number => generate_common_standard_pg_type_number_filters(),
-                            crate::filter_kind::FilterKind::Money | crate::filter_kind::FilterKind::Uuid | crate::filter_kind::FilterKind::Bool => generate_flts_with(generate_common_pg_type_filters(), [generate_in_filter()]),
+                            crate::filter_kind::FilterKind::Money | crate::filter_kind::FilterKind::Uuid => generate_flts_with(generate_common_pg_type_filters(), [generate_in_filter()]),
+                            crate::filter_kind::FilterKind::Bool | crate::filter_kind::FilterKind::IntervalOrInet => generate_common_pg_type_filters(),
                             crate::filter_kind::FilterKind::Bytes => generate_flts_with(generate_common_pg_type_filters(), [pg_crud_macro_common::pg_type_filter::PgTypeFilter::EqToEncodedStringRepresentation]),
                             crate::filter_kind::FilterKind::Time => generate_flts_with(generate_common_pg_type_filters(), [generate_greater_than_filter(), generate_between_filter(), pg_crud_macro_common::pg_type_filter::PgTypeFilter::CurrentTime, pg_crud_macro_common::pg_type_filter::PgTypeFilter::GreaterThanCurrentTime]),
                             crate::filter_kind::FilterKind::Date => generate_flts_with(generate_common_pg_type_filters(), [generate_greater_than_filter(), generate_between_filter(), pg_crud_macro_common::pg_type_filter::PgTypeFilter::CurrentDate, pg_crud_macro_common::pg_type_filter::PgTypeFilter::GreaterThanCurrentDate]),
                             crate::filter_kind::FilterKind::Timestamp => generate_flts_with(generate_common_pg_type_filters(), [generate_greater_than_filter(), generate_between_filter(), pg_crud_macro_common::pg_type_filter::PgTypeFilter::CurrentTimestamp, pg_crud_macro_common::pg_type_filter::PgTypeFilter::GreaterThanCurrentTimestamp]),
                             crate::filter_kind::FilterKind::TimestampTz => generate_flts_with(generate_common_pg_type_filters(), [generate_before_filter(), generate_between_filter()]),
-                            crate::filter_kind::FilterKind::String => generate_flts_with(generate_common_pg_type_filters(), [pg_crud_macro_common::pg_type_filter::PgTypeFilter::Regex]),
-                            crate::filter_kind::FilterKind::IntervalOrInet => generate_common_pg_type_filters(),
+                            crate::filter_kind::FilterKind::String => generate_flts_with(generate_common_pg_type_filters(), [generate_in_filter(), pg_crud_macro_common::pg_type_filter::PgTypeFilter::Regex]),
                             crate::filter_kind::FilterKind::Mac => generate_flts_with(generate_common_pg_type_filters(), [generate_greater_than_filter(), pg_crud_macro_common::pg_type_filter::PgTypeFilter::Regex]),
                             crate::filter_kind::FilterKind::Range => generate_ranges_common_filter_vec(),
                         }

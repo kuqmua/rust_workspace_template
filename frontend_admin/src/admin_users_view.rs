@@ -50,12 +50,82 @@ pub(crate) fn AdminUsersView(
         .iter()
         .map(csr_admin_user_row)
         .collect::<Vec<_>>();
+    let identifier_filters = [
+        frontend_contract::filter_operation::FilterOperation::Eq,
+        frontend_contract::filter_operation::FilterOperation::GreaterThan,
+        frontend_contract::filter_operation::FilterOperation::Between,
+        frontend_contract::filter_operation::FilterOperation::In,
+    ]
+    .map(server_admin_contract::admin_data_filter::AdminDataFilter::from);
+    let identifier = server_admin_contract::admin_text::AdminText::try_from(
+        constants_str::SQL_NAMES_ID.to_owned(),
+    )
+    .ok();
+    let users_path = server_admin_contract::admin_data_table::AdminDataTable::Users.frontend_path();
+    let identifier_filter = identifier.as_ref().map(|identifier| {
+        crate::admin_column_filter::admin_column_filter(
+            &users_path,
+            identifier,
+            frontend_contract::input_kind::InputKind::Number,
+            &identifier_filters,
+            admin_csr_query.filter_field(),
+            admin_csr_query.filter_operation(),
+            admin_csr_query.filter_value(),
+            admin_csr_query.filter_end(),
+            admin_csr_query.limit(),
+        )
+    });
+    let text_filters = [
+        frontend_contract::filter_operation::FilterOperation::Eq,
+        frontend_contract::filter_operation::FilterOperation::In,
+    ]
+    .map(server_admin_contract::admin_data_filter::AdminDataFilter::from);
+    let text_filter = |admin_text: &server_admin_contract::admin_text::AdminText| {
+        crate::admin_column_filter::admin_column_filter(
+            &users_path,
+            admin_text,
+            frontend_contract::input_kind::InputKind::Text,
+            &text_filters,
+            admin_csr_query.filter_field(),
+            admin_csr_query.filter_operation(),
+            admin_csr_query.filter_value(),
+            admin_csr_query.filter_end(),
+            admin_csr_query.limit(),
+        )
+    };
+    let login =
+        server_admin_contract::admin_text::AdminText::try_from(constants_str::LOGIN.to_owned())
+            .ok();
+    let display_name = server_admin_contract::admin_text::AdminText::try_from(
+        constants_str::DISPLAY_NAME.to_owned(),
+    )
+    .ok();
+    let login_filter = login.as_ref().map(text_filter);
+    let display_name_filter = display_name.as_ref().map(text_filter);
+    let boolean_filters = [frontend_contract::filter_operation::FilterOperation::Eq]
+        .map(server_admin_contract::admin_data_filter::AdminDataFilter::from);
+    let is_banned =
+        server_admin_contract::admin_text::AdminText::try_from(constants_str::IS_BANNED.to_owned())
+            .ok();
+    let is_banned_filter = is_banned.as_ref().map(|is_banned| {
+        crate::admin_column_filter::admin_column_filter(
+            &users_path,
+            is_banned,
+            frontend_contract::input_kind::InputKind::Checkbox,
+            &boolean_filters,
+            admin_csr_query.filter_field(),
+            admin_csr_query.filter_operation(),
+            admin_csr_query.filter_value(),
+            admin_csr_query.filter_end(),
+            admin_csr_query.limit(),
+        )
+    });
     leptos::view! {
         <section class="table-admin_users_page" data-renderer="csr">
             <div class="resource-actions">
                 {can_create.then(|| leptos::view! { <crate::admin_button_link::AdminButtonLink str=server_admin_contract::admin_frontend_path::AdminFrontendPath::UsersCreate.get()>{constants_str::PG_CRUD_CREATE_PERMISSION_ACTION}</crate::admin_button_link::AdminButtonLink> })}
             </div>
-            <crate::table_wrapper::TableWrapper><crate::table::Table><crate::table_header::TableHeader><crate::table_row::TableRow><crate::table_head::TableHead>"id"</crate::table_head::TableHead><crate::table_head::TableHead>"login"</crate::table_head::TableHead><crate::table_head::TableHead>"display_name"</crate::table_head::TableHead><crate::table_head::TableHead>"banned"</crate::table_head::TableHead><crate::table_head::TableHead>"roles"</crate::table_head::TableHead><crate::table_head::TableHead>{constants_str::ADMIN_UI_ACTIONS}</crate::table_head::TableHead></crate::table_row::TableRow></crate::table_header::TableHeader>
+            <crate::table_wrapper::TableWrapper><crate::table::Table><crate::table_header::TableHeader><crate::table_row::TableRow><crate::table_head::TableHead data_field=constants_str::SQL_NAMES_ID.to_owned() data_filter_count=identifier_filters.len().to_string()><div class="table-column-heading"><span>{constants_str::SQL_NAMES_ID}</span>{identifier_filter}</div></crate::table_head::TableHead><crate::table_head::TableHead data_field=constants_str::LOGIN.to_owned() data_filter_count=text_filters.len().to_string()><div class="table-column-heading"><span>{constants_str::LOGIN}</span>{login_filter}</div></crate::table_head::TableHead><crate::table_head::TableHead data_field=constants_str::DISPLAY_NAME.to_owned() data_filter_count=text_filters.len().to_string()><div class="table-column-heading"><span>{constants_str::DISPLAY_NAME}</span>{display_name_filter}</div></crate::table_head::TableHead><crate::table_head::TableHead data_field=constants_str::IS_BANNED.to_owned() data_filter_count=boolean_filters.len().to_string()><div class="table-column-heading"><span>{constants_str::IS_BANNED}</span>{is_banned_filter}</div></crate::table_head::TableHead><crate::table_head::TableHead>"roles"</crate::table_head::TableHead><crate::table_head::TableHead>{constants_str::ADMIN_UI_ACTIONS}</crate::table_head::TableHead></crate::table_row::TableRow></crate::table_header::TableHeader>
             <crate::table_body::TableBody>{rows}</crate::table_body::TableBody></crate::table::Table></crate::table_wrapper::TableWrapper>
             <super::admin_pagination::AdminPagination admin_frontend_path=server_admin_contract::admin_frontend_path::AdminFrontendPath::Users admin_csr_query=admin_csr_query admin_page_total=total />
         </section>
