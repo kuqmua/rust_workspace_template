@@ -24,18 +24,19 @@ pub fn generated_open_api() -> crate::utoipa_admin_open_api::UtoipaAdminOpenApi 
             | serde_json::Value::String(_) => {}
         }
     }
-    let mut document = utoipa::openapi::OpenApi::from(
-        crate::admin_generated_table::AdminGeneratedTable::ALL[0].open_api(),
-    );
-    document.merge(utoipa::openapi::OpenApi::from(
-        crate::admin_api_open_api::admin_api_open_api(),
-    ));
-    crate::admin_generated_table::AdminGeneratedTable::ALL[1..]
-        .iter()
-        .copied()
-        .for_each(|table| {
+    let mut document =
+        utoipa::openapi::OpenApi::from(crate::admin_api_open_api::admin_api_open_api());
+    if let Some((first_table, remaining_tables)) =
+        crate::admin_generated_table::AdminGeneratedTable::ALL.split_first()
+    {
+        document = utoipa::openapi::OpenApi::from(first_table.open_api());
+        document.merge(utoipa::openapi::OpenApi::from(
+            crate::admin_api_open_api::admin_api_open_api(),
+        ));
+        remaining_tables.iter().copied().for_each(|table| {
             document.merge(utoipa::openapi::OpenApi::from(table.open_api()));
         });
+    }
     let mut refs = std::collections::BTreeSet::new();
     if let Ok(value) = serde_json::to_value(&document) {
         collect_schema_refs(&value, &mut refs);

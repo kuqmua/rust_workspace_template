@@ -29,6 +29,54 @@ struct DuplicateConfigurationTestVisitor {
 #[derive(
     proc_macro_getters::Getters, Default, proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
+struct DirectNumericIndexVisitor {
+    #[getters(copy)]
+    violation: Option<usize>,
+}
+
+impl<'syntax> syn::visit::Visit<'syntax> for DirectNumericIndexVisitor {
+    fn visit_expr_index(&mut self, expression_index: &'syntax syn::ExprIndex) {
+        if self.violation.is_none()
+            && let syn::Expr::Lit(syn::ExprLit {
+                lit: syn::Lit::Int(index_literal),
+                ..
+            }) = expression_index.index.as_ref()
+            && let Ok(numeric_index) = index_literal.base10_parse::<usize>()
+            && matches!(numeric_index, 0usize | 1usize)
+        {
+            self.violation = Some(numeric_index);
+            return;
+        }
+        syn::visit::visit_expr_index(self, expression_index);
+    }
+
+    fn visit_item_fn(&mut self, item_fn: &'syntax syn::ItemFn) {
+        if !item_fn.attrs.iter().any(|attribute| {
+            attribute.path().is_ident(stringify!(test))
+                || crate::code_style::attr_is_test_only_cfg(
+                    crate::syn_attribute_ref::SynAttributeRef::from(attribute),
+                )
+                .get()
+        }) {
+            syn::visit::visit_item_fn(self, item_fn);
+        }
+    }
+
+    fn visit_item_mod(&mut self, item_mod: &'syntax syn::ItemMod) {
+        if !item_mod.attrs.iter().any(|attribute| {
+            crate::code_style::attr_is_test_only_cfg(
+                crate::syn_attribute_ref::SynAttributeRef::from(attribute),
+            )
+            .get()
+        }) {
+            syn::visit::visit_item_mod(self, item_mod);
+        }
+    }
+}
+
+#[derive(
+    proc_macro_getters::Getters, Default, proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+)]
 struct EmptyModuleVisitor {
     violations: crate::diagnostic_messages::DiagnosticMessages,
 }
@@ -886,6 +934,36 @@ fn test_numeric_conversions_do_not_use_as_casts() {
             })
             .collect::<Vec<String>>();
         assert!(violations.is_empty(), "{violations:#?}");
+    });
+}
+
+#[test]
+fn test_production_code_avoids_direct_zero_or_one_indexing() {
+    super::test_code_style_snapshot::with_codebase_snapshot(|snapshot| {
+        let violations = snapshot
+            .rs_files()
+            .iter()
+            .filter(|source_file| {
+                !crate::code_style::is_test_crate_source_path(crate::path_ref::PathRef::from(
+                    source_file.path().as_ref(),
+                ))
+                .get()
+            })
+            .filter_map(|source_file| {
+                let mut visitor = DirectNumericIndexVisitor::default();
+                syn::visit::Visit::visit_file(&mut visitor, source_file.ast().as_ref());
+                visitor.get_violation().map(|index| {
+                    format!(
+                        "{} directly indexes element {index}",
+                        source_file.path().as_ref().display()
+                    )
+                })
+            })
+            .collect::<Vec<String>>();
+        assert!(
+            violations.is_empty(),
+            "ff218d4c production code must use checked access or destructuring: {violations:#?}"
+        );
     });
 }
 

@@ -4,6 +4,77 @@
 )]
 
 #[test]
+fn test_release_profile_remains_hardened() {
+    let manifest = std::fs::read_to_string(constants_str::CODE_STYLE_WORKSPACE_MANIFEST_PATH)
+        .expect(constants_str::DIAGNOSTIC_DE1C6222);
+    let parsed = manifest
+        .parse::<toml::Table>()
+        .expect(constants_str::DIAGNOSTIC_CDA7E83D);
+    let release = parsed
+        .get(stringify!(profile))
+        .and_then(|profile| profile.get(stringify!(release)))
+        .and_then(toml::Value::as_table)
+        .expect(constants_str::DIAGNOSTIC_91561726);
+    assert_eq!(
+        release.get(stringify!(lto)).and_then(toml::Value::as_str),
+        Some(stringify!(fat)),
+        concat!(
+            "f95d2cb8 ",
+            "release profile must enable fat link-time optimization"
+        )
+    );
+    assert_eq!(
+        release
+            .get(concat!("codegen", "-", "units"))
+            .and_then(toml::Value::as_integer),
+        Some(1i64),
+        concat!(
+            "7bc9fe12 ",
+            "release profile must use one code generation unit"
+        )
+    );
+    assert_eq!(
+        release.get(stringify!(panic)).and_then(toml::Value::as_str),
+        Some(stringify!(abort)),
+        concat!("48e6d3a9 ", "release profile must abort on panic")
+    );
+    assert_eq!(
+        release.get(stringify!(strip)).and_then(toml::Value::as_str),
+        Some(stringify!(symbols)),
+        concat!("d120be67 ", "release profile must strip symbols")
+    );
+}
+
+#[test]
+fn test_repository_toolchain_uses_nightly_rust() {
+    let repository_root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .parent()
+        .expect(constants_str::DIAGNOSTIC_6F6FBDC2);
+    let toolchain = std::fs::read_to_string(repository_root.join(concat!(
+        "rust",
+        "-",
+        "toolchain",
+        ".",
+        "toml"
+    )))
+    .expect(constants_str::DIAGNOSTIC_48C8DE1D)
+    .parse::<toml::Table>()
+    .expect(constants_str::DIAGNOSTIC_970B25F9);
+    let channel = toolchain
+        .get(stringify!(toolchain))
+        .and_then(|toml_value| toml_value.get(stringify!(channel)))
+        .and_then(toml::Value::as_str)
+        .expect(constants_str::DIAGNOSTIC_ECF25039);
+    assert!(
+        channel.starts_with(concat!("nightly", "-")),
+        concat!(
+            "a915db34 ",
+            "repository toolchain must use a pinned nightly channel"
+        )
+    );
+}
+
+#[test]
 fn test_crate_names_follow_workspace_vocabulary() {
     crate::code_style::assert_crate_manifest_cargo_policy(
         crate::static_str::StaticStr::from(constants_str::VALUE_4CE7AB5C),

@@ -5,22 +5,27 @@ pub(crate) fn resolve_outbound_address_disposition(
     let forbidden = match outbound_ip_addr.get() {
         std::net::IpAddr::V4(ipv4_address) => {
             let octets = ipv4_address.octets();
+            let [first_octet, second_octet, third_octet, _fourth_octet] = octets;
             ipv4_address.is_broadcast()
                 || ipv4_address.is_link_local()
                 || ipv4_address.is_loopback()
                 || ipv4_address.is_multicast()
                 || ipv4_address.is_private()
                 || ipv4_address.is_unspecified()
-                || octets[0] == constants_u8::ZERO
-                || (octets[0] == 100u8 && (64u8..=127u8).contains(&octets[1]))
-                || (octets[0] == 192u8
-                    && octets[1] == constants_u8::ZERO
-                    && octets[2] == constants_u8::ZERO)
-                || (octets[0] == 192u8 && octets[1] == constants_u8::ZERO && octets[2] == 2u8)
-                || (octets[0] == 198u8 && (octets[1] == 18u8 || octets[1] == 19u8))
-                || (octets[0] == 198u8 && octets[1] == 51u8 && octets[2] == 100u8)
-                || (octets[0] == 203u8 && octets[1] == constants_u8::ZERO && octets[2] == 113u8)
-                || octets[0] >= 240u8
+                || first_octet == constants_u8::ZERO
+                || (first_octet == 100u8 && (64u8..=127u8).contains(&second_octet))
+                || (first_octet == 192u8
+                    && second_octet == constants_u8::ZERO
+                    && third_octet == constants_u8::ZERO)
+                || (first_octet == 192u8
+                    && second_octet == constants_u8::ZERO
+                    && third_octet == 2u8)
+                || (first_octet == 198u8 && (second_octet == 18u8 || second_octet == 19u8))
+                || (first_octet == 198u8 && second_octet == 51u8 && third_octet == 100u8)
+                || (first_octet == 203u8
+                    && second_octet == constants_u8::ZERO
+                    && third_octet == 113u8)
+                || first_octet >= 240u8
         }
         std::net::IpAddr::V6(ipv6_address) => ipv6_address.to_ipv4_mapped().map_or_else(
             || {

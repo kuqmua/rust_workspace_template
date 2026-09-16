@@ -67,6 +67,81 @@ fn test_continuous_integration_contains_required_security_and_quality_commands()
     .into_iter()
     .for_each(|required| assert!(workflow.as_ref().contains(required), "missing `{required}`"));
 }
+
+#[test]
+fn test_readme_documents_local_verification_order() {
+    let repository_root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .parent()
+        .expect(constants_str::DIAGNOSTIC_2DE377FA);
+    let readme = std::fs::read_to_string(repository_root.join(concat!("README", ".", "md")))
+        .expect(constants_str::DIAGNOSTIC_EF66ACC0);
+    let commands = [
+        concat!("cargo", " ", "fmt"),
+        concat!(
+            "cargo",
+            " ",
+            "clippy --all-targets --all-features -- -D warnings"
+        ),
+        concat!("cargo", " ", "test -p tests_code_style_rust"),
+        concat!(
+            "cargo",
+            " ",
+            "test --workspace --exclude tests_code_style_rust"
+        ),
+    ];
+    let final_position = commands.into_iter().try_fold(0usize, |position, command| {
+        readme
+            .get(position..)
+            .and_then(|suffix| suffix.find(command))
+            .map(|relative_position| position + relative_position + command.len())
+    });
+    assert!(
+        final_position.is_some(),
+        concat!(
+            "591cfb20 ",
+            "README must document format, Clippy, code-style, and workspace tests in execution order"
+        )
+    );
+}
+
+#[test]
+fn test_every_workflow_declares_top_level_read_permissions() {
+    let repository_root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .parent()
+        .expect(constants_str::DIAGNOSTIC_4409E8DD);
+    let workflows_directory = repository_root.join(concat!(".github", "/", "workflows"));
+    let violations = std::fs::read_dir(&workflows_directory)
+        .expect(constants_str::DIAGNOSTIC_606519AE)
+        .map(|entry| entry.expect(constants_str::DIAGNOSTIC_4CEB7ACC).path())
+        .filter(|path| {
+            path.extension()
+                .and_then(std::ffi::OsStr::to_str)
+                .is_some_and(|extension| matches!(extension, stringify!(yml) | stringify!(yaml)))
+        })
+        .filter(|path| {
+            let source = std::fs::read_to_string(path).expect(constants_str::DIAGNOSTIC_B787C90B);
+            let active_source = active_workflow_source(
+                crate::source_text_ref::SourceTextRef::from(source.as_str()),
+            );
+            !active_source
+                .as_ref()
+                .lines()
+                .zip(active_source.as_ref().lines().skip(1usize))
+                .any(|(line, next_line)| {
+                    line == concat!("permissions", ":")
+                        && next_line == concat!("  ", "contents", ":", " ", "read")
+                })
+        })
+        .collect::<Vec<std::path::PathBuf>>();
+    assert!(
+        violations.is_empty(),
+        concat!(
+            "5de784c1 ",
+            "workflows must declare top-level read-only contents permissions: {:?}"
+        ),
+        violations
+    );
+}
 #[test]
 #[allow(
     clippy::needless_for_each,

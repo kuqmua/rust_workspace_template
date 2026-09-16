@@ -1,5 +1,19 @@
 proc_macro_define_git_info_constants::define_git_info_constants!();
 
+pub const DIAGNOSTIC_DE1C6222: &str = "de1c6222";
+pub const DIAGNOSTIC_CDA7E83D: &str = "cda7e83d";
+pub const DIAGNOSTIC_91561726: &str = "91561726";
+pub const DIAGNOSTIC_6F6FBDC2: &str = "6f6fbdc2";
+pub const DIAGNOSTIC_48C8DE1D: &str = "48c8de1d";
+pub const DIAGNOSTIC_970B25F9: &str = "970b25f9";
+pub const DIAGNOSTIC_ECF25039: &str = "ecf25039";
+pub const DIAGNOSTIC_2DE377FA: &str = "2de377fa";
+pub const DIAGNOSTIC_EF66ACC0: &str = "ef66acc0";
+pub const DIAGNOSTIC_4409E8DD: &str = "4409e8dd";
+pub const DIAGNOSTIC_606519AE: &str = "606519ae";
+pub const DIAGNOSTIC_4CEB7ACC: &str = "4ceb7acc";
+pub const DIAGNOSTIC_B787C90B: &str = "b787c90b";
+
 pub const MACRO_CLIPPY_CARGO_CHECK_ALL_TARGETS_ALL_FEATURES_ARGS: [&str; 4] = [
     SHARED_VALUES_CHECK,
     SHARED_VALUES_ALL_TARGETS,
