@@ -199,6 +199,61 @@ fn test_every_typed_route_path_and_each_path_parameter_match_open_api() {
 }
 
 #[test]
+fn test_open_api_contains_exactly_the_typed_route_locations() {
+    let document_result = serde_json::to_value(utoipa::openapi::OpenApi::from(
+        crate::generated_open_api::generated_open_api(),
+    ));
+    assert!(document_result.is_ok());
+    let Some(document) = document_result.ok() else {
+        return;
+    };
+    let mut expected = <server_admin_contract::admin_route::AdminAuthenticationRouteFamily as frontend_contract::route_family::RouteFamily>::schema_contracts()
+        .as_ref()
+        .iter()
+        .map(|contract| {
+            let metadata = contract.metadata();
+            (
+                metadata.path().as_ref().to_owned(),
+                metadata.method().as_ref().to_ascii_lowercase(),
+            )
+        })
+        .collect::<std::collections::BTreeSet<_>>();
+    expected.extend(
+        [
+            crate::admin_users::AdminUsers::read_route(),
+            crate::admin_user_roles::AdminUserRoles::read_route(),
+            crate::admin_role_permissions::AdminRolePermissions::read_route(),
+            crate::admin_roles::AdminRoles::read_route(),
+            crate::admin_permissions::AdminPermissions::read_route(),
+            crate::admin_system_settings::AdminSystemSettings::read_route(),
+        ]
+        .into_iter()
+        .map(|path| (path.as_ref().to_owned(), constants_str::POST_ALT.to_owned())),
+    );
+    let paths = document
+        .get(constants_str::PATHS)
+        .and_then(serde_json::Value::as_object);
+    assert!(paths.is_some());
+    let Some(paths) = paths else {
+        return;
+    };
+    let actual = paths
+        .iter()
+        .flat_map(|(path, path_item)| {
+            path_item
+                .as_object()
+                .into_iter()
+                .flatten()
+                .filter(|(_method, operation)| {
+                    operation.get(constants_str::OPERATION_ID_JSON).is_some()
+                })
+                .map(|(method, _operation)| (path.clone(), method.clone()))
+        })
+        .collect::<std::collections::BTreeSet<_>>();
+    assert_eq!(actual, expected);
+}
+
+#[test]
 fn test_every_typed_route_query_parameter_matches_open_api_individually() {
     let document = serde_json::to_value(utoipa::openapi::OpenApi::from(
         crate::generated_open_api::generated_open_api(),
@@ -254,6 +309,102 @@ fn test_every_typed_route_query_parameter_matches_open_api_individually() {
                     }
                 });
             });
+}
+
+#[test]
+fn test_every_open_api_parameter_and_request_body_has_the_typed_location() {
+    let document_result = serde_json::to_value(utoipa::openapi::OpenApi::from(
+        crate::generated_open_api::generated_open_api(),
+    ));
+    assert!(document_result.is_ok());
+    let Some(document) = document_result.ok() else {
+        return;
+    };
+    let no_body_schema_result = serde_json::to_value(
+        <server_admin_contract::admin_no_body::AdminNoBody as utoipa::PartialSchema>::schema(),
+    );
+    assert!(no_body_schema_result.is_ok());
+    let Some(no_body_schema) = no_body_schema_result.ok() else {
+        return;
+    };
+    <server_admin_contract::admin_route::AdminAuthenticationRouteFamily as frontend_contract::route_family::RouteFamily>::schema_contracts()
+        .as_ref()
+        .iter()
+        .for_each(|contract| {
+            let metadata = contract.metadata();
+            let operation = typed_operation(&document, metadata);
+            let request_body = operation.get(constants_str::VALUE_FCF523FA);
+            let request_schema_result = contract
+                .request_schema()
+                .cloned()
+                .map(|schema| {
+                    let openapi_schema: utoipa::openapi::RefOr<utoipa::openapi::Schema> = schema.into();
+                    serde_json::to_value(openapi_schema)
+                })
+                .transpose();
+            assert!(request_schema_result.is_ok());
+            let Some(Some(request_schema)) = request_schema_result.ok() else {
+                return;
+            };
+            if request_schema == no_body_schema {
+                assert!(request_body.is_none());
+            } else {
+                assert!(request_body.is_some());
+                let Some(request_body) = request_body else {
+                    return;
+                };
+                assert_eq!(
+                    request_body
+                        .get(constants_str::REQUIRED)
+                        .and_then(serde_json::Value::as_bool),
+                    Some(true)
+                );
+                assert_eq!(
+                    request_body
+                        .get(constants_str::OPENAPI_CONTENT)
+                        .and_then(serde_json::Value::as_object)
+                        .map(|content| content.keys().map(String::as_str).collect::<Vec<_>>()),
+                    Some(vec![constants_str::APPLICATION_JSON])
+                );
+            }
+            let parameters = operation
+                .get(constants_str::VALUE_F528212A)
+                .and_then(serde_json::Value::as_array);
+            let unique_parameters = parameters
+                .into_iter()
+                .flatten()
+                .map(|parameter| {
+                    let location = parameter
+                        .get(constants_str::VALUE_58296753)
+                        .and_then(serde_json::Value::as_str);
+                    assert!(location.is_some());
+                    let location = location.unwrap_or_default();
+                    let name = parameter
+                        .get(constants_str::NAME)
+                        .and_then(serde_json::Value::as_str);
+                    assert!(name.is_some());
+                    let name = name.unwrap_or_default();
+                    assert!([
+                        constants_str::PATH_ALT_5,
+                        constants_str::SHARED_VALUES_QUERY,
+                    ]
+                    .contains(&location));
+                    assert_eq!(
+                        parameter
+                            .get(constants_str::REQUIRED)
+                            .and_then(serde_json::Value::as_bool)
+                            .unwrap_or(false),
+                        location == constants_str::PATH_ALT_5
+                    );
+                    assert!(parameter.get(constants_str::JSON_SCHEMA).is_some());
+                    (location, name)
+                })
+                .collect::<std::collections::BTreeSet<_>>();
+            assert_eq!(
+                unique_parameters.len(),
+                parameters.map_or(0usize, Vec::len)
+            );
+        });
 }
 
 #[test]
@@ -334,6 +485,39 @@ fn test_proc_macro_generated_response_contracts_match_open_api() {
                     .expect(constants_str::DIAGNOSTIC_54D97B5D);
                 assert_eq!(actual_schema, Some(&expected_schema), "response schema differs for {}", metadata.openapi_operation_id().as_ref());
             });
+}
+
+#[test]
+fn test_every_declared_open_api_error_response_has_a_json_return_type() {
+    let document_result = serde_json::to_value(utoipa::openapi::OpenApi::from(
+        crate::generated_open_api::generated_open_api(),
+    ));
+    assert!(document_result.is_ok());
+    let Some(document) = document_result.ok() else {
+        return;
+    };
+    <server_admin_contract::admin_route::AdminAuthenticationRouteFamily as frontend_contract::route_family::RouteFamily>::schema_contracts()
+        .as_ref()
+        .iter()
+        .for_each(|contract| {
+            let metadata = contract.metadata();
+            let success_status = u16::from(metadata.success_status().transport_status()).to_string();
+            let responses = typed_operation(&document, metadata)
+                .get(constants_str::RESPONSES)
+                .and_then(serde_json::Value::as_object);
+            assert!(responses.is_some());
+            responses
+                .into_iter()
+                .flatten()
+                .filter(|(status, _response)| status.as_str() != success_status)
+                .for_each(|(_status, response)| {
+                    assert!(
+                        response
+                            .pointer(constants_str::VALUE_711260BD)
+                            .is_some()
+                    );
+                });
+        });
 }
 
 #[test]
