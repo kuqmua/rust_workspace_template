@@ -3678,6 +3678,10 @@ proc_macro_define_str_constants::define_str_constants! {
         pub DIAGNOSTIC_F28CAA74 = ["f28caa74"];
         pub DIAGNOSTIC_66DAD9EF = ["66dad9ef"];
         pub DIAGNOSTIC_8F53BBB4 = ["8f53bbb4"];
+        pub DIAGNOSTIC_26E3E9BD = ["26e3e9bd"];
+        pub DIAGNOSTIC_15E24444 = ["15e24444"];
+        pub DIAGNOSTIC_4C759371 = ["4c759371"];
+        pub DIAGNOSTIC_476ED10A = ["476ed10a"];
         pub DIAGNOSTIC_7012F613 = ["7012f613"];
         pub DIAGNOSTIC_247711CA = ["247711ca"];
         pub DIAGNOSTIC_9C3E3F67 = ["9c3e3f67"];

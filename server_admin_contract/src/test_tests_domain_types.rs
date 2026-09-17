@@ -664,7 +664,13 @@ fn test_data_tables_round_trip_and_require_read_permissions() {
             .into_iter()
             .filter(|table| bool::from(table.supports_filters()))
             .collect::<Vec<_>>(),
-        [crate::admin_data_table::AdminDataTable::RolePermissions]
+        [
+            crate::admin_data_table::AdminDataTable::AccessSessions,
+            crate::admin_data_table::AdminDataTable::LoginAttempts,
+            crate::admin_data_table::AdminDataTable::RefreshTokens,
+            crate::admin_data_table::AdminDataTable::RolePermissions,
+            crate::admin_data_table::AdminDataTable::UserRoles,
+        ]
     );
     assert_eq!(
         crate::admin_data_table::AdminDataTable::PG_ORDER

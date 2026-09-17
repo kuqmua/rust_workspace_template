@@ -10,7 +10,7 @@ pub(crate) enum AdminLoadState {
     ),
     Permissions(
         server_admin_contract::authenticated_admin::AuthenticatedAdmin,
-        server_admin_contract::admin_roles_page::AdminRolesPage,
+        server_admin_contract::admin_permissions_page::AdminPermissionsPage,
     ),
     Profile(server_admin_contract::authenticated_admin::AuthenticatedAdmin),
     Roles(

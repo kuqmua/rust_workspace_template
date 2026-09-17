@@ -1,7 +1,7 @@
 #[allow(
     clippy::arbitrary_source_item_ordering,
     clippy::needless_for_each,
-    reason = "admin permissions keeps declaration order aligned with generated layout or processing flow"
+    reason = "admin login attempts keeps declaration order aligned with generated layout or processing flow"
 )]
 #[derive(
     Debug,
@@ -12,26 +12,23 @@
 )]
 #[proc_macro_generate_pg_table_generate_pg_table_config::generate_pg_table_config{{
     "api_mode": "ReadOnly",
-    "db_table_name": "permissions",
-    "create_exclude_fields": ["created_at"],
-    "db_unique_keys": [["name"]],
-    "permission_prefix": "permissions",
-    "read_page": {
-        "search_columns": ["name"],
-        "response": "server_admin_contract::admin_permissions_page::AdminPermissionsPage",
-        "enrich": "crate::enrich_permissions_read_page::enrich_permissions_read_page",
-        "error": "crate::admin_permissions_read_page_error::AdminPermissionsReadPageError"
-    },
+    "db_table_name": "login_attempts",
+    "create_exclude_fields": ["attempted_at"],
+    "permission_prefix": "login_attempts",
     "tests_write_into_file": "False",
     "common_write_into_file": "False",
     "whole_write_into_file": "False"
 }}]
 #[derive(proc_macro_getters::Getters)]
-pub struct AdminPermissions {
+pub struct AdminLoginAttempts {
     #[generate_pg_table_primary_key]
-    id: pg_types_numeric::generate_pg_types_mod::I64AsNonNullBigSerialInitializationByPg,
-    name: pg_types_text_misc::generate_pg_types_mod::StringAsNonNullText,
     #[generate_pg_table_db_default]
-    created_at:
+    id: pg_types_numeric::generate_pg_types_mod::I64AsNonNullBigSerialInitializationByPg,
+    login: pg_types_text_misc::generate_pg_types_mod::StringAsNonNullText,
+    ip_address:
+        pg_types_chrono_net::generate_pg_types_mod::OptionalSqlxTypesIpnetworkIpNetworkAsNullableInet,
+    succeeded: pg_types_numeric::generate_pg_types_mod::BoolAsNonNullBool,
+    #[generate_pg_table_db_default]
+    attempted_at:
         pg_types_chrono_net::generate_pg_types_mod::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsNonNullTimestampTz,
 }

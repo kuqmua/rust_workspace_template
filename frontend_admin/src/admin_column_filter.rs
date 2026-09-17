@@ -75,22 +75,24 @@ pub(crate) fn admin_column_filter(
     let active_end = active_end.cloned();
     let trigger_filter_id = filter_id.clone();
     let trigger_filter_label = filter_label.clone();
+    let filter_active = is_active_field.to_string();
     leptos::prelude::IntoAny::into_any(crate::with_owner::with_owner(move || {
         leptos::view! {
-            <singlestage::Popover attr:data-name="Popover" class="table-column-filter">
+            <singlestage::Popover attr:data-name="Popover" attr:data-filter-active=filter_active class="table-column-filter">
                 <crate::admin_button::AdminButton admin_button_variant=crate::admin_button_variant::AdminButtonVariant::Secondary admin_button_kind=crate::admin_button_kind::AdminButtonKind::Button popover_target=trigger_filter_id aria_label=trigger_filter_label style=trigger_style>
                     <svg class="table-column-filter-icon" viewBox="0 0 24 24" aria-hidden=constants_str::TRUE>
                         <path fill="currentColor" d="M3 5h18l-7 8v5l-4 2v-7L3 5z"></path>
                     </svg>
                 </crate::admin_button::AdminButton>
                 <div data-name="PopoverContent" id=filter_id class="table-filter-operations relative z-50 my-[1ch] min-h-[150px] w-[250px] overflow-visible rounded-md border bg-card p-4 shadow-md" style=popover_style popover="auto" role="dialog" aria-label=filter_label>
-                    <div class="table-filter-header"><h2>{filter_title}</h2></div>
-                    <form class="table-filter-form" method="get" action=action>
-                        <input type="hidden" name="filter_field" value=filter_field />
-                        <input type="hidden" name="limit" value=limit />
-                        <input type="hidden" name="offset" value="0" />
-                        <singlestage::RadioGroup attr:data-name="RadioButtonGroup" class="table-filter-options" name="filter_operation" value=leptos::prelude::RwSignal::from(selected_operation)>
-                            {filters.into_iter().map(|filter| {
+                    <div class="table-filter-content">
+                        <div class="table-filter-header"><h2>{filter_title}</h2></div>
+                        <form class="table-filter-form" method="get" action=action>
+                            <input type="hidden" name="filter_field" value=filter_field />
+                            <input type="hidden" name="limit" value=limit />
+                            <input type="hidden" name="offset" value="0" />
+                            <singlestage::RadioGroup attr:data-name="RadioButtonGroup" class="table-filter-options" name="filter_operation" value=leptos::prelude::RwSignal::from(selected_operation)>
+                                {filters.into_iter().map(|filter| {
                                 let operation_key = server_admin_contract::admin_filter_operation_key::AdminFilterOperationKey::from(filter.operation()).to_string();
                                 let is_active = is_active_field && active_operation.as_deref() == Some(operation_key.as_str());
                                 let active_value = is_active.then_some(active_value.as_ref()).flatten();
@@ -124,14 +126,15 @@ pub(crate) fn admin_column_filter(
                                         }))}
                                     </div>
                                 }
-                            }).collect::<Vec<_>>()}
-                        </singlestage::RadioGroup>
-                        <div class="table-filter-actions [&>*]:w-full">
-                            <crate::admin_button::AdminButton>{constants_str::ADMIN_BUTTON_APPLY}</crate::admin_button::AdminButton>
-                            <crate::admin_button::AdminButton admin_button_variant=crate::admin_button_variant::AdminButtonVariant::Secondary admin_button_kind=crate::admin_button_kind::AdminButtonKind::Button popover_target=close_filter_id popover_target_action="hide">{constants_str::ADMIN_BUTTON_CLOSE}</crate::admin_button::AdminButton>
-                        </div>
-                    </form>
-                    {is_active_field.then(|| leptos::view! { <a class="table-filter-clear" href=clear_href>{constants_str::ADMIN_UI_CLEAR}</a> })}
+                                }).collect::<Vec<_>>()}
+                            </singlestage::RadioGroup>
+                            <div class="table-filter-actions [&>*]:w-full">
+                                <crate::admin_button::AdminButton>{constants_str::ADMIN_BUTTON_APPLY}</crate::admin_button::AdminButton>
+                                <crate::admin_button::AdminButton admin_button_variant=crate::admin_button_variant::AdminButtonVariant::Secondary admin_button_kind=crate::admin_button_kind::AdminButtonKind::Button popover_target=close_filter_id popover_target_action="hide">{constants_str::ADMIN_BUTTON_CLOSE}</crate::admin_button::AdminButton>
+                            </div>
+                        </form>
+                        {is_active_field.then(|| leptos::view! { <a class="table-filter-clear" href=clear_href>{constants_str::ADMIN_UI_CLEAR}</a> })}
+                    </div>
                 </div>
             </singlestage::Popover>
         }

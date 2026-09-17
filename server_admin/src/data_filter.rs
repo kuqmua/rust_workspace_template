@@ -21,10 +21,23 @@ pub(crate) fn data_filter(
                 Err(crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue)
             };
         };
-        let fields =
+        let fields = if admin_data_table
+            == server_admin_contract::admin_data_table::AdminDataTable::AccessSessions
+        {
+            Some(crate::admin_access_sessions::AdminAccessSessions::frontend_fields())
+        } else if admin_data_table
+            == server_admin_contract::admin_data_table::AdminDataTable::LoginAttempts
+        {
+            Some(crate::admin_login_attempts::AdminLoginAttempts::frontend_fields())
+        } else if admin_data_table
+            == server_admin_contract::admin_data_table::AdminDataTable::RefreshTokens
+        {
+            Some(crate::admin_refresh_tokens::AdminRefreshTokens::frontend_fields())
+        } else {
             crate::admin_generated_table::AdminGeneratedTable::for_data_table(admin_data_table)
                 .map(crate::admin_generated_table::AdminGeneratedTable::field_contracts)
-                .ok_or(crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue)?;
+        }
+        .ok_or(crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue)?;
         let field_contract = fields
             .as_ref()
             .iter()
@@ -55,20 +68,39 @@ pub(crate) fn data_filter(
             };
         }
         let parse_value = |value: &server_admin_contract::admin_filter_value::AdminFilterValue| {
-            let wire_value =
+            let field_name_ref =
+                frontend_contract::form_field_name_ref::FormFieldNameRef::from(field.as_ref());
+            let form_value_ref =
+                frontend_contract::form_value_ref::FormValueRef::from(value.as_ref());
+            let wire_value = if admin_data_table
+                == server_admin_contract::admin_data_table::AdminDataTable::AccessSessions
+            {
+                crate::admin_access_sessions::AdminAccessSessions::frontend_filter_value(
+                    field_name_ref,
+                    form_value_ref,
+                )
+            } else if admin_data_table
+                == server_admin_contract::admin_data_table::AdminDataTable::LoginAttempts
+            {
+                crate::admin_login_attempts::AdminLoginAttempts::frontend_filter_value(
+                    field_name_ref,
+                    form_value_ref,
+                )
+            } else if admin_data_table
+                == server_admin_contract::admin_data_table::AdminDataTable::RefreshTokens
+            {
+                crate::admin_refresh_tokens::AdminRefreshTokens::frontend_filter_value(
+                    field_name_ref,
+                    form_value_ref,
+                )
+            } else {
                 crate::admin_generated_table::AdminGeneratedTable::for_data_table(admin_data_table)
-                    .and_then(|generated| {
-                        generated.filter_value(
-                            frontend_contract::form_field_name_ref::FormFieldNameRef::from(
-                                field.as_ref(),
-                            ),
-                            frontend_contract::form_value_ref::FormValueRef::from(value.as_ref()),
-                        )
-                    })
-                    .ok_or(crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue)?
-                    .map_err(|_error| {
-                        crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue
-                    })?;
+                    .and_then(|generated| generated.filter_value(field_name_ref, form_value_ref))
+            }
+            .ok_or(crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue)?
+            .map_err(|_error| {
+                crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue
+            })?;
             serde_json::from_str::<serde_json::Value>(wire_value.as_ref()).map_err(|_error| {
                 crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue
             })
@@ -215,10 +247,37 @@ pub(crate) fn data_filter(
     let Some(payload_wrapper) = payload else {
         return Ok(None);
     };
-    crate::admin_generated_table::AdminGeneratedTable::for_data_table(admin_data_table)
-        .ok_or(crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue)?
-        .parse_filter(server_admin_core::std_admin_str_ref::StdAdminStrRef::from(
-            payload_wrapper.as_ref(),
-        ))
-        .map(Some)
+    let payload_ref =
+        server_admin_core::std_admin_str_ref::StdAdminStrRef::from(payload_wrapper.as_ref());
+    if admin_data_table == server_admin_contract::admin_data_table::AdminDataTable::AccessSessions {
+        serde_json::from_str::<
+            crate::admin_access_sessions::StdOptionalOptionalAdminAccessSessionsWhereMany,
+        >(payload_ref.get())
+        .map(crate::data_access_sessions_flt::DataAccessSessionsFlt::from)
+        .map(crate::data_flt::DataFlt::AccessSessions)
+        .map_err(|_error| crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue)
+    } else if admin_data_table
+        == server_admin_contract::admin_data_table::AdminDataTable::LoginAttempts
+    {
+        serde_json::from_str::<
+            crate::admin_login_attempts::StdOptionalOptionalAdminLoginAttemptsWhereMany,
+        >(payload_ref.get())
+        .map(crate::data_login_attempts_flt::DataLoginAttemptsFlt::from)
+        .map(crate::data_flt::DataFlt::LoginAttempts)
+        .map_err(|_error| crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue)
+    } else if admin_data_table
+        == server_admin_contract::admin_data_table::AdminDataTable::RefreshTokens
+    {
+        serde_json::from_str::<
+            crate::admin_refresh_tokens::StdOptionalOptionalAdminRefreshTokensWhereMany,
+        >(payload_ref.get())
+        .map(crate::data_refresh_tokens_flt::DataRefreshTokensFlt::from)
+        .map(crate::data_flt::DataFlt::RefreshTokens)
+        .map_err(|_error| crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue)
+    } else {
+        crate::admin_generated_table::AdminGeneratedTable::for_data_table(admin_data_table)
+            .ok_or(crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue)?
+            .parse_filter(payload_ref)
+    }
+    .map(Some)
 }

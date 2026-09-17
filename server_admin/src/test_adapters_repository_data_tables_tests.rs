@@ -135,6 +135,117 @@ fn test_generated_where_filter_builds_typed_table_predicate() {
 }
 
 #[test]
+fn test_session_tables_filter_builds_typed_table_predicate() {
+    let query = filter_query(
+        constants_str::USER_ID,
+        frontend_contract::filter_operation::FilterOperation::Eq,
+        Some(constants_str::VALUE_42),
+        None,
+    );
+    [
+        server_admin_contract::admin_data_table::AdminDataTable::AccessSessions,
+        server_admin_contract::admin_data_table::AdminDataTable::RefreshTokens,
+    ]
+    .into_iter()
+    .for_each(|table| {
+        let result = (|| {
+            let filter = crate::data_filter::data_filter(table, query.filter())
+                .map_err(|error| error.to_string())?
+                .ok_or_else(String::new)?;
+            let mut increment =
+                pg_crud_common::query_part_increment::QueryPartIncrement::from(constants_u64::ZERO);
+            let fragment = filter
+                .query_part(&mut increment)
+                .map_err(|error| error.to_string())?;
+            if fragment.as_ref().contains(constants_str::USER_ID)
+                && fragment.as_ref().contains(constants_str::DOLLAR_1_ALT)
+            {
+                Ok(increment.get())
+            } else {
+                Err(String::new())
+            }
+        })();
+        assert_eq!(result, Ok(1u64));
+    });
+}
+
+#[test]
+fn test_session_tables_columns_supply_filter_metadata() {
+    [
+        (
+            server_admin_contract::admin_data_table::AdminDataTable::AccessSessions,
+            crate::admin_access_sessions::AdminAccessSessions::frontend_fields(),
+        ),
+        (
+            server_admin_contract::admin_data_table::AdminDataTable::RefreshTokens,
+            crate::admin_refresh_tokens::AdminRefreshTokens::frontend_fields(),
+        ),
+    ]
+    .into_iter()
+    .for_each(|(table, field_contracts)| {
+        assert!(table.spec().columns().get().split(',').all(|column| {
+            field_contracts
+                .as_ref()
+                .iter()
+                .find(|field| field.name().as_ref() == column)
+                .is_some_and(|field| !field.filters().is_empty())
+        }));
+    });
+}
+
+#[test]
+fn test_login_attempts_filter_builds_typed_table_predicate() {
+    let query = filter_query(
+        constants_str::LOGIN,
+        frontend_contract::filter_operation::FilterOperation::Eq,
+        Some(constants_str::ADMIN),
+        None,
+    );
+    let result = (|| {
+        let filter = crate::data_filter::data_filter(
+            server_admin_contract::admin_data_table::AdminDataTable::LoginAttempts,
+            query.filter(),
+        )
+        .map_err(|error| error.to_string())?
+        .ok_or_else(String::new)?;
+        let mut increment =
+            pg_crud_common::query_part_increment::QueryPartIncrement::from(constants_u64::ZERO);
+        let fragment = filter
+            .query_part(&mut increment)
+            .map_err(|error| error.to_string())?;
+        if fragment.as_ref().contains(constants_str::LOGIN)
+            && fragment.as_ref().contains(constants_str::DOLLAR_1_ALT)
+        {
+            Ok(increment.get())
+        } else {
+            Err(String::new())
+        }
+    })();
+
+    assert_eq!(result, Ok(1u64));
+}
+
+#[test]
+fn test_login_attempts_columns_supply_filter_metadata() {
+    let field_contracts = crate::admin_login_attempts::AdminLoginAttempts::frontend_fields();
+
+    assert!(
+        server_admin_contract::admin_data_table::AdminDataTable::LoginAttempts
+            .spec()
+            .columns()
+            .get()
+            .split(',')
+            .all(|column| {
+                field_contracts
+                    .as_ref()
+                    .iter()
+                    .find(|field| field.name().as_ref() == column)
+                    .is_some_and(|field| !field.filters().is_empty())
+            })
+    );
+}
+
+#[test]
 fn test_generated_text_membership_filter_builds_typed_table_predicate() {
     let values = [constants_str::ADMIN, constants_str::ADMIN_ALT].join(constants_str::TEXT_ALT_7);
     let query = filter_query(

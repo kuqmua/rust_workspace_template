@@ -644,6 +644,126 @@ fn test_users_read_client_request_is_accepted_by_generated_contract() {
 }
 
 #[test]
+fn test_permissions_read_client_request_is_accepted_by_generated_contract() {
+    let client_request =
+        server_admin_contract::admin_permissions_read_request::AdminPermissionsReadRequest::try_from(
+            &server_admin_contract::admin_table_query::AdminTableQuery::default(),
+        )
+        .expect(constants_str::DIAGNOSTIC_26E3E9BD);
+    let client_json =
+        serde_json::to_value(client_request).expect(constants_str::DIAGNOSTIC_15E24444);
+    let generated_request = serde_json::from_value::<
+        crate::admin_permissions::AdminPermissionsReadPayload,
+    >(client_json.clone())
+    .expect(constants_str::DIAGNOSTIC_4C759371);
+    assert_eq!(
+        serde_json::to_value(generated_request).expect(constants_str::DIAGNOSTIC_476ED10A),
+        client_json
+    );
+}
+
+#[test]
+fn test_permissions_read_client_request_accepts_supported_filters_and_logical_operators() {
+    [
+        (stringify!(Eq), serde_json::json!(2i64), 3u64),
+        (stringify!(GreaterThan), serde_json::json!(2i64), 3u64),
+        (
+            stringify!(Between),
+            serde_json::json!({
+                (constants_str::PG_CRUD_START_FIELD): 2i64,
+                (constants_str::PG_CRUD_END_FIELD): 4i64
+            }),
+            4u64,
+        ),
+        (stringify!(In), serde_json::json!([2i64, 4i64]), 4u64),
+    ]
+    .into_iter()
+    .for_each(|(variant, values, expected_increment)| {
+        [
+            stringify!(And),
+            stringify!(AndNot),
+            stringify!(Or),
+            stringify!(OrNot),
+        ]
+        .into_iter()
+        .for_each(|field_operator| {
+            [
+                stringify!(And),
+                stringify!(AndNot),
+                stringify!(Or),
+                stringify!(OrNot),
+            ]
+            .into_iter()
+            .for_each(|predicate_operator| {
+                let result = (|| {
+                    let request = server_admin_contract::admin_permissions_read_request::AdminPermissionsReadRequest::try_from(
+                        &server_admin_contract::admin_table_query::AdminTableQuery::default(),
+                    ).map_err(|error| error.to_string())?;
+                    let mut client_json = serde_json::to_value(request).map_err(|error| error.to_string())?;
+                    let client_object = client_json.as_object_mut().ok_or_else(String::new)?;
+                    let _previous_where_many = client_object.insert(
+                        constants_str::WHERE_MANY.to_owned(),
+                        serde_json::json!({
+                            (constants_str::SQL_NAMES_ID): {
+                                (constants_str::PG_CRUD_OPERATOR_FIELD): constants_str::SERVER_ADMIN_FILTER_OPERATOR_AND,
+                                (constants_str::PG_CRUD_VALUES_FIELD): [
+                                    {
+                                        (stringify!(Eq)): {
+                                            (constants_str::PG_CRUD_OPERATOR_FIELD): constants_str::SERVER_ADMIN_FILTER_OPERATOR_AND,
+                                            (constants_str::PG_CRUD_VALUES_FIELD): 1i64
+                                        }
+                                    },
+                                    {
+                                        (variant): {
+                                            (constants_str::PG_CRUD_OPERATOR_FIELD): predicate_operator,
+                                            (constants_str::PG_CRUD_VALUES_FIELD): values
+                                        }
+                                    }
+                                ]
+                            },
+                            (constants_str::NAME): {
+                                (constants_str::PG_CRUD_OPERATOR_FIELD): field_operator,
+                                (constants_str::PG_CRUD_VALUES_FIELD): [{
+                                    (stringify!(Eq)): {
+                                        (constants_str::PG_CRUD_OPERATOR_FIELD): constants_str::SERVER_ADMIN_FILTER_OPERATOR_AND,
+                                        (constants_str::PG_CRUD_VALUES_FIELD): constants_str::ADMIN_ALT
+                                    }
+                                }]
+                            }
+                        }),
+                    );
+                    let client_request = serde_json::from_value::<
+                        server_admin_contract::admin_permissions_read_request::AdminPermissionsReadRequest,
+                    >(client_json)
+                    .map_err(|error| error.to_string())?;
+                    let wire_request = serde_json::to_value(client_request).map_err(|error| error.to_string())?;
+                    let _generated_request = serde_json::from_value::<crate::admin_permissions::AdminPermissionsReadPayload>(wire_request.clone())
+                        .map_err(|error| error.to_string())?;
+                    let where_many = wire_request
+                        .get(constants_str::WHERE_MANY)
+                        .ok_or_else(String::new)?;
+                    let where_many_json = serde_json::to_string(where_many)
+                        .map_err(|error| error.to_string())?;
+                    let filter = crate::admin_generated_table::AdminGeneratedTable::Permissions
+                        .parse_filter(server_admin_core::std_admin_str_ref::StdAdminStrRef::from(
+                            where_many_json.as_str(),
+                        ))
+                        .map_err(|error| error.to_string())?;
+                    let mut increment = pg_crud_common::query_part_increment::QueryPartIncrement::from(
+                        constants_u64::ZERO,
+                    );
+                    let _fragment = filter
+                        .query_part(&mut increment)
+                        .map_err(|error| error.to_string())?;
+                    Ok::<_, String>(increment.get())
+                })();
+                assert_eq!(result, Ok(expected_increment));
+            });
+        });
+    });
+}
+
+#[test]
 fn test_users_read_client_request_accepts_supported_filters_and_logical_operators() {
     [
         (stringify!(Eq), serde_json::json!(2i64), 4u64),

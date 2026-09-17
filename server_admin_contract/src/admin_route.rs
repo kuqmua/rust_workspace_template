@@ -88,6 +88,12 @@ pub enum AdminRoute {
         exclude_from_family,
     )]
     OpenApi,
+    #[route_catalog_route(
+        contract = <crate::admin_read_permissions_route::AdminReadPermissionsRoute as frontend_contract::typed_route::TypedRoute>::metadata().contract(),
+        path = frontend_contract::typed_route_path::typed_route_path::<crate::admin_read_permissions_route::AdminReadPermissionsRoute>(),
+        exclude_from_family,
+    )]
+    Permissions,
     #[route_catalog_route(crate::admin_refresh_route::AdminRefreshRoute)]
     Refresh,
     #[route_catalog_route(crate::admin_revoke_all_sessions_route::AdminRevokeAllSessionsRoute)]

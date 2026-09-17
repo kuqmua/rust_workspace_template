@@ -21,9 +21,22 @@ pub(crate) async fn data_tables_get(
             let columns = {
                 let column_names = spec.columns();
                 (|| {
-                        let generated_fields =
+                        let generated_fields = if admin_data_table
+                            == server_admin_contract::admin_data_table::AdminDataTable::AccessSessions
+                        {
+                            Some(crate::admin_access_sessions::AdminAccessSessions::frontend_fields())
+                        } else if admin_data_table
+                            == server_admin_contract::admin_data_table::AdminDataTable::LoginAttempts
+                        {
+                            Some(crate::admin_login_attempts::AdminLoginAttempts::frontend_fields())
+                        } else if admin_data_table
+                            == server_admin_contract::admin_data_table::AdminDataTable::RefreshTokens
+                        {
+                            Some(crate::admin_refresh_tokens::AdminRefreshTokens::frontend_fields())
+                        } else {
                             crate::admin_generated_table::AdminGeneratedTable::for_data_table(admin_data_table)
-                                .map(crate::admin_generated_table::AdminGeneratedTable::field_contracts);
+                                .map(crate::admin_generated_table::AdminGeneratedTable::field_contracts)
+                        };
                         let columns = column_names
                             .get()
                             .split(',')

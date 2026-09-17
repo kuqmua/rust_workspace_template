@@ -1014,6 +1014,10 @@ td form button:hover {
   gap: 8px;
 }
 
+th:has(.table-column-filter[data-filter-active="true"]) {
+  background: var(--accent-soft);
+}
+
 .table-column-filter {
   position: relative;
 }
@@ -1036,17 +1040,22 @@ td form button:hover {
 }
 
 .table-filter-operations {
+  font-size: var(--header-font-size);
+  white-space: normal;
+}
+
+.table-filter-content {
   display: grid;
   align-content: safe center;
-  gap: 16px;
-  width: min(960px, 100%);
-  margin: 0 auto;
-  padding: clamp(20px, 4vw, 48px);
+  gap: 0;
+  width: 100%;
+  max-height: calc(100dvh - 2rem);
+  margin: 0;
+  padding: 0;
   border: 1px solid var(--border);
   background: var(--surface);
   box-shadow: var(--shadow);
-  font-size: var(--header-font-size);
-  white-space: normal;
+  overflow: auto;
 }
 
 .singlestage-dialog {

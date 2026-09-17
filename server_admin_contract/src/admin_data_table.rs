@@ -125,7 +125,7 @@ impl AdminDataTable {
                     constants_str::SERVER_ADMIN_DATA_ORDER_CREATED_AT,
                 ),
                 crate::admin_permission::AdminPermission::AccessSessionsRead,
-                crate::admin_bool::AdminBool::from(false),
+                crate::admin_bool::AdminBool::from(true),
             ),
             Self::AuditLog => crate::admin_data_table_spec::AdminDataTableSpec::new(
                 crate::admin_data_columns_csv_ref::AdminDataColumnsCsvRef::from(
@@ -155,7 +155,7 @@ impl AdminDataTable {
                     constants_str::SERVER_ADMIN_DATA_ORDER_ATTEMPTED_AT,
                 ),
                 crate::admin_permission::AdminPermission::LoginAttemptsRead,
-                crate::admin_bool::AdminBool::from(false),
+                crate::admin_bool::AdminBool::from(true),
             ),
             Self::Permissions => crate::admin_data_table_spec::AdminDataTableSpec::new(
                 crate::admin_data_columns_csv_ref::AdminDataColumnsCsvRef::from(
@@ -183,7 +183,7 @@ impl AdminDataTable {
                     constants_str::SERVER_ADMIN_DATA_ORDER_CREATED_AT,
                 ),
                 crate::admin_permission::AdminPermission::RefreshTokensRead,
-                crate::admin_bool::AdminBool::from(false),
+                crate::admin_bool::AdminBool::from(true),
             ),
             Self::RolePermissions => crate::admin_data_table_spec::AdminDataTableSpec::new(
                 crate::admin_data_columns_csv_ref::AdminDataColumnsCsvRef::from(
@@ -215,7 +215,7 @@ impl AdminDataTable {
                 ),
                 crate::admin_data_order_ref::AdminDataOrderRef::from(constants_str::SQL_NAMES_ID),
                 crate::admin_permission::AdminPermission::UserRolesRead,
-                crate::admin_bool::AdminBool::from(false),
+                crate::admin_bool::AdminBool::from(true),
             ),
             Self::Users => crate::admin_data_table_spec::AdminDataTableSpec::new(
                 crate::admin_data_columns_csv_ref::AdminDataColumnsCsvRef::from(
