@@ -135,7 +135,7 @@ impl AdminDataTable {
                     constants_str::SERVER_ADMIN_DATA_ORDER_CREATED_AT,
                 ),
                 crate::admin_permission::AdminPermission::AuditLogRead,
-                crate::admin_bool::AdminBool::from(false),
+                crate::admin_bool::AdminBool::from(true),
             ),
             Self::CleanupStatus => crate::admin_data_table_spec::AdminDataTableSpec::new(
                 crate::admin_data_columns_csv_ref::AdminDataColumnsCsvRef::from(

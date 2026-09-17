@@ -246,6 +246,72 @@ fn test_login_attempts_columns_supply_filter_metadata() {
 }
 
 #[test]
+fn test_audit_log_filter_builds_typed_table_predicate() {
+    let query = filter_query(
+        constants_str::ACTION,
+        frontend_contract::filter_operation::FilterOperation::Eq,
+        Some(constants_str::UPDATE),
+        None,
+    );
+    let result = (|| {
+        let filter = crate::data_filter::data_filter(
+            server_admin_contract::admin_data_table::AdminDataTable::AuditLog,
+            query.filter(),
+        )
+        .map_err(|error| error.to_string())?
+        .ok_or_else(String::new)?;
+        let mut increment =
+            pg_crud_common::query_part_increment::QueryPartIncrement::from(constants_u64::ZERO);
+        let fragment = filter
+            .query_part(&mut increment)
+            .map_err(|error| error.to_string())?;
+        if fragment.as_ref().contains(constants_str::ACTION)
+            && fragment.as_ref().contains(constants_str::DOLLAR_1_ALT)
+        {
+            Ok(increment.get())
+        } else {
+            Err(String::new())
+        }
+    })();
+
+    assert_eq!(result, Ok(1u64));
+}
+
+#[test]
+fn test_audit_log_columns_supply_filter_metadata() {
+    let field_contracts = crate::admin_audit_log::AdminAuditLog::frontend_fields();
+
+    assert_eq!(field_contracts.as_ref().len(), 10usize);
+    assert!(
+        field_contracts
+            .as_ref()
+            .iter()
+            .filter(|field| {
+                field.readable() == frontend_contract::field_capability::FieldCapability::Enabled
+            })
+            .all(|field| {
+                !field.filters().is_empty()
+                    && server_admin_contract::admin_data_table::AdminDataTable::AuditLog
+                        .spec()
+                        .columns()
+                        .get()
+                        .split(',')
+                        .any(|column| field.name().as_ref() == column)
+            })
+    );
+    assert_eq!(
+        field_contracts
+            .as_ref()
+            .iter()
+            .filter(|field| {
+                field.readable() == frontend_contract::field_capability::FieldCapability::Disabled
+            })
+            .count(),
+        1usize
+    );
+}
+
+#[test]
 fn test_generated_text_membership_filter_builds_typed_table_predicate() {
     let values = [constants_str::ADMIN, constants_str::ADMIN_ALT].join(constants_str::TEXT_ALT_7);
     let query = filter_query(

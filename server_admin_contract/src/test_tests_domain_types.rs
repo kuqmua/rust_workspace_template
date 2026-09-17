@@ -666,6 +666,7 @@ fn test_data_tables_round_trip_and_require_read_permissions() {
             .collect::<Vec<_>>(),
         [
             crate::admin_data_table::AdminDataTable::AccessSessions,
+            crate::admin_data_table::AdminDataTable::AuditLog,
             crate::admin_data_table::AdminDataTable::LoginAttempts,
             crate::admin_data_table::AdminDataTable::RefreshTokens,
             crate::admin_data_table::AdminDataTable::RolePermissions,

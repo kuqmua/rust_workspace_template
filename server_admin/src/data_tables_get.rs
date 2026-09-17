@@ -26,6 +26,10 @@ pub(crate) async fn data_tables_get(
                         {
                             Some(crate::admin_access_sessions::AdminAccessSessions::frontend_fields())
                         } else if admin_data_table
+                            == server_admin_contract::admin_data_table::AdminDataTable::AuditLog
+                        {
+                            Some(crate::admin_audit_log::AdminAuditLog::frontend_fields())
+                        } else if admin_data_table
                             == server_admin_contract::admin_data_table::AdminDataTable::LoginAttempts
                         {
                             Some(crate::admin_login_attempts::AdminLoginAttempts::frontend_fields())
@@ -54,12 +58,18 @@ pub(crate) async fn data_tables_get(
                                     field.type_contract().input_kind()
                                 });
                                 let raw_filters = generated_field.map_or_else(Vec::new, |field| {
-                                    field
-                                        .filters()
-                                        .iter()
-                                        .copied()
-                                        .map(server_admin_contract::admin_data_filter::AdminDataFilter::from)
-                                        .collect::<Vec<_>>()
+                                    if field.readable()
+                                        == frontend_contract::field_capability::FieldCapability::Disabled
+                                    {
+                                        Vec::new()
+                                    } else {
+                                        field
+                                            .filters()
+                                            .iter()
+                                            .copied()
+                                            .map(server_admin_contract::admin_data_filter::AdminDataFilter::from)
+                                            .collect::<Vec<_>>()
+                                    }
                                 });
                                 let filters =
                                     server_admin_contract::admin_data_filters::AdminDataFilters::try_from(raw_filters)

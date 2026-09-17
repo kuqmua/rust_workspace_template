@@ -1,6 +1,7 @@
 #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone)]
 pub(crate) enum DataFlt {
     AccessSessions(crate::data_access_sessions_flt::DataAccessSessionsFlt),
+    AuditLog(crate::data_audit_log_flt::DataAuditLogFlt),
     LoginAttempts(crate::data_login_attempts_flt::DataLoginAttemptsFlt),
     Permissions(crate::data_permissions_flt::DataPermissionsFlt),
     RefreshTokens(crate::data_refresh_tokens_flt::DataRefreshTokensFlt),
@@ -21,6 +22,12 @@ impl DataFlt {
     > {
         match self {
             Self::AccessSessions(value) => {
+                pg_crud_common::pg_type_where_filter::PgTypeWhereFilter::query_bind(
+                    value.into_inner(),
+                    sqlx_postgres_query,
+                )
+            }
+            Self::AuditLog(value) => {
                 pg_crud_common::pg_type_where_filter::PgTypeWhereFilter::query_bind(
                     value.into_inner(),
                     sqlx_postgres_query,
@@ -86,6 +93,14 @@ impl DataFlt {
         let column = constants_str::PG_CRUD_EMPTY_SQL_SUFFIX;
         match self {
             Self::AccessSessions(value) => {
+                pg_crud_common::pg_type_where_filter::PgTypeWhereFilter::query_part(
+                    value.get_inner(),
+                    query_part_increment,
+                    pg_crud_common::sql_column_ref::SqlColumnRef::from(&column),
+                    pg_crud_common::add_operator::AddOperator::from(false),
+                )
+            }
+            Self::AuditLog(value) => {
                 pg_crud_common::pg_type_where_filter::PgTypeWhereFilter::query_part(
                     value.get_inner(),
                     query_part_increment,

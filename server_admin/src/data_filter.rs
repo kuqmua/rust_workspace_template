@@ -26,6 +26,10 @@ pub(crate) fn data_filter(
         {
             Some(crate::admin_access_sessions::AdminAccessSessions::frontend_fields())
         } else if admin_data_table
+            == server_admin_contract::admin_data_table::AdminDataTable::AuditLog
+        {
+            Some(crate::admin_audit_log::AdminAuditLog::frontend_fields())
+        } else if admin_data_table
             == server_admin_contract::admin_data_table::AdminDataTable::LoginAttempts
         {
             Some(crate::admin_login_attempts::AdminLoginAttempts::frontend_fields())
@@ -43,7 +47,10 @@ pub(crate) fn data_filter(
             .iter()
             .find(|candidate| candidate.name().as_ref() == field.as_ref())
             .ok_or(crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue)?;
-        if !field_contract.filters().contains(&operation) {
+        if field_contract.readable()
+            == frontend_contract::field_capability::FieldCapability::Disabled
+            || !field_contract.filters().contains(&operation)
+        {
             return Err(crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue);
         }
         if field.as_ref() == constants_str::SQL_NAMES_ID
@@ -76,6 +83,13 @@ pub(crate) fn data_filter(
                 == server_admin_contract::admin_data_table::AdminDataTable::AccessSessions
             {
                 crate::admin_access_sessions::AdminAccessSessions::frontend_filter_value(
+                    field_name_ref,
+                    form_value_ref,
+                )
+            } else if admin_data_table
+                == server_admin_contract::admin_data_table::AdminDataTable::AuditLog
+            {
+                crate::admin_audit_log::AdminAuditLog::frontend_filter_value(
                     field_name_ref,
                     form_value_ref,
                 )
@@ -255,6 +269,14 @@ pub(crate) fn data_filter(
         >(payload_ref.get())
         .map(crate::data_access_sessions_flt::DataAccessSessionsFlt::from)
         .map(crate::data_flt::DataFlt::AccessSessions)
+        .map_err(|_error| crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue)
+    } else if admin_data_table == server_admin_contract::admin_data_table::AdminDataTable::AuditLog
+    {
+        serde_json::from_str::<crate::admin_audit_log::StdOptionalOptionalAdminAuditLogWhereMany>(
+            payload_ref.get(),
+        )
+        .map(crate::data_audit_log_flt::DataAuditLogFlt::from)
+        .map(crate::data_flt::DataFlt::AuditLog)
         .map_err(|_error| crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue)
     } else if admin_data_table
         == server_admin_contract::admin_data_table::AdminDataTable::LoginAttempts
