@@ -9,7 +9,13 @@
     proc_macro_newtype_as_ref_str::AsRefStr,
 )]
 #[serde(try_from = "String")]
-pub struct SqlLikePattern(String);
+pub struct SqlLikePattern(
+    bounded_types::bounded_string::BoundedString<
+        0usize,
+        { crate::pg_crud_string_wrapper_max_len::PG_CRUD_STRING_WRAPPER_MAX_LEN },
+        false,
+    >,
+);
 
 impl TryFrom<String> for SqlLikePattern {
     type Error = crate::sql_like_pattern_error::SqlLikePatternError;
@@ -18,7 +24,16 @@ impl TryFrom<String> for SqlLikePattern {
         if value.len() > crate::pg_crud_string_wrapper_max_len::PG_CRUD_STRING_WRAPPER_MAX_LEN {
             Err(crate::sql_like_pattern_error::SqlLikePatternError::TooLong)
         } else {
-            Ok(Self(value))
+            bounded_types::bounded_string::BoundedString::try_from(value)
+                .map(Self)
+                .map_err(|source| match source {
+                    bounded_types::bounded_string_error::BoundedStringError::AboveMaximum {
+                        ..
+                    }
+                    | bounded_types::bounded_string_error::BoundedStringError::BelowMinimum {
+                        ..
+                    } => Self::Error::TooLong,
+                })
         }
     }
 }

@@ -27,7 +27,7 @@ pub mod project_git_info;
 pub mod project_git_info_value;
 #[cfg(test)]
 pub mod test_git_info;
-mod validate_git_info_string_len;
+mod try_bounded_git_info_string;
 pub mod validate_project_commit;
 pub mod validate_project_commit_error;
 pub mod with_git_commit_id_ref_or;

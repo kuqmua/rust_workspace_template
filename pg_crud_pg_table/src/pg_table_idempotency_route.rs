@@ -6,7 +6,9 @@
     PartialEq,
     proc_macro_newtype_as_ref_str::AsRefStr,
 )]
-pub struct PgTableIdempotencyRoute(String);
+pub struct PgTableIdempotencyRoute(
+    bounded_types::bounded_string::BoundedString<1usize, 1_024usize, false>,
+);
 
 impl TryFrom<String> for PgTableIdempotencyRoute {
     type Error = crate::pg_table_idempotency_text_error::PgTableIdempotencyTextError;
@@ -26,7 +28,20 @@ impl TryFrom<String> for PgTableIdempotencyRoute {
             });
         }
         if value.starts_with('/') {
-            Ok(Self(value))
+            bounded_types::bounded_string::BoundedString::try_from(value)
+                .map(Self)
+                .map_err(|source| match source {
+                    bounded_types::bounded_string_error::BoundedStringError::AboveMaximum {
+                        actual_length,
+                        maximum_length,
+                    } => Self::Error::TooLong {
+                        actual_bytes: crate::pg_table_idempotency_text_bytes::PgTableIdempotencyTextBytes::from(actual_length.get()),
+                        maximum_bytes: crate::pg_table_idempotency_text_bytes::PgTableIdempotencyTextBytes::from(maximum_length.get()),
+                    },
+                    bounded_types::bounded_string_error::BoundedStringError::BelowMinimum {
+                        ..
+                    } => Self::Error::Empty,
+                })
         } else {
             Err(crate::pg_table_idempotency_text_error::PgTableIdempotencyTextError::InvalidRoute)
         }

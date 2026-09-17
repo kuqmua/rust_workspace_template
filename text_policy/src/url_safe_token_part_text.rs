@@ -6,7 +6,13 @@
     PartialEq,
     proc_macro_newtype_as_ref_str::AsRefStr,
 )]
-pub struct UrlSafeTokenPartText(String);
+pub struct UrlSafeTokenPartText(
+    bounded_types::bounded_string::BoundedString<
+        1usize,
+        { crate::url_safe_token_part_maximum_bytes::URL_SAFE_TOKEN_PART_MAXIMUM_BYTES },
+        false,
+    >,
+);
 impl TryFrom<String> for UrlSafeTokenPartText {
     type Error = crate::url_safe_token_part_text_error::UrlSafeTokenPartTextError;
     fn try_from(value: String) -> Result<Self, Self::Error> {
@@ -20,6 +26,15 @@ impl TryFrom<String> for UrlSafeTokenPartText {
                 crate::url_safe_token_part_maximum_bytes::URL_SAFE_TOKEN_PART_MAXIMUM_BYTES,
             ),
         )?;
-        Ok(Self(value))
+        bounded_types::bounded_string::BoundedString::try_from(value)
+            .map(Self)
+            .map_err(|source| match source {
+                bounded_types::bounded_string_error::BoundedStringError::AboveMaximum {
+                    ..
+                } => Self::Error::TooLong,
+                bounded_types::bounded_string_error::BoundedStringError::BelowMinimum {
+                    ..
+                } => Self::Error::Empty,
+            })
     }
 }

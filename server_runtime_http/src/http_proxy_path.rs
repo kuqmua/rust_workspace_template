@@ -6,7 +6,7 @@
     PartialEq,
     proc_macro_newtype_as_ref_str::AsRefStr,
 )]
-pub struct HttpProxyPath(String);
+pub struct HttpProxyPath(bounded_types::bounded_string::BoundedString<1usize, 8_192usize, false>);
 
 impl TryFrom<String> for HttpProxyPath {
     type Error = crate::http_proxy_path_error::HttpProxyPathError;
@@ -67,6 +67,15 @@ impl TryFrom<crate::http_proxy_path_ref::HttpProxyPathRef<'_>> for HttpProxyPath
         }) {
             return Err(Self::Error::ForbiddenSegment);
         }
-        Ok(Self(path.to_owned()))
+        bounded_types::bounded_string::BoundedString::try_from(path.to_owned())
+            .map(Self)
+            .map_err(|source| match source {
+                bounded_types::bounded_string_error::BoundedStringError::AboveMaximum {
+                    ..
+                } => Self::Error::ForbiddenSyntax,
+                bounded_types::bounded_string_error::BoundedStringError::BelowMinimum {
+                    ..
+                } => Self::Error::Empty,
+            })
     }
 }

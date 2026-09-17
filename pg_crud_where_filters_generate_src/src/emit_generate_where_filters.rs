@@ -971,13 +971,29 @@ pub fn emit_generate_where_filters(
                 StartsWith,
             }
             #[derive(Debug, Clone, PartialEq, Eq, proc_macro_newtype_as_ref_str::AsRefStr, proc_macro_newtype_into_inner_from::IntoInnerFrom)]
-            pub struct TextSearchPattern(String);
+            pub struct TextSearchPattern(
+                bounded_types::bounded_string::BoundedString<1usize, 2_050usize, false>,
+            );
             #[derive(Debug, Clone, Copy, PartialEq, Eq, thiserror::Error)]
             pub enum TextSearchValueError {
                 #[error("text search value must not be empty")]
                 Empty,
                 #[error("text search value exceeds {maximum_bytes} bytes: got {actual_bytes}")]
                 TooLong { actual_bytes: usize, maximum_bytes: usize },
+            }
+            impl TryFrom<String> for TextSearchPattern {
+                type Error = TextSearchValueError;
+                fn try_from(value: String) -> Result<Self, Self::Error> {
+                    bounded_types::bounded_string::BoundedString::try_from(value)
+                        .map(Self)
+                        .map_err(|source| match source {
+                            bounded_types::bounded_string_error::BoundedStringError::AboveMaximum { actual_length, maximum_length } => Self::Error::TooLong {
+                                actual_bytes: actual_length.get(),
+                                maximum_bytes: maximum_length.get(),
+                            },
+                            bounded_types::bounded_string_error::BoundedStringError::BelowMinimum { .. } => Self::Error::Empty,
+                        })
+                }
             }
             pub fn build_text_search_pattern(value: &str, mode: TextSearchMode) -> Result<TextSearchPattern, TextSearchValueError> {
                 if value.is_empty() {
@@ -1008,7 +1024,7 @@ pub fn emit_generate_where_filters(
                 if matches!(mode, TextSearchMode::Contains | TextSearchMode::StartsWith) {
                     pattern.push('%');
                 }
-                Ok(TextSearchPattern(pattern))
+                TextSearchPattern::try_from(pattern)
             }
             #[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize, schemars::JsonSchema, utoipa::ToSchema)]
             #[serde(deny_unknown_fields)]

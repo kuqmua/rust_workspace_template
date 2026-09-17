@@ -13,46 +13,44 @@ pub struct BoundedString<
     const MAXIMUM_LENGTH: usize = { usize::MAX },
     const COUNT_CHARS: bool = false,
 > {
-    value: String,
+    value: bounded_string_core::bounded_string_storage::BoundedStringStorage<
+        MINIMUM_LENGTH,
+        MAXIMUM_LENGTH,
+        COUNT_CHARS,
+    >,
 }
 
 impl<const MINIMUM_LENGTH: usize, const MAXIMUM_LENGTH: usize, const COUNT_CHARS: bool>
     BoundedString<MINIMUM_LENGTH, MAXIMUM_LENGTH, COUNT_CHARS>
 {
-    #[must_use]
-    fn value_len(str: &str) -> usize {
-        if COUNT_CHARS {
-            str.chars().count()
-        } else {
-            str.len()
+    fn map_core_error(
+        source: bounded_string_core::bounded_string_storage_error::BoundedStringStorageError,
+    ) -> crate::bounded_string_error::BoundedStringError {
+        match source {
+            bounded_string_core::bounded_string_storage_error::BoundedStringStorageError::AboveMaximum {
+                actual_length,
+                maximum_length,
+            } => crate::bounded_string_error::BoundedStringError::AboveMaximum {
+                actual_length: actual_length.into(),
+                maximum_length: maximum_length.into(),
+            },
+            bounded_string_core::bounded_string_storage_error::BoundedStringStorageError::BelowMinimum {
+                actual_length,
+                minimum_length,
+            } => crate::bounded_string_error::BoundedStringError::BelowMinimum {
+                actual_length: actual_length.into(),
+                minimum_length: minimum_length.into(),
+            },
         }
-    }
-
-    #[must_use]
-    pub(crate) const fn from_prevalidated(string: String) -> Self {
-        Self { value: string }
     }
 
     pub fn validate_str(str: &str) -> Result<(), crate::bounded_string_error::BoundedStringError> {
-        let value_len = Self::value_len(str);
-        let actual_length = crate::bounded_len::BoundedLen::from(value_len);
-        if value_len < MINIMUM_LENGTH {
-            return Err(
-                crate::bounded_string_error::BoundedStringError::BelowMinimum {
-                    actual_length,
-                    minimum_length: crate::bounded_len::BoundedLen::from(MINIMUM_LENGTH),
-                },
-            );
-        }
-        if value_len > MAXIMUM_LENGTH {
-            return Err(
-                crate::bounded_string_error::BoundedStringError::AboveMaximum {
-                    actual_length,
-                    maximum_length: crate::bounded_len::BoundedLen::from(MAXIMUM_LENGTH),
-                },
-            );
-        }
-        Ok(())
+        bounded_string_core::bounded_string_storage::BoundedStringStorage::<
+            MINIMUM_LENGTH,
+            MAXIMUM_LENGTH,
+            COUNT_CHARS,
+        >::validate_str(str)
+        .map_err(Self::map_core_error)
     }
 
     #[must_use]
@@ -62,29 +60,48 @@ impl<const MINIMUM_LENGTH: usize, const MAXIMUM_LENGTH: usize, const COUNT_CHARS
 
     #[must_use]
     pub const fn as_string(&self) -> &String {
-        &self.value
+        self.value.as_string()
     }
 
     #[must_use]
     pub fn into_string(self) -> String {
-        self.value
+        self.value.into_string()
     }
 
     #[must_use]
     pub fn len(&self) -> crate::bounded_len::BoundedLen {
-        crate::bounded_len::BoundedLen::from(Self::value_len(self.value.as_str()))
+        crate::bounded_len::BoundedLen::from(self.value.len())
+    }
+
+    pub fn try_push_str(
+        &mut self,
+        str: &str,
+    ) -> Result<(), crate::bounded_string_error::BoundedStringError> {
+        self.value.try_push_str(str).map_err(Self::map_core_error)
+    }
+
+    pub fn try_push(
+        &mut self,
+        char: char,
+    ) -> Result<(), crate::bounded_string_error::BoundedStringError> {
+        self.value.try_push(char).map_err(Self::map_core_error)
     }
 }
 
 impl BoundedString {
     #[must_use]
     pub const fn from_unbounded(string: String) -> Self {
-        Self::from_prevalidated(string)
+        Self {
+            value:
+                bounded_string_core::bounded_string_storage::BoundedStringStorage::from_unbounded(
+                    string,
+                ),
+        }
     }
 
     #[must_use]
     pub const fn as_mut_string(&mut self) -> &mut String {
-        &mut self.value
+        self.value.as_mut_string()
     }
 }
 
@@ -92,15 +109,13 @@ impl<const MAXIMUM_LENGTH: usize, const COUNT_CHARS: bool>
     BoundedString<{ constants_usize::ZERO }, MAXIMUM_LENGTH, COUNT_CHARS>
 {
     #[must_use]
-    pub fn from_truncated(mut string: String) -> Self {
-        if string.len() > MAXIMUM_LENGTH {
-            let mut truncation_length = MAXIMUM_LENGTH;
-            while !string.is_char_boundary(truncation_length) {
-                truncation_length = truncation_length.saturating_sub(1usize);
-            }
-            string.truncate(truncation_length);
+    pub fn from_truncated(string: String) -> Self {
+        Self {
+            value:
+                bounded_string_core::bounded_string_storage::BoundedStringStorage::from_truncated(
+                    string,
+                ),
         }
-        Self::from_prevalidated(string)
     }
 }
 
@@ -108,7 +123,9 @@ impl<const MAXIMUM_LENGTH: usize, const COUNT_CHARS: bool> Default
     for BoundedString<{ constants_usize::ZERO }, MAXIMUM_LENGTH, COUNT_CHARS>
 {
     fn default() -> Self {
-        Self::from_prevalidated(String::new())
+        Self {
+            value: bounded_string_core::bounded_string_storage::BoundedStringStorage::default(),
+        }
     }
 }
 
@@ -176,24 +193,11 @@ impl<const MINIMUM_LENGTH: usize, const MAXIMUM_LENGTH: usize, const COUNT_CHARS
     type Error = crate::bounded_string_error::BoundedStringError;
 
     fn try_from(value: String) -> Result<Self, Self::Error> {
-        let actual_length = Self::value_len(value.as_str());
-        if actual_length < MINIMUM_LENGTH {
-            return Err(
-                crate::bounded_string_error::BoundedStringError::BelowMinimum {
-                    actual_length: actual_length.into(),
-                    minimum_length: MINIMUM_LENGTH.into(),
-                },
-            );
-        }
-        if actual_length > MAXIMUM_LENGTH {
-            return Err(
-                crate::bounded_string_error::BoundedStringError::AboveMaximum {
-                    actual_length: actual_length.into(),
-                    maximum_length: MAXIMUM_LENGTH.into(),
-                },
-            );
-        }
-        Ok(Self::from_prevalidated(value))
+        bounded_string_core::bounded_string_storage::BoundedStringStorage::try_from(value)
+            .map(|bounded_string_core| Self {
+                value: bounded_string_core,
+            })
+            .map_err(Self::map_core_error)
     }
 }
 
@@ -230,7 +234,7 @@ impl<const MINIMUM_LENGTH: usize, const MAXIMUM_LENGTH: usize, const COUNT_CHARS
     where
         Serializer: serde::Serializer,
     {
-        serde::Serialize::serialize(&self.value, serializer)
+        serde::Serialize::serialize(self.value.as_string(), serializer)
     }
 }
 

@@ -3,6 +3,7 @@ resolver = "2"
 members = [
   "administrator_account_initialization_and_password_reset",
   "app_state",
+  "bounded_string_core",
   "bounded_types",
   "common_routes",
   "config_lib",
@@ -415,6 +416,7 @@ trybuild = { version = "=1.0.120", default-features = false }
 git-version = { version = "=0.3.9", default-features = false }
 app_state = { path = "./app_state" }
 bounded_types = { path = "./bounded_types" }
+bounded_string_core = { path = "./bounded_string_core" }
 common_routes = { path = "./common_routes" }
 config_lib = { path = "./config_lib" }
 proc_macro_config_lib_shared = { path = "./proc_macro_config_lib_shared" }

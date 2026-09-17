@@ -6,7 +6,7 @@
     PartialEq,
     proc_macro_newtype_as_ref_str::AsRefStr,
 )]
-pub struct HttpContentLength(String);
+pub struct HttpContentLength(bounded_types::bounded_string::BoundedString<1usize, 20usize, false>);
 
 impl TryFrom<String> for HttpContentLength {
     type Error = crate::http_content_length_error::HttpContentLengthError;
@@ -24,7 +24,16 @@ impl TryFrom<String> for HttpContentLength {
         let _parsed = value
             .parse::<u64>()
             .map_err(|_error| Self::Error::OutOfRange)?;
-        Ok(Self(value))
+        bounded_types::bounded_string::BoundedString::try_from(value)
+            .map(Self)
+            .map_err(|source| match source {
+                bounded_types::bounded_string_error::BoundedStringError::AboveMaximum {
+                    ..
+                } => Self::Error::TooLong,
+                bounded_types::bounded_string_error::BoundedStringError::BelowMinimum {
+                    ..
+                } => Self::Error::Empty,
+            })
     }
 }
 

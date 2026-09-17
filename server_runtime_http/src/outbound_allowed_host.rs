@@ -7,7 +7,9 @@
     PartialEq,
     PartialOrd,
 )]
-pub struct OutboundAllowedHost(String);
+pub struct OutboundAllowedHost(
+    bounded_types::bounded_string::BoundedString<1usize, 253usize, false>,
+);
 
 impl OutboundAllowedHost {
     pub(crate) const fn as_str(&self) -> &str {
@@ -29,6 +31,15 @@ impl TryFrom<String> for OutboundAllowedHost {
                 crate::outbound_host_allowlist_error::OutboundHostAllowlistError::InvalidHost,
             );
         }
-        Ok(Self(value.to_ascii_lowercase()))
+        bounded_types::bounded_string::BoundedString::try_from(value.to_ascii_lowercase())
+            .map(Self)
+            .map_err(|source| match source {
+                bounded_types::bounded_string_error::BoundedStringError::AboveMaximum {
+                    ..
+                }
+                | bounded_types::bounded_string_error::BoundedStringError::BelowMinimum {
+                    ..
+                } => Self::Error::InvalidHost,
+            })
     }
 }

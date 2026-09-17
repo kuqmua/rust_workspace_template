@@ -7,12 +7,17 @@
     proc_macro_newtype_as_ref_str::AsRefStr,
     proc_macro_newtype_partial_eq_inner::PartialEqInner,
 )]
-pub struct GitCommitLink(String);
+pub struct GitCommitLink(
+    bounded_types::bounded_string::BoundedString<
+        0usize,
+        { crate::git_info_string_max_len::GIT_INFO_STRING_MAX_LEN },
+        false,
+    >,
+);
 impl TryFrom<String> for GitCommitLink {
     type Error = crate::git_info_string_try_from_string_error::GitInfoStringTryFromStringError;
     fn try_from(value: String) -> Result<Self, Self::Error> {
-        crate::validate_git_info_string_len::validate_git_info_string_len(value.len())?;
-        Ok(Self(value))
+        crate::try_bounded_git_info_string::try_bounded_git_info_string(value).map(Self)
     }
 }
 impl From<crate::git_commit_link_cow::GitCommitLinkCow> for GitCommitLink {
@@ -26,7 +31,7 @@ impl From<crate::git_info_string_try_from_string_error::GitInfoStringTryFromStri
     fn from(
         value: crate::git_info_string_try_from_string_error::GitInfoStringTryFromStringError,
     ) -> Self {
-        Self(value.to_string())
+        bounded_types::try_from_bounded_error_text::try_from_bounded_error_text(value)
     }
 }
 impl PartialEq<crate::project_git_commit_link_ref::ProjectGitCommitLinkRef> for GitCommitLink {

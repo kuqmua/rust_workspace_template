@@ -6,7 +6,9 @@
     Eq,
     proc_macro_newtype_as_ref_owned::AsRefOwned,
 )]
-pub struct ContentSecurityPolicy(String);
+pub struct ContentSecurityPolicy(
+    bounded_types::bounded_string::BoundedString<1usize, 4_096usize, false>,
+);
 
 impl TryFrom<String> for ContentSecurityPolicy {
     type Error = crate::content_security_policy_error::ContentSecurityPolicyError;
@@ -18,7 +20,16 @@ impl TryFrom<String> for ContentSecurityPolicy {
         } else if trimmed.len() > constants_usize::VALUE_4_096 || trimmed.contains(['\r', '\n']) {
             Err(Self::Error::Invalid)
         } else {
-            Ok(Self(trimmed.to_owned()))
+            bounded_types::bounded_string::BoundedString::try_from(trimmed.to_owned())
+                .map(Self)
+                .map_err(|source| match source {
+                    bounded_types::bounded_string_error::BoundedStringError::AboveMaximum {
+                        ..
+                    } => Self::Error::Invalid,
+                    bounded_types::bounded_string_error::BoundedStringError::BelowMinimum {
+                        ..
+                    } => Self::Error::Empty,
+                })
         }
     }
 }

@@ -6,7 +6,9 @@
     PartialEq,
     proc_macro_newtype_as_ref_str::AsRefStr,
 )]
-pub struct HttpNormalizedPath(String);
+pub struct HttpNormalizedPath(
+    bounded_types::bounded_string::BoundedString<0usize, 8_192usize, false>,
+);
 
 impl TryFrom<String> for HttpNormalizedPath {
     type Error = crate::http_normalized_path_error::HttpNormalizedPathError;
@@ -16,7 +18,18 @@ impl TryFrom<String> for HttpNormalizedPath {
             std::cmp::Ordering::Greater => {
                 Err(crate::http_normalized_path_error::HttpNormalizedPathError::TooLarge)
             }
-            std::cmp::Ordering::Equal | std::cmp::Ordering::Less => Ok(Self(value)),
+            std::cmp::Ordering::Equal | std::cmp::Ordering::Less => {
+                bounded_types::bounded_string::BoundedString::try_from(value)
+                    .map(Self)
+                    .map_err(|source| match source {
+                        bounded_types::bounded_string_error::BoundedStringError::AboveMaximum {
+                            ..
+                        }
+                        | bounded_types::bounded_string_error::BoundedStringError::BelowMinimum {
+                            ..
+                        } => Self::Error::TooLarge,
+                    })
+            }
         }
     }
 }

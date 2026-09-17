@@ -6,7 +6,9 @@
     Eq,
     PartialEq,
 )]
-pub struct PgRelationLockNamespace(String);
+pub struct PgRelationLockNamespace(
+    bounded_types::bounded_string::BoundedString<0usize, 128usize, false>,
+);
 
 impl TryFrom<String> for PgRelationLockNamespace {
     type Error = crate::pg_relation_lock_error::PgRelationLockError;
@@ -22,7 +24,16 @@ impl TryFrom<String> for PgRelationLockNamespace {
             ),
         )
         .map_err(|_error| crate::pg_relation_lock_error::PgRelationLockError::InvalidNamespace)?;
-        Ok(Self(value))
+        bounded_types::bounded_string::BoundedString::try_from(value)
+            .map(Self)
+            .map_err(|source| match source {
+                bounded_types::bounded_string_error::BoundedStringError::AboveMaximum {
+                    ..
+                }
+                | bounded_types::bounded_string_error::BoundedStringError::BelowMinimum {
+                    ..
+                } => Self::Error::InvalidNamespace,
+            })
     }
 }
 

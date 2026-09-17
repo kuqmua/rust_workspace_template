@@ -6,7 +6,9 @@
     proc_macro_newtype_display_const::DisplayConst,
 )]
 #[display_const(constants_str::REDACTED_ALT_3)]
-pub struct BoundedSecretText(String);
+pub struct BoundedSecretText(
+    bounded_types::bounded_string::BoundedString<16usize, 8_192usize, false>,
+);
 
 impl BoundedSecretText {
     pub(super) const fn as_str(&self) -> &str {
@@ -19,7 +21,16 @@ impl TryFrom<String> for BoundedSecretText {
 
     fn try_from(value: String) -> Result<Self, Self::Error> {
         let _validated = crate::secret_text_ref::SecretTextRef::try_from(value.as_str())?;
-        Ok(Self(value))
+        bounded_types::bounded_string::BoundedString::try_from(value)
+            .map(Self)
+            .map_err(|source| match source {
+                bounded_types::bounded_string_error::BoundedStringError::AboveMaximum {
+                    ..
+                }
+                | bounded_types::bounded_string_error::BoundedStringError::BelowMinimum {
+                    ..
+                } => Self::Error::InvalidLength,
+            })
     }
 }
 

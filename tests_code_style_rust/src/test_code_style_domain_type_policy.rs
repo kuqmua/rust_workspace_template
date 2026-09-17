@@ -161,10 +161,23 @@ fn test_bounded_string_storage_visitor_rejects_raw_string_and_old_derive() {
     );
     assert_eq!(
         visitor.get_errors().len(),
-        2,
+        3,
         "9301b84f {:#?}",
         visitor.get_errors()
     );
+}
+#[test]
+fn test_bounded_string_storage_visitor_accepts_bounded_tuple_wrapper() {
+    let ast: syn::File = syn::parse_quote! {
+        struct Value(bounded_types::bounded_string::BoundedString<1usize, 8usize, false>);
+    };
+    let visitor = crate::code_style::visit_syn_file(
+        crate::syn_file_ref::SynFileRef::from(&ast),
+        super::domain_analysis::BoundedStringStorageVisitor::new(
+            crate::diagnostic_messages::DiagnosticMessages::default(),
+        ),
+    );
+    assert!(visitor.get_errors().is_empty());
 }
 #[test]
 fn test_manual_try_from_validator_satisfies_string_wrapper_policy() {
@@ -326,6 +339,7 @@ fn test_tuple_wrapper_deserialization_uses_from_or_try_from() {
                     crate::source_text_b_tree_set::SourceTextBTreeSet::default(),
                     crate::source_text_b_tree_set::SourceTextBTreeSet::default(),
                     crate::source_text_b_tree_set::SourceTextBTreeSet::default(),
+                    crate::source_text_b_tree_set::SourceTextBTreeSet::default(),
                     std::collections::BTreeMap::default(),
                     crate::source_text_b_tree_set::SourceTextBTreeSet::default(),
                     crate::source_text_b_tree_set::SourceTextBTreeSet::default(),
@@ -401,6 +415,7 @@ fn test_tuple_wrapper_deserialization_policy_rejects_direct_derive() {
             crate::source_text_b_tree_set::SourceTextBTreeSet::default(),
             crate::source_text_b_tree_set::SourceTextBTreeSet::default(),
             crate::source_text_b_tree_set::SourceTextBTreeSet::default(),
+            crate::source_text_b_tree_set::SourceTextBTreeSet::default(),
             std::collections::BTreeMap::default(),
             crate::source_text_b_tree_set::SourceTextBTreeSet::default(),
             crate::source_text_b_tree_set::SourceTextBTreeSet::default(),
@@ -460,6 +475,7 @@ fn test_tuple_wrappers_initialize_only_through_from_or_try_from() {
                     crate::source_text_b_tree_set::SourceTextBTreeSet::default(),
                     crate::source_text_b_tree_set::SourceTextBTreeSet::default(),
                     crate::source_text_b_tree_set::SourceTextBTreeSet::default(),
+                    crate::source_text_b_tree_set::SourceTextBTreeSet::default(),
                     std::collections::BTreeMap::default(),
                     crate::source_text_b_tree_set::SourceTextBTreeSet::default(),
                     crate::source_text_b_tree_set::SourceTextBTreeSet::default(),
@@ -491,6 +507,7 @@ fn test_tuple_wrappers_initialize_only_through_from_or_try_from() {
             let visitor = crate::code_style::visit_syn_file(
                 crate::syn_file_ref::SynFileRef::from(ast),
                 super::domain_analysis::DirectTupleWrapperConstructorVisitor::new(
+                    collector.get_bounded_string_names(),
                     None,
                     crate::diagnostic_messages::DiagnosticMessages::default(),
                     crate::analyzer_bool::AnalyzerBool::default(),
@@ -550,6 +567,7 @@ fn test_tuple_wrapper_rejects_from_and_try_from_for_same_inner_type() {
             crate::source_text_b_tree_set::SourceTextBTreeSet::default(),
             crate::source_text_b_tree_set::SourceTextBTreeSet::default(),
             crate::source_text_b_tree_set::SourceTextBTreeSet::default(),
+            crate::source_text_b_tree_set::SourceTextBTreeSet::default(),
             std::collections::BTreeMap::default(),
             crate::source_text_b_tree_set::SourceTextBTreeSet::default(),
             crate::source_text_b_tree_set::SourceTextBTreeSet::default(),
@@ -589,6 +607,22 @@ fn test_tuple_wrapper_initialization_policy_rejects_direct_constructors() {
             Allowed(1)
         }
 
+        struct BoundedValue(bounded_types::bounded_string::BoundedString<0usize, 8usize, false>);
+
+        impl From<String> for BoundedValue {
+            fn from(value: String) -> Self {
+                Self(bounded_types::bounded_string::BoundedString::try_from(value).unwrap())
+            }
+        }
+
+        impl TryFrom<&str> for BoundedValue {
+            type Error = bounded_types::bounded_string_error::BoundedStringError;
+
+            fn try_from(value: &str) -> Result<Self, Self::Error> {
+                bounded_types::bounded_string::BoundedString::try_from(value.to_owned()).map(Self)
+            }
+        }
+
         struct Missing(u64);
         struct Named { value: u64 }
         struct Pair(u64, u64);
@@ -599,14 +633,15 @@ fn test_tuple_wrapper_initialization_policy_rejects_direct_constructors() {
             crate::source_text_b_tree_set::SourceTextBTreeSet::default(),
             crate::source_text_b_tree_set::SourceTextBTreeSet::default(),
             crate::source_text_b_tree_set::SourceTextBTreeSet::default(),
+            crate::source_text_b_tree_set::SourceTextBTreeSet::default(),
             std::collections::BTreeMap::default(),
             crate::source_text_b_tree_set::SourceTextBTreeSet::default(),
             crate::source_text_b_tree_set::SourceTextBTreeSet::default(),
             crate::source_text_b_tree_set::SourceTextBTreeSet::default(),
         ),
     );
-    assert_eq!(collector.get_names().len(), 2, "b058f76c");
-    assert_eq!(collector.get_converted_names().len(), 1, "70552188");
+    assert_eq!(collector.get_names().len(), 3, "b058f76c");
+    assert_eq!(collector.get_converted_names().len(), 2, "70552188");
     assert_eq!(
         collector
             .get_names()
@@ -619,13 +654,14 @@ fn test_tuple_wrapper_initialization_policy_rejects_direct_constructors() {
     let visitor = crate::code_style::visit_syn_file(
         crate::syn_file_ref::SynFileRef::from(&ast),
         super::domain_analysis::DirectTupleWrapperConstructorVisitor::new(
+            collector.get_bounded_string_names(),
             None,
             crate::diagnostic_messages::DiagnosticMessages::default(),
             crate::analyzer_bool::AnalyzerBool::default(),
             collector.get_names(),
         ),
     );
-    assert_eq!(visitor.get_errors().len(), 2, "dd79f331");
+    assert_eq!(visitor.get_errors().len(), 3, "dd79f331");
 }
 #[test]
 fn test_domain_boundaries_use_repository_declared_types() {

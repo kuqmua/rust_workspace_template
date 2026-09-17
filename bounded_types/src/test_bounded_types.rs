@@ -128,12 +128,12 @@ fn test_bounded_string_truncates_at_utf8_boundary() {
 }
 
 #[test]
-fn test_bounded_string_default_and_prevalidated_construction_preserve_values() {
+fn test_bounded_string_default_and_try_from_construction_preserve_values() {
     let empty = crate::bounded_string::BoundedString::<0, 4>::default();
     assert_eq!(empty.as_str(), constants_str::EMPTY);
-    let value = crate::bounded_string::BoundedString::<1, 1>::from_prevalidated(String::from(
-        constants_str::A,
-    ));
+    let value =
+        crate::bounded_string::BoundedString::<3, 3>::try_from(String::from(constants_str::A))
+            .expect(constants_str::DIAGNOSTIC_F25B71A9);
     assert_eq!(value.as_str(), constants_str::A);
 }
 

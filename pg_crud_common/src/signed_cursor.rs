@@ -6,7 +6,7 @@
     PartialEq,
     proc_macro_newtype_as_ref_str::AsRefStr,
 )]
-pub struct SignedCursor(String);
+pub struct SignedCursor(bounded_types::bounded_string::BoundedString<1usize, 65_536usize, false>);
 
 impl SignedCursor {
     const MAXIMUM_LENGTH: usize = 65_536usize;
@@ -19,7 +19,16 @@ impl TryFrom<String> for SignedCursor {
         if value.is_empty() || value.len() > Self::MAXIMUM_LENGTH {
             Err(crate::signed_cursor_error::SignedCursorError::Empty)
         } else {
-            Ok(Self(value))
+            bounded_types::bounded_string::BoundedString::try_from(value)
+                .map(Self)
+                .map_err(|source| match source {
+                    bounded_types::bounded_string_error::BoundedStringError::AboveMaximum {
+                        ..
+                    }
+                    | bounded_types::bounded_string_error::BoundedStringError::BelowMinimum {
+                        ..
+                    } => Self::Error::Empty,
+                })
         }
     }
 }

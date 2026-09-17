@@ -10,5 +10,5 @@ pub(crate) fn read_bounded_content(
         ),
     )?;
     server_runtime_http::bounded_text::BoundedText::try_from(bytes)
-        .map(crate::env_content::EnvContent::from)
+        .and_then(crate::env_content::EnvContent::try_from)
 }

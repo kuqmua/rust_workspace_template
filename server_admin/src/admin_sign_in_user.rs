@@ -18,9 +18,10 @@ impl TryFrom<(i64, String, bool)> for AdminSignInUser {
         Ok(Self {
             id: server_admin_core::admin_user_record_id::AdminUserRecordId::try_from(id)?,
             password_hash: crate::admin_password_hash::AdminPasswordHash::new(
-                pg_types_text_misc::generate_pg_types_mod::StringAsNonNullTextSecret::from(
+                pg_types_text_misc::generate_pg_types_mod::StringAsNonNullTextSecret::try_from(
                     password_hash,
-                ),
+                )
+                .map_err(|source| Self::Error::from(sqlx::Error::Decode(Box::new(source))))?,
             ),
             is_banned: server_admin_core::std_admin_bool::StdAdminBool::from(is_banned),
         })

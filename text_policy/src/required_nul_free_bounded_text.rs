@@ -6,7 +6,9 @@
     PartialEq,
     proc_macro_newtype_as_ref_str::AsRefStr,
 )]
-pub struct RequiredNulFreeBoundedText(String);
+pub struct RequiredNulFreeBoundedText(
+    bounded_types::bounded_string::BoundedString<1usize, 1_048_576usize, false>,
+);
 impl TryFrom<String> for RequiredNulFreeBoundedText {
     type Error = crate::bounded_text_policy_error::BoundedTextPolicyError;
     fn try_from(value: String) -> Result<Self, Self::Error> {
@@ -18,7 +20,16 @@ impl TryFrom<String> for RequiredNulFreeBoundedText {
         } else if value.contains('\0') {
             Err(Self::Error::ContainsNul)
         } else {
-            Ok(Self(value))
+            bounded_types::bounded_string::BoundedString::try_from(value)
+                .map(Self)
+                .map_err(|source| match source {
+                    bounded_types::bounded_string_error::BoundedStringError::AboveMaximum {
+                        ..
+                    } => Self::Error::TooLong,
+                    bounded_types::bounded_string_error::BoundedStringError::BelowMinimum {
+                        ..
+                    } => Self::Error::Empty,
+                })
         }
     }
 }

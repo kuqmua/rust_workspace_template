@@ -6,7 +6,13 @@
     PartialEq,
     proc_macro_newtype_as_ref_str::AsRefStr,
 )]
-pub struct StdStorageOperationId(String);
+pub struct StdStorageOperationId(
+    bounded_types::bounded_string::BoundedString<
+        1usize,
+        { crate::domain_types::MAXIMUM_OPERATION_ID_BYTES },
+        false,
+    >,
+);
 impl TryFrom<String> for StdStorageOperationId {
     type Error = crate::file_storage_path_error::FileStoragePathError;
     fn try_from(value: String) -> Result<Self, Self::Error> {
@@ -22,6 +28,15 @@ impl TryFrom<String> for StdStorageOperationId {
         .map_err(|_error| {
             crate::file_storage_path_error::FileStoragePathError::OperationIdInvalid
         })?;
-        Ok(Self(value))
+        bounded_types::bounded_string::BoundedString::try_from(value)
+            .map(Self)
+            .map_err(|source| match source {
+                bounded_types::bounded_string_error::BoundedStringError::AboveMaximum {
+                    ..
+                }
+                | bounded_types::bounded_string_error::BoundedStringError::BelowMinimum {
+                    ..
+                } => crate::file_storage_path_error::FileStoragePathError::OperationIdInvalid,
+            })
     }
 }

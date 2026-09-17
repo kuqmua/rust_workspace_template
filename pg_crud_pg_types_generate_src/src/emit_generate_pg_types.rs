@@ -4833,10 +4833,13 @@ pub(super) enum CreateReadIds {
 
 
             #[derive(Clone, PartialEq, Eq)]
-            pub struct StringAsNonNullTextSecret(String);
-            impl From<String> for StringAsNonNullTextSecret {
-                fn from(value: String) -> Self {
-                    Self(value)
+            pub struct StringAsNonNullTextSecret(
+                bounded_types::bounded_string::BoundedString<0usize, 1_048_576usize, false>,
+            );
+            impl TryFrom<String> for StringAsNonNullTextSecret {
+                type Error = bounded_types::bounded_string_error::BoundedStringError;
+                fn try_from(value: String) -> Result<Self, Self::Error> {
+                    bounded_types::bounded_string::BoundedString::try_from(value).map(Self)
                 }
             }
             impl std::fmt::Debug for StringAsNonNullTextSecret {
@@ -4866,15 +4869,16 @@ pub(super) enum CreateReadIds {
             }
             impl<'query_lt> sqlx::Encode<'query_lt, sqlx::Postgres> for StringAsNonNullTextSecret {
                 fn encode_by_ref(&self, buffer: &mut <sqlx::Postgres as sqlx::Database>::ArgumentBuffer) -> Result<sqlx::encode::IsNull, sqlx::error::BoxDynError> {
-                    <String as sqlx::Encode<'query_lt, sqlx::Postgres>>::encode_by_ref(&self.0, buffer)
+                    <String as sqlx::Encode<'query_lt, sqlx::Postgres>>::encode_by_ref(self.0.as_string(), buffer)
                 }
                 fn size_hint(&self) -> usize {
-                    <String as sqlx::Encode<'query_lt, sqlx::Postgres>>::size_hint(&self.0)
+                    <String as sqlx::Encode<'query_lt, sqlx::Postgres>>::size_hint(self.0.as_string())
                 }
             }
             impl<'row_lt> sqlx::Decode<'row_lt, sqlx::Postgres> for StringAsNonNullTextSecret {
                 fn decode(value: <sqlx::Postgres as sqlx::Database>::ValueRef<'row_lt>) -> Result<Self, sqlx::error::BoxDynError> {
-                    <String as sqlx::Decode<'row_lt, sqlx::Postgres>>::decode(value).map(Self)
+                    let decoded = <String as sqlx::Decode<'row_lt, sqlx::Postgres>>::decode(value)?;
+                    Self::try_from(decoded).map_err(Into::into)
                 }
             }
             #[derive(Clone, Copy)]

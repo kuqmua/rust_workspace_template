@@ -6,7 +6,9 @@
     PartialEq,
     proc_macro_newtype_as_ref_str::AsRefStr,
 )]
-pub struct PgTableIdempotencyActor(String);
+pub struct PgTableIdempotencyActor(
+    bounded_types::bounded_string::BoundedString<1usize, 255usize, false>,
+);
 
 impl TryFrom<String> for PgTableIdempotencyActor {
     type Error = crate::pg_table_idempotency_text_error::PgTableIdempotencyTextError;

@@ -29,7 +29,16 @@ impl SummaryText {
         }
         let mut candidate = self.0.as_str().to_owned();
         candidate.push_str(text_ref.as_ref());
-        self.0 = bounded_types::bounded_string::BoundedString::from_truncated(candidate);
+        self.0 = bounded_types::bounded_string::BoundedString::try_from(candidate).map_err(
+            |source| match source {
+                bounded_types::bounded_string_error::BoundedStringError::AboveMaximum {
+                    ..
+                }
+                | bounded_types::bounded_string_error::BoundedStringError::BelowMinimum {
+                    ..
+                } => crate::summary_text_append_error::SummaryTextAppendError::CapacityExceeded,
+            },
+        )?;
         Ok(())
     }
 }

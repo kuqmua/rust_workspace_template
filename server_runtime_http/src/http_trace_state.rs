@@ -6,7 +6,7 @@
     PartialEq,
     proc_macro_newtype_as_ref_str::AsRefStr,
 )]
-pub struct HttpTraceState(String);
+pub struct HttpTraceState(bounded_types::bounded_string::BoundedString<1usize, 512usize, false>);
 
 impl TryFrom<String> for HttpTraceState {
     type Error = crate::http_trace_state_error::HttpTraceStateError;
@@ -18,6 +18,15 @@ impl TryFrom<String> for HttpTraceState {
         {
             return Err(crate::http_trace_state_error::HttpTraceStateError::Invalid);
         }
-        Ok(Self(value))
+        bounded_types::bounded_string::BoundedString::try_from(value)
+            .map(Self)
+            .map_err(|source| match source {
+                bounded_types::bounded_string_error::BoundedStringError::AboveMaximum {
+                    ..
+                }
+                | bounded_types::bounded_string_error::BoundedStringError::BelowMinimum {
+                    ..
+                } => Self::Error::Invalid,
+            })
     }
 }

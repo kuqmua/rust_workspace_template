@@ -938,6 +938,13 @@ fn test_lock_guards_are_not_held_across_await() {
 fn test_allocations_inside_loops_match_reviewed_inventory() {
     let reviewed = std::collections::BTreeMap::from([
         (
+            constants_str::BOUNDED_STRING_ERROR_RETRY_ALLOCATION,
+            (
+                constants_usize::ONE,
+                constants_str::BOUNDED_STRING_ERROR_RETRY_ALLOCATION_REASON,
+            ),
+        ),
+        (
             constants_str::VALUE_B7558033,
             (constants_usize::ONE, constants_str::VALUE_F3EA9A31),
         ),
@@ -1725,6 +1732,17 @@ fn test_usize_max_usage_matches_reviewed_inventory() {
             (
                 constants_usize::ONE,
                 constants_str::COMPILE_TIME_CATALOG_MAX_REASON,
+            ),
+        ),
+        (
+            constants_str::ENV_CONTENT_PATH,
+            (2usize, constants_str::RUNTIME_LIMITED_STORAGE_MAX_REASON),
+        ),
+        (
+            constants_str::BOUNDED_STRING_STORAGE_PATH,
+            (
+                constants_usize::ONE,
+                constants_str::RUNTIME_LIMITED_STORAGE_MAX_REASON,
             ),
         ),
         (

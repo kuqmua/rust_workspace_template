@@ -7,7 +7,9 @@
     proc_macro_newtype_as_ref_str::AsRefStr,
     proc_macro_newtype_into_inner::IntoInner,
 )]
-pub struct FixedLengthAsciiHexText(String);
+pub struct FixedLengthAsciiHexText(
+    bounded_types::bounded_string::BoundedString<40usize, 40usize, false>,
+);
 impl TryFrom<String> for FixedLengthAsciiHexText {
     type Error = crate::fixed_length_ascii_hex_text_error::FixedLengthAsciiHexTextError;
     fn try_from(value: String) -> Result<Self, Self::Error> {
@@ -19,7 +21,16 @@ impl TryFrom<String> for FixedLengthAsciiHexText {
         {
             Err(Self::Error::InvalidSymbol)
         } else {
-            Ok(Self(value))
+            bounded_types::bounded_string::BoundedString::try_from(value)
+                .map(Self)
+                .map_err(|source| match source {
+                    bounded_types::bounded_string_error::BoundedStringError::AboveMaximum {
+                        ..
+                    }
+                    | bounded_types::bounded_string_error::BoundedStringError::BelowMinimum {
+                        ..
+                    } => Self::Error::InvalidLength,
+                })
         }
     }
 }

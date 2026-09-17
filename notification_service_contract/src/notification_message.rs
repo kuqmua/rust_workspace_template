@@ -10,7 +10,9 @@
     utoipa::ToSchema,
 )]
 #[serde(try_from = "String")]
-pub struct NotificationMessage(String);
+pub struct NotificationMessage(
+    bounded_types::bounded_string::BoundedString<1usize, 4_096usize, false>,
+);
 
 impl TryFrom<String> for NotificationMessage {
     type Error =
@@ -22,6 +24,15 @@ impl TryFrom<String> for NotificationMessage {
         if value.len() > crate::notification_message_max_len::NOTIFICATION_MESSAGE_MAX_LEN {
             return Err(Self::Error::TooLong);
         }
-        Ok(Self(value))
+        bounded_types::bounded_string::BoundedString::try_from(value)
+            .map(Self)
+            .map_err(|source| match source {
+                bounded_types::bounded_string_error::BoundedStringError::AboveMaximum {
+                    ..
+                } => Self::Error::TooLong,
+                bounded_types::bounded_string_error::BoundedStringError::BelowMinimum {
+                    ..
+                } => Self::Error::Empty,
+            })
     }
 }

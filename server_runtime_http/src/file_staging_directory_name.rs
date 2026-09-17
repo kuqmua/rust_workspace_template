@@ -6,7 +6,9 @@
     PartialEq,
     proc_macro_newtype_as_ref_str::AsRefStr,
 )]
-pub struct FileStagingDirectoryName(String);
+pub struct FileStagingDirectoryName(
+    bounded_types::bounded_string::BoundedString<0usize, 256usize, false>,
+);
 
 impl TryFrom<String> for FileStagingDirectoryName {
     type Error = crate::multipart_value_error::MultipartValueError;
@@ -17,7 +19,22 @@ impl TryFrom<String> for FileStagingDirectoryName {
                 actual: crate::multipart_value_length::MultipartValueLength::from(value.len()),
             })
         } else {
-            Ok(Self(value))
+            bounded_types::bounded_string::BoundedString::try_from(value)
+                .map(Self)
+                .map_err(|source| match source {
+                    bounded_types::bounded_string_error::BoundedStringError::AboveMaximum {
+                        actual_length,
+                        ..
+                    }
+                    | bounded_types::bounded_string_error::BoundedStringError::BelowMinimum {
+                        actual_length,
+                        ..
+                    } => Self::Error::TooLong {
+                        actual: crate::multipart_value_length::MultipartValueLength::from(
+                            actual_length.get(),
+                        ),
+                    },
+                })
         }
     }
 }

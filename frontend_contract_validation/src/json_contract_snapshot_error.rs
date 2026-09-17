@@ -11,5 +11,5 @@ pub enum JsonContractSnapshotError {
     #[error("{}", constants_str::JSON_SNAPSHOT_SERIALIZATION_ERROR)]
     Serialization,
     #[error("{}", constants_str::JSON_SNAPSHOT_TOO_LONG_ERROR)]
-    TooLong,
+    TooLong(#[source] bounded_types::bounded_string_error::BoundedStringError),
 }

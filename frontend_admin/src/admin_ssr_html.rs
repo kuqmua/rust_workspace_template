@@ -22,9 +22,16 @@ impl TryFrom<String> for AdminSsrHtml {
                 crate::admin_ssr_html_try_from_string_error::AdminSsrHtmlTryFromStringError::TooLarge,
             );
         }
-        Ok(Self(
-            bounded_types::bounded_string::BoundedString::from_truncated(value),
-        ))
+        bounded_types::bounded_string::BoundedString::try_from(value)
+            .map(Self)
+            .map_err(|source| match source {
+                bounded_types::bounded_string_error::BoundedStringError::AboveMaximum {
+                    ..
+                }
+                | bounded_types::bounded_string_error::BoundedStringError::BelowMinimum {
+                    ..
+                } => Self::Error::TooLarge,
+            })
     }
 }
 impl From<crate::admin_ssr_html_try_from_string_error::AdminSsrHtmlTryFromStringError>
@@ -33,6 +40,6 @@ impl From<crate::admin_ssr_html_try_from_string_error::AdminSsrHtmlTryFromString
     fn from(
         value: crate::admin_ssr_html_try_from_string_error::AdminSsrHtmlTryFromStringError,
     ) -> Self {
-        Self(bounded_types::bounded_string::BoundedString::from_truncated(value.to_string()))
+        bounded_types::try_from_bounded_error_text::try_from_bounded_error_text(value)
     }
 }

@@ -46,6 +46,7 @@ serde = { workspace = true }
 trybuild = { workspace = true }
 thiserror = { workspace = true }
 [dependencies]
+bounded_types = { workspace = true }
 proc_macro_newtype_get_inner = { workspace = true }
 proc_macro_newtype_from_inner = { workspace = true }
 proc_macro_newtype_into_inner_from = { workspace = true }

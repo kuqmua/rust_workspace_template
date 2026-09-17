@@ -24,20 +24,14 @@ impl SqlSelectBuilder {
             .saturating_add(self.table.get_table().as_ref().len());
         let columns = self.columns.get_inner().get_inner().as_str();
         let capacity = fixed_len.saturating_add(columns.len());
-        let mut query =
-            crate::sql_query_text::SqlQueryText::try_from(String::with_capacity(capacity))
-                .unwrap_or_else(crate::sql_query_text::SqlQueryText::from);
-        query.get_inner_mut().push_str(constants_str::SELECT);
-        query.get_inner_mut().push_str(columns);
-        query.get_inner_mut().push_str(constants_str::FROM);
-        query
-            .get_inner_mut()
-            .push_str(self.table.get_schema().as_ref());
-        query.get_inner_mut().push('.');
-        query
-            .get_inner_mut()
-            .push_str(self.table.get_table().as_ref());
-        crate::query_part_fragment::QueryPartFragment::try_from(String::from(query))
+        let mut query = String::with_capacity(capacity);
+        query.push_str(constants_str::SELECT);
+        query.push_str(columns);
+        query.push_str(constants_str::FROM);
+        query.push_str(self.table.get_schema().as_ref());
+        query.push('.');
+        query.push_str(self.table.get_table().as_ref());
+        crate::query_part_fragment::QueryPartFragment::try_from(query)
             .unwrap_or_else(crate::query_part_fragment::QueryPartFragment::from)
     }
 }

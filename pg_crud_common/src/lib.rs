@@ -224,7 +224,6 @@ pub mod sql_like_match_mode;
 pub mod sql_like_pattern;
 pub mod sql_like_pattern_error;
 pub mod sql_qualified_identifier;
-pub mod sql_query_text;
 pub mod sql_select_builder;
 pub mod sql_sort_order_text;
 pub mod sqlx_box_dyn_error;

@@ -6,7 +6,7 @@
     PartialEq,
     proc_macro_newtype_as_ref_str::AsRefStr,
 )]
-pub struct HttpTraceParent(String);
+pub struct HttpTraceParent(bounded_types::bounded_string::BoundedString<55usize, 55usize, false>);
 
 impl TryFrom<String> for HttpTraceParent {
     type Error = crate::http_trace_parent_error::HttpTraceParentError;
@@ -37,6 +37,15 @@ impl TryFrom<String> for HttpTraceParent {
         if parent_id.iter().all(|byte| *byte == b'0') {
             return Err(Self::Error::ZeroParentId);
         }
-        Ok(Self(value))
+        bounded_types::bounded_string::BoundedString::try_from(value)
+            .map(Self)
+            .map_err(|source| match source {
+                bounded_types::bounded_string_error::BoundedStringError::AboveMaximum {
+                    ..
+                }
+                | bounded_types::bounded_string_error::BoundedStringError::BelowMinimum {
+                    ..
+                } => Self::Error::Format,
+            })
     }
 }

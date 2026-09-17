@@ -1,5 +1,7 @@
 #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
-pub(super) struct HttpOriginAuthorityText(String);
+pub(super) struct HttpOriginAuthorityText(
+    bounded_types::bounded_string::BoundedString<1usize, 512usize, false>,
+);
 
 impl HttpOriginAuthorityText {
     pub(crate) const fn get(&self) -> &str {
@@ -38,6 +40,15 @@ impl TryFrom<String> for HttpOriginAuthorityText {
         if port.is_some_and(|port_text| port_text.parse::<u16>().is_err()) {
             return Err(crate::allowed_origin_error::AllowedOriginError::Invalid);
         }
-        Ok(Self(authority.as_str().to_owned()))
+        bounded_types::bounded_string::BoundedString::try_from(authority.as_str().to_owned())
+            .map(Self)
+            .map_err(|source| match source {
+                bounded_types::bounded_string_error::BoundedStringError::AboveMaximum {
+                    ..
+                }
+                | bounded_types::bounded_string_error::BoundedStringError::BelowMinimum {
+                    ..
+                } => Self::Error::Invalid,
+            })
     }
 }

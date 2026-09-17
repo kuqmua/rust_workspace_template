@@ -6,7 +6,7 @@
     PartialEq,
     proc_macro_newtype_as_ref_str::AsRefStr,
 )]
-pub struct ServiceBaseUrl(String);
+pub struct ServiceBaseUrl(bounded_types::bounded_string::BoundedString<1usize, 8_192usize, false>);
 
 impl TryFrom<String> for ServiceBaseUrl {
     type Error = crate::service_base_url_error::ServiceBaseUrlError;
@@ -37,6 +37,15 @@ impl TryFrom<String> for ServiceBaseUrl {
         if parsed.query().is_some() || parsed.fragment().is_some() {
             return Err(crate::service_base_url_error::ServiceBaseUrlError::Suffix);
         }
-        Ok(Self(value))
+        bounded_types::bounded_string::BoundedString::try_from(value)
+            .map(Self)
+            .map_err(|source| match source {
+                bounded_types::bounded_string_error::BoundedStringError::AboveMaximum {
+                    ..
+                }
+                | bounded_types::bounded_string_error::BoundedStringError::BelowMinimum {
+                    ..
+                } => crate::service_base_url_error::ServiceBaseUrlError::Length,
+            })
     }
 }

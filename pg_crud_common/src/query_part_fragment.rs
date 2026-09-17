@@ -9,7 +9,13 @@
     proc_macro_newtype_display::Display,
     proc_macro_newtype_into_inner::IntoInner,
 )]
-pub struct QueryPartFragment(String);
+pub struct QueryPartFragment(
+    bounded_types::bounded_string::BoundedString<
+        0usize,
+        { crate::pg_crud_string_wrapper_max_len::PG_CRUD_STRING_WRAPPER_MAX_LEN },
+        false,
+    >,
+);
 impl
     From<crate::pg_crud_string_wrapper_try_from_string_error::PgCrudStringWrapperTryFromStringError>
     for QueryPartFragment
@@ -17,7 +23,7 @@ impl
     fn from(
         value: crate::pg_crud_string_wrapper_try_from_string_error::PgCrudStringWrapperTryFromStringError,
     ) -> Self {
-        Self(value.to_string())
+        bounded_types::try_from_bounded_error_text::try_from_bounded_error_text(value)
     }
 }
 impl TryFrom<String> for QueryPartFragment {
@@ -30,18 +36,42 @@ impl TryFrom<String> for QueryPartFragment {
                 max: crate::pg_crud_string_wrapper_max_len::PG_CRUD_STRING_WRAPPER_MAX_LEN,
             });
         }
-        Ok(Self(value))
+        bounded_types::bounded_string::BoundedString::try_from(value)
+            .map(Self)
+            .map_err(|source| match source {
+                bounded_types::bounded_string_error::BoundedStringError::AboveMaximum {
+                    actual_length,
+                    maximum_length,
+                }
+                | bounded_types::bounded_string_error::BoundedStringError::BelowMinimum {
+                    actual_length,
+                    minimum_length: maximum_length,
+                } => Self::Error::TooLong {
+                    len: actual_length.get(),
+                    max: maximum_length.get(),
+                },
+            })
     }
 }
 impl std::fmt::Write for QueryPartFragment {
     fn write_str(&mut self, str: &str) -> std::fmt::Result {
-        if self.0.len().checked_add(str.len()).is_none_or(|length| {
-            length > crate::pg_crud_string_wrapper_max_len::PG_CRUD_STRING_WRAPPER_MAX_LEN
-        }) {
+        if self
+            .0
+            .as_str()
+            .len()
+            .checked_add(str.len())
+            .is_none_or(|length| {
+                length > crate::pg_crud_string_wrapper_max_len::PG_CRUD_STRING_WRAPPER_MAX_LEN
+            })
+        {
             return Err(std::fmt::Error);
         }
-        self.0.push_str(str);
-        Ok(())
+        self.0.try_push_str(str).map_err(|source| match source {
+            bounded_types::bounded_string_error::BoundedStringError::AboveMaximum { .. }
+            | bounded_types::bounded_string_error::BoundedStringError::BelowMinimum { .. } => {
+                std::fmt::Error
+            }
+        })
     }
 }
 impl QueryPartFragment {
@@ -81,7 +111,18 @@ impl QueryPartFragment {
             .get(start..)
             .ok_or(crate::read_query_plan_error::ReadQueryPlanError::TooManyFragments)?
             .iter()
-            .for_each(|digit| self.0.push(char::from(*digit)));
+            .try_for_each(|digit| {
+                self.0
+                    .try_push(char::from(*digit))
+                    .map_err(|source| match source {
+                        bounded_types::bounded_string_error::BoundedStringError::AboveMaximum {
+                            ..
+                        }
+                        | bounded_types::bounded_string_error::BoundedStringError::BelowMinimum {
+                            ..
+                        } => crate::read_query_plan_error::ReadQueryPlanError::TooManyFragments,
+                    })
+            })?;
         Ok(())
     }
 }

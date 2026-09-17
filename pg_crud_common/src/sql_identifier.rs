@@ -8,7 +8,7 @@
     PartialOrd,
     proc_macro_newtype_as_ref_str::AsRefStr,
 )]
-pub struct SqlIdentifier(String);
+pub struct SqlIdentifier(bounded_types::bounded_string::BoundedString<1usize, 128usize, false>);
 impl TryFrom<String> for SqlIdentifier {
     type Error = crate::sql_identifier_error::SqlIdentifierError;
 
@@ -25,7 +25,16 @@ impl TryFrom<String> for SqlIdentifier {
         {
             return Err(crate::sql_identifier_error::SqlIdentifierError::Invalid);
         }
-        Ok(Self(value))
+        bounded_types::bounded_string::BoundedString::try_from(value)
+            .map(Self)
+            .map_err(|source| match source {
+                bounded_types::bounded_string_error::BoundedStringError::AboveMaximum {
+                    ..
+                }
+                | bounded_types::bounded_string_error::BoundedStringError::BelowMinimum {
+                    ..
+                } => Self::Error::Invalid,
+            })
     }
 }
 #[cfg(test)]

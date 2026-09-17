@@ -2,7 +2,9 @@
 #[derive(proc_macro_newtype_from_inner::FromInner)]
 struct DomainId(u32);
 #[derive(proc_macro_getters::Getters, proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
-struct DomainName(String);
+struct DomainName(
+    bounded_types::bounded_string::BoundedString<0usize, DOMAIN_NAME_MAX_LEN, false>,
+);
 const DOMAIN_NAME_MAX_LEN: usize = 1_048_576;
 #[derive(proc_macro_getters::Getters, proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -18,11 +20,6 @@ impl std::fmt::Display for DomainNameTryFromStringError {
         }
     }
 }
-impl From<DomainNameTryFromStringError> for DomainName {
-    fn from(value: DomainNameTryFromStringError) -> Self {
-        Self(value.to_string())
-    }
-}
 impl TryFrom<String> for DomainName {
     type Error = DomainNameTryFromStringError;
     fn try_from(value: String) -> Result<Self, Self::Error> {
@@ -32,7 +29,24 @@ impl TryFrom<String> for DomainName {
                 max: DOMAIN_NAME_MAX_LEN,
             });
         }
-        Ok(Self(value))
+        bounded_types::bounded_string::BoundedString::try_from(value)
+            .map(Self)
+            .map_err(|source| match source {
+                bounded_types::bounded_string_error::BoundedStringError::AboveMaximum {
+                    actual_length,
+                    maximum_length,
+                } => Self::Error::TooLong {
+                    len: actual_length.get(),
+                    max: maximum_length.get(),
+                },
+                bounded_types::bounded_string_error::BoundedStringError::BelowMinimum {
+                    actual_length,
+                    minimum_length,
+                } => Self::Error::TooLong {
+                    len: actual_length.get(),
+                    max: minimum_length.get(),
+                },
+            })
     }
 }
 #[derive(proc_macro_getters::Getters, proc_macro_optimal_memory_layout::OptimalMemoryLayout)]

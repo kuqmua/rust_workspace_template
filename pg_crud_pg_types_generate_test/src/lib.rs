@@ -583,9 +583,11 @@ mod tests {
             let _: std::marker::PhantomData<T> = std::marker::PhantomData;
         }
         assert_traits::<pg_types_text_misc::generate_pg_types_mod::StringAsNonNullTextSecret>();
-        let secret = pg_types_text_misc::generate_pg_types_mod::StringAsNonNullTextSecret::from(
-            constants_str::SECRET_VALUE.to_owned(),
-        );
+        let secret =
+            pg_types_text_misc::generate_pg_types_mod::StringAsNonNullTextSecret::try_from(
+                constants_str::SECRET_VALUE.to_owned(),
+            )
+            .expect(constants_str::DIAGNOSTIC_408FD4B7);
         assert_eq!(format!("{secret:?}"), constants_str::REDACTED_ALT_3);
         let borrowed =
             pg_types_text_misc::generate_pg_types_mod::StringAsNonNullTextSecretRef::from(&secret);

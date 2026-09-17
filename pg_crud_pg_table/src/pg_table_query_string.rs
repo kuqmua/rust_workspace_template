@@ -5,11 +5,17 @@
     proc_macro_newtype_deref_target::DerefTarget,
     proc_macro_newtype_display::Display,
 )]
-pub struct PgTableQueryString(String);
+pub struct PgTableQueryString(
+    bounded_types::bounded_string::BoundedString<
+        0usize,
+        { crate::pg_tbl_string_wrapper_max_len::PG_TBL_STRING_WRAPPER_MAX_LEN },
+        false,
+    >,
+);
 
 impl From<crate::pg_table_string_wrapper_try_from_string_error::PgTableStringWrapperTryFromStringError> for PgTableQueryString {
     fn from(value: crate::pg_table_string_wrapper_try_from_string_error::PgTableStringWrapperTryFromStringError) -> Self {
-        Self(value.to_string())
+        bounded_types::try_from_bounded_error_text::try_from_bounded_error_text(value)
     }
 }
 
@@ -23,6 +29,20 @@ impl TryFrom<String> for PgTableQueryString {
                 max: crate::pg_tbl_string_wrapper_max_len::PG_TBL_STRING_WRAPPER_MAX_LEN,
             });
         }
-        Ok(Self(value))
+        bounded_types::bounded_string::BoundedString::try_from(value)
+            .map(Self)
+            .map_err(|source| match source {
+                bounded_types::bounded_string_error::BoundedStringError::AboveMaximum {
+                    actual_length,
+                    maximum_length,
+                }
+                | bounded_types::bounded_string_error::BoundedStringError::BelowMinimum {
+                    actual_length,
+                    minimum_length: maximum_length,
+                } => Self::Error::TooLong {
+                    len: actual_length.get(),
+                    max: maximum_length.get(),
+                },
+            })
     }
 }

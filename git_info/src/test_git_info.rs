@@ -210,7 +210,7 @@ fn test_validate_project_commit_reuses_static_project_link_ref() {
 #[test]
 fn test_project_git_commit_link_matches_project_commit() {
     assert_eq!(
-        crate::project_git_commit_link::project_git_commit_link(),
+        crate::project_git_commit_link::project_git_commit_link().as_ref(),
         expected_git_commit_link(crate::project_git_info_value::project_git_info_value().commit())
     );
 }

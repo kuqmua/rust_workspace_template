@@ -7,7 +7,9 @@
     proc_macro_newtype_as_ref_str::AsRefStr,
     proc_macro_newtype_into_inner::IntoInner,
 )]
-pub struct BoundedText(String);
+pub struct BoundedText(
+    bounded_types::bounded_string::BoundedString<0usize, 16_777_216usize, false>,
+);
 
 impl TryFrom<String> for BoundedText {
     type Error = crate::bounded_read_error::BoundedReadError;
@@ -22,7 +24,22 @@ impl TryFrom<String> for BoundedText {
                 },
             );
         }
-        Ok(Self(value))
+        bounded_types::bounded_string::BoundedString::try_from(value)
+            .map(Self)
+            .map_err(|source| match source {
+                bounded_types::bounded_string_error::BoundedStringError::AboveMaximum {
+                    maximum_length,
+                    ..
+                }
+                | bounded_types::bounded_string_error::BoundedStringError::BelowMinimum {
+                    minimum_length: maximum_length,
+                    ..
+                } => Self::Error::ExceedsMaximum {
+                    maximum_bytes: crate::bounded_read_maximum_bytes::BoundedReadMaximumBytes::from(
+                        maximum_length.get(),
+                    ),
+                },
+            })
     }
 }
 

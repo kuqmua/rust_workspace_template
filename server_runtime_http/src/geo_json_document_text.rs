@@ -6,7 +6,9 @@
     PartialEq,
     proc_macro_newtype_as_ref_str::AsRefStr,
 )]
-pub struct GeoJsonDocumentText(String);
+pub struct GeoJsonDocumentText(
+    bounded_types::bounded_string::BoundedString<0usize, 16_777_216usize, false>,
+);
 
 impl TryFrom<String> for GeoJsonDocumentText {
     type Error = crate::geo_json_validation_error::GeoJsonValidationError;
@@ -27,6 +29,15 @@ impl TryFrom<String> for GeoJsonDocumentText {
             return Err(crate::geo_json_validation_error::GeoJsonValidationError::Document);
         };
         crate::geo_json_validation::GeoJsonValidation::validate_geo_json(&geo_json_document)?;
-        Ok(Self(value))
+        bounded_types::bounded_string::BoundedString::try_from(value)
+            .map(Self)
+            .map_err(|source| match source {
+                bounded_types::bounded_string_error::BoundedStringError::AboveMaximum {
+                    ..
+                }
+                | bounded_types::bounded_string_error::BoundedStringError::BelowMinimum {
+                    ..
+                } => Self::Error::TooLarge,
+            })
     }
 }

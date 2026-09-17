@@ -8,6 +8,7 @@ repository.workspace = true
 license.workspace = true
 edition.workspace = true
 [dependencies]
+bounded_string_core = { workspace = true }
 proc_macro_newtype_foundation_foundation_as_ref_inner = { workspace = true }
 proc_macro_newtype_foundation_foundation_to_tokens = { workspace = true }
 constants_usize = { workspace = true }

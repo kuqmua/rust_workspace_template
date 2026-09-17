@@ -6,7 +6,9 @@
     PartialEq,
     proc_macro_newtype_as_ref_str::AsRefStr,
 )]
-pub struct PgTableIdempotencyMethod(String);
+pub struct PgTableIdempotencyMethod(
+    bounded_types::bounded_string::BoundedString<1usize, 255usize, false>,
+);
 
 impl TryFrom<String> for PgTableIdempotencyMethod {
     type Error = crate::pg_table_idempotency_text_error::PgTableIdempotencyTextError;
@@ -28,7 +30,20 @@ impl TryFrom<String> for PgTableIdempotencyMethod {
             value.as_str(),
             constants_str::POST | constants_str::PATCH | constants_str::DELETE
         ) {
-            Ok(Self(value))
+            bounded_types::bounded_string::BoundedString::try_from(value)
+                .map(Self)
+                .map_err(|source| match source {
+                    bounded_types::bounded_string_error::BoundedStringError::AboveMaximum {
+                        actual_length,
+                        maximum_length,
+                    } => Self::Error::TooLong {
+                        actual_bytes: crate::pg_table_idempotency_text_bytes::PgTableIdempotencyTextBytes::from(actual_length.get()),
+                        maximum_bytes: crate::pg_table_idempotency_text_bytes::PgTableIdempotencyTextBytes::from(maximum_length.get()),
+                    },
+                    bounded_types::bounded_string_error::BoundedStringError::BelowMinimum {
+                        ..
+                    } => Self::Error::Empty,
+                })
         } else {
             Err(crate::pg_table_idempotency_text_error::PgTableIdempotencyTextError::InvalidMethod)
         }

@@ -32,7 +32,9 @@ mod tests {
             #[derive(
                 proc_macro_optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, PartialEq, Eq,
             )]
-            pub(crate) struct ErrorText(String);
+            pub(crate) struct ErrorText(
+                bounded_types::bounded_string::BoundedString<0usize, 1_024usize, false>,
+            );
             #[derive(
                 proc_macro_optimal_memory_layout::OptimalMemoryLayout,
                 Debug,
@@ -53,7 +55,7 @@ mod tests {
             }
             impl From<ErrorTextTryFromStringError> for ErrorText {
                 fn from(value: ErrorTextTryFromStringError) -> Self {
-                    Self(value.to_string())
+                    Self::try_from(value.to_string()).expect(constants_str::DIAGNOSTIC_A43BE71C)
                 }
             }
             impl TryFrom<String> for ErrorText {
@@ -62,7 +64,12 @@ mod tests {
                     if value.len() > 1024 {
                         return Err(Self::Error::TooLong);
                     }
-                    Ok(Self(value))
+                    bounded_types::bounded_string::BoundedString::try_from(value)
+                        .map(Self)
+                        .map_err(|source| match source {
+                            bounded_types::bounded_string_error::BoundedStringError::AboveMaximum { .. }
+                            | bounded_types::bounded_string_error::BoundedStringError::BelowMinimum { .. } => Self::Error::TooLong,
+                        })
                 }
             }
             impl AsRef<str> for ErrorText {
@@ -388,22 +395,23 @@ mod tests {
     #[derive(
         proc_macro_optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, PartialEq, Eq,
     )]
-    struct CheckedText(String);
+    struct CheckedText(bounded_types::bounded_string::BoundedString<0usize, 2usize, false>);
     impl TryFrom<String> for CheckedText {
         type Error = CheckedTextError;
         fn try_from(value: String) -> Result<Self, Self::Error> {
-            validate_checked_text(value.as_str()).map(|()| Self(value))
+            try_bounded_checked_text(value).map(Self)
         }
     }
     #[derive(
         proc_macro_optimal_memory_layout::OptimalMemoryLayout, Debug, Clone, PartialEq, Eq,
     )]
-    struct ExplicitErrorCheckedText(String);
+    struct ExplicitErrorCheckedText(
+        bounded_types::bounded_string::BoundedString<0usize, 2usize, false>,
+    );
     impl TryFrom<String> for ExplicitErrorCheckedText {
         type Error = CheckedTextError;
         fn try_from(value: String) -> Result<Self, Self::Error> {
-            validate_checked_text(value.as_str())?;
-            Ok(Self(value))
+            try_bounded_checked_text(value).map(Self)
         }
     }
     #[derive(
@@ -419,12 +427,17 @@ mod tests {
         FirstValue,
         Second,
     }
-    fn validate_checked_text(str: &str) -> Result<(), CheckedTextError> {
-        if str.len() > 2usize {
-            Err(CheckedTextError::TooLong)
-        } else {
-            Ok(())
-        }
+    fn try_bounded_checked_text(
+        value: String,
+    ) -> Result<bounded_types::bounded_string::BoundedString<0usize, 2usize, false>, CheckedTextError>
+    {
+        bounded_types::bounded_string::BoundedString::try_from(value).map_err(|source| match source
+        {
+            bounded_types::bounded_string_error::BoundedStringError::AboveMaximum { .. }
+            | bounded_types::bounded_string_error::BoundedStringError::BelowMinimum { .. } => {
+                CheckedTextError::TooLong
+            }
+        })
     }
     #[test]
     fn test_not_inner_forwards_to_inner_value() {
@@ -494,7 +507,8 @@ mod tests {
     fn test_try_from_validator_checks_conversion() {
         assert_eq!(
             CheckedText::try_from(constants_str::AB.to_owned()),
-            Ok(CheckedText(constants_str::AB.to_owned()))
+            Ok(CheckedText::try_from(constants_str::AB.to_owned())
+                .expect(constants_str::DIAGNOSTIC_671FB973))
         );
         assert_eq!(
             CheckedText::try_from(constants_str::ABC_ALT_3.to_owned()),
@@ -505,7 +519,10 @@ mod tests {
     fn test_try_from_uses_explicit_error_type() {
         assert_eq!(
             ExplicitErrorCheckedText::try_from(constants_str::AB.to_owned()),
-            Ok(ExplicitErrorCheckedText(constants_str::AB.to_owned()))
+            Ok(
+                ExplicitErrorCheckedText::try_from(constants_str::AB.to_owned())
+                    .expect(constants_str::DIAGNOSTIC_6DBB7FF2)
+            )
         );
         assert_eq!(
             ExplicitErrorCheckedText::try_from(constants_str::ABC_ALT_3.to_owned()),

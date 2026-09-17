@@ -861,22 +861,6 @@ pub(crate) fn item_impl_input_type_is(
         });
     crate::analyzer_bool::AnalyzerBool::from(source_type.is_some_and(|input_type| input_type == ty))
 }
-pub(crate) fn item_impl_is_from_or_try_from(
-    syn_item_impl_ref: crate::syn_item_impl_ref::SynItemImplRef<'_>,
-) -> crate::analyzer_bool::AnalyzerBool {
-    crate::analyzer_bool::AnalyzerBool::from(
-        syn_item_impl_ref
-            .as_ref()
-            .trait_
-            .as_ref()
-            .is_some_and(|(path, _)| {
-                path.segments.last().is_some_and(|segment| {
-                    segment.ident == constants_str::FROM_ALT_3
-                        || segment.ident == constants_str::TRYFROM
-                })
-            }),
-    )
-}
 pub(crate) fn method_is_explicit_wrapper_accessor(
     syn_identifier_ref: crate::syn_identifier_ref::SynIdentifierRef<'_>,
 ) -> crate::analyzer_bool::AnalyzerBool {
@@ -1028,6 +1012,9 @@ pub(crate) fn domain_type_policy_should_check_path(
         || path_ref
             .as_ref()
             .starts_with(constants_str::CODE_STYLE_BOUNDED_TYPES_SRC)
+        || path_ref
+            .as_ref()
+            .starts_with(constants_str::CODE_STYLE_BOUNDED_STRING_CORE_SRC)
         || path_ref
             .as_ref()
             .to_string_lossy()

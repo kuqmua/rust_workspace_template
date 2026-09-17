@@ -9,7 +9,9 @@
     serde::Serialize,
 )]
 #[serde(try_from = "String")]
-pub struct RuntimeNotificationMessage(String);
+pub struct RuntimeNotificationMessage(
+    bounded_types::bounded_string::BoundedString<1usize, 65_536usize, false>,
+);
 
 impl TryFrom<String> for RuntimeNotificationMessage {
     type Error = crate::notification_message_error::NotificationMessageError;
@@ -20,7 +22,16 @@ impl TryFrom<String> for RuntimeNotificationMessage {
         } else if value.len() > 65_536usize {
             Err(Self::Error::TooLong)
         } else {
-            Ok(Self(value))
+            bounded_types::bounded_string::BoundedString::try_from(value)
+                .map(Self)
+                .map_err(|source| match source {
+                    bounded_types::bounded_string_error::BoundedStringError::AboveMaximum {
+                        ..
+                    } => Self::Error::TooLong,
+                    bounded_types::bounded_string_error::BoundedStringError::BelowMinimum {
+                        ..
+                    } => Self::Error::Empty,
+                })
         }
     }
 }

@@ -1,5 +1,5 @@
 #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Debug, Eq, PartialEq)]
-pub struct HttpCookieName(String);
+pub struct HttpCookieName(bounded_types::bounded_string::BoundedString<1usize, 8_192usize, false>);
 
 impl HttpCookieName {
     pub(crate) const fn as_str(&self) -> &str {
@@ -34,7 +34,16 @@ impl TryFrom<String> for HttpCookieName {
                     )
             });
         if valid {
-            Ok(Self(value))
+            bounded_types::bounded_string::BoundedString::try_from(value)
+                .map(Self)
+                .map_err(|source| match source {
+                    bounded_types::bounded_string_error::BoundedStringError::AboveMaximum {
+                        ..
+                    }
+                    | bounded_types::bounded_string_error::BoundedStringError::BelowMinimum {
+                        ..
+                    } => Self::Error::InvalidName,
+                })
         } else {
             Err(crate::http_secure_cookie_error::HttpSecureCookieError::InvalidName)
         }

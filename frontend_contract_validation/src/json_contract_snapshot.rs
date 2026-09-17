@@ -6,12 +6,14 @@
     PartialEq,
     proc_macro_newtype_as_ref_str::AsRefStr,
 )]
-pub struct JsonContractSnapshot(String);
+pub struct JsonContractSnapshot(
+    bounded_types::bounded_string::BoundedString<0usize, 1_048_576usize, false>,
+);
 impl TryFrom<String> for JsonContractSnapshot {
     type Error = crate::json_contract_snapshot_error::JsonContractSnapshotError;
     fn try_from(value: String) -> Result<Self, Self::Error> {
-        (value.len() <= constants_usize::VALUE_1_048_576)
-            .then_some(Self(value))
-            .ok_or(Self::Error::TooLong)
+        bounded_types::bounded_string::BoundedString::try_from(value)
+            .map(Self)
+            .map_err(Self::Error::TooLong)
     }
 }

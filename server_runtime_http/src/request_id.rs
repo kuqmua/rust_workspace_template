@@ -6,7 +6,7 @@
     PartialEq,
     proc_macro_newtype_display::Display,
 )]
-pub struct RequestId(String);
+pub struct RequestId(bounded_types::bounded_string::BoundedString<1usize, 128usize, false>);
 
 impl TryFrom<String> for RequestId {
     type Error = crate::request_id_try_from_string_error::RequestIdTryFromStringError;
@@ -15,7 +15,16 @@ impl TryFrom<String> for RequestId {
         if value.is_empty() || value.len() > constants_usize::VALUE_128 || !value.is_ascii() {
             Err(crate::request_id_try_from_string_error::RequestIdTryFromStringError::Invalid)
         } else {
-            Ok(Self(value))
+            bounded_types::bounded_string::BoundedString::try_from(value)
+                .map(Self)
+                .map_err(|source| match source {
+                    bounded_types::bounded_string_error::BoundedStringError::AboveMaximum {
+                        ..
+                    }
+                    | bounded_types::bounded_string_error::BoundedStringError::BelowMinimum {
+                        ..
+                    } => Self::Error::Invalid,
+                })
         }
     }
 }

@@ -13,11 +13,16 @@
 )]
 #[serde(try_from = "String", into = "String")]
 #[schema(value_type = String)]
-pub struct RegexRegex(String);
+pub struct RegexRegex(bounded_types::bounded_string::BoundedString<0usize, 1_048_576usize, false>);
 impl From<crate::default_regex_pattern::DefaultRegexPattern> for RegexRegex {
     fn from(value: crate::default_regex_pattern::DefaultRegexPattern) -> Self {
         let _: crate::default_regex_pattern::DefaultRegexPattern = value;
-        Self(String::from(constants_str::A_Z_PLUS))
+        match Self::try_from(String::from(constants_str::A_Z_PLUS)) {
+            Ok(regex_regex) => regex_regex,
+            Err(error) => {
+                bounded_types::try_from_bounded_error_text::try_from_bounded_error_text(error)
+            }
+        }
     }
 }
 impl TryFrom<String> for RegexRegex {
@@ -30,7 +35,16 @@ impl TryFrom<String> for RegexRegex {
         }
         let _validated_regex =
             regex::Regex::new(&value).map_err(crate::regex_error::RegexError::from)?;
-        Ok(Self(value))
+        bounded_types::bounded_string::BoundedString::try_from(value)
+            .map(Self)
+            .map_err(|source| match source {
+                bounded_types::bounded_string_error::BoundedStringError::AboveMaximum {
+                    ..
+                }
+                | bounded_types::bounded_string_error::BoundedStringError::BelowMinimum {
+                    ..
+                } => Self::Error::TooLong,
+            })
     }
 }
 

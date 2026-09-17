@@ -6,7 +6,9 @@
     PartialEq,
     proc_macro_newtype_as_ref_str::AsRefStr,
 )]
-pub struct BoundedJsonText(String);
+pub struct BoundedJsonText(
+    bounded_types::bounded_string::BoundedString<0usize, 16_777_216usize, false>,
+);
 
 impl BoundedJsonText {
     pub fn compact(&self) -> Result<Self, crate::bounded_json_read_error::BoundedJsonReadError> {
@@ -59,6 +61,24 @@ impl TryFrom<String> for BoundedJsonText {
                     crate::serde_json_error::SerdeJsonError::from(error),
                 )
             })?;
-        Ok(Self(value))
+        bounded_types::bounded_string::BoundedString::try_from(value)
+            .map(Self)
+            .map_err(|source| match source {
+                bounded_types::bounded_string_error::BoundedStringError::AboveMaximum {
+                    maximum_length,
+                    ..
+                }
+                | bounded_types::bounded_string_error::BoundedStringError::BelowMinimum {
+                    minimum_length: maximum_length,
+                    ..
+                } => Self::Error::Read(
+                    crate::bounded_read_error::BoundedReadError::ExceedsMaximum {
+                        maximum_bytes:
+                            crate::bounded_read_maximum_bytes::BoundedReadMaximumBytes::from(
+                                maximum_length.get(),
+                            ),
+                    },
+                ),
+            })
     }
 }

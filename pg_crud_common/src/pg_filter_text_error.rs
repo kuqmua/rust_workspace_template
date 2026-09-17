@@ -9,5 +9,5 @@
 )]
 pub enum PgFilterTextError {
     #[error("PostgreSQL filter text exceeds its maximum size")]
-    TooLarge,
+    TooLarge(#[source] bounded_types::bounded_string_error::BoundedStringError),
 }

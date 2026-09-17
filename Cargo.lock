@@ -457,9 +457,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "bounded_string_core"
+version = "0.1.0"
+dependencies = [
+ "constants_str",
+ "proc-macro2",
+ "proc_macro_optimal_memory_layout",
+ "quote",
+ "thiserror 2.0.20",
+]
+
+[[package]]
 name = "bounded_types"
 version = "0.1.0"
 dependencies = [
+ "bounded_string_core",
  "constants_str",
  "constants_usize",
  "proc_macro_newtype_deref_inner",
@@ -1901,6 +1913,7 @@ dependencies = [
 name = "git_info"
 version = "0.1.0"
 dependencies = [
+ "bounded_types",
  "constants_str",
  "constants_usize",
  "proc_macro_getters",
@@ -3175,6 +3188,7 @@ dependencies = [
 name = "notification_service_contract"
 version = "0.1.0"
 dependencies = [
+ "bounded_types",
  "constants_str",
  "constants_usize",
  "frontend_contract",
@@ -3657,6 +3671,7 @@ dependencies = [
 name = "pg_types_text_misc"
 version = "0.1.0"
 dependencies = [
+ "bounded_types",
  "frontend_contract",
  "location_lib",
  "pg_crud_common",
@@ -4641,6 +4656,7 @@ dependencies = [
 name = "proc_macro_newtype_shared"
 version = "0.1.0"
 dependencies = [
+ "bounded_string_core",
  "bounded_types",
  "constants_str",
  "constants_usize",
@@ -6691,6 +6707,7 @@ dependencies = [
 name = "tests_code_style_rust"
 version = "0.1.0"
 dependencies = [
+ "bounded_types",
  "cargo_metadata",
  "common_routes",
  "constants_str",
@@ -6738,6 +6755,7 @@ dependencies = [
 name = "text_policy"
 version = "0.1.0"
 dependencies = [
+ "bounded_types",
  "constants_str",
  "constants_usize",
  "proc_macro_getters",
@@ -7791,6 +7809,7 @@ dependencies = [
 name = "workspace_macro_helpers"
 version = "0.1.0"
 dependencies = [
+ "bounded_string_core",
  "constants_str",
  "constants_usize",
  "proc-macro2",

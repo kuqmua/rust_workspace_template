@@ -8,39 +8,72 @@ pub fn build_pg_scoped_foreign_key_clause(
         crate::pg_scoped_foreign_key_clause_text::PgScopedForeignKeyClauseText::try_from(
             String::from(constants_str::FOREIGN_KEY_OPENING),
         )?;
+    let map_bounded_error = |source| {
+        match source {
+        bounded_types::bounded_string_error::BoundedStringError::AboveMaximum {
+            actual_length,
+            maximum_length,
+        } => crate::pg_crud_string_wrapper_try_from_string_error::PgCrudStringWrapperTryFromStringError::TooLong {
+            len: actual_length.get(),
+            max: maximum_length.get(),
+        },
+        bounded_types::bounded_string_error::BoundedStringError::BelowMinimum {
+            actual_length,
+            minimum_length,
+        } => crate::pg_crud_string_wrapper_try_from_string_error::PgCrudStringWrapperTryFromStringError::TooLong {
+            len: actual_length.get(),
+            max: minimum_length.get(),
+        },
+    }
+    };
     crate::push_identifier_list::push_identifier_list(
         &mut clause,
         pg_scoped_foreign_key
             .get_local_columns()
             .get_inner()
             .as_slice(),
-    );
-    clause.get_inner_mut().push_str(constants_str::REFERENCES);
-    clause.get_inner_mut().push_str(
-        pg_scoped_foreign_key
-            .get_referenced_table()
-            .to_string()
-            .as_str(),
-    );
-    clause.get_inner_mut().push('(');
+    )
+    .map_err(map_bounded_error)?;
+    clause
+        .get_inner_mut()
+        .try_push_str(constants_str::REFERENCES)
+        .map_err(map_bounded_error)?;
+    clause
+        .get_inner_mut()
+        .try_push_str(
+            pg_scoped_foreign_key
+                .get_referenced_table()
+                .to_string()
+                .as_str(),
+        )
+        .map_err(map_bounded_error)?;
+    clause
+        .get_inner_mut()
+        .try_push('(')
+        .map_err(map_bounded_error)?;
     crate::push_identifier_list::push_identifier_list(
         &mut clause,
         pg_scoped_foreign_key
             .get_referenced_columns()
             .get_inner()
             .as_slice(),
-    );
-    clause.get_inner_mut().push(')');
+    )
+    .map_err(map_bounded_error)?;
     clause
         .get_inner_mut()
-        .push_str(match pg_scoped_foreign_key.get_on_delete() {
+        .try_push(')')
+        .map_err(map_bounded_error)?;
+    clause
+        .get_inner_mut()
+        .try_push_str(match pg_scoped_foreign_key.get_on_delete() {
             crate::pg_scoped_foreign_key_on_delete::PgScopedForeignKeyOnDelete::Cascade => {
                 constants_str::ON_DELETE_CASCADE
             }
             crate::pg_scoped_foreign_key_on_delete::PgScopedForeignKeyOnDelete::Restrict => {
                 constants_str::ON_DELETE_RESTRICT
             }
-        });
+        })
+        .map_err(map_bounded_error)?;
     crate::query_part_fragment::QueryPartFragment::try_from(clause.into_inner())
 }
 

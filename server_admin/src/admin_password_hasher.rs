@@ -31,19 +31,19 @@ impl AdminPasswordHasher {
                     &argon2::Argon2::default(),
                     secrecy::ExposeSecret::expose_secret(password_secret.as_ref()).as_bytes(),
                 )
-                .map(|hash| {
-                    crate::admin_password_hash::AdminPasswordHash::new(
-                        pg_types_text_misc::generate_pg_types_mod::StringAsNonNullTextSecret::from(
-                            hash.to_string(),
-                        ),
-                    )
-                })
                 .map_err(|error| {
                     crate::admin_password_hash_error::AdminPasswordHashError::PasswordHash(
                         crate::argon2_admin_password_hash_error::Argon2AdminPasswordHashError::from(
                             error,
                         ),
                     )
+                })
+                .and_then(|hash| {
+                    pg_types_text_misc::generate_pg_types_mod::StringAsNonNullTextSecret::try_from(
+                        hash.to_string(),
+                    )
+                    .map(crate::admin_password_hash::AdminPasswordHash::new)
+                    .map_err(crate::admin_password_hash_error::AdminPasswordHashError::BoundedText)
                 })
             };
             drop(permit);

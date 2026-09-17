@@ -11,7 +11,9 @@
     proc_macro_newtype_display::Display,
     proc_macro_newtype_into_inner::IntoInner,
 )]
-pub struct BoundedCharsString<const MIN: usize, const MAX: usize>(String);
+pub struct BoundedCharsString<const MIN: usize, const MAX: usize>(
+    crate::bounded_string::BoundedString<MIN, MAX, true>,
+);
 
 impl<const MIN: usize, const MAX: usize> BoundedCharsString<MIN, MAX> {
     pub fn validate_str(str: &str) -> Result<(), crate::bounded_value_error::BoundedValueError> {
@@ -22,7 +24,7 @@ impl<const MIN: usize, const MAX: usize> BoundedCharsString<MIN, MAX> {
 
     #[must_use]
     pub fn len(&self) -> crate::bounded_len::BoundedLen {
-        crate::bounded_len::BoundedLen::from(self.0.chars().count())
+        self.0.len()
     }
 }
 
@@ -36,7 +38,24 @@ impl<const MIN: usize, const MAX: usize> TryFrom<String> for BoundedCharsString<
     type Error = crate::bounded_value_error::BoundedValueError;
 
     fn try_from(value: String) -> Result<Self, Self::Error> {
-        Self::validate_str(value.as_str()).map(|()| Self(value))
+        crate::bounded_string::BoundedString::try_from(value)
+            .map(Self)
+            .map_err(|source| match source {
+                crate::bounded_string_error::BoundedStringError::AboveMaximum {
+                    actual_length,
+                    maximum_length,
+                } => Self::Error::AboveMax {
+                    actual: actual_length,
+                    max: maximum_length,
+                },
+                crate::bounded_string_error::BoundedStringError::BelowMinimum {
+                    actual_length,
+                    minimum_length,
+                } => Self::Error::BelowMin {
+                    actual: actual_length,
+                    min: minimum_length,
+                },
+            })
     }
 }
 

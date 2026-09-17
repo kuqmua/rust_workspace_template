@@ -8,6 +8,7 @@ license.workspace = true
 edition.workspace = true
 
 [dependencies]
+bounded_string_core = { workspace = true }
 proc_macro_newtype_get_inner = { workspace = true }
 proc_macro_newtype_from_inner = { workspace = true }
 constants_usize = { workspace = true }

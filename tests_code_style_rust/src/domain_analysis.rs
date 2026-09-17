@@ -28,6 +28,24 @@ pub(super) struct BoundedStringStorageVisitor {
 }
 impl<'ast> syn::visit::Visit<'ast> for BoundedStringStorageVisitor {
     fn visit_item_struct(&mut self, item_struct: &'ast syn::ItemStruct) {
+        let stores_raw_string = matches!(
+            &item_struct.fields,
+            syn::Fields::Unnamed(fields)
+                if fields.unnamed.len() == 1usize
+                    && fields.unnamed.first().is_some_and(|field| {
+                        crate::code_style::type_path_ends_with_identifier(
+                            crate::syn_type_ref::SynTypeRef::from(&field.ty),
+                            crate::source_text_ref::SourceTextRef::from(constants_str::STRING),
+                        )
+                        .get()
+                    })
+        );
+        if stores_raw_string {
+            self.errors.push(format!(
+                "`{}` tuple wrapper stores raw `String`; store `bounded_types::bounded_string::BoundedString` and construct it through `TryFrom` instead",
+                item_struct.ident
+            ));
+        }
         let has_bounded_string_attr = item_struct
             .attrs
             .iter()
@@ -400,6 +418,7 @@ pub(super) struct ManualDeserializeTupleWrapperVisitor<'names> {
     proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct TupleWrapperConversionCollector {
+    bounded_string_names: crate::source_text_b_tree_set::SourceTextBTreeSet,
     converted_names: crate::source_text_b_tree_set::SourceTextBTreeSet,
     from_inner_names: crate::source_text_b_tree_set::SourceTextBTreeSet,
     from_names: crate::source_text_b_tree_set::SourceTextBTreeSet,
@@ -414,6 +433,7 @@ pub(super) struct TupleWrapperConversionCollector {
     proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub(super) struct DirectTupleWrapperConstructorVisitor<'names> {
+    bounded_string_names: &'names crate::source_text_b_tree_set::SourceTextBTreeSet,
     current_wrapper_name: Option<String>,
     errors: crate::diagnostic_messages::DiagnosticMessages,
     inside_conversion_impl: crate::analyzer_bool::AnalyzerBool,
@@ -562,7 +582,7 @@ impl<'ast> syn::visit::Visit<'ast> for TupleWrapperConversionCollector {
                 let _: bool = self.try_from_inner_names.insert(name.as_ref().to_owned());
             }
         }
-        if crate::code_style::item_impl_is_from_or_try_from(item_ref).get() {
+        if is_from.get() || is_try_from.get() {
             let _: bool = self.converted_names.insert(name.as_ref().to_owned());
         }
         syn::visit::visit_item_impl(self, item_impl);
@@ -580,6 +600,21 @@ impl<'ast> syn::visit::Visit<'ast> for TupleWrapperConversionCollector {
                 && let Some(field) = fields.unnamed.first()
             {
                 drop(self.inner_types.insert(name.clone(), field.ty.clone()));
+                if crate::code_style::type_path_ends_with_identifier(
+                    crate::syn_type_ref::SynTypeRef::from(&field.ty),
+                    crate::source_text_ref::SourceTextRef::from(constants_str::BOUNDEDSTRING),
+                )
+                .get()
+                    || crate::code_style::type_path_ends_with_identifier(
+                        crate::syn_type_ref::SynTypeRef::from(&field.ty),
+                        crate::source_text_ref::SourceTextRef::from(stringify!(
+                            BoundedStringStorage
+                        )),
+                    )
+                    .get()
+                {
+                    let _: bool = self.bounded_string_names.insert(name.clone());
+                }
             }
             let derives_from_inner = item_struct.attrs.iter().any(|attr| {
                 if !attr.path().is_ident(constants_str::DERIVE) {
@@ -667,24 +702,47 @@ impl<'ast> syn::visit::Visit<'ast> for DirectTupleWrapperConstructorVisitor<'_> 
                 .as_deref()
                 .filter(|_| segment.ident == constants_str::SELF)
                 .map_or_else(|| segment.ident.to_string(), str::to_owned);
-            self.errors.push(format!(
-                "tuple wrapper `{}` is initialized directly at {}:{}-{}:{}; use From/TryFrom",
-                wrapper_name, start.line, start.column, end.line, end.column
-            ));
+            let message = if self.bounded_string_names.contains(wrapper_name.as_str()) {
+                format!(
+                    "tuple wrapper `{}` is initialized directly at {}:{}-{}:{}; use TryFrom",
+                    wrapper_name, start.line, start.column, end.line, end.column
+                )
+            } else {
+                format!(
+                    "tuple wrapper `{}` is initialized directly at {}:{}-{}:{}; use From/TryFrom",
+                    wrapper_name, start.line, start.column, end.line, end.column
+                )
+            };
+            self.errors.push(message);
         }
         syn::visit::visit_expr_call(self, expr_call);
     }
     fn visit_item_impl(&mut self, item_impl: &'ast syn::ItemImpl) {
         let previous = self.inside_conversion_impl;
         let previous_wrapper_name = self.current_wrapper_name.take();
-        self.inside_conversion_impl = crate::code_style::item_impl_is_from_or_try_from(
-            crate::syn_item_impl_ref::SynItemImplRef::from(item_impl),
-        );
         self.current_wrapper_name = crate::code_style::item_impl_self_ty_identifier(
             crate::syn_item_impl_ref::SynItemImplRef::from(item_impl),
         )
         .map(|name| name.as_ref().to_owned())
         .filter(|name| self.names.contains(name));
+        let is_try_from = item_impl.trait_.as_ref().is_some_and(|(path, _)| {
+            path.segments
+                .last()
+                .is_some_and(|segment| segment.ident == constants_str::TRYFROM)
+        });
+        let is_from = item_impl.trait_.as_ref().is_some_and(|(path, _)| {
+            path.segments
+                .last()
+                .is_some_and(|segment| segment.ident == constants_str::FROM_ALT_3)
+        });
+        self.inside_conversion_impl = crate::analyzer_bool::AnalyzerBool::from(
+            is_try_from
+                || (is_from
+                    && self
+                        .current_wrapper_name
+                        .as_ref()
+                        .is_none_or(|name| !self.bounded_string_names.contains(name.as_str()))),
+        );
         syn::visit::visit_item_impl(self, item_impl);
         self.inside_conversion_impl = previous;
         self.current_wrapper_name = previous_wrapper_name;

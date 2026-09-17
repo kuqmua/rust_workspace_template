@@ -47,16 +47,20 @@ pub(crate) async fn account_change_own_password(
             .fetch_optional(admin_auth_request.get_state().as_ref().get_pool().as_ref())
             .await
             .map_err(crate::sqlx_admin_error::SqlxAdminError::from)
-            .map(|value| {
-                value.map(|hash| {
-                    crate::admin_password_hash::AdminPasswordHash::new(
-                        pg_types_text_misc::generate_pg_types_mod::StringAsNonNullTextSecret::from(
-                            hash,
-                        ),
-                    )
-                })
-            })
             .map_err(crate::admin_error::AdminError::from)?
+            .map(|hash| {
+                pg_types_text_misc::generate_pg_types_mod::StringAsNonNullTextSecret::try_from(hash)
+                    .map(crate::admin_password_hash::AdminPasswordHash::new)
+                    .map_err(|source| match source {
+                        bounded_types::bounded_string_error::BoundedStringError::AboveMaximum {
+                            ..
+                        }
+                        | bounded_types::bounded_string_error::BoundedStringError::BelowMinimum {
+                            ..
+                        } => crate::admin_error::AdminError::Validation,
+                    })
+            })
+            .transpose()?
             .ok_or(crate::admin_error::AdminError::Authentication)?;
     if !admin_auth_request
         .get_state()

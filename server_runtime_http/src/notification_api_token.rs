@@ -1,5 +1,7 @@
 #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Eq, PartialEq)]
-pub struct NotificationApiToken(String);
+pub struct NotificationApiToken(
+    bounded_types::bounded_string::BoundedString<1usize, 4_096usize, false>,
+);
 
 impl NotificationApiToken {
     #[must_use]
@@ -8,9 +10,9 @@ impl NotificationApiToken {
         notification_api_token_ref: crate::notification_api_token_ref::NotificationApiTokenRef<'_>,
     ) -> crate::notification_api_token_authorized::NotificationApiTokenAuthorized {
         let candidate_text = notification_api_token_ref.get();
-        let maximum_len = self.0.len().max(candidate_text.len());
+        let maximum_len = self.0.as_str().len().max(candidate_text.len());
         let difference = (constants_usize::ZERO..maximum_len).fold(
-            self.0.len() ^ candidate_text.len(),
+            self.0.as_str().len() ^ candidate_text.len(),
             |acc, index| {
                 acc | usize::from(
                     self.0
@@ -47,7 +49,16 @@ impl TryFrom<String> for NotificationApiToken {
         } else if value.len() > constants_usize::VALUE_4_096 {
             Err(Self::Error::TooLong)
         } else {
-            Ok(Self(value))
+            bounded_types::bounded_string::BoundedString::try_from(value)
+                .map(Self)
+                .map_err(|source| match source {
+                    bounded_types::bounded_string_error::BoundedStringError::AboveMaximum {
+                        ..
+                    } => Self::Error::TooLong,
+                    bounded_types::bounded_string_error::BoundedStringError::BelowMinimum {
+                        ..
+                    } => Self::Error::Empty,
+                })
         }
     }
 }

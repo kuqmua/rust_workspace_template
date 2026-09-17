@@ -6,7 +6,7 @@
     PartialEq,
     proc_macro_newtype_as_ref_str::AsRefStr,
 )]
-pub struct CursorPayload(String);
+pub struct CursorPayload(bounded_types::bounded_string::BoundedString<1usize, 65_536usize, false>);
 
 impl CursorPayload {
     const MAXIMUM_LENGTH: usize = 65_536usize;
@@ -19,7 +19,16 @@ impl TryFrom<String> for CursorPayload {
         if value.is_empty() || value.len() > Self::MAXIMUM_LENGTH {
             Err(crate::cursor_payload_error::CursorPayloadError::Empty)
         } else {
-            Ok(Self(value))
+            bounded_types::bounded_string::BoundedString::try_from(value)
+                .map(Self)
+                .map_err(|source| match source {
+                    bounded_types::bounded_string_error::BoundedStringError::AboveMaximum {
+                        ..
+                    }
+                    | bounded_types::bounded_string_error::BoundedStringError::BelowMinimum {
+                        ..
+                    } => Self::Error::Empty,
+                })
         }
     }
 }
