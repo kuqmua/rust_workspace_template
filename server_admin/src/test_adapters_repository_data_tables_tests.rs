@@ -30,6 +30,324 @@ fn filter_query(
     )
 }
 
+fn filter_test_value(
+    field_name: &str,
+    input_kind: frontend_contract::input_kind::InputKind,
+) -> &'static str {
+    if field_name == stringify!(ip_address) {
+        constants_str::VALUE_127_0_0_1
+    } else {
+        match input_kind {
+            frontend_contract::input_kind::InputKind::Checkbox => stringify!(true),
+            frontend_contract::input_kind::InputKind::Date
+            | frontend_contract::input_kind::InputKind::DateTime
+            | frontend_contract::input_kind::InputKind::Time => {
+                constants_str::VALUE_2026_07_13T12_30_00
+            }
+            frontend_contract::input_kind::InputKind::Number => stringify!(2),
+            frontend_contract::input_kind::InputKind::Text => constants_str::ADMIN_ALT,
+            frontend_contract::input_kind::InputKind::Uuid => {
+                constants_str::VALUE_550E8400_E29B_41D4_A716_446655440000
+            }
+        }
+    }
+}
+
+fn filter_test_end_value(input_kind: frontend_contract::input_kind::InputKind) -> &'static str {
+    match input_kind {
+        frontend_contract::input_kind::InputKind::Number => stringify!(4),
+        frontend_contract::input_kind::InputKind::Date
+        | frontend_contract::input_kind::InputKind::DateTime
+        | frontend_contract::input_kind::InputKind::Time => {
+            constants_str::VALUE_2026_07_13T12_30_30
+        }
+        frontend_contract::input_kind::InputKind::Checkbox
+        | frontend_contract::input_kind::InputKind::Text
+        | frontend_contract::input_kind::InputKind::Uuid => constants_str::ADMIN,
+    }
+}
+
+#[test]
+fn test_every_generated_read_filter_accepts_every_logical_operator_variation() {
+    let filter_test_json_value =
+        |admin_generated_table: crate::admin_generated_table::AdminGeneratedTable,
+         field_name: &str,
+         input_kind: frontend_contract::input_kind::InputKind,
+         operation: frontend_contract::filter_operation::FilterOperation|
+         -> Result<serde_json::Value, String> {
+            let parse = |raw_value: &str| {
+                let wire_value = admin_generated_table
+                    .filter_value(
+                        frontend_contract::form_field_name_ref::FormFieldNameRef::from(field_name),
+                        frontend_contract::form_value_ref::FormValueRef::from(raw_value),
+                    )
+                    .ok_or_else(String::new)?
+                    .map_err(|error| error.to_string())?;
+                serde_json::from_str::<serde_json::Value>(wire_value.as_ref())
+                    .map_err(|error| error.to_string())
+            };
+            let value = parse(filter_test_value(field_name, input_kind))?;
+            match operation.value_shape() {
+                frontend_contract::filter_value_shape::FilterValueShape::None => {
+                    Ok(serde_json::Value::Null)
+                }
+                frontend_contract::filter_value_shape::FilterValueShape::Range => {
+                    Ok(serde_json::json!({
+                        (constants_str::PG_CRUD_START_FIELD): value,
+                        (constants_str::PG_CRUD_END_FIELD): parse(filter_test_end_value(input_kind))?
+                    }))
+                }
+                frontend_contract::filter_value_shape::FilterValueShape::List => {
+                    Ok(serde_json::Value::Array(vec![
+                        value,
+                        parse(filter_test_end_value(input_kind))?,
+                    ]))
+                }
+                frontend_contract::filter_value_shape::FilterValueShape::EncodedText => {
+                    Ok(serde_json::json!({
+                        (constants_str::SERVER_ADMIN_FILTER_ENCODE_FORMAT_FIELD): constants_str::SERVER_ADMIN_FILTER_ENCODE_BASE64,
+                        (constants_str::SERVER_ADMIN_FILTER_ENCODED_VALUE_FIELD): constants_str::ADMIN_ALT,
+                    }))
+                }
+                frontend_contract::filter_value_shape::FilterValueShape::Regex
+                | frontend_contract::filter_value_shape::FilterValueShape::Scalar => Ok(value),
+            }
+        };
+    [
+        crate::admin_generated_table::AdminGeneratedTable::Roles,
+        crate::admin_generated_table::AdminGeneratedTable::RolePermissions,
+        crate::admin_generated_table::AdminGeneratedTable::Users,
+        crate::admin_generated_table::AdminGeneratedTable::Permissions,
+        crate::admin_generated_table::AdminGeneratedTable::SystemSettings,
+        crate::admin_generated_table::AdminGeneratedTable::UserRoles,
+    ]
+    .into_iter()
+    .for_each(|admin_generated_table| {
+        admin_generated_table
+            .field_contracts()
+            .as_ref()
+            .iter()
+            .filter(|field_contract| {
+                field_contract.readable()
+                    == frontend_contract::field_capability::FieldCapability::Enabled
+            })
+            .for_each(|field_contract| {
+                field_contract.filters().iter().copied().for_each(|operation| {
+                    [
+                        stringify!(And),
+                        stringify!(AndNot),
+                        stringify!(Or),
+                        stringify!(OrNot),
+                    ]
+                    .into_iter()
+                    .for_each(|field_operator| {
+                        [
+                            stringify!(And),
+                            stringify!(AndNot),
+                            stringify!(Or),
+                            stringify!(OrNot),
+                        ]
+                        .into_iter()
+                        .for_each(|predicate_operator| {
+                            let mut predicate = serde_json::Map::new();
+                            let _operator_replaced = predicate.insert(
+                                constants_str::PG_CRUD_OPERATOR_FIELD.to_owned(),
+                                serde_json::Value::String(predicate_operator.to_owned()),
+                            );
+                            if operation.value_shape()
+                                != frontend_contract::filter_value_shape::FilterValueShape::None
+                            {
+                                let value = filter_test_json_value(
+                                    admin_generated_table,
+                                    field_contract.name().as_ref(),
+                                    field_contract.type_contract().input_kind(),
+                                    operation,
+                                );
+                                assert!(value.is_ok());
+                                let Ok(value) = value else {
+                                    return;
+                                };
+                                let _values_replaced = predicate.insert(
+                                    constants_str::PG_CRUD_VALUES_FIELD.to_owned(),
+                                    value,
+                                );
+                            }
+                            if operation.value_shape()
+                                == frontend_contract::filter_value_shape::FilterValueShape::Regex
+                            {
+                                let _regex_case_replaced = predicate.insert(
+                                    constants_str::SERVER_ADMIN_FILTER_REGEX_CASE_FIELD.to_owned(),
+                                    serde_json::Value::String(
+                                        constants_str::SERVER_ADMIN_FILTER_REGEX_SENSITIVE
+                                            .to_owned(),
+                                    ),
+                                );
+                            }
+                            let mut operation_entry = serde_json::Map::new();
+                            let _operation_replaced = operation_entry.insert(
+                                format!("{operation:?}"),
+                                serde_json::Value::Object(predicate),
+                            );
+                            let filter = serde_json::json!({
+                                (field_contract.name().as_ref()): {
+                                    (constants_str::PG_CRUD_OPERATOR_FIELD): field_operator,
+                                    (constants_str::PG_CRUD_VALUES_FIELD): [operation_entry]
+                                }
+                            });
+                            let result = serde_json::to_string(&filter)
+                                .map_err(|error| error.to_string())
+                                .and_then(|filter_json| {
+                                    admin_generated_table
+                                        .parse_filter(
+                                            server_admin_core::std_admin_str_ref::StdAdminStrRef::from(
+                                                filter_json.as_str(),
+                                            ),
+                                        )
+                                        .map_err(|error| error.to_string())
+                                })
+                                .and_then(|filter| {
+                                    let mut increment = pg_crud_common::query_part_increment::QueryPartIncrement::from(constants_u64::ZERO);
+                                    filter
+                                        .query_part(&mut increment)
+                                        .map(|_fragment| ())
+                                        .map_err(|error| error.to_string())
+                                });
+                            assert_eq!(
+                                result,
+                                Ok(()),
+                                "{admin_generated_table:?}.{}.{operation:?}.{field_operator}.{predicate_operator}",
+                                field_contract.name().as_ref(),
+                            );
+                        });
+                    });
+                });
+            });
+    });
+}
+
+#[test]
+fn test_every_read_table_filter_column_and_operation_builds_a_typed_predicate() {
+    let table_field_contracts = |admin_data_table| match admin_data_table {
+        server_admin_contract::admin_data_table::AdminDataTable::AccessSessions => {
+            crate::admin_access_sessions::AdminAccessSessions::frontend_fields()
+        }
+        server_admin_contract::admin_data_table::AdminDataTable::AuditLog => {
+            crate::admin_audit_log::AdminAuditLog::frontend_fields()
+        }
+        server_admin_contract::admin_data_table::AdminDataTable::CleanupStatus => {
+            crate::admin_cleanup_status::AdminCleanupStatus::frontend_fields()
+        }
+        server_admin_contract::admin_data_table::AdminDataTable::LoginAttempts => {
+            crate::admin_login_attempts::AdminLoginAttempts::frontend_fields()
+        }
+        server_admin_contract::admin_data_table::AdminDataTable::Permissions => {
+            crate::admin_permissions::AdminPermissions::frontend_fields()
+        }
+        server_admin_contract::admin_data_table::AdminDataTable::RateLimits => {
+            crate::admin_rate_limits::AdminRateLimits::frontend_fields()
+        }
+        server_admin_contract::admin_data_table::AdminDataTable::RefreshTokens => {
+            crate::admin_refresh_tokens::AdminRefreshTokens::frontend_fields()
+        }
+        server_admin_contract::admin_data_table::AdminDataTable::RolePermissions => {
+            crate::admin_role_permissions::AdminRolePermissions::frontend_fields()
+        }
+        server_admin_contract::admin_data_table::AdminDataTable::Roles => {
+            crate::admin_roles::AdminRoles::frontend_fields()
+        }
+        server_admin_contract::admin_data_table::AdminDataTable::SystemSettings => {
+            crate::admin_system_settings::AdminSystemSettings::frontend_fields()
+        }
+        server_admin_contract::admin_data_table::AdminDataTable::UserRoles => {
+            crate::admin_user_roles::AdminUserRoles::frontend_fields()
+        }
+        server_admin_contract::admin_data_table::AdminDataTable::Users => {
+            crate::admin_users::AdminUsers::frontend_fields()
+        }
+    };
+    server_admin_contract::admin_data_table::AdminDataTable::PG_ORDER
+        .into_iter()
+        .for_each(|admin_data_table| {
+            let field_contracts = table_field_contracts(admin_data_table);
+            admin_data_table
+                .spec()
+                .columns()
+                .get()
+                .split(',')
+                .for_each(|column| {
+                    let field_contract = field_contracts
+                        .as_ref()
+                        .iter()
+                        .find(|field_contract| field_contract.name().as_ref() == column);
+                    assert!(field_contract.is_some());
+                    let Some(field_contract) = field_contract else {
+                        return;
+                    };
+                    if field_contract.readable()
+                        == frontend_contract::field_capability::FieldCapability::Disabled
+                    {
+                        return;
+                    }
+                    assert!(!field_contract.filters().is_empty());
+                    field_contract
+                        .filters()
+                        .iter()
+                        .copied()
+                        .for_each(|operation| {
+                            let value = filter_test_value(
+                                column,
+                                field_contract.type_contract().input_kind(),
+                            );
+                            let (value, end) = match operation.value_shape() {
+                            frontend_contract::filter_value_shape::FilterValueShape::None => {
+                                (None, None)
+                            }
+                            frontend_contract::filter_value_shape::FilterValueShape::Range => {
+                                (
+                                    Some(value),
+                                    Some(filter_test_end_value(
+                                        field_contract.type_contract().input_kind(),
+                                    )),
+                                )
+                            }
+                            frontend_contract::filter_value_shape::FilterValueShape::List
+                            | frontend_contract::filter_value_shape::FilterValueShape::EncodedText
+                            | frontend_contract::filter_value_shape::FilterValueShape::Regex
+                            | frontend_contract::filter_value_shape::FilterValueShape::Scalar => {
+                                (Some(value), None)
+                            }
+                        };
+                            let query = filter_query(column, operation, value, end);
+                            let result = (|| {
+                                let filter = crate::data_filter::data_filter(
+                                    admin_data_table,
+                                    query.filter(),
+                                )
+                                .map_err(|error| error.to_string())?
+                                .ok_or_else(String::new)?;
+                                let mut increment =
+                                    pg_crud_common::query_part_increment::QueryPartIncrement::from(
+                                        constants_u64::ZERO,
+                                    );
+                                let fragment = filter
+                                    .query_part(&mut increment)
+                                    .map_err(|error| error.to_string())?;
+                                if fragment.as_ref().contains(column) {
+                                    Ok(())
+                                } else {
+                                    Err(fragment.as_ref().to_owned())
+                                }
+                            })();
+                            assert_eq!(
+                                result,
+                                Ok(()),
+                                "{admin_data_table:?}.{column}.{operation:?}"
+                            );
+                        });
+                });
+        });
+}
+
 #[test]
 fn test_generated_table_fields_supply_client_column_metadata() {
     let columns = (|| -> Result<

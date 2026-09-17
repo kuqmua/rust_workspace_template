@@ -458,6 +458,7 @@ proc_macro_define_str_constants::define_str_constants! {
         W_N_127 = "127";
         W_N_128 = "128";
         W_N_13 = "13";
+        W_N_13T12 = "13T12";
         W_N_16 = "16";
         W_N_17T09 = "17T09";
         W_N_192 = "192";
@@ -4810,7 +4811,8 @@ proc_macro_define_str_constants::define_str_constants! {
         pub VALUE_200_OK = ["200_ok"];
         pub VALUE_201 = ["201"];
         pub VALUE_2024 = [W_N_2024];
-        pub VALUE_2026_07_13T12_30_00 = [W_N_2026, RF_0933FB66, W_N_07, RF_0933FB66, "13T12", RF_194AA390, W_N_30, RF_194AA390, W_N_00];
+        pub VALUE_2026_07_13T12_30_00 = [W_N_2026, RF_0933FB66, W_N_07, RF_0933FB66, W_N_13T12, RF_194AA390, W_N_30, RF_194AA390, W_N_00];
+        pub VALUE_2026_07_13T12_30_30 = [W_N_2026, RF_0933FB66, W_N_07, RF_0933FB66, W_N_13T12, RF_194AA390, W_N_30, RF_194AA390, W_N_30];
         pub VALUE_2028024D = [W_2028024D];
         pub VALUE_203_0_113_1 = [W_N_203, RF_7299B59D, W_N_0, RF_7299B59D, W_N_113, RF_7299B59D, W_N_1];
         pub VALUE_203_0_113_1_NOT_AN_IP = [W_N_203, RF_7299B59D, W_N_0, RF_7299B59D, W_N_113, RF_7299B59D, W_N_1, RF_D03502C4, W_NOT_254BB97B, RF_0933FB66, W_AN, RF_0933FB66, W_IP];
