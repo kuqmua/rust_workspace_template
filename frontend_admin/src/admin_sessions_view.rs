@@ -52,6 +52,8 @@ pub(crate) fn AdminSessionsView(
         frontend_contract::filter_operation::FilterOperation::Between,
     ]
     .map(server_admin_contract::admin_data_filter::AdminDataFilter::from);
+    let boolean_filters = [frontend_contract::filter_operation::FilterOperation::Eq]
+        .map(server_admin_contract::admin_data_filter::AdminDataFilter::from);
     let sessions_path =
         server_admin_contract::admin_data_table_frontend_path::AdminDataTableFrontendPath::from(
             server_admin_contract::admin_frontend_path::AdminFrontendPath::Sessions,
@@ -84,6 +86,9 @@ pub(crate) fn AdminSessionsView(
         constants_str::EXPIRES_AT.to_owned(),
     )
     .ok();
+    let current =
+        server_admin_contract::admin_text::AdminText::try_from(constants_str::CURRENT.to_owned())
+            .ok();
     let identifier_filter = identifier.as_ref().map(|identifier| {
         column_filter(
             identifier,
@@ -103,6 +108,13 @@ pub(crate) fn AdminSessionsView(
             expires_at,
             frontend_contract::input_kind::InputKind::DateTime,
             &timestamp_filters,
+        )
+    });
+    let current_filter = current.as_ref().map(|current| {
+        column_filter(
+            current,
+            frontend_contract::input_kind::InputKind::Checkbox,
+            &boolean_filters,
         )
     });
     leptos::view! {
@@ -126,7 +138,7 @@ pub(crate) fn AdminSessionsView(
                     })
                 />
             </div>
-            <crate::table_wrapper::TableWrapper><crate::table::Table><crate::table_header::TableHeader><crate::table_row::TableRow><crate::table_head::TableHead data_field=constants_str::SQL_NAMES_ID.to_owned() data_filter_count=identifier_filters.len().to_string()><div class="table-column-heading"><span>"session"</span>{identifier_filter}</div></crate::table_head::TableHead><crate::table_head::TableHead data_field=constants_str::CREATED_AT.to_owned() data_filter_count=timestamp_filters.len().to_string()><div class="table-column-heading"><span>"created"</span>{created_at_filter}</div></crate::table_head::TableHead><crate::table_head::TableHead data_field=constants_str::EXPIRES_AT.to_owned() data_filter_count=timestamp_filters.len().to_string()><div class="table-column-heading"><span>"expires"</span>{expires_at_filter}</div></crate::table_head::TableHead><crate::table_head::TableHead>"current"</crate::table_head::TableHead><crate::table_head::TableHead>"actions"</crate::table_head::TableHead></crate::table_row::TableRow></crate::table_header::TableHeader>
+            <crate::table_wrapper::TableWrapper><crate::table::Table><crate::table_header::TableHeader><crate::table_row::TableRow><crate::table_head::TableHead data_field=constants_str::SQL_NAMES_ID.to_owned() data_filter_count=identifier_filters.len().to_string()><div class="table-column-heading"><span>"session"</span>{identifier_filter}</div></crate::table_head::TableHead><crate::table_head::TableHead data_field=constants_str::CREATED_AT.to_owned() data_filter_count=timestamp_filters.len().to_string()><div class="table-column-heading"><span>"created"</span>{created_at_filter}</div></crate::table_head::TableHead><crate::table_head::TableHead data_field=constants_str::EXPIRES_AT.to_owned() data_filter_count=timestamp_filters.len().to_string()><div class="table-column-heading"><span>"expires"</span>{expires_at_filter}</div></crate::table_head::TableHead><crate::table_head::TableHead data_field=constants_str::CURRENT.to_owned() data_filter_count=boolean_filters.len().to_string()><div class="table-column-heading"><span>"current"</span>{current_filter}</div></crate::table_head::TableHead><crate::table_head::TableHead>"actions"</crate::table_head::TableHead></crate::table_row::TableRow></crate::table_header::TableHeader>
             <crate::table_body::TableBody>{rows}</crate::table_body::TableBody></crate::table::Table></crate::table_wrapper::TableWrapper>
             <super::admin_pagination::AdminPagination admin_frontend_path=server_admin_contract::admin_frontend_path::AdminFrontendPath::Sessions admin_csr_query=admin_csr_query admin_page_total=total />
         </section>

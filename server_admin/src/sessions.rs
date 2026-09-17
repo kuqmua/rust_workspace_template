@@ -16,37 +16,82 @@ pub(crate) async fn sessions(
         *admin_auth_request.get_peer(),
     )
     .await?;
-    let filter = crate::data_filter::data_filter(
-        server_admin_contract::admin_data_table::AdminDataTable::AccessSessions,
-        axum_admin_query.filter(),
-    )
+    let current_filter = (|| {
+        let Some(field) = axum_admin_query.filter().field() else {
+            return Ok(None);
+        };
+        if field.as_ref() != constants_str::CURRENT {
+            return Ok(None);
+        }
+        if axum_admin_query.filter().operation()
+            != Some(frontend_contract::filter_operation::FilterOperation::Eq)
+            || axum_admin_query.filter().end().is_some()
+        {
+            return Err(crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue);
+        }
+        match axum_admin_query.filter().value().map(AsRef::<str>::as_ref) {
+            Some(constants_str::TRUE) => Ok(Some(true)),
+            Some(constants_str::FALSE) => Ok(Some(false)),
+            Some(_) | None => {
+                Err(crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue)
+            }
+        }
+    })()
     .map_err(crate::map_repository_error::map_repository_error)?;
+    let filter = if current_filter.is_some() {
+        None
+    } else {
+        crate::data_filter::data_filter(
+            server_admin_contract::admin_data_table::AdminDataTable::AccessSessions,
+            axum_admin_query.filter(),
+        )
+        .map_err(crate::map_repository_error::map_repository_error)?
+    };
     let mut increment = pg_crud_common::query_part_increment::QueryPartIncrement::from(1u64);
-    let fragment = filter
-        .as_ref()
-        .map(|value| value.query_part(&mut increment))
-        .transpose()
-        .map_err(|_error| crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue)
-        .and_then(|fragment| {
-            fragment
-                .map(|fragment| {
-                    let predicate = fragment
-                        .as_ref()
-                        .strip_prefix(constants_str::WHERE_ALT.trim_end())
-                        .ok_or(
-                            crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue,
-                        )?;
-                    let mut sql = constants_str::AND_ALT.to_owned();
-                    sql.push_str(predicate);
-                    pg_crud_common::query_part_fragment::QueryPartFragment::try_from(sql).map_err(
-                        |_error| {
-                            crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue
-                        },
-                    )
-                })
-                .transpose()
-        })
-        .map_err(crate::map_repository_error::map_repository_error)?;
+    let fragment = if let Some(is_current) = current_filter {
+        increment = pg_crud_common::query_part_increment::QueryPartIncrement::from(2u64);
+        Some(
+            pg_crud_common::query_part_fragment::QueryPartFragment::try_from(
+                if is_current {
+                    constants_str::SERVER_ADMIN_FILTER_CURRENT_SESSION_SQL
+                } else {
+                    constants_str::SERVER_ADMIN_FILTER_OTHER_SESSIONS_SQL
+                }
+                .to_owned(),
+            )
+            .map_err(|_error| {
+                crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue
+            })
+            .map_err(crate::map_repository_error::map_repository_error)?,
+        )
+    } else {
+        filter
+            .as_ref()
+            .map(|value| value.query_part(&mut increment))
+            .transpose()
+            .map_err(|_error| {
+                crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue
+            })
+            .and_then(|fragment| {
+                fragment
+                    .map(|fragment| {
+                        let predicate = fragment
+                            .as_ref()
+                            .strip_prefix(constants_str::WHERE_ALT.trim_end())
+                            .ok_or(
+                                crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue,
+                            )?;
+                        let mut sql = constants_str::AND_ALT.to_owned();
+                        sql.push_str(predicate);
+                        pg_crud_common::query_part_fragment::QueryPartFragment::try_from(sql)
+                            .map_err(|_error| {
+                                crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue
+                            })
+                    })
+                    .transpose()
+            })
+            .map_err(crate::map_repository_error::map_repository_error)?
+    };
     let count_sql = fragment
         .as_ref()
         .map_or_else(
@@ -115,23 +160,31 @@ pub(crate) async fn sessions(
         .map_err(crate::map_repository_error::map_repository_error)?;
     let unbound_count_query = sqlx::query(sqlx::AssertSqlSafe(count_sql.as_ref().as_str()))
         .bind(authenticated.get_id().get());
-    let bound_count_query = filter
-        .clone()
-        .map(|value| {
-            value.query_bind(
-                pg_crud_common::sqlx_postgres_query::SqlxPostgresQuery::from(unbound_count_query),
+    let bound_count_query = if current_filter.is_some() {
+        unbound_count_query.bind(authenticated.get_session_id().get().get())
+    } else {
+        filter
+            .clone()
+            .map(|value| {
+                value.query_bind(
+                    pg_crud_common::sqlx_postgres_query::SqlxPostgresQuery::from(
+                        unbound_count_query,
+                    ),
+                )
+            })
+            .transpose()
+            .map_err(|_error| {
+                crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue
+            })
+            .map_err(crate::map_repository_error::map_repository_error)?
+            .map_or_else(
+                || {
+                    sqlx::query(sqlx::AssertSqlSafe(count_sql.as_ref().as_str()))
+                        .bind(authenticated.get_id().get())
+                },
+                pg_crud_common::sqlx_postgres_query::SqlxPostgresQuery::into_inner,
             )
-        })
-        .transpose()
-        .map_err(|_error| crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue)
-        .map_err(crate::map_repository_error::map_repository_error)?
-        .map_or_else(
-            || {
-                sqlx::query(sqlx::AssertSqlSafe(count_sql.as_ref().as_str()))
-                    .bind(authenticated.get_id().get())
-            },
-            pg_crud_common::sqlx_postgres_query::SqlxPostgresQuery::into_inner,
-        );
+    };
     let count_row = bound_count_query
         .fetch_one(admin_auth_request.get_state().as_ref().get_pool().as_ref())
         .await
@@ -142,24 +195,32 @@ pub(crate) async fn sessions(
         .map_err(crate::admin_error::AdminError::from)?;
     let unbound_data_query = sqlx::query(sqlx::AssertSqlSafe(data_sql.as_ref().as_str()))
         .bind(authenticated.get_id().get());
-    let bound_data_query = filter
-        .map(|value| {
-            value.query_bind(
-                pg_crud_common::sqlx_postgres_query::SqlxPostgresQuery::from(unbound_data_query),
+    let bound_data_query = if current_filter.is_some() {
+        unbound_data_query.bind(authenticated.get_session_id().get().get())
+    } else {
+        filter
+            .map(|value| {
+                value.query_bind(
+                    pg_crud_common::sqlx_postgres_query::SqlxPostgresQuery::from(
+                        unbound_data_query,
+                    ),
+                )
+            })
+            .transpose()
+            .map_err(|_error| {
+                crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue
+            })
+            .map_err(crate::map_repository_error::map_repository_error)?
+            .map_or_else(
+                || {
+                    sqlx::query(sqlx::AssertSqlSafe(data_sql.as_ref().as_str()))
+                        .bind(authenticated.get_id().get())
+                },
+                pg_crud_common::sqlx_postgres_query::SqlxPostgresQuery::into_inner,
             )
-        })
-        .transpose()
-        .map_err(|_error| crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue)
-        .map_err(crate::map_repository_error::map_repository_error)?
-        .map_or_else(
-            || {
-                sqlx::query(sqlx::AssertSqlSafe(data_sql.as_ref().as_str()))
-                    .bind(authenticated.get_id().get())
-            },
-            pg_crud_common::sqlx_postgres_query::SqlxPostgresQuery::into_inner,
-        )
-        .bind(i64::from(u16::from(axum_admin_query.page().limit())))
-        .bind(i64::from(u32::from(axum_admin_query.page().offset())));
+    }
+    .bind(i64::from(u16::from(axum_admin_query.page().limit())))
+    .bind(i64::from(u32::from(axum_admin_query.page().offset())));
     let items = bound_data_query
         .fetch_all(admin_auth_request.get_state().as_ref().get_pool().as_ref())
         .await
