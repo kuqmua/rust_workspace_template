@@ -37,6 +37,10 @@ pub(crate) fn data_filter(
             == server_admin_contract::admin_data_table::AdminDataTable::RefreshTokens
         {
             Some(crate::admin_refresh_tokens::AdminRefreshTokens::frontend_fields())
+        } else if admin_data_table
+            == server_admin_contract::admin_data_table::AdminDataTable::RateLimits
+        {
+            Some(crate::admin_rate_limits::AdminRateLimits::frontend_fields())
         } else {
             crate::admin_generated_table::AdminGeneratedTable::for_data_table(admin_data_table)
                 .map(crate::admin_generated_table::AdminGeneratedTable::field_contracts)
@@ -104,6 +108,13 @@ pub(crate) fn data_filter(
                 == server_admin_contract::admin_data_table::AdminDataTable::RefreshTokens
             {
                 crate::admin_refresh_tokens::AdminRefreshTokens::frontend_filter_value(
+                    field_name_ref,
+                    form_value_ref,
+                )
+            } else if admin_data_table
+                == server_admin_contract::admin_data_table::AdminDataTable::RateLimits
+            {
+                crate::admin_rate_limits::AdminRateLimits::frontend_filter_value(
                     field_name_ref,
                     form_value_ref,
                 )
@@ -295,6 +306,15 @@ pub(crate) fn data_filter(
         >(payload_ref.get())
         .map(crate::data_refresh_tokens_flt::DataRefreshTokensFlt::from)
         .map(crate::data_flt::DataFlt::RefreshTokens)
+        .map_err(|_error| crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue)
+    } else if admin_data_table
+        == server_admin_contract::admin_data_table::AdminDataTable::RateLimits
+    {
+        serde_json::from_str::<
+            crate::admin_rate_limits::StdOptionalOptionalAdminRateLimitsWhereMany,
+        >(payload_ref.get())
+        .map(crate::data_rate_limits_flt::DataRateLimitsFlt::from)
+        .map(crate::data_flt::DataFlt::RateLimits)
         .map_err(|_error| crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue)
     } else {
         crate::admin_generated_table::AdminGeneratedTable::for_data_table(admin_data_table)

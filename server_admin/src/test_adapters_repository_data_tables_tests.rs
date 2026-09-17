@@ -246,6 +246,114 @@ fn test_login_attempts_columns_supply_filter_metadata() {
 }
 
 #[test]
+fn test_system_settings_filter_builds_typed_table_predicate() {
+    let query = filter_query(
+        constants_str::VALUE_7C6A6719,
+        frontend_contract::filter_operation::FilterOperation::Eq,
+        Some(constants_str::ADMIN),
+        None,
+    );
+    let result = (|| {
+        let filter = crate::data_filter::data_filter(
+            server_admin_contract::admin_data_table::AdminDataTable::SystemSettings,
+            query.filter(),
+        )
+        .map_err(|error| error.to_string())?
+        .ok_or_else(String::new)?;
+        let mut increment =
+            pg_crud_common::query_part_increment::QueryPartIncrement::from(constants_u64::ZERO);
+        let fragment = filter
+            .query_part(&mut increment)
+            .map_err(|error| error.to_string())?;
+        if fragment.as_ref().contains(constants_str::VALUE_7C6A6719)
+            && fragment.as_ref().contains(constants_str::DOLLAR_1_ALT)
+        {
+            Ok(increment.get())
+        } else {
+            Err(String::new())
+        }
+    })();
+
+    assert_eq!(result, Ok(1u64));
+}
+
+#[test]
+fn test_system_settings_columns_supply_filter_metadata() {
+    let field_contracts = crate::admin_system_settings::AdminSystemSettings::frontend_fields();
+
+    assert!(
+        server_admin_contract::admin_data_table::AdminDataTable::SystemSettings
+            .spec()
+            .columns()
+            .get()
+            .split(',')
+            .all(|column| {
+                field_contracts
+                    .as_ref()
+                    .iter()
+                    .find(|field| field.name().as_ref() == column)
+                    .is_some_and(|field| !field.filters().is_empty())
+            })
+    );
+}
+
+#[test]
+fn test_rate_limits_filter_builds_typed_table_predicate() {
+    let scope = constants_str::SERVER_ADMIN_DATA_RATE_LIMITS_COLUMNS
+        .split(',')
+        .next()
+        .unwrap_or(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX);
+    let query = filter_query(
+        scope,
+        frontend_contract::filter_operation::FilterOperation::Eq,
+        Some(constants_str::ADMIN),
+        None,
+    );
+    let result = (|| {
+        let filter = crate::data_filter::data_filter(
+            server_admin_contract::admin_data_table::AdminDataTable::RateLimits,
+            query.filter(),
+        )
+        .map_err(|error| error.to_string())?
+        .ok_or_else(String::new)?;
+        let mut increment =
+            pg_crud_common::query_part_increment::QueryPartIncrement::from(constants_u64::ZERO);
+        let fragment = filter
+            .query_part(&mut increment)
+            .map_err(|error| error.to_string())?;
+        if fragment.as_ref().contains(scope)
+            && fragment.as_ref().contains(constants_str::DOLLAR_1_ALT)
+        {
+            Ok(increment.get())
+        } else {
+            Err(String::new())
+        }
+    })();
+
+    assert_eq!(result, Ok(1u64));
+}
+
+#[test]
+fn test_rate_limits_columns_supply_filter_metadata() {
+    let field_contracts = crate::admin_rate_limits::AdminRateLimits::frontend_fields();
+
+    assert!(
+        server_admin_contract::admin_data_table::AdminDataTable::RateLimits
+            .spec()
+            .columns()
+            .get()
+            .split(',')
+            .all(|column| {
+                field_contracts
+                    .as_ref()
+                    .iter()
+                    .find(|field| field.name().as_ref() == column)
+                    .is_some_and(|field| !field.filters().is_empty())
+            })
+    );
+}
+
+#[test]
 fn test_audit_log_filter_builds_typed_table_predicate() {
     let query = filter_query(
         constants_str::ACTION,

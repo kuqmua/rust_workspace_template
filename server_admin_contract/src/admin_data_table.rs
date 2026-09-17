@@ -173,7 +173,7 @@ impl AdminDataTable {
                     constants_str::SERVER_ADMIN_DATA_ORDER_WINDOW,
                 ),
                 crate::admin_permission::AdminPermission::RateLimitsRead,
-                crate::admin_bool::AdminBool::from(false),
+                crate::admin_bool::AdminBool::from(true),
             ),
             Self::RefreshTokens => crate::admin_data_table_spec::AdminDataTableSpec::new(
                 crate::admin_data_columns_csv_ref::AdminDataColumnsCsvRef::from(
@@ -207,7 +207,7 @@ impl AdminDataTable {
                 ),
                 crate::admin_data_order_ref::AdminDataOrderRef::from(constants_str::SQL_NAMES_ID),
                 crate::admin_permission::AdminPermission::SystemSettingsRead,
-                crate::admin_bool::AdminBool::from(false),
+                crate::admin_bool::AdminBool::from(true),
             ),
             Self::UserRoles => crate::admin_data_table_spec::AdminDataTableSpec::new(
                 crate::admin_data_columns_csv_ref::AdminDataColumnsCsvRef::from(

@@ -37,6 +37,10 @@ pub(crate) async fn data_tables_get(
                             == server_admin_contract::admin_data_table::AdminDataTable::RefreshTokens
                         {
                             Some(crate::admin_refresh_tokens::AdminRefreshTokens::frontend_fields())
+                        } else if admin_data_table
+                            == server_admin_contract::admin_data_table::AdminDataTable::RateLimits
+                        {
+                            Some(crate::admin_rate_limits::AdminRateLimits::frontend_fields())
                         } else {
                             crate::admin_generated_table::AdminGeneratedTable::for_data_table(admin_data_table)
                                 .map(crate::admin_generated_table::AdminGeneratedTable::field_contracts)

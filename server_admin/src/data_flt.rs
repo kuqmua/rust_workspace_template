@@ -4,6 +4,7 @@ pub(crate) enum DataFlt {
     AuditLog(crate::data_audit_log_flt::DataAuditLogFlt),
     LoginAttempts(crate::data_login_attempts_flt::DataLoginAttemptsFlt),
     Permissions(crate::data_permissions_flt::DataPermissionsFlt),
+    RateLimits(crate::data_rate_limits_flt::DataRateLimitsFlt),
     RefreshTokens(crate::data_refresh_tokens_flt::DataRefreshTokensFlt),
     RolePermissions(crate::data_role_permissions_flt::DataRolePermissionsFlt),
     Roles(crate::data_roles_flt::DataRolesFlt),
@@ -40,6 +41,12 @@ impl DataFlt {
                 )
             }
             Self::Permissions(value) => {
+                pg_crud_common::pg_type_where_filter::PgTypeWhereFilter::query_bind(
+                    value.into_inner(),
+                    sqlx_postgres_query,
+                )
+            }
+            Self::RateLimits(value) => {
                 pg_crud_common::pg_type_where_filter::PgTypeWhereFilter::query_bind(
                     value.into_inner(),
                     sqlx_postgres_query,
@@ -117,6 +124,14 @@ impl DataFlt {
                 )
             }
             Self::Permissions(value) => {
+                pg_crud_common::pg_type_where_filter::PgTypeWhereFilter::query_part(
+                    value.get_inner(),
+                    query_part_increment,
+                    pg_crud_common::sql_column_ref::SqlColumnRef::from(&column),
+                    pg_crud_common::add_operator::AddOperator::from(false),
+                )
+            }
+            Self::RateLimits(value) => {
                 pg_crud_common::pg_type_where_filter::PgTypeWhereFilter::query_part(
                     value.get_inner(),
                     query_part_increment,
