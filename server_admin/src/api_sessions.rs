@@ -1,5 +1,5 @@
 #[proc_macro_frontend_contract_route_openapi::route_openapi(
-    params(server_admin_contract::admin_table_query::AdminTableQuery),
+    params(server_admin_contract::admin_data_table_query::AdminDataTableQuery),
     tag = "admin_auth"
 )]
 #[allow(
@@ -9,7 +9,7 @@
 pub(crate) async fn api_sessions(
     admin_auth_request: crate::admin_auth_request::AdminAuthRequest,
     axum_admin_query: crate::axum_admin_query::AxumAdminQuery<
-        server_admin_contract::admin_table_query::AdminTableQuery,
+        server_admin_contract::admin_data_table_query::AdminDataTableQuery,
     >,
 ) -> Result<
     crate::axum_admin_response::AxumAdminResponse,

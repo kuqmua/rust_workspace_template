@@ -2,6 +2,7 @@
 pub(crate) enum DataFlt {
     AccessSessions(crate::data_access_sessions_flt::DataAccessSessionsFlt),
     AuditLog(crate::data_audit_log_flt::DataAuditLogFlt),
+    CleanupStatus(crate::data_cleanup_status_flt::DataCleanupStatusFlt),
     LoginAttempts(crate::data_login_attempts_flt::DataLoginAttemptsFlt),
     Permissions(crate::data_permissions_flt::DataPermissionsFlt),
     RateLimits(crate::data_rate_limits_flt::DataRateLimitsFlt),
@@ -29,6 +30,12 @@ impl DataFlt {
                 )
             }
             Self::AuditLog(value) => {
+                pg_crud_common::pg_type_where_filter::PgTypeWhereFilter::query_bind(
+                    value.into_inner(),
+                    sqlx_postgres_query,
+                )
+            }
+            Self::CleanupStatus(value) => {
                 pg_crud_common::pg_type_where_filter::PgTypeWhereFilter::query_bind(
                     value.into_inner(),
                     sqlx_postgres_query,
@@ -108,6 +115,14 @@ impl DataFlt {
                 )
             }
             Self::AuditLog(value) => {
+                pg_crud_common::pg_type_where_filter::PgTypeWhereFilter::query_part(
+                    value.get_inner(),
+                    query_part_increment,
+                    pg_crud_common::sql_column_ref::SqlColumnRef::from(&column),
+                    pg_crud_common::add_operator::AddOperator::from(false),
+                )
+            }
+            Self::CleanupStatus(value) => {
                 pg_crud_common::pg_type_where_filter::PgTypeWhereFilter::query_part(
                     value.get_inner(),
                     query_part_increment,

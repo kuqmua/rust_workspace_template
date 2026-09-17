@@ -20,3 +20,8 @@ impl From<crate::admin_data_table::AdminDataTable> for AdminDataTableFrontendPat
         )
     }
 }
+impl From<crate::admin_frontend_path::AdminFrontendPath> for AdminDataTableFrontendPath {
+    fn from(value: crate::admin_frontend_path::AdminFrontendPath) -> Self {
+        Self(value.get().into())
+    }
+}

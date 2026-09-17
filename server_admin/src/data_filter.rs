@@ -30,6 +30,10 @@ pub(crate) fn data_filter(
         {
             Some(crate::admin_audit_log::AdminAuditLog::frontend_fields())
         } else if admin_data_table
+            == server_admin_contract::admin_data_table::AdminDataTable::CleanupStatus
+        {
+            Some(crate::admin_cleanup_status::AdminCleanupStatus::frontend_fields())
+        } else if admin_data_table
             == server_admin_contract::admin_data_table::AdminDataTable::LoginAttempts
         {
             Some(crate::admin_login_attempts::AdminLoginAttempts::frontend_fields())
@@ -57,7 +61,9 @@ pub(crate) fn data_filter(
         {
             return Err(crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue);
         }
-        if field.as_ref() == constants_str::SQL_NAMES_ID
+        if (field.as_ref() == constants_str::SQL_NAMES_ID
+            && field_contract.type_contract().input_kind()
+                == frontend_contract::input_kind::InputKind::Number)
             || field_contract.type_contract().input_kind()
                 == frontend_contract::input_kind::InputKind::Checkbox
             || (field_contract.type_contract().input_kind()
@@ -94,6 +100,13 @@ pub(crate) fn data_filter(
                 == server_admin_contract::admin_data_table::AdminDataTable::AuditLog
             {
                 crate::admin_audit_log::AdminAuditLog::frontend_filter_value(
+                    field_name_ref,
+                    form_value_ref,
+                )
+            } else if admin_data_table
+                == server_admin_contract::admin_data_table::AdminDataTable::CleanupStatus
+            {
+                crate::admin_cleanup_status::AdminCleanupStatus::frontend_filter_value(
                     field_name_ref,
                     form_value_ref,
                 )
@@ -288,6 +301,15 @@ pub(crate) fn data_filter(
         )
         .map(crate::data_audit_log_flt::DataAuditLogFlt::from)
         .map(crate::data_flt::DataFlt::AuditLog)
+        .map_err(|_error| crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue)
+    } else if admin_data_table
+        == server_admin_contract::admin_data_table::AdminDataTable::CleanupStatus
+    {
+        serde_json::from_str::<
+            crate::admin_cleanup_status::StdOptionalOptionalAdminCleanupStatusWhereMany,
+        >(payload_ref.get())
+        .map(crate::data_cleanup_status_flt::DataCleanupStatusFlt::from)
+        .map(crate::data_flt::DataFlt::CleanupStatus)
         .map_err(|_error| crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue)
     } else if admin_data_table
         == server_admin_contract::admin_data_table::AdminDataTable::LoginAttempts

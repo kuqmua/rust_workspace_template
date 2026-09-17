@@ -17,6 +17,7 @@ use leptos::prelude::{ClassAttribute, CustomAttribute, ElementChild};
 )]
 pub(crate) fn AdminSessionsView(
     admin_sessions_page: server_admin_contract::admin_sessions_page::AdminSessionsPage,
+    admin_csr_query: super::admin_csr_query::AdminCsrQuery,
 ) -> impl leptos::prelude::IntoView {
     let total = admin_sessions_page.total();
     let rows = admin_sessions_page.items().iter().map(|item| {
@@ -40,6 +41,70 @@ pub(crate) fn AdminSessionsView(
             </crate::table_row::TableRow>
         }
     }).collect::<Vec<_>>();
+    let identifier_filters = [
+        frontend_contract::filter_operation::FilterOperation::Eq,
+        frontend_contract::filter_operation::FilterOperation::In,
+    ]
+    .map(server_admin_contract::admin_data_filter::AdminDataFilter::from);
+    let timestamp_filters = [
+        frontend_contract::filter_operation::FilterOperation::Eq,
+        frontend_contract::filter_operation::FilterOperation::Before,
+        frontend_contract::filter_operation::FilterOperation::Between,
+    ]
+    .map(server_admin_contract::admin_data_filter::AdminDataFilter::from);
+    let sessions_path =
+        server_admin_contract::admin_data_table_frontend_path::AdminDataTableFrontendPath::from(
+            server_admin_contract::admin_frontend_path::AdminFrontendPath::Sessions,
+        );
+    let column_filter =
+        |admin_text: &server_admin_contract::admin_text::AdminText,
+         input_kind: frontend_contract::input_kind::InputKind,
+         filters: &[server_admin_contract::admin_data_filter::AdminDataFilter]| {
+            crate::admin_column_filter::admin_column_filter(
+                &sessions_path,
+                admin_text,
+                input_kind,
+                filters,
+                admin_csr_query.filter_field(),
+                admin_csr_query.filter_operation(),
+                admin_csr_query.filter_value(),
+                admin_csr_query.filter_end(),
+                admin_csr_query.limit(),
+            )
+        };
+    let identifier = server_admin_contract::admin_text::AdminText::try_from(
+        constants_str::SQL_NAMES_ID.to_owned(),
+    )
+    .ok();
+    let created_at = server_admin_contract::admin_text::AdminText::try_from(
+        constants_str::CREATED_AT.to_owned(),
+    )
+    .ok();
+    let expires_at = server_admin_contract::admin_text::AdminText::try_from(
+        constants_str::EXPIRES_AT.to_owned(),
+    )
+    .ok();
+    let identifier_filter = identifier.as_ref().map(|identifier| {
+        column_filter(
+            identifier,
+            frontend_contract::input_kind::InputKind::Uuid,
+            &identifier_filters,
+        )
+    });
+    let created_at_filter = created_at.as_ref().map(|created_at| {
+        column_filter(
+            created_at,
+            frontend_contract::input_kind::InputKind::DateTime,
+            &timestamp_filters,
+        )
+    });
+    let expires_at_filter = expires_at.as_ref().map(|expires_at| {
+        column_filter(
+            expires_at,
+            frontend_contract::input_kind::InputKind::DateTime,
+            &timestamp_filters,
+        )
+    });
     leptos::view! {
         <section class="table-admin_sessions_page" data-renderer="csr">
             <div class="resource-actions">
@@ -61,9 +126,9 @@ pub(crate) fn AdminSessionsView(
                     })
                 />
             </div>
-            <crate::table_wrapper::TableWrapper><crate::table::Table><crate::table_header::TableHeader><crate::table_row::TableRow><crate::table_head::TableHead>"session"</crate::table_head::TableHead><crate::table_head::TableHead>"created"</crate::table_head::TableHead><crate::table_head::TableHead>"expires"</crate::table_head::TableHead><crate::table_head::TableHead>"current"</crate::table_head::TableHead><crate::table_head::TableHead>"actions"</crate::table_head::TableHead></crate::table_row::TableRow></crate::table_header::TableHeader>
+            <crate::table_wrapper::TableWrapper><crate::table::Table><crate::table_header::TableHeader><crate::table_row::TableRow><crate::table_head::TableHead data_field=constants_str::SQL_NAMES_ID.to_owned() data_filter_count=identifier_filters.len().to_string()><div class="table-column-heading"><span>"session"</span>{identifier_filter}</div></crate::table_head::TableHead><crate::table_head::TableHead data_field=constants_str::CREATED_AT.to_owned() data_filter_count=timestamp_filters.len().to_string()><div class="table-column-heading"><span>"created"</span>{created_at_filter}</div></crate::table_head::TableHead><crate::table_head::TableHead data_field=constants_str::EXPIRES_AT.to_owned() data_filter_count=timestamp_filters.len().to_string()><div class="table-column-heading"><span>"expires"</span>{expires_at_filter}</div></crate::table_head::TableHead><crate::table_head::TableHead>"current"</crate::table_head::TableHead><crate::table_head::TableHead>"actions"</crate::table_head::TableHead></crate::table_row::TableRow></crate::table_header::TableHeader>
             <crate::table_body::TableBody>{rows}</crate::table_body::TableBody></crate::table::Table></crate::table_wrapper::TableWrapper>
-            <p>{format!("{total}_{}", constants_str::ADMIN_UI_TOTAL)}</p>
+            <super::admin_pagination::AdminPagination admin_frontend_path=server_admin_contract::admin_frontend_path::AdminFrontendPath::Sessions admin_csr_query=admin_csr_query admin_page_total=total />
         </section>
     }
 }

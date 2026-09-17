@@ -120,14 +120,14 @@ fn test_generated_where_filter_builds_typed_table_predicate() {
         server_admin_contract::admin_data_table::AdminDataTable::Users,
         query.filter(),
     )
-    .expect(constants_str::DIAGNOSTIC_4E779DF0)
-    .expect(constants_str::DIAGNOSTIC_D9C8CF39);
+    .expect(constants_str::DIAGNOSTIC_F4EEDE2B)
+    .expect(constants_str::DIAGNOSTIC_ED970B26);
     let mut increment =
         pg_crud_common::query_part_increment::QueryPartIncrement::from(constants_u64::ZERO);
 
     let fragment = filter
         .query_part(&mut increment)
-        .expect(constants_str::DIAGNOSTIC_A25FE142);
+        .expect(constants_str::DIAGNOSTIC_FE02D3C8);
 
     assert!(fragment.as_ref().contains(constants_str::LOGIN));
     assert!(fragment.as_ref().contains(constants_str::DOLLAR_1_ALT));
@@ -167,6 +167,36 @@ fn test_session_tables_filter_builds_typed_table_predicate() {
         })();
         assert_eq!(result, Ok(1u64));
     });
+}
+
+#[test]
+fn test_active_sessions_filter_appends_typed_predicate_after_owner_parameter() {
+    let query = filter_query(
+        constants_str::SQL_NAMES_ID,
+        frontend_contract::filter_operation::FilterOperation::Eq,
+        Some(constants_str::VALUE_550E8400_E29B_41D4_A716_446655440000),
+        None,
+    );
+    let filter = crate::data_filter::data_filter(
+        server_admin_contract::admin_data_table::AdminDataTable::AccessSessions,
+        query.filter(),
+    )
+    .expect(constants_str::DIAGNOSTIC_4E779DF0)
+    .expect(constants_str::DIAGNOSTIC_D9C8CF39);
+    let mut increment = pg_crud_common::query_part_increment::QueryPartIncrement::from(1u64);
+
+    let fragment = filter
+        .query_part(&mut increment)
+        .expect(constants_str::DIAGNOSTIC_A25FE142);
+
+    assert!(
+        fragment
+            .as_ref()
+            .starts_with(constants_str::WHERE_ALT.trim_end())
+    );
+    assert!(fragment.as_ref().contains(constants_str::SQL_NAMES_ID));
+    assert!(fragment.as_ref().contains(constants_str::DOLLAR_2));
+    assert_eq!(increment.get(), 2u64);
 }
 
 #[test]
@@ -231,6 +261,62 @@ fn test_login_attempts_columns_supply_filter_metadata() {
 
     assert!(
         server_admin_contract::admin_data_table::AdminDataTable::LoginAttempts
+            .spec()
+            .columns()
+            .get()
+            .split(',')
+            .all(|column| {
+                field_contracts
+                    .as_ref()
+                    .iter()
+                    .find(|field| field.name().as_ref() == column)
+                    .is_some_and(|field| !field.filters().is_empty())
+            })
+    );
+}
+
+#[test]
+fn test_cleanup_status_filter_builds_typed_table_predicate() {
+    let last_deleted_rows = constants_str::SERVER_ADMIN_DATA_CLEANUP_STATUS_COLUMNS
+        .split(',')
+        .next_back()
+        .unwrap_or(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX);
+    let query = filter_query(
+        last_deleted_rows,
+        frontend_contract::filter_operation::FilterOperation::Eq,
+        Some(constants_str::VALUE_42),
+        None,
+    );
+    let result = (|| {
+        let filter = crate::data_filter::data_filter(
+            server_admin_contract::admin_data_table::AdminDataTable::CleanupStatus,
+            query.filter(),
+        )
+        .map_err(|error| error.to_string())?
+        .ok_or_else(String::new)?;
+        let mut increment =
+            pg_crud_common::query_part_increment::QueryPartIncrement::from(constants_u64::ZERO);
+        let fragment = filter
+            .query_part(&mut increment)
+            .map_err(|error| error.to_string())?;
+        if fragment.as_ref().contains(last_deleted_rows)
+            && fragment.as_ref().contains(constants_str::DOLLAR_1_ALT)
+        {
+            Ok(increment.get())
+        } else {
+            Err(String::new())
+        }
+    })();
+
+    assert_eq!(result, Ok(1u64));
+}
+
+#[test]
+fn test_cleanup_status_columns_supply_filter_metadata() {
+    let field_contracts = crate::admin_cleanup_status::AdminCleanupStatus::frontend_fields();
+
+    assert!(
+        server_admin_contract::admin_data_table::AdminDataTable::CleanupStatus
             .spec()
             .columns()
             .get()

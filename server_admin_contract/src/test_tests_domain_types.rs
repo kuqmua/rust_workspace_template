@@ -667,6 +667,7 @@ fn test_data_tables_round_trip_and_require_read_permissions() {
         [
             crate::admin_data_table::AdminDataTable::AccessSessions,
             crate::admin_data_table::AdminDataTable::AuditLog,
+            crate::admin_data_table::AdminDataTable::CleanupStatus,
             crate::admin_data_table::AdminDataTable::LoginAttempts,
             crate::admin_data_table::AdminDataTable::RateLimits,
             crate::admin_data_table::AdminDataTable::RefreshTokens,

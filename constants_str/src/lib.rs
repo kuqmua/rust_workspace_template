@@ -16,6 +16,9 @@ pub const DIAGNOSTIC_B787C90B: &str = "b787c90b";
 pub const DIAGNOSTIC_137D944F: &str = "137d944f";
 pub const DIAGNOSTIC_AEC6B72D: &str = "aec6b72d";
 pub const DIAGNOSTIC_87E62A51: &str = "87e62a51";
+pub const DIAGNOSTIC_F4EEDE2B: &str = "f4eede2b";
+pub const DIAGNOSTIC_ED970B26: &str = "ed970b26";
+pub const DIAGNOSTIC_FE02D3C8: &str = "fe02d3c8";
 
 pub const MACRO_CLIPPY_CARGO_CHECK_ALL_TARGETS_ALL_FEATURES_ARGS: [&str; 4] = [
     SHARED_VALUES_CHECK,
@@ -5849,6 +5852,7 @@ proc_macro_define_str_constants::define_str_constants! {
         pub EXPECT_ERROR = ["expect_error"];
         pub EXPECT_OK = ["expect_ok"];
         pub EXPECTATION_FAILED_417 = ["expectation_failed_417"];
+        pub EXPIRES_AT = [W_EXPIRES_AT];
         pub F00DBABE = ["f00dbabe"];
         pub F11E0324 = [W_F11E0324];
         pub F133A4CA = [W_F133A4CA];

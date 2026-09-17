@@ -30,6 +30,10 @@ pub(crate) async fn data_tables_get(
                         {
                             Some(crate::admin_audit_log::AdminAuditLog::frontend_fields())
                         } else if admin_data_table
+                            == server_admin_contract::admin_data_table::AdminDataTable::CleanupStatus
+                        {
+                            Some(crate::admin_cleanup_status::AdminCleanupStatus::frontend_fields())
+                        } else if admin_data_table
                             == server_admin_contract::admin_data_table::AdminDataTable::LoginAttempts
                         {
                             Some(crate::admin_login_attempts::AdminLoginAttempts::frontend_fields())
