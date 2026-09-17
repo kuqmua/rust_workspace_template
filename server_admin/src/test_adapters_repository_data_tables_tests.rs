@@ -209,12 +209,20 @@ fn test_every_generated_read_filter_accepts_every_logical_operator_variation() {
                                     let mut increment = pg_crud_common::query_part_increment::QueryPartIncrement::from(constants_u64::ZERO);
                                     filter
                                         .query_part(&mut increment)
-                                        .map(|_fragment| ())
+                                        .map(|_fragment| increment.get())
                                         .map_err(|error| error.to_string())
                                 });
+                            let expected_increment = match operation.value_shape() {
+                                frontend_contract::filter_value_shape::FilterValueShape::None => constants_u64::ZERO,
+                                frontend_contract::filter_value_shape::FilterValueShape::Range
+                                | frontend_contract::filter_value_shape::FilterValueShape::List => 2u64,
+                                frontend_contract::filter_value_shape::FilterValueShape::EncodedText
+                                | frontend_contract::filter_value_shape::FilterValueShape::Regex
+                                | frontend_contract::filter_value_shape::FilterValueShape::Scalar => 1u64,
+                            };
                             assert_eq!(
                                 result,
-                                Ok(()),
+                                Ok(expected_increment),
                                 "{admin_generated_table:?}.{}.{operation:?}.{field_operator}.{predicate_operator}",
                                 field_contract.name().as_ref(),
                             );
@@ -265,6 +273,140 @@ fn test_every_read_table_filter_column_and_operation_builds_a_typed_predicate() 
             crate::admin_users::AdminUsers::frontend_fields()
         }
     };
+    let table_filter_value = |admin_data_table,
+                              field_name: &str,
+                              raw_value: &str|
+     -> Result<serde_json::Value, String> {
+        let field_name_ref =
+            frontend_contract::form_field_name_ref::FormFieldNameRef::from(field_name);
+        let form_value_ref = frontend_contract::form_value_ref::FormValueRef::from(raw_value);
+        let wire_value = match admin_data_table {
+            server_admin_contract::admin_data_table::AdminDataTable::AccessSessions => {
+                crate::admin_access_sessions::AdminAccessSessions::frontend_filter_value(
+                    field_name_ref,
+                    form_value_ref,
+                )
+            }
+            server_admin_contract::admin_data_table::AdminDataTable::AuditLog => {
+                crate::admin_audit_log::AdminAuditLog::frontend_filter_value(
+                    field_name_ref,
+                    form_value_ref,
+                )
+            }
+            server_admin_contract::admin_data_table::AdminDataTable::CleanupStatus => {
+                crate::admin_cleanup_status::AdminCleanupStatus::frontend_filter_value(
+                    field_name_ref,
+                    form_value_ref,
+                )
+            }
+            server_admin_contract::admin_data_table::AdminDataTable::LoginAttempts => {
+                crate::admin_login_attempts::AdminLoginAttempts::frontend_filter_value(
+                    field_name_ref,
+                    form_value_ref,
+                )
+            }
+            server_admin_contract::admin_data_table::AdminDataTable::RateLimits => {
+                crate::admin_rate_limits::AdminRateLimits::frontend_filter_value(
+                    field_name_ref,
+                    form_value_ref,
+                )
+            }
+            server_admin_contract::admin_data_table::AdminDataTable::RefreshTokens => {
+                crate::admin_refresh_tokens::AdminRefreshTokens::frontend_filter_value(
+                    field_name_ref,
+                    form_value_ref,
+                )
+            }
+            server_admin_contract::admin_data_table::AdminDataTable::Permissions
+            | server_admin_contract::admin_data_table::AdminDataTable::RolePermissions
+            | server_admin_contract::admin_data_table::AdminDataTable::Roles
+            | server_admin_contract::admin_data_table::AdminDataTable::SystemSettings
+            | server_admin_contract::admin_data_table::AdminDataTable::UserRoles
+            | server_admin_contract::admin_data_table::AdminDataTable::Users => {
+                crate::admin_generated_table::AdminGeneratedTable::for_data_table(admin_data_table)
+                    .and_then(|admin_generated_table| {
+                        admin_generated_table.filter_value(field_name_ref, form_value_ref)
+                    })
+            }
+        }
+        .ok_or_else(String::new)?
+        .map_err(|error| error.to_string())?;
+        serde_json::from_str::<serde_json::Value>(wire_value.as_ref())
+            .map_err(|error| error.to_string())
+    };
+    let assert_time_value = |wire_value: &serde_json::Value| {
+        assert!(wire_value.as_object().is_some_and(|time| {
+            time.get(stringify!(hour))
+                .and_then(serde_json::Value::as_u64)
+                == Some(12u64)
+                && time
+                    .get(constants_str::MIN)
+                    .and_then(serde_json::Value::as_u64)
+                    == Some(30u64)
+                && time
+                    .get(constants_str::SEC)
+                    .and_then(serde_json::Value::as_u64)
+                    == Some(constants_u64::ZERO)
+        }));
+    };
+    let assert_wire_type_and_value =
+        |value_format: frontend_contract::value_format::ValueFormat,
+         raw_value: &str,
+         wire_value: &serde_json::Value| {
+            match value_format {
+                frontend_contract::value_format::ValueFormat::Bool => {
+                    assert_eq!(wire_value.as_bool(), raw_value.parse::<bool>().ok());
+                }
+                frontend_contract::value_format::ValueFormat::Int16
+                | frontend_contract::value_format::ValueFormat::Int32
+                | frontend_contract::value_format::ValueFormat::Int64 => {
+                    assert_eq!(wire_value.as_i64(), raw_value.parse::<i64>().ok());
+                }
+                frontend_contract::value_format::ValueFormat::Inet => {
+                    assert_eq!(wire_value.as_str(), Some(constants_str::VALUE_127_0_0_1_32));
+                }
+                frontend_contract::value_format::ValueFormat::Date
+                | frontend_contract::value_format::ValueFormat::Mac
+                | frontend_contract::value_format::ValueFormat::Text
+                | frontend_contract::value_format::ValueFormat::Uuid => {
+                    assert_eq!(wire_value.as_str(), Some(raw_value));
+                }
+                frontend_contract::value_format::ValueFormat::DateTime
+                | frontend_contract::value_format::ValueFormat::Timestamp
+                | frontend_contract::value_format::ValueFormat::TimestampTz => {
+                    let object = wire_value.as_object();
+                    assert!(object.is_some());
+                    let Some(object) = object else {
+                        return;
+                    };
+                    let expected_date = raw_value.split_once('T').map(|(date, _time)| date);
+                    assert!(object
+                        .values()
+                        .any(|value| value.as_str() == expected_date));
+                    let time = object
+                        .get(stringify!(time))
+                        .unwrap_or(&serde_json::Value::Null);
+                    assert_time_value(time);
+                }
+                frontend_contract::value_format::ValueFormat::Float32
+                | frontend_contract::value_format::ValueFormat::Float64 => {
+                    assert_eq!(wire_value.as_f64(), raw_value.parse::<f64>().ok());
+                }
+                frontend_contract::value_format::ValueFormat::Time => {
+                    assert_time_value(wire_value);
+                }
+                unsupported_value_format
+                    @ (frontend_contract::value_format::ValueFormat::Bytes
+                    | frontend_contract::value_format::ValueFormat::Interval
+                    | frontend_contract::value_format::ValueFormat::Range) => {
+                    assert_eq!(
+                        unsupported_value_format,
+                        frontend_contract::value_format::ValueFormat::Text,
+                        "a94f6b2c unsupported filter value format reached the test matrix"
+                    );
+                }
+            }
+        };
     server_admin_contract::admin_data_table::AdminDataTable::PG_ORDER
         .into_iter()
         .for_each(|admin_data_table| {
@@ -298,6 +440,19 @@ fn test_every_read_table_filter_column_and_operation_builds_a_typed_predicate() 
                                 column,
                                 field_contract.type_contract().input_kind(),
                             );
+                            let wire_value = table_filter_value(
+                                admin_data_table,
+                                field_contract.name().as_ref(),
+                                value,
+                            );
+                            assert!(wire_value.is_ok());
+                            if let Ok(wire_value) = wire_value {
+                                assert_wire_type_and_value(
+                                    field_contract.type_contract().format(),
+                                    value,
+                                    &wire_value,
+                                );
+                            }
                             let (value, end) = match operation.value_shape() {
                             frontend_contract::filter_value_shape::FilterValueShape::None => {
                                 (None, None)
@@ -318,6 +473,20 @@ fn test_every_read_table_filter_column_and_operation_builds_a_typed_predicate() 
                             }
                         };
                             let query = filter_query(column, operation, value, end);
+                            let expected_increment = match operation.value_shape() {
+                                frontend_contract::filter_value_shape::FilterValueShape::None => {
+                                    constants_u64::ZERO
+                                }
+                                frontend_contract::filter_value_shape::FilterValueShape::Range => {
+                                    2u64
+                                }
+                                frontend_contract::filter_value_shape::FilterValueShape::EncodedText
+                                | frontend_contract::filter_value_shape::FilterValueShape::List
+                                | frontend_contract::filter_value_shape::FilterValueShape::Regex
+                                | frontend_contract::filter_value_shape::FilterValueShape::Scalar => {
+                                    1u64
+                                }
+                            };
                             let result = (|| {
                                 let filter = crate::data_filter::data_filter(
                                     admin_data_table,
@@ -332,7 +501,9 @@ fn test_every_read_table_filter_column_and_operation_builds_a_typed_predicate() 
                                 let fragment = filter
                                     .query_part(&mut increment)
                                     .map_err(|error| error.to_string())?;
-                                if fragment.as_ref().contains(column) {
+                                if fragment.as_ref().contains(column)
+                                    && increment.get() == expected_increment
+                                {
                                     Ok(())
                                 } else {
                                     Err(fragment.as_ref().to_owned())
