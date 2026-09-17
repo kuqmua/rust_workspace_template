@@ -240,7 +240,7 @@ geojson = { version = "=1.0.0", default-features = false }
 ipnet = { version = "=2.12.1", default-features = false, features = ["std"] }
 mime = { version = "=0.3.17", default-features = false }
 percent-encoding = { version = "=2.3.2", default-features = false, features = ["alloc"] }
-uuid = { version = "=1.26.0", default-features = false, features = [
+uuid = { version = "=1.26.1", default-features = false, features = [
   "std",
   "serde",
   "v4",
