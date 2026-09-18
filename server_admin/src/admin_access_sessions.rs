@@ -20,6 +20,12 @@
     ],
     "db_unique_keys": [["token_identifier_hash"]],
     "permission_prefix": "access_sessions",
+    "read_page": {
+        "search_columns": [],
+        "response": "server_admin_contract::admin_data_table_view::AdminDataTableView",
+        "enrich": "crate::enrich_access_sessions_read_page::enrich_access_sessions_read_page",
+        "error": "crate::admin_access_sessions_read_page_error::AdminAccessSessionsReadPageError"
+    },
     "tests_write_into_file": "False",
     "common_write_into_file": "False",
     "whole_write_into_file": "False"

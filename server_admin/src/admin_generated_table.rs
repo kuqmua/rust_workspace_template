@@ -8,6 +8,7 @@
     proc_macro_frontend_contract_derive_unit_enum_catalog::UnitEnumCatalog,
 )]
 pub(crate) enum AdminGeneratedTable {
+    AccessSessions,
     AuditLog,
     Roles,
     RolePermissions,
@@ -19,6 +20,9 @@ pub(crate) enum AdminGeneratedTable {
 impl AdminGeneratedTable {
     pub(crate) fn field_contracts(self) -> frontend_contract::field_contracts::FieldContracts {
         match self {
+            Self::AccessSessions => {
+                crate::admin_access_sessions::AdminAccessSessions::frontend_fields()
+            }
             Self::AuditLog => crate::admin_audit_log::AdminAuditLog::frontend_fields(),
             Self::Roles => crate::admin_roles::AdminRoles::frontend_fields(),
             Self::RolePermissions => {
@@ -44,6 +48,12 @@ impl AdminGeneratedTable {
         >,
     > {
         match self {
+            Self::AccessSessions => {
+                crate::admin_access_sessions::AdminAccessSessions::frontend_filter_value(
+                    form_field_name_ref,
+                    form_value_ref,
+                )
+            }
             Self::AuditLog => crate::admin_audit_log::AdminAuditLog::frontend_filter_value(
                 form_field_name_ref,
                 form_value_ref,
@@ -84,6 +94,11 @@ impl AdminGeneratedTable {
         std_admin_str_ref: server_admin_core::std_admin_str_ref::StdAdminStrRef<'_>,
     ) -> Result<crate::data_flt::DataFlt, crate::admin_repository_error::AdminRepositoryError> {
         let parsed = match self {
+            Self::AccessSessions => serde_json::from_str::<
+                crate::admin_access_sessions::StdOptionalOptionalAdminAccessSessionsWhereMany,
+            >(std_admin_str_ref.get())
+            .map(crate::data_access_sessions_flt::DataAccessSessionsFlt::from)
+            .map(crate::data_flt::DataFlt::AccessSessions),
             Self::AuditLog => serde_json::from_str::<
                 crate::admin_audit_log::StdOptionalOptionalAdminAuditLogWhereMany,
             >(std_admin_str_ref.get())
@@ -129,6 +144,9 @@ impl AdminGeneratedTable {
         admin_data_table: server_admin_contract::admin_data_table::AdminDataTable,
     ) -> Option<Self> {
         match admin_data_table {
+            server_admin_contract::admin_data_table::AdminDataTable::AccessSessions => {
+                Some(Self::AccessSessions)
+            }
             server_admin_contract::admin_data_table::AdminDataTable::AuditLog => {
                 Some(Self::AuditLog)
             }
@@ -146,8 +164,7 @@ impl AdminGeneratedTable {
                 Some(Self::UserRoles)
             }
             server_admin_contract::admin_data_table::AdminDataTable::Users => Some(Self::Users),
-            server_admin_contract::admin_data_table::AdminDataTable::AccessSessions
-            | server_admin_contract::admin_data_table::AdminDataTable::CleanupStatus
+            server_admin_contract::admin_data_table::AdminDataTable::CleanupStatus
             | server_admin_contract::admin_data_table::AdminDataTable::LoginAttempts
             | server_admin_contract::admin_data_table::AdminDataTable::RateLimits
             | server_admin_contract::admin_data_table::AdminDataTable::RefreshTokens => None,
@@ -156,6 +173,9 @@ impl AdminGeneratedTable {
 
     pub(crate) fn open_api(self) -> crate::utoipa_admin_open_api::UtoipaAdminOpenApi {
         crate::utoipa_admin_open_api::UtoipaAdminOpenApi::from(match self {
+            Self::AccessSessions => {
+                crate::admin_access_sessions::AdminAccessSessionsOpenApi::open_api()
+            }
             Self::AuditLog => crate::admin_audit_log::AdminAuditLogOpenApi::open_api(),
             Self::Roles => crate::admin_roles::AdminRolesOpenApi::open_api(),
             Self::RolePermissions => {
@@ -175,6 +195,9 @@ impl AdminGeneratedTable {
         shared_admin_generated_table_state_arc: &crate::shared_admin_generated_table_state_arc::SharedAdminGeneratedTableStateArc,
     ) -> server_runtime_http::axum_router::AxumRouter {
         server_runtime_http::axum_router::AxumRouter::from(match self {
+            Self::AccessSessions => crate::admin_access_sessions::AdminAccessSessions::routes(
+                std::sync::Arc::clone(shared_admin_generated_table_state_arc.get_inner()),
+            ),
             Self::AuditLog => crate::admin_audit_log::AdminAuditLog::routes(std::sync::Arc::clone(
                 shared_admin_generated_table_state_arc.get_inner(),
             )),
@@ -204,6 +227,20 @@ impl AdminGeneratedTable {
         std_admin_str_ref: server_admin_core::std_admin_str_ref::StdAdminStrRef<'_>,
     ) -> Option<crate::admin_generated_route_contract::AdminGeneratedRouteContract> {
         match self {
+            Self::AccessSessions => {
+                crate::admin_access_sessions::AdminAccessSessionsRouteContract::for_path(
+                    std_admin_str_ref.get(),
+                )
+                .map(|contract| {
+                    crate::admin_generated_route_contract::AdminGeneratedRouteContract::new(
+                        contract
+                            .permission()
+                            .map(server_admin_core::std_admin_str_ref::StdAdminStrRef::from),
+                        server_admin_core::std_admin_bool::StdAdminBool::from(contract.mutates()),
+                        contract.frontend_contract().method(),
+                    )
+                })
+            }
             Self::AuditLog => crate::admin_audit_log::AdminAuditLogRouteContract::for_path(
                 std_admin_str_ref.get(),
             )

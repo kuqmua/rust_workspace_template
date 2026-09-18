@@ -36,8 +36,9 @@ below covers user-visible workflows and direct API behavior.
 | POST `/roles/create` | Atomic creation of multiple roles through the typed API |
 | PATCH `/roles/update` | Atomic name and permission updates through the typed API |
 | DELETE `/roles/delete` | Atomic deletion of non-system roles matching a required filter |
-| POST `/audit_log/read` | Audit table page uses the generated typed read endpoint; browser coverage also verifies the dedicated audit query and redacted mutation records |
+| POST `/audit_log/read` | Audit table page uses the generated typed read endpoint; browser coverage also verifies redacted mutation records |
 | POST `/user_roles/read` | User-role assignments table with JSON filters and pagination |
+| POST `/role_permissions/read` | Role-permission assignments table with JSON filters and pagination |
 | GET `/system_settings/read` | Settings form |
 | POST `/system_settings/read` | Generated typed database-table read with search, filters, ordering, pagination, and total count |
 | PATCH `/system_settings/update` | Save settings and reset supported settings to defaults |
@@ -103,9 +104,10 @@ administrator initialization creates the shared `pg_table_idempotency` schema un
 transaction lock, and session revocation timestamps preserve creation-time constraints.
 User, role, and permission sorting follows the API's ascending/descending wire values.
 
-The table views for `user_roles`, `role_permissions`, `refresh_tokens`,
-`access_sessions`, `login_attempts`, `rate_limits`, and `cleanup_status` use
-GET routes at `/{resource}/read`. Their former `/tables/{resource}` paths are rejected.
+The table views for `user_roles`, `refresh_tokens`, `login_attempts`,
+`rate_limits`, and `cleanup_status` retain GET routes at `/{resource}/read`.
+`access_sessions` and `role_permissions` use generated POST query contracts.
+Their former `/tables/{resource}` paths are rejected.
 
 The `changes` object in `PATCH /users/update` accepts optional `display_name`, `login`, `is_banned`, `password`,
 and the paired `role_ids` / `expected_role_ids` arrays.

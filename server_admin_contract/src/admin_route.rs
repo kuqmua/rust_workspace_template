@@ -22,18 +22,22 @@ pub enum AdminRoute {
     RateLimitsTable,
     #[route_catalog_route(crate::admin_login_attempts_table_route::AdminLoginAttemptsTableRoute)]
     LoginAttemptsTable,
-    #[route_catalog_route(crate::admin_access_sessions_table_route::AdminAccessSessionsTableRoute)]
+    #[route_catalog_route(
+        contract = <crate::admin_access_sessions_table_route::AdminAccessSessionsTableRoute as frontend_contract::typed_route::TypedRoute>::metadata().contract(),
+        path = frontend_contract::typed_route_path::typed_route_path::<crate::admin_access_sessions_table_route::AdminAccessSessionsTableRoute>(),
+        exclude_from_family,
+    )]
     AccessSessionsTable,
     #[route_catalog_route(crate::admin_refresh_tokens_table_route::AdminRefreshTokensTableRoute)]
     RefreshTokensTable,
     #[route_catalog_route(
-        crate::admin_role_permissions_table_route::AdminRolePermissionsTableRoute
+        contract = <crate::admin_role_permissions_table_route::AdminRolePermissionsTableRoute as frontend_contract::typed_route::TypedRoute>::metadata().contract(),
+        path = frontend_contract::typed_route_path::typed_route_path::<crate::admin_role_permissions_table_route::AdminRolePermissionsTableRoute>(),
+        exclude_from_family,
     )]
     RolePermissionsTable,
     #[route_catalog_route(crate::admin_user_roles_table_route::AdminUserRolesTableRoute)]
     UserRolesTable,
-    #[route_catalog_route(crate::admin_audit_log_route::AdminAuditLogRoute)]
-    Audit,
     #[route_catalog_route(
         contract = <crate::admin_read_audit_log_route::AdminReadAuditLogRoute as frontend_contract::typed_route::TypedRoute>::metadata().contract(),
         path = frontend_contract::typed_route_path::typed_route_path::<crate::admin_read_audit_log_route::AdminReadAuditLogRoute>(),

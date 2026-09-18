@@ -1,4 +1,3 @@
-proc_macro_frontend_contract_api_operation_error::api_operation_error!(AdminAuditLogError,);
 proc_macro_frontend_contract_api_operation_error::api_operation_error!(AdminBrandingError,);
 proc_macro_frontend_contract_api_operation_error::api_operation_error!(AdminChangeOwnPasswordError,);
 proc_macro_frontend_contract_api_operation_error::api_operation_error!(AdminCreateUserError,);
@@ -22,13 +21,7 @@ proc_macro_frontend_contract_api_operation_error::api_operation_error!(AdminUpda
 proc_macro_frontend_contract_api_operation_error::api_operation_error!(AdminUpdateUsersError,);
 proc_macro_frontend_contract_api_operation_error::api_operation_error!(AdminUserRolesTableError,);
 proc_macro_frontend_contract_api_operation_error::api_operation_error!(
-    AdminRolePermissionsTableError,
-);
-proc_macro_frontend_contract_api_operation_error::api_operation_error!(
     AdminRefreshTokensTableError,
-);
-proc_macro_frontend_contract_api_operation_error::api_operation_error!(
-    AdminAccessSessionsTableError,
 );
 proc_macro_frontend_contract_api_operation_error::api_operation_error!(
     AdminLoginAttemptsTableError,

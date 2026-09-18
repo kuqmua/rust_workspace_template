@@ -1,0 +1,16 @@
+#[derive(
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Debug,
+    serde::Serialize,
+    serde::Deserialize,
+    utoipa::ToSchema,
+)]
+#[serde(rename_all = "snake_case")]
+pub enum AdminReadRolePermissionColumn {
+    CreatedAt(crate::admin_no_body::AdminNoBody),
+    Id(crate::admin_no_body::AdminNoBody),
+    PermissionId(crate::admin_no_body::AdminNoBody),
+    RoleId(crate::admin_no_body::AdminNoBody),
+}

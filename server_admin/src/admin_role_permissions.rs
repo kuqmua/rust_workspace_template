@@ -20,6 +20,12 @@
     ],
     "db_unique_keys": [["role_id", "permission_id"]],
     "permission_prefix": "role_permissions",
+    "read_page": {
+        "search_columns": [],
+        "response": "server_admin_contract::admin_data_table_view::AdminDataTableView",
+        "enrich": "crate::enrich_role_permissions_read_page::enrich_role_permissions_read_page",
+        "error": "crate::admin_role_permissions_read_page_error::AdminRolePermissionsReadPageError"
+    },
     "tests_write_into_file": "False",
     "common_write_into_file": "False",
     "whole_write_into_file": "False"

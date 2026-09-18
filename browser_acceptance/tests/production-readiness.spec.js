@@ -632,9 +632,20 @@ test("data-table filters constrain rows and reject malformed filter contracts", 
   );
   expect(assigned.status()).toBe(204);
 
-  const filtered = await page.request.get(
-    `/role_permissions/read?filter_field=role_id&filter_operation=eq&filter_value=${roleId}&limit=100`
-  );
+  const rolePermissionsPath = "/role_permissions/read";
+  const example = await page.request.get(`${rolePermissionsPath}_payload_example`);
+  expect(example.status()).toBe(200);
+  const payload = {
+    ...await example.json(),
+    pagination: { limit: 100, offset: 0 },
+    where_many: {
+      role_id: {
+        operator: "And",
+        values: [{ Eq: { operator: "And", values: roleId } }]
+      }
+    }
+  };
+  const filtered = await page.request.post(rolePermissionsPath, { data: payload });
   expect(filtered.status()).toBe(200);
   const table = await filtered.json();
   expect(table.table).toBe("role_permissions");
@@ -643,11 +654,13 @@ test("data-table filters constrain rows and reject malformed filter contracts", 
   expect(table.items[0].values).toContain(String(roleId));
   expect(table.items[0].values).toContain(String(permission.id));
 
-  for (const path of [
-    "/role_permissions/read?filter_field=role_id&filter_operation=eq",
-    "/role_permissions/read?filter_field=unknown&filter_operation=eq&filter_value=1"
+  for (const whereMany of [
+    { role_id: { operator: "And", values: [{ Eq: { operator: "And" } }] } },
+    { unknown: { operator: "And", values: [{ Eq: { operator: "And", values: 1 } }] } }
   ]) {
-    const rejected = await page.request.get(path);
+    const rejected = await page.request.post(rolePermissionsPath, {
+      data: { ...payload, where_many: whereMany }
+    });
     expect(rejected.status()).toBe(422);
   }
 });
@@ -663,17 +676,23 @@ test("audit records mutations without exposing submitted passwords", async ({
     "Audit Export User",
     password
   );
-  const auditResponse = await page.request.get("/audit_log/read?limit=100");
+  const auditResponse = await page.request.post("/audit_log/read", {
+    data: {
+      search: null,
+      select: ["id", "user_id", "user_login", "action", "resource", "resource_id", "request_id", "succeeded", "created_at"].map(field => ({ [field]: null })),
+      pagination: { limit: 100, offset: 0 },
+      order_by: { column: { created_at: null }, order: "descending" },
+      where_many: null
+    }
+  });
   expect(auditResponse.status()).toBe(200);
   const auditPage = await auditResponse.json();
-  expect(auditPage.items).toEqual(expect.arrayContaining([
-    expect.objectContaining({
-      action: "create",
-      resource: "user",
-      resource_id: String(userId),
-      succeeded: true
-    })
-  ]));
+  expect(auditPage.items.some(item =>
+    item.values.includes("create") &&
+    item.values.includes("user") &&
+    item.values.includes(String(userId)) &&
+    item.values.includes("true")
+  )).toBe(true);
   expect(JSON.stringify(auditPage)).not.toContain(password);
 });
 

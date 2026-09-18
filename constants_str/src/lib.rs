@@ -5718,6 +5718,7 @@ proc_macro_define_str_constants::define_str_constants! {
         pub CRATE_DIR = ["crate_dir"];
         pub CREATED_201 = ["created_201"];
         pub CREATED_AT = [W_CREATED_AT];
+        pub PERMISSION_ID = [W_PERMISSION_ID];
         pub CSRF = [W_CSRF_7CE12BA8];
         pub CURRENT = [W_CURRENT_97B05602];
         pub D02BA9F0 = ["d02ba9f0"];
@@ -5862,6 +5863,8 @@ proc_macro_define_str_constants::define_str_constants! {
         pub EXPECT_OK = ["expect_ok"];
         pub EXPECTATION_FAILED_417 = ["expectation_failed_417"];
         pub EXPIRES_AT = [W_EXPIRES_AT];
+        pub REVOKED_AT = [W_REVOKED_AT];
+        pub ROLE_ID = [W_ROLE_ID];
         pub F00DBABE = ["f00dbabe"];
         pub F11E0324 = [W_F11E0324];
         pub F133A4CA = [W_F133A4CA];

@@ -31,6 +31,18 @@ impl AdminUserId {
     pub const fn value(self) -> crate::positive_non_zero_i64::PositiveNonZeroI64 {
         self.0
     }
+
+    #[must_use]
+    pub fn from_frontend_path(
+        admin_page_path_ref: crate::admin_page_path_ref::AdminPagePathRef<'_>,
+    ) -> Option<Self> {
+        let value = admin_page_path_ref
+            .get()
+            .strip_prefix(crate::admin_frontend_path::AdminFrontendPath::Users.get())
+            .and_then(|value| value.strip_prefix('/'))
+            .and_then(|value| value.parse::<i64>().ok())?;
+        Self::try_from(value).ok()
+    }
 }
 #[cfg(test)]
 mod tests {
@@ -39,5 +51,32 @@ mod tests {
         let identifier = super::AdminUserId::try_from(constants_i64::ONE)
             .expect(constants_str::DIAGNOSTIC_2C819D47);
         assert_eq!(i64::from(identifier), constants_i64::ONE);
+    }
+
+    #[test]
+    fn test_user_identifier_parses_from_detail_frontend_path() {
+        let expected_identifier_result = super::AdminUserId::try_from(7i64);
+        assert_eq!(
+            expected_identifier_result.iter().count(),
+            constants_usize::ONE
+        );
+        expected_identifier_result
+            .ok()
+            .into_iter()
+            .for_each(|expected_identifier| {
+                let route_path = crate::admin_route_path::AdminRoutePath::from(expected_identifier);
+                let identifier = super::AdminUserId::from_frontend_path(
+                    crate::admin_page_path_ref::AdminPagePathRef::from(route_path.as_ref()),
+                );
+                assert_eq!(identifier, Some(expected_identifier));
+            });
+        assert!(
+            super::AdminUserId::from_frontend_path(
+                crate::admin_page_path_ref::AdminPagePathRef::from(
+                    crate::admin_frontend_path::AdminFrontendPath::UsersCreate.get(),
+                ),
+            )
+            .is_none()
+        );
     }
 }

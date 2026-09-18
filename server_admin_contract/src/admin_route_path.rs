@@ -19,3 +19,16 @@ impl TryFrom<String> for AdminRoutePath {
         }
     }
 }
+
+impl From<crate::admin_user_id::AdminUserId> for AdminRoutePath {
+    fn from(value: crate::admin_user_id::AdminUserId) -> Self {
+        Self(
+            format!(
+                "{}/{}",
+                crate::admin_frontend_path::AdminFrontendPath::Users.get(),
+                value
+            )
+            .into_boxed_str(),
+        )
+    }
+}

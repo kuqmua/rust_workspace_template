@@ -22,6 +22,8 @@ pub(crate) struct AdminCsrQuery {
     sort: server_admin_contract::admin_table_sort_key::AdminTableSortKey,
     #[getters(copy)]
     table: Option<server_admin_contract::admin_data_table::AdminDataTable>,
+    #[getters(copy)]
+    user_id: Option<server_admin_contract::admin_user_id::AdminUserId>,
 }
 impl AdminCsrQuery {
     pub(crate) fn from_location() -> Result<Self, crate::admin_table_load_error::AdminTableLoadError>
@@ -39,6 +41,9 @@ impl AdminCsrQuery {
             .pathname()
             .map_err(|_error| crate::admin_table_load_error::AdminTableLoadError::Fetch)?;
         let table = server_admin_contract::admin_data_table::AdminDataTable::from_frontend_path(
+            server_admin_contract::admin_page_path_ref::AdminPagePathRef::from(pathname.as_str()),
+        );
+        let user_id = server_admin_contract::admin_user_id::AdminUserId::from_frontend_path(
             server_admin_contract::admin_page_path_ref::AdminPagePathRef::from(pathname.as_str()),
         );
         Ok(Self::new(
@@ -94,6 +99,7 @@ impl AdminCsrQuery {
                 .map_err(|_error| crate::admin_table_load_error::AdminTableLoadError::Query)?
                 .unwrap_or_default(),
             table,
+            user_id,
         ))
     }
 }

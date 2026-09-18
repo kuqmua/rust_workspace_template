@@ -118,6 +118,34 @@ test("administrator users page contains only its header, table, and pagination",
   await expect(page.getByRole("table")).toBeVisible();
 });
 
+test("administrator can open a read-only user page from the users table", async ({ page }) => {
+  await signInAdministrator(page);
+  await page.goto("/admin/users");
+
+  const administratorRow = page.locator("tbody tr").filter({ hasText: "administrator" });
+  const readLink = administratorRow.getByRole("link", { name: "read" });
+  await expect(readLink).toBeVisible();
+  expect(
+    await readLink.evaluate(element => {
+      const style = getComputedStyle(element);
+      return [
+        style.borderTopWidth,
+        style.borderRightWidth,
+        style.borderBottomWidth,
+        style.borderLeftWidth
+      ];
+    })
+  ).toEqual(["0px", "0px", "0px", "0px"]);
+  await readLink.click();
+
+  await expect(page).toHaveURL(/\/admin\/users\/\d+$/);
+  const userDetails = page.locator('section.profile-grid.profile-fields[data-page="user-read"]');
+  await expect(userDetails).toContainText("administrator");
+  await expect(userDetails.locator(".health-label")).toHaveCount(5);
+  await expect(userDetails.locator(".health-result")).toHaveCount(5);
+  await expect(userDetails.locator("input, select, textarea, button")).toHaveCount(0);
+});
+
 test("administrator roles page contains only its header, table, and pagination", async ({
   page
 }) => {

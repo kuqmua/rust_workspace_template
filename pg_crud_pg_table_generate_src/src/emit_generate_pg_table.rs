@@ -1487,13 +1487,11 @@ pub fn emit_generate_pg_table(
     let read_fields_len = read_fields.len();
     let read_page_paths = match generate_pg_table_input_model.config.read_page.as_ref() {
         Some(config) => {
-            if config.search_columns.is_empty()
-                || config.search_columns.iter().any(|column| {
-                    !read_fields
-                        .iter()
-                        .any(|field| field.get_identifier().to_string() == column.as_ref())
-                })
-            {
+            if config.search_columns.iter().any(|column| {
+                !read_fields
+                    .iter()
+                    .any(|field| field.get_identifier().to_string() == column.as_ref())
+            }) {
                 return quote::quote! { compile_error!("read page search columns must be readable table columns"); }.into();
             }
             match (
@@ -1522,6 +1520,11 @@ pub fn emit_generate_pg_table(
         },
         None => None,
     };
+    let read_page_search_enabled = generate_pg_table_input_model
+        .config
+        .read_page
+        .as_ref()
+        .is_some_and(|config| !config.search_columns.is_empty());
 
     let optimistic_revision_field_index = if let Some(revision_field_name) =
         generate_pg_table_input_model
@@ -5724,7 +5727,7 @@ enum WrapIntoOptional {
                                 },
                                 &write_into_buffer_query_part_syn_variant_error_initialization_eprintln_res_creation_token_stream,
                             );
-                            let read_page_query = generate_pg_table_input_model.config.read_page.as_ref().map(|config| {
+                            let read_page_query = generate_pg_table_input_model.config.read_page.as_ref().filter(|config| !config.search_columns.is_empty()).map(|config| {
                                 let columns = config.search_columns.iter().map(|column| {
                                     format!("{} ILIKE '%' || ${{}} || '%'", column.as_ref())
                                 }).collect::<Vec<_>>().join(constants_str::PG_CRUD_READ_SEARCH_OR);
@@ -5943,7 +5946,7 @@ enum WrapIntoOptional {
                                 ).map(#import_token_stream sqlx_postgres_query::SqlxPostgresQuery::into_inner).map_err(|error| error.to_string())},
                                 &quote::quote! {v_9f7e487b},
                             );
-                            let search_bind = read_page_paths.as_ref().map(|_| quote::quote! {
+                            let search_bind = read_page_search_enabled.then(|| quote::quote! {
                                 if let Some(search) = #ParametersSnakeCase.#PayloadSnakeCase.search.as_ref() {
                                     if let Err(error) = #QuerySnakeCase.try_bind(search.as_ref().to_owned()) {
                                         let #Error0 = error.to_string();
@@ -6201,15 +6204,25 @@ enum WrapIntoOptional {
                     wraped_into_axum_res_token_stream
                 };
                 let read_page_enabled = operation.is_read() && read_page_paths.is_some();
+                let read_count_search_initialization = read_page_search_enabled
+                    .then(|| quote::quote! { let read_count_search = #ParametersSnakeCase.#PayloadSnakeCase.search.clone(); });
                 let read_page_initialization = read_page_enabled.then(|| quote::quote! {
                     let mut read_count_sql = String::new();
                     let read_count_filter = #ParametersSnakeCase.#PayloadSnakeCase.#WhereManySnakeCase.clone();
-                    let read_count_search = #ParametersSnakeCase.#PayloadSnakeCase.search.clone();
+                    #read_count_search_initialization
                     let mut read_page_primary_keys = Vec::new();
                 });
                 let read_page_count = read_page_enabled.then(|| {
                     let bind_failed = generate_operation_error_initialization_eprintln_res_token_stream(operation, &try_bind_syn_variant, std::panic::Location::caller());
                     let query_failed = generate_operation_error_initialization_eprintln_res_token_stream(operation, &pg_syn_variant, std::panic::Location::caller());
+                    let read_count_search_bind = read_page_search_enabled.then(|| quote::quote! {
+                        if let Some(search) = read_count_search {
+                            if let Err(error) = read_count_query.try_bind(search.as_ref().to_owned()) {
+                                let #Error0 = error.to_string();
+                                #bind_failed
+                            }
+                        }
+                    });
                     quote::quote! {
                         let read_count_query = #sqlx_query_sqlx_pg_token_stream(sqlx::AssertSqlSafe(read_count_sql));
                         let mut read_count_query = match #import_token_stream pg_type_where_filter::PgTypeWhereFilter::query_bind(
@@ -6219,11 +6232,7 @@ enum WrapIntoOptional {
                             Ok(value) => #import_token_stream sqlx_postgres_query::SqlxPostgresQuery::into_inner(value),
                             Err(error) => { let #Error0 = error.to_string(); #bind_failed }
                         };
-                        if let Some(search) = read_count_search {
-                            if let Err(error) = read_count_query.try_bind(search.as_ref().to_owned()) {
-                                let #Error0 = error.to_string(); #bind_failed
-                            }
-                        }
+                        #read_count_search_bind
                         let read_total = match read_count_query.fetch_one(&mut *#ExecutorAcquireSnakeCase).await
                             .and_then(|row| sqlx::Row::try_get::<i64, _>(&row, 0usize)) {
                             Ok(value) => value,
@@ -6444,11 +6453,11 @@ enum WrapIntoOptional {
                             #name: Option<#rust_type>,
                         });
                         let context_default = read_page_context.as_ref().map(|(_, name)| quote::quote! { #name: None, });
-                        let search_field = read_page_paths.as_ref().map(|_| quote::quote! {
+                        let search_field = read_page_search_enabled.then(|| quote::quote! {
                             #[serde(default)]
                             search: Option<pg_crud_common::read_search::ReadSearch>,
                         });
-                        let search_default = read_page_paths.as_ref().map(|_| quote::quote! { search: None, });
+                        let search_default = read_page_search_enabled.then(|| quote::quote! { search: None, });
                         generate_parameters_payload_and_default_token_stream(
                         &quote::quote! {{
                             #pub_where_optional_identifier_where_token_stream,

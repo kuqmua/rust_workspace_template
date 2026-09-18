@@ -1783,3 +1783,7 @@ body:has(a[href="/admin/version"][aria-current="page"]) .page-frame {
   text-align: center;
   overflow-wrap: anywhere;
 }
+
+.table-admin_users_page td[data-label="actions"] > a {
+  border: 0;
+}

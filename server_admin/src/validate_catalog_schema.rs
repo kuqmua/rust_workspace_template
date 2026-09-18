@@ -19,6 +19,12 @@ pub async fn validate_catalog_schema(
                         .await
                     }
                     match table {
+                        crate::admin_generated_table::AdminGeneratedTable::AccessSessions => {
+                            validate_generated_table::<
+                                crate::admin_access_sessions::AdminAccessSessions,
+                            >(sqlx_pg_catalog_pool_ref, db_schema_name_ref)
+                            .await
+                        }
                         crate::admin_generated_table::AdminGeneratedTable::AuditLog => {
                             validate_generated_table::<crate::admin_audit_log::AdminAuditLog>(
                                 sqlx_pg_catalog_pool_ref,

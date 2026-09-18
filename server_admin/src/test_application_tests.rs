@@ -299,7 +299,7 @@ fn test_open_api_contains_auth_and_user_security_contracts() {
         .get(constants_str::PATHS)
         .and_then(serde_json::Value::as_object)
         .expect(constants_str::DIAGNOSTIC_6E15EDEC);
-    assert_eq!(paths.len(), 33usize);
+    assert_eq!(paths.len(), 30usize);
     assert!(paths.contains_key(constants_str::ADMIN_ROLES_CREATE_PAYLOAD_EXAMPLE_READ));
     assert!(paths.contains_key(constants_str::ADMIN_ROLES_UPDATE_PAYLOAD_EXAMPLE_READ));
     assert!(paths.contains_key(constants_str::ADMIN_ROLES_DELETE_PAYLOAD_EXAMPLE_READ));

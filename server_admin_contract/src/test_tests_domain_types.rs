@@ -28,7 +28,7 @@ impl frontend_contract::transport::Transport for ClientTransport {
 fn test_every_admin_api_route_has_named_route_and_client_functions() {
     assert_eq!(
         <crate::admin_route::AdminAuthenticationRouteFamily as frontend_contract::route_family::RouteFamily>::ROUTE_COUNT,
-        33usize
+        30usize
     );
     assert_eq!(
         crate::admin_route::metrics_route(),
@@ -43,7 +43,6 @@ fn test_every_admin_api_route_has_named_route_and_client_functions() {
         crate::admin_route::AdminRoute::Version.contract().path()
     );
     [
-        size_of_val(&crate::admin_audit_log_route::audit_log_route),
         size_of_val(&crate::admin_branding_route::branding_route),
         size_of_val(&crate::admin_data_tables_route::list_data_tables_route),
         size_of_val(&crate::admin_change_own_password_route::change_own_password_route),
@@ -90,7 +89,6 @@ fn test_every_admin_api_route_has_named_route_and_client_functions() {
     .into_iter()
     .for_each(|size| assert_eq!(size, constants_usize::ZERO));
     [
-        size_of_val(&crate::admin_audit_log_route::audit_log_client::<ClientTransport>),
         size_of_val(&crate::admin_branding_route::branding_client::<ClientTransport>),
         size_of_val(&crate::admin_data_tables_route::list_data_tables_client::<ClientTransport>),
         size_of_val(
@@ -202,7 +200,7 @@ fn test_administrator_collections_enforce_item_limit_for_construction_and_deseri
 #[test]
 fn test_authentication_route_family_has_valid_coverage() {
     let descriptors = <crate::admin_route::AdminAuthenticationRouteFamily as frontend_contract::route_family::RouteFamily>::coverage_descriptors();
-    assert_eq!(descriptors.as_ref().len(), 33usize);
+    assert_eq!(descriptors.as_ref().len(), 30usize);
     assert_eq!(
         frontend_contract::validate_route_coverage::validate_route_coverage(descriptors.as_ref()),
         Ok(())
@@ -460,7 +458,7 @@ fn test_administrator_routes_use_snake_case_segments() {
     );
     assert!(
         [
-            crate::admin_route::AdminRoute::Audit,
+            crate::admin_route::AdminRoute::AuditLog,
             crate::admin_route::AdminRoute::Settings,
             crate::admin_route::AdminRoute::SignIn,
             crate::admin_route::AdminRoute::SignOut,

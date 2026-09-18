@@ -46,6 +46,8 @@ pub enum AdminFrontendPath {
     UsersCreate,
     #[strum(serialize = "/admin/users/manage")]
     UsersManage,
+    #[strum(serialize = "/admin/users/{user_id}")]
+    UserRead,
     #[strum(serialize = "/admin/version")]
     Version,
 }

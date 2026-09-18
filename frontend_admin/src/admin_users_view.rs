@@ -22,6 +22,10 @@ pub(crate) fn AdminUsersView(
 ) -> impl leptos::prelude::IntoView {
     let csr_admin_user_row =
         |admin_user_summary: &server_admin_contract::admin_user_summary::AdminUserSummary| {
+            let user_path = server_admin_contract::admin_route_path::AdminRoutePath::from(
+                admin_user_summary.id(),
+            )
+            .to_string();
             let id = admin_user_summary.id().to_string();
             let login = admin_user_summary.login().to_string();
             let display_name = admin_user_summary.display_name().to_string();
@@ -35,7 +39,7 @@ pub(crate) fn AdminUsersView(
                     <crate::table_cell::TableCell data_label="display_name">{display_name}</crate::table_cell::TableCell>
                     <crate::table_cell::TableCell data_label="banned">{banned}</crate::table_cell::TableCell>
                     {roles}
-                    <crate::table_cell::TableCell data_label=constants_str::ADMIN_UI_ACTIONS bool=true>{constants_str::EMPTY}</crate::table_cell::TableCell>
+                    <crate::table_cell::TableCell data_label=constants_str::ADMIN_UI_ACTIONS bool=true><singlestage::Link class=crate::admin_button_variant::AdminButtonVariant::Secondary.class() href=user_path>{constants_str::PG_CRUD_READ_PERMISSION_ACTION}</singlestage::Link></crate::table_cell::TableCell>
                 </crate::table_row::TableRow>
             }
         };

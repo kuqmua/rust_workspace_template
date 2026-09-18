@@ -121,6 +121,8 @@ pub mod admin_table_query_hidden_inputs;
 pub mod admin_textarea;
 pub mod admin_user_roles;
 #[cfg(target_arch = "wasm32")]
+pub mod admin_user_view;
+#[cfg(target_arch = "wasm32")]
 pub mod admin_users_view;
 #[cfg(not(target_arch = "wasm32"))]
 pub mod axum_admin_frontend_router;
@@ -133,6 +135,8 @@ pub mod data_table_grid;
 #[cfg(test)]
 pub mod domain_types_ssr_tests;
 #[cfg(target_arch = "wasm32")]
+pub mod fetch_access_sessions_read;
+#[cfg(target_arch = "wasm32")]
 pub mod fetch_account_read;
 #[cfg(target_arch = "wasm32")]
 pub mod fetch_account_read_request;
@@ -144,6 +148,8 @@ pub mod fetch_json;
 pub mod fetch_json_request;
 #[cfg(target_arch = "wasm32")]
 pub mod fetch_permissions_read;
+#[cfg(target_arch = "wasm32")]
+pub mod fetch_role_permissions_read;
 #[cfg(target_arch = "wasm32")]
 pub mod fetch_roles_read;
 #[cfg(target_arch = "wasm32")]

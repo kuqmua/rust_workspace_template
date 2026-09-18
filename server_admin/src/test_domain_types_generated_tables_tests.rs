@@ -84,6 +84,10 @@ fn assert_local_references_resolve(document: &serde_json::Value, value: &serde_j
 fn test_generated_table_catalog_maps_every_supported_data_table_once() {
     let expected = [
         (
+            crate::admin_generated_table::AdminGeneratedTable::AccessSessions,
+            server_admin_contract::admin_data_table::AdminDataTable::AccessSessions,
+        ),
+        (
             crate::admin_generated_table::AdminGeneratedTable::AuditLog,
             server_admin_contract::admin_data_table::AdminDataTable::AuditLog,
         ),
@@ -124,7 +128,6 @@ fn test_generated_table_catalog_maps_every_supported_data_table_once() {
         );
     });
     [
-        server_admin_contract::admin_data_table::AdminDataTable::AccessSessions,
         server_admin_contract::admin_data_table::AdminDataTable::CleanupStatus,
         server_admin_contract::admin_data_table::AdminDataTable::LoginAttempts,
         server_admin_contract::admin_data_table::AdminDataTable::RateLimits,
@@ -223,6 +226,7 @@ fn test_open_api_contains_exactly_the_typed_route_locations() {
         .collect::<std::collections::BTreeSet<_>>();
     expected.extend(
         [
+            crate::admin_access_sessions::AdminAccessSessions::read_route(),
             crate::admin_audit_log::AdminAuditLog::read_route(),
             crate::admin_users::AdminUsers::read_route(),
             crate::admin_user_roles::AdminUserRoles::read_route(),
@@ -573,6 +577,10 @@ fn test_generated_admin_open_api_combines_enabled_routes_only() {
 fn test_generated_payload_example_routes_have_contracts_and_named_clients() {
     [
         (
+            crate::admin_access_sessions::AdminAccessSessions::read_route(),
+            crate::admin_access_sessions::AdminAccessSessions::read_payload_example_route(),
+        ),
+        (
             crate::admin_users::AdminUsers::read_route(),
             crate::admin_users::AdminUsers::read_payload_example_route(),
         ),
@@ -614,6 +622,9 @@ fn test_generated_payload_example_routes_have_contracts_and_named_clients() {
     );
     assert!(!contract.mutates());
     [
+        size_of_val(
+            &crate::admin_access_sessions::AdminAccessSessionsFrontendApiClient::<ClientTransport>::read_payload_example,
+        ),
         size_of_val(&crate::admin_users::AdminUsersFrontendApiClient::<ClientTransport>::read_payload_example),
         size_of_val(&crate::admin_user_roles::AdminUserRolesFrontendApiClient::<ClientTransport>::read_payload_example),
         size_of_val(
@@ -858,6 +869,55 @@ fn test_audit_log_page_uses_generated_post_read_contract() {
     assert_eq!(
         route.path().as_ref(),
         crate::admin_audit_log::AdminAuditLog::read_route().as_ref()
+    );
+}
+
+#[test]
+fn test_access_sessions_page_uses_generated_post_read_contract() {
+    let request = server_admin_contract::admin_access_sessions_read_request::AdminAccessSessionsReadRequest::try_from(
+        &server_admin_contract::admin_table_query::AdminTableQuery::default(),
+    );
+    assert!(request.is_ok_and(|request| {
+        serde_json::to_value(request).is_ok_and(|value| {
+            serde_json::from_value::<crate::admin_access_sessions::AdminAccessSessionsReadPayload>(
+                value,
+            )
+            .is_ok()
+        })
+    }));
+    let route = server_admin_contract::admin_data_table::AdminDataTable::AccessSessions.api_route();
+    assert_eq!(
+        route.contract().method(),
+        frontend_contract::route_method::RouteMethod::Post
+    );
+    assert_eq!(
+        route.path().as_ref(),
+        crate::admin_access_sessions::AdminAccessSessions::read_route().as_ref()
+    );
+}
+
+#[test]
+fn test_role_permissions_page_uses_generated_post_read_contract() {
+    let request = server_admin_contract::admin_role_permissions_read_request::AdminRolePermissionsReadRequest::try_from(
+        &server_admin_contract::admin_table_query::AdminTableQuery::default(),
+    );
+    assert!(request.is_ok_and(|request| {
+        serde_json::to_value(request).is_ok_and(|value| {
+            serde_json::from_value::<
+                    crate::admin_role_permissions::AdminRolePermissionsReadPayload,
+                >(value)
+                .is_ok()
+        })
+    }));
+    let route =
+        server_admin_contract::admin_data_table::AdminDataTable::RolePermissions.api_route();
+    assert_eq!(
+        route.contract().method(),
+        frontend_contract::route_method::RouteMethod::Post
+    );
+    assert_eq!(
+        route.path().as_ref(),
+        crate::admin_role_permissions::AdminRolePermissions::read_route().as_ref()
     );
 }
 

@@ -5,7 +5,7 @@ test("test_generated_read_replaces_single_record_reads", async ({ page }) => {
   await signInInitialAdministrator(page);
   try {
     const document = await (await page.request.get("/openapi.json/read")).json();
-    const resources = ["users", "roles", "permissions", "system_settings", "role_permissions"];
+    const resources = ["users", "roles", "permissions", "system_settings"];
     await resources.reduce(async (previous, resource) => {
       await previous;
       const path = `/${resource}/read`;
@@ -46,6 +46,50 @@ test("test_generated_read_replaces_single_record_reads", async ({ page }) => {
       const legacy = await page.request.get(`/admin_${resource}/read_payload_example`, { maxRedirects: 0 });
       expect(legacy.status()).not.toBe(200);
     }, Promise.resolve());
+  } finally {
+    await signOutIfAuthenticated(page);
+  }
+});
+
+test("test_access_sessions_read_uses_post_only", async ({ page }) => {
+  await signInInitialAdministrator(page);
+  try {
+    const path = "/access_sessions/read";
+    const document = await (await page.request.get("/openapi.json/read")).json();
+    expect(document.paths[path].get).toBeUndefined();
+    expect(document.paths[path].post).toBeDefined();
+    const example = await page.request.get(`${path}_payload_example`);
+    expect(example.status()).toBe(200);
+    const response = await page.request.post(path, { data: await example.json() });
+    expect(response.status()).toBe(200);
+    const view = await response.json();
+    expect(view.table).toBe("access_sessions");
+    expect(Array.isArray(view.columns)).toBe(true);
+    expect(Array.isArray(view.items)).toBe(true);
+    expect(typeof view.total).toBe("number");
+    expect((await page.request.get(path, { maxRedirects: 0 })).status()).not.toBe(200);
+  } finally {
+    await signOutIfAuthenticated(page);
+  }
+});
+
+test("test_role_permissions_read_uses_post_only", async ({ page }) => {
+  await signInInitialAdministrator(page);
+  try {
+    const path = "/role_permissions/read";
+    const document = await (await page.request.get("/openapi.json/read")).json();
+    expect(document.paths[path].get).toBeUndefined();
+    expect(document.paths[path].post).toBeDefined();
+    const example = await page.request.get(`${path}_payload_example`);
+    expect(example.status()).toBe(200);
+    const response = await page.request.post(path, { data: await example.json() });
+    expect(response.status()).toBe(200);
+    const view = await response.json();
+    expect(view.table).toBe("role_permissions");
+    expect(Array.isArray(view.columns)).toBe(true);
+    expect(Array.isArray(view.items)).toBe(true);
+    expect(typeof view.total).toBe("number");
+    expect((await page.request.get(path, { maxRedirects: 0 })).status()).not.toBe(200);
   } finally {
     await signOutIfAuthenticated(page);
   }
