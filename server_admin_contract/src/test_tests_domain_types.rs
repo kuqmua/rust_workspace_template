@@ -45,7 +45,6 @@ fn test_every_admin_api_route_has_named_route_and_client_functions() {
     [
         size_of_val(&crate::admin_audit_log_route::audit_log_route),
         size_of_val(&crate::admin_branding_route::branding_route),
-        size_of_val(&crate::admin_data_table_route::read_data_table_route),
         size_of_val(&crate::admin_data_tables_route::list_data_tables_route),
         size_of_val(&crate::admin_change_own_password_route::change_own_password_route),
         size_of_val(&crate::admin_create_roles_route::create_roles_route),
@@ -61,6 +60,7 @@ fn test_every_admin_api_route_has_named_route_and_client_functions() {
             &crate::admin_delete_roles_payload_example_route::delete_roles_payload_example_route,
         ),
         size_of_val(&crate::admin_delete_users_route::delete_users_route),
+        size_of_val(&crate::admin_delete_access_sessions_route::delete_access_sessions_route),
         size_of_val(
             &crate::admin_delete_users_payload_example_route::delete_users_payload_example_route,
         ),
@@ -92,7 +92,6 @@ fn test_every_admin_api_route_has_named_route_and_client_functions() {
     [
         size_of_val(&crate::admin_audit_log_route::audit_log_client::<ClientTransport>),
         size_of_val(&crate::admin_branding_route::branding_client::<ClientTransport>),
-        size_of_val(&crate::admin_data_table_route::read_data_table_client::<ClientTransport>),
         size_of_val(&crate::admin_data_tables_route::list_data_tables_client::<ClientTransport>),
         size_of_val(
             &crate::admin_change_own_password_route::change_own_password_client::<ClientTransport>,
@@ -116,6 +115,11 @@ fn test_every_admin_api_route_has_named_route_and_client_functions() {
             >,
         ),
         size_of_val(&crate::admin_delete_users_route::delete_users_client::<ClientTransport>),
+        size_of_val(
+            &crate::admin_delete_access_sessions_route::delete_access_sessions_client::<
+                ClientTransport,
+            >,
+        ),
         size_of_val(
             &crate::admin_delete_users_payload_example_route::delete_users_payload_example_client::<
                 ClientTransport,
@@ -279,12 +283,6 @@ fn test_parameterized_admin_route_path_uses_typed_route_metadata() {
     >(&session_id);
     assert_eq!(path.as_ref(), constants_str::VALUE_C0FE54AF);
     assert_eq!(
-        String::from(crate::admin_data_table_route::read_data_table_route(
-            &crate::admin_prefixed_data_table::AdminPrefixedDataTable::Roles
-        )),
-        constants_str::VALUE_BCEDACF8
-    );
-    assert_eq!(
         String::from(crate::admin_revoke_session_route::revoke_session_route(
             &session_id
         )),
@@ -374,6 +372,19 @@ fn test_update_users_payload_example_route_matches_update_request() {
     assert_eq!(
         route.contract().mutation(),
         frontend_contract::mutation_kind::MutationKind::ReadOnly
+    );
+}
+#[test]
+fn test_user_roles_read_route_uses_post_json_contract() {
+    let route = crate::admin_route::AdminRoute::UserRolesTable;
+    assert_eq!(
+        route.contract().method(),
+        frontend_contract::route_method::RouteMethod::Post
+    );
+    assert_eq!(route.path().as_ref(), constants_str::ADMIN_USER_ROLES_READ);
+    assert_eq!(
+        <crate::admin_user_roles_table_route::AdminUserRolesTableRoute as frontend_contract::typed_route::TypedRoute>::request_body(),
+        frontend_contract::route_request_body::RouteRequestBody::Json
     );
 }
 #[test]
@@ -811,48 +822,48 @@ fn test_health_api_paths_preserve_service_root() {
     clippy::needless_for_each,
     reason = "iterator traversal follows the workspace no-for-loop policy"
 )]
-fn test_data_table_api_routes_keep_only_conflicting_resources_prefixed() {
+fn test_data_table_api_routes_use_dedicated_resources() {
     crate::admin_data_table::AdminDataTable::ALL
         .into_iter()
         .for_each(|table| {
             let route = table.api_route();
             match table {
-                crate::admin_data_table::AdminDataTable::Users
-                | crate::admin_data_table::AdminDataTable::Roles
-                | crate::admin_data_table::AdminDataTable::Permissions
-                | crate::admin_data_table::AdminDataTable::AuditLog
-                | crate::admin_data_table::AdminDataTable::SystemSettings => {
+                crate::admin_data_table::AdminDataTable::SystemSettings => {
                     assert_eq!(
-                        crate::admin_data_table::AdminDataTable::from(
-                            crate::admin_prefixed_data_table::AdminPrefixedDataTable::try_from(
-                                table.as_str().get()
-                            )
-                            .expect(constants_str::DIAGNOSTIC_700CC2CC)
-                        ),
-                        table
+                        route.contract().method(),
+                        frontend_contract::route_method::RouteMethod::Post
                     );
                     assert_eq!(
                         route.path().as_ref(),
-                        String::from(crate::admin_data_table_route::read_data_table_route(
-                            &crate::admin_prefixed_data_table::AdminPrefixedDataTable::try_from(
-                                table.as_str().get()
-                            )
-                            .expect(constants_str::DIAGNOSTIC_700CC2CC)
-                        ))
+                        frontend_contract::typed_route_path::typed_route_path::<
+                            crate::admin_read_system_settings_route::AdminReadSystemSettingsRoute,
+                        >()
+                        .as_ref()
                     );
                 }
-                crate::admin_data_table::AdminDataTable::UserRoles
+                crate::admin_data_table::AdminDataTable::AuditLog => {
+                    assert_eq!(
+                        route.contract().method(),
+                        frontend_contract::route_method::RouteMethod::Post
+                    );
+                    assert_eq!(
+                        route.path().as_ref(),
+                        frontend_contract::typed_route_path::typed_route_path::<
+                            crate::admin_read_audit_log_route::AdminReadAuditLogRoute,
+                        >()
+                        .as_ref()
+                    );
+                }
+                crate::admin_data_table::AdminDataTable::Users
+                | crate::admin_data_table::AdminDataTable::Roles
+                | crate::admin_data_table::AdminDataTable::Permissions
+                | crate::admin_data_table::AdminDataTable::UserRoles
                 | crate::admin_data_table::AdminDataTable::RolePermissions
                 | crate::admin_data_table::AdminDataTable::RefreshTokens
                 | crate::admin_data_table::AdminDataTable::AccessSessions
                 | crate::admin_data_table::AdminDataTable::LoginAttempts
                 | crate::admin_data_table::AdminDataTable::RateLimits
                 | crate::admin_data_table::AdminDataTable::CleanupStatus => {
-                    let _error =
-                        crate::admin_prefixed_data_table::AdminPrefixedDataTable::try_from(
-                            table.as_str().get(),
-                        )
-                        .expect_err(constants_str::DIAGNOSTIC_664DD271);
                     assert_eq!(
                         route.path().as_ref().strip_prefix(constants_str::SLASH),
                         Some(format!("{table}{}", constants_str::READ_ROUTE_SUFFIX).as_str())

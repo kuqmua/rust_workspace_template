@@ -16,6 +16,12 @@
     "create_exclude_fields": ["created_at"],
     "read_exclude_fields": ["details"],
     "permission_prefix": "audit_log",
+    "read_page": {
+        "search_columns": ["user_login", "action", "resource", "resource_id"],
+        "response": "server_admin_contract::admin_data_table_view::AdminDataTableView",
+        "enrich": "crate::enrich_audit_log_read_page::enrich_audit_log_read_page",
+        "error": "crate::admin_audit_log_read_page_error::AdminAuditLogReadPageError"
+    },
     "tests_write_into_file": "False",
     "common_write_into_file": "False",
     "whole_write_into_file": "False"

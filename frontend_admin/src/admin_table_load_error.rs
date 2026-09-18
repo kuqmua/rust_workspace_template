@@ -23,6 +23,8 @@ pub(crate) enum AdminTableLoadError {
     ),
     #[error("{message}", message = constants_str::ADMIN_UI_THE_TABLE_QUERY_IS_INVALID)]
     Query,
+    #[error("{message}: {0}", message = constants_str::ADMIN_UI_THE_TABLE_QUERY_IS_INVALID)]
+    QuerySource(server_admin_contract::admin_text::AdminText),
     #[error("{message}", message = constants_str::ADMIN_UI_THE_TABLE_RESPONSE_WAS_INVALID)]
     Response,
 }
@@ -36,6 +38,7 @@ impl AdminTableLoadError {
             }
             Self::Fetch
             | Self::Query
+            | Self::QuerySource(_)
             | Self::Response
             | Self::ReadBrowser(_)
             | Self::ReadJson(_)

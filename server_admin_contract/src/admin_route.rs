@@ -12,6 +12,10 @@
     body_limit = crate::admin_api_body_max_bytes::ADMIN_API_BODY_MAX_BYTES_VALUE,
 )]
 pub enum AdminRoute {
+    #[route_catalog_route(
+        crate::admin_delete_access_sessions_route::AdminDeleteAccessSessionsRoute
+    )]
+    DeleteAccessSessions,
     #[route_catalog_route(crate::admin_cleanup_status_table_route::AdminCleanupStatusTableRoute)]
     CleanupStatusTable,
     #[route_catalog_route(crate::admin_rate_limits_table_route::AdminRateLimitsTableRoute)]
@@ -30,10 +34,20 @@ pub enum AdminRoute {
     UserRolesTable,
     #[route_catalog_route(crate::admin_audit_log_route::AdminAuditLogRoute)]
     Audit,
+    #[route_catalog_route(
+        contract = <crate::admin_read_audit_log_route::AdminReadAuditLogRoute as frontend_contract::typed_route::TypedRoute>::metadata().contract(),
+        path = frontend_contract::typed_route_path::typed_route_path::<crate::admin_read_audit_log_route::AdminReadAuditLogRoute>(),
+        exclude_from_family,
+    )]
+    AuditLog,
+    #[route_catalog_route(
+        contract = <crate::admin_read_system_settings_route::AdminReadSystemSettingsRoute as frontend_contract::typed_route::TypedRoute>::metadata().contract(),
+        path = frontend_contract::typed_route_path::typed_route_path::<crate::admin_read_system_settings_route::AdminReadSystemSettingsRoute>(),
+        exclude_from_family,
+    )]
+    SystemSettings,
     #[route_catalog_route(crate::admin_branding_route::AdminBrandingRoute)]
     Branding,
-    #[route_catalog_route(crate::admin_data_table_route::AdminDataTableRoute)]
-    DataTable(crate::admin_prefixed_data_table::AdminPrefixedDataTable),
     #[route_catalog_route(crate::admin_data_tables_route::AdminDataTablesRoute)]
     DataTables,
     #[route_catalog_route(crate::admin_change_own_password_route::AdminChangeOwnPasswordRoute)]

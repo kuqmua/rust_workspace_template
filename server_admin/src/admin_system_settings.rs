@@ -15,6 +15,12 @@
     "db_table_name": "system_settings",
     "create_exclude_fields": ["updated_at"],
     "permission_prefix": "system_settings",
+    "read_page": {
+        "search_columns": ["site_name", "tab_title", "organization_name", "organization_contacts", "support_url"],
+        "response": "server_admin_contract::admin_data_table_view::AdminDataTableView",
+        "enrich": "crate::enrich_system_settings_read_page::enrich_system_settings_read_page",
+        "error": "crate::admin_system_settings_read_page_error::AdminSystemSettingsReadPageError"
+    },
     "tests_write_into_file": "False",
     "common_write_into_file": "False",
     "whole_write_into_file": "False"

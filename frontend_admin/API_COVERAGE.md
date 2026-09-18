@@ -7,7 +7,7 @@ permission, request, and table catalogs in `server_admin_contract`.
 Generated read APIs use the configured database resource name in their URL, independently
 of the Rust type name: `/users/read` and the corresponding
 `*_payload_example` routes. The same rule applies to `roles`, `permissions`,
-`system_settings`, `user_roles`, and `role_permissions`; these paths have no `admin_` prefix. Single-record reads use a primary-key equality
+`system_settings`, and `role_permissions`; these paths have no `admin_` prefix. Single-record reads use a primary-key equality
 filter with a limit of one and offset zero. Missing records return empty items; `/users/read` returns `{ items, roles, total }`.
 The table generator exposes reads through `read`; `read_one` and `read_one_payload_example` have been removed from every API mode.
 Mutations use `create_many`, `update`, and `delete_many`; the corresponding `_one` routes and payload examples have been removed. Single-record creation submits a one-element array. Single-record updates submit a one-element array keyed by the primary key; deletions use an equality filter on the primary key. Revision-aware bulk updates require `If-Match` and roll back the entire batch if any key is missing or its revision does not match.
@@ -27,6 +27,7 @@ below covers user-visible workflows and direct API behavior.
 | GET `/auth/sessions` | Sessions page |
 | DELETE `/auth/sessions/{session_id}` | Per-session confirmation dialog |
 | DELETE `/auth/sessions` | Revoke-all confirmation dialog; includes the current session |
+| DELETE `/access_sessions/delete` | Administrative filtered session revocation; soft-deletes matching active sessions |
 | POST `/users/read` | Users list with selected fields, combined search and filters, sorting, pagination, role assignments, and total count |
 | POST `/users/create` | Create-user page; server-rendered HTML adapter |
 | PATCH `/users/update` | Atomic batch updates through the typed API; uses the same user validation, administrator protection, audit, and session revocation as single-user updates |
@@ -35,16 +36,18 @@ below covers user-visible workflows and direct API behavior.
 | POST `/roles/create` | Atomic creation of multiple roles through the typed API |
 | PATCH `/roles/update` | Atomic name and permission updates through the typed API |
 | DELETE `/roles/delete` | Atomic deletion of non-system roles matching a required filter |
-| GET `/audit_log/read` | Audit view uses the catalog table endpoint; browser coverage also verifies the dedicated query and redacted mutation records |
+| POST `/audit_log/read` | Audit table page uses the generated typed read endpoint; browser coverage also verifies the dedicated audit query and redacted mutation records |
+| POST `/user_roles/read` | User-role assignments table with JSON filters and pagination |
 | GET `/system_settings/read` | Settings form |
+| POST `/system_settings/read` | Generated typed database-table read with search, filters, ordering, pagination, and total count |
 | PATCH `/system_settings/update` | Save settings and reset supported settings to defaults |
 | GET `/branding/read` | Shared branding in server-rendered pages |
 | GET `/tables/read` | Catalog defines available database views; navigation follows the shared table specification |
-| GET `/tables/{table}/read` (`users`, `roles`, `permissions`, `audit_log`, `system_settings`) | Catalog-driven columns, filters, ordering, and pagination |
 
 The 12 table views are `users`, `roles`, `permissions`, `user_roles`, `role_permissions`,
 `refresh_tokens`, `access_sessions`, `login_attempts`, `audit_log`, `system_settings`,
-`rate_limits`, and `cleanup_status`. Their API is read-only. Account and role mutations
+`rate_limits`, and `cleanup_status`. Their table API is read-only except for the dedicated
+`DELETE /access_sessions/delete` operation. Account and role mutations
 belong to the dedicated operations above; session revocation and settings changes belong
 to their dedicated pages.
 

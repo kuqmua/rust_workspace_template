@@ -751,7 +751,20 @@ test("a read-only administrator sees only authorized navigation and mutations fa
     reader.locator('nav[aria-label="admin_sections"] a[href="/admin/settings"]')
   ).toBeVisible();
 
+  const auditLogRead = reader.waitForRequest(
+    request =>
+      request.url().endsWith("/audit_log/read") && request.method() === "POST"
+  );
   await reader.goto("/admin/audit_log");
+  await auditLogRead;
+  await expect(reader.locator('[data-renderer="csr"]')).toBeVisible();
+
+  const systemSettingsRead = reader.waitForRequest(
+    request =>
+      request.url().endsWith("/system_settings/read") && request.method() === "POST"
+  );
+  await reader.goto("/admin/system_settings");
+  await systemSettingsRead;
   await expect(reader.locator('[data-renderer="csr"]')).toBeVisible();
 
   await reader.goto("/admin/settings");

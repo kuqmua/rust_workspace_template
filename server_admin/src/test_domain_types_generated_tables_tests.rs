@@ -84,6 +84,10 @@ fn assert_local_references_resolve(document: &serde_json::Value, value: &serde_j
 fn test_generated_table_catalog_maps_every_supported_data_table_once() {
     let expected = [
         (
+            crate::admin_generated_table::AdminGeneratedTable::AuditLog,
+            server_admin_contract::admin_data_table::AdminDataTable::AuditLog,
+        ),
+        (
             crate::admin_generated_table::AdminGeneratedTable::Roles,
             server_admin_contract::admin_data_table::AdminDataTable::Roles,
         ),
@@ -121,7 +125,6 @@ fn test_generated_table_catalog_maps_every_supported_data_table_once() {
     });
     [
         server_admin_contract::admin_data_table::AdminDataTable::AccessSessions,
-        server_admin_contract::admin_data_table::AdminDataTable::AuditLog,
         server_admin_contract::admin_data_table::AdminDataTable::CleanupStatus,
         server_admin_contract::admin_data_table::AdminDataTable::LoginAttempts,
         server_admin_contract::admin_data_table::AdminDataTable::RateLimits,
@@ -220,6 +223,7 @@ fn test_open_api_contains_exactly_the_typed_route_locations() {
         .collect::<std::collections::BTreeSet<_>>();
     expected.extend(
         [
+            crate::admin_audit_log::AdminAuditLog::read_route(),
             crate::admin_users::AdminUsers::read_route(),
             crate::admin_user_roles::AdminUserRoles::read_route(),
             crate::admin_role_permissions::AdminRolePermissions::read_route(),
@@ -268,7 +272,14 @@ fn test_every_typed_route_query_parameter_matches_open_api_individually() {
                     constants_str::AUDIT_LOG_ALT => &[constants_str::ACTION, constants_str::CREATED_AFTER, constants_str::CREATED_BEFORE, constants_str::VALUE_6A0FB903, constants_str::VALUE_5089D2D4, constants_str::LIMIT, constants_str::OFFSET_ALT, constants_str::RESOURCE, constants_str::RESOURCE_ID, constants_str::SUCCEEDED, constants_str::USER_ID, constants_str::USER_LOGIN],
                     constants_str::VALUE_AF9B619C | constants_str::VALUE_48ED1531 | constants_str::VALUE_73CF19F8 => &[constants_str::LIMIT, constants_str::OFFSET_ALT, constants_str::SEARCH_ALT, constants_str::SORT_ALT, constants_str::DIRECTION],
                     constants_str::SESSIONS => &[constants_str::VALUE_2521B522, constants_str::VALUE_67B4BFF9, constants_str::VALUE_7316023B, constants_str::VALUE_5C154525, constants_str::LIMIT, constants_str::OFFSET_ALT, constants_str::SEARCH_ALT, constants_str::SORT_ALT, constants_str::DIRECTION],
-                    _ if server_admin_contract::admin_data_table::AdminDataTable::ALL.into_iter().any(|table| table.api_route().contract().path() == metadata.path()) => &[constants_str::VALUE_2521B522, constants_str::VALUE_67B4BFF9, constants_str::VALUE_7316023B, constants_str::VALUE_5C154525, constants_str::LIMIT, constants_str::OFFSET_ALT, constants_str::SEARCH_ALT, constants_str::SORT_ALT, constants_str::DIRECTION],
+                    _ if metadata.path().as_ref() == constants_str::ADMIN_USER_ROLES_READ
+                        && metadata.route_method()
+                            == frontend_contract::route_method::RouteMethod::Post => &[],
+                    _ if server_admin_contract::admin_data_table::AdminDataTable::ALL.into_iter().any(|table| {
+                        let contract = table.api_route().contract();
+                        contract.path() == metadata.path()
+                            && contract.method() == metadata.contract().method()
+                    }) => &[constants_str::VALUE_2521B522, constants_str::VALUE_67B4BFF9, constants_str::VALUE_7316023B, constants_str::VALUE_5C154525, constants_str::LIMIT, constants_str::OFFSET_ALT, constants_str::SEARCH_ALT, constants_str::SORT_ALT, constants_str::DIRECTION],
                     _ => &[],
                 };
                 let operation = typed_operation(&document, metadata);
@@ -689,7 +700,6 @@ fn test_generated_read_routes_expose_filter_sort_and_pagination_contract() {
         constants_str::ADMIN_ROLES_READ_PAYLOAD,
         constants_str::ADMIN_PERMISSIONS_READ_PAYLOAD,
         constants_str::ADMIN_ROLE_PERMISSIONS_READ_PAYLOAD,
-        constants_str::ADMIN_USER_ROLES_READ_PAYLOAD,
         constants_str::ADMIN_SYSTEM_SETTINGS_READ_PAYLOAD,
     ]
     .into_iter()
@@ -825,6 +835,52 @@ fn test_users_read_client_request_is_accepted_by_generated_contract() {
     assert_eq!(
         serde_json::to_value(generated_request).expect(constants_str::DIAGNOSTIC_5E6CEA0A),
         client_json
+    );
+}
+
+#[test]
+fn test_audit_log_page_uses_generated_post_read_contract() {
+    let request =
+        server_admin_contract::admin_audit_log_read_request::AdminAuditLogReadRequest::try_from(
+            &server_admin_contract::admin_table_query::AdminTableQuery::default(),
+        );
+    assert!(request.is_ok_and(|request| {
+        serde_json::to_value(request).is_ok_and(|value| {
+            serde_json::from_value::<crate::admin_audit_log::AdminAuditLogReadPayload>(value)
+                .is_ok()
+        })
+    }));
+    let route = server_admin_contract::admin_data_table::AdminDataTable::AuditLog.api_route();
+    assert_eq!(
+        route.contract().method(),
+        frontend_contract::route_method::RouteMethod::Post
+    );
+    assert_eq!(
+        route.path().as_ref(),
+        crate::admin_audit_log::AdminAuditLog::read_route().as_ref()
+    );
+}
+
+#[test]
+fn test_system_settings_page_has_generated_post_read_contract() {
+    let request = server_admin_contract::admin_system_settings_read_request::AdminSystemSettingsReadRequest::try_from(
+        &server_admin_contract::admin_table_query::AdminTableQuery::default(),
+    )
+    .expect(constants_str::DIAGNOSTIC_700CC2CC);
+    assert!(serde_json::to_value(request).is_ok_and(|value| {
+        serde_json::from_value::<crate::admin_system_settings::AdminSystemSettingsReadPayload>(
+            value,
+        )
+        .is_ok()
+    }));
+    let route = server_admin_contract::admin_data_table::AdminDataTable::SystemSettings.api_route();
+    assert_eq!(
+        route.contract().method(),
+        frontend_contract::route_method::RouteMethod::Post
+    );
+    assert_eq!(
+        route.path().as_ref(),
+        crate::admin_system_settings::AdminSystemSettings::read_route().as_ref()
     );
 }
 

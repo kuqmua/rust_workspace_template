@@ -137,6 +137,8 @@ pub mod fetch_account_read;
 #[cfg(target_arch = "wasm32")]
 pub mod fetch_account_read_request;
 #[cfg(target_arch = "wasm32")]
+pub mod fetch_audit_log_read;
+#[cfg(target_arch = "wasm32")]
 pub mod fetch_json;
 #[cfg(target_arch = "wasm32")]
 pub mod fetch_json_request;
@@ -144,6 +146,10 @@ pub mod fetch_json_request;
 pub mod fetch_permissions_read;
 #[cfg(target_arch = "wasm32")]
 pub mod fetch_roles_read;
+#[cfg(target_arch = "wasm32")]
+pub mod fetch_system_settings_read;
+#[cfg(target_arch = "wasm32")]
+pub mod fetch_user_roles_read;
 #[cfg(target_arch = "wasm32")]
 pub mod fetch_users_read;
 pub mod join_text;

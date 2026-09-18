@@ -5,7 +5,7 @@ test("test_generated_read_replaces_single_record_reads", async ({ page }) => {
   await signInInitialAdministrator(page);
   try {
     const document = await (await page.request.get("/openapi.json/read")).json();
-    const resources = ["users", "roles", "permissions", "system_settings", "user_roles", "role_permissions"];
+    const resources = ["users", "roles", "permissions", "system_settings", "role_permissions"];
     await resources.reduce(async (previous, resource) => {
       await previous;
       const path = `/${resource}/read`;

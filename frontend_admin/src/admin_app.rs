@@ -56,6 +56,24 @@ pub(crate) fn AdminApp() -> impl leptos::prelude::IntoView {
                 let Some(table) = admin_csr_query.table() else {
                     return Ok(crate::admin_load_state::AdminLoadState::Empty(admin));
                 };
+                if table == server_admin_contract::admin_data_table::AdminDataTable::AuditLog {
+                    return crate::fetch_audit_log_read::fetch_audit_log_read(admin_csr_query)
+                        .await
+                        .map(|value| crate::admin_load_state::AdminLoadState::Table(admin, value));
+                }
+                if table == server_admin_contract::admin_data_table::AdminDataTable::SystemSettings
+                {
+                    return crate::fetch_system_settings_read::fetch_system_settings_read(
+                        admin_csr_query,
+                    )
+                    .await
+                    .map(|value| crate::admin_load_state::AdminLoadState::Table(admin, value));
+                }
+                if table == server_admin_contract::admin_data_table::AdminDataTable::UserRoles {
+                    return crate::fetch_user_roles_read::fetch_user_roles_read(admin_csr_query)
+                        .await
+                        .map(|value| crate::admin_load_state::AdminLoadState::Table(admin, value));
+                }
                 let table_search = web_sys::window()
                     .ok_or(crate::admin_table_load_error::AdminTableLoadError::Fetch)?
                     .location()

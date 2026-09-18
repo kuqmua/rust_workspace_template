@@ -1,4 +1,5 @@
 INSERT INTO permissions (name) VALUES
+    ('access_sessions:delete'),
     ('access_sessions:read'),
     ('audit_log:read'),
     ('cleanup_status:read'),

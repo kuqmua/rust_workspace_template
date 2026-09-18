@@ -1562,13 +1562,31 @@ mod test_data_tables {
             ),
             (),
             async |(), table| {
-                let uri = format!("{}?limit=100&offset=0", table.api_route().path().as_ref());
+                let (method, uri, request_body) = if table
+                    == server_admin_contract::admin_data_table::AdminDataTable::UserRoles
+                {
+                    (
+                        http::Method::POST,
+                        table.api_route().path().as_ref().to_owned(),
+                        serde_json::json!({
+                            (stringify!(limit)): 100u16,
+                            (stringify!(offset)): 0u32,
+                        })
+                        .to_string(),
+                    )
+                } else {
+                    (
+                        http::Method::GET,
+                        format!("{}?limit=100&offset=0", table.api_route().path().as_ref()),
+                        constants_str::PG_CRUD_EMPTY_SQL_SUFFIX.to_owned(),
+                    )
+                };
                 let response = tower::ServiceExt::oneshot(
                     crate::router_with_pool(&fixture.pool).0,
                     crate::request_with_peer(
-                        super::HttpAdminApiTestMethod::from(http::Method::GET),
+                        super::HttpAdminApiTestMethod::from(method),
                         super::StdAdminApiTestStrRef::from(uri.as_str()),
-                        super::StdAdminApiTestStrRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
+                        super::StdAdminApiTestStrRef::from(request_body.as_str()),
                         Some(super::StdAdminApiTestStrRef::from(
                             fixture.cookie.0.as_str(),
                         )),
@@ -2955,7 +2973,7 @@ mod test_flow {
                     .expect(constants_str::DIAGNOSTIC_701A7A79)
         );
 
-        let data_table_response = tower::ServiceExt::oneshot(
+        let removed_route_response = tower::ServiceExt::oneshot(
             crate::router_with_pool(&pool).0,
             crate::request_with_peer(
                 super::HttpAdminApiTestMethod::from(http::Method::GET),
@@ -2968,130 +2986,7 @@ mod test_flow {
         )
         .await
         .expect(constants_str::DIAGNOSTIC_CA94AEC1);
-        assert_eq!(data_table_response.status(), http::StatusCode::OK);
-        let data_table = axum::body::to_bytes(
-            data_table_response.into_body(),
-            constants_usize::VALUE_1_048_576,
-        )
-        .await
-        .map(|body| {
-            serde_json::from_slice::<
-                    server_admin_contract::admin_data_table_view::AdminDataTableView,
-                >(&body)
-                .expect(constants_str::DIAGNOSTIC_E16283F4)
-        })
-        .expect(constants_str::DIAGNOSTIC_3F927581);
-        assert!(data_table.items().len() <= constants_usize::ONE);
-        assert!(
-            u64::from(data_table.total())
-                >= u64::try_from(data_table.items().len())
-                    .expect(constants_str::DIAGNOSTIC_1440730F)
-        );
-        let filtered_data_table_response = tower::ServiceExt::oneshot(
-        crate::router_with_pool(&pool).0,
-        crate::request_with_peer(
-            super::HttpAdminApiTestMethod::from(http::Method::GET),
-            super::StdAdminApiTestStrRef::from(
-                format!(
-                    "/tables/users/read?filter_field=login&filter_operation=eq&filter_value={}&limit=20&offset=0",
-                    constants_str::ADMIN_ALT
-                )
-                .as_str(),
-            ),
-            super::StdAdminApiTestStrRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
-            Some(super::StdAdminApiTestStrRef::from(active_cookie.as_str())),
-            None,
-        )
-        .0,
-    )
-    .await
-    .expect(constants_str::DIAGNOSTIC_766F5654);
-        assert_eq!(filtered_data_table_response.status(), http::StatusCode::OK);
-        let filtered_data_table = axum::body::to_bytes(
-            filtered_data_table_response.into_body(),
-            constants_usize::VALUE_1_048_576,
-        )
-        .await
-        .map(|body| {
-            serde_json::from_slice::<
-                    server_admin_contract::admin_data_table_view::AdminDataTableView,
-                >(&body)
-                .expect(constants_str::DIAGNOSTIC_02D611AB)
-        })
-        .expect(constants_str::DIAGNOSTIC_6DFE8F37);
-        assert_eq!(u64::from(filtered_data_table.total()), 1u64);
-        assert_eq!(filtered_data_table.items().len(), constants_usize::ONE);
-        assert!(
-            filtered_data_table
-                .items()
-                .first()
-                .expect(constants_str::DIAGNOSTIC_753FA97C)
-                .values()
-                .iter()
-                .any(|value| value.as_ref() == constants_str::ADMIN_ALT)
-        );
-        let empty_data_table_response = tower::ServiceExt::oneshot(
-            crate::router_with_pool(&pool).0,
-            crate::request_with_peer(
-                super::HttpAdminApiTestMethod::from(http::Method::GET),
-                super::StdAdminApiTestStrRef::from(constants_str::VALUE_2C93E406),
-                super::StdAdminApiTestStrRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
-                Some(super::StdAdminApiTestStrRef::from(active_cookie.as_str())),
-                None,
-            )
-            .0,
-        )
-        .await
-        .expect(constants_str::DIAGNOSTIC_1310E021);
-        assert_eq!(empty_data_table_response.status(), http::StatusCode::OK);
-        let empty_data_table = axum::body::to_bytes(
-            empty_data_table_response.into_body(),
-            constants_usize::VALUE_1_048_576,
-        )
-        .await
-        .map(|body| {
-            serde_json::from_slice::<
-                    server_admin_contract::admin_data_table_view::AdminDataTableView,
-                >(&body)
-                .expect(constants_str::DIAGNOSTIC_AA8376D3)
-        })
-        .expect(constants_str::DIAGNOSTIC_A98D6360);
-        assert_eq!(u64::from(empty_data_table.total()), constants_u64::ZERO);
-        assert!(empty_data_table.items().is_empty());
-        let unsupported_filter_response = tower::ServiceExt::oneshot(
-            crate::router_with_pool(&pool).0,
-            crate::request_with_peer(
-                super::HttpAdminApiTestMethod::from(http::Method::GET),
-                super::StdAdminApiTestStrRef::from(constants_str::VALUE_946CA218),
-                super::StdAdminApiTestStrRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
-                Some(super::StdAdminApiTestStrRef::from(active_cookie.as_str())),
-                None,
-            )
-            .0,
-        )
-        .await
-        .expect(constants_str::DIAGNOSTIC_DD6D2544);
-        assert_eq!(
-            unsupported_filter_response.status(),
-            http::StatusCode::UNPROCESSABLE_ENTITY
-        );
-        let incomplete_filter_response = tower::ServiceExt::oneshot(
-            crate::router_with_pool(&pool).0,
-            crate::request_with_peer(
-                super::HttpAdminApiTestMethod::from(http::Method::GET),
-                super::StdAdminApiTestStrRef::from(constants_str::VALUE_5E6D79D4),
-                super::StdAdminApiTestStrRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
-                Some(super::StdAdminApiTestStrRef::from(active_cookie.as_str())),
-                None,
-            )
-            .0,
-        )
-        .await
-        .expect(constants_str::DIAGNOSTIC_E9279B1F);
-        assert_eq!(
-            incomplete_filter_response.status(),
-            http::StatusCode::UNPROCESSABLE_ENTITY
-        );
+        assert_eq!(removed_route_response.status(), http::StatusCode::NOT_FOUND);
         let sign_out_response = tower::ServiceExt::oneshot(
             crate::router_with_pool(&pool).0,
             crate::request_with_peer(
@@ -4062,6 +3957,58 @@ mod test_html {
             .rollback()
             .await
             .expect(constants_str::DIAGNOSTIC_737BBBE6);
+    }
+    #[tokio::test]
+    #[ignore = "requires PostgreSQL; run through workspace_test_runner database"]
+    async fn test_postgresql_delete_access_sessions_revokes_filtered_session() {
+        let fixture = crate::admin_html_test_fixture().await;
+        let user_id = sqlx::query_scalar::<_, i64>(
+            constants_str::SELECT_ID_FROM_ADMIN_USERS_WHERE_LOGIN_ADMIN,
+        )
+        .fetch_one(&fixture.pool.0)
+        .await
+        .expect(constants_str::DIAGNOSTIC_16A59A42);
+        let session_id = uuid::Uuid::from_u128(2u128);
+        let _inserted = sqlx::query(constants_str::VALUE_324717BB)
+            .bind(session_id)
+            .bind(user_id)
+            .execute(&fixture.pool.0)
+            .await
+            .expect(constants_str::DIAGNOSTIC_3538E3FC);
+        let body = serde_json::json!({
+            (stringify!(filter)): {(stringify!(session_id)): session_id}
+        })
+        .to_string();
+        let response = tower::ServiceExt::oneshot(
+            crate::router_with_pool(&fixture.pool).0,
+            crate::request_with_peer(
+                crate::HttpAdminApiTestMethod::from(http::Method::DELETE),
+                crate::StdAdminApiTestStrRef::from(
+                    server_admin_contract::admin_route::AdminRoute::DeleteAccessSessions
+                        .path()
+                        .as_ref(),
+                ),
+                crate::StdAdminApiTestStrRef::from(body.as_str()),
+                Some(crate::StdAdminApiTestStrRef::from(
+                    fixture.cookie.0.as_str(),
+                )),
+                Some(crate::StdAdminApiTestStrRef::from(fixture.csrf.0.as_str())),
+            )
+            .0,
+        )
+        .await;
+        assert!(response.is_ok_and(|value| value.status() == http::StatusCode::NO_CONTENT));
+        let revoked = sqlx::query_scalar::<_, bool>(constants_str::VALUE_26E35E53)
+            .bind(session_id)
+            .fetch_one(&fixture.pool.0)
+            .await;
+        assert!(revoked.is_ok_and(|value| value));
+        fixture
+            .lock
+            .0
+            .rollback()
+            .await
+            .expect(constants_str::DIAGNOSTIC_0EF3B73C);
     }
     #[tokio::test]
     #[ignore = "requires PostgreSQL; run through workspace_test_runner database"]

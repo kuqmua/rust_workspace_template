@@ -13,6 +13,8 @@
     error_message = constants_str::UNKNOWN_ADMINISTRATOR_PERMISSION,
 )]
 pub enum AdminPermission {
+    #[wire("access_sessions:delete")]
+    AccessSessionsDelete,
     #[wire("access_sessions:read")]
     AccessSessionsRead,
     #[wire("audit_log:read")]

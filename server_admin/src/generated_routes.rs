@@ -5,6 +5,7 @@ pub fn generated_routes(
     server_runtime_http::axum_router::AxumRouter::from(
         crate::admin_generated_table::AdminGeneratedTable::ALL
             .into_iter()
+            .filter(|table| *table != crate::admin_generated_table::AdminGeneratedTable::UserRoles)
             .fold(axum::Router::new(), |routes, table| {
                 routes.merge(axum::Router::from(
                     table.routes(shared_admin_generated_table_state_arc),

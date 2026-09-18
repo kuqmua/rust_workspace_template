@@ -26,9 +26,11 @@ pub fn generated_open_api() -> crate::utoipa_admin_open_api::UtoipaAdminOpenApi 
     }
     let mut document =
         utoipa::openapi::OpenApi::from(crate::admin_api_open_api::admin_api_open_api());
-    if let Some((first_table, remaining_tables)) =
-        crate::admin_generated_table::AdminGeneratedTable::ALL.split_first()
-    {
+    let generated_tables = crate::admin_generated_table::AdminGeneratedTable::ALL
+        .into_iter()
+        .filter(|table| *table != crate::admin_generated_table::AdminGeneratedTable::UserRoles)
+        .collect::<Vec<_>>();
+    if let Some((first_table, remaining_tables)) = generated_tables.split_first() {
         document = utoipa::openapi::OpenApi::from(first_table.open_api());
         document.merge(utoipa::openapi::OpenApi::from(
             crate::admin_api_open_api::admin_api_open_api(),

@@ -17,241 +17,213 @@ pub(crate) async fn data_tables_get(
         admin_auth_request.get_state().as_ref().get_pool().as_ref(),
     );
     let view = async {
-            let spec = admin_data_table.spec();
-            let columns = {
-                let column_names = spec.columns();
-                (|| {
-                        let generated_fields = if admin_data_table
-                            == server_admin_contract::admin_data_table::AdminDataTable::AccessSessions
-                        {
-                            Some(crate::admin_access_sessions::AdminAccessSessions::frontend_fields())
-                        } else if admin_data_table
-                            == server_admin_contract::admin_data_table::AdminDataTable::AuditLog
-                        {
-                            Some(crate::admin_audit_log::AdminAuditLog::frontend_fields())
-                        } else if admin_data_table
-                            == server_admin_contract::admin_data_table::AdminDataTable::CleanupStatus
-                        {
-                            Some(crate::admin_cleanup_status::AdminCleanupStatus::frontend_fields())
-                        } else if admin_data_table
-                            == server_admin_contract::admin_data_table::AdminDataTable::LoginAttempts
-                        {
-                            Some(crate::admin_login_attempts::AdminLoginAttempts::frontend_fields())
-                        } else if admin_data_table
-                            == server_admin_contract::admin_data_table::AdminDataTable::RefreshTokens
-                        {
-                            Some(crate::admin_refresh_tokens::AdminRefreshTokens::frontend_fields())
-                        } else if admin_data_table
-                            == server_admin_contract::admin_data_table::AdminDataTable::RateLimits
-                        {
-                            Some(crate::admin_rate_limits::AdminRateLimits::frontend_fields())
-                        } else {
-                            crate::admin_generated_table::AdminGeneratedTable::for_data_table(admin_data_table)
-                                .map(crate::admin_generated_table::AdminGeneratedTable::field_contracts)
-                        };
-                        let columns = column_names
-                            .get()
-                            .split(',')
-                            .map(|raw_name| {
-                                let generated_field = generated_fields.as_ref().and_then(|fields| {
-                                    AsRef::<[frontend_contract::field_contract::FieldContract]>::as_ref(fields)
-                                        .iter()
-                                        .find(|field| field.name().as_ref() == raw_name)
-                                });
-                                let label_text = generated_field.map_or_else(
-                                    || raw_name.to_owned(),
-                                    |field| field.label().as_ref().to_owned(),
-                                );
-                                let input_kind = generated_field.map_or(frontend_contract::input_kind::InputKind::Text, |field| {
-                                    field.type_contract().input_kind()
-                                });
-                                let raw_filters = generated_field.map_or_else(Vec::new, |field| {
-                                    if field.readable()
-                                        == frontend_contract::field_capability::FieldCapability::Disabled
-                                    {
-                                        Vec::new()
-                                    } else {
-                                        field
-                                            .filters()
-                                            .iter()
-                                            .copied()
-                                            .map(server_admin_contract::admin_data_filter::AdminDataFilter::from)
-                                            .collect::<Vec<_>>()
-                                    }
-                                });
-                                let filters =
-                                    server_admin_contract::admin_data_filters::AdminDataFilters::try_from(raw_filters)
-                                        .map_err(|_error| crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue)?;
-                                let label = server_admin_contract::admin_text::AdminText::try_from(label_text)
-                                    .map_err(|_error| crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue)?;
-                                let name =
-                                    server_admin_contract::admin_text::AdminText::try_from(raw_name.to_owned())
-                                        .map_err(|_error| crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue)?;
-                                Ok(server_admin_contract::admin_data_column::AdminDataColumn::new(
-                                    filters, input_kind, label, name,
-                                ))
-                            })
-                            .collect::<Result<Vec<_>, crate::admin_repository_error::AdminRepositoryError>>()?;
-                        server_admin_contract::admin_data_columns::AdminDataColumns::try_from(columns)
-                            .map_err(|_error| crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue)
-                })()
-            }?;
-            let (base_count_sql, base_sql) = (|| {
-                    let base_spec = admin_data_table.spec();
-                    let table_name = admin_data_table.to_string();
-                    let mut count = constants_str::SERVER_ADMIN_DATA_COUNT_PREFIX.to_owned();
-                    count.push_str(table_name.as_str());
-                    let mut data = base_spec.columns().get().split(',').enumerate().fold(
-                        constants_str::SERVER_ADMIN_DATA_SELECT_ARRAY_PREFIX.to_owned(),
-                        |mut sql, (index, column)| {
-                            if index > constants_usize::ZERO {
-                                sql.push_str(constants_str::TEXT_ALT_7);
-                            }
-                            sql.push_str(constants_str::SERVER_ADMIN_DATA_SELECT_COLUMN_PREFIX);
-                            sql.push_str(column);
-                            sql.push_str(constants_str::SERVER_ADMIN_DATA_SELECT_COLUMN_SUFFIX);
-                            sql
-                        },
-                    );
-                    data.push_str(constants_str::SERVER_ADMIN_DATA_SELECT_FROM);
-                    data.push_str(table_name.as_str());
-                    data.push_str(constants_str::SERVER_ADMIN_FILTER_ORDER_BY_SEPARATOR);
-                    data.push_str(base_spec.order().get());
-                    data.push_str(constants_str::SERVER_ADMIN_FILTER_LIMIT_SEPARATOR);
-                    Ok::<_, crate::admin_repository_error::AdminRepositoryError>((
-                        server_admin_core::std_admin_string::StdAdminString::try_from(count)
-                            .map_err(|_error| crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue)?,
-                        server_admin_core::std_admin_string::StdAdminString::try_from(data)
-                            .map_err(|_error| crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue)?,
-                    ))
-            })()?;
-            let filter = crate::data_filter::data_filter(
-                admin_data_table,
-                axum_admin_query.filter(),
-            )?;
-            let mut increment = pg_crud_common::query_part_increment::QueryPartIncrement::from(constants_u64::ZERO);
-            let fragment = filter
-                .as_ref()
-                .map(|value| value.query_part(&mut increment))
-                .transpose()
-                .map_err(|_error| crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue)?;
-            let (count_sql, sql) = fragment.as_ref().map_or_else(
-                || {
-                    Ok::<_, crate::admin_repository_error::AdminRepositoryError>((
-                        server_admin_core::std_admin_string::StdAdminString::try_from(base_count_sql.as_ref().to_owned())
-                            .map_err(|_error| crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue)?,
-                        server_admin_core::std_admin_string::StdAdminString::try_from(base_sql.as_ref().to_owned())
-                            .map_err(|_error| crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue)?,
-                    ))
+        let spec = admin_data_table.spec();
+        let admin_generated_table =
+            crate::admin_generated_table::AdminGeneratedTable::for_data_table(admin_data_table);
+        let columns =
+            crate::admin_data_columns::admin_data_columns(admin_data_table, admin_generated_table)?;
+        let (base_count_sql, base_sql) = (|| {
+            let base_spec = spec;
+            let table_name = admin_data_table.to_string();
+            let mut count = constants_str::SERVER_ADMIN_DATA_COUNT_PREFIX.to_owned();
+            count.push_str(table_name.as_str());
+            let mut data = base_spec.columns().get().split(',').enumerate().fold(
+                constants_str::SERVER_ADMIN_DATA_SELECT_ARRAY_PREFIX.to_owned(),
+                |mut sql, (index, column)| {
+                    if index > constants_usize::ZERO {
+                        sql.push_str(constants_str::TEXT_ALT_7);
+                    }
+                    sql.push_str(constants_str::SERVER_ADMIN_DATA_SELECT_COLUMN_PREFIX);
+                    sql.push_str(column);
+                    sql.push_str(constants_str::SERVER_ADMIN_DATA_SELECT_COLUMN_SUFFIX);
+                    sql
                 },
-                |filter_fragment| {
-                    let count_sql = server_admin_core::std_admin_str_ref::StdAdminStrRef::from(
-                        base_count_sql.as_ref().as_str(),
-                    );
-                    let data_sql = server_admin_core::std_admin_str_ref::StdAdminStrRef::from(
-                        base_sql.as_ref().as_str(),
-                    );
-                    (|| {
-                            let mut filtered_count = count_sql.get().to_owned();
-                            filtered_count.push(' ');
-                            filtered_count.push_str(filter_fragment.as_ref());
-                            let (data_prefix, ordered_suffix) = data_sql
-                                .get()
-                                .split_once(constants_str::SERVER_ADMIN_FILTER_ORDER_BY_SEPARATOR)
-                                .ok_or(crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue)?;
-                            let order = ordered_suffix
-                                .strip_suffix(constants_str::SERVER_ADMIN_FILTER_LIMIT_SEPARATOR)
-                                .ok_or(crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue)?;
-                            let limit_index = increment.get().saturating_add(1u64);
-                            let offset_index = limit_index.saturating_add(1u64);
-                            let mut filtered_data = data_prefix.to_owned();
-                            filtered_data.push(' ');
-                            filtered_data.push_str(filter_fragment.as_ref());
-                            filtered_data.push_str(constants_str::SERVER_ADMIN_FILTER_ORDER_BY_SEPARATOR);
-                            filtered_data.push_str(order);
-                            filtered_data.push_str(constants_str::SERVER_ADMIN_FILTER_LIMIT_PREFIX);
-                            filtered_data.push_str(limit_index.to_string().as_str());
-                            filtered_data.push_str(constants_str::SERVER_ADMIN_FILTER_OFFSET_PREFIX);
-                            filtered_data.push_str(offset_index.to_string().as_str());
-                            let count = server_admin_core::std_admin_string::StdAdminString::try_from(filtered_count)
-                                .map_err(|_error| crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue)?;
-                            let data = server_admin_core::std_admin_string::StdAdminString::try_from(filtered_data)
-                                .map_err(|_error| crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue)?;
-                            Ok((count, data))
-                    })()
-                },
-            )?;
-            let unbound_count_query = sqlx::query(sqlx::AssertSqlSafe(count_sql.as_ref().as_str()));
-            let bound_count_query = filter
-                .clone()
-                .map(|value| {
-                    value.query_bind(pg_crud_common::sqlx_postgres_query::SqlxPostgresQuery::from(
-                        unbound_count_query,
-                    ))
-                })
-                .transpose()
-                .map_err(|_error| crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue)?
-                .map_or_else(
-                    || sqlx::query(sqlx::AssertSqlSafe(count_sql.as_ref().as_str())),
-                    pg_crud_common::sqlx_postgres_query::SqlxPostgresQuery::into_inner,
+            );
+            data.push_str(constants_str::SERVER_ADMIN_DATA_SELECT_FROM);
+            data.push_str(table_name.as_str());
+            data.push_str(constants_str::SERVER_ADMIN_FILTER_ORDER_BY_SEPARATOR);
+            data.push_str(base_spec.order().get());
+            data.push_str(constants_str::SERVER_ADMIN_FILTER_LIMIT_SEPARATOR);
+            Ok::<_, crate::admin_repository_error::AdminRepositoryError>((
+                server_admin_core::std_admin_string::StdAdminString::try_from(count).map_err(
+                    |_error| {
+                        crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue
+                    },
+                )?,
+                server_admin_core::std_admin_string::StdAdminString::try_from(data).map_err(
+                    |_error| {
+                        crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue
+                    },
+                )?,
+            ))
+        })()?;
+        let filter = crate::data_filter::data_filter(admin_data_table, axum_admin_query.filter())?;
+        let mut increment =
+            pg_crud_common::query_part_increment::QueryPartIncrement::from(constants_u64::ZERO);
+        let fragment = filter
+            .as_ref()
+            .map(|value| value.query_part(&mut increment))
+            .transpose()
+            .map_err(|_error| {
+                crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue
+            })?;
+        let (count_sql, sql) = fragment.as_ref().map_or_else(
+            || {
+                Ok::<_, crate::admin_repository_error::AdminRepositoryError>((
+                    server_admin_core::std_admin_string::StdAdminString::try_from(
+                        base_count_sql.as_ref().to_owned(),
+                    )
+                    .map_err(|_error| {
+                        crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue
+                    })?,
+                    server_admin_core::std_admin_string::StdAdminString::try_from(
+                        base_sql.as_ref().to_owned(),
+                    )
+                    .map_err(|_error| {
+                        crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue
+                    })?,
+                ))
+            },
+            |filter_fragment| {
+                let count_sql = server_admin_core::std_admin_str_ref::StdAdminStrRef::from(
+                    base_count_sql.as_ref().as_str(),
                 );
-            let count_row = bound_count_query
-                .fetch_one(*pool)
-                .await
-                .map_err(crate::sqlx_admin_error::SqlxAdminError::from)?;
-            let total = sqlx::Row::try_get::<i64, _>(&count_row, constants_usize::ZERO)
-                .map_err(crate::sqlx_admin_error::SqlxAdminError::from)?;
-            let unbound_data_query = sqlx::query(sqlx::AssertSqlSafe(sql.as_ref().as_str()));
-            let bound_data_query = filter
-                .map(|value| {
-                    value.query_bind(pg_crud_common::sqlx_postgres_query::SqlxPostgresQuery::from(
-                        unbound_data_query,
-                    ))
-                })
-                .transpose()
-                .map_err(|_error| crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue)?
-                .map_or_else(
-                    || sqlx::query(sqlx::AssertSqlSafe(sql.as_ref().as_str())),
-                    pg_crud_common::sqlx_postgres_query::SqlxPostgresQuery::into_inner,
+                let data_sql = server_admin_core::std_admin_str_ref::StdAdminStrRef::from(
+                    base_sql.as_ref().as_str(),
+                );
+                (|| {
+                    let mut filtered_count = count_sql.get().to_owned();
+                    filtered_count.push(' ');
+                    filtered_count.push_str(filter_fragment.as_ref());
+                    let (data_prefix, ordered_suffix) = data_sql
+                        .get()
+                        .split_once(constants_str::SERVER_ADMIN_FILTER_ORDER_BY_SEPARATOR)
+                        .ok_or(
+                            crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue,
+                        )?;
+                    let order = ordered_suffix
+                        .strip_suffix(constants_str::SERVER_ADMIN_FILTER_LIMIT_SEPARATOR)
+                        .ok_or(
+                            crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue,
+                        )?;
+                    let limit_index = increment.get().saturating_add(1u64);
+                    let offset_index = limit_index.saturating_add(1u64);
+                    let mut filtered_data = data_prefix.to_owned();
+                    filtered_data.push(' ');
+                    filtered_data.push_str(filter_fragment.as_ref());
+                    filtered_data.push_str(constants_str::SERVER_ADMIN_FILTER_ORDER_BY_SEPARATOR);
+                    filtered_data.push_str(order);
+                    filtered_data.push_str(constants_str::SERVER_ADMIN_FILTER_LIMIT_PREFIX);
+                    filtered_data.push_str(limit_index.to_string().as_str());
+                    filtered_data.push_str(constants_str::SERVER_ADMIN_FILTER_OFFSET_PREFIX);
+                    filtered_data.push_str(offset_index.to_string().as_str());
+                    let count = server_admin_core::std_admin_string::StdAdminString::try_from(
+                        filtered_count,
+                    )
+                    .map_err(|_error| {
+                        crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue
+                    })?;
+                    let data = server_admin_core::std_admin_string::StdAdminString::try_from(
+                        filtered_data,
+                    )
+                    .map_err(|_error| {
+                        crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue
+                    })?;
+                    Ok((count, data))
+                })()
+            },
+        )?;
+        let unbound_count_query = sqlx::query(sqlx::AssertSqlSafe(count_sql.as_ref().as_str()));
+        let bound_count_query = filter
+            .clone()
+            .map(|value| {
+                value.query_bind(
+                    pg_crud_common::sqlx_postgres_query::SqlxPostgresQuery::from(
+                        unbound_count_query,
+                    ),
                 )
-                .bind(i64::from(u16::from(axum_admin_query.page().limit())))
-                .bind(i64::from(u32::from(axum_admin_query.page().offset())));
-            let rows = bound_data_query
-                .fetch_all(*pool)
-                .await
-                .map_err(crate::sqlx_admin_error::SqlxAdminError::from)?
-                .into_iter()
-                .map(|row| {
-                    sqlx::Row::try_get::<Vec<Option<String>>, _>(&row, constants_usize::ZERO)
-                        .map_err(crate::sqlx_admin_error::SqlxAdminError::from)
-                })
-                .collect::<Result<Vec<_>, crate::sqlx_admin_error::SqlxAdminError>>()?;
-            let items = rows
-                .into_iter()
-                .map(|row| {
-                    let values = row
-                        .into_iter()
-                        .map(|value| {
-                            server_admin_contract::admin_text::AdminText::try_from(
-                                value.unwrap_or_else(|| constants_str::SERVER_ADMIN_DATA_NULL.to_owned()),
-                            )
-                            .map_err(|_error| crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue)
-                        })
-                        .collect::<Result<Vec<_>, crate::admin_repository_error::AdminRepositoryError>>()?;
-                    server_admin_contract::admin_texts::AdminTexts::try_from(values)
-                        .map(server_admin_contract::admin_data_row::AdminDataRow::new)
-                        .map_err(|_error| crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue)
-                })
-                .collect::<Result<Vec<_>, crate::admin_repository_error::AdminRepositoryError>>()?;
-            Ok(
-                server_admin_contract::admin_data_table_view::AdminDataTableView::new(
-                    columns,
-                    server_admin_contract::admin_data_rows::AdminDataRows::try_from(items)
-                        .map_err(|_error| crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue)?,
-                    admin_data_table,
-                    crate::repository_page_total::repository_page_total(crate::admin_page_total_count::AdminPageTotalCount::from(total))?,
-                ),
+            })
+            .transpose()
+            .map_err(|_error| {
+                crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue
+            })?
+            .map_or_else(
+                || sqlx::query(sqlx::AssertSqlSafe(count_sql.as_ref().as_str())),
+                pg_crud_common::sqlx_postgres_query::SqlxPostgresQuery::into_inner,
+            );
+        let count_row = bound_count_query
+            .fetch_one(*pool)
+            .await
+            .map_err(crate::sqlx_admin_error::SqlxAdminError::from)?;
+        let total = sqlx::Row::try_get::<i64, _>(&count_row, constants_usize::ZERO)
+            .map_err(crate::sqlx_admin_error::SqlxAdminError::from)?;
+        let unbound_data_query = sqlx::query(sqlx::AssertSqlSafe(sql.as_ref().as_str()));
+        let bound_data_query = filter
+            .map(|value| {
+                value.query_bind(
+                    pg_crud_common::sqlx_postgres_query::SqlxPostgresQuery::from(
+                        unbound_data_query,
+                    ),
+                )
+            })
+            .transpose()
+            .map_err(|_error| {
+                crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue
+            })?
+            .map_or_else(
+                || sqlx::query(sqlx::AssertSqlSafe(sql.as_ref().as_str())),
+                pg_crud_common::sqlx_postgres_query::SqlxPostgresQuery::into_inner,
             )
+            .bind(i64::from(u16::from(axum_admin_query.page().limit())))
+            .bind(i64::from(u32::from(axum_admin_query.page().offset())));
+        let rows = bound_data_query
+            .fetch_all(*pool)
+            .await
+            .map_err(crate::sqlx_admin_error::SqlxAdminError::from)?
+            .into_iter()
+            .map(|row| {
+                sqlx::Row::try_get::<Vec<Option<String>>, _>(&row, constants_usize::ZERO)
+                    .map_err(crate::sqlx_admin_error::SqlxAdminError::from)
+            })
+            .collect::<Result<Vec<_>, crate::sqlx_admin_error::SqlxAdminError>>()?;
+        let items = rows
+            .into_iter()
+            .map(|row| {
+                let values = row
+                    .into_iter()
+                    .map(|value| {
+                        server_admin_contract::admin_text::AdminText::try_from(
+                            value.unwrap_or_else(|| {
+                                constants_str::SERVER_ADMIN_DATA_NULL.to_owned()
+                            }),
+                        )
+                        .map_err(|_error| {
+                            crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue
+                        })
+                    })
+                    .collect::<Result<Vec<_>, crate::admin_repository_error::AdminRepositoryError>>(
+                    )?;
+                server_admin_contract::admin_texts::AdminTexts::try_from(values)
+                    .map(server_admin_contract::admin_data_row::AdminDataRow::new)
+                    .map_err(|_error| {
+                        crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue
+                    })
+            })
+            .collect::<Result<Vec<_>, crate::admin_repository_error::AdminRepositoryError>>()?;
+        Ok(
+            server_admin_contract::admin_data_table_view::AdminDataTableView::new(
+                columns,
+                server_admin_contract::admin_data_rows::AdminDataRows::try_from(items).map_err(
+                    |_error| {
+                        crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue
+                    },
+                )?,
+                admin_data_table,
+                crate::repository_page_total::repository_page_total(
+                    crate::admin_page_total_count::AdminPageTotalCount::from(total),
+                )?,
+            ),
+        )
     }
     .await
     .map_err(crate::map_repository_error::map_repository_error)?;

@@ -52,21 +52,11 @@ impl AdminDataTable {
             Self::LoginAttempts => crate::admin_route::AdminRoute::LoginAttemptsTable,
             Self::RateLimits => crate::admin_route::AdminRoute::RateLimitsTable,
             Self::CleanupStatus => crate::admin_route::AdminRoute::CleanupStatusTable,
-            Self::Users => crate::admin_route::AdminRoute::DataTable(
-                crate::admin_prefixed_data_table::AdminPrefixedDataTable::Users,
-            ),
-            Self::Roles => crate::admin_route::AdminRoute::DataTable(
-                crate::admin_prefixed_data_table::AdminPrefixedDataTable::Roles,
-            ),
-            Self::Permissions => crate::admin_route::AdminRoute::DataTable(
-                crate::admin_prefixed_data_table::AdminPrefixedDataTable::Permissions,
-            ),
-            Self::AuditLog => crate::admin_route::AdminRoute::DataTable(
-                crate::admin_prefixed_data_table::AdminPrefixedDataTable::AuditLog,
-            ),
-            Self::SystemSettings => crate::admin_route::AdminRoute::DataTable(
-                crate::admin_prefixed_data_table::AdminPrefixedDataTable::SystemSettings,
-            ),
+            Self::Users => crate::admin_route::AdminRoute::Users,
+            Self::Roles => crate::admin_route::AdminRoute::Roles,
+            Self::Permissions => crate::admin_route::AdminRoute::Permissions,
+            Self::AuditLog => crate::admin_route::AdminRoute::AuditLog,
+            Self::SystemSettings => crate::admin_route::AdminRoute::SystemSettings,
         }
     }
 
