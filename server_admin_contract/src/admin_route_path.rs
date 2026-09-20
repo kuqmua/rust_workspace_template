@@ -32,3 +32,42 @@ impl From<crate::admin_user_id::AdminUserId> for AdminRoutePath {
         )
     }
 }
+
+impl From<crate::admin_role_id::AdminRoleId> for AdminRoutePath {
+    fn from(value: crate::admin_role_id::AdminRoleId) -> Self {
+        Self(
+            format!(
+                "{}/{}",
+                crate::admin_frontend_path::AdminFrontendPath::Roles.get(),
+                value
+            )
+            .into_boxed_str(),
+        )
+    }
+}
+
+impl From<crate::admin_permission_id::AdminPermissionId> for AdminRoutePath {
+    fn from(value: crate::admin_permission_id::AdminPermissionId) -> Self {
+        Self(
+            format!(
+                "{}/{}",
+                crate::admin_frontend_path::AdminFrontendPath::Permissions.get(),
+                value
+            )
+            .into_boxed_str(),
+        )
+    }
+}
+
+impl From<crate::admin_user_role_id::AdminUserRoleId> for AdminRoutePath {
+    fn from(value: crate::admin_user_role_id::AdminUserRoleId) -> Self {
+        Self(
+            format!(
+                "{}/{}",
+                crate::admin_data_table::AdminDataTable::UserRoles.frontend_path(),
+                value
+            )
+            .into_boxed_str(),
+        )
+    }
+}

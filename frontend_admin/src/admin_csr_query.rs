@@ -23,7 +23,13 @@ pub(crate) struct AdminCsrQuery {
     #[getters(copy)]
     table: Option<server_admin_contract::admin_data_table::AdminDataTable>,
     #[getters(copy)]
+    permission_id: Option<server_admin_contract::admin_permission_id::AdminPermissionId>,
+    #[getters(copy)]
+    role_id: Option<server_admin_contract::admin_role_id::AdminRoleId>,
+    #[getters(copy)]
     user_id: Option<server_admin_contract::admin_user_id::AdminUserId>,
+    #[getters(copy)]
+    user_role_id: Option<server_admin_contract::admin_user_role_id::AdminUserRoleId>,
 }
 impl AdminCsrQuery {
     pub(crate) fn from_location() -> Result<Self, crate::admin_table_load_error::AdminTableLoadError>
@@ -40,10 +46,25 @@ impl AdminCsrQuery {
             .location()
             .pathname()
             .map_err(|_error| crate::admin_table_load_error::AdminTableLoadError::Fetch)?;
+        let user_role_id =
+            server_admin_contract::admin_user_role_id::AdminUserRoleId::from_frontend_path(
+                server_admin_contract::admin_page_path_ref::AdminPagePathRef::from(
+                    pathname.as_str(),
+                ),
+            );
         let table = server_admin_contract::admin_data_table::AdminDataTable::from_frontend_path(
             server_admin_contract::admin_page_path_ref::AdminPagePathRef::from(pathname.as_str()),
         );
         let user_id = server_admin_contract::admin_user_id::AdminUserId::from_frontend_path(
+            server_admin_contract::admin_page_path_ref::AdminPagePathRef::from(pathname.as_str()),
+        );
+        let permission_id =
+            server_admin_contract::admin_permission_id::AdminPermissionId::from_frontend_path(
+                server_admin_contract::admin_page_path_ref::AdminPagePathRef::from(
+                    pathname.as_str(),
+                ),
+            );
+        let role_id = server_admin_contract::admin_role_id::AdminRoleId::from_frontend_path(
             server_admin_contract::admin_page_path_ref::AdminPagePathRef::from(pathname.as_str()),
         );
         Ok(Self::new(
@@ -98,8 +119,11 @@ impl AdminCsrQuery {
                 .transpose()
                 .map_err(|_error| crate::admin_table_load_error::AdminTableLoadError::Query)?
                 .unwrap_or_default(),
-            table,
+            table.or_else(|| user_role_id.map(|_user_role_id| server_admin_contract::admin_data_table::AdminDataTable::UserRoles)),
+            permission_id,
+            role_id,
             user_id,
+            user_role_id,
         ))
     }
 }

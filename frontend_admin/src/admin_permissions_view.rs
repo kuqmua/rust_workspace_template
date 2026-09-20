@@ -4,7 +4,7 @@
     reason = "Leptos emits sibling props fields and builder methods with framework-defined visibility and names from the single component in this module"
 )]
 
-use leptos::prelude::{ClassAttribute, CustomAttribute, ElementChild};
+use leptos::prelude::{AddAnyAttr, ClassAttribute, CustomAttribute, ElementChild};
 
 #[leptos::component]
 #[allow(
@@ -21,10 +21,16 @@ pub(crate) fn AdminPermissionsView(
 ) -> impl leptos::prelude::IntoView {
     let total = admin_permissions_page.total();
     let rows = admin_permissions_page.items().iter().map(|item| {
+        let permission_path = server_admin_contract::admin_route_path::AdminRoutePath::from(item.id()).to_string();
         let id = item.id().to_string();
         let permission = item.name().to_string();
         leptos::view! {
-            <crate::table_row::TableRow><crate::table_cell::TableCell data_label="id">{id}</crate::table_cell::TableCell><crate::table_cell::TableCell data_label="permission">{permission}</crate::table_cell::TableCell><crate::table_cell::TableCell data_label=constants_str::ADMIN_UI_ACTIONS bool=true>{constants_str::EMPTY}</crate::table_cell::TableCell></crate::table_row::TableRow>
+            <crate::table_row::TableRow><crate::table_cell::TableCell data_label="id">{id}</crate::table_cell::TableCell><crate::table_cell::TableCell data_label="permission">{permission}</crate::table_cell::TableCell><crate::table_cell::TableCell data_label=constants_str::ADMIN_UI_ACTIONS bool=true><singlestage::Link class=crate::admin_button_variant::AdminButtonVariant::Secondary.class() href=permission_path attr:aria-label=constants_str::PG_CRUD_READ_PERMISSION_ACTION attr:title=constants_str::PG_CRUD_READ_PERMISSION_ACTION>
+                        <svg viewBox="0 0 24 24" aria-hidden=constants_str::TRUE fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"></path>
+                            <circle cx="12" cy="12" r="3"></circle>
+                        </svg>
+                    </singlestage::Link></crate::table_cell::TableCell></crate::table_row::TableRow>
         }
     }).collect::<Vec<_>>();
     let identifier_filters = [

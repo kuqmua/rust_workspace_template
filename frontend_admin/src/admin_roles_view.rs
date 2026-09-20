@@ -4,7 +4,7 @@
     reason = "Leptos emits sibling props fields and builder methods with framework-defined visibility and names from the single component in this module"
 )]
 
-use leptos::prelude::{ClassAttribute, CustomAttribute, ElementChild};
+use leptos::prelude::{AddAnyAttr, ClassAttribute, CustomAttribute, ElementChild};
 
 #[leptos::component]
 #[allow(
@@ -22,6 +22,10 @@ pub(crate) fn AdminRolesView(
 ) -> impl leptos::prelude::IntoView {
     let csr_admin_role_row =
         |admin_role_summary: &server_admin_contract::admin_role_summary::AdminRoleSummary| {
+            let role_path = server_admin_contract::admin_route_path::AdminRoutePath::from(
+                admin_role_summary.id(),
+            )
+            .to_string();
             let id = admin_role_summary.id().to_string();
             let name = admin_role_summary.name().to_string();
             let system = admin_role_summary.is_system().to_string();
@@ -35,7 +39,12 @@ pub(crate) fn AdminRolesView(
                     <crate::table_cell::TableCell data_label="name">{name}</crate::table_cell::TableCell>
                     <crate::table_cell::TableCell data_label="system">{system}</crate::table_cell::TableCell>
                     {permissions}
-                    <crate::table_cell::TableCell data_label=constants_str::ADMIN_UI_ACTIONS bool=true>{constants_str::EMPTY}</crate::table_cell::TableCell>
+                    <crate::table_cell::TableCell data_label=constants_str::ADMIN_UI_ACTIONS bool=true><singlestage::Link class=crate::admin_button_variant::AdminButtonVariant::Secondary.class() href=role_path attr:aria-label=constants_str::PG_CRUD_READ_PERMISSION_ACTION attr:title=constants_str::PG_CRUD_READ_PERMISSION_ACTION>
+                        <svg viewBox="0 0 24 24" aria-hidden=constants_str::TRUE fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"></path>
+                            <circle cx="12" cy="12" r="3"></circle>
+                        </svg>
+                    </singlestage::Link></crate::table_cell::TableCell>
                 </crate::table_row::TableRow>
             }
         };

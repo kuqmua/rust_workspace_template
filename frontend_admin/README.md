@@ -94,3 +94,21 @@ Requests from an open browser page recover expired access and CSRF cookies throu
 typed refresh route, with at most one refresh and one retry. Ordinary network failures
 and non-authentication server errors are not replayed. Full-page navigation retains the
 server authentication policy: an expired access session redirects to sign-in.
+
+Role rows link to `/admin/roles/{role_id}` for read-only details: ID, name, system status,
+and assigned permissions. The existing roles read API filters by the path ID; list query
+parameters do not change the selected record. Missing records display `resource not found`.
+The public contract snapshot intentionally adds `AdminFrontendPath::RoleRead` and the
+role ID path parser, matching the existing user detail route.
+
+Permission rows link to `/admin/permissions/{permission_id}` for read-only ID and name
+details, using the same page layout as users. List query parameters do not change the
+selected permission; missing records display `resource not found`. The public contract
+snapshot intentionally adds `AdminFrontendPath::PermissionRead` and the permission ID
+path parser for this route.
+
+User-role assignment rows link to `/admin/user_roles/{user_role_id}`. The read-only
+page renders the fields from the typed table catalog (ID, user ID, role ID, and creation
+time) and selects only the path ID, regardless of list query parameters. Missing records
+display `resource not found`; the existing user-role read permission protects the page
+and API. The public contract adds `AdminUserRoleId` and `AdminFrontendPath::UserRoleRead`.

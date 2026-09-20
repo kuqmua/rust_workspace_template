@@ -30,7 +30,7 @@ where
                     let value = object
                         .get(column.name().as_ref())
                         .and_then(serde_json::Value::as_object)
-                        .and_then(|explicit| explicit.get(constants_str::PG_CRUD_VALUES_FIELD))
+                        .and_then(|explicit| explicit.get(constants_str::VALUE_CD42404D))
                         .ok_or(
                             crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue,
                         )?;

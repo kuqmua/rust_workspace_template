@@ -87,3 +87,17 @@ export function observeBrowserErrors(page, includeFailedRequests = false) {
   }
   return { consoleErrors, failedRequests, pageErrors };
 }
+
+export async function signInAdministratorWithPasswordReset(page) {
+  await signIn(page);
+  if (page.url().endsWith("/admin/actions/sign_in")) {
+    await signIn(page, "administrator", initialAdminPassword);
+    await expect(page).toHaveURL(/\/admin\/profile$/);
+    const password = await page.request.post("/auth/password", {
+      data: { current_password: initialAdminPassword, new_password: changedAdminPassword },
+      headers: await adminHeaders(page.context())
+    });
+    expect(password.status()).toBe(204);
+    await signIn(page);
+  }
+}

@@ -8,9 +8,34 @@ pub(crate) async fn fetch_roles_read(
     server_admin_contract::admin_roles_page::AdminRolesPage,
     crate::admin_table_load_error::AdminTableLoadError,
 > {
-    let query = crate::admin_table_query::admin_table_query(admin_csr_query)?;
-    let filter_query =
-        crate::admin_identifier_filter_query::admin_identifier_filter_query(admin_csr_query)?;
+    let query = if admin_csr_query.role_id().is_some() {
+        server_admin_contract::admin_table_query::AdminTableQuery::default()
+    } else {
+        crate::admin_table_query::admin_table_query(admin_csr_query)?
+    };
+    let filter_query = match admin_csr_query.role_id() {
+        Some(role_id) => {
+            server_admin_contract::admin_data_table_filter_query::AdminDataTableFilterQuery::new(
+                Some(
+                    server_admin_contract::admin_filter_field::AdminFilterField::try_from(
+                        constants_str::SQL_NAMES_ID.to_owned(),
+                    )
+                    .map_err(crate::admin_table_load_error::AdminTableLoadError::ReadFilterField)?,
+                ),
+                Some(frontend_contract::filter_operation::FilterOperation::Eq),
+                Some(
+                    server_admin_contract::admin_filter_value::AdminFilterValue::try_from(
+                        role_id.to_string(),
+                    )
+                    .map_err(crate::admin_table_load_error::AdminTableLoadError::ReadFilterValue)?,
+                ),
+                None,
+            )
+        }
+        None => {
+            crate::admin_identifier_filter_query::admin_identifier_filter_query(admin_csr_query)?
+        }
+    };
     let input_kind = match filter_query.field() {
         None => frontend_contract::input_kind::InputKind::Number,
         Some(field) if field.as_ref() == constants_str::SQL_NAMES_ID => {

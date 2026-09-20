@@ -202,6 +202,19 @@ pub(crate) fn AdminApp() -> impl leptos::prelude::IntoView {
             {
                 server_admin_contract::admin_page::AdminPage::Users
             }
+            None if server_admin_contract::admin_role_id::AdminRoleId::from_frontend_path(path)
+                .is_some() =>
+            {
+                server_admin_contract::admin_page::AdminPage::Roles
+            }
+            None if server_admin_contract::admin_permission_id::AdminPermissionId::from_frontend_path(path)
+                .is_some() =>
+            {
+                server_admin_contract::admin_page::AdminPage::Permissions
+            }
+            None if server_admin_contract::admin_user_role_id::AdminUserRoleId::from_frontend_path(path).is_some() => {
+                server_admin_contract::admin_page::AdminPage::Tables
+            }
             None => return Err(crate::admin_table_load_error::AdminTableLoadError::Query),
         };
         if bool::from(page.supports_csr()) {
@@ -244,12 +257,24 @@ pub(crate) fn AdminApp() -> impl leptos::prelude::IntoView {
                     leptos::prelude::IntoAny::into_any(leptos::view! { <crate::admin_alert::AdminAlert>{message}</crate::admin_alert::AdminAlert> })
                 },
                 crate::admin_load_state::AdminLoadState::Loading => leptos::prelude::IntoAny::into_any(leptos::view! { <crate::admin_spinner::AdminSpinner /> }),
-                crate::admin_load_state::AdminLoadState::Permissions(_admin, page) => leptos::prelude::IntoAny::into_any(leptos::view! { <super::admin_permissions_view::AdminPermissionsView admin_permissions_page=page admin_csr_query=query.clone() /> }),
+                crate::admin_load_state::AdminLoadState::Permissions(_admin, page) => if query.permission_id().is_some() {
+                    leptos::prelude::IntoAny::into_any(leptos::view! { <super::admin_permission_view::AdminPermissionView admin_permissions_page=page /> })
+                } else {
+                    leptos::prelude::IntoAny::into_any(leptos::view! { <super::admin_permissions_view::AdminPermissionsView admin_permissions_page=page admin_csr_query=query.clone() /> })
+                },
                 crate::admin_load_state::AdminLoadState::Profile(admin) => leptos::prelude::IntoAny::into_any(leptos::view! { <super::admin_profile_view::AdminProfileView authenticated_admin=admin /> }),
-                crate::admin_load_state::AdminLoadState::Roles(admin, page) => leptos::prelude::IntoAny::into_any(leptos::view! { <super::admin_roles_view::AdminRolesView authenticated_admin=admin admin_roles_page=page admin_csr_query=query.clone() /> }),
+                crate::admin_load_state::AdminLoadState::Roles(admin, page) => if query.role_id().is_some() {
+                    leptos::prelude::IntoAny::into_any(leptos::view! { <super::admin_role_view::AdminRoleView admin_roles_page=page /> })
+                } else {
+                    leptos::prelude::IntoAny::into_any(leptos::view! { <super::admin_roles_view::AdminRolesView authenticated_admin=admin admin_roles_page=page admin_csr_query=query.clone() /> })
+                },
                 crate::admin_load_state::AdminLoadState::Sessions(_admin, page) => leptos::prelude::IntoAny::into_any(leptos::view! { <super::admin_sessions_view::AdminSessionsView admin_sessions_page=page admin_csr_query=query.clone() /> }),
                 crate::admin_load_state::AdminLoadState::Settings(admin, page) => leptos::prelude::IntoAny::into_any(leptos::view! { <super::admin_settings_view::AdminSettingsView authenticated_admin=admin admin_settings_view=page /> }),
-                crate::admin_load_state::AdminLoadState::Table(_admin, view) => leptos::prelude::IntoAny::into_any(leptos::view! { <super::admin_data_grid::AdminDataGrid admin_data_table_view=view admin_csr_query=query.clone() /> }),
+                crate::admin_load_state::AdminLoadState::Table(_admin, view) => if query.user_role_id().is_some() {
+                    leptos::prelude::IntoAny::into_any(leptos::view! { <super::admin_user_role_view::AdminUserRoleView admin_data_table_view=view /> })
+                } else {
+                    leptos::prelude::IntoAny::into_any(leptos::view! { <super::admin_data_grid::AdminDataGrid admin_data_table_view=view admin_csr_query=query.clone() /> })
+                },
                 crate::admin_load_state::AdminLoadState::Users(admin, page) => if query.user_id().is_some() {
                     leptos::prelude::IntoAny::into_any(leptos::view! { <super::admin_user_view::AdminUserView admin_users_page=page /> })
                 } else {

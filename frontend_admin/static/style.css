@@ -1634,6 +1634,10 @@ pre {
   font-size: 28px;
 }
 
+.auth-card [data-name="Alert"] {
+  text-align: center;
+}
+
 .auth-card form {
   display: grid;
   gap: 0;
@@ -1784,6 +1788,17 @@ body:has(a[href="/admin/version"][aria-current="page"]) .page-frame {
   overflow-wrap: anywhere;
 }
 
-.table-admin_users_page td[data-label="actions"] > a {
+.table-admin_users_page td[data-label="actions"] > a,
+.table-admin_roles_page td[data-label="actions"] > a,
+.table-admin_permissions_page td[data-label="actions"] > a,
+.table-page td[data-label="actions"] > a {
   border: 0;
+}
+
+.table-admin_users_page td[data-label="actions"] > a svg,
+.table-admin_roles_page td[data-label="actions"] > a svg,
+.table-admin_permissions_page td[data-label="actions"] > a svg,
+.table-page td[data-label="actions"] > a svg {
+  width: 1.25em;
+  height: 1.25em;
 }

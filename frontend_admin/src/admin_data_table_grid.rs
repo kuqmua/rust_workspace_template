@@ -3,7 +3,7 @@
     reason = "the Leptos grid cells and column headings require attribute traits after macro expansion"
 )]
 
-use leptos::prelude::{ClassAttribute, ElementChild};
+use leptos::prelude::{AddAnyAttr, ClassAttribute, CustomAttribute, ElementChild};
 
 #[allow(
     clippy::single_call_fn,
@@ -56,6 +56,21 @@ pub(crate) fn admin_data_table_grid(
         .items()
         .iter()
         .map(|item| {
+            let read_link = (admin_data_table_view.table() == server_admin_contract::admin_data_table::AdminDataTable::UserRoles)
+                .then(|| admin_data_table_view.columns().iter().position(|admin_data_column| admin_data_column.name().as_ref() == constants_str::SQL_NAMES_ID))
+                .flatten()
+                .and_then(|index| item.values().get(index))
+                .and_then(|admin_text| admin_text.as_ref().parse::<i64>().ok())
+                .and_then(|value| server_admin_contract::admin_user_role_id::AdminUserRoleId::try_from(value).ok())
+                .map(|admin_user_role_id| {
+                    let user_role_path = server_admin_contract::admin_route_path::AdminRoutePath::from(admin_user_role_id).to_string();
+                    leptos::view! { <singlestage::Link class=crate::admin_button_variant::AdminButtonVariant::Secondary.class() href=user_role_path attr:aria-label=constants_str::PG_CRUD_READ_PERMISSION_ACTION attr:title=constants_str::PG_CRUD_READ_PERMISSION_ACTION>
+                        <svg viewBox="0 0 24 24" aria-hidden=constants_str::TRUE fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"></path>
+                            <circle cx="12" cy="12" r="3"></circle>
+                        </svg>
+                    </singlestage::Link> }
+                });
             let cells = item
                 .values()
                 .iter()
@@ -74,7 +89,7 @@ pub(crate) fn admin_data_table_grid(
                 })
                 .collect::<Vec<_>>();
             leptos::view! {
-                <crate::table_row::TableRow>{cells}<crate::table_cell::TableCell data_label=constants_str::ADMIN_UI_ACTIONS bool=true>{constants_str::EMPTY}</crate::table_cell::TableCell></crate::table_row::TableRow>
+                <crate::table_row::TableRow>{cells}<crate::table_cell::TableCell data_label=constants_str::ADMIN_UI_ACTIONS bool=true>{read_link}</crate::table_cell::TableCell></crate::table_row::TableRow>
             }
         })
         .collect::<Vec<_>>();

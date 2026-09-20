@@ -79,10 +79,14 @@ pub mod admin_page_range;
 #[cfg(target_arch = "wasm32")]
 pub mod admin_pagination;
 #[cfg(target_arch = "wasm32")]
+pub mod admin_permission_view;
+#[cfg(target_arch = "wasm32")]
 pub mod admin_permissions_view;
 #[cfg(target_arch = "wasm32")]
 pub mod admin_profile_view;
 pub mod admin_role_permissions;
+#[cfg(target_arch = "wasm32")]
+pub mod admin_role_view;
 #[cfg(target_arch = "wasm32")]
 pub mod admin_roles_view;
 #[cfg(target_arch = "wasm32")]
@@ -119,6 +123,8 @@ pub mod admin_table_query;
 pub mod admin_table_query_direction;
 pub mod admin_table_query_hidden_inputs;
 pub mod admin_textarea;
+#[cfg(target_arch = "wasm32")]
+pub mod admin_user_role_view;
 pub mod admin_user_roles;
 #[cfg(target_arch = "wasm32")]
 pub mod admin_user_view;

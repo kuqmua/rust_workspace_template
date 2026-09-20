@@ -188,6 +188,7 @@ pub mod create_user_form;
 pub mod crud_page;
 pub mod crud_resource_page;
 pub mod csr_page;
+pub mod csr_table_page;
 pub mod data_access_sessions_flt;
 pub mod data_audit_log_flt;
 pub mod data_cleanup_status_flt;
@@ -249,6 +250,7 @@ pub mod optional_setting_impl;
 pub mod page_context_impl;
 pub mod page_total;
 pub mod permission_ids_impl;
+pub mod permission_read_page;
 pub mod permissions;
 pub mod prepare_postgresql;
 pub mod profile;
@@ -270,6 +272,7 @@ pub mod role_ids_impl;
 mod role_mutations_delete_filtered;
 pub mod role_permissions;
 pub mod role_permissions_form;
+pub mod role_read_page;
 pub mod roles;
 pub mod roles_create_page;
 pub mod roles_manage_page;
@@ -327,6 +330,8 @@ pub mod test_application_tests;
 #[cfg(test)]
 pub mod test_domain_types_generated_tables_tests;
 #[cfg(test)]
+mod test_generated_data_table_view;
+#[cfg(test)]
 pub mod test_maintenance_tests;
 #[cfg(test)]
 pub mod test_shared_tests;
@@ -353,6 +358,7 @@ pub mod user_password;
 pub mod user_password_form;
 pub mod user_path_impl;
 pub mod user_read_page;
+pub mod user_role_read_page;
 pub mod user_roles;
 pub mod user_roles_form;
 pub mod users;

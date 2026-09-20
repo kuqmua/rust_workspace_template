@@ -22,6 +22,8 @@ pub enum AdminFrontendPath {
     OpenApi,
     #[strum(serialize = "/admin/permissions")]
     Permissions,
+    #[strum(serialize = "/admin/permissions/{permission_id}")]
+    PermissionRead,
     #[strum(serialize = "/admin/profile")]
     Profile,
     #[strum(serialize = "/admin/roles")]
@@ -30,6 +32,8 @@ pub enum AdminFrontendPath {
     RolesCreate,
     #[strum(serialize = "/admin/roles/manage")]
     RolesManage,
+    #[strum(serialize = "/admin/roles/{role_id}")]
+    RoleRead,
     #[strum(serialize = "/admin/sessions")]
     Sessions,
     #[strum(serialize = "/admin")]
@@ -48,6 +52,8 @@ pub enum AdminFrontendPath {
     UsersManage,
     #[strum(serialize = "/admin/users/{user_id}")]
     UserRead,
+    #[strum(serialize = "/admin/user_roles/{user_role_id}")]
+    UserRoleRead,
     #[strum(serialize = "/admin/version")]
     Version,
 }

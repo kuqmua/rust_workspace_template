@@ -36,12 +36,9 @@ impl AdminUserId {
     pub fn from_frontend_path(
         admin_page_path_ref: crate::admin_page_path_ref::AdminPagePathRef<'_>,
     ) -> Option<Self> {
-        let value = admin_page_path_ref
-            .get()
-            .strip_prefix(crate::admin_frontend_path::AdminFrontendPath::Users.get())
-            .and_then(|value| value.strip_prefix('/'))
-            .and_then(|value| value.parse::<i64>().ok())?;
-        Self::try_from(value).ok()
+        admin_page_path_ref
+            .record_id(crate::admin_data_table::AdminDataTable::Users)
+            .map(Self::from)
     }
 }
 #[cfg(test)]

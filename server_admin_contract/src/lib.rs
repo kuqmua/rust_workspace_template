@@ -186,6 +186,7 @@ pub mod admin_update_settings_request;
 pub mod admin_update_settings_route;
 pub mod admin_update_user_request;
 pub mod admin_user_id;
+pub mod admin_user_role_id;
 pub mod admin_user_roles_table_route;
 pub mod admin_user_summaries;
 pub mod admin_user_summary;
