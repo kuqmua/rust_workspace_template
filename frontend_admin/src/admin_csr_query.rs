@@ -30,6 +30,9 @@ pub(crate) struct AdminCsrQuery {
     user_id: Option<server_admin_contract::admin_user_id::AdminUserId>,
     #[getters(copy)]
     user_role_id: Option<server_admin_contract::admin_user_role_id::AdminUserRoleId>,
+    #[getters(copy)]
+    role_permission_id:
+        Option<server_admin_contract::admin_role_permission_id::AdminRolePermissionId>,
 }
 impl AdminCsrQuery {
     pub(crate) fn from_location() -> Result<Self, crate::admin_table_load_error::AdminTableLoadError>
@@ -52,6 +55,9 @@ impl AdminCsrQuery {
                     pathname.as_str(),
                 ),
             );
+        let role_permission_id = server_admin_contract::admin_role_permission_id::AdminRolePermissionId::from_frontend_path(
+            server_admin_contract::admin_page_path_ref::AdminPagePathRef::from(pathname.as_str()),
+        );
         let table = server_admin_contract::admin_data_table::AdminDataTable::from_frontend_path(
             server_admin_contract::admin_page_path_ref::AdminPagePathRef::from(pathname.as_str()),
         );
@@ -119,11 +125,14 @@ impl AdminCsrQuery {
                 .transpose()
                 .map_err(|_error| crate::admin_table_load_error::AdminTableLoadError::Query)?
                 .unwrap_or_default(),
-            table.or_else(|| user_role_id.map(|_user_role_id| server_admin_contract::admin_data_table::AdminDataTable::UserRoles)),
+            table
+                .or_else(|| user_role_id.map(|_user_role_id| server_admin_contract::admin_data_table::AdminDataTable::UserRoles))
+                .or_else(|| role_permission_id.map(|_role_permission_id| server_admin_contract::admin_data_table::AdminDataTable::RolePermissions)),
             permission_id,
             role_id,
             user_id,
             user_role_id,
+            role_permission_id,
         ))
     }
 }

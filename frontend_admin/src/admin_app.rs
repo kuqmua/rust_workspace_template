@@ -215,6 +215,9 @@ pub(crate) fn AdminApp() -> impl leptos::prelude::IntoView {
             None if server_admin_contract::admin_user_role_id::AdminUserRoleId::from_frontend_path(path).is_some() => {
                 server_admin_contract::admin_page::AdminPage::Tables
             }
+            None if server_admin_contract::admin_role_permission_id::AdminRolePermissionId::from_frontend_path(path).is_some() => {
+                server_admin_contract::admin_page::AdminPage::Tables
+            }
             None => return Err(crate::admin_table_load_error::AdminTableLoadError::Query),
         };
         if bool::from(page.supports_csr()) {
@@ -271,7 +274,19 @@ pub(crate) fn AdminApp() -> impl leptos::prelude::IntoView {
                 crate::admin_load_state::AdminLoadState::Sessions(_admin, page) => leptos::prelude::IntoAny::into_any(leptos::view! { <super::admin_sessions_view::AdminSessionsView admin_sessions_page=page admin_csr_query=query.clone() /> }),
                 crate::admin_load_state::AdminLoadState::Settings(admin, page) => leptos::prelude::IntoAny::into_any(leptos::view! { <super::admin_settings_view::AdminSettingsView authenticated_admin=admin admin_settings_view=page /> }),
                 crate::admin_load_state::AdminLoadState::Table(_admin, view) => if query.user_role_id().is_some() {
-                    leptos::prelude::IntoAny::into_any(leptos::view! { <super::admin_user_role_view::AdminUserRoleView admin_data_table_view=view /> })
+                    leptos::prelude::IntoAny::into_any(leptos::view! {
+                        <super::admin_assignment_view::AdminAssignmentView
+                            admin_data_table_view=view
+                            admin_assignment_read_page=crate::admin_assignment_read_page::AdminAssignmentReadPage::UserRole
+                        />
+                    })
+                } else if query.role_permission_id().is_some() {
+                    leptos::prelude::IntoAny::into_any(leptos::view! {
+                        <super::admin_assignment_view::AdminAssignmentView
+                            admin_data_table_view=view
+                            admin_assignment_read_page=crate::admin_assignment_read_page::AdminAssignmentReadPage::RolePermission
+                        />
+                    })
                 } else {
                     leptos::prelude::IntoAny::into_any(leptos::view! { <super::admin_data_grid::AdminDataGrid admin_data_table_view=view admin_csr_query=query.clone() /> })
                 },

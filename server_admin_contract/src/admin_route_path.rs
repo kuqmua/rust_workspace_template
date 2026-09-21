@@ -71,3 +71,16 @@ impl From<crate::admin_user_role_id::AdminUserRoleId> for AdminRoutePath {
         )
     }
 }
+
+impl From<crate::admin_role_permission_id::AdminRolePermissionId> for AdminRoutePath {
+    fn from(value: crate::admin_role_permission_id::AdminRolePermissionId) -> Self {
+        Self(
+            format!(
+                "{}/{}",
+                crate::admin_data_table::AdminDataTable::RolePermissions.frontend_path(),
+                value
+            )
+            .into_boxed_str(),
+        )
+    }
+}

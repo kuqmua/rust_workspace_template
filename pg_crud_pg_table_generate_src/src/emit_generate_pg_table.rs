@@ -5727,26 +5727,31 @@ enum WrapIntoOptional {
                                 },
                                 &write_into_buffer_query_part_syn_variant_error_initialization_eprintln_res_creation_token_stream,
                             );
-                            let read_page_query = generate_pg_table_input_model.config.read_page.as_ref().filter(|config| !config.search_columns.is_empty()).map(|config| {
-                                let columns = config.search_columns.iter().map(|column| {
-                                    format!("{} ILIKE '%' || ${{}} || '%'", column.as_ref())
-                                }).collect::<Vec<_>>().join(constants_str::PG_CRUD_READ_SEARCH_OR);
-                                let search_format = format!("{{}}({columns})");
+                            let read_page_query = generate_pg_table_input_model.config.read_page.as_ref().map(|config| {
                                 let count_format = constants_str::PG_CRUD_READ_COUNT_FORMAT;
-                                let search_indices = config.search_columns.iter().map(|_| quote::quote! {read_search_bind});
-                                let append_search = macro_helpers::generate_if_write_is_error_token_stream::generate_if_write_is_error_token_stream(
-                                    &quote::quote! { #ExtraParametersSnakeCase, #search_format, read_search_prefix, #(#search_indices),* },
-                                    &write_into_buffer_query_part_syn_variant_error_initialization_eprintln_res_creation_token_stream,
-                                );
-                                quote::quote! {
-                                    if #ParametersSnakeCase.#PayloadSnakeCase.search.is_some() {
-                                        let read_search_bind = match #import_token_stream query_part_increment_mut::QueryPartIncrementMut::checked_add_one(&mut #IncrementSnakeCase) {
-                                            Some(value) => value,
-                                            None => { #write_into_buffer_query_part_syn_variant_error_initialization_eprintln_res_creation_token_stream }
-                                        };
-                                        let read_search_prefix = if #ExtraParametersSnakeCase.is_empty() { "WHERE " } else { " AND " };
-                                        #append_search
+                                let read_search_query = (!config.search_columns.is_empty()).then(|| {
+                                    let columns = config.search_columns.iter().map(|column| {
+                                        format!("{} ILIKE '%' || ${{}} || '%'", column.as_ref())
+                                    }).collect::<Vec<_>>().join(constants_str::PG_CRUD_READ_SEARCH_OR);
+                                    let search_format = format!("{{}}({columns})");
+                                    let search_indices = config.search_columns.iter().map(|_| quote::quote! {read_search_bind});
+                                    let append_search = macro_helpers::generate_if_write_is_error_token_stream::generate_if_write_is_error_token_stream(
+                                        &quote::quote! { #ExtraParametersSnakeCase, #search_format, read_search_prefix, #(#search_indices),* },
+                                        &write_into_buffer_query_part_syn_variant_error_initialization_eprintln_res_creation_token_stream,
+                                    );
+                                    quote::quote! {
+                                        if #ParametersSnakeCase.#PayloadSnakeCase.search.is_some() {
+                                            let read_search_bind = match #import_token_stream query_part_increment_mut::QueryPartIncrementMut::checked_add_one(&mut #IncrementSnakeCase) {
+                                                Some(value) => value,
+                                                None => { #write_into_buffer_query_part_syn_variant_error_initialization_eprintln_res_creation_token_stream }
+                                            };
+                                            let read_search_prefix = if #ExtraParametersSnakeCase.is_empty() { "WHERE " } else { " AND " };
+                                            #append_search
+                                        }
                                     }
+                                });
+                                quote::quote! {
+                                    #read_search_query
                                     read_count_sql = format!(#count_format, #TableSnakeCase, #ExtraParametersSnakeCase);
                                 }
                             });

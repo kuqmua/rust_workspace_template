@@ -138,6 +138,7 @@ pub mod admin_role_id;
 pub mod admin_role_ids;
 pub mod admin_role_name;
 pub mod admin_role_names;
+pub mod admin_role_permission_id;
 pub mod admin_role_permissions_read_request;
 pub mod admin_role_permissions_table_route;
 pub mod admin_role_summaries;

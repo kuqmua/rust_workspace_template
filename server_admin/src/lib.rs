@@ -270,6 +270,7 @@ pub mod revoke_user_sessions;
 pub mod role_id_form;
 pub mod role_ids_impl;
 mod role_mutations_delete_filtered;
+pub mod role_permission_read_page;
 pub mod role_permissions;
 pub mod role_permissions_form;
 pub mod role_read_page;

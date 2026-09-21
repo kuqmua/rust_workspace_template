@@ -15,8 +15,9 @@ use leptos::prelude::{ClassAttribute, CustomAttribute, ElementChild};
     clippy::needless_pass_by_value,
     reason = "Leptos props own page data so the generated component factory can move it into the view"
 )]
-pub(crate) fn AdminUserRoleView(
+pub(crate) fn AdminAssignmentView(
     admin_data_table_view: server_admin_contract::admin_data_table_view::AdminDataTableView,
+    admin_assignment_read_page: crate::admin_assignment_read_page::AdminAssignmentReadPage,
 ) -> impl leptos::prelude::IntoView {
     let content = admin_data_table_view.items().first().map_or_else(
         || {
@@ -37,7 +38,7 @@ pub(crate) fn AdminUserRoleView(
         },
     );
     leptos::view! {
-        <section class="profile-grid profile-fields" data-renderer="csr" data-page="user-role-read">
+        <section class="profile-grid profile-fields" data-renderer="csr" data-page=admin_assignment_read_page.data_page()>
             {content}
         </section>
     }

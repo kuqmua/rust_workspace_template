@@ -101,6 +101,12 @@ parameters do not change the selected record. Missing records display `resource 
 The public contract snapshot intentionally adds `AdminFrontendPath::RoleRead` and the
 role ID path parser, matching the existing user detail route.
 
+Role-permission assignment rows link to `/admin/role_permissions/{role_permission_id}`.
+The read-only page renders the fields from the typed table catalog and selects only the
+path ID, regardless of list query parameters. Missing records display `resource not found`;
+the existing role-permission read permission protects the page and API. The public contract
+adds `AdminRolePermissionId` and `AdminFrontendPath::RolePermissionRead`.
+
 Permission rows link to `/admin/permissions/{permission_id}` for read-only ID and name
 details, using the same page layout as users. List query parameters do not change the
 selected permission; missing records display `resource not found`. The public contract

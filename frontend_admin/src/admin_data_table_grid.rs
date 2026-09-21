@@ -56,15 +56,29 @@ pub(crate) fn admin_data_table_grid(
         .items()
         .iter()
         .map(|item| {
-            let read_link = (admin_data_table_view.table() == server_admin_contract::admin_data_table::AdminDataTable::UserRoles)
-                .then(|| admin_data_table_view.columns().iter().position(|admin_data_column| admin_data_column.name().as_ref() == constants_str::SQL_NAMES_ID))
-                .flatten()
+            let row_identifier = admin_data_table_view.columns().iter().position(|admin_data_column| admin_data_column.name().as_ref() == constants_str::SQL_NAMES_ID)
                 .and_then(|index| item.values().get(index))
-                .and_then(|admin_text| admin_text.as_ref().parse::<i64>().ok())
-                .and_then(|value| server_admin_contract::admin_user_role_id::AdminUserRoleId::try_from(value).ok())
-                .map(|admin_user_role_id| {
-                    let user_role_path = server_admin_contract::admin_route_path::AdminRoutePath::from(admin_user_role_id).to_string();
-                    leptos::view! { <singlestage::Link class=crate::admin_button_variant::AdminButtonVariant::Secondary.class() href=user_role_path attr:aria-label=constants_str::PG_CRUD_READ_PERMISSION_ACTION attr:title=constants_str::PG_CRUD_READ_PERMISSION_ACTION>
+                .and_then(|admin_text| admin_text.as_ref().parse::<i64>().ok());
+            let read_path = match admin_data_table_view.table() {
+                server_admin_contract::admin_data_table::AdminDataTable::UserRoles => row_identifier
+                    .and_then(|value| server_admin_contract::admin_user_role_id::AdminUserRoleId::try_from(value).ok())
+                    .map(server_admin_contract::admin_route_path::AdminRoutePath::from),
+                server_admin_contract::admin_data_table::AdminDataTable::RolePermissions => row_identifier
+                    .and_then(|value| server_admin_contract::admin_role_permission_id::AdminRolePermissionId::try_from(value).ok())
+                    .map(server_admin_contract::admin_route_path::AdminRoutePath::from),
+                server_admin_contract::admin_data_table::AdminDataTable::AccessSessions
+                | server_admin_contract::admin_data_table::AdminDataTable::AuditLog
+                | server_admin_contract::admin_data_table::AdminDataTable::CleanupStatus
+                | server_admin_contract::admin_data_table::AdminDataTable::LoginAttempts
+                | server_admin_contract::admin_data_table::AdminDataTable::Permissions
+                | server_admin_contract::admin_data_table::AdminDataTable::RateLimits
+                | server_admin_contract::admin_data_table::AdminDataTable::RefreshTokens
+                | server_admin_contract::admin_data_table::AdminDataTable::Roles
+                | server_admin_contract::admin_data_table::AdminDataTable::SystemSettings
+                | server_admin_contract::admin_data_table::AdminDataTable::Users => None,
+            };
+            let read_link = read_path.map(|admin_route_path| {
+                    leptos::view! { <singlestage::Link class=crate::admin_button_variant::AdminButtonVariant::Secondary.class() href=admin_route_path.to_string() attr:aria-label=constants_str::PG_CRUD_READ_PERMISSION_ACTION attr:title=constants_str::PG_CRUD_READ_PERMISSION_ACTION>
                         <svg viewBox="0 0 24 24" aria-hidden=constants_str::TRUE fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"></path>
                             <circle cx="12" cy="12" r="3"></circle>

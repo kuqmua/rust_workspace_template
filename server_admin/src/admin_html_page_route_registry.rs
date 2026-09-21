@@ -9,6 +9,7 @@ proc_macro_frontend_contract_route_registry::route_registry! {
     (server_admin_contract::admin_frontend_path::AdminFrontendPath::UsersCreate, crate::users_create_page::users_create_page),
     (server_admin_contract::admin_frontend_path::AdminFrontendPath::UsersManage, crate::users_manage_page::users_manage_page),
     (server_admin_contract::admin_frontend_path::AdminFrontendPath::UserRoleRead, crate::user_role_read_page::user_role_read_page),
+    (server_admin_contract::admin_frontend_path::AdminFrontendPath::RolePermissionRead, crate::role_permission_read_page::role_permission_read_page),
     (server_admin_contract::admin_frontend_path::AdminFrontendPath::UserRead, crate::user_read_page::user_read_page),
     (server_admin_contract::admin_frontend_path::AdminFrontendPath::RoleRead, crate::role_read_page::role_read_page),
     (server_admin_contract::admin_frontend_path::AdminFrontendPath::Roles, crate::roles::roles),

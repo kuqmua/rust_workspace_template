@@ -24,6 +24,10 @@ pub mod admin_api_url_with_suffix;
 pub mod admin_app;
 #[cfg(not(target_arch = "wasm32"))]
 pub mod admin_assets_error;
+#[cfg(target_arch = "wasm32")]
+pub mod admin_assignment_read_page;
+#[cfg(target_arch = "wasm32")]
+pub mod admin_assignment_view;
 #[cfg(test)]
 pub mod admin_badge;
 pub mod admin_badge_variant;
@@ -123,8 +127,6 @@ pub mod admin_table_query;
 pub mod admin_table_query_direction;
 pub mod admin_table_query_hidden_inputs;
 pub mod admin_textarea;
-#[cfg(target_arch = "wasm32")]
-pub mod admin_user_role_view;
 pub mod admin_user_roles;
 #[cfg(target_arch = "wasm32")]
 pub mod admin_user_view;
