@@ -10,6 +10,10 @@ pub(crate) enum AdminTableLoadError {
     ReadSort(#[from] server_admin_contract::admin_table_sort_field_try_from_key_error::AdminTableSortFieldTryFromKeyError),
     #[error("{}", constants_str::ADMIN_UI_THE_TABLE_QUERY_IS_INVALID)]
     ReadBody(#[from] frontend_contract::frontend_contract_body_error::FrontendContractBodyError),
+    #[error("{}", constants_str::ADMIN_UI_THE_TABLE_RESPONSE_WAS_INVALID)]
+    ReadCollection(
+        #[from] server_admin_contract::admin_collection_error::AdminCollectionError,
+    ),
     #[error("{}", constants_str::ADMIN_UI_THE_TABLE_QUERY_IS_INVALID)]
     ReadFilterField(
         server_admin_contract::admin_filter_field::AdminFilterFieldTryFromStringError,
@@ -53,6 +57,7 @@ impl AdminTableLoadError {
             | Self::ReadUtf8(_)
             | Self::ReadSort(_)
             | Self::ReadBody(_)
+            | Self::ReadCollection(_)
             | Self::ReadFilterField(_)
             | Self::ReadFilterValue(_)
             | Self::ReadPath(_) => false,

@@ -21,10 +21,12 @@
 #[derive(proc_macro_getters::Getters)]
 pub struct AdminCleanupStatus {
     #[generate_pg_table_primary_key]
-    last_deleted_rows:
+    #[generate_pg_table_db_default]
+    id:
         pg_types_numeric::generate_pg_types_mod::I64AsNonNullBigSerialInitializationByPg,
     #[generate_pg_table_db_default]
     singleton: pg_types_numeric::generate_pg_types_mod::BoolAsNonNullBool,
     last_success_at:
         pg_types_chrono_net::generate_pg_types_mod::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsNonNullTimestampTz,
+    last_deleted_rows: pg_types_numeric::generate_pg_types_mod::I64AsNonNullInt8,
 }

@@ -14,6 +14,8 @@ pub enum AdminFrontendPath {
     AuditLogRead,
     #[strum(serialize = "/admin/branding")]
     Branding,
+    #[strum(serialize = "/admin/cleanup_status/{cleanup_status_id}")]
+    CleanupStatusRead,
     #[strum(serialize = "/admin/health")]
     Health,
     #[strum(serialize = "/admin/login_attempts/{login_attempt_id}")]
@@ -32,6 +34,8 @@ pub enum AdminFrontendPath {
     PermissionRead,
     #[strum(serialize = "/admin/profile")]
     Profile,
+    #[strum(serialize = "/admin/rate_limits/{scope}/{subject}")]
+    RateLimitRead,
     #[strum(serialize = "/admin/refresh_tokens/{refresh_token_id}")]
     RefreshTokenRead,
     #[strum(serialize = "/admin/roles")]

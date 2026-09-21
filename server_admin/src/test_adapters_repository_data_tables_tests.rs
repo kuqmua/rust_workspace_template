@@ -766,12 +766,12 @@ fn test_login_attempts_columns_supply_filter_metadata() {
 
 #[test]
 fn test_cleanup_status_filter_builds_typed_table_predicate() {
-    let last_deleted_rows = constants_str::SERVER_ADMIN_DATA_CLEANUP_STATUS_COLUMNS
+    let identifier = constants_str::SERVER_ADMIN_DATA_CLEANUP_STATUS_COLUMNS
         .split(',')
-        .next_back()
+        .next()
         .unwrap_or(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX);
     let query = filter_query(
-        last_deleted_rows,
+        identifier,
         frontend_contract::filter_operation::FilterOperation::Eq,
         Some(constants_str::VALUE_42),
         None,
@@ -788,7 +788,7 @@ fn test_cleanup_status_filter_builds_typed_table_predicate() {
         let fragment = filter
             .query_part(&mut increment)
             .map_err(|error| error.to_string())?;
-        if fragment.as_ref().contains(last_deleted_rows)
+        if fragment.as_ref().contains(identifier)
             && fragment.as_ref().contains(constants_str::DOLLAR_1_ALT)
         {
             Ok(increment.get())

@@ -2471,6 +2471,22 @@ DbTableSnapshot {
                 default: None,
                 name: DbSchemaText(
                     BoundedString {
+                        value: "id",
+                    },
+                ),
+                nullable: DbColumnNullable(
+                    false,
+                ),
+            },
+            DbColumnSnapshot {
+                data_type: DbSchemaText(
+                    BoundedString {
+                        value: "bigint",
+                    },
+                ),
+                default: None,
+                name: DbSchemaText(
+                    BoundedString {
                         value: "last_deleted_rows",
                     },
                 ),
@@ -2549,7 +2565,7 @@ DbTableSnapshot {
             DbObjectSnapshot {
                 definition: DbSchemaText(
                     BoundedString {
-                        value: "CREATE UNIQUE INDEX cleanup_status_pkey ON admin_migration_fresh_test.cleanup_status USING btree (singleton)",
+                        value: "CREATE UNIQUE INDEX cleanup_status_pkey ON admin_migration_fresh_test.cleanup_status USING btree (id)",
                     },
                 ),
                 name: DbSchemaText(
@@ -2562,7 +2578,20 @@ DbTableSnapshot {
             DbObjectSnapshot {
                 definition: DbSchemaText(
                     BoundedString {
-                        value: "PRIMARY KEY (singleton)",
+                        value: "CREATE UNIQUE INDEX cleanup_status_singleton_key ON admin_migration_fresh_test.cleanup_status USING btree (singleton)",
+                    },
+                ),
+                name: DbSchemaText(
+                    BoundedString {
+                        value: "cleanup_status_singleton_key",
+                    },
+                ),
+                kind: Index,
+            },
+            DbObjectSnapshot {
+                definition: DbSchemaText(
+                    BoundedString {
+                        value: "PRIMARY KEY (id)",
                     },
                 ),
                 name: DbSchemaText(
@@ -2571,6 +2600,19 @@ DbTableSnapshot {
                     },
                 ),
                 kind: PrimaryKey,
+            },
+            DbObjectSnapshot {
+                definition: DbSchemaText(
+                    BoundedString {
+                        value: "UNIQUE (singleton)",
+                    },
+                ),
+                name: DbSchemaText(
+                    BoundedString {
+                        value: "cleanup_status_singleton_key",
+                    },
+                ),
+                kind: Unique,
             },
         ],
     ),

@@ -46,6 +46,19 @@ impl From<crate::admin_audit_log_id::AdminAuditLogId> for AdminRoutePath {
     }
 }
 
+impl From<crate::admin_cleanup_status_id::AdminCleanupStatusId> for AdminRoutePath {
+    fn from(value: crate::admin_cleanup_status_id::AdminCleanupStatusId) -> Self {
+        Self(
+            format!(
+                "{}/{}",
+                crate::admin_data_table::AdminDataTable::CleanupStatus.frontend_path(),
+                value
+            )
+            .into_boxed_str(),
+        )
+    }
+}
+
 impl From<crate::admin_login_attempt_id::AdminLoginAttemptId> for AdminRoutePath {
     fn from(value: crate::admin_login_attempt_id::AdminLoginAttemptId) -> Self {
         Self(
@@ -53,6 +66,20 @@ impl From<crate::admin_login_attempt_id::AdminLoginAttemptId> for AdminRoutePath
                 "{}/{}",
                 crate::admin_data_table::AdminDataTable::LoginAttempts.frontend_path(),
                 value
+            )
+            .into_boxed_str(),
+        )
+    }
+}
+
+impl From<crate::admin_rate_limit_id::AdminRateLimitId> for AdminRoutePath {
+    fn from(value: crate::admin_rate_limit_id::AdminRateLimitId) -> Self {
+        Self(
+            format!(
+                "{}/{}/{}",
+                crate::admin_data_table::AdminDataTable::RateLimits.frontend_path(),
+                value.scope(),
+                value.subject()
             )
             .into_boxed_str(),
         )

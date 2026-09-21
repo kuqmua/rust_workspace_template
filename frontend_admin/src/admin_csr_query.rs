@@ -10,6 +10,8 @@
 pub(crate) struct AdminCsrQuery {
     access_session_id: Option<server_admin_contract::admin_access_session_id::AdminAccessSessionId>,
     #[getters(copy)]
+    cleanup_status_id: Option<server_admin_contract::admin_cleanup_status_id::AdminCleanupStatusId>,
+    #[getters(copy)]
     audit_log_id: Option<server_admin_contract::admin_audit_log_id::AdminAuditLogId>,
     direction: Option<server_admin_contract::admin_text::AdminText>,
     filter_end: Option<server_admin_contract::admin_filter_value::AdminFilterValue>,
@@ -31,6 +33,7 @@ pub(crate) struct AdminCsrQuery {
     table: Option<server_admin_contract::admin_data_table::AdminDataTable>,
     #[getters(copy)]
     permission_id: Option<server_admin_contract::admin_permission_id::AdminPermissionId>,
+    rate_limit_id: Option<server_admin_contract::admin_rate_limit_id::AdminRateLimitId>,
     #[getters(copy)]
     role_id: Option<server_admin_contract::admin_role_id::AdminRoleId>,
     #[getters(copy)]
@@ -58,6 +61,9 @@ impl AdminCsrQuery {
             .pathname()
             .map_err(|_error| crate::admin_table_load_error::AdminTableLoadError::Fetch)?;
         let access_session_id = server_admin_contract::admin_access_session_id::AdminAccessSessionId::from_frontend_path(
+            server_admin_contract::admin_page_path_ref::AdminPagePathRef::from(pathname.as_str()),
+        );
+        let cleanup_status_id = server_admin_contract::admin_cleanup_status_id::AdminCleanupStatusId::from_frontend_path(
             server_admin_contract::admin_page_path_ref::AdminPagePathRef::from(pathname.as_str()),
         );
         let audit_log_id =
@@ -102,10 +108,21 @@ impl AdminCsrQuery {
                     pathname.as_str(),
                 ),
             );
+        let rate_limit_id =
+            server_admin_contract::admin_rate_limit_id::AdminRateLimitId::from_frontend_path(
+                server_admin_contract::admin_page_path_ref::AdminPagePathRef::from(
+                    pathname.as_str(),
+                ),
+            );
         let role_id = server_admin_contract::admin_role_id::AdminRoleId::from_frontend_path(
             server_admin_contract::admin_page_path_ref::AdminPagePathRef::from(pathname.as_str()),
         );
         let resolved_table = table
+            .or_else(|| {
+                cleanup_status_id.map(|_cleanup_status_id| {
+                    server_admin_contract::admin_data_table::AdminDataTable::CleanupStatus
+                })
+            })
             .or_else(|| {
                 access_session_id.as_ref().map(|_access_session_id| {
                     server_admin_contract::admin_data_table::AdminDataTable::AccessSessions
@@ -140,9 +157,15 @@ impl AdminCsrQuery {
                 system_setting_id.map(|_system_setting_id| {
                     server_admin_contract::admin_data_table::AdminDataTable::SystemSettings
                 })
+            })
+            .or_else(|| {
+                rate_limit_id.as_ref().map(|_rate_limit_id| {
+                    server_admin_contract::admin_data_table::AdminDataTable::RateLimits
+                })
             });
         Ok(Self::new(
             access_session_id,
+            cleanup_status_id,
             audit_log_id,
             params
                 .get(constants_str::ADMIN_DIRECTION_QUERY_KEY)
@@ -199,6 +222,7 @@ impl AdminCsrQuery {
             system_setting_id,
             resolved_table,
             permission_id,
+            rate_limit_id,
             role_id,
             user_id,
             user_role_id,

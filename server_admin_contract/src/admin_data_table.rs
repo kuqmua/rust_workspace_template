@@ -132,7 +132,7 @@ impl AdminDataTable {
                     constants_str::SERVER_ADMIN_DATA_CLEANUP_STATUS_COLUMNS,
                 ),
                 crate::admin_data_order_ref::AdminDataOrderRef::from(
-                    constants_str::SERVER_ADMIN_DATA_ORDER_SINGLETON,
+                    constants_str::SERVER_ADMIN_DATA_ORDER_CLEANUP_STATUS_ID,
                 ),
                 crate::admin_permission::AdminPermission::CleanupStatusRead,
                 crate::admin_bool::AdminBool::from(true),

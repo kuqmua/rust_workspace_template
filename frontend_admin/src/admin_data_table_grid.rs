@@ -56,8 +56,14 @@ pub(crate) fn admin_data_table_grid(
         .items()
         .iter()
         .map(|item| {
-            let row_identifier = admin_data_table_view.columns().iter().position(|admin_data_column| admin_data_column.name().as_ref() == constants_str::SQL_NAMES_ID)
-                .and_then(|index| item.values().get(index))
+            let value_for_column = |column_name| {
+                let index = admin_data_table_view
+                    .columns()
+                    .iter()
+                    .position(|admin_data_column| admin_data_column.name().as_ref() == column_name)?;
+                item.values().get(index)
+            };
+            let row_identifier = value_for_column(constants_str::SQL_NAMES_ID)
                 .map(|admin_text| admin_text.as_ref().as_str());
             let read_path = match admin_data_table_view.table() {
                 server_admin_contract::admin_data_table::AdminDataTable::UserRoles => row_identifier
@@ -86,13 +92,19 @@ pub(crate) fn admin_data_table_grid(
                     .and_then(|value| value.parse::<i64>().ok())
                     .and_then(|value| server_admin_contract::admin_audit_log_id::AdminAuditLogId::try_from(value).ok())
                     .map(server_admin_contract::admin_route_path::AdminRoutePath::from),
+                server_admin_contract::admin_data_table::AdminDataTable::CleanupStatus => row_identifier
+                    .and_then(|value| value.parse::<i64>().ok())
+                    .and_then(|value| server_admin_contract::admin_cleanup_status_id::AdminCleanupStatusId::try_from(value).ok())
+                    .map(server_admin_contract::admin_route_path::AdminRoutePath::from),
+                server_admin_contract::admin_data_table::AdminDataTable::RateLimits => value_for_column(constants_str::SCOPE)
+                    .zip(value_for_column(constants_str::SUBJECT))
+                    .map(|(scope, subject)| server_admin_contract::admin_rate_limit_id::AdminRateLimitId::new(scope.clone(), subject.clone()))
+                    .map(server_admin_contract::admin_route_path::AdminRoutePath::from),
                 server_admin_contract::admin_data_table::AdminDataTable::SystemSettings => row_identifier
                     .and_then(|value| value.parse::<i64>().ok())
                     .and_then(|value| server_admin_contract::admin_system_setting_id::AdminSystemSettingId::try_from(value).ok())
                     .map(server_admin_contract::admin_route_path::AdminRoutePath::from),
-                server_admin_contract::admin_data_table::AdminDataTable::CleanupStatus
-                | server_admin_contract::admin_data_table::AdminDataTable::Permissions
-                | server_admin_contract::admin_data_table::AdminDataTable::RateLimits
+                server_admin_contract::admin_data_table::AdminDataTable::Permissions
                 | server_admin_contract::admin_data_table::AdminDataTable::Roles
                 | server_admin_contract::admin_data_table::AdminDataTable::Users => None,
             };

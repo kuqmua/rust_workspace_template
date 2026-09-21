@@ -131,7 +131,8 @@ CREATE TABLE rate_limits (
 );
 CREATE INDEX rate_limits_window_idx ON rate_limits (window_started_at);
 CREATE TABLE cleanup_status (
-    singleton BOOLEAN PRIMARY KEY DEFAULT TRUE CHECK (singleton),
+    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    singleton BOOLEAN NOT NULL UNIQUE DEFAULT TRUE CHECK (singleton),
     last_success_at TIMESTAMPTZ NOT NULL,
     last_deleted_rows BIGINT NOT NULL CHECK (last_deleted_rows >= 0)
 );

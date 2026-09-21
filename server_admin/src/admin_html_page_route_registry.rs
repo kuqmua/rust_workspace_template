@@ -3,6 +3,7 @@ proc_macro_frontend_contract_route_registry::route_registry! {
     state = crate::shared_admin_auth_svc_state_arc::SharedAdminAuthSvcStateArc;
     (server_admin_contract::admin_frontend_path::AdminFrontendPath::Health, crate::admin_health_page::admin_health_page),
     (server_admin_contract::admin_frontend_path::AdminFrontendPath::Branding, crate::admin_branding_page::admin_branding_page),
+    (server_admin_contract::admin_frontend_path::AdminFrontendPath::CleanupStatusRead, crate::cleanup_status_read_page::cleanup_status_read_page),
     (server_admin_contract::admin_frontend_path::AdminFrontendPath::SignIn, crate::sign_in_page::sign_in_page),
     (server_admin_contract::admin_frontend_path::AdminFrontendPath::SystemSettingRead, crate::system_setting_read_page::system_setting_read_page),
     (server_admin_contract::admin_frontend_path::AdminFrontendPath::Tables, crate::data_tables::data_tables),
@@ -24,6 +25,7 @@ proc_macro_frontend_contract_route_registry::route_registry! {
     (server_admin_contract::admin_frontend_path::AdminFrontendPath::Permissions, crate::permissions::permissions),
     (server_admin_contract::admin_frontend_path::AdminFrontendPath::Sessions, crate::admin_html_sessions_page::admin_html_sessions_page),
     (server_admin_contract::admin_frontend_path::AdminFrontendPath::Profile, crate::profile::profile),
+    (server_admin_contract::admin_frontend_path::AdminFrontendPath::RateLimitRead, crate::rate_limit_read_page::rate_limit_read_page),
     (server_admin_contract::admin_frontend_path::AdminFrontendPath::Settings, crate::settings::settings),
     (server_admin_contract::admin_frontend_path::AdminFrontendPath::Version, crate::version::version),
 }

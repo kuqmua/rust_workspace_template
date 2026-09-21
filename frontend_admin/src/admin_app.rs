@@ -90,9 +90,17 @@ pub(crate) fn AdminApp() -> impl leptos::prelude::IntoView {
                         .await
                         .map(|value| crate::admin_load_state::AdminLoadState::Table(admin, value));
                 }
+                if let Some(admin_rate_limit_id) = admin_csr_query.rate_limit_id().as_ref() {
+                    return crate::fetch_rate_limit_read::fetch_rate_limit_read(
+                        admin_rate_limit_id,
+                    )
+                    .await
+                    .map(|value| crate::admin_load_state::AdminLoadState::Table(admin, value));
+                }
                 let detail_identifier = admin_csr_query
-                    .refresh_token_id()
-                    .map(ToString::to_string)
+                    .cleanup_status_id()
+                    .map(|value| value.to_string())
+                    .or_else(|| admin_csr_query.refresh_token_id().map(ToString::to_string))
                     .or_else(|| {
                         admin_csr_query
                             .login_attempt_id()
@@ -230,6 +238,9 @@ pub(crate) fn AdminApp() -> impl leptos::prelude::IntoView {
             {
                 server_admin_contract::admin_page::AdminPage::Users
             }
+            None if server_admin_contract::admin_cleanup_status_id::AdminCleanupStatusId::from_frontend_path(path).is_some() => {
+                server_admin_contract::admin_page::AdminPage::Tables
+            }
             None if server_admin_contract::admin_role_id::AdminRoleId::from_frontend_path(path)
                 .is_some() =>
             {
@@ -256,6 +267,9 @@ pub(crate) fn AdminApp() -> impl leptos::prelude::IntoView {
                 server_admin_contract::admin_page::AdminPage::Tables
             }
             None if server_admin_contract::admin_system_setting_id::AdminSystemSettingId::from_frontend_path(path).is_some() => {
+                server_admin_contract::admin_page::AdminPage::Tables
+            }
+            None if server_admin_contract::admin_rate_limit_id::AdminRateLimitId::from_frontend_path(path).is_some() => {
                 server_admin_contract::admin_page::AdminPage::Tables
             }
             None if server_admin_contract::admin_login_attempt_id::AdminLoginAttemptId::from_frontend_path(path).is_some() => {
@@ -337,6 +351,13 @@ pub(crate) fn AdminApp() -> impl leptos::prelude::IntoView {
                             admin_record_read_page=crate::admin_record_read_page::AdminRecordReadPage::AccessSession
                         />
                     })
+                } else if query.cleanup_status_id().is_some() {
+                    leptos::prelude::IntoAny::into_any(leptos::view! {
+                        <super::admin_record_view::AdminRecordView
+                            admin_data_table_view=view
+                            admin_record_read_page=crate::admin_record_read_page::AdminRecordReadPage::CleanupStatus
+                        />
+                    })
                 } else if query.login_attempt_id().is_some() {
                     leptos::prelude::IntoAny::into_any(leptos::view! {
                         <super::admin_record_view::AdminRecordView
@@ -363,6 +384,13 @@ pub(crate) fn AdminApp() -> impl leptos::prelude::IntoView {
                         <super::admin_record_view::AdminRecordView
                             admin_data_table_view=view
                             admin_record_read_page=crate::admin_record_read_page::AdminRecordReadPage::SystemSetting
+                        />
+                    })
+                } else if query.rate_limit_id().is_some() {
+                    leptos::prelude::IntoAny::into_any(leptos::view! {
+                        <super::admin_record_view::AdminRecordView
+                            admin_data_table_view=view
+                            admin_record_read_page=crate::admin_record_read_page::AdminRecordReadPage::RateLimit
                         />
                     })
                 } else {
