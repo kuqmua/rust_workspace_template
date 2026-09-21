@@ -132,6 +132,12 @@ of list query parameters. Missing records display `resource not found`; the exis
 read permission protects the page and API. The public contract adds
 `AdminFrontendPath::AuditLogRead` and path parsing to `AdminAuditLogId`.
 
+System-setting rows link to `/admin/system_settings/{system_setting_id}`. The read-only
+page renders the fields from the typed table catalog and selects only the numeric path ID,
+regardless of list query parameters. Missing records display `resource not found`; the existing
+system-settings read permission protects the page and API. The public contract adds
+`AdminSystemSettingId` and `AdminFrontendPath::SystemSettingRead`.
+
 Permission rows link to `/admin/permissions/{permission_id}` for read-only ID and name
 details, using the same page layout as users. List query parameters do not change the
 selected permission; missing records display `resource not found`. The public contract

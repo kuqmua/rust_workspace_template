@@ -322,6 +322,7 @@ pub mod std_admin_rate_limit_window_seconds;
 pub mod std_admin_refresh_ttl_seconds;
 pub mod std_admin_session_limit;
 pub mod success_redirect_impl;
+pub mod system_setting_read_page;
 #[cfg(test)]
 pub mod test_adapters_repository_data_tables_tests;
 #[cfg(test)]

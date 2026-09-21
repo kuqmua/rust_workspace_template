@@ -173,6 +173,7 @@ pub mod admin_sign_out_route;
 pub mod admin_site_name;
 pub mod admin_sort_direction;
 pub mod admin_support_url;
+pub mod admin_system_setting_id;
 pub mod admin_system_settings_read_request;
 pub mod admin_tab_title;
 pub mod admin_table_query;

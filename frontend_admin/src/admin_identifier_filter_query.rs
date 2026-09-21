@@ -11,6 +11,11 @@ pub(crate) fn admin_identifier_filter_query(
             admin_csr_query
                 .audit_log_id()
                 .map(|value| value.to_string())
+        })
+        .or_else(|| {
+            admin_csr_query
+                .system_setting_id()
+                .map(|value| value.to_string())
         });
     if let Some(record_identifier) = record_identifier {
         return Ok(

@@ -136,3 +136,16 @@ impl From<crate::admin_refresh_token_id::AdminRefreshTokenId> for AdminRoutePath
         )
     }
 }
+
+impl From<crate::admin_system_setting_id::AdminSystemSettingId> for AdminRoutePath {
+    fn from(value: crate::admin_system_setting_id::AdminSystemSettingId) -> Self {
+        Self(
+            format!(
+                "{}/{}",
+                crate::admin_data_table::AdminDataTable::SystemSettings.frontend_path(),
+                value
+            )
+            .into_boxed_str(),
+        )
+    }
+}

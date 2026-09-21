@@ -52,6 +52,8 @@ pub enum AdminFrontendPath {
     SignIn,
     #[strum(serialize = "/admin/settings")]
     Settings,
+    #[strum(serialize = "/admin/system_settings/{system_setting_id}")]
+    SystemSettingRead,
     #[strum(serialize = "/admin/{table}")]
     Tables,
     #[strum(serialize = "/admin/users")]

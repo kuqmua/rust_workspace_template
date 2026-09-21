@@ -255,6 +255,9 @@ pub(crate) fn AdminApp() -> impl leptos::prelude::IntoView {
             None if server_admin_contract::admin_audit_log_id::AdminAuditLogId::from_frontend_path(path).is_some() => {
                 server_admin_contract::admin_page::AdminPage::Tables
             }
+            None if server_admin_contract::admin_system_setting_id::AdminSystemSettingId::from_frontend_path(path).is_some() => {
+                server_admin_contract::admin_page::AdminPage::Tables
+            }
             None if server_admin_contract::admin_login_attempt_id::AdminLoginAttemptId::from_frontend_path(path).is_some() => {
                 server_admin_contract::admin_page::AdminPage::Tables
             }
@@ -353,6 +356,13 @@ pub(crate) fn AdminApp() -> impl leptos::prelude::IntoView {
                         <super::admin_record_view::AdminRecordView
                             admin_data_table_view=view
                             admin_record_read_page=crate::admin_record_read_page::AdminRecordReadPage::RefreshToken
+                        />
+                    })
+                } else if query.system_setting_id().is_some() {
+                    leptos::prelude::IntoAny::into_any(leptos::view! {
+                        <super::admin_record_view::AdminRecordView
+                            admin_data_table_view=view
+                            admin_record_read_page=crate::admin_record_read_page::AdminRecordReadPage::SystemSetting
                         />
                     })
                 } else {

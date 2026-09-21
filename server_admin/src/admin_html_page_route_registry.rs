@@ -4,6 +4,7 @@ proc_macro_frontend_contract_route_registry::route_registry! {
     (server_admin_contract::admin_frontend_path::AdminFrontendPath::Health, crate::admin_health_page::admin_health_page),
     (server_admin_contract::admin_frontend_path::AdminFrontendPath::Branding, crate::admin_branding_page::admin_branding_page),
     (server_admin_contract::admin_frontend_path::AdminFrontendPath::SignIn, crate::sign_in_page::sign_in_page),
+    (server_admin_contract::admin_frontend_path::AdminFrontendPath::SystemSettingRead, crate::system_setting_read_page::system_setting_read_page),
     (server_admin_contract::admin_frontend_path::AdminFrontendPath::Tables, crate::data_tables::data_tables),
     (server_admin_contract::admin_frontend_path::AdminFrontendPath::AccessSessionRead, crate::access_session_read_page::access_session_read_page),
     (server_admin_contract::admin_frontend_path::AdminFrontendPath::AuditLogRead, crate::audit_log_read_page::audit_log_read_page),

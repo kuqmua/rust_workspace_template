@@ -7,6 +7,7 @@ pub(crate) enum AdminRecordReadPage {
     LoginAttempt,
     RefreshToken,
     RolePermission,
+    SystemSetting,
     UserRole,
 }
 impl AdminRecordReadPage {
@@ -17,6 +18,7 @@ impl AdminRecordReadPage {
             Self::LoginAttempt => constants_str::ADMIN_LOGIN_ATTEMPT_READ_PAGE,
             Self::RefreshToken => constants_str::ADMIN_REFRESH_TOKEN_READ_PAGE,
             Self::RolePermission => constants_str::ADMIN_ROLE_PERMISSION_READ_PAGE,
+            Self::SystemSetting => constants_str::ADMIN_SYSTEM_SETTING_READ_PAGE,
             Self::UserRole => constants_str::ADMIN_USER_ROLE_READ_PAGE,
         }
     }

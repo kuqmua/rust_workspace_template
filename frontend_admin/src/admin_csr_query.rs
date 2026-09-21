@@ -26,6 +26,8 @@ pub(crate) struct AdminCsrQuery {
     search: server_admin_contract::admin_table_search::AdminTableSearch,
     sort: server_admin_contract::admin_table_sort_key::AdminTableSortKey,
     #[getters(copy)]
+    system_setting_id: Option<server_admin_contract::admin_system_setting_id::AdminSystemSettingId>,
+    #[getters(copy)]
     table: Option<server_admin_contract::admin_data_table::AdminDataTable>,
     #[getters(copy)]
     permission_id: Option<server_admin_contract::admin_permission_id::AdminPermissionId>,
@@ -88,6 +90,9 @@ impl AdminCsrQuery {
         let table = server_admin_contract::admin_data_table::AdminDataTable::from_frontend_path(
             server_admin_contract::admin_page_path_ref::AdminPagePathRef::from(pathname.as_str()),
         );
+        let system_setting_id = server_admin_contract::admin_system_setting_id::AdminSystemSettingId::from_frontend_path(
+            server_admin_contract::admin_page_path_ref::AdminPagePathRef::from(pathname.as_str()),
+        );
         let user_id = server_admin_contract::admin_user_id::AdminUserId::from_frontend_path(
             server_admin_contract::admin_page_path_ref::AdminPagePathRef::from(pathname.as_str()),
         );
@@ -129,6 +134,11 @@ impl AdminCsrQuery {
             .or_else(|| {
                 refresh_token_id.as_ref().map(|_refresh_token_id| {
                     server_admin_contract::admin_data_table::AdminDataTable::RefreshTokens
+                })
+            })
+            .or_else(|| {
+                system_setting_id.map(|_system_setting_id| {
+                    server_admin_contract::admin_data_table::AdminDataTable::SystemSettings
                 })
             });
         Ok(Self::new(
@@ -186,6 +196,7 @@ impl AdminCsrQuery {
                 .transpose()
                 .map_err(|_error| crate::admin_table_load_error::AdminTableLoadError::Query)?
                 .unwrap_or_default(),
+            system_setting_id,
             resolved_table,
             permission_id,
             role_id,

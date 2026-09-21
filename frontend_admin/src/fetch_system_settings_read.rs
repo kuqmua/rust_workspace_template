@@ -8,7 +8,11 @@ pub(crate) async fn fetch_system_settings_read(
     server_admin_contract::admin_data_table_view::AdminDataTableView,
     crate::admin_table_load_error::AdminTableLoadError,
 > {
-    let query = crate::admin_table_query::admin_table_query(admin_csr_query)?;
+    let query = if admin_csr_query.system_setting_id().is_some() {
+        server_admin_contract::admin_table_query::AdminTableQuery::default()
+    } else {
+        crate::admin_table_query::admin_table_query(admin_csr_query)?
+    };
     let filter_query =
         crate::admin_identifier_filter_query::admin_identifier_filter_query(admin_csr_query)?;
     let input_kind = match filter_query.field() {

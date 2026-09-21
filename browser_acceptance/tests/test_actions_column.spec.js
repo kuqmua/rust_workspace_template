@@ -15,7 +15,8 @@ test("test_all_data_tables_have_consistent_actions_column", async ({ page }) => 
       "/admin/refresh_tokens",
       "/admin/access_sessions",
       "/admin/login_attempts",
-      "/admin/audit_log"
+      "/admin/audit_log",
+      "/admin/system_settings"
     ]);
     await pages.reduce(async (previous, { path }) => {
       await previous;

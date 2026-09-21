@@ -86,11 +86,14 @@ pub(crate) fn admin_data_table_grid(
                     .and_then(|value| value.parse::<i64>().ok())
                     .and_then(|value| server_admin_contract::admin_audit_log_id::AdminAuditLogId::try_from(value).ok())
                     .map(server_admin_contract::admin_route_path::AdminRoutePath::from),
+                server_admin_contract::admin_data_table::AdminDataTable::SystemSettings => row_identifier
+                    .and_then(|value| value.parse::<i64>().ok())
+                    .and_then(|value| server_admin_contract::admin_system_setting_id::AdminSystemSettingId::try_from(value).ok())
+                    .map(server_admin_contract::admin_route_path::AdminRoutePath::from),
                 server_admin_contract::admin_data_table::AdminDataTable::CleanupStatus
                 | server_admin_contract::admin_data_table::AdminDataTable::Permissions
                 | server_admin_contract::admin_data_table::AdminDataTable::RateLimits
                 | server_admin_contract::admin_data_table::AdminDataTable::Roles
-                | server_admin_contract::admin_data_table::AdminDataTable::SystemSettings
                 | server_admin_contract::admin_data_table::AdminDataTable::Users => None,
             };
             let read_link = read_path.map(|admin_route_path| {
