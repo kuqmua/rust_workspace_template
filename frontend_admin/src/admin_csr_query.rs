@@ -33,6 +33,7 @@ pub(crate) struct AdminCsrQuery {
     table: Option<server_admin_contract::admin_data_table::AdminDataTable>,
     #[getters(copy)]
     permission_id: Option<server_admin_contract::admin_permission_id::AdminPermissionId>,
+    #[getters(copy)]
     rate_limit_id: Option<server_admin_contract::admin_rate_limit_id::AdminRateLimitId>,
     #[getters(copy)]
     role_id: Option<server_admin_contract::admin_role_id::AdminRoleId>,
@@ -159,7 +160,7 @@ impl AdminCsrQuery {
                 })
             })
             .or_else(|| {
-                rate_limit_id.as_ref().map(|_rate_limit_id| {
+                rate_limit_id.map(|_rate_limit_id| {
                     server_admin_contract::admin_data_table::AdminDataTable::RateLimits
                 })
             });

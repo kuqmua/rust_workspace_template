@@ -76,10 +76,9 @@ impl From<crate::admin_rate_limit_id::AdminRateLimitId> for AdminRoutePath {
     fn from(value: crate::admin_rate_limit_id::AdminRateLimitId) -> Self {
         Self(
             format!(
-                "{}/{}/{}",
+                "{}/{}",
                 crate::admin_data_table::AdminDataTable::RateLimits.frontend_path(),
-                value.scope(),
-                value.subject()
+                value
             )
             .into_boxed_str(),
         )

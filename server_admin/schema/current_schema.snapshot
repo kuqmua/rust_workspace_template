@@ -2302,6 +2302,22 @@ DbTableSnapshot {
                         value: "bigint",
                     },
                 ),
+                default: None,
+                name: DbSchemaText(
+                    BoundedString {
+                        value: "id",
+                    },
+                ),
+                nullable: DbColumnNullable(
+                    false,
+                ),
+            },
+            DbColumnSnapshot {
+                data_type: DbSchemaText(
+                    BoundedString {
+                        value: "bigint",
+                    },
+                ),
                 default: Some(
                     DbSchemaText(
                         BoundedString {
@@ -2431,7 +2447,7 @@ DbTableSnapshot {
             DbObjectSnapshot {
                 definition: DbSchemaText(
                     BoundedString {
-                        value: "CREATE UNIQUE INDEX rate_limits_pkey ON admin_migration_fresh_test.rate_limits USING btree (scope, subject)",
+                        value: "CREATE UNIQUE INDEX rate_limits_pkey ON admin_migration_fresh_test.rate_limits USING btree (id)",
                     },
                 ),
                 name: DbSchemaText(
@@ -2444,7 +2460,20 @@ DbTableSnapshot {
             DbObjectSnapshot {
                 definition: DbSchemaText(
                     BoundedString {
-                        value: "PRIMARY KEY (scope, subject)",
+                        value: "CREATE UNIQUE INDEX rate_limits_scope_subject_key ON admin_migration_fresh_test.rate_limits USING btree (scope, subject)",
+                    },
+                ),
+                name: DbSchemaText(
+                    BoundedString {
+                        value: "rate_limits_scope_subject_key",
+                    },
+                ),
+                kind: Index,
+            },
+            DbObjectSnapshot {
+                definition: DbSchemaText(
+                    BoundedString {
+                        value: "PRIMARY KEY (id)",
                     },
                 ),
                 name: DbSchemaText(
@@ -2453,6 +2482,19 @@ DbTableSnapshot {
                     },
                 ),
                 kind: PrimaryKey,
+            },
+            DbObjectSnapshot {
+                definition: DbSchemaText(
+                    BoundedString {
+                        value: "UNIQUE (scope, subject)",
+                    },
+                ),
+                name: DbSchemaText(
+                    BoundedString {
+                        value: "rate_limits_scope_subject_key",
+                    },
+                ),
+                kind: Unique,
             },
         ],
     ),

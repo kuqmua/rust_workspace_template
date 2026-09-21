@@ -160,7 +160,7 @@ impl AdminDataTable {
                     constants_str::SERVER_ADMIN_DATA_RATE_LIMITS_COLUMNS,
                 ),
                 crate::admin_data_order_ref::AdminDataOrderRef::from(
-                    constants_str::SERVER_ADMIN_DATA_ORDER_WINDOW,
+                    constants_str::SERVER_ADMIN_DATA_ORDER_RATE_LIMITS_ID,
                 ),
                 crate::admin_permission::AdminPermission::RateLimitsRead,
                 crate::admin_bool::AdminBool::from(true),

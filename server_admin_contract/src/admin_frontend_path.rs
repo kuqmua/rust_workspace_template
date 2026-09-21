@@ -34,7 +34,7 @@ pub enum AdminFrontendPath {
     PermissionRead,
     #[strum(serialize = "/admin/profile")]
     Profile,
-    #[strum(serialize = "/admin/rate_limits/{scope}/{subject}")]
+    #[strum(serialize = "/admin/rate_limits/{rate_limit_id}")]
     RateLimitRead,
     #[strum(serialize = "/admin/refresh_tokens/{refresh_token_id}")]
     RefreshTokenRead,

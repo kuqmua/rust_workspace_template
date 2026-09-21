@@ -138,10 +138,9 @@ regardless of list query parameters. Missing records display `resource not found
 system-settings read permission protects the page and API. The public contract adds
 `AdminSystemSettingId` and `AdminFrontendPath::SystemSettingRead`.
 
-Rate-limit rows link to `/admin/rate_limits/{scope}/{subject}` because the database key is
-the `(scope, subject)` pair. The read-only page selects that exact pair regardless of list query
-parameters. Missing records display `resource not found`; the existing rate-limits read
-permission protects the page and API. The public contract adds `AdminRateLimitId` and
+Rate-limit rows link to `/admin/rate_limits/{id}` using the table's numeric primary key. The
+read-only page filters the typed table API by `id`; the existing rate-limits read permission
+protects both the page and API. The public contract adds `AdminRateLimitId` and
 `AdminFrontendPath::RateLimitRead`.
 
 Cleanup-status rows link to `/admin/cleanup_status/{id}` using the table's numeric primary key.

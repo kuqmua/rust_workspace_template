@@ -874,10 +874,7 @@ fn test_system_settings_columns_supply_filter_metadata() {
 
 #[test]
 fn test_rate_limits_filter_builds_typed_table_predicate() {
-    let scope = constants_str::SERVER_ADMIN_DATA_RATE_LIMITS_COLUMNS
-        .split(',')
-        .next()
-        .unwrap_or(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX);
+    let scope = constants_str::SCOPE;
     let query = filter_query(
         scope,
         frontend_contract::filter_operation::FilterOperation::Eq,

@@ -157,7 +157,6 @@ pub mod fetch_json_request;
 #[cfg(target_arch = "wasm32")]
 pub mod fetch_permissions_read;
 #[cfg(target_arch = "wasm32")]
-pub mod fetch_rate_limit_read;
 #[cfg(target_arch = "wasm32")]
 pub mod fetch_role_permissions_read;
 #[cfg(target_arch = "wasm32")]

@@ -23,10 +23,12 @@
 pub struct AdminRateLimits {
     #[generate_pg_table_db_default]
     #[generate_pg_table_primary_key]
-    request_count: pg_types_numeric::generate_pg_types_mod::I64AsNonNullBigSerialInitializationByPg,
+    id: pg_types_numeric::generate_pg_types_mod::I64AsNonNullBigSerialInitializationByPg,
     scope: pg_types_text_misc::generate_pg_types_mod::StringAsNonNullText,
     subject: pg_types_text_misc::generate_pg_types_mod::StringAsNonNullText,
     #[generate_pg_table_db_default]
     window_started_at:
         pg_types_chrono_net::generate_pg_types_mod::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsNonNullTimestampTz,
+    #[generate_pg_table_db_default]
+    request_count: pg_types_numeric::generate_pg_types_mod::I64AsNonNullInt8,
 }

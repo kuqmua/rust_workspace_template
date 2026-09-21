@@ -1,33 +1,36 @@
 import { expect, test } from "@playwright/test";
 import { signInAdministratorWithPasswordReset } from "./support/admin.js";
 
-test("test_rate_limit_details_follow_table_link_and_ignore_list_filters", async ({ page }) => {
+test("test_rate_limit_details_follow_table_link", async ({ page }) => {
   await signInAdministratorWithPasswordReset(page);
   await page.goto("/admin/rate_limits");
   const row = page.locator("tbody tr").first();
   const cells = row.locator("td");
-  await expect(cells).toHaveCount(5);
+  await expect(cells).toHaveCount(6);
   const values = await cells.allTextContents();
-  const path = `/admin/rate_limits/${values[0].trim()}/${values[1].trim()}`;
+  const identifier = values[0];
+  const path = `/admin/rate_limits/${identifier}`;
   const link = row.getByRole("link", { name: "read", exact: true });
   await expect(link).toHaveAttribute("href", path);
+  const detailResponsePromise = page.waitForResponse((response) =>
+    new URL(response.url()).pathname.endsWith("/rate_limits/read"),
+  );
   await link.click();
+  const detailResponseUrl = new URL((await detailResponsePromise).url());
+  expect(detailResponseUrl.searchParams.get("filter_field")).toBe("id");
+  expect(detailResponseUrl.searchParams.get("filter_operation")).toBe("eq");
+  expect(detailResponseUrl.searchParams.get("filter_value")).toBe(identifier);
   await expect(page).toHaveURL(new RegExp(`${path}$`));
-  const detail = page.locator('[data-page="rate_limit_read"]');
-  await expect(detail.locator(".health-result")).toHaveText(values.slice(0, 4));
+  const detail = page.locator('[data-page="rate-limit-read"]');
+  await expect(detail.locator(".health-result")).toHaveText(values.slice(0, 5));
   await page.reload();
-  await expect(detail.locator(".health-result")).toHaveText(values.slice(0, 4));
-  await page.goto(`${path}?search=missing&offset=999&filter_field=scope&filter_operation=eq&filter_value=missing`);
-  await expect(detail.locator(".health-result")).toHaveText(values.slice(0, 4));
-  await page.goto("/admin/rate_limits/sign_in_ip_login/127.0.0.1%7Cadmin");
-  await expect(detail.locator(".health-result").nth(0)).toHaveText("sign_in_ip_login");
-  await expect(detail.locator(".health-result").nth(1)).toHaveText("127.0.0.1|admin");
-  await page.goto("/admin/rate_limits/sign_in_ip/missing");
+  await expect(detail.locator(".health-result")).toHaveText(values.slice(0, 5));
+  await page.goto("/admin/rate_limits/9223372036854775807");
   await expect(detail).toContainText("resource not found");
   await expect(detail.locator(".health-result")).toHaveCount(0);
 });
 
 test("test_rate_limit_details_require_authentication", async ({ page }) => {
-  await page.goto("/admin/rate_limits/sign_in_ip/127.0.0.1");
+  await page.goto("/admin/rate_limits/1");
   await expect(page).toHaveURL(/\/admin\/sign_in$/);
 });

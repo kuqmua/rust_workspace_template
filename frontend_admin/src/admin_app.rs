@@ -90,16 +90,14 @@ pub(crate) fn AdminApp() -> impl leptos::prelude::IntoView {
                         .await
                         .map(|value| crate::admin_load_state::AdminLoadState::Table(admin, value));
                 }
-                if let Some(admin_rate_limit_id) = admin_csr_query.rate_limit_id().as_ref() {
-                    return crate::fetch_rate_limit_read::fetch_rate_limit_read(
-                        admin_rate_limit_id,
-                    )
-                    .await
-                    .map(|value| crate::admin_load_state::AdminLoadState::Table(admin, value));
-                }
                 let detail_identifier = admin_csr_query
                     .cleanup_status_id()
                     .map(|value| value.to_string())
+                    .or_else(|| {
+                        admin_csr_query
+                            .rate_limit_id()
+                            .map(|value| value.to_string())
+                    })
                     .or_else(|| admin_csr_query.refresh_token_id().map(ToString::to_string))
                     .or_else(|| {
                         admin_csr_query

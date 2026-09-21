@@ -120,11 +120,12 @@ CREATE TABLE system_settings (
 );
 INSERT INTO system_settings (id) VALUES (1);
 CREATE TABLE rate_limits (
+    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     scope TEXT NOT NULL,
     subject TEXT NOT NULL,
     window_started_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     request_count BIGINT NOT NULL DEFAULT 0,
-    PRIMARY KEY (scope, subject),
+    UNIQUE (scope, subject),
     CONSTRAINT rate_limits_scope_not_empty CHECK (char_length(scope) > 0),
     CONSTRAINT rate_limits_subject_not_empty CHECK (char_length(subject) > 0),
     CONSTRAINT rate_limits_request_count_nonnegative CHECK (request_count >= 0)

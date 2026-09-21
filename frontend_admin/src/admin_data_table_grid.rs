@@ -96,9 +96,9 @@ pub(crate) fn admin_data_table_grid(
                     .and_then(|value| value.parse::<i64>().ok())
                     .and_then(|value| server_admin_contract::admin_cleanup_status_id::AdminCleanupStatusId::try_from(value).ok())
                     .map(server_admin_contract::admin_route_path::AdminRoutePath::from),
-                server_admin_contract::admin_data_table::AdminDataTable::RateLimits => value_for_column(constants_str::SCOPE)
-                    .zip(value_for_column(constants_str::SUBJECT))
-                    .map(|(scope, subject)| server_admin_contract::admin_rate_limit_id::AdminRateLimitId::new(scope.clone(), subject.clone()))
+                server_admin_contract::admin_data_table::AdminDataTable::RateLimits => row_identifier
+                    .and_then(|value| value.parse::<i64>().ok())
+                    .and_then(|value| server_admin_contract::admin_rate_limit_id::AdminRateLimitId::try_from(value).ok())
                     .map(server_admin_contract::admin_route_path::AdminRoutePath::from),
                 server_admin_contract::admin_data_table::AdminDataTable::SystemSettings => row_identifier
                     .and_then(|value| value.parse::<i64>().ok())
