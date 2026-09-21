@@ -2,6 +2,7 @@ pub(crate) fn generated_data_table_view<Item, Error>(
     list_items: pg_crud_common::list_items::ListItems<Item>,
     list_total: pg_crud_common::list_total::ListTotal,
     admin_data_table: server_admin_contract::admin_data_table::AdminDataTable,
+    columns: Option<server_admin_contract::admin_data_columns::AdminDataColumns>,
 ) -> Result<server_admin_contract::admin_data_table_view::AdminDataTableView, Error>
 where
     Item: serde::Serialize,
@@ -13,8 +14,12 @@ where
 {
     let admin_generated_table =
         crate::admin_generated_table::AdminGeneratedTable::for_data_table(admin_data_table);
-    let columns =
-        crate::admin_data_columns::admin_data_columns(admin_data_table, admin_generated_table)?;
+    let columns = match columns {
+        Some(columns) => columns,
+        None => {
+            crate::admin_data_columns::admin_data_columns(admin_data_table, admin_generated_table)?
+        }
+    };
     let items = Vec::from(list_items)
         .into_iter()
         .map(|item| {

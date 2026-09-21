@@ -9,6 +9,8 @@
 #[derive(proc_macro_new::New)]
 pub(crate) struct AdminCsrQuery {
     access_session_id: Option<server_admin_contract::admin_access_session_id::AdminAccessSessionId>,
+    #[getters(copy)]
+    audit_log_id: Option<server_admin_contract::admin_audit_log_id::AdminAuditLogId>,
     direction: Option<server_admin_contract::admin_text::AdminText>,
     filter_end: Option<server_admin_contract::admin_filter_value::AdminFilterValue>,
     filter_field: Option<server_admin_contract::admin_filter_field::AdminFilterField>,
@@ -17,6 +19,8 @@ pub(crate) struct AdminCsrQuery {
     filter_value: Option<server_admin_contract::admin_filter_value::AdminFilterValue>,
     #[getters(copy)]
     limit: server_admin_contract::admin_page_limit::AdminPageLimit,
+    #[getters(copy)]
+    login_attempt_id: Option<server_admin_contract::admin_login_attempt_id::AdminLoginAttemptId>,
     #[getters(copy)]
     offset: server_admin_contract::admin_page_offset::AdminPageOffset,
     search: server_admin_contract::admin_table_search::AdminTableSearch,
@@ -54,6 +58,18 @@ impl AdminCsrQuery {
         let access_session_id = server_admin_contract::admin_access_session_id::AdminAccessSessionId::from_frontend_path(
             server_admin_contract::admin_page_path_ref::AdminPagePathRef::from(pathname.as_str()),
         );
+        let audit_log_id =
+            server_admin_contract::admin_audit_log_id::AdminAuditLogId::from_frontend_path(
+                server_admin_contract::admin_page_path_ref::AdminPagePathRef::from(
+                    pathname.as_str(),
+                ),
+            );
+        let login_attempt_id =
+            server_admin_contract::admin_login_attempt_id::AdminLoginAttemptId::from_frontend_path(
+                server_admin_contract::admin_page_path_ref::AdminPagePathRef::from(
+                    pathname.as_str(),
+                ),
+            );
         let user_role_id =
             server_admin_contract::admin_user_role_id::AdminUserRoleId::from_frontend_path(
                 server_admin_contract::admin_page_path_ref::AdminPagePathRef::from(
@@ -91,6 +107,16 @@ impl AdminCsrQuery {
                 })
             })
             .or_else(|| {
+                audit_log_id.map(|_audit_log_id| {
+                    server_admin_contract::admin_data_table::AdminDataTable::AuditLog
+                })
+            })
+            .or_else(|| {
+                login_attempt_id.map(|_login_attempt_id| {
+                    server_admin_contract::admin_data_table::AdminDataTable::LoginAttempts
+                })
+            })
+            .or_else(|| {
                 user_role_id.map(|_user_role_id| {
                     server_admin_contract::admin_data_table::AdminDataTable::UserRoles
                 })
@@ -107,6 +133,7 @@ impl AdminCsrQuery {
             });
         Ok(Self::new(
             access_session_id,
+            audit_log_id,
             params
                 .get(constants_str::ADMIN_DIRECTION_QUERY_KEY)
                 .map(server_admin_contract::admin_text::AdminText::try_from)
@@ -139,6 +166,7 @@ impl AdminCsrQuery {
                     server_admin_contract::admin_page_limit::AdminPageLimit::try_from(value).ok()
                 })
                 .unwrap_or_default(),
+            login_attempt_id,
             params
                 .get(constants_str::ADMIN_OFFSET_QUERY_KEY)
                 .and_then(|value| value.parse::<u32>().ok())

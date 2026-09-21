@@ -78,9 +78,15 @@ pub(crate) fn admin_data_table_grid(
                     .map(server_admin_contract::admin_access_session_id::AdminAccessSessionId::try_from)
                     .and_then(Result::ok)
                     .map(server_admin_contract::admin_route_path::AdminRoutePath::from),
-                server_admin_contract::admin_data_table::AdminDataTable::AuditLog
-                | server_admin_contract::admin_data_table::AdminDataTable::CleanupStatus
-                | server_admin_contract::admin_data_table::AdminDataTable::LoginAttempts
+                server_admin_contract::admin_data_table::AdminDataTable::LoginAttempts => row_identifier
+                    .and_then(|value| value.parse::<i64>().ok())
+                    .and_then(|value| server_admin_contract::admin_login_attempt_id::AdminLoginAttemptId::try_from(value).ok())
+                    .map(server_admin_contract::admin_route_path::AdminRoutePath::from),
+                server_admin_contract::admin_data_table::AdminDataTable::AuditLog => row_identifier
+                    .and_then(|value| value.parse::<i64>().ok())
+                    .and_then(|value| server_admin_contract::admin_audit_log_id::AdminAuditLogId::try_from(value).ok())
+                    .map(server_admin_contract::admin_route_path::AdminRoutePath::from),
+                server_admin_contract::admin_data_table::AdminDataTable::CleanupStatus
                 | server_admin_contract::admin_data_table::AdminDataTable::Permissions
                 | server_admin_contract::admin_data_table::AdminDataTable::RateLimits
                 | server_admin_contract::admin_data_table::AdminDataTable::Roles

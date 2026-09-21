@@ -19,5 +19,6 @@ pub async fn enrich_system_settings_read_page(
         list_items,
         list_total,
         server_admin_contract::admin_data_table::AdminDataTable::SystemSettings,
+        None,
     )
 }

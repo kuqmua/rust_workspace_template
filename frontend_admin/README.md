@@ -120,6 +120,18 @@ display `resource not found`; the existing access-session read permission protec
 and API. The public contract adds `AdminAccessSessionId` and
 `AdminFrontendPath::AccessSessionRead`.
 
+Login-attempt rows link to `/admin/login_attempts/{login_attempt_id}`. The read-only page
+renders the fields from the typed table catalog and selects only the numeric path ID,
+regardless of list query parameters. Missing records display `resource not found`; the existing
+login-attempt read permission protects the page and API. The public contract adds
+`AdminLoginAttemptId` and `AdminFrontendPath::LoginAttemptRead`.
+
+Audit-log rows link to `/admin/audit_log/{audit_log_id}`. The read-only page renders the
+readable fields from the typed audit catalog and selects only the numeric path ID, regardless
+of list query parameters. Missing records display `resource not found`; the existing audit-log
+read permission protects the page and API. The public contract adds
+`AdminFrontendPath::AuditLogRead` and path parsing to `AdminAuditLogId`.
+
 Permission rows link to `/admin/permissions/{permission_id}` for read-only ID and name
 details, using the same page layout as users. List query parameters do not change the
 selected permission; missing records display `resource not found`. The public contract

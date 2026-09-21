@@ -6,6 +6,8 @@ proc_macro_frontend_contract_route_registry::route_registry! {
     (server_admin_contract::admin_frontend_path::AdminFrontendPath::SignIn, crate::sign_in_page::sign_in_page),
     (server_admin_contract::admin_frontend_path::AdminFrontendPath::Tables, crate::data_tables::data_tables),
     (server_admin_contract::admin_frontend_path::AdminFrontendPath::AccessSessionRead, crate::access_session_read_page::access_session_read_page),
+    (server_admin_contract::admin_frontend_path::AdminFrontendPath::AuditLogRead, crate::audit_log_read_page::audit_log_read_page),
+    (server_admin_contract::admin_frontend_path::AdminFrontendPath::LoginAttemptRead, crate::login_attempt_read_page::login_attempt_read_page),
     (server_admin_contract::admin_frontend_path::AdminFrontendPath::RefreshTokenRead, crate::refresh_token_read_page::refresh_token_read_page),
     (server_admin_contract::admin_frontend_path::AdminFrontendPath::Users, crate::users::users),
     (server_admin_contract::admin_frontend_path::AdminFrontendPath::UsersCreate, crate::users_create_page::users_create_page),

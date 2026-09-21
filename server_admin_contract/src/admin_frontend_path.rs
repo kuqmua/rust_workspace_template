@@ -10,10 +10,14 @@
 pub enum AdminFrontendPath {
     #[strum(serialize = "/admin/access_sessions/{access_session_id}")]
     AccessSessionRead,
+    #[strum(serialize = "/admin/audit_log/{audit_log_id}")]
+    AuditLogRead,
     #[strum(serialize = "/admin/branding")]
     Branding,
     #[strum(serialize = "/admin/health")]
     Health,
+    #[strum(serialize = "/admin/login_attempts/{login_attempt_id}")]
+    LoginAttemptRead,
     #[strum(serialize = "/admin/assets")]
     Assets,
     #[strum(serialize = "/admin/metrics")]

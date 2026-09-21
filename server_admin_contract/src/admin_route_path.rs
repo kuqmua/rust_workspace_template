@@ -33,6 +33,32 @@ impl From<crate::admin_access_session_id::AdminAccessSessionId> for AdminRoutePa
     }
 }
 
+impl From<crate::admin_audit_log_id::AdminAuditLogId> for AdminRoutePath {
+    fn from(value: crate::admin_audit_log_id::AdminAuditLogId) -> Self {
+        Self(
+            format!(
+                "{}/{}",
+                crate::admin_data_table::AdminDataTable::AuditLog.frontend_path(),
+                value
+            )
+            .into_boxed_str(),
+        )
+    }
+}
+
+impl From<crate::admin_login_attempt_id::AdminLoginAttemptId> for AdminRoutePath {
+    fn from(value: crate::admin_login_attempt_id::AdminLoginAttemptId) -> Self {
+        Self(
+            format!(
+                "{}/{}",
+                crate::admin_data_table::AdminDataTable::LoginAttempts.frontend_path(),
+                value
+            )
+            .into_boxed_str(),
+        )
+    }
+}
+
 impl From<crate::admin_user_id::AdminUserId> for AdminRoutePath {
     fn from(value: crate::admin_user_id::AdminUserId) -> Self {
         Self(

@@ -3,6 +3,7 @@
     Clone,
     Copy,
     Debug,
+    Hash,
     PartialEq,
     Eq,
     serde::Serialize,
@@ -30,6 +31,15 @@ impl AdminAuditLogId {
     pub const fn value(self) -> crate::positive_non_zero_i64::PositiveNonZeroI64 {
         self.0
     }
+
+    #[must_use]
+    pub fn from_frontend_path(
+        admin_page_path_ref: crate::admin_page_path_ref::AdminPagePathRef<'_>,
+    ) -> Option<Self> {
+        admin_page_path_ref
+            .record_id(crate::admin_data_table::AdminDataTable::AuditLog)
+            .map(Self::from)
+    }
 }
 
 #[cfg(test)]
@@ -39,5 +49,12 @@ mod tests {
         let identifier = super::AdminAuditLogId::try_from(constants_i64::ONE)
             .expect(constants_str::DIAGNOSTIC_1A6EF5D3);
         assert_eq!(i64::from(identifier), constants_i64::ONE);
+        let route_path = crate::admin_route_path::AdminRoutePath::from(identifier);
+        assert_eq!(
+            super::AdminAuditLogId::from_frontend_path(
+                crate::admin_page_path_ref::AdminPagePathRef::from(route_path.as_ref()),
+            ),
+            Some(identifier)
+        );
     }
 }

@@ -65,6 +65,7 @@ pub mod admin_html_action;
 pub mod admin_id_try_from_i64_error;
 pub mod admin_identifier_filter_error;
 pub mod admin_login;
+pub mod admin_login_attempt_id;
 pub mod admin_login_attempts_table_route;
 pub mod admin_main_logo;
 pub mod admin_me_route;
