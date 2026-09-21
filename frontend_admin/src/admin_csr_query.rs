@@ -8,6 +8,7 @@
 #[getters(bare)]
 #[derive(proc_macro_new::New)]
 pub(crate) struct AdminCsrQuery {
+    access_session_id: Option<server_admin_contract::admin_access_session_id::AdminAccessSessionId>,
     direction: Option<server_admin_contract::admin_text::AdminText>,
     filter_end: Option<server_admin_contract::admin_filter_value::AdminFilterValue>,
     filter_field: Option<server_admin_contract::admin_filter_field::AdminFilterField>,
@@ -33,6 +34,7 @@ pub(crate) struct AdminCsrQuery {
     #[getters(copy)]
     role_permission_id:
         Option<server_admin_contract::admin_role_permission_id::AdminRolePermissionId>,
+    refresh_token_id: Option<server_admin_contract::admin_refresh_token_id::AdminRefreshTokenId>,
 }
 impl AdminCsrQuery {
     pub(crate) fn from_location() -> Result<Self, crate::admin_table_load_error::AdminTableLoadError>
@@ -49,6 +51,9 @@ impl AdminCsrQuery {
             .location()
             .pathname()
             .map_err(|_error| crate::admin_table_load_error::AdminTableLoadError::Fetch)?;
+        let access_session_id = server_admin_contract::admin_access_session_id::AdminAccessSessionId::from_frontend_path(
+            server_admin_contract::admin_page_path_ref::AdminPagePathRef::from(pathname.as_str()),
+        );
         let user_role_id =
             server_admin_contract::admin_user_role_id::AdminUserRoleId::from_frontend_path(
                 server_admin_contract::admin_page_path_ref::AdminPagePathRef::from(
@@ -58,6 +63,12 @@ impl AdminCsrQuery {
         let role_permission_id = server_admin_contract::admin_role_permission_id::AdminRolePermissionId::from_frontend_path(
             server_admin_contract::admin_page_path_ref::AdminPagePathRef::from(pathname.as_str()),
         );
+        let refresh_token_id =
+            server_admin_contract::admin_refresh_token_id::AdminRefreshTokenId::from_frontend_path(
+                server_admin_contract::admin_page_path_ref::AdminPagePathRef::from(
+                    pathname.as_str(),
+                ),
+            );
         let table = server_admin_contract::admin_data_table::AdminDataTable::from_frontend_path(
             server_admin_contract::admin_page_path_ref::AdminPagePathRef::from(pathname.as_str()),
         );
@@ -73,7 +84,29 @@ impl AdminCsrQuery {
         let role_id = server_admin_contract::admin_role_id::AdminRoleId::from_frontend_path(
             server_admin_contract::admin_page_path_ref::AdminPagePathRef::from(pathname.as_str()),
         );
+        let resolved_table = table
+            .or_else(|| {
+                access_session_id.as_ref().map(|_access_session_id| {
+                    server_admin_contract::admin_data_table::AdminDataTable::AccessSessions
+                })
+            })
+            .or_else(|| {
+                user_role_id.map(|_user_role_id| {
+                    server_admin_contract::admin_data_table::AdminDataTable::UserRoles
+                })
+            })
+            .or_else(|| {
+                role_permission_id.map(|_role_permission_id| {
+                    server_admin_contract::admin_data_table::AdminDataTable::RolePermissions
+                })
+            })
+            .or_else(|| {
+                refresh_token_id.as_ref().map(|_refresh_token_id| {
+                    server_admin_contract::admin_data_table::AdminDataTable::RefreshTokens
+                })
+            });
         Ok(Self::new(
+            access_session_id,
             params
                 .get(constants_str::ADMIN_DIRECTION_QUERY_KEY)
                 .map(server_admin_contract::admin_text::AdminText::try_from)
@@ -125,14 +158,13 @@ impl AdminCsrQuery {
                 .transpose()
                 .map_err(|_error| crate::admin_table_load_error::AdminTableLoadError::Query)?
                 .unwrap_or_default(),
-            table
-                .or_else(|| user_role_id.map(|_user_role_id| server_admin_contract::admin_data_table::AdminDataTable::UserRoles))
-                .or_else(|| role_permission_id.map(|_role_permission_id| server_admin_contract::admin_data_table::AdminDataTable::RolePermissions)),
+            resolved_table,
             permission_id,
             role_id,
             user_id,
             user_role_id,
             role_permission_id,
+            refresh_token_id,
         ))
     }
 }

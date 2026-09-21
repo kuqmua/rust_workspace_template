@@ -107,6 +107,19 @@ path ID, regardless of list query parameters. Missing records display `resource 
 the existing role-permission read permission protects the page and API. The public contract
 adds `AdminRolePermissionId` and `AdminFrontendPath::RolePermissionRead`.
 
+Refresh-token rows link to `/admin/refresh_tokens/{refresh_token_id}`. The read-only page
+renders the safe typed table catalog without the excluded token hash and selects only the
+UUID from the path, regardless of list query parameters. Missing records display
+`resource not found`; the existing refresh-token read permission protects the page and API.
+The public contract adds `AdminRefreshTokenId` and `AdminFrontendPath::RefreshTokenRead`.
+
+Access-session rows link to `/admin/access_sessions/{access_session_id}`. The read-only page
+renders the safe typed table catalog without the excluded token, CSRF, and context hashes and
+selects only the UUID from the path, regardless of list query parameters. Missing records
+display `resource not found`; the existing access-session read permission protects the page
+and API. The public contract adds `AdminAccessSessionId` and
+`AdminFrontendPath::AccessSessionRead`.
+
 Permission rows link to `/admin/permissions/{permission_id}` for read-only ID and name
 details, using the same page layout as users. List query parameters do not change the
 selected permission; missing records display `resource not found`. The public contract

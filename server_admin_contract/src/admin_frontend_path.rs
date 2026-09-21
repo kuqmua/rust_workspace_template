@@ -8,6 +8,8 @@
     strum_macros::IntoStaticStr,
 )]
 pub enum AdminFrontendPath {
+    #[strum(serialize = "/admin/access_sessions/{access_session_id}")]
+    AccessSessionRead,
     #[strum(serialize = "/admin/branding")]
     Branding,
     #[strum(serialize = "/admin/health")]
@@ -26,6 +28,8 @@ pub enum AdminFrontendPath {
     PermissionRead,
     #[strum(serialize = "/admin/profile")]
     Profile,
+    #[strum(serialize = "/admin/refresh_tokens/{refresh_token_id}")]
+    RefreshTokenRead,
     #[strum(serialize = "/admin/roles")]
     Roles,
     #[strum(serialize = "/admin/roles/create")]

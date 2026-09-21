@@ -244,6 +244,74 @@ impl AdminWhereMany {
                 ),
             }
         };
+        let uuid_values = || {
+            if end.is_some() {
+                return Err(
+                    crate::admin_identifier_filter_error::AdminIdentifierFilterError::UnexpectedEnd,
+                );
+            }
+            let parse_uuid = |admin_filter_value: &crate::admin_filter_value::AdminFilterValue| {
+                if crate::admin_access_session_id::AdminAccessSessionId::try_from(
+                    admin_filter_value.as_ref().to_owned(),
+                )
+                .is_ok()
+                {
+                    Ok(serde_json::Value::String(
+                        admin_filter_value.as_ref().to_owned(),
+                    ))
+                } else {
+                    Err(
+                        crate::admin_identifier_filter_error::AdminIdentifierFilterError::InvalidValue,
+                    )
+                }
+            };
+            let filter_value = value.ok_or(
+                crate::admin_identifier_filter_error::AdminIdentifierFilterError::Incomplete,
+            )?;
+            match operation {
+                frontend_contract::filter_operation::FilterOperation::Eq => {
+                    parse_uuid(filter_value)
+                }
+                frontend_contract::filter_operation::FilterOperation::In => filter_value
+                    .as_ref()
+                    .split(constants_str::TEXT_ALT_7)
+                    .map(str::trim)
+                    .map(str::to_owned)
+                    .map(crate::admin_filter_value::AdminFilterValue::try_from)
+                    .map(|result| {
+                        let admin_filter_value = result.ok().ok_or(
+                            crate::admin_identifier_filter_error::AdminIdentifierFilterError::InvalidValue,
+                        )?;
+                        parse_uuid(&admin_filter_value)
+                    })
+                    .collect::<Result<Vec<_>, crate::admin_identifier_filter_error::AdminIdentifierFilterError>>()
+                    .map(serde_json::Value::Array),
+                frontend_contract::filter_operation::FilterOperation::AdjacentWithRange
+                | frontend_contract::filter_operation::FilterOperation::Before
+                | frontend_contract::filter_operation::FilterOperation::Between
+                | frontend_contract::filter_operation::FilterOperation::CurrentDate
+                | frontend_contract::filter_operation::FilterOperation::CurrentTime
+                | frontend_contract::filter_operation::FilterOperation::CurrentTimestamp
+                | frontend_contract::filter_operation::FilterOperation::EqToEncodedStringRepresentation
+                | frontend_contract::filter_operation::FilterOperation::ExcludedUpperBound
+                | frontend_contract::filter_operation::FilterOperation::FindRangesThatFullyContainTheGivenRange
+                | frontend_contract::filter_operation::FilterOperation::FindRangesWithinGivenRange
+                | frontend_contract::filter_operation::FilterOperation::GreaterThan
+                | frontend_contract::filter_operation::FilterOperation::GreaterThanCurrentDate
+                | frontend_contract::filter_operation::FilterOperation::GreaterThanCurrentTime
+                | frontend_contract::filter_operation::FilterOperation::GreaterThanCurrentTimestamp
+                | frontend_contract::filter_operation::FilterOperation::GreaterThanExcludedUpperBound
+                | frontend_contract::filter_operation::FilterOperation::GreaterThanIncludedLowerBound
+                | frontend_contract::filter_operation::FilterOperation::IncludedLowerBound
+                | frontend_contract::filter_operation::FilterOperation::OverlapWithRange
+                | frontend_contract::filter_operation::FilterOperation::RangeLen
+                | frontend_contract::filter_operation::FilterOperation::Regex
+                | frontend_contract::filter_operation::FilterOperation::StrictlyToLeftOfRange
+                | frontend_contract::filter_operation::FilterOperation::StrictlyToRightOfRange => Err(
+                    crate::admin_identifier_filter_error::AdminIdentifierFilterError::UnsupportedOperation,
+                ),
+            }
+        };
         let values = match input_kind {
             frontend_contract::input_kind::InputKind::Number
                 if identifier_field.as_ref() == constants_str::SQL_NAMES_ID =>
@@ -274,11 +342,11 @@ impl AdminWhereMany {
                 }
             }
             frontend_contract::input_kind::InputKind::Checkbox => boolean_values()?,
+            frontend_contract::input_kind::InputKind::Uuid => uuid_values()?,
             frontend_contract::input_kind::InputKind::Date
             | frontend_contract::input_kind::InputKind::DateTime
             | frontend_contract::input_kind::InputKind::Number
-            | frontend_contract::input_kind::InputKind::Time
-            | frontend_contract::input_kind::InputKind::Uuid => return Err(
+            | frontend_contract::input_kind::InputKind::Time => return Err(
                 crate::admin_identifier_filter_error::AdminIdentifierFilterError::UnsupportedField,
             ),
         };
@@ -301,6 +369,43 @@ impl AdminWhereMany {
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn test_uuid_filter_builds_equality() {
+        let query = crate::admin_data_table_filter_query::AdminDataTableFilterQuery::new(
+            crate::admin_filter_field::AdminFilterField::try_from(
+                constants_str::SQL_NAMES_ID.to_owned(),
+            )
+            .ok(),
+            Some(frontend_contract::filter_operation::FilterOperation::Eq),
+            crate::admin_filter_value::AdminFilterValue::try_from(
+                constants_str::TEST_ACCESS_SESSION_ID.to_owned(),
+            )
+            .ok(),
+            None,
+        );
+
+        let result = super::AdminWhereMany::try_from_filter(
+            &query,
+            frontend_contract::input_kind::InputKind::Uuid,
+        )
+        .and_then(|where_many| {
+            where_many
+                .ok_or(crate::admin_identifier_filter_error::AdminIdentifierFilterError::Incomplete)
+        });
+
+        assert!(result.is_ok_and(|where_many| {
+            serde_json::from_str::<serde_json::Value>(where_many.as_ref()).is_ok_and(|value| {
+                value
+                    .get(constants_str::SQL_NAMES_ID)
+                    .and_then(|field| field.get(constants_str::PG_CRUD_VALUES_FIELD))
+                    .and_then(|predicates| predicates.get(0usize))
+                    .and_then(|predicate| predicate.get(stringify!(Eq)))
+                    .and_then(|body| body.get(constants_str::PG_CRUD_VALUES_FIELD))
+                    == Some(&serde_json::json!(constants_str::TEST_ACCESS_SESSION_ID))
+            })
+        }));
+    }
+
     #[test]
     fn test_text_filter_rejects_unsupported_operation() {
         let query = crate::admin_data_table_filter_query::AdminDataTableFilterQuery::new(

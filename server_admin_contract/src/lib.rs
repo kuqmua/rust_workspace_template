@@ -5,6 +5,7 @@
     reason = "root-owned modules retain the vocabulary and DTO/route-metadata grouping previously inherited from the contract owner module"
 )]
 
+pub mod admin_access_session_id;
 pub mod admin_access_sessions_read_request;
 pub mod admin_access_sessions_table_route;
 pub mod admin_api_body_max_bytes;
@@ -131,6 +132,7 @@ pub mod admin_read_user_order;
 pub mod admin_read_user_selection;
 pub mod admin_read_users_route;
 pub mod admin_refresh_route;
+pub mod admin_refresh_token_id;
 pub mod admin_refresh_tokens_table_route;
 pub mod admin_revoke_all_sessions_route;
 pub mod admin_revoke_session_route;

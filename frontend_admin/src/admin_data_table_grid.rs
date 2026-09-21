@@ -58,21 +58,31 @@ pub(crate) fn admin_data_table_grid(
         .map(|item| {
             let row_identifier = admin_data_table_view.columns().iter().position(|admin_data_column| admin_data_column.name().as_ref() == constants_str::SQL_NAMES_ID)
                 .and_then(|index| item.values().get(index))
-                .and_then(|admin_text| admin_text.as_ref().parse::<i64>().ok());
+                .map(|admin_text| admin_text.as_ref().as_str());
             let read_path = match admin_data_table_view.table() {
                 server_admin_contract::admin_data_table::AdminDataTable::UserRoles => row_identifier
+                    .and_then(|value| value.parse::<i64>().ok())
                     .and_then(|value| server_admin_contract::admin_user_role_id::AdminUserRoleId::try_from(value).ok())
                     .map(server_admin_contract::admin_route_path::AdminRoutePath::from),
                 server_admin_contract::admin_data_table::AdminDataTable::RolePermissions => row_identifier
+                    .and_then(|value| value.parse::<i64>().ok())
                     .and_then(|value| server_admin_contract::admin_role_permission_id::AdminRolePermissionId::try_from(value).ok())
                     .map(server_admin_contract::admin_route_path::AdminRoutePath::from),
-                server_admin_contract::admin_data_table::AdminDataTable::AccessSessions
-                | server_admin_contract::admin_data_table::AdminDataTable::AuditLog
+                server_admin_contract::admin_data_table::AdminDataTable::RefreshTokens => row_identifier
+                    .map(str::to_owned)
+                    .map(server_admin_contract::admin_refresh_token_id::AdminRefreshTokenId::try_from)
+                    .and_then(Result::ok)
+                    .map(server_admin_contract::admin_route_path::AdminRoutePath::from),
+                server_admin_contract::admin_data_table::AdminDataTable::AccessSessions => row_identifier
+                    .map(str::to_owned)
+                    .map(server_admin_contract::admin_access_session_id::AdminAccessSessionId::try_from)
+                    .and_then(Result::ok)
+                    .map(server_admin_contract::admin_route_path::AdminRoutePath::from),
+                server_admin_contract::admin_data_table::AdminDataTable::AuditLog
                 | server_admin_contract::admin_data_table::AdminDataTable::CleanupStatus
                 | server_admin_contract::admin_data_table::AdminDataTable::LoginAttempts
                 | server_admin_contract::admin_data_table::AdminDataTable::Permissions
                 | server_admin_contract::admin_data_table::AdminDataTable::RateLimits
-                | server_admin_contract::admin_data_table::AdminDataTable::RefreshTokens
                 | server_admin_contract::admin_data_table::AdminDataTable::Roles
                 | server_admin_contract::admin_data_table::AdminDataTable::SystemSettings
                 | server_admin_contract::admin_data_table::AdminDataTable::Users => None,

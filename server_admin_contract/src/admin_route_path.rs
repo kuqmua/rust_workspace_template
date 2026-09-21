@@ -20,6 +20,19 @@ impl TryFrom<String> for AdminRoutePath {
     }
 }
 
+impl From<crate::admin_access_session_id::AdminAccessSessionId> for AdminRoutePath {
+    fn from(value: crate::admin_access_session_id::AdminAccessSessionId) -> Self {
+        Self(
+            format!(
+                "{}/{}",
+                crate::admin_data_table::AdminDataTable::AccessSessions.frontend_path(),
+                value
+            )
+            .into_boxed_str(),
+        )
+    }
+}
+
 impl From<crate::admin_user_id::AdminUserId> for AdminRoutePath {
     fn from(value: crate::admin_user_id::AdminUserId) -> Self {
         Self(
@@ -78,6 +91,19 @@ impl From<crate::admin_role_permission_id::AdminRolePermissionId> for AdminRoute
             format!(
                 "{}/{}",
                 crate::admin_data_table::AdminDataTable::RolePermissions.frontend_path(),
+                value
+            )
+            .into_boxed_str(),
+        )
+    }
+}
+
+impl From<crate::admin_refresh_token_id::AdminRefreshTokenId> for AdminRoutePath {
+    fn from(value: crate::admin_refresh_token_id::AdminRefreshTokenId) -> Self {
+        Self(
+            format!(
+                "{}/{}",
+                crate::admin_data_table::AdminDataTable::RefreshTokens.frontend_path(),
                 value
             )
             .into_boxed_str(),

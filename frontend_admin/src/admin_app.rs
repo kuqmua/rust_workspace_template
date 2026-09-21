@@ -90,11 +90,31 @@ pub(crate) fn AdminApp() -> impl leptos::prelude::IntoView {
                         .await
                         .map(|value| crate::admin_load_state::AdminLoadState::Table(admin, value));
                 }
-                let table_search = web_sys::window()
-                    .ok_or(crate::admin_table_load_error::AdminTableLoadError::Fetch)?
-                    .location()
-                    .search()
-                    .map_err(|_error| crate::admin_table_load_error::AdminTableLoadError::Fetch)?;
+                let table_search = match admin_csr_query.refresh_token_id() {
+                    Some(refresh_token_id) => {
+                        let mut value = String::new();
+                        value.push('?');
+                        value.push_str(constants_str::ADMIN_FILTER_FIELD_QUERY_KEY);
+                        value.push('=');
+                        value.push_str(constants_str::SQL_NAMES_ID);
+                        value.push('&');
+                        value.push_str(constants_str::ADMIN_FILTER_OPERATION_QUERY_KEY);
+                        value.push('=');
+                        value.push_str(constants_str::ADMIN_FILTER_OPERATION_EQ);
+                        value.push('&');
+                        value.push_str(constants_str::ADMIN_FILTER_VALUE_QUERY_KEY);
+                        value.push('=');
+                        value.push_str(refresh_token_id.as_ref());
+                        value
+                    }
+                    None => web_sys::window()
+                        .ok_or(crate::admin_table_load_error::AdminTableLoadError::Fetch)?
+                        .location()
+                        .search()
+                        .map_err(|_error| {
+                            crate::admin_table_load_error::AdminTableLoadError::Fetch
+                        })?,
+                };
                 let url = crate::admin_api_url_with_suffix::admin_api_url_with_suffix(
                     table.api_route(),
                     crate::admin_csr_api_url_suffix_ref::AdminCsrApiUrlSuffixRef::from(
@@ -218,6 +238,12 @@ pub(crate) fn AdminApp() -> impl leptos::prelude::IntoView {
             None if server_admin_contract::admin_role_permission_id::AdminRolePermissionId::from_frontend_path(path).is_some() => {
                 server_admin_contract::admin_page::AdminPage::Tables
             }
+            None if server_admin_contract::admin_refresh_token_id::AdminRefreshTokenId::from_frontend_path(path).is_some() => {
+                server_admin_contract::admin_page::AdminPage::Tables
+            }
+            None if server_admin_contract::admin_access_session_id::AdminAccessSessionId::from_frontend_path(path).is_some() => {
+                server_admin_contract::admin_page::AdminPage::Tables
+            }
             None => return Err(crate::admin_table_load_error::AdminTableLoadError::Query),
         };
         if bool::from(page.supports_csr()) {
@@ -275,16 +301,30 @@ pub(crate) fn AdminApp() -> impl leptos::prelude::IntoView {
                 crate::admin_load_state::AdminLoadState::Settings(admin, page) => leptos::prelude::IntoAny::into_any(leptos::view! { <super::admin_settings_view::AdminSettingsView authenticated_admin=admin admin_settings_view=page /> }),
                 crate::admin_load_state::AdminLoadState::Table(_admin, view) => if query.user_role_id().is_some() {
                     leptos::prelude::IntoAny::into_any(leptos::view! {
-                        <super::admin_assignment_view::AdminAssignmentView
+                        <super::admin_record_view::AdminRecordView
                             admin_data_table_view=view
-                            admin_assignment_read_page=crate::admin_assignment_read_page::AdminAssignmentReadPage::UserRole
+                            admin_record_read_page=crate::admin_record_read_page::AdminRecordReadPage::UserRole
+                        />
+                    })
+                } else if query.access_session_id().is_some() {
+                    leptos::prelude::IntoAny::into_any(leptos::view! {
+                        <super::admin_record_view::AdminRecordView
+                            admin_data_table_view=view
+                            admin_record_read_page=crate::admin_record_read_page::AdminRecordReadPage::AccessSession
                         />
                     })
                 } else if query.role_permission_id().is_some() {
                     leptos::prelude::IntoAny::into_any(leptos::view! {
-                        <super::admin_assignment_view::AdminAssignmentView
+                        <super::admin_record_view::AdminRecordView
                             admin_data_table_view=view
-                            admin_assignment_read_page=crate::admin_assignment_read_page::AdminAssignmentReadPage::RolePermission
+                            admin_record_read_page=crate::admin_record_read_page::AdminRecordReadPage::RolePermission
+                        />
+                    })
+                } else if query.refresh_token_id().is_some() {
+                    leptos::prelude::IntoAny::into_any(leptos::view! {
+                        <super::admin_record_view::AdminRecordView
+                            admin_data_table_view=view
+                            admin_record_read_page=crate::admin_record_read_page::AdminRecordReadPage::RefreshToken
                         />
                     })
                 } else {

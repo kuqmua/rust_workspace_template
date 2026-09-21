@@ -4,6 +4,38 @@ pub(crate) fn admin_identifier_filter_query(
     server_admin_contract::admin_data_table_filter_query::AdminDataTableFilterQuery,
     crate::admin_table_load_error::AdminTableLoadError,
 > {
+    if let Some(access_session_id) = admin_csr_query.access_session_id() {
+        return Ok(
+            server_admin_contract::admin_data_table_filter_query::AdminDataTableFilterQuery::new(
+                Some(
+                    server_admin_contract::admin_filter_field::AdminFilterField::try_from(
+                        String::from(constants_str::SQL_NAMES_ID),
+                    )
+                    .map_err(|error| {
+                        server_admin_contract::admin_text::AdminText::try_from(error.to_string())
+                            .map_or(
+                                crate::admin_table_load_error::AdminTableLoadError::Query,
+                                crate::admin_table_load_error::AdminTableLoadError::QuerySource,
+                            )
+                    })?,
+                ),
+                Some(frontend_contract::filter_operation::FilterOperation::Eq),
+                Some(
+                    server_admin_contract::admin_filter_value::AdminFilterValue::try_from(
+                        access_session_id.to_string(),
+                    )
+                    .map_err(|error| {
+                        server_admin_contract::admin_text::AdminText::try_from(error.to_string())
+                            .map_or(
+                                crate::admin_table_load_error::AdminTableLoadError::Query,
+                                crate::admin_table_load_error::AdminTableLoadError::QuerySource,
+                            )
+                    })?,
+                ),
+                None,
+            ),
+        );
+    }
     let operation = admin_csr_query
         .filter_operation()
         .map(|operation| match operation.as_ref() {

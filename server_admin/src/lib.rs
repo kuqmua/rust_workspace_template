@@ -9,6 +9,7 @@
     reason = "root-owned admin modules retain responsibility-based declaration ordering, internal cross-module DTO visibility, generated table field contracts, iterator-based generated/test traversal, local transformation naming, and vocabulary previously inherited from nested owner modules"
 )]
 
+pub mod access_session_read_page;
 pub mod account_change_own_password;
 pub mod account_me;
 pub mod account_me_context_view_ref;
@@ -260,6 +261,7 @@ pub mod read_last_admin_state;
 pub mod read_settings;
 pub mod record_audit_success_in_connection;
 pub mod record_login_attempt;
+pub mod refresh_token_read_page;
 pub mod repository_page_total;
 pub mod reset_admin_password;
 pub mod revoke_access_session;

@@ -11,15 +11,22 @@
 #[accessor(pub(crate))]
 pub struct AdminPagePathRef<'path_lt>(&'path_lt str);
 
-impl AdminPagePathRef<'_> {
+impl<'path_lt> AdminPagePathRef<'path_lt> {
+    pub(crate) fn record_identifier(
+        self,
+        admin_data_table: crate::admin_data_table::AdminDataTable,
+    ) -> Option<&'path_lt str> {
+        self.get()
+            .strip_prefix(admin_data_table.frontend_path().as_ref())
+            .and_then(|value| value.strip_prefix('/'))
+    }
+
     pub(crate) fn record_id(
         self,
         admin_data_table: crate::admin_data_table::AdminDataTable,
     ) -> Option<crate::positive_non_zero_i64::PositiveNonZeroI64> {
         let value = self
-            .get()
-            .strip_prefix(admin_data_table.frontend_path().as_ref())
-            .and_then(|value| value.strip_prefix('/'))
+            .record_identifier(admin_data_table)
             .and_then(|value| value.parse::<i64>().ok())?;
         crate::positive_non_zero_i64::PositiveNonZeroI64::try_from(value).ok()
     }
