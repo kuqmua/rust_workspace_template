@@ -16,7 +16,7 @@ pub struct AdminDataTableSpec {
     #[getters(copy)]
     order: crate::admin_data_order_ref::AdminDataOrderRef<'static>,
     #[getters(copy)]
-    permission: crate::admin_permission::AdminPermission,
+    rule: crate::admin_rule::AdminRule,
     #[getters(copy)]
     supports_filters: crate::admin_bool::AdminBool,
 }

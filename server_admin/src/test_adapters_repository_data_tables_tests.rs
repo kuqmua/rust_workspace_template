@@ -115,9 +115,9 @@ fn test_every_generated_read_filter_accepts_every_logical_operator_variation() {
         };
     [
         crate::admin_generated_table::AdminGeneratedTable::Roles,
-        crate::admin_generated_table::AdminGeneratedTable::RolePermissions,
+        crate::admin_generated_table::AdminGeneratedTable::RoleRules,
         crate::admin_generated_table::AdminGeneratedTable::UsersDatabaseRead,
-        crate::admin_generated_table::AdminGeneratedTable::Permissions,
+        crate::admin_generated_table::AdminGeneratedTable::Rules,
         crate::admin_generated_table::AdminGeneratedTable::SystemSettings,
         crate::admin_generated_table::AdminGeneratedTable::UserRoles,
     ]
@@ -248,8 +248,8 @@ fn test_every_read_table_filter_column_and_operation_builds_a_typed_predicate() 
         server_admin_contract::admin_data_table::AdminDataTable::LoginAttempts => {
             crate::admin_login_attempts::AdminLoginAttempts::frontend_fields()
         }
-        server_admin_contract::admin_data_table::AdminDataTable::Permissions => {
-            crate::admin_permissions::AdminPermissions::frontend_fields()
+        server_admin_contract::admin_data_table::AdminDataTable::Rules => {
+            crate::admin_rules::AdminRules::frontend_fields()
         }
         server_admin_contract::admin_data_table::AdminDataTable::RateLimits => {
             crate::admin_rate_limits::AdminRateLimits::frontend_fields()
@@ -257,8 +257,8 @@ fn test_every_read_table_filter_column_and_operation_builds_a_typed_predicate() 
         server_admin_contract::admin_data_table::AdminDataTable::RefreshTokens => {
             crate::admin_refresh_tokens::AdminRefreshTokens::frontend_fields()
         }
-        server_admin_contract::admin_data_table::AdminDataTable::RolePermissions => {
-            crate::admin_role_permissions::AdminRolePermissions::frontend_fields()
+        server_admin_contract::admin_data_table::AdminDataTable::RoleRules => {
+            crate::admin_role_rules::AdminRoleRules::frontend_fields()
         }
         server_admin_contract::admin_data_table::AdminDataTable::Roles => {
             crate::admin_roles::AdminRoles::frontend_fields()
@@ -317,8 +317,8 @@ fn test_every_read_table_filter_column_and_operation_builds_a_typed_predicate() 
                     form_value_ref,
                 )
             }
-            server_admin_contract::admin_data_table::AdminDataTable::Permissions
-            | server_admin_contract::admin_data_table::AdminDataTable::RolePermissions
+            server_admin_contract::admin_data_table::AdminDataTable::Rules
+            | server_admin_contract::admin_data_table::AdminDataTable::RoleRules
             | server_admin_contract::admin_data_table::AdminDataTable::Roles
             | server_admin_contract::admin_data_table::AdminDataTable::SystemSettings
             | server_admin_contract::admin_data_table::AdminDataTable::UserRoles

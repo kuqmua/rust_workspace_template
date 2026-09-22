@@ -107,7 +107,7 @@ test("administrator users page contains only its header, table, and pagination",
   await expect(page.locator("tbody button, tbody input, tbody select")).toHaveCount(0);
   await expect(page.locator("thead th")).toHaveCount(5);
   const usersCellStyle = await firstCellStyle(page);
-  await page.goto("/admin/permissions");
+  await page.goto("/admin/rules");
   expect(usersCellStyle).toEqual(await firstCellStyle(page));
 
   await page.setViewportSize({ width: 390, height: 844 });
@@ -160,7 +160,7 @@ test("administrator roles page contains only its header, table, and pagination",
   await expect(page.locator("tbody button, tbody input, tbody select")).toHaveCount(0);
   await expect(page.locator("thead th")).toHaveCount(4);
   const rolesCellStyle = await firstCellStyle(page);
-  await page.goto("/admin/permissions");
+  await page.goto("/admin/rules");
   expect(rolesCellStyle).toEqual(await firstCellStyle(page));
 });
 
@@ -205,11 +205,11 @@ test("shared administrator layout stays fixed while pages change", async ({ page
   }
 });
 
-test("administrator permissions page contains only its header, table, and pagination", async ({
+test("administrator rules page contains only its header, table, and pagination", async ({
   page
 }) => {
   await signInAdministrator(page);
-  await page.goto("/admin/permissions");
+  await page.goto("/admin/rules");
 
   await expect(page.locator("header.topbar")).toHaveCount(1);
   await expect(page.getByRole("table")).toHaveCount(1);
@@ -327,7 +327,7 @@ test("data-table filter places a full-width Close control directly below Apply",
   page
 }) => {
   await signInAdministrator(page);
-  await page.goto("/admin/role_permissions");
+  await page.goto("/admin/role_rules");
 
   const filter = page.locator('th[data-field="role_id"] .table-column-filter');
   await filter.getByRole("button", { name: "filter_role_id" }).click();
@@ -498,7 +498,7 @@ test("header links leave profile and render the selected page on desktop and mob
   for (const width of [1440, 390]) {
     await page.setViewportSize({ width, height: 900 });
     await page.goto("/admin/profile");
-    for (const name of ["users", "roles", "permissions", "profile"]) {
+    for (const name of ["users", "roles", "rules", "profile"]) {
       if (width === 390) await page.getByText("navigation", { exact: true }).click();
       await page.locator(`header a[href="/admin/${name}"]`).click();
       await expect(page).toHaveURL(new RegExp(`/admin/${name}$`));

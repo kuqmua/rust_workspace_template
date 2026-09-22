@@ -13,7 +13,7 @@
 #[proc_macro_generate_pg_table_generate_pg_table_config::generate_pg_table_config{{
     "api_mode": "ReadOnly",
     "db_table_name": "cleanup_status",
-    "permission_prefix": "cleanup_status",
+    "rule_prefix": "cleanup_status",
     "tests_write_into_file": "False",
     "common_write_into_file": "False",
     "whole_write_into_file": "False"

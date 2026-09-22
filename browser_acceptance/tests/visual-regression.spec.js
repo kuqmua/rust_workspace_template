@@ -156,9 +156,9 @@ for (const viewport of viewports) {
   });
 
   if (viewport.name === "desktop") {
-    authenticatedTest("role permissions filter is pixel-perfect on desktop", async ({ page }) => {
+    authenticatedTest("role rules filter is pixel-perfect on desktop", async ({ page }) => {
       await page.setViewportSize(viewport);
-      await page.goto("/admin/role_permissions");
+      await page.goto("/admin/role_rules");
       await page
         .locator('th[data-field="role_id"] .table-column-filter > button')
         .click();
@@ -167,7 +167,7 @@ for (const viewport of viewports) {
       await expectComponentPixelPerfect(
         page,
         filter,
-        "role-permissions-filter-desktop"
+        "role-rules-filter-desktop"
       );
     });
   } else {

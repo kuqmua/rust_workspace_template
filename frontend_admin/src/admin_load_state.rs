@@ -8,9 +8,9 @@ pub(crate) enum AdminLoadState {
         server_admin_contract::authenticated_admin::AuthenticatedAdmin,
         server_admin_contract::admin_branding_view::AdminBrandingView,
     ),
-    Permissions(
+    Rules(
         server_admin_contract::authenticated_admin::AuthenticatedAdmin,
-        server_admin_contract::admin_permissions_page::AdminPermissionsPage,
+        server_admin_contract::admin_rules_page::AdminRulesPage,
     ),
     Profile(server_admin_contract::authenticated_admin::AuthenticatedAdmin),
     Roles(
@@ -38,7 +38,7 @@ impl AdminLoadState {
         match self {
             Self::Health(admin)
             | Self::Branding(admin, _)
-            | Self::Permissions(admin, _)
+            | Self::Rules(admin, _)
             | Self::Roles(admin, _)
             | Self::Sessions(admin, _)
             | Self::Settings(admin, _)

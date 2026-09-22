@@ -15,8 +15,8 @@ pub enum AdminHtmlAction {
     RoleCreate,
     #[strum(serialize = "/admin/actions/roles/delete")]
     RoleDelete,
-    #[strum(serialize = "/admin/actions/roles/permissions")]
-    RolePermissions,
+    #[strum(serialize = "/admin/actions/roles/rules")]
+    RoleRules,
     #[strum(serialize = "/admin/actions/roles/update")]
     RoleUpdate,
     #[strum(serialize = "/admin/actions/sessions/revoke")]

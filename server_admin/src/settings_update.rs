@@ -6,7 +6,7 @@ pub(crate) async fn settings_update(
 ) -> Result<crate::axum_admin_response::AxumAdminResponse, crate::admin_error::AdminError> {
     let actor = crate::authorize_custom::authorize_custom(
         &admin_auth_request,
-        server_admin_contract::admin_permission::AdminPermission::SystemSettingsUpdate,
+        server_admin_contract::admin_rule::AdminRule::SystemSettingsUpdate,
     )
     .await?;
     if !bool::from(axum_admin_json.get_inner().has_fields())

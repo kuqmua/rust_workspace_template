@@ -46,7 +46,7 @@ fn test_pagination_preserves_server_side_navigation() {
             server_admin_contract::admin_page::AdminPage::Tables,
             &server_admin_contract::admin_table_query::AdminTableQuery::default(),
             server_admin_contract::admin_page_total::AdminPageTotal::from(101u64),
-            Some(server_admin_contract::admin_data_table::AdminDataTable::RolePermissions),
+            Some(server_admin_contract::admin_data_table::AdminDataTable::RoleRules),
             Some(&table_filter),
         ),
     );
@@ -101,23 +101,23 @@ fn test_navigation_only_contains_accessible_pages() {
             .expect(constants_str::DIAGNOSTIC_4FF30835),
         server_admin_contract::admin_login::AdminLogin::try_from(constants_str::ROOT.to_owned())
             .expect(constants_str::DIAGNOSTIC_9AE5B850),
-        server_admin_contract::admin_permission_values::AdminPermissionValues::try_from(vec![
-            server_admin_contract::admin_permission_value::AdminPermissionValue::try_from(
-                server_admin_contract::admin_permission::AdminPermission::UsersRead
+        server_admin_contract::admin_rule_values::AdminRuleValues::try_from(vec![
+            server_admin_contract::admin_rule_value::AdminRuleValue::try_from(
+                server_admin_contract::admin_rule::AdminRule::UsersRead
                     .as_str()
                     .get()
                     .to_owned(),
             )
             .expect(constants_str::VALUE_0C631CF4),
-            server_admin_contract::admin_permission_value::AdminPermissionValue::try_from(
-                server_admin_contract::admin_permission::AdminPermission::TablesRead
+            server_admin_contract::admin_rule_value::AdminRuleValue::try_from(
+                server_admin_contract::admin_rule::AdminRule::TablesRead
                     .as_str()
                     .get()
                     .to_owned(),
             )
             .expect(constants_str::VALUE_AAC52120),
-            server_admin_contract::admin_permission_value::AdminPermissionValue::try_from(
-                server_admin_contract::admin_permission::AdminPermission::AccessSessionsRead
+            server_admin_contract::admin_rule_value::AdminRuleValue::try_from(
+                server_admin_contract::admin_rule::AdminRule::AccessSessionsRead
                     .as_str()
                     .get()
                     .to_owned(),
@@ -144,9 +144,11 @@ fn test_navigation_only_contains_accessible_pages() {
             .as_ref()
             .contains(server_admin_contract::admin_frontend_path::AdminFrontendPath::Roles.get())
     );
-    assert!(!html.as_ref().contains(
-        server_admin_contract::admin_frontend_path::AdminFrontendPath::Permissions.get()
-    ));
+    assert!(
+        !html
+            .as_ref()
+            .contains(server_admin_contract::admin_frontend_path::AdminFrontendPath::Rules.get())
+    );
     assert!(
         !html.as_ref().contains(
             server_admin_contract::admin_frontend_path::AdminFrontendPath::Settings.get()

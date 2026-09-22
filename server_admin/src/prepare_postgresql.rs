@@ -11,21 +11,20 @@ pub async fn prepare_postgresql(
         .await
         .map_err(crate::sqlx_admin_migrate_error::SqlxAdminMigrateError::from)
         .map_err(crate::admin_migrate_error::AdminMigrateError::from)?;
-    let permission_names = server_admin_contract::admin_permission::AdminPermission::ALL
+    let rule_names = server_admin_contract::admin_rule::AdminRule::ALL
         .into_iter()
-        .map(|permission| permission.as_str().as_ref().to_owned())
+        .map(|rule| rule.as_str().as_ref().to_owned())
         .collect::<Vec<_>>();
-    let _permission_result = sqlx::query(constants_str::SERVER_ADMIN_RECONCILE_PERMISSIONS_SQL)
-        .bind(permission_names)
+    let _rule_result = sqlx::query(constants_str::SERVER_ADMIN_RECONCILE_RULES_SQL)
+        .bind(rule_names)
         .execute(sqlx_pg_pool_ref.as_ref())
         .await
         .map_err(crate::sqlx_admin_error::SqlxAdminError::from)
         .map_err(crate::admin_migrate_error::AdminMigrateError::from)?;
-    let _role_permission_result =
-        sqlx::query(constants_str::SERVER_ADMIN_RECONCILE_ROLE_PERMISSIONS_SQL)
-            .execute(sqlx_pg_pool_ref.as_ref())
-            .await
-            .map_err(crate::sqlx_admin_error::SqlxAdminError::from)
-            .map_err(crate::admin_migrate_error::AdminMigrateError::from)?;
+    let _role_rule_result = sqlx::query(constants_str::SERVER_ADMIN_RECONCILE_ROLE_RULES_SQL)
+        .execute(sqlx_pg_pool_ref.as_ref())
+        .await
+        .map_err(crate::sqlx_admin_error::SqlxAdminError::from)
+        .map_err(crate::admin_migrate_error::AdminMigrateError::from)?;
     Ok(())
 }

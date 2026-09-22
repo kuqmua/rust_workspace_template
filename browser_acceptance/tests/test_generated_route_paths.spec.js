@@ -5,7 +5,7 @@ test("test_generated_read_replaces_single_record_reads", async ({ page }) => {
   await signInInitialAdministrator(page);
   try {
     const document = await (await page.request.get("/openapi.json/read")).json();
-    const resources = ["users", "roles", "permissions", "system_settings"];
+    const resources = ["users", "roles", "rules", "system_settings"];
     await resources.reduce(async (previous, resource) => {
       await previous;
       const path = `/${resource}/read`;
@@ -73,10 +73,10 @@ test("test_access_sessions_read_uses_post_only", async ({ page }) => {
   }
 });
 
-test("test_role_permissions_read_uses_post_only", async ({ page }) => {
+test("test_role_rules_read_uses_post_only", async ({ page }) => {
   await signInInitialAdministrator(page);
   try {
-    const path = "/role_permissions/read";
+    const path = "/role_rules/read";
     const document = await (await page.request.get("/openapi.json/read")).json();
     expect(document.paths[path].get).toBeUndefined();
     expect(document.paths[path].post).toBeDefined();
@@ -85,7 +85,7 @@ test("test_role_permissions_read_uses_post_only", async ({ page }) => {
     const response = await page.request.post(path, { data: await example.json() });
     expect(response.status()).toBe(200);
     const view = await response.json();
-    expect(view.table).toBe("role_permissions");
+    expect(view.table).toBe("role_rules");
     expect(Array.isArray(view.columns)).toBe(true);
     expect(Array.isArray(view.items)).toBe(true);
     expect(typeof view.total).toBe("number");

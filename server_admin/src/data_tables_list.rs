@@ -9,14 +9,14 @@ pub(crate) async fn data_tables_list(
         admin_auth_request.get_state().as_ref(),
         crate::http_admin_header_map_ref::HttpAdminHeaderMapRef::from(admin_auth_request.get_headers().as_ref()),
         *admin_auth_request.get_peer(),
-        server_admin_contract::admin_permission::AdminPermission::TablesRead.as_str(),
+        server_admin_contract::admin_rule::AdminRule::TablesRead.as_str(),
         server_admin_core::std_admin_bool::StdAdminBool::from(false),
     )
     .await?;
     let admin = crate::authenticated_admin_contract::authenticated_admin_contract(&actor)?;
     let items = server_admin_contract::admin_data_table::AdminDataTable::ALL
         .into_iter()
-        .filter(|table| bool::from(admin.has_permission(table.permission())))
+        .filter(|table| bool::from(admin.has_rule(table.rule())))
         .collect::<Vec<_>>();
     Ok(crate::json_response::json_response(
         server_admin_contract::admin_data_table_catalog::AdminDataTableCatalog::new(

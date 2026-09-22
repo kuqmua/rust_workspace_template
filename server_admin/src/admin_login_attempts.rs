@@ -14,7 +14,7 @@
     "api_mode": "ReadOnly",
     "db_table_name": "login_attempts",
     "create_exclude_fields": ["attempted_at"],
-    "permission_prefix": "login_attempts",
+    "rule_prefix": "login_attempts",
     "tests_write_into_file": "False",
     "common_write_into_file": "False",
     "whole_write_into_file": "False"

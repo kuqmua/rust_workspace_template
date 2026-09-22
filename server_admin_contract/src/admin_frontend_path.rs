@@ -28,10 +28,10 @@ pub enum AdminFrontendPath {
     OpenApiDocument,
     #[strum(serialize = "/admin/swagger_ui")]
     OpenApi,
-    #[strum(serialize = "/admin/permissions")]
-    Permissions,
-    #[strum(serialize = "/admin/permissions/{permission_id}")]
-    PermissionRead,
+    #[strum(serialize = "/admin/rules")]
+    Rules,
+    #[strum(serialize = "/admin/rules/{rule_id}")]
+    RuleRead,
     #[strum(serialize = "/admin/profile")]
     Profile,
     #[strum(serialize = "/admin/rate_limits/{rate_limit_id}")]
@@ -46,8 +46,8 @@ pub enum AdminFrontendPath {
     RolesManage,
     #[strum(serialize = "/admin/roles/{role_id}")]
     RoleRead,
-    #[strum(serialize = "/admin/role_permissions/{role_permission_id}")]
-    RolePermissionRead,
+    #[strum(serialize = "/admin/role_rules/{role_rule_id}")]
+    RoleRuleRead,
     #[strum(serialize = "/admin/sessions")]
     Sessions,
     #[strum(serialize = "/admin")]

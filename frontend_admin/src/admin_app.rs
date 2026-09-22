@@ -69,13 +69,10 @@ pub(crate) fn AdminApp() -> impl leptos::prelude::IntoView {
                     .await
                     .map(|value| crate::admin_load_state::AdminLoadState::Table(admin, value));
                 }
-                if table == server_admin_contract::admin_data_table::AdminDataTable::RolePermissions
-                {
-                    return crate::fetch_role_permissions_read::fetch_role_permissions_read(
-                        admin_csr_query,
-                    )
-                    .await
-                    .map(|value| crate::admin_load_state::AdminLoadState::Table(admin, value));
+                if table == server_admin_contract::admin_data_table::AdminDataTable::RoleRules {
+                    return crate::fetch_role_rules_read::fetch_role_rules_read(admin_csr_query)
+                        .await
+                        .map(|value| crate::admin_load_state::AdminLoadState::Table(admin, value));
                 }
                 if table == server_admin_contract::admin_data_table::AdminDataTable::SystemSettings
                 {
@@ -140,7 +137,7 @@ pub(crate) fn AdminApp() -> impl leptos::prelude::IntoView {
                     .map(|value| crate::admin_load_state::AdminLoadState::Table(admin, value));
             }
             server_admin_contract::admin_page::AdminPage::Branding
-            | server_admin_contract::admin_page::AdminPage::Permissions
+            | server_admin_contract::admin_page::AdminPage::Rules
             | server_admin_contract::admin_page::AdminPage::Roles
             | server_admin_contract::admin_page::AdminPage::Sessions
             | server_admin_contract::admin_page::AdminPage::Settings => admin_page.spec().route(),
@@ -168,10 +165,10 @@ pub(crate) fn AdminApp() -> impl leptos::prelude::IntoView {
                     .await
                     .map(|value| crate::admin_load_state::AdminLoadState::Branding(admin, value))
             }
-            server_admin_contract::admin_page::AdminPage::Permissions => {
-                crate::fetch_permissions_read::fetch_permissions_read(admin_csr_query)
+            server_admin_contract::admin_page::AdminPage::Rules => {
+                crate::fetch_rules_read::fetch_rules_read(admin_csr_query)
                     .await
-                    .map(|value| crate::admin_load_state::AdminLoadState::Permissions(admin, value))
+                    .map(|value| crate::admin_load_state::AdminLoadState::Rules(admin, value))
             }
             server_admin_contract::admin_page::AdminPage::Profile => {
                 Ok(crate::admin_load_state::AdminLoadState::Profile(admin))
@@ -244,15 +241,15 @@ pub(crate) fn AdminApp() -> impl leptos::prelude::IntoView {
             {
                 server_admin_contract::admin_page::AdminPage::Roles
             }
-            None if server_admin_contract::admin_permission_id::AdminPermissionId::from_frontend_path(path)
+            None if server_admin_contract::admin_rule_id::AdminRuleId::from_frontend_path(path)
                 .is_some() =>
             {
-                server_admin_contract::admin_page::AdminPage::Permissions
+                server_admin_contract::admin_page::AdminPage::Rules
             }
             None if server_admin_contract::admin_user_role_id::AdminUserRoleId::from_frontend_path(path).is_some() => {
                 server_admin_contract::admin_page::AdminPage::Tables
             }
-            None if server_admin_contract::admin_role_permission_id::AdminRolePermissionId::from_frontend_path(path).is_some() => {
+            None if server_admin_contract::admin_role_rule_id::AdminRoleRuleId::from_frontend_path(path).is_some() => {
                 server_admin_contract::admin_page::AdminPage::Tables
             }
             None if server_admin_contract::admin_refresh_token_id::AdminRefreshTokenId::from_frontend_path(path).is_some() => {
@@ -315,10 +312,10 @@ pub(crate) fn AdminApp() -> impl leptos::prelude::IntoView {
                     leptos::prelude::IntoAny::into_any(leptos::view! { <crate::admin_alert::AdminAlert>{message}</crate::admin_alert::AdminAlert> })
                 },
                 crate::admin_load_state::AdminLoadState::Loading => leptos::prelude::IntoAny::into_any(leptos::view! { <crate::admin_spinner::AdminSpinner /> }),
-                crate::admin_load_state::AdminLoadState::Permissions(_admin, page) => if query.permission_id().is_some() {
-                    leptos::prelude::IntoAny::into_any(leptos::view! { <super::admin_permission_view::AdminPermissionView admin_permissions_page=page /> })
+                crate::admin_load_state::AdminLoadState::Rules(_admin, page) => if query.rule_id().is_some() {
+                    leptos::prelude::IntoAny::into_any(leptos::view! { <super::admin_rule_view::AdminRuleView admin_rules_page=page /> })
                 } else {
-                    leptos::prelude::IntoAny::into_any(leptos::view! { <super::admin_permissions_view::AdminPermissionsView admin_permissions_page=page admin_csr_query=query.clone() /> })
+                    leptos::prelude::IntoAny::into_any(leptos::view! { <super::admin_rules_view::AdminRulesView admin_rules_page=page admin_csr_query=query.clone() /> })
                 },
                 crate::admin_load_state::AdminLoadState::Profile(admin) => leptos::prelude::IntoAny::into_any(leptos::view! { <super::admin_profile_view::AdminProfileView authenticated_admin=admin /> }),
                 crate::admin_load_state::AdminLoadState::Roles(admin, page) => if query.role_id().is_some() {
@@ -363,11 +360,11 @@ pub(crate) fn AdminApp() -> impl leptos::prelude::IntoView {
                             admin_record_read_page=crate::admin_record_read_page::AdminRecordReadPage::LoginAttempt
                         />
                     })
-                } else if query.role_permission_id().is_some() {
+                } else if query.role_rule_id().is_some() {
                     leptos::prelude::IntoAny::into_any(leptos::view! {
                         <super::admin_record_view::AdminRecordView
                             admin_data_table_view=view
-                            admin_record_read_page=crate::admin_record_read_page::AdminRecordReadPage::RolePermission
+                            admin_record_read_page=crate::admin_record_read_page::AdminRecordReadPage::RoleRule
                         />
                     })
                 } else if query.refresh_token_id().is_some() {

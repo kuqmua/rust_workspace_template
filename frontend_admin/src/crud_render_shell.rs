@@ -15,7 +15,7 @@ pub(super) fn crud_render_shell(
         | server_admin_contract::admin_page::AdminPage::Branding
         | server_admin_contract::admin_page::AdminPage::Metrics
         | server_admin_contract::admin_page::AdminPage::OpenApi
-        | server_admin_contract::admin_page::AdminPage::Permissions
+        | server_admin_contract::admin_page::AdminPage::Rules
         | server_admin_contract::admin_page::AdminPage::Profile
         | server_admin_contract::admin_page::AdminPage::Sessions
         | server_admin_contract::admin_page::AdminPage::Settings

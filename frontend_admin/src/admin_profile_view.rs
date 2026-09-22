@@ -27,17 +27,17 @@ pub(crate) fn AdminProfileView(
                 .iter()
                 .map(|name| name.as_ref().as_str()),
         ));
-        let permissions = String::from(crate::join_text::join_text(
+        let rules = String::from(crate::join_text::join_text(
             authenticated_admin
-                .permissions()
+                .rules()
                 .iter()
-                .map(|permission| permission.as_ref().as_str()),
+                .map(|rule| rule.as_ref().as_str()),
         ));
         leptos::view! {
                 <crate::admin_field::AdminField admin_field_label=constants_str::ADMIN_UI_DISPLAY_NAME><span>{display_name}</span></crate::admin_field::AdminField>
                 <crate::admin_field::AdminField admin_field_label=constants_str::ADMIN_UI_LOGIN><span>{login}</span></crate::admin_field::AdminField>
                 <crate::admin_field::AdminField admin_field_label=constants_str::ADMIN_UI_ROLES><span>{roles}</span></crate::admin_field::AdminField>
-                <crate::admin_field::AdminField admin_field_label=constants_str::ADMIN_UI_PERMISSIONS><span>{permissions}</span></crate::admin_field::AdminField>
+                <crate::admin_field::AdminField admin_field_label=constants_str::ADMIN_UI_RULES><span>{rules}</span></crate::admin_field::AdminField>
         }
     };
 

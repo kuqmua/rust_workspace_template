@@ -60,9 +60,9 @@ impl TryFrom<&crate::admin_table_query::AdminTableQuery> for AdminAuditLogReadRe
                         crate::admin_no_body::AdminNoBody,
                     )
                 }
-                crate::admin_table_sort_field::AdminTableSortField::PermissionCreatedAt
-                | crate::admin_table_sort_field::AdminTableSortField::PermissionId
-                | crate::admin_table_sort_field::AdminTableSortField::PermissionName
+                crate::admin_table_sort_field::AdminTableSortField::RuleCreatedAt
+                | crate::admin_table_sort_field::AdminTableSortField::RuleId
+                | crate::admin_table_sort_field::AdminTableSortField::RuleName
                 | crate::admin_table_sort_field::AdminTableSortField::RoleId
                 | crate::admin_table_sort_field::AdminTableSortField::RoleName
                 | crate::admin_table_sort_field::AdminTableSortField::RoleSystem

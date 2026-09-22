@@ -15,7 +15,7 @@
     "db_table_name": "audit_log",
     "create_exclude_fields": ["created_at"],
     "read_exclude_fields": ["details"],
-    "permission_prefix": "audit_log",
+    "rule_prefix": "audit_log",
     "read_page": {
         "search_columns": ["user_login", "action", "resource", "resource_id"],
         "response": "server_admin_contract::admin_data_table_view::AdminDataTableView",

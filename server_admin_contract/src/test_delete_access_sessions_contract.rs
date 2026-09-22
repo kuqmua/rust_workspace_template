@@ -25,9 +25,9 @@ fn test_delete_access_sessions_request_preserves_filter() {
     );
     assert_eq!(
         route.contract().authentication(),
-        frontend_contract::authentication_requirement::AuthenticationRequirement::Permission(
+        frontend_contract::authentication_requirement::AuthenticationRequirement::Rule(
             frontend_contract::contract_str::ContractStr::from(
-                crate::admin_permission::AdminPermission::AccessSessionsDelete
+                crate::admin_rule::AdminRule::AccessSessionsDelete
                     .as_str()
                     .get(),
             )

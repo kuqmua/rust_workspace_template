@@ -9,9 +9,9 @@ test("test_all_data_tables_have_consistent_actions_column", async ({ page }) => 
     const readPaths = new Set([
       "/admin/users",
       "/admin/roles",
-      "/admin/permissions",
+      "/admin/rules",
       "/admin/user_roles",
-      "/admin/role_permissions",
+      "/admin/role_rules",
       "/admin/refresh_tokens",
       "/admin/access_sessions",
       "/admin/login_attempts",

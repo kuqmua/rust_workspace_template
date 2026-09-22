@@ -17,12 +17,10 @@ pub fn render_role_manage(
     admin_branding_view: &server_admin_contract::admin_branding_view::AdminBrandingView,
 ) -> crate::admin_ssr_html::AdminSsrHtml {
     let can_update = bool::from(
-        authenticated_admin
-            .has_permission(server_admin_contract::admin_permission::AdminPermission::RolesUpdate),
+        authenticated_admin.has_rule(server_admin_contract::admin_rule::AdminRule::RolesUpdate),
     );
     let can_delete = bool::from(
-        authenticated_admin
-            .has_permission(server_admin_contract::admin_permission::AdminPermission::RolesDelete),
+        authenticated_admin.has_rule(server_admin_contract::admin_rule::AdminRule::RolesDelete),
     );
     let cards = admin_roles_page.items().iter().map(|item| {
         let id = item.id().to_string();

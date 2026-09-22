@@ -10,7 +10,7 @@ pub(crate) struct OperationDescriptor<
     HttpMethod,
     Logic,
     Operation,
-    PermissionAction,
+    RuleAction,
     StatusCode,
 > {
     error_variants: ErrorVariants,
@@ -20,13 +20,13 @@ pub(crate) struct OperationDescriptor<
     operation: Operation,
     optimistic_concurrency_capable:
         crate::optimistic_concurrency_capability::OptimisticConcurrencyCapability,
-    permission_action: PermissionAction,
+    rule_action: RuleAction,
     success_status_code: StatusCode,
 }
 #[cfg(test)]
 mod tests {
     #[test]
-    fn test_operation_descriptor_keeps_transport_permission_and_capabilities_together() {
+    fn test_operation_descriptor_keeps_transport_rule_and_capabilities_together() {
         let spec = crate::operation_descriptor::OperationDescriptor::new(
             constants_str::ERROR,
             constants_str::PATCH,
@@ -34,7 +34,7 @@ mod tests {
             constants_str::ERROR,
             constants_str::UO,
             crate::optimistic_concurrency_capability::OptimisticConcurrencyCapability::from(true),
-            constants_str::PG_CRUD_UPDATE_PERMISSION_ACTION,
+            constants_str::PG_CRUD_UPDATE_RULE_ACTION,
             200u16,
         );
         assert_eq!(*spec.get_http_method(), constants_str::PATCH);
@@ -48,7 +48,7 @@ mod tests {
         assert_eq!(*spec.get_operation(), constants_str::UO);
         assert!(bool::from(*optimistic_concurrency_capability));
         assert_eq!(
-            *spec.get_permission_action(),
+            *spec.get_rule_action(),
             constants_str::ADMIN_FIXTURE_AUDIT_ACTION
         );
         assert_eq!(*spec.get_success_status_code(), 200u16);

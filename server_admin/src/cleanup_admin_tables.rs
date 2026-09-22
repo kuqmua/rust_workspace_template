@@ -33,12 +33,11 @@ pub async fn cleanup_admin_tables(
         .await
         .map_err(crate::sqlx_admin_error::SqlxAdminError::from)
         .map_err(crate::admin_cleanup_error::AdminCleanupError::Pg)?;
-    let _audit_cleanup_permission =
-        sqlx::query(constants_str::SERVER_ADMIN_ENABLE_AUDIT_CLEANUP_SQL)
-            .execute(&mut *audit_tx)
-            .await
-            .map_err(crate::sqlx_admin_error::SqlxAdminError::from)
-            .map_err(crate::admin_cleanup_error::AdminCleanupError::Pg)?;
+    let _audit_cleanup_rule = sqlx::query(constants_str::SERVER_ADMIN_ENABLE_AUDIT_CLEANUP_SQL)
+        .execute(&mut *audit_tx)
+        .await
+        .map_err(crate::sqlx_admin_error::SqlxAdminError::from)
+        .map_err(crate::admin_cleanup_error::AdminCleanupError::Pg)?;
     let audit_log = sqlx::query(constants_str::SERVER_ADMIN_CLEANUP_AUDIT_LOG_SQL)
         .bind(admin_cleanup_configuration.audit_retention().get())
         .bind(admin_cleanup_configuration.batch_size().get())

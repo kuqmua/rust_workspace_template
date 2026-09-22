@@ -14,8 +14,7 @@ pub(crate) async fn csr_page(
         }
         Ok((admin, branding, password_change_required))
             if bool::from(admin.can_access(admin_page))
-                && option
-                    .is_none_or(|table| bool::from(admin.has_permission(table.permission()))) =>
+                && option.is_none_or(|table| bool::from(admin.has_rule(table.rule()))) =>
         {
             crate::html_response_impl::html_response_impl(
                 frontend_admin::render_admin_csr::render_admin_csr(

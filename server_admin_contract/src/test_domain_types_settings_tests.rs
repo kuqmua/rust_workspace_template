@@ -38,7 +38,7 @@ fn test_setting_types_match_database_constraints() {
     )
     .expect(constants_str::DIAGNOSTIC_3582A0EC);
     let _table_default_route = crate::admin_default_route::AdminDefaultRoute::try_from(
-        crate::admin_data_table::AdminDataTable::RolePermissions
+        crate::admin_data_table::AdminDataTable::RoleRules
             .frontend_path()
             .to_string(),
     )

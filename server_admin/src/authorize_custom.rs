@@ -1,6 +1,6 @@
 pub(crate) async fn authorize_custom(
     admin_auth_request: &crate::admin_auth_request::AdminAuthRequest,
-    admin_permission: server_admin_contract::admin_permission::AdminPermission,
+    admin_rule: server_admin_contract::admin_rule::AdminRule,
 ) -> Result<
     crate::runtime_authenticated_admin::RuntimeAuthenticatedAdmin,
     crate::admin_error::AdminError,
@@ -11,7 +11,7 @@ pub(crate) async fn authorize_custom(
             admin_auth_request.get_headers().as_ref(),
         ),
         *admin_auth_request.get_peer(),
-        admin_permission.as_str(),
+        admin_rule.as_str(),
         server_admin_core::std_admin_bool::StdAdminBool::from(true),
     )
     .await

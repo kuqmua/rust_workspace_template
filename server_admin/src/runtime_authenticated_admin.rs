@@ -10,7 +10,7 @@ pub struct RuntimeAuthenticatedAdmin {
     display_name: server_admin_contract::admin_display_name::AdminDisplayName,
     id: server_admin_core::admin_user_record_id::AdminUserRecordId,
     login: server_admin_contract::admin_login::AdminLogin,
-    permissions: crate::admin_auth_permissions::AdminAuthPermissions,
+    rules: crate::admin_auth_rules::AdminAuthRules,
     roles: crate::runtime_admin_role_names::RuntimeAdminRoleNames,
     session_id: crate::admin_session_id::AdminSessionId,
     #[schema(value_type = bool)]

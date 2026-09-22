@@ -26,14 +26,14 @@ pub(crate) fn AdminTableActions(
     leptos::view! {
         <div class="table-actions">
             {read_path.map(|read_path| leptos::view! {
-                <singlestage::Link class=crate::admin_button_variant::AdminButtonVariant::Secondary.class() href=read_path attr:aria-label=constants_str::PG_CRUD_READ_PERMISSION_ACTION attr:title=constants_str::PG_CRUD_READ_PERMISSION_ACTION>
+                <singlestage::Link class=crate::admin_button_variant::AdminButtonVariant::Secondary.class() href=read_path attr:aria-label=constants_str::PG_CRUD_READ_RULE_ACTION attr:title=constants_str::PG_CRUD_READ_RULE_ACTION>
                     <svg viewBox="0 0 24 24" aria-hidden=constants_str::TRUE fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"></path>
                         <circle cx="12" cy="12" r="3"></circle>
                     </svg>
                 </singlestage::Link>
             })}
-            <crate::admin_button::AdminButton admin_button_variant=crate::admin_button_variant::AdminButtonVariant::Secondary admin_button_kind=crate::admin_button_kind::AdminButtonKind::Button command_for=command_for command="show-modal" aria_label=String::from(constants_str::PG_CRUD_DELETE_PERMISSION_ACTION) attr:title=constants_str::PG_CRUD_DELETE_PERMISSION_ACTION>
+            <crate::admin_button::AdminButton admin_button_variant=crate::admin_button_variant::AdminButtonVariant::Secondary admin_button_kind=crate::admin_button_kind::AdminButtonKind::Button command_for=command_for command="show-modal" aria_label=String::from(constants_str::PG_CRUD_DELETE_RULE_ACTION) attr:title=constants_str::PG_CRUD_DELETE_RULE_ACTION>
                 <svg viewBox="0 0 24 24" aria-hidden=constants_str::TRUE fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M3 6h18"></path>
                     <path d="M8 6V4h8v2"></path>

@@ -64,7 +64,7 @@ pub(crate) async fn api_delete_access_sessions(
     };
     let actor = crate::authorize_custom::authorize_custom(
         &admin_auth_request,
-        server_admin_contract::admin_permission::AdminPermission::AccessSessionsDelete,
+        server_admin_contract::admin_rule::AdminRule::AccessSessionsDelete,
     )
     .await
     .map_err(crate::application_auth::AdminDeleteAccessSessionsError::from)?;

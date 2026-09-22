@@ -8,8 +8,7 @@ pub fn render_roles(
     admin_branding_view: &server_admin_contract::admin_branding_view::AdminBrandingView,
 ) -> crate::admin_ssr_html::AdminSsrHtml {
     let can_create = bool::from(
-        authenticated_admin
-            .has_permission(server_admin_contract::admin_permission::AdminPermission::RolesCreate),
+        authenticated_admin.has_rule(server_admin_contract::admin_rule::AdminRule::RolesCreate),
     );
     let rows = admin_roles_page
         .items()
@@ -35,7 +34,7 @@ pub fn render_roles(
     let content_view = leptos::view! {
         <section class="table-page table-admin_roles_page">
         <div class="resource-actions">
-            {can_create.then(|| leptos::view! { <crate::admin_button_link::AdminButtonLink str=server_admin_contract::admin_frontend_path::AdminFrontendPath::RolesCreate.get()>{constants_str::PG_CRUD_CREATE_PERMISSION_ACTION}</crate::admin_button_link::AdminButtonLink> })}
+            {can_create.then(|| leptos::view! { <crate::admin_button_link::AdminButtonLink str=server_admin_contract::admin_frontend_path::AdminFrontendPath::RolesCreate.get()>{constants_str::PG_CRUD_CREATE_RULE_ACTION}</crate::admin_button_link::AdminButtonLink> })}
         </div>
         <crate::table_wrapper::TableWrapper><crate::table::Table><crate::table_header::TableHeader><crate::table_row::TableRow><crate::table_head::TableHead>"id"</crate::table_head::TableHead><crate::table_head::TableHead>"name"</crate::table_head::TableHead><crate::table_head::TableHead>"system"</crate::table_head::TableHead><crate::table_head::TableHead>{constants_str::CREATED_AT}</crate::table_head::TableHead><crate::table_head::TableHead>{constants_str::UPDATED_AT}</crate::table_head::TableHead><crate::table_head::TableHead>{constants_str::ADMIN_UI_ACTIONS}</crate::table_head::TableHead></crate::table_row::TableRow></crate::table_header::TableHeader>
         <crate::table_body::TableBody>{rows}</crate::table_body::TableBody></crate::table::Table></crate::table_wrapper::TableWrapper>

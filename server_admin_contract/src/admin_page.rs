@@ -54,11 +54,11 @@ pub enum AdminPage {
     #[page_catalog_page(
         capability = crate::admin_page_capability::AdminPageCapability::Always,
         metadata = crate::admin_page_metadata::AdminPageMetadata::new(crate::admin_page_client_mode::AdminPageClientMode::CsrTableQuery, None),
-        path = crate::admin_frontend_path::AdminFrontendPath::Permissions,
-        route = crate::admin_route::AdminRoute::Permissions,
-        title = crate::admin_page_title::AdminPageTitle::Permissions,
+        path = crate::admin_frontend_path::AdminFrontendPath::Rules,
+        route = crate::admin_route::AdminRoute::Rules,
+        title = crate::admin_page_title::AdminPageTitle::Rules,
     )]
-    Permissions,
+    Rules,
     #[page_catalog_page(
         capability = crate::admin_page_capability::AdminPageCapability::Always,
         metadata = crate::admin_page_metadata::AdminPageMetadata::new(

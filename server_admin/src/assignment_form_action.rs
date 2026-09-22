@@ -3,21 +3,21 @@ pub(crate) async fn assignment_form_action(
     assignment_form_target: crate::assignment_form_target::AssignmentFormTarget,
 ) -> axum::response::Response {
     match assignment_form_target {
-        crate::assignment_form_target::AssignmentFormTarget::RolePermissions(form) => {
+        crate::assignment_form_target::AssignmentFormTarget::RoleRules(form) => {
             crate::assignment_action::assignment_action(
                 admin_auth_request,
-                form.get_expected_permission_ids(),
+                form.get_expected_rule_ids(),
                 form.get_selected(),
-                crate::permission_ids_impl::permission_ids_impl,
+                crate::rule_ids_impl::rule_ids_impl,
                 server_admin_contract::admin_frontend_path::AdminFrontendPath::Roles,
-                |expected_permission_ids, permission_ids| {
+                |expected_rule_ids, rule_ids| {
                     let updates = server_admin_contract::admin_role_updates::AdminRoleUpdates::try_from(vec![
                         server_admin_contract::admin_role_update::AdminRoleUpdate::new(
                             server_admin_contract::admin_update_role_request::AdminUpdateRoleRequest::new(
                                 None,
-                                Some(server_admin_contract::admin_set_role_permissions_request::AdminSetRolePermissionsRequest::new(
-                                    expected_permission_ids,
-                                    permission_ids,
+                                Some(server_admin_contract::admin_set_role_rules_request::AdminSetRoleRulesRequest::new(
+                                    expected_rule_ids,
+                                    rule_ids,
                                 )),
                             ),
                             server_admin_contract::admin_role_filter::AdminRoleFilter::new(

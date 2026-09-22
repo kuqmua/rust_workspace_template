@@ -299,11 +299,11 @@ fn test_table_actions_render_read_and_delete_in_one_row() {
         </crate::admin_table_actions::AdminTableActions>
     });
 
-    assert!(html.contains(constants_str::PG_CRUD_READ_PERMISSION_ACTION));
-    assert!(html.contains(constants_str::PG_CRUD_DELETE_PERMISSION_ACTION));
+    assert!(html.contains(constants_str::PG_CRUD_READ_RULE_ACTION));
+    assert!(html.contains(constants_str::PG_CRUD_DELETE_RULE_ACTION));
     assert!(
-        html.find(constants_str::PG_CRUD_READ_PERMISSION_ACTION)
-            < html.find(constants_str::PG_CRUD_DELETE_PERMISSION_ACTION)
+        html.find(constants_str::PG_CRUD_READ_RULE_ACTION)
+            < html.find(constants_str::PG_CRUD_DELETE_RULE_ACTION)
     );
     assert_eq!(html.matches(constants_str::VALUE_24B9818D).count(), 2);
 }

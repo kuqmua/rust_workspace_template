@@ -30,14 +30,14 @@ pub(crate) async fn load_authenticated_admin_from_db(
     }
     .map_err(crate::sqlx_admin_error::SqlxAdminError::from)
     .map_err(crate::admin_error::AdminError::postgresql)?;
-    let permissions_query =
-        sqlx::query_scalar::<_, String>(constants_str::SERVER_ADMIN_READ_AUTH_PERMISSIONS_SQL)
+    let rules_query =
+        sqlx::query_scalar::<_, String>(constants_str::SERVER_ADMIN_READ_AUTH_RULES_SQL)
             .bind(admin_user_record_id.get());
-    let raw_permissions = match admin_db_ref {
+    let raw_rules = match admin_db_ref {
         crate::admin_db_ref::AdminDbRef::Connection(connection) => {
-            permissions_query.fetch_all(&mut ***connection).await
+            rules_query.fetch_all(&mut ***connection).await
         }
-        crate::admin_db_ref::AdminDbRef::Pool(pool) => permissions_query.fetch_all(&***pool).await,
+        crate::admin_db_ref::AdminDbRef::Pool(pool) => rules_query.fetch_all(&***pool).await,
     }
     .map_err(crate::sqlx_admin_error::SqlxAdminError::from)
     .map_err(crate::admin_error::AdminError::postgresql)?;
@@ -50,11 +50,9 @@ pub(crate) async fn load_authenticated_admin_from_db(
         crate::admin_password_change_required::AdminPasswordChangeRequired::from(
             must_change_password,
         );
-    let permissions = raw_permissions
+    let rules = raw_rules
         .into_iter()
-        .map(|permission| {
-            server_admin_contract::admin_permission::AdminPermission::try_from(permission.as_str())
-        })
+        .map(|rule| server_admin_contract::admin_rule::AdminRule::try_from(rule.as_str()))
         .collect::<Result<Vec<_>, _>>()
         .map_err(|_error| crate::admin_error::AdminError::Authentication)?
         .try_into()
@@ -71,7 +69,7 @@ pub(crate) async fn load_authenticated_admin_from_db(
             display_name,
             admin_user_record_id,
             login,
-            permissions,
+            rules,
             roles,
             admin_session_id,
             password_change_required,

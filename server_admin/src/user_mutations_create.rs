@@ -6,7 +6,7 @@ pub(crate) async fn user_mutations_create(
 ) -> Result<crate::axum_admin_response::AxumAdminResponse, crate::admin_error::AdminError> {
     let actor = crate::authorize_custom::authorize_custom(
         &admin_auth_request,
-        server_admin_contract::admin_permission::AdminPermission::UsersCreate,
+        server_admin_contract::admin_rule::AdminRule::UsersCreate,
     )
     .await?;
     let (contract_display_name, contract_login, contract_password, role_ids) =
@@ -14,7 +14,7 @@ pub(crate) async fn user_mutations_create(
     if role_ids.is_some() {
         let _role_actor = crate::authorize_custom::authorize_custom(
             &admin_auth_request,
-            server_admin_contract::admin_permission::AdminPermission::UserRolesUpdate,
+            server_admin_contract::admin_rule::AdminRule::UserRolesUpdate,
         )
         .await?;
     }

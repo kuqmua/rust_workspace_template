@@ -31,11 +31,11 @@ pub enum AdminRoute {
     #[route_catalog_route(crate::admin_refresh_tokens_table_route::AdminRefreshTokensTableRoute)]
     RefreshTokensTable,
     #[route_catalog_route(
-        contract = <crate::admin_role_permissions_table_route::AdminRolePermissionsTableRoute as frontend_contract::typed_route::TypedRoute>::metadata().contract(),
-        path = frontend_contract::typed_route_path::typed_route_path::<crate::admin_role_permissions_table_route::AdminRolePermissionsTableRoute>(),
+        contract = <crate::admin_role_rules_table_route::AdminRoleRulesTableRoute as frontend_contract::typed_route::TypedRoute>::metadata().contract(),
+        path = frontend_contract::typed_route_path::typed_route_path::<crate::admin_role_rules_table_route::AdminRoleRulesTableRoute>(),
         exclude_from_family,
     )]
-    RolePermissionsTable,
+    RoleRulesTable,
     #[route_catalog_route(crate::admin_user_roles_table_route::AdminUserRolesTableRoute)]
     UserRolesTable,
     #[route_catalog_route(
@@ -84,7 +84,7 @@ pub enum AdminRoute {
     Me,
     #[route_catalog_route(
         contract = frontend_contract::route_contract::RouteContract::new(
-            crate::admin_permission_requirement::admin_permission_requirement(crate::admin_permission::AdminPermission::MetricsRead),
+            crate::admin_rule_requirement::admin_rule_requirement(crate::admin_rule::AdminRule::MetricsRead),
             frontend_contract::route_method::RouteMethod::Get,
             frontend_contract::mutation_kind::MutationKind::ReadOnly,
             frontend_contract::contract_str::ContractStr::from(constants_str::METRICS_READ),
@@ -96,7 +96,7 @@ pub enum AdminRoute {
     Metrics,
     #[route_catalog_route(
         contract = frontend_contract::route_contract::RouteContract::new(
-            crate::admin_permission_requirement::admin_permission_requirement(crate::admin_permission::AdminPermission::OpenApiRead),
+            crate::admin_rule_requirement::admin_rule_requirement(crate::admin_rule::AdminRule::OpenApiRead),
             frontend_contract::route_method::RouteMethod::Get,
             frontend_contract::mutation_kind::MutationKind::ReadOnly,
             frontend_contract::contract_str::ContractStr::from(constants_str::OPENAPI_JSON_READ),
@@ -107,11 +107,11 @@ pub enum AdminRoute {
     )]
     OpenApi,
     #[route_catalog_route(
-        contract = <crate::admin_read_permissions_route::AdminReadPermissionsRoute as frontend_contract::typed_route::TypedRoute>::metadata().contract(),
-        path = frontend_contract::typed_route_path::typed_route_path::<crate::admin_read_permissions_route::AdminReadPermissionsRoute>(),
+        contract = <crate::admin_read_rules_route::AdminReadRulesRoute as frontend_contract::typed_route::TypedRoute>::metadata().contract(),
+        path = frontend_contract::typed_route_path::typed_route_path::<crate::admin_read_rules_route::AdminReadRulesRoute>(),
         exclude_from_family,
     )]
-    Permissions,
+    Rules,
     #[route_catalog_route(crate::admin_refresh_route::AdminRefreshRoute)]
     Refresh,
     #[route_catalog_route(crate::admin_revoke_all_sessions_route::AdminRevokeAllSessionsRoute)]

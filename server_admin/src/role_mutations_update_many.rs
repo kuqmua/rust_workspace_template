@@ -6,18 +6,17 @@ pub(crate) async fn role_mutations_update_many(
     let updates_names = updates
         .iter()
         .any(|update| update.changes().get_name().is_some());
-    let updates_permissions = updates
+    let updates_rules = updates
         .iter()
-        .any(|update| update.changes().get_permissions().is_some());
+        .any(|update| update.changes().get_rules().is_some());
     if updates.is_empty()
         || updates.iter().any(|update| {
             let filter = update.filter();
             filter.get_role_id().is_none()
                 && filter.get_name().is_none()
                 && filter.get_is_system().is_none()
-                || update.changes().get_name().is_none()
-                    && update.changes().get_permissions().is_none()
-                || update.changes().get_permissions().is_some()
+                || update.changes().get_name().is_none() && update.changes().get_rules().is_none()
+                || update.changes().get_rules().is_some()
                     && (filter.get_role_id().is_none()
                         || filter.get_name().is_some()
                         || filter.get_is_system().is_some())
@@ -28,37 +27,34 @@ pub(crate) async fn role_mutations_update_many(
     let actor = crate::authorize_custom::authorize_custom(
         &admin_auth_request,
         if updates_names {
-            server_admin_contract::admin_permission::AdminPermission::RolesUpdate
+            server_admin_contract::admin_rule::AdminRule::RolesUpdate
         } else {
-            server_admin_contract::admin_permission::AdminPermission::RolePermissionsUpdate
+            server_admin_contract::admin_rule::AdminRule::RoleRulesUpdate
         },
     )
     .await?;
-    if updates_names && updates_permissions {
-        let _permission_actor = crate::authorize_custom::authorize_custom(
+    if updates_names && updates_rules {
+        let _rule_actor = crate::authorize_custom::authorize_custom(
             &admin_auth_request,
-            server_admin_contract::admin_permission::AdminPermission::RolePermissionsUpdate,
+            server_admin_contract::admin_rule::AdminRule::RoleRulesUpdate,
         )
         .await?;
     }
     if updates.iter().any(|update| {
-        update
-            .changes()
-            .get_permissions()
-            .is_some_and(|permissions| {
-                let expected_permission_ids = permissions.expected_permission_ids().as_ref();
-                let permission_ids = permissions.permission_ids().as_ref();
-                expected_permission_ids
+        update.changes().get_rules().is_some_and(|rules| {
+            let expected_rule_ids = rules.expected_rule_ids().as_ref();
+            let rule_ids = rules.rule_ids().as_ref();
+            expected_rule_ids
+                .iter()
+                .collect::<std::collections::HashSet<_>>()
+                .len()
+                != expected_rule_ids.len()
+                || rule_ids
                     .iter()
                     .collect::<std::collections::HashSet<_>>()
                     .len()
-                    != expected_permission_ids.len()
-                    || permission_ids
-                        .iter()
-                        .collect::<std::collections::HashSet<_>>()
-                        .len()
-                        != permission_ids.len()
-            })
+                    != rule_ids.len()
+        })
     }) {
         return Err(crate::admin_error::AdminError::Validation);
     }
@@ -109,7 +105,7 @@ pub(crate) async fn role_mutations_update_many(
                     .map_err(|error| crate::map_unique_violation::map_unique_violation(error.into_inner()))?
                     .is_some().then_some(()).ok_or(crate::admin_error::AdminError::Conflict)?;
             }
-            if let Some(permissions) = changes.get_permissions() {
+            if let Some(rules) = changes.get_rules() {
                 let optional_is_system = sqlx::query_scalar::<_, bool>(
                     constants_str::SERVER_ADMIN_LOCK_ROLE_SYSTEM_STATE_SQL,
                 )
@@ -120,54 +116,54 @@ pub(crate) async fn role_mutations_update_many(
                 if optional_is_system.is_none_or(|is_system| is_system) {
                     return Err(crate::admin_error::AdminError::Conflict);
                 }
-                let current_permission_ids = sqlx::query_scalar::<_, i64>(
-                    constants_str::SERVER_ADMIN_READ_ROLE_PERMISSION_IDS_SQL,
+                let current_rule_ids = sqlx::query_scalar::<_, i64>(
+                    constants_str::SERVER_ADMIN_READ_ROLE_RULE_IDS_SQL,
                 )
                 .bind(identifier.get())
                 .fetch_all(&mut **sqlx_admin_transaction)
                 .await
                 .map_err(crate::admin_error::AdminError::from)?;
-                let mut expected_permission_ids = permissions
-                    .expected_permission_ids()
+                let mut expected_rule_ids = rules
+                    .expected_rule_ids()
                     .as_ref()
                     .iter()
                     .copied()
                     .map(i64::from)
                     .collect::<Vec<_>>();
-                #[allow(clippy::stable_sort_primitive, reason = "role permission optimistic concurrency compares the stored canonical order")]
-                expected_permission_ids.sort();
-                if current_permission_ids != expected_permission_ids {
+                #[allow(clippy::stable_sort_primitive, reason = "role rule optimistic concurrency compares the stored canonical order")]
+                expected_rule_ids.sort();
+                if current_rule_ids != expected_rule_ids {
                     return Err(crate::admin_error::AdminError::Conflict);
                 }
-                let permission_ids = permissions
-                    .permission_ids()
+                let rule_ids = rules
+                    .rule_ids()
                     .as_ref()
                     .iter()
                     .copied()
                     .map(i64::from)
                     .collect::<Vec<_>>();
                 let existing_count = sqlx::query_scalar::<_, i64>(
-                    constants_str::SERVER_ADMIN_COUNT_PERMISSIONS_SQL,
+                    constants_str::SERVER_ADMIN_COUNT_RULES_SQL,
                 )
-                .bind(&permission_ids)
+                .bind(&rule_ids)
                 .fetch_one(&mut **sqlx_admin_transaction)
                 .await
                 .map_err(crate::admin_error::AdminError::from)?;
-                if usize::try_from(existing_count).ok() != Some(permission_ids.len()) {
+                if usize::try_from(existing_count).ok() != Some(rule_ids.len()) {
                     return Err(crate::admin_error::AdminError::Validation);
                 }
                 let _delete_result = sqlx::query(
-                    constants_str::SERVER_ADMIN_REPLACE_ROLE_PERMISSIONS_DELETE_SQL,
+                    constants_str::SERVER_ADMIN_REPLACE_ROLE_RULES_DELETE_SQL,
                 )
                 .bind(identifier.get())
                 .execute(&mut **sqlx_admin_transaction)
                 .await
                 .map_err(crate::admin_error::AdminError::from)?;
                 let _insert_result = sqlx::query(
-                    constants_str::SERVER_ADMIN_REPLACE_ROLE_PERMISSIONS_INSERT_SQL,
+                    constants_str::SERVER_ADMIN_REPLACE_ROLE_RULES_INSERT_SQL,
                 )
                 .bind(identifier.get())
-                .bind(&permission_ids)
+                .bind(&rule_ids)
                 .execute(&mut **sqlx_admin_transaction)
                 .await
                 .map_err(crate::admin_error::AdminError::from)?;

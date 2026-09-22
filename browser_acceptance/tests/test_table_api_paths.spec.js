@@ -19,7 +19,7 @@ test("test_table_views_use_unprefixed_api_paths", async ({ page }) => {
       expect((await loaded).status(), resource).toBe(200);
       await expect(page.locator('section[data-renderer="csr"] table')).toBeVisible();
     }, Promise.resolve());
-    await ["access_sessions", "role_permissions"].reduce(async (previous, resource) => {
+    await ["access_sessions", "role_rules"].reduce(async (previous, resource) => {
       await previous;
       const path = `/${resource}/read`;
       const example = await page.request.get(`${path}_payload_example`);
@@ -45,7 +45,7 @@ test("test_table_views_use_unprefixed_api_paths", async ({ page }) => {
     await page.goto("/admin/user_roles");
     expect((await loadedUserRoles).status()).toBe(200);
     await expect(page.locator('section[data-renderer="csr"] table')).toBeVisible();
-    await ["users", "roles", "permissions", "audit_log"].reduce(async (previous, resource) => {
+    await ["users", "roles", "rules", "audit_log"].reduce(async (previous, resource) => {
       await previous;
       expect((await page.request.get(`/tables/${resource}/read`)).status(), resource).toBe(422);
     }, Promise.resolve());

@@ -55,16 +55,16 @@ pub(crate) fn run_admin_fixture_cli() -> crate::runner_cli_outcome::RunnerCliOut
                                         ]))
                                     })
                                     .collect::<Result<Vec<_>, ()>>()?;
-        let permissions = server_admin_contract::admin_permission::AdminPermission::ALL
+        let rules = server_admin_contract::admin_rule::AdminRule::ALL
             .into_iter()
-            .map(|permission| serde_json::Value::String(permission.as_str().as_ref().to_owned()))
+            .map(|rule| serde_json::Value::String(rule.as_str().as_ref().to_owned()))
             .collect::<Vec<_>>();
-        let permission_values = server_admin_contract::admin_permission::AdminPermission::ALL
+        let rule_values = server_admin_contract::admin_rule::AdminRule::ALL
             .into_iter()
-            .map(|permission| {
+            .map(|rule| {
                 crate::create_admin_fixture_string::create_admin_fixture_string::<
-                    server_admin_contract::admin_permission_value::AdminPermissionValue,
-                >(permission.as_str().as_ref().to_owned())
+                    server_admin_contract::admin_rule_value::AdminRuleValue,
+                >(rule.as_str().as_ref().to_owned())
                 .map_err(render_admin_fixture_conversion_error)
             })
             .collect::<Result<Vec<_>, ()>>()?;
@@ -89,8 +89,8 @@ pub(crate) fn run_admin_fixture_cli() -> crate::runner_cli_outcome::RunnerCliOut
                     server_admin_contract::admin_login::AdminLogin,
                 >(String::from(constants_str::ROOT))
                 .map_err(render_admin_fixture_conversion_error)?,
-                server_admin_contract::admin_permission_values::AdminPermissionValues::try_from(
-                    permission_values.clone(),
+                server_admin_contract::admin_rule_values::AdminRuleValues::try_from(
+                    rule_values.clone(),
                 )
                 .map_err(|error| {
                     macro_helpers::tool_console_stream::ToolConsoleStream::write_or_exit(
@@ -160,10 +160,10 @@ pub(crate) fn run_admin_fixture_cli() -> crate::runner_cli_outcome::RunnerCliOut
                 )
             })
             .collect::<Result<Vec<_>, ()>>()?;
-        let permission_summaries = permission_values
+        let rule_summaries = rule_values
             .into_iter()
             .enumerate()
-            .map(|(index, permission)| {
+            .map(|(index, rule)| {
                 let value = i64::try_from(index).map_err(|error| {
                     macro_helpers::tool_console_stream::ToolConsoleStream::write_or_exit(macro_helpers::tool_console_stream::ToolConsoleStream::StandardError, macro_helpers::std_fmt_arguments::StdFmtArguments::from(format_args!("{}{}", format_args!("{error}"), constants_str::NEWLINE)));
                 })?;
@@ -171,13 +171,13 @@ pub(crate) fn run_admin_fixture_cli() -> crate::runner_cli_outcome::RunnerCliOut
                     macro_helpers::tool_console_stream::ToolConsoleStream::write_or_exit(macro_helpers::tool_console_stream::ToolConsoleStream::StandardError, macro_helpers::std_fmt_arguments::StdFmtArguments::from(format_args!("{}{}", format_args!("{}", constants_str::RUNNER_CLI_TEXT_E9108304), constants_str::NEWLINE)));
                 })?;
                 Ok(
-                    server_admin_contract::admin_permission_summary::AdminPermissionSummary::new(
-                        server_admin_contract::admin_permission_id::AdminPermissionId::try_from(
+                    server_admin_contract::admin_rule_summary::AdminRuleSummary::new(
+                        server_admin_contract::admin_rule_id::AdminRuleId::try_from(
                             identifier,
                         )
                         .map_err(|error| macro_helpers::tool_console_stream::ToolConsoleStream::write_or_exit(macro_helpers::tool_console_stream::ToolConsoleStream::StandardError, macro_helpers::std_fmt_arguments::StdFmtArguments::from(format_args!("{}{}", format_args!("{error}"), constants_str::NEWLINE))))?,
-                        permission,
-                        server_admin_contract::admin_permission_timestamp::AdminPermissionTimestamp::from(
+                        rule,
+                        server_admin_contract::admin_rule_timestamp::AdminRuleTimestamp::from(
                             server_admin_contract::admin_role_timestamp::AdminRoleTimestamp::try_from(
                                 String::from(constants_str::ADMIN_FIXTURE_AUDIT_CREATED_AT),
                             )
@@ -379,7 +379,7 @@ pub(crate) fn run_admin_fixture_cli() -> crate::runner_cli_outcome::RunnerCliOut
                 )),
             );
         })?;
-        let permission_total = u64::try_from(permission_summaries.len()).map_err(|error| {
+        let rule_total = u64::try_from(rule_summaries.len()).map_err(|error| {
             macro_helpers::tool_console_stream::ToolConsoleStream::write_or_exit(
                 macro_helpers::tool_console_stream::ToolConsoleStream::StandardError,
                 macro_helpers::std_fmt_arguments::StdFmtArguments::from(format_args!(
@@ -405,12 +405,21 @@ pub(crate) fn run_admin_fixture_cli() -> crate::runner_cli_outcome::RunnerCliOut
             })?,
             server_admin_contract::admin_page_total::AdminPageTotal::from(role_total),
         );
-        let permissions_page = server_admin_contract::admin_permissions_page::AdminPermissionsPage::new(
-            server_admin_contract::admin_permission_summaries::AdminPermissionSummaries::try_from(
-                permission_summaries,
+        let rules_page = server_admin_contract::admin_rules_page::AdminRulesPage::new(
+            server_admin_contract::admin_rule_summaries::AdminRuleSummaries::try_from(
+                rule_summaries,
             )
-            .map_err(|error| macro_helpers::tool_console_stream::ToolConsoleStream::write_or_exit(macro_helpers::tool_console_stream::ToolConsoleStream::StandardError, macro_helpers::std_fmt_arguments::StdFmtArguments::from(format_args!("{}{}", format_args!("{error}"), constants_str::NEWLINE))))?,
-            server_admin_contract::admin_page_total::AdminPageTotal::from(permission_total),
+            .map_err(|error| {
+                macro_helpers::tool_console_stream::ToolConsoleStream::write_or_exit(
+                    macro_helpers::tool_console_stream::ToolConsoleStream::StandardError,
+                    macro_helpers::std_fmt_arguments::StdFmtArguments::from(format_args!(
+                        "{}{}",
+                        format_args!("{error}"),
+                        constants_str::NEWLINE
+                    )),
+                );
+            })?,
+            server_admin_contract::admin_page_total::AdminPageTotal::from(rule_total),
         );
         let users_json = serde_json::to_value(&users_page).map_err(|error| {
             macro_helpers::tool_console_stream::ToolConsoleStream::write_or_exit(
@@ -432,17 +441,16 @@ pub(crate) fn run_admin_fixture_cli() -> crate::runner_cli_outcome::RunnerCliOut
                 )),
             );
         })?;
-        let permission_summaries_json =
-            serde_json::to_value(&permissions_page).map_err(|error| {
-                macro_helpers::tool_console_stream::ToolConsoleStream::write_or_exit(
-                    macro_helpers::tool_console_stream::ToolConsoleStream::StandardError,
-                    macro_helpers::std_fmt_arguments::StdFmtArguments::from(format_args!(
-                        "{}{}",
-                        format_args!("{error}"),
-                        constants_str::NEWLINE
-                    )),
-                );
-            })?;
+        let rule_summaries_json = serde_json::to_value(&rules_page).map_err(|error| {
+            macro_helpers::tool_console_stream::ToolConsoleStream::write_or_exit(
+                macro_helpers::tool_console_stream::ToolConsoleStream::StandardError,
+                macro_helpers::std_fmt_arguments::StdFmtArguments::from(format_args!(
+                    "{}{}",
+                    format_args!("{error}"),
+                    constants_str::NEWLINE
+                )),
+            );
+        })?;
         let audit_cursor = server_admin_contract::admin_audit_cursor::AdminAuditCursor::new(
             crate::create_admin_fixture_string::create_admin_fixture_string::<
                 server_admin_contract::admin_audit_timestamp::AdminAuditTimestamp,
@@ -524,11 +532,11 @@ pub(crate) fn run_admin_fixture_cli() -> crate::runner_cli_outcome::RunnerCliOut
         })?;
         let fixture = serde_json::to_vec_pretty(&serde_json::json!([
                                     routes,
-                                    permissions,
+                                    rules,
                                     authenticated_admin_json,
                                     users_json,
                                     role_summaries_json,
-                                    permission_summaries_json,
+                                    rule_summaries_json,
                                     audit_json,
                                     sessions_json,
                                     no_body_json,

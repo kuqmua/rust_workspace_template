@@ -102,7 +102,7 @@ test.describe("administrator typography", () => {
     await expect(confirmation).toBeVisible();
     await expectSharedTypography(page);
     await confirmation.getByRole("button", { name: "cancel", exact: true }).click();
-    await page.goto("/admin/role_permissions");
+    await page.goto("/admin/role_rules");
     await page.getByRole("button", { name: "filter_role_id", exact: true }).click();
     const filter = page.getByRole("dialog", { name: "filter_role_id", exact: true });
     await expect(filter).toBeVisible();

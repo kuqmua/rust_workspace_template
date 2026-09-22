@@ -237,9 +237,9 @@ fn test_request_payloads_reject_unknown_fields() {
     assert_rejects_unknown_field::<crate::admin_update_user_request::AdminUpdateUserRequest>(
         constants_str::ROLE_IDS_1_UNKNOWN_TRUE,
     );
-    assert_rejects_unknown_field::<
-        crate::admin_set_role_permissions_request::AdminSetRolePermissionsRequest,
-    >(constants_str::PERMISSION_IDS_1_UNKNOWN_TRUE);
+    assert_rejects_unknown_field::<crate::admin_set_role_rules_request::AdminSetRoleRulesRequest>(
+        constants_str::RULE_IDS_1_UNKNOWN_TRUE,
+    );
     assert_rejects_unknown_field::<crate::admin_update_settings_request::AdminUpdateSettingsRequest>(
         constants_str::SITE_NAME_ADMIN_UNKNOWN_TRUE,
     );
@@ -261,11 +261,9 @@ fn test_route_contract_keeps_custom_action_policy_and_path_together() {
     );
     assert_eq!(
         route.contract().authentication(),
-        frontend_contract::authentication_requirement::AuthenticationRequirement::Permission(
+        frontend_contract::authentication_requirement::AuthenticationRequirement::Rule(
             frontend_contract::contract_str::ContractStr::from(
-                crate::admin_permission::AdminPermission::UsersUpdate
-                    .as_str()
-                    .get(),
+                crate::admin_rule::AdminRule::UsersUpdate.as_str().get(),
             )
         )
     );
@@ -402,11 +400,9 @@ fn test_open_api_page_uses_the_typed_authenticated_api_route() {
     assert_eq!(route.path().as_ref(), constants_str::VALUE_72ACA5B8);
     assert_eq!(
         route.contract().authentication(),
-        frontend_contract::authentication_requirement::AuthenticationRequirement::Permission(
+        frontend_contract::authentication_requirement::AuthenticationRequirement::Rule(
             frontend_contract::contract_str::ContractStr::from(
-                crate::admin_permission::AdminPermission::OpenApiRead
-                    .as_str()
-                    .get(),
+                crate::admin_rule::AdminRule::OpenApiRead.as_str().get(),
             ),
         )
     );
@@ -557,16 +553,16 @@ fn test_table_sort_fields_reject_unknown_and_wrong_table_keys() {
     clippy::needless_for_each,
     reason = "repository source policy requires iterator methods"
 )]
-fn test_data_tables_round_trip_and_require_read_permissions() {
+fn test_data_tables_round_trip_and_require_read_rules() {
     assert_eq!(crate::admin_data_table::AdminDataTable::ALL.len(), 12usize);
     assert_eq!(
         crate::admin_data_table::AdminDataTable::PG_ORDER,
         [
             crate::admin_data_table::AdminDataTable::Users,
             crate::admin_data_table::AdminDataTable::Roles,
-            crate::admin_data_table::AdminDataTable::Permissions,
+            crate::admin_data_table::AdminDataTable::Rules,
             crate::admin_data_table::AdminDataTable::UserRoles,
-            crate::admin_data_table::AdminDataTable::RolePermissions,
+            crate::admin_data_table::AdminDataTable::RoleRules,
             crate::admin_data_table::AdminDataTable::RefreshTokens,
             crate::admin_data_table::AdminDataTable::AccessSessions,
             crate::admin_data_table::AdminDataTable::LoginAttempts,
@@ -598,7 +594,7 @@ fn test_data_tables_round_trip_and_require_read_permissions() {
             crate::admin_page::AdminPage::Branding,
             crate::admin_page::AdminPage::Users,
             crate::admin_page::AdminPage::Roles,
-            crate::admin_page::AdminPage::Permissions,
+            crate::admin_page::AdminPage::Rules,
             crate::admin_page::AdminPage::Settings,
             crate::admin_page::AdminPage::Tables,
             crate::admin_page::AdminPage::Sessions,
@@ -612,7 +608,7 @@ fn test_data_tables_round_trip_and_require_read_permissions() {
         [
             crate::admin_page::AdminPage::Users,
             crate::admin_page::AdminPage::Roles,
-            crate::admin_page::AdminPage::Permissions,
+            crate::admin_page::AdminPage::Rules,
         ]
     );
     assert_eq!(
@@ -680,7 +676,7 @@ fn test_data_tables_round_trip_and_require_read_permissions() {
             crate::admin_data_table::AdminDataTable::LoginAttempts,
             crate::admin_data_table::AdminDataTable::RateLimits,
             crate::admin_data_table::AdminDataTable::RefreshTokens,
-            crate::admin_data_table::AdminDataTable::RolePermissions,
+            crate::admin_data_table::AdminDataTable::RoleRules,
             crate::admin_data_table::AdminDataTable::SystemSettings,
             crate::admin_data_table::AdminDataTable::UserRoles,
             crate::admin_data_table::AdminDataTable::Users,
@@ -719,7 +715,7 @@ fn test_data_tables_round_trip_and_require_read_permissions() {
                 columns.len()
             );
             assert!(!spec.order().get().is_empty());
-            assert_eq!(spec.permission(), table.permission());
+            assert_eq!(spec.rule(), table.rule());
             assert_eq!(spec.supports_filters(), table.supports_filters());
             assert_eq!(
                 crate::admin_data_table::AdminDataTable::try_from(table.to_string())
@@ -736,7 +732,7 @@ fn test_data_tables_round_trip_and_require_read_permissions() {
             );
             assert!(
                 table
-                    .permission()
+                    .rule()
                     .as_str()
                     .get()
                     .ends_with(constants_str::VALUE_AFAFDEB2)
@@ -762,9 +758,8 @@ fn test_administrator_identifiers_require_positive_database_values() {
         .expect_err(constants_str::VALUE_C3B46626);
     let _role_error = crate::admin_role_id::AdminRoleId::try_from(-constants_i64::ONE)
         .expect_err(constants_str::VALUE_4D8B8679);
-    let _permission_error =
-        crate::admin_permission_id::AdminPermissionId::try_from(constants_i64::ZERO)
-            .expect_err(constants_str::VALUE_4556AA65);
+    let _rule_error = crate::admin_rule_id::AdminRuleId::try_from(constants_i64::ZERO)
+        .expect_err(constants_str::VALUE_4556AA65);
     let _audit_error = crate::admin_audit_log_id::AdminAuditLogId::try_from(-constants_i64::ONE)
         .expect_err(constants_str::VALUE_18E48FFC);
 }
@@ -864,9 +859,9 @@ fn test_data_table_api_routes_use_dedicated_resources() {
                     assert_eq!(route.path().as_ref(), route.contract().path().as_ref());
                 }
                 crate::admin_data_table::AdminDataTable::Roles
-                | crate::admin_data_table::AdminDataTable::Permissions
+                | crate::admin_data_table::AdminDataTable::Rules
                 | crate::admin_data_table::AdminDataTable::UserRoles
-                | crate::admin_data_table::AdminDataTable::RolePermissions
+                | crate::admin_data_table::AdminDataTable::RoleRules
                 | crate::admin_data_table::AdminDataTable::RefreshTokens
                 | crate::admin_data_table::AdminDataTable::AccessSessions
                 | crate::admin_data_table::AdminDataTable::LoginAttempts
@@ -961,35 +956,33 @@ fn test_role_read_selection_contains_every_roles_table_column() {
 }
 
 #[test]
-fn test_permission_read_selection_contains_every_permissions_table_column() {
+fn test_rule_read_selection_contains_every_rules_table_column() {
     assert!(
-        serde_json::to_value(
-            crate::admin_read_permission_selection::AdminReadPermissionSelection::default(),
-        )
-        .is_ok_and(|value| value.as_array().is_some_and(|columns| {
-            columns.len() == 3
-                && [
-                    constants_str::SQL_NAMES_ID,
-                    constants_str::NAME,
-                    constants_str::CREATED_AT,
-                ]
-                .into_iter()
-                .all(|column| {
-                    columns.iter().any(|column_value| {
-                        column_value
-                            .as_object()
-                            .is_some_and(|object| object.contains_key(column))
+        serde_json::to_value(crate::admin_read_rule_selection::AdminReadRuleSelection::default(),)
+            .is_ok_and(|value| value.as_array().is_some_and(|columns| {
+                columns.len() == 3
+                    && [
+                        constants_str::SQL_NAMES_ID,
+                        constants_str::NAME,
+                        constants_str::CREATED_AT,
+                    ]
+                    .into_iter()
+                    .all(|column| {
+                        columns.iter().any(|column_value| {
+                            column_value
+                                .as_object()
+                                .is_some_and(|object| object.contains_key(column))
+                        })
                     })
-                })
-        }))
+            }))
     );
 }
 
 #[test]
-fn test_permission_read_response_contains_every_permissions_table_column() {
+fn test_rule_read_response_contains_every_rules_table_column() {
     let values = (
-        crate::admin_permission_id::AdminPermissionId::try_from(constants_i64::ONE),
-        crate::admin_permission_value::AdminPermissionValue::try_from(String::from(
+        crate::admin_rule_id::AdminRuleId::try_from(constants_i64::ONE),
+        crate::admin_rule_value::AdminRuleValue::try_from(String::from(
             constants_str::VALUE_C6919F81,
         )),
         crate::admin_role_timestamp::AdminRoleTimestamp::try_from(String::from(
@@ -998,12 +991,12 @@ fn test_permission_read_response_contains_every_permissions_table_column() {
     );
     assert!(matches!(&values, (Ok(_), Ok(_), Ok(_))));
     if let (Ok(id), Ok(name), Ok(created_at)) = values {
-        let permission = crate::admin_permission_summary::AdminPermissionSummary::new(
+        let rule = crate::admin_rule_summary::AdminRuleSummary::new(
             id,
             name,
-            crate::admin_permission_timestamp::AdminPermissionTimestamp::from(created_at),
+            crate::admin_rule_timestamp::AdminRuleTimestamp::from(created_at),
         );
-        assert!(serde_json::to_value(permission).is_ok_and(|value| {
+        assert!(serde_json::to_value(rule).is_ok_and(|value| {
             value.as_object().is_some_and(|object| {
                 object.len() == 3
                     && [
@@ -1122,9 +1115,9 @@ fn test_role_update_batch_validates_ids_names_and_collection_bound() {
             serde_json::json!({(stringify!(updates)): [{
                 (stringify!(filter)): {(stringify!(role_id)): 1i64},
                 (stringify!(changes)): {
-                    (stringify!(permissions)): {
-                        (stringify!(expected_permission_ids)): [1i64],
-                        (stringify!(permission_ids)): [2i64]
+                    (stringify!(rules)): {
+                        (stringify!(expected_rule_ids)): [1i64],
+                        (stringify!(rule_ids)): [2i64]
                     }
                 }
             }]})

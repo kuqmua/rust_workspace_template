@@ -23,14 +23,14 @@ pub enum AdminDataTable {
     CleanupStatus,
     #[wire("login_attempts")]
     LoginAttempts,
-    #[wire("permissions")]
-    Permissions,
+    #[wire("rules")]
+    Rules,
     #[wire("rate_limits")]
     RateLimits,
     #[wire("refresh_tokens")]
     RefreshTokens,
-    #[wire("role_permissions")]
-    RolePermissions,
+    #[wire("role_rules")]
+    RoleRules,
     #[wire("roles")]
     Roles,
     #[wire("system_settings")]
@@ -46,7 +46,7 @@ impl AdminDataTable {
     pub const fn api_route(self) -> crate::admin_route::AdminRoute {
         match self {
             Self::UserRoles => crate::admin_route::AdminRoute::UserRolesTable,
-            Self::RolePermissions => crate::admin_route::AdminRoute::RolePermissionsTable,
+            Self::RoleRules => crate::admin_route::AdminRoute::RoleRulesTable,
             Self::RefreshTokens => crate::admin_route::AdminRoute::RefreshTokensTable,
             Self::AccessSessions => crate::admin_route::AdminRoute::AccessSessionsTable,
             Self::LoginAttempts => crate::admin_route::AdminRoute::LoginAttemptsTable,
@@ -54,7 +54,7 @@ impl AdminDataTable {
             Self::CleanupStatus => crate::admin_route::AdminRoute::CleanupStatusTable,
             Self::Users => crate::admin_route::AdminRoute::Users,
             Self::Roles => crate::admin_route::AdminRoute::Roles,
-            Self::Permissions => crate::admin_route::AdminRoute::Permissions,
+            Self::Rules => crate::admin_route::AdminRoute::Rules,
             Self::AuditLog => crate::admin_route::AdminRoute::AuditLog,
             Self::SystemSettings => crate::admin_route::AdminRoute::SystemSettings,
         }
@@ -63,9 +63,9 @@ impl AdminDataTable {
     pub const PG_ORDER: [Self; 12] = [
         Self::Users,
         Self::Roles,
-        Self::Permissions,
+        Self::Rules,
         Self::UserRoles,
-        Self::RolePermissions,
+        Self::RoleRules,
         Self::RefreshTokens,
         Self::AccessSessions,
         Self::LoginAttempts,
@@ -100,8 +100,8 @@ impl AdminDataTable {
     }
 
     #[must_use]
-    pub fn permission(self) -> crate::admin_permission::AdminPermission {
-        self.spec().permission()
+    pub fn rule(self) -> crate::admin_rule::AdminRule {
+        self.spec().rule()
     }
 
     #[must_use]
@@ -114,7 +114,7 @@ impl AdminDataTable {
                 crate::admin_data_order_ref::AdminDataOrderRef::from(
                     constants_str::SERVER_ADMIN_DATA_ORDER_CREATED_AT,
                 ),
-                crate::admin_permission::AdminPermission::AccessSessionsRead,
+                crate::admin_rule::AdminRule::AccessSessionsRead,
                 crate::admin_bool::AdminBool::from(true),
             ),
             Self::AuditLog => crate::admin_data_table_spec::AdminDataTableSpec::new(
@@ -124,7 +124,7 @@ impl AdminDataTable {
                 crate::admin_data_order_ref::AdminDataOrderRef::from(
                     constants_str::SERVER_ADMIN_DATA_ORDER_CREATED_AT,
                 ),
-                crate::admin_permission::AdminPermission::AuditLogRead,
+                crate::admin_rule::AdminRule::AuditLogRead,
                 crate::admin_bool::AdminBool::from(true),
             ),
             Self::CleanupStatus => crate::admin_data_table_spec::AdminDataTableSpec::new(
@@ -134,7 +134,7 @@ impl AdminDataTable {
                 crate::admin_data_order_ref::AdminDataOrderRef::from(
                     constants_str::SERVER_ADMIN_DATA_ORDER_CLEANUP_STATUS_ID,
                 ),
-                crate::admin_permission::AdminPermission::CleanupStatusRead,
+                crate::admin_rule::AdminRule::CleanupStatusRead,
                 crate::admin_bool::AdminBool::from(true),
             ),
             Self::LoginAttempts => crate::admin_data_table_spec::AdminDataTableSpec::new(
@@ -144,15 +144,15 @@ impl AdminDataTable {
                 crate::admin_data_order_ref::AdminDataOrderRef::from(
                     constants_str::SERVER_ADMIN_DATA_ORDER_ATTEMPTED_AT,
                 ),
-                crate::admin_permission::AdminPermission::LoginAttemptsRead,
+                crate::admin_rule::AdminRule::LoginAttemptsRead,
                 crate::admin_bool::AdminBool::from(true),
             ),
-            Self::Permissions => crate::admin_data_table_spec::AdminDataTableSpec::new(
+            Self::Rules => crate::admin_data_table_spec::AdminDataTableSpec::new(
                 crate::admin_data_columns_csv_ref::AdminDataColumnsCsvRef::from(
-                    constants_str::SERVER_ADMIN_DATA_PERMISSIONS_COLUMNS,
+                    constants_str::SERVER_ADMIN_DATA_RULES_COLUMNS,
                 ),
                 crate::admin_data_order_ref::AdminDataOrderRef::from(constants_str::SQL_NAMES_ID),
-                crate::admin_permission::AdminPermission::PermissionsRead,
+                crate::admin_rule::AdminRule::RulesRead,
                 crate::admin_bool::AdminBool::from(false),
             ),
             Self::RateLimits => crate::admin_data_table_spec::AdminDataTableSpec::new(
@@ -162,7 +162,7 @@ impl AdminDataTable {
                 crate::admin_data_order_ref::AdminDataOrderRef::from(
                     constants_str::SERVER_ADMIN_DATA_ORDER_RATE_LIMITS_ID,
                 ),
-                crate::admin_permission::AdminPermission::RateLimitsRead,
+                crate::admin_rule::AdminRule::RateLimitsRead,
                 crate::admin_bool::AdminBool::from(true),
             ),
             Self::RefreshTokens => crate::admin_data_table_spec::AdminDataTableSpec::new(
@@ -172,15 +172,15 @@ impl AdminDataTable {
                 crate::admin_data_order_ref::AdminDataOrderRef::from(
                     constants_str::SERVER_ADMIN_DATA_ORDER_CREATED_AT,
                 ),
-                crate::admin_permission::AdminPermission::RefreshTokensRead,
+                crate::admin_rule::AdminRule::RefreshTokensRead,
                 crate::admin_bool::AdminBool::from(true),
             ),
-            Self::RolePermissions => crate::admin_data_table_spec::AdminDataTableSpec::new(
+            Self::RoleRules => crate::admin_data_table_spec::AdminDataTableSpec::new(
                 crate::admin_data_columns_csv_ref::AdminDataColumnsCsvRef::from(
-                    constants_str::SERVER_ADMIN_DATA_ROLE_PERMISSIONS_COLUMNS,
+                    constants_str::SERVER_ADMIN_DATA_ROLE_RULES_COLUMNS,
                 ),
                 crate::admin_data_order_ref::AdminDataOrderRef::from(constants_str::SQL_NAMES_ID),
-                crate::admin_permission::AdminPermission::RolePermissionsRead,
+                crate::admin_rule::AdminRule::RoleRulesRead,
                 crate::admin_bool::AdminBool::from(true),
             ),
             Self::Roles => crate::admin_data_table_spec::AdminDataTableSpec::new(
@@ -188,7 +188,7 @@ impl AdminDataTable {
                     constants_str::SERVER_ADMIN_DATA_ROLES_COLUMNS,
                 ),
                 crate::admin_data_order_ref::AdminDataOrderRef::from(constants_str::SQL_NAMES_ID),
-                crate::admin_permission::AdminPermission::RolesRead,
+                crate::admin_rule::AdminRule::RolesRead,
                 crate::admin_bool::AdminBool::from(false),
             ),
             Self::SystemSettings => crate::admin_data_table_spec::AdminDataTableSpec::new(
@@ -196,7 +196,7 @@ impl AdminDataTable {
                     constants_str::SERVER_ADMIN_DATA_SYSTEM_SETTINGS_COLUMNS,
                 ),
                 crate::admin_data_order_ref::AdminDataOrderRef::from(constants_str::SQL_NAMES_ID),
-                crate::admin_permission::AdminPermission::SystemSettingsRead,
+                crate::admin_rule::AdminRule::SystemSettingsRead,
                 crate::admin_bool::AdminBool::from(true),
             ),
             Self::UserRoles => crate::admin_data_table_spec::AdminDataTableSpec::new(
@@ -204,7 +204,7 @@ impl AdminDataTable {
                     constants_str::SERVER_ADMIN_DATA_USER_ROLES_COLUMNS,
                 ),
                 crate::admin_data_order_ref::AdminDataOrderRef::from(constants_str::SQL_NAMES_ID),
-                crate::admin_permission::AdminPermission::UserRolesRead,
+                crate::admin_rule::AdminRule::UserRolesRead,
                 crate::admin_bool::AdminBool::from(true),
             ),
             Self::Users => crate::admin_data_table_spec::AdminDataTableSpec::new(
@@ -212,7 +212,7 @@ impl AdminDataTable {
                     constants_str::SERVER_ADMIN_DATA_USERS_COLUMNS,
                 ),
                 crate::admin_data_order_ref::AdminDataOrderRef::from(constants_str::SQL_NAMES_ID),
-                crate::admin_permission::AdminPermission::UsersRead,
+                crate::admin_rule::AdminRule::UsersRead,
                 crate::admin_bool::AdminBool::from(true),
             ),
         }

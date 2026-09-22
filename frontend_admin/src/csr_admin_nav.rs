@@ -24,8 +24,8 @@ pub(crate) fn CsrAdminNav(
     leptos::view! {
         <header class="topbar"><crate::admin_sidebar::AdminSidebar>
             {option.as_ref().map_or_else(Vec::new, |option| server_admin_contract::admin_data_table::AdminDataTable::PG_ORDER.into_iter().filter(|table| {
-                    !bool::from(admin_bool) && bool::from(option.has_permission(server_admin_contract::admin_permission::AdminPermission::TablesRead))
-                        && bool::from(option.has_permission(table.permission()))
+                    !bool::from(admin_bool) && bool::from(option.has_rule(server_admin_contract::admin_rule::AdminRule::TablesRead))
+                        && bool::from(option.has_rule(table.rule()))
                 }).map(|table| {
                     let name = table.to_string();
                     let href = table.frontend_path().to_string();

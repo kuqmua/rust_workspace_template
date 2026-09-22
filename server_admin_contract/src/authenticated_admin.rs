@@ -14,14 +14,14 @@ pub struct AuthenticatedAdmin {
     id: crate::admin_user_id::AdminUserId,
     login: crate::admin_login::AdminLogin,
     #[getters(skip)]
-    permissions: crate::admin_permission_values::AdminPermissionValues,
+    rules: crate::admin_rule_values::AdminRuleValues,
     #[getters(skip)]
     roles: crate::admin_role_names::AdminRoleNames,
 }
 impl AuthenticatedAdmin {
     #[must_use]
-    pub fn permissions(&self) -> &[crate::admin_permission_value::AdminPermissionValue] {
-        self.permissions.as_ref()
+    pub fn rules(&self) -> &[crate::admin_rule_value::AdminRuleValue] {
+        self.rules.as_ref()
     }
 
     #[must_use]
@@ -29,13 +29,13 @@ impl AuthenticatedAdmin {
         self.roles.as_slice()
     }
     #[must_use]
-    pub fn has_permission(
+    pub fn has_rule(
         &self,
-        admin_permission: crate::admin_permission::AdminPermission,
+        admin_rule: crate::admin_rule::AdminRule,
     ) -> crate::admin_bool::AdminBool {
-        let required = admin_permission.as_str();
+        let required = admin_rule.as_str();
         crate::admin_bool::AdminBool::from(
-            self.permissions
+            self.rules
                 .as_ref()
                 .iter()
                 .any(|value| value.as_ref() == required.get()),
@@ -49,8 +49,8 @@ impl AuthenticatedAdmin {
         crate::admin_bool::AdminBool::from(match admin_page.authentication() {
             frontend_contract::authentication_requirement::AuthenticationRequirement::Authenticated
             | frontend_contract::authentication_requirement::AuthenticationRequirement::Public => true,
-            frontend_contract::authentication_requirement::AuthenticationRequirement::Permission(required) => self
-                .permissions
+            frontend_contract::authentication_requirement::AuthenticationRequirement::Rule(required) => self
+                .rules
                 .as_ref()
                 .iter()
                 .any(|value| value.as_ref() == required.as_ref()),

@@ -19,7 +19,7 @@
         {"columns": ["role_id"], "referenced_columns": ["id"], "referenced_table": "roles"}
     ],
     "db_unique_keys": [["user_id", "role_id"]],
-    "permission_prefix": "user_roles",
+    "rule_prefix": "user_roles",
     "tests_write_into_file": "False",
     "common_write_into_file": "False",
     "whole_write_into_file": "False"

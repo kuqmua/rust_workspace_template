@@ -96,16 +96,16 @@ fn test_generated_table_catalog_maps_every_supported_data_table_once() {
             server_admin_contract::admin_data_table::AdminDataTable::Roles,
         ),
         (
-            crate::admin_generated_table::AdminGeneratedTable::RolePermissions,
-            server_admin_contract::admin_data_table::AdminDataTable::RolePermissions,
+            crate::admin_generated_table::AdminGeneratedTable::RoleRules,
+            server_admin_contract::admin_data_table::AdminDataTable::RoleRules,
         ),
         (
             crate::admin_generated_table::AdminGeneratedTable::UsersDatabaseRead,
             server_admin_contract::admin_data_table::AdminDataTable::Users,
         ),
         (
-            crate::admin_generated_table::AdminGeneratedTable::Permissions,
-            server_admin_contract::admin_data_table::AdminDataTable::Permissions,
+            crate::admin_generated_table::AdminGeneratedTable::Rules,
+            server_admin_contract::admin_data_table::AdminDataTable::Rules,
         ),
         (
             crate::admin_generated_table::AdminGeneratedTable::SystemSettings,
@@ -234,9 +234,9 @@ fn test_open_api_contains_exactly_the_typed_route_locations() {
             crate::admin_audit_log::AdminAuditLog::read_route(),
             crate::admin_users_database_read::AdminUsersDatabaseRead::read_route(),
             crate::admin_user_roles::AdminUserRoles::read_route(),
-            crate::admin_role_permissions::AdminRolePermissions::read_route(),
+            crate::admin_role_rules::AdminRoleRules::read_route(),
             crate::admin_roles::AdminRoles::read_route(),
-            crate::admin_permissions::AdminPermissions::read_route(),
+            crate::admin_rules::AdminRules::read_route(),
             crate::admin_system_settings::AdminSystemSettings::read_route(),
         ]
         .into_iter()
@@ -563,7 +563,7 @@ fn test_generated_admin_open_api_combines_enabled_routes_only() {
     assert!(paths.contains_key(constants_str::ADMIN_USERS_READ));
     assert!(!paths.contains_key(constants_str::VALUE_1FB526B2));
     assert!(!paths.contains_key(constants_str::VALUE_0878EE4E));
-    assert!(paths.contains_key(constants_str::ADMIN_PERMISSIONS_READ));
+    assert!(paths.contains_key(constants_str::ADMIN_RULES_READ));
     assert!(!paths.contains_key(constants_str::VALUE_C65AD851));
     assert!(!paths.contains_key(constants_str::VALUE_7B7625A7));
     assert!(!paths.contains_key(constants_str::VALUE_19E13078));
@@ -593,16 +593,16 @@ fn test_generated_payload_example_routes_have_contracts_and_named_clients() {
             crate::admin_user_roles::AdminUserRoles::read_payload_example_route(),
         ),
         (
-            crate::admin_role_permissions::AdminRolePermissions::read_route(),
-            crate::admin_role_permissions::AdminRolePermissions::read_payload_example_route(),
+            crate::admin_role_rules::AdminRoleRules::read_route(),
+            crate::admin_role_rules::AdminRoleRules::read_payload_example_route(),
         ),
         (
             crate::admin_roles::AdminRoles::read_route(),
             crate::admin_roles::AdminRoles::read_payload_example_route(),
         ),
         (
-            crate::admin_permissions::AdminPermissions::read_route(),
-            crate::admin_permissions::AdminPermissions::read_payload_example_route(),
+            crate::admin_rules::AdminRules::read_route(),
+            crate::admin_rules::AdminRules::read_payload_example_route(),
         ),
         (
             crate::admin_system_settings::AdminSystemSettings::read_route(),
@@ -633,11 +633,11 @@ fn test_generated_payload_example_routes_have_contracts_and_named_clients() {
         size_of_val(&crate::admin_users_database_read::AdminUsersDatabaseReadFrontendApiClient::<ClientTransport>::read_payload_example),
         size_of_val(&crate::admin_user_roles::AdminUserRolesFrontendApiClient::<ClientTransport>::read_payload_example),
         size_of_val(
-            &crate::admin_role_permissions::AdminRolePermissionsFrontendApiClient::<ClientTransport>::read_payload_example,
+            &crate::admin_role_rules::AdminRoleRulesFrontendApiClient::<ClientTransport>::read_payload_example,
         ),
         size_of_val(&crate::admin_roles::AdminRolesFrontendApiClient::<ClientTransport>::read_payload_example),
         size_of_val(
-            &crate::admin_permissions::AdminPermissionsFrontendApiClient::<ClientTransport>::read_payload_example,
+            &crate::admin_rules::AdminRulesFrontendApiClient::<ClientTransport>::read_payload_example,
         ),
         size_of_val(
             &crate::admin_system_settings::AdminSystemSettingsFrontendApiClient::<ClientTransport>::read_payload_example,
@@ -691,8 +691,8 @@ fn test_generated_read_routes_expose_filter_sort_and_pagination_contract() {
     [
         users_read_route.as_ref(),
         constants_str::ADMIN_ROLES_READ,
-        constants_str::ADMIN_PERMISSIONS_READ,
-        constants_str::ADMIN_ROLE_PERMISSIONS_READ,
+        constants_str::ADMIN_RULES_READ,
+        constants_str::ADMIN_ROLE_RULES_READ,
         constants_str::ADMIN_USER_ROLES_READ,
         constants_str::ADMIN_SYSTEM_SETTINGS_READ,
     ]
@@ -715,8 +715,8 @@ fn test_generated_read_routes_expose_filter_sort_and_pagination_contract() {
     [
         stringify!(AdminUsersDatabaseReadReadPayload),
         constants_str::ADMIN_ROLES_READ_PAYLOAD,
-        constants_str::ADMIN_PERMISSIONS_READ_PAYLOAD,
-        constants_str::ADMIN_ROLE_PERMISSIONS_READ_PAYLOAD,
+        constants_str::ADMIN_RULES_READ_PAYLOAD,
+        constants_str::ADMIN_ROLE_RULES_READ_PAYLOAD,
         constants_str::ADMIN_SYSTEM_SETTINGS_READ_PAYLOAD,
     ]
     .into_iter()
@@ -829,7 +829,7 @@ fn test_database_users_read_route_uses_standard_post_read_contract() {
             contract.frontend_contract().method()
                 == frontend_contract::route_method::RouteMethod::Post
                 && !contract.mutates()
-                && contract.permission().is_some()
+                && contract.rule().is_some()
         })
     );
 }
@@ -1056,27 +1056,25 @@ fn test_access_sessions_page_uses_generated_post_read_contract() {
 }
 
 #[test]
-fn test_role_permissions_page_uses_generated_post_read_contract() {
-    let request = server_admin_contract::admin_role_permissions_read_request::AdminRolePermissionsReadRequest::try_from(
-        &server_admin_contract::admin_table_query::AdminTableQuery::default(),
-    );
+fn test_role_rules_page_uses_generated_post_read_contract() {
+    let request =
+        server_admin_contract::admin_role_rules_read_request::AdminRoleRulesReadRequest::try_from(
+            &server_admin_contract::admin_table_query::AdminTableQuery::default(),
+        );
     assert!(request.is_ok_and(|request| {
         serde_json::to_value(request).is_ok_and(|value| {
-            serde_json::from_value::<
-                    crate::admin_role_permissions::AdminRolePermissionsReadPayload,
-                >(value)
+            serde_json::from_value::<crate::admin_role_rules::AdminRoleRulesReadPayload>(value)
                 .is_ok()
         })
     }));
-    let route =
-        server_admin_contract::admin_data_table::AdminDataTable::RolePermissions.api_route();
+    let route = server_admin_contract::admin_data_table::AdminDataTable::RoleRules.api_route();
     assert_eq!(
         route.contract().method(),
         frontend_contract::route_method::RouteMethod::Post
     );
     assert_eq!(
         route.path().as_ref(),
-        crate::admin_role_permissions::AdminRolePermissions::read_route().as_ref()
+        crate::admin_role_rules::AdminRoleRules::read_route().as_ref()
     );
 }
 
@@ -1104,18 +1102,17 @@ fn test_system_settings_page_has_generated_post_read_contract() {
 }
 
 #[test]
-fn test_permissions_read_client_request_is_accepted_by_generated_contract() {
+fn test_rules_read_client_request_is_accepted_by_generated_contract() {
     let client_request =
-        server_admin_contract::admin_permissions_read_request::AdminPermissionsReadRequest::try_from(
+        server_admin_contract::admin_rules_read_request::AdminRulesReadRequest::try_from(
             &server_admin_contract::admin_table_query::AdminTableQuery::default(),
         )
         .expect(constants_str::DIAGNOSTIC_26E3E9BD);
     let client_json =
         serde_json::to_value(client_request).expect(constants_str::DIAGNOSTIC_15E24444);
-    let generated_request = serde_json::from_value::<
-        crate::admin_permissions::AdminPermissionsReadPayload,
-    >(client_json.clone())
-    .expect(constants_str::DIAGNOSTIC_4C759371);
+    let generated_request =
+        serde_json::from_value::<crate::admin_rules::AdminRulesReadPayload>(client_json.clone())
+            .expect(constants_str::DIAGNOSTIC_4C759371);
     assert_eq!(
         serde_json::to_value(generated_request).expect(constants_str::DIAGNOSTIC_476ED10A),
         client_json
@@ -1123,7 +1120,7 @@ fn test_permissions_read_client_request_is_accepted_by_generated_contract() {
 }
 
 #[test]
-fn test_permissions_read_client_request_accepts_supported_filters_and_logical_operators() {
+fn test_rules_read_client_request_accepts_supported_filters_and_logical_operators() {
     [
         (stringify!(Eq), serde_json::json!(2i64), 3u64),
         (stringify!(GreaterThan), serde_json::json!(2i64), 3u64),
@@ -1156,7 +1153,7 @@ fn test_permissions_read_client_request_accepts_supported_filters_and_logical_op
             .into_iter()
             .for_each(|predicate_operator| {
                 let result = (|| {
-                    let request = server_admin_contract::admin_permissions_read_request::AdminPermissionsReadRequest::try_from(
+                    let request = server_admin_contract::admin_rules_read_request::AdminRulesReadRequest::try_from(
                         &server_admin_contract::admin_table_query::AdminTableQuery::default(),
                     ).map_err(|error| error.to_string())?;
                     let mut client_json = serde_json::to_value(request).map_err(|error| error.to_string())?;
@@ -1193,18 +1190,18 @@ fn test_permissions_read_client_request_accepts_supported_filters_and_logical_op
                         }),
                     );
                     let client_request = serde_json::from_value::<
-                        server_admin_contract::admin_permissions_read_request::AdminPermissionsReadRequest,
+                        server_admin_contract::admin_rules_read_request::AdminRulesReadRequest,
                     >(client_json)
                     .map_err(|error| error.to_string())?;
                     let wire_request = serde_json::to_value(client_request).map_err(|error| error.to_string())?;
-                    let _generated_request = serde_json::from_value::<crate::admin_permissions::AdminPermissionsReadPayload>(wire_request.clone())
+                    let _generated_request = serde_json::from_value::<crate::admin_rules::AdminRulesReadPayload>(wire_request.clone())
                         .map_err(|error| error.to_string())?;
                     let where_many = wire_request
                         .get(constants_str::WHERE_MANY)
                         .ok_or_else(String::new)?;
                     let where_many_json = serde_json::to_string(where_many)
                         .map_err(|error| error.to_string())?;
-                    let filter = crate::admin_generated_table::AdminGeneratedTable::Permissions
+                    let filter = crate::admin_generated_table::AdminGeneratedTable::Rules
                         .parse_filter(server_admin_core::std_admin_str_ref::StdAdminStrRef::from(
                             where_many_json.as_str(),
                         ))
@@ -1578,7 +1575,7 @@ fn test_role_update_openapi_uses_only_filtered_routes() {
                     .is_some_and(|operations| {
                         operations.get(constants_str::PATCH_ALT).is_none()
                             && operations
-                                .get(constants_str::PG_CRUD_DELETE_PERMISSION_ACTION)
+                                .get(constants_str::PG_CRUD_DELETE_RULE_ACTION)
                                 .is_some()
                     })
                     && paths

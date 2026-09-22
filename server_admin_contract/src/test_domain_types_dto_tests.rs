@@ -1,5 +1,5 @@
 #[test]
-fn test_authenticated_admin_checks_owned_permissions() {
+fn test_authenticated_admin_checks_owned_rules() {
     let admin = crate::authenticated_admin::AuthenticatedAdmin::new(
         crate::admin_display_name::AdminDisplayName::try_from(constants_str::ADMIN.to_owned())
             .expect(constants_str::DIAGNOSTIC_68E94B2F),
@@ -7,16 +7,16 @@ fn test_authenticated_admin_checks_owned_permissions() {
             .expect(constants_str::DIAGNOSTIC_134F7A9C),
         crate::admin_login::AdminLogin::try_from(constants_str::ROOT.to_owned())
             .expect(constants_str::DIAGNOSTIC_971C5E42),
-        crate::admin_permission_values::AdminPermissionValues::try_from(vec![
-            crate::admin_permission_value::AdminPermissionValue::try_from(
-                crate::admin_permission::AdminPermission::UsersRead
+        crate::admin_rule_values::AdminRuleValues::try_from(vec![
+            crate::admin_rule_value::AdminRuleValue::try_from(
+                crate::admin_rule::AdminRule::UsersRead
                     .as_str()
                     .get()
                     .to_owned(),
             )
             .expect(constants_str::DIAGNOSTIC_8BF39D41),
-            crate::admin_permission_value::AdminPermissionValue::try_from(
-                crate::admin_permission::AdminPermission::PermissionsRead
+            crate::admin_rule_value::AdminRuleValue::try_from(
+                crate::admin_rule::AdminRule::RulesRead
                     .as_str()
                     .get()
                     .to_owned(),
@@ -27,12 +27,12 @@ fn test_authenticated_admin_checks_owned_permissions() {
         crate::admin_role_names::AdminRoleNames::try_from(Vec::new())
             .expect(constants_str::DIAGNOSTIC_763AE20C),
     );
-    assert!(bool::from(admin.has_permission(
-        crate::admin_permission::AdminPermission::UsersRead
-    )));
-    assert!(!bool::from(admin.has_permission(
-        crate::admin_permission::AdminPermission::UsersUpdate
-    )));
+    assert!(bool::from(
+        admin.has_rule(crate::admin_rule::AdminRule::UsersRead)
+    ));
+    assert!(!bool::from(
+        admin.has_rule(crate::admin_rule::AdminRule::UsersUpdate)
+    ));
     assert!(bool::from(
         admin.can_access(crate::admin_page::AdminPage::Users)
     ));
@@ -40,7 +40,7 @@ fn test_authenticated_admin_checks_owned_permissions() {
         admin.can_access(crate::admin_page::AdminPage::Roles)
     ));
     assert!(bool::from(
-        admin.can_access(crate::admin_page::AdminPage::Permissions)
+        admin.can_access(crate::admin_page::AdminPage::Rules)
     ));
     assert!(bool::from(
         admin.can_access(crate::admin_page::AdminPage::Profile)

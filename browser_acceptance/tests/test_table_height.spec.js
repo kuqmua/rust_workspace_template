@@ -52,7 +52,7 @@ test("test_compact_session_dialog_keeps_text_inside_its_mobile_bounds", async ({
 
 test("test_compact_mobile_pagination_keeps_controls_reachable", async ({ page }) => {
   await page.setViewportSize({ width: 320, height: 844 });
-  await page.goto("/admin/permissions?limit=1&offset=1");
+  await page.goto("/admin/rules?limit=1&offset=1");
   const pagination = page.locator(".table-pagination");
   await expect(pagination.getByRole("spinbutton")).toBeVisible();
   await ["apply", "next", "previous"].reduce(async (previous, name) => {

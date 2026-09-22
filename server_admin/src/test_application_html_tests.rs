@@ -64,7 +64,7 @@ fn test_assignment_id_lists_reject_empty_entries() {
         Ok(_ids)
     ));
     assert!(matches!(
-        crate::permission_ids_impl::permission_ids_impl(&empty),
+        crate::rule_ids_impl::rule_ids_impl(&empty),
         Ok(_ids)
     ));
 
@@ -77,7 +77,7 @@ fn test_assignment_id_lists_reject_empty_entries() {
         Err(crate::admin_error::AdminError::Validation)
     ));
     assert!(matches!(
-        crate::permission_ids_impl::permission_ids_impl(&malformed),
+        crate::rule_ids_impl::rule_ids_impl(&malformed),
         Err(crate::admin_error::AdminError::Validation)
     ));
 }

@@ -53,10 +53,10 @@ mod test_data_tables {
             (serde_json::json!({(stringify!(updates)): [{(stringify!(filter)): {}, (stringify!(changes)): {(stringify!(name)): constants_str::LOGIN}}]}), http::StatusCode::UNPROCESSABLE_ENTITY, true, true),
             (serde_json::json!({(stringify!(updates)): [{(stringify!(filter)): {(stringify!(role_id)): null}, (stringify!(changes)): {(stringify!(name)): constants_str::LOGIN}}]}), http::StatusCode::UNPROCESSABLE_ENTITY, true, true),
             (serde_json::json!({(stringify!(updates)): [{(stringify!(filter)): {(stringify!(role_id)): first_role}, (stringify!(changes)): {}}]}), http::StatusCode::UNPROCESSABLE_ENTITY, true, true),
-            (serde_json::json!({(stringify!(updates)): [{(stringify!(filter)): {(stringify!(name)): constants_str::VALUE_2562E0C2}, (stringify!(changes)): {(stringify!(permissions)): {(stringify!(expected_permission_ids)): [], (stringify!(permission_ids)): []}}}]}), http::StatusCode::UNPROCESSABLE_ENTITY, true, true),
-            (serde_json::json!({(stringify!(updates)): [{(stringify!(filter)): {(stringify!(role_id)): first_role}, (stringify!(changes)): {(stringify!(permissions)): {(stringify!(expected_permission_ids)): [], (stringify!(permission_ids)): [1i64, 1i64]}}}]}), http::StatusCode::UNPROCESSABLE_ENTITY, true, true),
-            (serde_json::json!({(stringify!(updates)): [{(stringify!(filter)): {(stringify!(role_id)): first_role}, (stringify!(changes)): {(stringify!(permissions)): {(stringify!(expected_permission_ids)): [i64::MAX], (stringify!(permission_ids)): []}}}]}), http::StatusCode::CONFLICT, true, true),
-            (serde_json::json!({(stringify!(updates)): [{(stringify!(filter)): {(stringify!(role_id)): system_role}, (stringify!(changes)): {(stringify!(permissions)): {(stringify!(expected_permission_ids)): [], (stringify!(permission_ids)): []}}}]}), http::StatusCode::CONFLICT, true, true),
+            (serde_json::json!({(stringify!(updates)): [{(stringify!(filter)): {(stringify!(name)): constants_str::VALUE_2562E0C2}, (stringify!(changes)): {(stringify!(rules)): {(stringify!(expected_rule_ids)): [], (stringify!(rule_ids)): []}}}]}), http::StatusCode::UNPROCESSABLE_ENTITY, true, true),
+            (serde_json::json!({(stringify!(updates)): [{(stringify!(filter)): {(stringify!(role_id)): first_role}, (stringify!(changes)): {(stringify!(rules)): {(stringify!(expected_rule_ids)): [], (stringify!(rule_ids)): [1i64, 1i64]}}}]}), http::StatusCode::UNPROCESSABLE_ENTITY, true, true),
+            (serde_json::json!({(stringify!(updates)): [{(stringify!(filter)): {(stringify!(role_id)): first_role}, (stringify!(changes)): {(stringify!(rules)): {(stringify!(expected_rule_ids)): [i64::MAX], (stringify!(rule_ids)): []}}}]}), http::StatusCode::CONFLICT, true, true),
+            (serde_json::json!({(stringify!(updates)): [{(stringify!(filter)): {(stringify!(role_id)): system_role}, (stringify!(changes)): {(stringify!(rules)): {(stringify!(expected_rule_ids)): [], (stringify!(rule_ids)): []}}}]}), http::StatusCode::CONFLICT, true, true),
             (serde_json::json!({(stringify!(updates)): [{(stringify!(filter)): {(stringify!(role_id)): first_role, (stringify!(name)): constants_str::VALUE_A582339C}, (stringify!(changes)): {(stringify!(name)): constants_str::LOGIN}}]}), http::StatusCode::CONFLICT, true, true),
             (serde_json::json!({(stringify!(updates)): [{(stringify!(filter)): {(stringify!(role_id)): first_role}, (stringify!(changes)): {(stringify!(name)): constants_str::LOGIN}}, {(stringify!(filter)): {(stringify!(name)): constants_str::VALUE_2562E0C2}, (stringify!(changes)): {(stringify!(name)): constants_str::USERNAME}}]}), http::StatusCode::UNPROCESSABLE_ENTITY, true, true),
             (serde_json::json!({(stringify!(updates)): [{(stringify!(filter)): {(stringify!(is_system)): false}, (stringify!(changes)): {(stringify!(name)): constants_str::LOGIN}}]}), http::StatusCode::CONFLICT, true, true),
@@ -86,11 +86,11 @@ mod test_data_tables {
             assert!(roles.iter().any(|(identifier, name, system)| *identifier == system_role && name == constants_str::ADMIN_ALT && *system));
             assert_eq!(sqlx::query_scalar::<_, i64>(constants_str::ADMIN_TEST_AUDIT_COUNT_SQL).fetch_one(&fixture.pool.0).await.expect(constants_str::DIAGNOSTIC_E0EF9145), audit_before);
         }).await;
-        let permission = sqlx::query_scalar::<_, i64>(constants_str::VALUE_1491D3FA)
+        let rule = sqlx::query_scalar::<_, i64>(constants_str::VALUE_1491D3FA)
             .fetch_one(&fixture.pool.0)
             .await
             .expect(constants_str::DIAGNOSTIC_1D69F24C);
-        let body = serde_json::json!({(stringify!(updates)): [{(stringify!(filter)): {(stringify!(name)): constants_str::VALUE_A582339C}, (stringify!(changes)): {(stringify!(name)): constants_str::USERNAME}}, {(stringify!(filter)): {(stringify!(role_id)): first_role}, (stringify!(changes)): {(stringify!(name)): constants_str::LOGIN, (stringify!(permissions)): {(stringify!(expected_permission_ids)): [], (stringify!(permission_ids)): [permission]}}}]}).to_string();
+        let body = serde_json::json!({(stringify!(updates)): [{(stringify!(filter)): {(stringify!(name)): constants_str::VALUE_A582339C}, (stringify!(changes)): {(stringify!(name)): constants_str::USERNAME}}, {(stringify!(filter)): {(stringify!(role_id)): first_role}, (stringify!(changes)): {(stringify!(name)): constants_str::LOGIN, (stringify!(rules)): {(stringify!(expected_rule_ids)): [], (stringify!(rule_ids)): [rule]}}}]}).to_string();
         let response = tower::ServiceExt::oneshot(
             crate::router_with_pool(&fixture.pool).0,
             crate::request_with_peer(
@@ -127,12 +127,12 @@ mod test_data_tables {
                     && name == constants_str::LOGIN)
         );
         assert_eq!(
-            sqlx::query_scalar::<_, i64>(constants_str::SERVER_ADMIN_READ_ROLE_PERMISSION_IDS_SQL)
+            sqlx::query_scalar::<_, i64>(constants_str::SERVER_ADMIN_READ_ROLE_RULE_IDS_SQL)
                 .bind(first_role)
                 .fetch_all(&fixture.pool.0)
                 .await
                 .expect(constants_str::DIAGNOSTIC_FD625302),
-            [permission]
+            [rule]
         );
         assert!(
             roles
@@ -325,24 +325,24 @@ mod test_data_tables {
             },
         )
         .await;
-        let stored_permissions =
-            sqlx::query_as::<_, (i64, String)>(constants_str::SERVER_ADMIN_LIST_PERMISSIONS_SQL)
+        let stored_rules =
+            sqlx::query_as::<_, (i64, String)>(constants_str::SERVER_ADMIN_LIST_RULES_SQL)
                 .fetch_all(&fixture.pool.0)
                 .await
                 .expect(constants_str::DIAGNOSTIC_43D66DF8);
-        let role_permission = stored_permissions
+        let role_rule = stored_rules
             .iter()
             .find(|(_, name)| {
-                name == server_admin_contract::admin_permission::AdminPermission::UsersRead
+                name == server_admin_contract::admin_rule::AdminRule::UsersRead
                     .as_str()
                     .get()
             })
             .expect(constants_str::DIAGNOSTIC_75AD5646)
             .0;
-        let permissions_read_permission = stored_permissions
+        let rules_read_rule = stored_rules
             .iter()
             .find(|(_, name)| {
-                name == server_admin_contract::admin_permission::AdminPermission::PermissionsRead
+                name == server_admin_contract::admin_rule::AdminRule::RulesRead
                     .as_str()
                     .get()
             })
@@ -353,9 +353,9 @@ mod test_data_tables {
             (),
             async |(), identifier| {
                 let _assignment =
-                    sqlx::query(constants_str::SERVER_ADMIN_REPLACE_ROLE_PERMISSIONS_INSERT_SQL)
+                    sqlx::query(constants_str::SERVER_ADMIN_REPLACE_ROLE_RULES_INSERT_SQL)
                         .bind(identifier)
-                        .bind([role_permission, permissions_read_permission].as_slice())
+                        .bind([role_rule, rules_read_rule].as_slice())
                         .execute(&fixture.pool.0)
                         .await
                         .expect(constants_str::DIAGNOSTIC_4FCEE24A);
@@ -629,15 +629,14 @@ mod test_data_tables {
             .await
             .expect(constants_str::DIAGNOSTIC_08A9B724);
         assert_eq!(audit_count, before_audit + 2);
-        let permissions =
-            sqlx::query_as::<_, (i64, String)>(constants_str::SERVER_ADMIN_LIST_PERMISSIONS_SQL)
-                .fetch_all(&fixture.pool.0)
-                .await
-                .expect(constants_str::DIAGNOSTIC_6A833474);
-        let update_permission = permissions
+        let rules = sqlx::query_as::<_, (i64, String)>(constants_str::SERVER_ADMIN_LIST_RULES_SQL)
+            .fetch_all(&fixture.pool.0)
+            .await
+            .expect(constants_str::DIAGNOSTIC_6A833474);
+        let update_rule = rules
             .into_iter()
             .find(|(_, name)| {
-                name == server_admin_contract::admin_permission::AdminPermission::UsersUpdate
+                name == server_admin_contract::admin_rule::AdminRule::UsersUpdate
                     .as_str()
                     .get()
             })
@@ -648,13 +647,12 @@ mod test_data_tables {
             .fetch_one(&fixture.pool.0)
             .await
             .expect(constants_str::DIAGNOSTIC_540CEA0A);
-        let _permissions =
-            sqlx::query(constants_str::SERVER_ADMIN_REPLACE_ROLE_PERMISSIONS_INSERT_SQL)
-                .bind(role)
-                .bind([update_permission].as_slice())
-                .execute(&fixture.pool.0)
-                .await
-                .expect(constants_str::DIAGNOSTIC_FDCA2AAF);
+        let _rules = sqlx::query(constants_str::SERVER_ADMIN_REPLACE_ROLE_RULES_INSERT_SQL)
+            .bind(role)
+            .bind([update_rule].as_slice())
+            .execute(&fixture.pool.0)
+            .await
+            .expect(constants_str::DIAGNOSTIC_FDCA2AAF);
         futures::StreamExt::fold(
             futures::stream::iter([first.0, second.0]),
             (),
@@ -886,29 +884,26 @@ mod test_data_tables {
                 .fetch_one(&fixture.pool.0)
                 .await
                 .expect(constants_str::DIAGNOSTIC_6996C5D1);
-        let grant_permission =
-            async |admin_permission: server_admin_contract::admin_permission::AdminPermission| {
-                let catalog = sqlx::query_as::<_, (i64, String)>(
-                    constants_str::SERVER_ADMIN_LIST_PERMISSIONS_SQL,
-                )
-                .fetch_all(&fixture.pool.0)
-                .await
-                .expect(constants_str::DIAGNOSTIC_F26CD0F7);
-                let identifier = catalog
-                    .into_iter()
-                    .find(|(_, name)| name == admin_permission.as_str().get())
-                    .expect(constants_str::DIAGNOSTIC_58049C6C)
-                    .0;
-                let _granted_role_permission =
-                    sqlx::query(constants_str::SERVER_ADMIN_REPLACE_ROLE_PERMISSIONS_INSERT_SQL)
-                        .bind(role)
-                        .bind([identifier].as_slice())
-                        .execute(&fixture.pool.0)
-                        .await
-                        .expect(constants_str::DIAGNOSTIC_7859230C);
-            };
-        grant_permission(server_admin_contract::admin_permission::AdminPermission::UsersCreate)
-            .await;
+        let grant_rule = async |admin_rule: server_admin_contract::admin_rule::AdminRule| {
+            let catalog =
+                sqlx::query_as::<_, (i64, String)>(constants_str::SERVER_ADMIN_LIST_RULES_SQL)
+                    .fetch_all(&fixture.pool.0)
+                    .await
+                    .expect(constants_str::DIAGNOSTIC_F26CD0F7);
+            let identifier = catalog
+                .into_iter()
+                .find(|(_, name)| name == admin_rule.as_str().get())
+                .expect(constants_str::DIAGNOSTIC_58049C6C)
+                .0;
+            let _granted_role_rule =
+                sqlx::query(constants_str::SERVER_ADMIN_REPLACE_ROLE_RULES_INSERT_SQL)
+                    .bind(role)
+                    .bind([identifier].as_slice())
+                    .execute(&fixture.pool.0)
+                    .await
+                    .expect(constants_str::DIAGNOSTIC_7859230C);
+        };
+        grant_rule(server_admin_contract::admin_rule::AdminRule::UsersCreate).await;
         let create_with_roles =
             async |admin_role_ids: server_admin_contract::admin_role_ids::AdminRoleIds| {
                 let creation_body = serde_json::json!({
@@ -945,8 +940,7 @@ mod test_data_tables {
             (stringify!(updates)): [{(stringify!(filter)): {(stringify!(user_id)): first.0}, (stringify!(changes)): {(stringify!(expected_role_ids)): [administrator_role], (stringify!(role_ids)): [administrator_role]}}]
         }).to_string()).expect(constants_str::DIAGNOSTIC_29F8374A)).await;
         assert_eq!(denied_role_update.status(), http::StatusCode::FORBIDDEN);
-        grant_permission(server_admin_contract::admin_permission::AdminPermission::UserRolesUpdate)
-            .await;
+        grant_rule(server_admin_contract::admin_rule::AdminRule::UserRolesUpdate).await;
         futures::StreamExt::fold(
             futures::stream::iter([vec![role, role], vec![i64::MAX]]),
             (),
@@ -1125,24 +1119,24 @@ mod test_data_tables {
         )
         .await;
         assert_eq!(denied.status(), http::StatusCode::FORBIDDEN);
-        let delete_permissions =
-            sqlx::query_as::<_, (i64, String)>(constants_str::SERVER_ADMIN_LIST_PERMISSIONS_SQL)
+        let delete_rules =
+            sqlx::query_as::<_, (i64, String)>(constants_str::SERVER_ADMIN_LIST_RULES_SQL)
                 .fetch_all(&fixture.pool.0)
                 .await
                 .expect(constants_str::DIAGNOSTIC_6A20CE27);
-        let delete_permission = delete_permissions
+        let delete_rule = delete_rules
             .into_iter()
             .find(|(_, name)| {
-                name == server_admin_contract::admin_permission::AdminPermission::UsersDelete
+                name == server_admin_contract::admin_rule::AdminRule::UsersDelete
                     .as_str()
                     .get()
             })
             .expect(constants_str::DIAGNOSTIC_4112388D)
             .0;
-        let _delete_permission_assignment =
-            sqlx::query(constants_str::SERVER_ADMIN_REPLACE_ROLE_PERMISSIONS_INSERT_SQL)
+        let _delete_rule_assignment =
+            sqlx::query(constants_str::SERVER_ADMIN_REPLACE_ROLE_RULES_INSERT_SQL)
                 .bind(role)
-                .bind([delete_permission].as_slice())
+                .bind([delete_rule].as_slice())
                 .execute(&fixture.pool.0)
                 .await
                 .expect(constants_str::DIAGNOSTIC_F7349B40);
@@ -1595,9 +1589,9 @@ mod test_data_tables {
 
     #[tokio::test]
     #[ignore = "requires PostgreSQL; run through workspace_test_runner database"]
-    async fn test_postgresql_role_permissions_read_returns_table_view() {
+    async fn test_postgresql_role_rules_read_returns_table_view() {
         let fixture = crate::admin_html_test_fixture().await;
-        let request = server_admin_contract::admin_role_permissions_read_request::AdminRolePermissionsReadRequest::try_from(
+        let request = server_admin_contract::admin_role_rules_read_request::AdminRoleRulesReadRequest::try_from(
             &server_admin_contract::admin_table_query::AdminTableQuery::default(),
         )
         .expect(constants_str::DIAGNOSTIC_B9A13791);
@@ -1607,7 +1601,7 @@ mod test_data_tables {
             crate::router_with_pool(&fixture.pool).0,
             crate::request_with_peer(
                 super::HttpAdminApiTestMethod::from(http::Method::POST),
-                super::StdAdminApiTestStrRef::from(constants_str::ADMIN_ROLE_PERMISSIONS_READ),
+                super::StdAdminApiTestStrRef::from(constants_str::ADMIN_ROLE_RULES_READ),
                 super::StdAdminApiTestStrRef::from(request_body.as_str()),
                 Some(super::StdAdminApiTestStrRef::from(
                     fixture.cookie.0.as_str(),
@@ -1634,7 +1628,7 @@ mod test_data_tables {
         .expect(constants_str::DIAGNOSTIC_7098F270);
         assert_eq!(
             view.table(),
-            server_admin_contract::admin_data_table::AdminDataTable::RolePermissions
+            server_admin_contract::admin_data_table::AdminDataTable::RoleRules
         );
         fixture
             .lock
@@ -1983,20 +1977,20 @@ mod test_flow {
         )
         .await
         .expect(constants_str::DIAGNOSTIC_65CE07E9);
-        let observed_permissions = sqlx::query_scalar::<_, String>(
-            constants_str::SELECT_NAME_FROM_ADMIN_PERMISSIONS_ORDER_BY_NAME,
+        let observed_rules = sqlx::query_scalar::<_, String>(
+            constants_str::SELECT_NAME_FROM_ADMIN_RULES_ORDER_BY_NAME,
         )
         .fetch_all(&pool.0)
         .await
         .expect(constants_str::DIAGNOSTIC_DB765F20);
-        let expected_permissions = server_admin_contract::admin_permission::AdminPermission::ALL
+        let expected_rules = server_admin_contract::admin_rule::AdminRule::ALL
             .into_iter()
-            .map(|permission| permission.as_str().as_ref().to_owned())
+            .map(|rule| rule.as_str().as_ref().to_owned())
             .collect::<Vec<_>>();
-        assert_eq!(observed_permissions, expected_permissions);
-        let _deleted_permission = sqlx::query(constants_str::DELETE_ADMIN_PERMISSION_BY_NAME)
+        assert_eq!(observed_rules, expected_rules);
+        let _deleted_rule = sqlx::query(constants_str::DELETE_ADMIN_RULE_BY_NAME)
             .bind(
-                server_admin_contract::admin_permission::AdminPermission::ALL
+                server_admin_contract::admin_rule::AdminRule::ALL
                     .first()
                     .expect(constants_str::DIAGNOSTIC_26D95EA4)
                     .as_str()
@@ -2010,13 +2004,13 @@ mod test_flow {
         )
         .await
         .expect(constants_str::DIAGNOSTIC_EA3F641D);
-        let reconciled_permissions = sqlx::query_scalar::<_, String>(
-            constants_str::SELECT_NAME_FROM_ADMIN_PERMISSIONS_ORDER_BY_NAME,
+        let reconciled_rules = sqlx::query_scalar::<_, String>(
+            constants_str::SELECT_NAME_FROM_ADMIN_RULES_ORDER_BY_NAME,
         )
         .fetch_all(&pool.0)
         .await
         .expect(constants_str::DIAGNOSTIC_458AB19E);
-        assert_eq!(reconciled_permissions, expected_permissions);
+        assert_eq!(reconciled_rules, expected_rules);
         let _truncate_result = sqlx::query(
         constants_str::TRUNCATE_ADMIN_RATE_LIMITS_ADMIN_AUDIT_LOG_ADMIN_LOGIN_ATTEMPTS_ADMIN_ACCESS,
     )
@@ -2102,13 +2096,13 @@ mod test_flow {
         .await
         .expect(constants_str::DIAGNOSTIC_08EF120F);
         assert_eq!(dangling_role_links, constants_i64::ZERO);
-        let dangling_permission_links = sqlx::query_scalar::<_, i64>(
-        constants_str::SELECT_COUNT_ASTERISK_FROM_ADMIN_ROLE_PERMISSIONS_LINK_LEFT_JOIN_ADMIN_ROLES,
-    )
-    .fetch_one(&pool.0)
-    .await
-    .expect(constants_str::DIAGNOSTIC_AEBF6DC8);
-        assert_eq!(dangling_permission_links, constants_i64::ZERO);
+        let dangling_rule_links = sqlx::query_scalar::<_, i64>(
+            constants_str::SELECT_COUNT_ASTERISK_FROM_ADMIN_ROLE_RULES_LINK_LEFT_JOIN_ADMIN_ROLES,
+        )
+        .fetch_one(&pool.0)
+        .await
+        .expect(constants_str::DIAGNOSTIC_AEBF6DC8);
+        assert_eq!(dangling_rule_links, constants_i64::ZERO);
         let wrong_response = tower::ServiceExt::oneshot(
             crate::router_with_pool(&pool).0,
             crate::request_with_peer(
@@ -3321,31 +3315,31 @@ mod test_html {
             .expect(constants_str::DIAGNOSTIC_43F81D69);
         assert_eq!(updated, updated_role_name);
 
-        let permission = sqlx::query_as::<_, (i64, String)>(constants_str::VALUE_F3C2734E)
+        let rule = sqlx::query_as::<_, (i64, String)>(constants_str::VALUE_F3C2734E)
             .fetch_one(&fixture.pool.0)
             .await
             .expect(constants_str::DIAGNOSTIC_BA920F54);
-        let permissions_body = super::AdminHtmlTestFormBody::try_from(format!(
-            "role_id={}&expected_permission_ids=&permission_{}={}",
-            created.0, permission.0, permission.0
+        let rules_body = super::AdminHtmlTestFormBody::try_from(format!(
+            "role_id={}&expected_rule_ids=&rule_{}={}",
+            created.0, rule.0, rule.0
         ))
         .expect(constants_str::DIAGNOSTIC_0D476C31);
-        let permissions_response = crate::admin_html_response(
+        let rules_response = crate::admin_html_response(
             &fixture,
             super::HttpAdminApiTestMethod::from(http::Method::POST),
             super::StdAdminApiTestStrRef::from(
-                server_admin_contract::admin_html_action::AdminHtmlAction::RolePermissions.get(),
+                server_admin_contract::admin_html_action::AdminHtmlAction::RoleRules.get(),
             ),
-            super::StdAdminApiTestStrRef::from(permissions_body.0.as_str()),
+            super::StdAdminApiTestStrRef::from(rules_body.0.as_str()),
         )
         .await;
-        assert_eq!(permissions_response.status(), http::StatusCode::SEE_OTHER);
-        let assigned_permissions = sqlx::query_scalar::<_, i64>(constants_str::VALUE_5FE3480D)
+        assert_eq!(rules_response.status(), http::StatusCode::SEE_OTHER);
+        let assigned_rules = sqlx::query_scalar::<_, i64>(constants_str::VALUE_5FE3480D)
             .bind(created.0)
             .fetch_all(&fixture.pool.0)
             .await
             .expect(constants_str::DIAGNOSTIC_82B0D9F3);
-        assert_eq!(assigned_permissions, [permission.0]);
+        assert_eq!(assigned_rules, [rule.0]);
         let final_roles_response = crate::admin_html_response(
             &fixture,
             super::HttpAdminApiTestMethod::from(http::Method::GET),
@@ -4029,7 +4023,7 @@ mod test_html {
                     std::future::ready(!matches!(
                         path,
                         server_admin_contract::admin_frontend_path::AdminFrontendPath::Metrics
-                            | server_admin_contract::admin_frontend_path::AdminFrontendPath::Permissions
+                            | server_admin_contract::admin_frontend_path::AdminFrontendPath::Rules
                             | server_admin_contract::admin_frontend_path::AdminFrontendPath::Roles
                             | server_admin_contract::admin_frontend_path::AdminFrontendPath::Tables
                             | server_admin_contract::admin_frontend_path::AdminFrontendPath::Users
@@ -4283,27 +4277,24 @@ mod test_html {
             .fetch_one(&fixture.pool.0)
             .await
             .expect(constants_str::DIAGNOSTIC_2643BE19);
-        let permission_id = sqlx::query_scalar::<_, i64>(constants_str::VALUE_1491D3FA)
+        let rule_id = sqlx::query_scalar::<_, i64>(constants_str::VALUE_1491D3FA)
             .fetch_one(&fixture.pool.0)
             .await
             .expect(constants_str::DIAGNOSTIC_D8134C5B);
-        let stale_permissions_body = super::AdminHtmlTestFormBody::try_from(format!(
-            "role_id={created_role_id}&expected_permission_ids={permission_id}"
+        let stale_rules_body = super::AdminHtmlTestFormBody::try_from(format!(
+            "role_id={created_role_id}&expected_rule_ids={rule_id}"
         ))
         .expect(constants_str::DIAGNOSTIC_49FAC702);
-        let stale_permissions_response = crate::admin_html_response(
+        let stale_rules_response = crate::admin_html_response(
             &fixture,
             super::HttpAdminApiTestMethod::from(http::Method::POST),
             super::StdAdminApiTestStrRef::from(
-                server_admin_contract::admin_html_action::AdminHtmlAction::RolePermissions.get(),
+                server_admin_contract::admin_html_action::AdminHtmlAction::RoleRules.get(),
             ),
-            super::StdAdminApiTestStrRef::from(stale_permissions_body.0.as_str()),
+            super::StdAdminApiTestStrRef::from(stale_rules_body.0.as_str()),
         )
         .await;
-        assert_eq!(
-            stale_permissions_response.status(),
-            http::StatusCode::CONFLICT
-        );
+        assert_eq!(stale_rules_response.status(), http::StatusCode::CONFLICT);
         let delete_role_body = super::AdminHtmlTestFormBody::try_from(format!(
             "role_id={created_role_id}&confirmation=true"
         ))

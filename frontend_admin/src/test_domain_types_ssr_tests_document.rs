@@ -164,7 +164,7 @@ fn test_csr_page_contains_only_csr_application_shell() {
             .expect(constants_str::DIAGNOSTIC_41856438),
         server_admin_contract::admin_login::AdminLogin::try_from(constants_str::ROOT.to_owned())
             .expect(constants_str::DIAGNOSTIC_71A3B6E5),
-        server_admin_contract::admin_permission_values::AdminPermissionValues::try_from(Vec::new())
+        server_admin_contract::admin_rule_values::AdminRuleValues::try_from(Vec::new())
             .expect(constants_str::DIAGNOSTIC_8E3CF81F),
         server_admin_contract::admin_role_names::AdminRoleNames::try_from(Vec::new())
             .expect(constants_str::DIAGNOSTIC_A5677F33),

@@ -27,7 +27,7 @@ fn test_settings_page_uses_centered_layout_container() {
             .expect(constants_str::DIAGNOSTIC_9FF62B22),
         server_admin_contract::admin_login::AdminLogin::try_from(constants_str::ROOT.to_owned())
             .expect(constants_str::DIAGNOSTIC_984553CD),
-        server_admin_contract::admin_permission_values::AdminPermissionValues::try_from(Vec::new())
+        server_admin_contract::admin_rule_values::AdminRuleValues::try_from(Vec::new())
             .expect(constants_str::DIAGNOSTIC_86848EB5),
         server_admin_contract::admin_role_names::AdminRoleNames::try_from(Vec::new())
             .expect(constants_str::DIAGNOSTIC_D3F8287B),
@@ -87,9 +87,9 @@ fn test_editable_settings_render_every_input_kind_from_the_contract_catalog() {
             .expect(constants_str::DIAGNOSTIC_9E80D2C4),
         server_admin_contract::admin_login::AdminLogin::try_from(String::from(constants_str::ROOT))
             .expect(constants_str::DIAGNOSTIC_241B70AE),
-        server_admin_contract::admin_permission_values::AdminPermissionValues::try_from(vec![
-            server_admin_contract::admin_permission_value::AdminPermissionValue::try_from(
-                server_admin_contract::admin_permission::AdminPermission::SystemSettingsUpdate
+        server_admin_contract::admin_rule_values::AdminRuleValues::try_from(vec![
+            server_admin_contract::admin_rule_value::AdminRuleValue::try_from(
+                server_admin_contract::admin_rule::AdminRule::SystemSettingsUpdate
                     .as_str()
                     .get()
                     .to_owned(),

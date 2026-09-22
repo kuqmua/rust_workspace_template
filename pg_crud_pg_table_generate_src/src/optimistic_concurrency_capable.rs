@@ -3,7 +3,7 @@ pub(crate) const fn optimistic_concurrency_capable<
     HttpMethod,
     Logic,
     Operation,
-    PermissionAction,
+    RuleAction,
     StatusCode,
 >(
     operation_descriptor: &crate::operation_descriptor::OperationDescriptor<
@@ -11,7 +11,7 @@ pub(crate) const fn optimistic_concurrency_capable<
         HttpMethod,
         Logic,
         Operation,
-        PermissionAction,
+        RuleAction,
         StatusCode,
     >,
 ) -> crate::optimistic_concurrency_capability::OptimisticConcurrencyCapability {

@@ -32,7 +32,7 @@ pub(crate) struct AdminCsrQuery {
     #[getters(copy)]
     table: Option<server_admin_contract::admin_data_table::AdminDataTable>,
     #[getters(copy)]
-    permission_id: Option<server_admin_contract::admin_permission_id::AdminPermissionId>,
+    rule_id: Option<server_admin_contract::admin_rule_id::AdminRuleId>,
     #[getters(copy)]
     rate_limit_id: Option<server_admin_contract::admin_rate_limit_id::AdminRateLimitId>,
     #[getters(copy)]
@@ -42,8 +42,7 @@ pub(crate) struct AdminCsrQuery {
     #[getters(copy)]
     user_role_id: Option<server_admin_contract::admin_user_role_id::AdminUserRoleId>,
     #[getters(copy)]
-    role_permission_id:
-        Option<server_admin_contract::admin_role_permission_id::AdminRolePermissionId>,
+    role_rule_id: Option<server_admin_contract::admin_role_rule_id::AdminRoleRuleId>,
     refresh_token_id: Option<server_admin_contract::admin_refresh_token_id::AdminRefreshTokenId>,
 }
 impl AdminCsrQuery {
@@ -85,9 +84,12 @@ impl AdminCsrQuery {
                     pathname.as_str(),
                 ),
             );
-        let role_permission_id = server_admin_contract::admin_role_permission_id::AdminRolePermissionId::from_frontend_path(
-            server_admin_contract::admin_page_path_ref::AdminPagePathRef::from(pathname.as_str()),
-        );
+        let role_rule_id =
+            server_admin_contract::admin_role_rule_id::AdminRoleRuleId::from_frontend_path(
+                server_admin_contract::admin_page_path_ref::AdminPagePathRef::from(
+                    pathname.as_str(),
+                ),
+            );
         let refresh_token_id =
             server_admin_contract::admin_refresh_token_id::AdminRefreshTokenId::from_frontend_path(
                 server_admin_contract::admin_page_path_ref::AdminPagePathRef::from(
@@ -103,12 +105,9 @@ impl AdminCsrQuery {
         let user_id = server_admin_contract::admin_user_id::AdminUserId::from_frontend_path(
             server_admin_contract::admin_page_path_ref::AdminPagePathRef::from(pathname.as_str()),
         );
-        let permission_id =
-            server_admin_contract::admin_permission_id::AdminPermissionId::from_frontend_path(
-                server_admin_contract::admin_page_path_ref::AdminPagePathRef::from(
-                    pathname.as_str(),
-                ),
-            );
+        let rule_id = server_admin_contract::admin_rule_id::AdminRuleId::from_frontend_path(
+            server_admin_contract::admin_page_path_ref::AdminPagePathRef::from(pathname.as_str()),
+        );
         let rate_limit_id =
             server_admin_contract::admin_rate_limit_id::AdminRateLimitId::from_frontend_path(
                 server_admin_contract::admin_page_path_ref::AdminPagePathRef::from(
@@ -145,8 +144,8 @@ impl AdminCsrQuery {
                 })
             })
             .or_else(|| {
-                role_permission_id.map(|_role_permission_id| {
-                    server_admin_contract::admin_data_table::AdminDataTable::RolePermissions
+                role_rule_id.map(|_role_rule_id| {
+                    server_admin_contract::admin_data_table::AdminDataTable::RoleRules
                 })
             })
             .or_else(|| {
@@ -222,12 +221,12 @@ impl AdminCsrQuery {
                 .unwrap_or_default(),
             system_setting_id,
             resolved_table,
-            permission_id,
+            rule_id,
             rate_limit_id,
             role_id,
             user_id,
             user_role_id,
-            role_permission_id,
+            role_rule_id,
             refresh_token_id,
         ))
     }

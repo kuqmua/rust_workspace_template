@@ -99,7 +99,7 @@ fn expression_acquires_lock(expr: &syn::Expr) -> bool {
                     call.method.to_string().as_str(),
                     constants_str::VALUE_0C030586
                         | constants_str::VALUE_DB488AC5
-                        | constants_str::PG_CRUD_READ_PERMISSION_ACTION
+                        | constants_str::PG_CRUD_READ_RULE_ACTION
                         | constants_str::VALUE_35D47C1A
                         | constants_str::WRITE_ALT
                         | constants_str::VALUE_FC58C841

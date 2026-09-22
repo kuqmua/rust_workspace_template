@@ -39,11 +39,11 @@ impl RouteErrorPolicy {
                     crate::route_mutation::RouteMutation::Mutating,
                 ) => crate::route_contract::AUTHENTICATED_MUTATING_ROUTE_ERROR_STATUSES,
                 (
-                    crate::authentication_requirement::AuthenticationRequirement::Permission(_),
+                    crate::authentication_requirement::AuthenticationRequirement::Rule(_),
                     crate::route_mutation::RouteMutation::ReadOnly,
                 ) => crate::route_contract::AUTHORIZED_READ_ROUTE_ERROR_STATUSES,
                 (
-                    crate::authentication_requirement::AuthenticationRequirement::Permission(_),
+                    crate::authentication_requirement::AuthenticationRequirement::Rule(_),
                     crate::route_mutation::RouteMutation::Mutating,
                 ) => crate::route_contract::AUTHORIZED_MUTATING_ROUTE_ERROR_STATUSES,
             },

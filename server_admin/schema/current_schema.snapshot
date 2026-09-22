@@ -553,7 +553,7 @@ DbTableSnapshot {
     ),
 }
 
-permissions
+rules
 DbTableSnapshot {
     columns: DbColumnSnapshots(
         [
@@ -623,7 +623,7 @@ DbTableSnapshot {
                 ),
                 name: DbSchemaText(
                     BoundedString {
-                        value: "permissions_name_length",
+                        value: "rules_name_length",
                     },
                 ),
                 kind: Check,
@@ -636,7 +636,7 @@ DbTableSnapshot {
                 ),
                 name: DbSchemaText(
                     BoundedString {
-                        value: "permissions_name_format",
+                        value: "rules_name_format",
                     },
                 ),
                 kind: Check,
@@ -644,12 +644,12 @@ DbTableSnapshot {
             DbObjectSnapshot {
                 definition: DbSchemaText(
                     BoundedString {
-                        value: "CREATE UNIQUE INDEX permissions_name_key ON admin_migration_fresh_test.permissions USING btree (name)",
+                        value: "CREATE UNIQUE INDEX rules_name_key ON admin_migration_fresh_test.rules USING btree (name)",
                     },
                 ),
                 name: DbSchemaText(
                     BoundedString {
-                        value: "permissions_name_key",
+                        value: "rules_name_key",
                     },
                 ),
                 kind: Index,
@@ -657,12 +657,12 @@ DbTableSnapshot {
             DbObjectSnapshot {
                 definition: DbSchemaText(
                     BoundedString {
-                        value: "CREATE UNIQUE INDEX permissions_pkey ON admin_migration_fresh_test.permissions USING btree (id)",
+                        value: "CREATE UNIQUE INDEX rules_pkey ON admin_migration_fresh_test.rules USING btree (id)",
                     },
                 ),
                 name: DbSchemaText(
                     BoundedString {
-                        value: "permissions_pkey",
+                        value: "rules_pkey",
                     },
                 ),
                 kind: Index,
@@ -675,7 +675,7 @@ DbTableSnapshot {
                 ),
                 name: DbSchemaText(
                     BoundedString {
-                        value: "permissions_pkey",
+                        value: "rules_pkey",
                     },
                 ),
                 kind: PrimaryKey,
@@ -688,7 +688,7 @@ DbTableSnapshot {
                 ),
                 name: DbSchemaText(
                     BoundedString {
-                        value: "permissions_name_key",
+                        value: "rules_name_key",
                     },
                 ),
                 kind: Unique,
@@ -870,7 +870,7 @@ DbTableSnapshot {
     ),
 }
 
-role_permissions
+role_rules
 DbTableSnapshot {
     columns: DbColumnSnapshots(
         [
@@ -899,7 +899,7 @@ DbTableSnapshot {
                 default: None,
                 name: DbSchemaText(
                     BoundedString {
-                        value: "permission_id",
+                        value: "rule_id",
                     },
                 ),
                 nullable: DbColumnNullable(
@@ -951,12 +951,12 @@ DbTableSnapshot {
             DbObjectSnapshot {
                 definition: DbSchemaText(
                     BoundedString {
-                        value: "CREATE INDEX role_permissions_permission_id_idx ON admin_migration_fresh_test.role_permissions USING btree (permission_id)",
+                        value: "CREATE INDEX role_rules_rule_id_idx ON admin_migration_fresh_test.role_rules USING btree (rule_id)",
                     },
                 ),
                 name: DbSchemaText(
                     BoundedString {
-                        value: "role_permissions_permission_id_idx",
+                        value: "role_rules_rule_id_idx",
                     },
                 ),
                 kind: Index,
@@ -964,12 +964,12 @@ DbTableSnapshot {
             DbObjectSnapshot {
                 definition: DbSchemaText(
                     BoundedString {
-                        value: "CREATE UNIQUE INDEX role_permissions_pkey ON admin_migration_fresh_test.role_permissions USING btree (id)",
+                        value: "CREATE UNIQUE INDEX role_rules_pkey ON admin_migration_fresh_test.role_rules USING btree (id)",
                     },
                 ),
                 name: DbSchemaText(
                     BoundedString {
-                        value: "role_permissions_pkey",
+                        value: "role_rules_pkey",
                     },
                 ),
                 kind: Index,
@@ -977,12 +977,12 @@ DbTableSnapshot {
             DbObjectSnapshot {
                 definition: DbSchemaText(
                     BoundedString {
-                        value: "CREATE UNIQUE INDEX role_permissions_role_id_permission_id_key ON admin_migration_fresh_test.role_permissions USING btree (role_id, permission_id)",
+                        value: "CREATE UNIQUE INDEX role_rules_role_id_rule_id_key ON admin_migration_fresh_test.role_rules USING btree (role_id, rule_id)",
                     },
                 ),
                 name: DbSchemaText(
                     BoundedString {
-                        value: "role_permissions_role_id_permission_id_key",
+                        value: "role_rules_role_id_rule_id_key",
                     },
                 ),
                 kind: Index,
@@ -990,12 +990,12 @@ DbTableSnapshot {
             DbObjectSnapshot {
                 definition: DbSchemaText(
                     BoundedString {
-                        value: "FOREIGN KEY (permission_id) REFERENCES permissions(id) ON DELETE CASCADE",
+                        value: "FOREIGN KEY (rule_id) REFERENCES rules(id) ON DELETE CASCADE",
                     },
                 ),
                 name: DbSchemaText(
                     BoundedString {
-                        value: "role_permissions_permission_id_fkey",
+                        value: "role_rules_rule_id_fkey",
                     },
                 ),
                 kind: ForeignKey,
@@ -1008,7 +1008,7 @@ DbTableSnapshot {
                 ),
                 name: DbSchemaText(
                     BoundedString {
-                        value: "role_permissions_role_id_fkey",
+                        value: "role_rules_role_id_fkey",
                     },
                 ),
                 kind: ForeignKey,
@@ -1021,7 +1021,7 @@ DbTableSnapshot {
                 ),
                 name: DbSchemaText(
                     BoundedString {
-                        value: "role_permissions_pkey",
+                        value: "role_rules_pkey",
                     },
                 ),
                 kind: PrimaryKey,
@@ -1029,12 +1029,12 @@ DbTableSnapshot {
             DbObjectSnapshot {
                 definition: DbSchemaText(
                     BoundedString {
-                        value: "UNIQUE (role_id, permission_id)",
+                        value: "UNIQUE (role_id, rule_id)",
                     },
                 ),
                 name: DbSchemaText(
                     BoundedString {
-                        value: "role_permissions_role_id_permission_id_key",
+                        value: "role_rules_role_id_rule_id_key",
                     },
                 ),
                 kind: Unique,

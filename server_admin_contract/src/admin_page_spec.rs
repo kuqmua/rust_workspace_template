@@ -61,9 +61,7 @@ impl AdminPageSpec {
             crate::admin_page_title::AdminPageTitle::Branding => constants_str::ADMIN_UI_BRANDING,
             crate::admin_page_title::AdminPageTitle::Api => constants_str::ADMIN_UI_API,
             crate::admin_page_title::AdminPageTitle::Metrics => constants_str::ADMIN_UI_METRICS,
-            crate::admin_page_title::AdminPageTitle::Permissions => {
-                constants_str::ADMIN_UI_PERMISSIONS
-            }
+            crate::admin_page_title::AdminPageTitle::Rules => constants_str::ADMIN_UI_RULES,
             crate::admin_page_title::AdminPageTitle::Profile => constants_str::ADMIN_UI_PROFILE,
             crate::admin_page_title::AdminPageTitle::Roles => constants_str::ADMIN_UI_ROLES,
             crate::admin_page_title::AdminPageTitle::Sessions => constants_str::ADMIN_UI_SESSIONS,

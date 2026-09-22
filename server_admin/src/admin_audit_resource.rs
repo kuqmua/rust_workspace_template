@@ -14,7 +14,7 @@
 #[serde(rename_all = "snake_case")]
 pub enum AdminAuditResource {
     AuditLog,
-    Permission,
+    Rule,
     Role,
     Session,
     SystemSettings,

@@ -4,7 +4,7 @@ pub(crate) async fn role_mutations_create_many(
 ) -> Result<server_admin_contract::admin_role_ids::AdminRoleIds, crate::admin_error::AdminError> {
     let actor = crate::authorize_custom::authorize_custom(
         &admin_auth_request,
-        server_admin_contract::admin_permission::AdminPermission::RolesCreate,
+        server_admin_contract::admin_rule::AdminRule::RolesCreate,
     )
     .await?;
     let requests = AsRef::<

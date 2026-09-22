@@ -62,7 +62,7 @@ test.afterEach(async ({ page }) => {
 
 test("test_long_production_value_is_ellipsized_and_keyboard_accessible", async ({ page }) => {
   await page.goto("/admin/roles");
-  const preview = page.locator('td[data-label="permissions"] .table-cell-preview').first();
+  const preview = page.locator('td[data-label="rules"] .table-cell-preview').first();
   await expect(preview).toBeVisible();
   const value = await preview.textContent();
   expect(value.length).toBeGreaterThan(24);
@@ -70,7 +70,7 @@ test("test_long_production_value_is_ellipsized_and_keyboard_accessible", async (
   await expect(preview).toHaveCSS("text-overflow", "ellipsis");
   await preview.focus();
   await page.keyboard.press("Enter");
-  const dialog = page.getByRole("dialog", { name: "permissions", exact: true });
+  const dialog = page.getByRole("dialog", { name: "rules", exact: true });
   await expect(dialog.locator("pre")).toHaveText(value);
   await expect(dialog.getByRole("button", { name: "close", exact: true })).toBeFocused();
   await page.keyboard.press("Escape");

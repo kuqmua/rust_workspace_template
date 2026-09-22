@@ -176,8 +176,8 @@ fn test_route_test_categories_reject_oversized_vec() {
 #[test]
 fn test_route_contract_keeps_transport_policy_together() {
     let route = crate::route_contract::RouteContract::new(
-        crate::authentication_requirement::AuthenticationRequirement::Permission(
-            crate::contract_str::ContractStr::from(constants_str::PERMISSION),
+        crate::authentication_requirement::AuthenticationRequirement::Rule(
+            crate::contract_str::ContractStr::from(constants_str::RULE),
         ),
         crate::route_method::RouteMethod::Patch,
         crate::mutation_kind::MutationKind::Mutating,
@@ -193,8 +193,8 @@ fn test_route_contract_keeps_transport_policy_together() {
 }
 #[test]
 fn test_route_error_policy_derives_statuses_from_access_and_mutation() {
-    let permission = crate::authentication_requirement::AuthenticationRequirement::Permission(
-        crate::contract_str::ContractStr::from(constants_str::PERMISSION),
+    let rule = crate::authentication_requirement::AuthenticationRequirement::Rule(
+        crate::contract_str::ContractStr::from(constants_str::RULE),
     );
     assert_eq!(
         crate::route_error_policy::RouteErrorPolicy::Default.statuses(
@@ -212,22 +212,22 @@ fn test_route_error_policy_derives_statuses_from_access_and_mutation() {
     );
     assert_eq!(
         crate::route_error_policy::RouteErrorPolicy::Default
-            .statuses(permission, crate::route_mutation::RouteMutation::Mutating,),
+            .statuses(rule, crate::route_mutation::RouteMutation::Mutating,),
         crate::route_contract::AUTHORIZED_MUTATING_ROUTE_ERROR_STATUSES
     );
     assert_eq!(
         crate::route_error_policy::RouteErrorPolicy::Authentication
-            .statuses(permission, crate::route_mutation::RouteMutation::ReadOnly),
+            .statuses(rule, crate::route_mutation::RouteMutation::ReadOnly),
         crate::route_contract::PUBLIC_AUTH_ROUTE_ERROR_STATUSES
     );
     assert_eq!(
         crate::route_error_policy::RouteErrorPolicy::Delete
-            .statuses(permission, crate::route_mutation::RouteMutation::Mutating),
+            .statuses(rule, crate::route_mutation::RouteMutation::Mutating),
         crate::route_contract::AUTHORIZED_DELETE_ROUTE_ERROR_STATUSES
     );
     assert_eq!(
         crate::route_error_policy::RouteErrorPolicy::ValidatedRead
-            .statuses(permission, crate::route_mutation::RouteMutation::ReadOnly),
+            .statuses(rule, crate::route_mutation::RouteMutation::ReadOnly),
         crate::route_contract::AUTHORIZED_VALIDATED_READ_ROUTE_ERROR_STATUSES
     );
 }

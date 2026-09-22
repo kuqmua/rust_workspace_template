@@ -13,5 +13,5 @@
 pub struct AdminUpdateRoleRequest {
     #[contract_struct_api(into)]
     name: Option<crate::admin_role_name::AdminRoleName>,
-    permissions: Option<crate::admin_set_role_permissions_request::AdminSetRolePermissionsRequest>,
+    rules: Option<crate::admin_set_role_rules_request::AdminSetRoleRulesRequest>,
 }

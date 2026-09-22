@@ -26,12 +26,12 @@ mod tests {
         assert_eq!(
             actual.map(server_admin_core::std_admin_str_ref::StdAdminStrRef::get),
             [
-                constants_str::PG_CRUD_CREATE_PERMISSION_ACTION,
-                constants_str::PG_CRUD_DELETE_PERMISSION_ACTION,
+                constants_str::PG_CRUD_CREATE_RULE_ACTION,
+                constants_str::PG_CRUD_DELETE_RULE_ACTION,
                 constants_str::REFRESH,
                 constants_str::SIGN_IN,
                 constants_str::SIGN_OUT,
-                constants_str::PG_CRUD_UPDATE_PERMISSION_ACTION,
+                constants_str::PG_CRUD_UPDATE_RULE_ACTION,
             ]
         );
     }
@@ -40,7 +40,7 @@ mod tests {
     fn test_audit_resource_wire_values_cover_every_variant() {
         let actual = [
             crate::admin_audit_resource::AdminAuditResource::AuditLog.as_str(),
-            crate::admin_audit_resource::AdminAuditResource::Permission.as_str(),
+            crate::admin_audit_resource::AdminAuditResource::Rule.as_str(),
             crate::admin_audit_resource::AdminAuditResource::Role.as_str(),
             crate::admin_audit_resource::AdminAuditResource::Session.as_str(),
             crate::admin_audit_resource::AdminAuditResource::SystemSettings.as_str(),
@@ -50,7 +50,7 @@ mod tests {
             actual.map(server_admin_core::std_admin_str_ref::StdAdminStrRef::get),
             [
                 constants_str::AUDIT_LOG_ALT,
-                constants_str::PERMISSION,
+                constants_str::RULE,
                 constants_str::ROLE,
                 constants_str::SESSION,
                 constants_str::SYSTEM_SETTINGS,

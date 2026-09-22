@@ -19,7 +19,7 @@
         {"columns": ["user_id"], "referenced_columns": ["id"], "referenced_table": "users"}
     ],
     "db_unique_keys": [["token_hash"]],
-    "permission_prefix": "refresh_tokens",
+    "rule_prefix": "refresh_tokens",
     "tests_write_into_file": "False",
     "common_write_into_file": "False",
     "whole_write_into_file": "False"

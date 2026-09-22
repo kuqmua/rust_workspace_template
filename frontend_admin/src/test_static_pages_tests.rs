@@ -3,51 +3,32 @@ fn test_static_pages() {
     let admin = crate::domain_types_ssr_tests::test_admin();
     let branding = crate::domain_types_ssr_tests::test_branding();
     let query = server_admin_contract::admin_table_query::AdminTableQuery::default();
-    let permission_id =
-        server_admin_contract::admin_permission_id::AdminPermissionId::try_from(7i64)
-            .expect(constants_str::DIAGNOSTIC_6BC2A15E);
-    let permissions = server_admin_contract::admin_permissions_page::AdminPermissionsPage::new(
-        server_admin_contract::admin_permission_summaries::AdminPermissionSummaries::try_from(
-            vec![
-                server_admin_contract::admin_permission_summary::AdminPermissionSummary::new(
-                    permission_id,
-                    server_admin_contract::admin_permission_value::AdminPermissionValue::try_from(
-                        String::from(constants_str::VALUE_C6919F81),
+    let rule_id = server_admin_contract::admin_rule_id::AdminRuleId::try_from(7i64)
+        .expect(constants_str::DIAGNOSTIC_6BC2A15E);
+    let rules = server_admin_contract::admin_rules_page::AdminRulesPage::new(
+        server_admin_contract::admin_rule_summaries::AdminRuleSummaries::try_from(vec![
+            server_admin_contract::admin_rule_summary::AdminRuleSummary::new(
+                rule_id,
+                server_admin_contract::admin_rule_value::AdminRuleValue::try_from(String::from(
+                    constants_str::VALUE_C6919F81,
+                ))
+                .expect(constants_str::VALUE_8431554A),
+                server_admin_contract::admin_rule_timestamp::AdminRuleTimestamp::from(
+                    server_admin_contract::admin_role_timestamp::AdminRoleTimestamp::try_from(
+                        String::from(constants_str::ADMIN_FIXTURE_AUDIT_CREATED_AT),
                     )
-                    .expect(constants_str::VALUE_8431554A),
-                    server_admin_contract::admin_permission_timestamp::AdminPermissionTimestamp::from(
-                        server_admin_contract::admin_role_timestamp::AdminRoleTimestamp::try_from(
-                            String::from(constants_str::ADMIN_FIXTURE_AUDIT_CREATED_AT),
-                        )
-                        .expect(constants_str::VALUE_A0034DA1),
-                    ),
+                    .expect(constants_str::VALUE_A0034DA1),
                 ),
-            ],
-        )
+            ),
+        ])
         .expect(constants_str::DIAGNOSTIC_0CA582E4),
         server_admin_contract::admin_page_total::AdminPageTotal::from(1u64),
     );
-    let permissions_html = crate::render_admin_permissions_page::render_admin_permissions_page(
-        &permissions,
-        &query,
-        &admin,
-        &branding,
-    );
-    assert!(
-        permissions_html
-            .as_ref()
-            .contains(constants_str::VALUE_E72513C4)
-    );
-    assert!(
-        permissions_html
-            .as_ref()
-            .contains(constants_str::VALUE_F424B0B2)
-    );
-    assert!(
-        permissions_html
-            .as_ref()
-            .contains(constants_str::VALUE_785F0083)
-    );
+    let rules_html =
+        crate::render_admin_rules_page::render_admin_rules_page(&rules, &query, &admin, &branding);
+    assert!(rules_html.as_ref().contains(constants_str::VALUE_E72513C4));
+    assert!(rules_html.as_ref().contains(constants_str::VALUE_F424B0B2));
+    assert!(rules_html.as_ref().contains(constants_str::VALUE_785F0083));
 
     let role_id = server_admin_contract::admin_role_id::AdminRoleId::try_from(3i64)
         .expect(constants_str::DIAGNOSTIC_B751E0A4);

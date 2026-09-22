@@ -63,7 +63,7 @@ fn test_data_grid() {
     let filter_view = server_admin_contract::admin_data_table_view::AdminDataTableView::new(
         columns,
         rows,
-        server_admin_contract::admin_data_table::AdminDataTable::RolePermissions,
+        server_admin_contract::admin_data_table::AdminDataTable::RoleRules,
         server_admin_contract::admin_page_total::AdminPageTotal::from(1u64),
     );
 

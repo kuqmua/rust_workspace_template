@@ -44,10 +44,10 @@ async function createRole(page, name) {
   return (await response.json()).id;
 }
 
-async function readPermissions(request) {
+async function readRules(request) {
   return request.post("/roles/read", {
     data: {
-      permissions_query: {
+      rules_query: {
         search: "",
         sort: "",
         offset: 0,
@@ -460,29 +460,29 @@ test("role lifecycle enforces uniqueness, stale-assignment conflicts, and deleti
   });
   expect(renamed.status()).toBe(204);
 
-  const permissionsResponse = await readPermissions(page.request);
-  expect(permissionsResponse.status()).toBe(200);
-  const permission = (await permissionsResponse.json()).permissions.find(
+  const rulesResponse = await readRules(page.request);
+  expect(rulesResponse.status()).toBe(200);
+  const rule = (await rulesResponse.json()).rules.find(
     item => item.name === "users:read"
   );
-  expect(permission).toBeTruthy();
+  expect(rule).toBeTruthy();
   const assigned = await page.request.put(
-    `/roles/${roleId}/permissions`,
+    `/roles/${roleId}/rules`,
     {
       data: {
-        expected_permission_ids: [],
-        permission_ids: [permission.id]
+        expected_rule_ids: [],
+        rule_ids: [rule.id]
       },
       headers: await adminHeaders(page.context())
     }
   );
   expect(assigned.status()).toBe(204);
   const stale = await page.request.put(
-    `/roles/${roleId}/permissions`,
+    `/roles/${roleId}/rules`,
     {
       data: {
-        expected_permission_ids: [],
-        permission_ids: []
+        expected_rule_ids: [],
+        rule_ids: []
       },
       headers: await adminHeaders(page.context())
     }
@@ -577,7 +577,7 @@ test("search and sorting are deterministic and survive UI reloads", async ({
   expect(descending).toEqual(["query_zeta_user", "query_alpha_user"]);
 
   await createRole(page, "query_sort_role");
-  for (const resource of ["roles", "permissions"]) {
+  for (const resource of ["roles", "rules"]) {
     const ascendingPage = await page.request.get(
       `/${resource}?sort=name&direction=ascending&limit=100`
     );
@@ -614,26 +614,26 @@ test("data-table filters constrain rows and reject malformed filter contracts", 
 }) => {
   await signInAdministrator(page);
   const roleId = await createRole(page, "filter_contract_role");
-  const permissionsResponse = await readPermissions(page.request);
-  expect(permissionsResponse.status()).toBe(200);
-  const permission = (await permissionsResponse.json()).permissions.find(
+  const rulesResponse = await readRules(page.request);
+  expect(rulesResponse.status()).toBe(200);
+  const rule = (await rulesResponse.json()).rules.find(
     item => item.name === "users:read"
   );
-  expect(permission).toBeTruthy();
+  expect(rule).toBeTruthy();
   const assigned = await page.request.put(
-    `/roles/${roleId}/permissions`,
+    `/roles/${roleId}/rules`,
     {
       data: {
-        expected_permission_ids: [],
-        permission_ids: [permission.id]
+        expected_rule_ids: [],
+        rule_ids: [rule.id]
       },
       headers: await adminHeaders(page.context())
     }
   );
   expect(assigned.status()).toBe(204);
 
-  const rolePermissionsPath = "/role_permissions/read";
-  const example = await page.request.get(`${rolePermissionsPath}_payload_example`);
+  const roleRulesPath = "/role_rules/read";
+  const example = await page.request.get(`${roleRulesPath}_payload_example`);
   expect(example.status()).toBe(200);
   const payload = {
     ...await example.json(),
@@ -645,20 +645,20 @@ test("data-table filters constrain rows and reject malformed filter contracts", 
       }
     }
   };
-  const filtered = await page.request.post(rolePermissionsPath, { data: payload });
+  const filtered = await page.request.post(roleRulesPath, { data: payload });
   expect(filtered.status()).toBe(200);
   const table = await filtered.json();
-  expect(table.table).toBe("role_permissions");
+  expect(table.table).toBe("role_rules");
   expect(table.total).toBe(1);
   expect(table.items).toHaveLength(1);
   expect(table.items[0].values).toContain(String(roleId));
-  expect(table.items[0].values).toContain(String(permission.id));
+  expect(table.items[0].values).toContain(String(rule.id));
 
   for (const whereMany of [
     { role_id: { operator: "And", values: [{ Eq: { operator: "And" } }] } },
     { unknown: { operator: "And", values: [{ Eq: { operator: "And", values: 1 } }] } }
   ]) {
-    const rejected = await page.request.post(rolePermissionsPath, {
+    const rejected = await page.request.post(roleRulesPath, {
       data: { ...payload, where_many: whereMany }
     });
     expect(rejected.status()).toBe(422);
@@ -702,31 +702,31 @@ test("a read-only administrator sees only authorized navigation and mutations fa
 }) => {
   await signInAdministrator(page);
   const roleId = await createRole(page, "production_reader");
-  const permissionsResponse = await readPermissions(page.request);
-  expect(permissionsResponse.status()).toBe(200);
-  const permissions = (await permissionsResponse.json()).permissions;
-  const usersRead = permissions.find(permission => permission.name === "users:read");
-  const tablesRead = permissions.find(permission => permission.name === "tables:read");
-  const auditRead = permissions.find(permission => permission.name === "audit_log:read");
-  const settingsRead = permissions.find(
-    permission => permission.name === "system_settings:read"
+  const rulesResponse = await readRules(page.request);
+  expect(rulesResponse.status()).toBe(200);
+  const rules = (await rulesResponse.json()).rules;
+  const usersRead = rules.find(rule => rule.name === "users:read");
+  const tablesRead = rules.find(rule => rule.name === "tables:read");
+  const auditRead = rules.find(rule => rule.name === "audit_log:read");
+  const settingsRead = rules.find(
+    rule => rule.name === "system_settings:read"
   );
   expect(usersRead).toBeTruthy();
   expect(tablesRead).toBeTruthy();
   expect(auditRead).toBeTruthy();
   expect(settingsRead).toBeTruthy();
 
-  const rolePermissions = await page.request.put(
-    `/roles/${roleId}/permissions`,
+  const roleRules = await page.request.put(
+    `/roles/${roleId}/rules`,
     {
       data: {
-        expected_permission_ids: [],
-        permission_ids: [auditRead.id, settingsRead.id, tablesRead.id, usersRead.id]
+        expected_rule_ids: [],
+        rule_ids: [auditRead.id, settingsRead.id, tablesRead.id, usersRead.id]
       },
       headers: await adminHeaders(page.context())
     }
   );
-  expect(rolePermissions.status()).toBe(204);
+  expect(roleRules.status()).toBe(204);
 
   const userId = await createUser(
     page,

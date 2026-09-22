@@ -14,15 +14,13 @@ pub(crate) enum AdminFixtureConversionError {
     #[error("{0}")]
     Login(server_admin_contract::admin_login::AdminLoginTryFromStringError),
     #[error("{0}")]
-    PermissionValue(
-        server_admin_contract::admin_permission_value::AdminPermissionValueTryFromStringError,
-    ),
-    #[error("{0}")]
     RoleName(server_admin_contract::admin_role_name::AdminRoleNameTryFromStringError),
     #[error("{0}")]
     RoleTimestamp(
         server_admin_contract::admin_role_timestamp::AdminRoleTimestampTryFromStringError,
     ),
+    #[error("{0}")]
+    RuleValue(server_admin_contract::admin_rule_value::AdminRuleValueTryFromStringError),
     #[error("{0}")]
     SessionIdentifier(
         server_admin_contract::admin_session_identifier::AdminSessionIdentifierTryFromStringError,
@@ -71,13 +69,13 @@ impl From<server_admin_contract::admin_login::AdminLoginTryFromStringError>
     }
 }
 
-impl From<server_admin_contract::admin_permission_value::AdminPermissionValueTryFromStringError>
+impl From<server_admin_contract::admin_rule_value::AdminRuleValueTryFromStringError>
     for AdminFixtureConversionError
 {
     fn from(
-        value: server_admin_contract::admin_permission_value::AdminPermissionValueTryFromStringError,
+        value: server_admin_contract::admin_rule_value::AdminRuleValueTryFromStringError,
     ) -> Self {
-        Self::PermissionValue(value)
+        Self::RuleValue(value)
     }
 }
 

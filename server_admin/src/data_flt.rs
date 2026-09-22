@@ -4,10 +4,10 @@ pub(crate) enum DataFlt {
     AuditLog(crate::data_audit_log_flt::DataAuditLogFlt),
     CleanupStatus(crate::data_cleanup_status_flt::DataCleanupStatusFlt),
     LoginAttempts(crate::data_login_attempts_flt::DataLoginAttemptsFlt),
-    Permissions(crate::data_permissions_flt::DataPermissionsFlt),
+    Rules(crate::data_rules_flt::DataRulesFlt),
     RateLimits(crate::data_rate_limits_flt::DataRateLimitsFlt),
     RefreshTokens(crate::data_refresh_tokens_flt::DataRefreshTokensFlt),
-    RolePermissions(crate::data_role_permissions_flt::DataRolePermissionsFlt),
+    RoleRules(crate::data_role_rules_flt::DataRoleRulesFlt),
     Roles(crate::data_roles_flt::DataRolesFlt),
     SystemSettings(crate::data_system_settings_flt::DataSystemSettingsFlt),
     UserRoles(crate::data_user_roles_flt::DataUserRolesFlt),
@@ -47,7 +47,7 @@ impl DataFlt {
                     sqlx_postgres_query,
                 )
             }
-            Self::Permissions(value) => {
+            Self::Rules(value) => {
                 pg_crud_common::pg_type_where_filter::PgTypeWhereFilter::query_bind(
                     value.into_inner(),
                     sqlx_postgres_query,
@@ -65,7 +65,7 @@ impl DataFlt {
                     sqlx_postgres_query,
                 )
             }
-            Self::RolePermissions(value) => {
+            Self::RoleRules(value) => {
                 pg_crud_common::pg_type_where_filter::PgTypeWhereFilter::query_bind(
                     value.into_inner(),
                     sqlx_postgres_query,
@@ -138,7 +138,7 @@ impl DataFlt {
                     pg_crud_common::add_operator::AddOperator::from(false),
                 )
             }
-            Self::Permissions(value) => {
+            Self::Rules(value) => {
                 pg_crud_common::pg_type_where_filter::PgTypeWhereFilter::query_part(
                     value.get_inner(),
                     query_part_increment,
@@ -162,7 +162,7 @@ impl DataFlt {
                     pg_crud_common::add_operator::AddOperator::from(false),
                 )
             }
-            Self::RolePermissions(value) => {
+            Self::RoleRules(value) => {
                 pg_crud_common::pg_type_where_filter::PgTypeWhereFilter::query_part(
                     value.get_inner(),
                     query_part_increment,

@@ -4,7 +4,7 @@ pub(crate) async fn role_mutations_delete_filtered(
 ) -> Result<crate::axum_admin_response::AxumAdminResponse, crate::admin_error::AdminError> {
     let actor = crate::authorize_custom::authorize_custom(
         &admin_auth_request,
-        server_admin_contract::admin_permission::AdminPermission::RolesDelete,
+        server_admin_contract::admin_rule::AdminRule::RolesDelete,
     )
     .await?;
     let mut transaction = admin_auth_request

@@ -14,7 +14,7 @@ pub(crate) async fn queries_users_page(
             admin_auth_request.get_state().as_ref(),
             crate::http_admin_header_map_ref::HttpAdminHeaderMapRef::from(admin_auth_request.get_headers().as_ref()),
             *admin_auth_request.get_peer(),
-            server_admin_contract::admin_permission::AdminPermission::UsersRead.as_str(),
+            server_admin_contract::admin_rule::AdminRule::UsersRead.as_str(),
             server_admin_core::std_admin_bool::StdAdminBool::from(false),
         )
         .await?;

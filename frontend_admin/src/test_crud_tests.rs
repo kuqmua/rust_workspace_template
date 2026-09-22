@@ -1,15 +1,15 @@
 #[test]
 fn test_crud() {
-    let permissions = [
-        server_admin_contract::admin_permission::AdminPermission::UsersUpdate,
-        server_admin_contract::admin_permission::AdminPermission::UsersDelete,
-        server_admin_contract::admin_permission::AdminPermission::RolesUpdate,
-        server_admin_contract::admin_permission::AdminPermission::RolesDelete,
+    let rules = [
+        server_admin_contract::admin_rule::AdminRule::UsersUpdate,
+        server_admin_contract::admin_rule::AdminRule::UsersDelete,
+        server_admin_contract::admin_rule::AdminRule::RolesUpdate,
+        server_admin_contract::admin_rule::AdminRule::RolesDelete,
     ]
     .into_iter()
-    .map(|permission| {
-        server_admin_contract::admin_permission_value::AdminPermissionValue::try_from(
-            permission.as_str().get().to_owned(),
+    .map(|rule| {
+        server_admin_contract::admin_rule_value::AdminRuleValue::try_from(
+            rule.as_str().get().to_owned(),
         )
         .expect(constants_str::DIAGNOSTIC_B53AD55D)
     })
@@ -25,10 +25,8 @@ fn test_crud() {
             constants_str::VALUE_09BBF5B6,
         ))
         .expect(constants_str::DIAGNOSTIC_67827F9A),
-        server_admin_contract::admin_permission_values::AdminPermissionValues::try_from(
-            permissions,
-        )
-        .expect(constants_str::DIAGNOSTIC_9A38C3DA),
+        server_admin_contract::admin_rule_values::AdminRuleValues::try_from(rules)
+            .expect(constants_str::DIAGNOSTIC_9A38C3DA),
         server_admin_contract::admin_role_names::AdminRoleNames::try_from(Vec::new())
             .expect(constants_str::DIAGNOSTIC_3BBF55BF),
     );

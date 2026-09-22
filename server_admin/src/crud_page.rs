@@ -1,6 +1,6 @@
 pub(crate) async fn crud_page<View, Load, LoadFuture, Render>(
     admin_auth_request: crate::admin_auth_request::AdminAuthRequest,
-    permissions: &[server_admin_contract::admin_permission::AdminPermission],
+    rules: &[server_admin_contract::admin_rule::AdminRule],
     load: Load,
     render: Render,
 ) -> axum::response::Response
@@ -20,9 +20,7 @@ where
             ))
         }
         Ok((admin, branding, _password_change_required))
-            if permissions
-                .iter()
-                .any(|permission| bool::from(admin.has_permission(*permission))) =>
+            if rules.iter().any(|rule| bool::from(admin.has_rule(*rule))) =>
         {
             match load(admin_auth_request).await {
                 Ok(view) => {

@@ -64,7 +64,7 @@ impl RouteMetadata {
                 crate::route_access::RouteAccess::Public
             }
             crate::authentication_requirement::AuthenticationRequirement::Authenticated
-            | crate::authentication_requirement::AuthenticationRequirement::Permission(_) => {
+            | crate::authentication_requirement::AuthenticationRequirement::Rule(_) => {
                 crate::route_access::RouteAccess::Authenticated
             }
         }

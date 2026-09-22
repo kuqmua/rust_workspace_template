@@ -127,9 +127,10 @@ pub(crate) fn AdminSettingsView(
     }
     };
 
-    let can_update = bool::from(authenticated_admin.has_permission(
-        server_admin_contract::admin_permission::AdminPermission::SystemSettingsUpdate,
-    ));
+    let can_update = bool::from(
+        authenticated_admin
+            .has_rule(server_admin_contract::admin_rule::AdminRule::SystemSettingsUpdate),
+    );
     let values =
         crate::admin_settings_form_values::AdminSettingsFormValues::from(&admin_settings_view);
     let signals = crate::admin_settings_form_signals::AdminSettingsFormSignals::new(&values);

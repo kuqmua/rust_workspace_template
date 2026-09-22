@@ -32,42 +32,37 @@ fn password(str: &str) -> crate::runtime_admin_password::RuntimeAdminPassword {
     crate::runtime_admin_password::RuntimeAdminPassword::new(admin_secret(str))
 }
 #[test]
-fn test_permission_round_trip_is_exhaustive() {
-    server_admin_contract::admin_permission::AdminPermission::ALL
+fn test_rule_round_trip_is_exhaustive() {
+    server_admin_contract::admin_rule::AdminRule::ALL
         .into_iter()
-        .for_each(|permission| {
+        .for_each(|rule| {
             assert_eq!(
-                server_admin_contract::admin_permission::AdminPermission::try_from(
-                    permission.as_str().as_ref()
-                )
-                .expect(constants_str::DIAGNOSTIC_0F53B75C),
-                permission
+                server_admin_contract::admin_rule::AdminRule::try_from(rule.as_str().as_ref())
+                    .expect(constants_str::DIAGNOSTIC_0F53B75C),
+                rule
             );
         });
 }
 #[test]
-fn test_permission_serializes_as_public_contract_value() {
+fn test_rule_serializes_as_public_contract_value() {
     assert_eq!(
-        serde_json::to_string(&server_admin_contract::admin_permission::AdminPermission::UsersRead)
+        serde_json::to_string(&server_admin_contract::admin_rule::AdminRule::UsersRead)
             .expect(constants_str::DIAGNOSTIC_9A6B413E),
         constants_str::VALUE_6E7831EE
     );
 }
 #[test]
-fn test_unknown_permission_is_rejected() {
+fn test_unknown_rule_is_rejected() {
     assert_eq!(
-        server_admin_contract::admin_permission::AdminPermission::try_from(
-            constants_str::UNKNOWN_READ
-        )
-        .err(),
-        Some(server_admin_contract::admin_permission::AdminPermissionTryFromStrError)
+        server_admin_contract::admin_rule::AdminRule::try_from(constants_str::UNKNOWN_READ).err(),
+        Some(server_admin_contract::admin_rule::AdminRuleTryFromStrError)
     );
 }
 #[test]
 fn test_migration_inventory_is_not_empty() {
     let migrator = crate::migrator::migrator();
     let migrations = migrator.iter().collect::<Vec<_>>();
-    assert_eq!(migrations.len(), 2usize);
+    assert_eq!(migrations.len(), 3usize);
     assert!(
         migrations
             .iter()
@@ -75,17 +70,14 @@ fn test_migration_inventory_is_not_empty() {
     );
 }
 #[test]
-fn test_permission_seed_contains_the_complete_typed_catalog() {
+fn test_rule_seed_contains_the_complete_typed_catalog() {
     assert!(
-        server_admin_contract::admin_permission::AdminPermission::ALL
+        server_admin_contract::admin_rule::AdminRule::ALL
             .into_iter()
-            .all(|permission| {
-                crate::migrator::migrator().iter().any(|migration| {
-                    migration
-                        .sql
-                        .as_str()
-                        .contains(permission.as_str().as_ref())
-                })
+            .all(|rule| {
+                crate::migrator::migrator()
+                    .iter()
+                    .any(|migration| migration.sql.as_str().contains(rule.as_str().as_ref()))
             })
     );
 }

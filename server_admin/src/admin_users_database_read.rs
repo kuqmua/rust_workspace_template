@@ -15,7 +15,7 @@
     "db_table_name": "users",
     "create_exclude_fields": ["password_hash", "must_change_password", "created_at", "updated_at"],
     "read_exclude_fields": ["password_hash"],
-    "permission_prefix": "users",
+    "rule_prefix": "users",
     "read_page": {
         "search_columns": ["login", "display_name"],
         "response": "server_admin_contract::admin_data_table_view::AdminDataTableView",

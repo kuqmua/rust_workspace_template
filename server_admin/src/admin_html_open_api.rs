@@ -13,7 +13,7 @@ pub(crate) async fn admin_html_open_api(
             admin_auth_request.get_state().as_ref(),
             crate::http_admin_header_map_ref::HttpAdminHeaderMapRef::from(admin_auth_request.get_headers().as_ref()),
             *admin_auth_request.get_peer(),
-            server_admin_contract::admin_permission::AdminPermission::OpenApiRead.as_str(),
+            server_admin_contract::admin_rule::AdminRule::OpenApiRead.as_str(),
             server_admin_core::std_admin_bool::StdAdminBool::from(false),
         )
         .await;

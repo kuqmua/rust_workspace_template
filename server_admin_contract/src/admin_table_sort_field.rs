@@ -7,9 +7,9 @@ pub enum AdminTableSortField {
     AuditResource,
     AuditSucceeded,
     AuditUserId,
-    PermissionCreatedAt,
-    PermissionId,
-    PermissionName,
+    RuleCreatedAt,
+    RuleId,
+    RuleName,
     RoleId,
     RoleName,
     RoleSystem,
@@ -27,11 +27,7 @@ impl AdminTableSortField {
         Self::UserStatus,
     ];
     pub const ROLE: [Self; 3] = [Self::RoleName, Self::RoleId, Self::RoleSystem];
-    pub const PERMISSION: [Self; 3] = [
-        Self::PermissionName,
-        Self::PermissionId,
-        Self::PermissionCreatedAt,
-    ];
+    pub const RULE: [Self; 3] = [Self::RuleName, Self::RuleId, Self::RuleCreatedAt];
     pub const AUDIT: [Self; 5] = [
         Self::AuditCreatedAt,
         Self::AuditUserId,
@@ -63,8 +59,7 @@ impl AdminTableSortField {
     fn values(self) -> crate::admin_table_sort_values::AdminTableSortValues {
         let (key, label) = match self {
             Self::AuditAction => (constants_str::ACTION, constants_str::SHARED_VALUES_ACTION_2),
-            Self::AuditCreatedAt => (constants_str::CREATED_AT, constants_str::SHARED_VALUES_TIME),
-            Self::PermissionCreatedAt => {
+            Self::AuditCreatedAt | Self::RuleCreatedAt => {
                 (constants_str::CREATED_AT, constants_str::SHARED_VALUES_TIME)
             }
             Self::AuditResource => (
@@ -73,10 +68,10 @@ impl AdminTableSortField {
             ),
             Self::AuditSucceeded => (constants_str::SUCCEEDED, constants_str::RESULT),
             Self::AuditUserId => (constants_str::USER_ID, constants_str::SHARED_VALUES_USER),
-            Self::PermissionId | Self::RoleId | Self::UserId => {
+            Self::RuleId | Self::RoleId | Self::UserId => {
                 (constants_str::SQL_NAMES_ID, constants_str::ID)
             }
-            Self::PermissionName | Self::RoleName => {
+            Self::RuleName | Self::RoleName => {
                 (constants_str::NAME, constants_str::SHARED_VALUES_NAME_2)
             }
             Self::RoleSystem => (constants_str::SYSTEM, constants_str::SHARED_VALUES_SYSTEM_2),

@@ -5,7 +5,7 @@ package. It owns the shared Leptos components, server rendering, and browser app
 The server consumes this library directly; the old package and directory are removed.
 
 The native target renders the authenticated admin shell. The `wasm32` target renders the users,
-roles, permissions, sessions, profile, settings, and generated data-table pages in the browser.
+roles, rules, sessions, profile, settings, and generated data-table pages in the browser.
 Those pages read and mutate data exclusively through the typed JSON API rooted at the server origin.
 Sign-in, user and role management forms, and operational pages remain server-rendered.
 
@@ -96,66 +96,66 @@ and non-authentication server errors are not replayed. Full-page navigation reta
 server authentication policy: an expired access session redirects to sign-in.
 
 Role rows link to `/admin/roles/{role_id}` for read-only details: ID, name, system status,
-and assigned permissions. The existing roles read API filters by the path ID; list query
+and assigned rules. The existing roles read API filters by the path ID; list query
 parameters do not change the selected record. Missing records display `resource not found`.
 The public contract snapshot intentionally adds `AdminFrontendPath::RoleRead` and the
 role ID path parser, matching the existing user detail route.
 
-Role-permission assignment rows link to `/admin/role_permissions/{role_permission_id}`.
+Role-rule assignment rows link to `/admin/role_rules/{role_rule_id}`.
 The read-only page renders the fields from the typed table catalog and selects only the
 path ID, regardless of list query parameters. Missing records display `resource not found`;
-the existing role-permission read permission protects the page and API. The public contract
-adds `AdminRolePermissionId` and `AdminFrontendPath::RolePermissionRead`.
+the existing role-rule read rule protects the page and API. The public contract
+adds `AdminRoleRuleId` and `AdminFrontendPath::RoleRuleRead`.
 
 Refresh-token rows link to `/admin/refresh_tokens/{refresh_token_id}`. The read-only page
 renders the safe typed table catalog without the excluded token hash and selects only the
 UUID from the path, regardless of list query parameters. Missing records display
-`resource not found`; the existing refresh-token read permission protects the page and API.
+`resource not found`; the existing refresh-token read rule protects the page and API.
 The public contract adds `AdminRefreshTokenId` and `AdminFrontendPath::RefreshTokenRead`.
 
 Access-session rows link to `/admin/access_sessions/{access_session_id}`. The read-only page
 renders the safe typed table catalog without the excluded token, CSRF, and context hashes and
 selects only the UUID from the path, regardless of list query parameters. Missing records
-display `resource not found`; the existing access-session read permission protects the page
+display `resource not found`; the existing access-session read rule protects the page
 and API. The public contract adds `AdminAccessSessionId` and
 `AdminFrontendPath::AccessSessionRead`.
 
 Login-attempt rows link to `/admin/login_attempts/{login_attempt_id}`. The read-only page
 renders the fields from the typed table catalog and selects only the numeric path ID,
 regardless of list query parameters. Missing records display `resource not found`; the existing
-login-attempt read permission protects the page and API. The public contract adds
+login-attempt read rule protects the page and API. The public contract adds
 `AdminLoginAttemptId` and `AdminFrontendPath::LoginAttemptRead`.
 
 Audit-log rows link to `/admin/audit_log/{audit_log_id}`. The read-only page renders the
 readable fields from the typed audit catalog and selects only the numeric path ID, regardless
 of list query parameters. Missing records display `resource not found`; the existing audit-log
-read permission protects the page and API. The public contract adds
+read rule protects the page and API. The public contract adds
 `AdminFrontendPath::AuditLogRead` and path parsing to `AdminAuditLogId`.
 
 System-setting rows link to `/admin/system_settings/{system_setting_id}`. The read-only
 page renders the fields from the typed table catalog and selects only the numeric path ID,
 regardless of list query parameters. Missing records display `resource not found`; the existing
-system-settings read permission protects the page and API. The public contract adds
+system-settings read rule protects the page and API. The public contract adds
 `AdminSystemSettingId` and `AdminFrontendPath::SystemSettingRead`.
 
 Rate-limit rows link to `/admin/rate_limits/{id}` using the table's numeric primary key. The
-read-only page filters the typed table API by `id`; the existing rate-limits read permission
+read-only page filters the typed table API by `id`; the existing rate-limits read rule
 protects both the page and API. The public contract adds `AdminRateLimitId` and
 `AdminFrontendPath::RateLimitRead`.
 
 Cleanup-status rows link to `/admin/cleanup_status/{id}` using the table's numeric primary key.
 The read-only page filters the typed table API by `id`; the existing cleanup-status read
-permission protects both the page and API. The public contract adds `AdminCleanupStatusId` and
+rule protects both the page and API. The public contract adds `AdminCleanupStatusId` and
 `AdminFrontendPath::CleanupStatusRead`.
 
-Permission rows link to `/admin/permissions/{permission_id}` for read-only ID and name
+Rule rows link to `/admin/rules/{rule_id}` for read-only ID and name
 details, using the same page layout as users. List query parameters do not change the
-selected permission; missing records display `resource not found`. The public contract
-snapshot intentionally adds `AdminFrontendPath::PermissionRead` and the permission ID
+selected rule; missing records display `resource not found`. The public contract
+snapshot intentionally adds `AdminFrontendPath::RuleRead` and the rule ID
 path parser for this route.
 
 User-role assignment rows link to `/admin/user_roles/{user_role_id}`. The read-only
 page renders the fields from the typed table catalog (ID, user ID, role ID, and creation
 time) and selects only the path ID, regardless of list query parameters. Missing records
-display `resource not found`; the existing user-role read permission protects the page
+display `resource not found`; the existing user-role read rule protects the page
 and API. The public contract adds `AdminUserRoleId` and `AdminFrontendPath::UserRoleRead`.

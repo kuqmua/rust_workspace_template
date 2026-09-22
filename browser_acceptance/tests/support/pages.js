@@ -4,7 +4,7 @@ function page(name, path) {
 
 export const adminPages = Object.freeze({
   metrics: page("metrics", "/admin/metrics"),
-  permissions: page("permissions", "/admin/permissions"),
+  rules: page("rules", "/admin/rules"),
   profile: page("profile", "/admin/profile"),
   roles: page("roles", "/admin/roles"),
   sessions: page("sessions", "/admin/sessions"),
@@ -22,13 +22,13 @@ export const tablePages = Object.freeze([
   }),
   Object.freeze({
     ...adminPages.roles,
-    headers: Object.freeze(["id", "name", "system", "permissions", "actions"]),
+    headers: Object.freeze(["id", "name", "system", "rules", "actions"]),
     pagination: true,
     readOnly: true
   }),
   Object.freeze({
-    ...adminPages.permissions,
-    headers: Object.freeze(["id", "permission", "actions"]),
+    ...adminPages.rules,
+    headers: Object.freeze(["id", "rule", "actions"]),
     pagination: true,
     readOnly: true
   }),
@@ -43,7 +43,7 @@ export const tablePages = Object.freeze([
 export const dataTablePages = Object.freeze(
   [
     "user_roles",
-    "role_permissions",
+    "role_rules",
     "refresh_tokens",
     "access_sessions",
     "login_attempts",
@@ -67,7 +67,7 @@ export const dataTables = Object.freeze(
 export const dataNavigationPaths = Object.freeze([
   adminPages.users.path,
   adminPages.roles.path,
-  adminPages.permissions.path,
+  adminPages.rules.path,
   ...dataTablePages.map(value => value.path)
 ]);
 
@@ -89,7 +89,7 @@ export const serverRenderedPages = Object.freeze([
 export const primaryAdminPaths = Object.freeze([
   adminPages.users.path,
   adminPages.roles.path,
-  adminPages.permissions.path,
+  adminPages.rules.path,
   adminPages.sessions.path,
   adminPages.profile.path,
   adminPages.settings.path,

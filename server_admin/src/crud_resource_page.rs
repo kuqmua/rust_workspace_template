@@ -6,7 +6,7 @@ pub(crate) async fn crud_resource_page(
         crate::admin_crud_page::AdminCrudPage::UserCreate => {
             crate::crud_page::crud_page(
                 admin_auth_request,
-                &[server_admin_contract::admin_permission::AdminPermission::UsersCreate],
+                &[server_admin_contract::admin_rule::AdminRule::UsersCreate],
                 async |_auth| Ok(()),
                 |_view, admin, branding| {
                     frontend_admin::render_user_create::render_user_create(admin, branding)
@@ -18,8 +18,8 @@ pub(crate) async fn crud_resource_page(
             crate::crud_page::crud_page(
                 admin_auth_request,
                 &[
-                    server_admin_contract::admin_permission::AdminPermission::UsersUpdate,
-                    server_admin_contract::admin_permission::AdminPermission::UsersDelete,
+                    server_admin_contract::admin_rule::AdminRule::UsersUpdate,
+                    server_admin_contract::admin_rule::AdminRule::UsersDelete,
                 ],
                 |auth| {
                     crate::queries_users_page::queries_users_page(
@@ -36,7 +36,7 @@ pub(crate) async fn crud_resource_page(
         crate::admin_crud_page::AdminCrudPage::RoleCreate => {
             crate::crud_page::crud_page(
                 admin_auth_request,
-                &[server_admin_contract::admin_permission::AdminPermission::RolesCreate],
+                &[server_admin_contract::admin_rule::AdminRule::RolesCreate],
                 async |_auth| Ok(()),
                 |_view, admin, branding| {
                     frontend_admin::render_role_create::render_role_create(admin, branding)
@@ -59,7 +59,7 @@ pub(crate) async fn crud_resource_page(
             role_auth_request.get_state().as_ref(),
             crate::http_admin_header_map_ref::HttpAdminHeaderMapRef::from(role_auth_request.get_headers().as_ref()),
             *role_auth_request.get_peer(),
-            server_admin_contract::admin_permission::AdminPermission::RolesRead.as_str(),
+            server_admin_contract::admin_rule::AdminRule::RolesRead.as_str(),
             server_admin_core::std_admin_bool::StdAdminBool::from(false),
         )
         .await?;
@@ -139,8 +139,8 @@ pub(crate) async fn crud_resource_page(
             crate::crud_page::crud_page(
                 admin_auth_request,
                 &[
-                    server_admin_contract::admin_permission::AdminPermission::RolesUpdate,
-                    server_admin_contract::admin_permission::AdminPermission::RolesDelete,
+                    server_admin_contract::admin_rule::AdminRule::RolesUpdate,
+                    server_admin_contract::admin_rule::AdminRule::RolesDelete,
                 ],
                 |auth| {
                     queries_roles_page(

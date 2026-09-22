@@ -14,7 +14,7 @@
     "api_mode": "ReadOnly",
     "db_table_name": "rate_limits",
     "create_exclude_fields": ["window_started_at"],
-    "permission_prefix": "rate_limits",
+    "rule_prefix": "rate_limits",
     "tests_write_into_file": "False",
     "common_write_into_file": "False",
     "whole_write_into_file": "False"

@@ -1,0 +1,30 @@
+#[derive(
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Debug,
+    serde::Serialize,
+    proc_macro_newtype_utoipa_schema::UtoipaSchema,
+    proc_macro_newtype_as_ref_target::AsRefTarget,
+    proc_macro_newtype_from_inner::FromInner,
+    proc_macro_newtype_into_inner_from::IntoInnerFrom,
+)]
+#[serde(transparent)]
+#[derive(proc_macro_getters::Getters)]
+pub(crate) struct AdminAuthRules(
+    bounded_types::bounded_vec::BoundedVec<
+        server_admin_contract::admin_rule::AdminRule,
+        0,
+        { crate::admin_auth_collection_max_len::ADMIN_AUTH_COLLECTION_MAX_LEN },
+    >,
+);
+
+impl TryFrom<Vec<server_admin_contract::admin_rule::AdminRule>> for AdminAuthRules {
+    type Error = crate::admin_auth_collection_error::AdminAuthCollectionError;
+    fn try_from(
+        value: Vec<server_admin_contract::admin_rule::AdminRule>,
+    ) -> Result<Self, Self::Error> {
+        bounded_types::bounded_vec::BoundedVec::try_from(value)
+            .map(Self::from)
+            .map_err(crate::admin_auth_collection_error::AdminAuthCollectionError::from)
+    }
+}

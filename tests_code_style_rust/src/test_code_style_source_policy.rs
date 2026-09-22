@@ -3679,7 +3679,7 @@ fn test_str_constants_does_not_own_typed_domain_values() {
         concat!("ADMIN_API_", "PATHS_"),
         concat!("ADMIN_", "OPERATION_"),
         concat!("ADMIN_PAGE_", "PATHS_"),
-        concat!("ADMIN_PERMISSION_", "VALUES_"),
+        concat!("ADMIN_RULE_", "VALUES_"),
     ]
     .into_iter()
     .filter(|prefix| source.contains(prefix))

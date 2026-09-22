@@ -28,9 +28,9 @@ pub(super) fn page_render_with_table_access(
             .into_iter()
             .filter(|table| {
                 admin.is_none_or(|value| {
-                    bool::from(value.has_permission(
-                        server_admin_contract::admin_permission::AdminPermission::TablesRead,
-                    )) && bool::from(value.has_permission(table.permission()))
+                    bool::from(value.has_rule(
+                        server_admin_contract::admin_rule::AdminRule::TablesRead,
+                    )) && bool::from(value.has_rule(table.rule()))
                 })
             })
             .map(|table| {

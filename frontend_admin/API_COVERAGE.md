@@ -2,12 +2,12 @@
 
 The typed registry in `server_admin/src/admin_auth_route_registry.rs` registers 30 API
 operations. Paths below are rooted at the server origin. The frontend must follow the route,
-permission, request, and table catalogs in `server_admin_contract`.
+rule, request, and table catalogs in `server_admin_contract`.
 
 Generated read APIs use the configured database resource name in their URL, independently
 of the Rust type name. The users list and record pages use the direct database projection at `/users/read` and its corresponding
-`*_payload_example` route. The same rule applies to `roles`, `permissions`,
-`system_settings`, and `role_permissions`; these paths have no `admin_` prefix. Single-record reads use a primary-key equality
+`*_payload_example` route. The same rule applies to `roles`, `rules`,
+`system_settings`, and `role_rules`; these paths have no `admin_` prefix. Single-record reads use a primary-key equality
 filter with a limit of one and offset zero. Missing records return empty items.
 The table generator exposes reads through `read`; `read_one` and `read_one_payload_example` have been removed from every API mode.
 Mutations use `create_many`, `update`, and `delete_many`; the corresponding `_one` routes and payload examples have been removed. Single-record creation submits a one-element array. Single-record updates submit a one-element array keyed by the primary key; deletions use an equality filter on the primary key. Revision-aware bulk updates require `If-Match` and roll back the entire batch if any key is missing or its revision does not match.
@@ -22,7 +22,7 @@ below covers user-visible workflows and direct API behavior.
 | POST `/auth/sign_in` | Sign-in form; server-rendered HTML adapter |
 | POST `/auth/sign_out` | Navigation sign-out action |
 | POST `/auth/refresh` | CSR reads and mutations recover expired access/CSRF cookies with one refresh and one retry; full-page requests preserve the server sign-in redirect |
-| GET `/auth/me/read` | Authenticated shell permissions and profile |
+| GET `/auth/me/read` | Authenticated shell rules and profile |
 | POST `/auth/password` | Profile password form and mandatory initial password replacement |
 | GET `/auth/sessions` | Sessions page |
 | DELETE `/auth/sessions/{session_id}` | Per-session confirmation dialog |
@@ -32,20 +32,20 @@ below covers user-visible workflows and direct API behavior.
 | POST `/users/create` | Create-user page; server-rendered HTML adapter |
 | PATCH `/users/update` | Atomic batch updates through the typed API; uses the same user validation, administrator protection, audit, and session revocation as single-user updates |
 | DELETE `/users/delete` | Atomic deletion of users matching a required filter |
-| POST `/roles/read` | Roles list plus the permission catalog; an optional `permissions_query` adds permission search, sorting, pagination, and an independent total count |
+| POST `/roles/read` | Roles list plus the rule catalog; an optional `rules_query` adds rule search, sorting, pagination, and an independent total count |
 | POST `/roles/create` | Atomic creation of multiple roles through the typed API |
-| PATCH `/roles/update` | Atomic name and permission updates through the typed API |
+| PATCH `/roles/update` | Atomic name and rule updates through the typed API |
 | DELETE `/roles/delete` | Atomic deletion of non-system roles matching a required filter |
 | POST `/audit_log/read` | Audit table page uses the generated typed read endpoint; browser coverage also verifies redacted mutation records |
 | POST `/user_roles/read` | User-role assignments table with JSON filters and pagination |
-| POST `/role_permissions/read` | Role-permission assignments table with JSON filters and pagination |
+| POST `/role_rules/read` | Role-rule assignments table with JSON filters and pagination |
 | GET `/system_settings/read` | Settings form |
 | POST `/system_settings/read` | Generated typed database-table read with search, filters, ordering, pagination, and total count |
 | PATCH `/system_settings/update` | Save settings and reset supported settings to defaults |
 | GET `/branding/read` | Shared branding in server-rendered pages |
 | GET `/tables/read` | Catalog defines available database views; navigation follows the shared table specification |
 
-The 12 table views are `users`, `roles`, `permissions`, `user_roles`, `role_permissions`,
+The 12 table views are `users`, `roles`, `rules`, `user_roles`, `role_rules`,
 `refresh_tokens`, `access_sessions`, `login_attempts`, `audit_log`, `system_settings`,
 `rate_limits`, and `cleanup_status`. Their table API is read-only except for the dedicated
 `DELETE /access_sessions/delete` operation. Account and role mutations
@@ -56,7 +56,7 @@ The HTML user and role actions are registered in
 `server_admin/src/admin_html_user_action_route_registry.rs` and
 `server_admin/src/admin_html_role_action_route_registry.rs`. Their forms are rendered by
 `render_user_create`, `render_user_manage`, `render_role_create`, and `render_role_manage`.
-Permission checks must govern both navigation visibility and each mutation control.
+Rule checks must govern both navigation visibility and each mutation control.
 
 Browser acceptance covers navigation and CRUD workflows in `admin.spec.js`, page/catalog
 coverage in `page-coverage.spec.js`, security and direct API behavior in
@@ -77,7 +77,7 @@ content cap. Updated asset version queries invalidate cached loaders and styles.
 
 The audit download uses the typed export route and current pagination. Browser tests
 verify that the downloaded CSV matches the API response, excludes submitted passwords,
-and is unavailable without export permission. Disabled destructive controls have no
+and is unavailable without export rule. Disabled destructive controls have no
 dialog trigger. The settings failure test verifies preserved input and no mutation replay.
 
 CSR requests recover expired access and CSRF cookies with at most one refresh and one
@@ -102,11 +102,11 @@ Verification passed:
 Database integration also verified two corrections discovered during acceptance:
 administrator initialization creates the shared `pg_table_idempotency` schema under a
 transaction lock, and session revocation timestamps preserve creation-time constraints.
-User, role, and permission sorting follows the API's ascending/descending wire values.
+User, role, and rule sorting follows the API's ascending/descending wire values.
 
 The table views for `user_roles`, `refresh_tokens`, `login_attempts`,
 `rate_limits`, and `cleanup_status` retain GET routes at `/{resource}/read`.
-`access_sessions` and `role_permissions` use generated POST query contracts.
+`access_sessions` and `role_rules` use generated POST query contracts.
 Their former `/tables/{resource}` paths are rejected.
 
 The `changes` object in `PATCH /users/update` accepts optional `display_name`, `login`, `is_banned`, `password`,
@@ -218,7 +218,7 @@ is removed; the HTML assignment form uses the shared update workflow.
 
 `GET /roles` has been removed. Use `POST /roles/read` with the generated selection,
 filter, ordering, search, and pagination body. The response contains `items`,
-`permissions`, and `total`; every selected row includes its `permission_ids`.
+`rules`, and `total`; every selected row includes its `rule_ids`.
 The role name search is case-insensitive. Reading requires `RolesRead` and a valid
 session. Role creation uses `POST /roles/create`.
 

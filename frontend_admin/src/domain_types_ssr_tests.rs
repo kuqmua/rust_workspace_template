@@ -10,7 +10,7 @@ pub(crate) fn test_admin() -> server_admin_contract::authenticated_admin::Authen
             constants_str::VALUE_2BD806C9,
         ))
         .expect(constants_str::DIAGNOSTIC_D5810A3F),
-        server_admin_contract::admin_permission_values::AdminPermissionValues::try_from(Vec::new())
+        server_admin_contract::admin_rule_values::AdminRuleValues::try_from(Vec::new())
             .expect(constants_str::DIAGNOSTIC_8E2C74B1),
         server_admin_contract::admin_role_names::AdminRoleNames::try_from(vec![
             server_admin_contract::admin_role_name::AdminRoleName::try_from(String::from(

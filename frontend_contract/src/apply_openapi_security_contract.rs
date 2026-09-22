@@ -9,7 +9,7 @@ pub fn apply_openapi_security_contract<Route>(
     operation.security = match metadata.authentication() {
         crate::authentication_requirement::AuthenticationRequirement::Public => None,
         crate::authentication_requirement::AuthenticationRequirement::Authenticated
-        | crate::authentication_requirement::AuthenticationRequirement::Permission(_) => {
+        | crate::authentication_requirement::AuthenticationRequirement::Rule(_) => {
             let requirement = utoipa::openapi::security::SecurityRequirement::new(
                 authenticated_scheme.get(),
                 std::iter::empty::<&str>(),

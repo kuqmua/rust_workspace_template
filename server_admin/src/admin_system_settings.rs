@@ -14,7 +14,7 @@
     "api_mode": "ReadOnly",
     "db_table_name": "system_settings",
     "create_exclude_fields": ["updated_at"],
-    "permission_prefix": "system_settings",
+    "rule_prefix": "system_settings",
     "read_page": {
         "search_columns": ["site_name", "tab_title", "organization_name", "organization_contacts", "support_url"],
         "response": "server_admin_contract::admin_data_table_view::AdminDataTableView",

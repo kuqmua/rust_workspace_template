@@ -96,18 +96,6 @@ pub mod admin_parameterized_route_path;
 pub mod admin_password;
 pub mod admin_password_entropy;
 pub mod admin_path_route_name;
-pub mod admin_permission;
-pub mod admin_permission_id;
-pub mod admin_permission_ids;
-pub mod admin_permission_requirement;
-pub mod admin_permission_str_ref;
-pub mod admin_permission_summaries;
-pub mod admin_permission_summary;
-pub mod admin_permission_timestamp;
-pub mod admin_permission_value;
-pub mod admin_permission_values;
-pub mod admin_permissions_page;
-pub mod admin_permissions_read_request;
 pub mod admin_primary_color;
 pub mod admin_rate_limit_id;
 pub mod admin_rate_limits_table_route;
@@ -120,13 +108,13 @@ pub mod admin_read_audit_log_route;
 pub mod admin_read_audit_log_selection;
 pub mod admin_read_field;
 pub mod admin_read_page;
-pub mod admin_read_permission_column;
-pub mod admin_read_permission_order;
-pub mod admin_read_permission_selection;
-pub mod admin_read_permissions_route;
-pub mod admin_read_role_permission_column;
-pub mod admin_read_role_permission_order;
-pub mod admin_read_role_permission_selection;
+pub mod admin_read_role_rule_column;
+pub mod admin_read_role_rule_order;
+pub mod admin_read_role_rule_selection;
+pub mod admin_read_rule_column;
+pub mod admin_read_rule_order;
+pub mod admin_read_rule_selection;
+pub mod admin_read_rules_route;
 pub mod admin_read_system_settings_column;
 pub mod admin_read_system_settings_order;
 pub mod admin_read_system_settings_route;
@@ -144,9 +132,9 @@ pub mod admin_role_id;
 pub mod admin_role_ids;
 pub mod admin_role_name;
 pub mod admin_role_names;
-pub mod admin_role_permission_id;
-pub mod admin_role_permissions_read_request;
-pub mod admin_role_permissions_table_route;
+pub mod admin_role_rule_id;
+pub mod admin_role_rules_read_request;
+pub mod admin_role_rules_table_route;
 pub mod admin_role_summaries;
 pub mod admin_role_summary;
 pub mod admin_role_timestamp;
@@ -154,6 +142,18 @@ pub mod admin_roles_page;
 pub mod admin_route;
 pub mod admin_route_path;
 pub mod admin_route_path_error;
+pub mod admin_rule;
+pub mod admin_rule_id;
+pub mod admin_rule_ids;
+pub mod admin_rule_requirement;
+pub mod admin_rule_str_ref;
+pub mod admin_rule_summaries;
+pub mod admin_rule_summary;
+pub mod admin_rule_timestamp;
+pub mod admin_rule_value;
+pub mod admin_rule_values;
+pub mod admin_rules_page;
+pub mod admin_rules_read_request;
 pub mod admin_selected_value;
 pub mod admin_session_identifier;
 pub mod admin_session_timestamp;
@@ -161,7 +161,7 @@ pub mod admin_session_view;
 pub mod admin_session_views;
 pub mod admin_sessions_page;
 pub mod admin_sessions_route;
-pub mod admin_set_role_permissions_request;
+pub mod admin_set_role_rules_request;
 pub mod admin_setting;
 pub mod admin_setting_input_kind;
 pub mod admin_setting_label;
@@ -224,10 +224,10 @@ pub mod authenticated_admin;
 #[cfg(test)]
 mod test_authorization_catalog_tests {
     #[test]
-    fn test_user_table_requires_user_read_permission() {
+    fn test_user_table_requires_user_read_rule() {
         assert_eq!(
-            crate::admin_data_table::AdminDataTable::Users.permission(),
-            crate::admin_permission::AdminPermission::UsersRead,
+            crate::admin_data_table::AdminDataTable::Users.rule(),
+            crate::admin_rule::AdminRule::UsersRead,
         );
     }
 }

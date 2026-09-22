@@ -2,7 +2,7 @@ pub(crate) async fn authorization_authorize_generated_request(
     admin_auth_svc_state: &crate::admin_auth_svc_state::AdminAuthSvcState,
     http_admin_header_map_ref: crate::http_admin_header_map_ref::HttpAdminHeaderMapRef<'_>,
     admin_peer_addr: crate::admin_peer_addr::AdminPeerAddr,
-    admin_permission_str_ref: server_admin_contract::admin_permission_str_ref::AdminPermissionStrRef<'_>,
+    admin_rule_str_ref: server_admin_contract::admin_rule_str_ref::AdminRuleStrRef<'_>,
     std_admin_bool: server_admin_core::std_admin_bool::StdAdminBool,
 ) -> Result<
     crate::runtime_authenticated_admin::RuntimeAuthenticatedAdmin,
@@ -17,15 +17,10 @@ pub(crate) async fn authorization_authorize_generated_request(
     if **authenticated.get_password_change_required() {
         return Err(crate::admin_error::AdminError::Authorization);
     }
-    let required_permission = server_admin_contract::admin_permission::AdminPermission::try_from(
-        admin_permission_str_ref.as_ref(),
-    )
-    .map_err(|_error| crate::admin_error::AdminError::Authorization)?;
-    if !authenticated
-        .get_permissions()
-        .as_ref()
-        .contains(&required_permission)
-    {
+    let required_rule =
+        server_admin_contract::admin_rule::AdminRule::try_from(admin_rule_str_ref.as_ref())
+            .map_err(|_error| crate::admin_error::AdminError::Authorization)?;
+    if !authenticated.get_rules().as_ref().contains(&required_rule) {
         return Err(crate::admin_error::AdminError::Authorization);
     }
     if std_admin_bool.get() {

@@ -14,9 +14,10 @@ pub fn render_admin_settings_page(
     let values =
         crate::admin_settings_form_values::AdminSettingsFormValues::from(admin_settings_view);
     let signals = crate::admin_settings_form_signals::AdminSettingsFormSignals::new(&values);
-    let can_update = bool::from(authenticated_admin.has_permission(
-        server_admin_contract::admin_permission::AdminPermission::SystemSettingsUpdate,
-    ));
+    let can_update = bool::from(
+        authenticated_admin
+            .has_rule(server_admin_contract::admin_rule::AdminRule::SystemSettingsUpdate),
+    );
     let content_view = leptos::view! {
         <section class="settings-grid"><crate::admin_card::AdminCard admin_card_variant=crate::admin_card_variant::AdminCardVariant::Settings>
         {can_update.then(|| leptos::view! { <form class="settings-form" method="post" action=server_admin_contract::admin_html_action::AdminHtmlAction::SettingsUpdate.get()>

@@ -75,13 +75,13 @@ pub(crate) fn AdminDataGrid(
     let is_users = admin_data_table_view.table()
         == server_admin_contract::admin_data_table::AdminDataTable::Users;
     let create_user = (is_users
-        && bool::from(authenticated_admin.has_permission(
-            server_admin_contract::admin_permission::AdminPermission::UsersCreate,
+        && bool::from(authenticated_admin.has_rule(
+            server_admin_contract::admin_rule::AdminRule::UsersCreate,
         )))
     .then(|| {
         leptos::view! {
             <div class="resource-actions">
-                <crate::admin_button_link::AdminButtonLink str=server_admin_contract::admin_frontend_path::AdminFrontendPath::UsersCreate.get()>{constants_str::PG_CRUD_CREATE_PERMISSION_ACTION}</crate::admin_button_link::AdminButtonLink>
+                <crate::admin_button_link::AdminButtonLink str=server_admin_contract::admin_frontend_path::AdminFrontendPath::UsersCreate.get()>{constants_str::PG_CRUD_CREATE_RULE_ACTION}</crate::admin_button_link::AdminButtonLink>
             </div>
         }
     });

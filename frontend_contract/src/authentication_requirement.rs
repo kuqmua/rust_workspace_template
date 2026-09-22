@@ -3,6 +3,6 @@
 )]
 pub enum AuthenticationRequirement {
     Authenticated,
-    Permission(crate::contract_str::ContractStr),
+    Rule(crate::contract_str::ContractStr),
     Public,
 }

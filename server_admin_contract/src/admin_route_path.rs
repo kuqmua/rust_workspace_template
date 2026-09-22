@@ -111,12 +111,12 @@ impl From<crate::admin_role_id::AdminRoleId> for AdminRoutePath {
     }
 }
 
-impl From<crate::admin_permission_id::AdminPermissionId> for AdminRoutePath {
-    fn from(value: crate::admin_permission_id::AdminPermissionId) -> Self {
+impl From<crate::admin_rule_id::AdminRuleId> for AdminRoutePath {
+    fn from(value: crate::admin_rule_id::AdminRuleId) -> Self {
         Self(
             format!(
                 "{}/{}",
-                crate::admin_frontend_path::AdminFrontendPath::Permissions.get(),
+                crate::admin_frontend_path::AdminFrontendPath::Rules.get(),
                 value
             )
             .into_boxed_str(),
@@ -137,12 +137,12 @@ impl From<crate::admin_user_role_id::AdminUserRoleId> for AdminRoutePath {
     }
 }
 
-impl From<crate::admin_role_permission_id::AdminRolePermissionId> for AdminRoutePath {
-    fn from(value: crate::admin_role_permission_id::AdminRolePermissionId) -> Self {
+impl From<crate::admin_role_rule_id::AdminRoleRuleId> for AdminRoutePath {
+    fn from(value: crate::admin_role_rule_id::AdminRoleRuleId) -> Self {
         Self(
             format!(
                 "{}/{}",
-                crate::admin_data_table::AdminDataTable::RolePermissions.frontend_path(),
+                crate::admin_data_table::AdminDataTable::RoleRules.frontend_path(),
                 value
             )
             .into_boxed_str(),

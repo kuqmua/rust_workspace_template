@@ -19,7 +19,7 @@
         {"columns": ["user_id"], "referenced_columns": ["id"], "referenced_table": "users"}
     ],
     "db_unique_keys": [["token_identifier_hash"]],
-    "permission_prefix": "access_sessions",
+    "rule_prefix": "access_sessions",
     "read_page": {
         "search_columns": [],
         "response": "server_admin_contract::admin_data_table_view::AdminDataTableView",

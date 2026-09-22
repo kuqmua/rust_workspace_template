@@ -87,7 +87,7 @@ pub(crate) async fn user_mutations_update_filtered(
 };
     let actor = crate::authorize_custom::authorize_custom(
         &admin_auth_request,
-        server_admin_contract::admin_permission::AdminPermission::UsersUpdate,
+        server_admin_contract::admin_rule::AdminRule::UsersUpdate,
     )
     .await?;
     let updates = admin_user_update_slice.as_ref();
@@ -115,7 +115,7 @@ pub(crate) async fn user_mutations_update_filtered(
     {
         let _role_actor = crate::authorize_custom::authorize_custom(
             &admin_auth_request,
-            server_admin_contract::admin_permission::AdminPermission::UserRolesUpdate,
+            server_admin_contract::admin_rule::AdminRule::UserRolesUpdate,
         )
         .await?;
     }

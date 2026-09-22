@@ -6,7 +6,7 @@ pub(crate) enum AdminPageTitle {
     Health,
     Api,
     Metrics,
-    Permissions,
+    Rules,
     Profile,
     Roles,
     Sessions,

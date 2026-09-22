@@ -202,14 +202,14 @@ pub fn emit_generate_pg_table(
                 },
                 match operation {
                     Operation::CreateMany => {
-                        constants_str::PG_CRUD_CREATE_PERMISSION_ACTION
+                        constants_str::PG_CRUD_CREATE_RULE_ACTION
                     }
-                    Operation::Read => constants_str::PG_CRUD_READ_PERMISSION_ACTION,
+                    Operation::Read => constants_str::PG_CRUD_READ_RULE_ACTION,
                     Operation::Update => {
-                        constants_str::PG_CRUD_UPDATE_PERMISSION_ACTION
+                        constants_str::PG_CRUD_UPDATE_RULE_ACTION
                     }
                     Operation::DeleteMany => {
-                        constants_str::PG_CRUD_DELETE_PERMISSION_ACTION
+                        constants_str::PG_CRUD_DELETE_RULE_ACTION
                     }
                 },
                 operation.desirable_status_code(),
@@ -307,7 +307,7 @@ pub fn emit_generate_pg_table(
         #[serde(default)]
         read_page: Option<GeneratePgTableReadPageConfig>,
         #[serde(default)]
-        permission_prefix: Option<String>,
+        rule_prefix: Option<String>,
         #[serde(default)]
         um_max_items: Option<StdBulkItemsMax>,
         #[serde(default)]
@@ -759,7 +759,7 @@ pub fn emit_generate_pg_table(
                 ),
             );
         }
-        if config.permission_prefix.as_ref().is_some_and(|prefix| {
+        if config.rule_prefix.as_ref().is_some_and(|prefix| {
             prefix.is_empty()
                 || !prefix
                     .bytes()
@@ -4810,7 +4810,7 @@ enum WrapIntoOptional {
         };
         let (open_api_security_token_stream, open_api_auth_responses_token_stream) = generate_pg_table_input_model
             .config
-            .permission_prefix
+            .rule_prefix
             .as_ref()
             .map_or_else(
                 || (proc_macro2::TokenStream::new(), proc_macro2::TokenStream::new()),
@@ -4826,7 +4826,7 @@ enum WrapIntoOptional {
                         },
                         quote::quote! {
                             add_problem_response("401", "Authentication is required");
-                            add_problem_response("403", "Required permission is missing");
+                            add_problem_response("403", "Required rule is missing");
                             add_problem_response("409", "Resource state conflict");
                             add_problem_response("422", "Request validation failed");
                             add_problem_response("429", "Request rate limit exceeded");
@@ -6886,38 +6886,42 @@ enum WrapIntoOptional {
         .iter()
         .filter(|operation_descriptor| operation_is_enabled(operation_descriptor.get_operation()))
         .map(|operation_descriptor| {
-            let operation = quote::format_ident!("{}", operation_descriptor.get_operation().to_string());
+            let operation =
+                quote::format_ident!("{}", operation_descriptor.get_operation().to_string());
             let http_method =
                 match crate::route_http_method::route_http_method(operation_descriptor) {
-                OperationHttpMethod::Post => quote::format_ident!("Post"),
-                OperationHttpMethod::Patch => quote::format_ident!("Patch"),
-                OperationHttpMethod::Delete => quote::format_ident!("Delete"),
-            };
-            let success_status = if crate::route_success_status::route_success_status(operation_descriptor)
-                == macro_helpers::status_code::StatusCode::Created201
-            {
-                quote::format_ident!("Code201")
-            } else {
-                quote::format_ident!("Code200")
-            };
+                    OperationHttpMethod::Post => quote::format_ident!("Post"),
+                    OperationHttpMethod::Patch => quote::format_ident!("Patch"),
+                    OperationHttpMethod::Delete => quote::format_ident!("Delete"),
+                };
+            let success_status =
+                if crate::route_success_status::route_success_status(operation_descriptor)
+                    == macro_helpers::status_code::StatusCode::Created201
+                {
+                    quote::format_ident!("Code201")
+                } else {
+                    quote::format_ident!("Code200")
+                };
             let idempotency_required = generate_pg_table_input_model.config.idempotent_mutations
-                && bool::from(crate::idempotency_capable::idempotency_capable(operation_descriptor));
-            let optimistic_revision_required = optimistic_revision_field_index.is_some()
-                && bool::from(crate::optimistic_concurrency_capable::optimistic_concurrency_capable(
+                && bool::from(crate::idempotency_capable::idempotency_capable(
                     operation_descriptor,
                 ));
+            let optimistic_revision_required = optimistic_revision_field_index.is_some()
+                && bool::from(
+                    crate::optimistic_concurrency_capable::optimistic_concurrency_capable(
+                        operation_descriptor,
+                    ),
+                );
             let authentication = generate_pg_table_input_model
                 .config
-                .permission_prefix
+                .rule_prefix
                 .as_ref()
                 .map_or_else(
                     || quote::quote! {#identifier_auth_requirement_upper_camel_case::Public},
-                    |permission_prefix| {
-                        let permission = format!(
-                            "{permission_prefix}:{}",
-                            operation_descriptor.get_permission_action()
-                        );
-                        quote::quote! {#identifier_auth_requirement_upper_camel_case::Permission(#permission)}
+                    |rule_prefix| {
+                        let rule =
+                            format!("{rule_prefix}:{}", operation_descriptor.get_rule_action());
+                        quote::quote! {#identifier_auth_requirement_upper_camel_case::Rule(#rule)}
                     },
                 );
             quote::quote! {
@@ -6970,7 +6974,7 @@ enum WrapIntoOptional {
     let identifier_route_contract_token_stream = quote::quote! {
         #[derive(Clone, Copy, Debug, Eq, PartialEq)]
         pub enum #identifier_auth_requirement_upper_camel_case {
-            Permission(&'static str),
+            Rule(&'static str),
             Public,
         }
         #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -7058,7 +7062,7 @@ enum WrapIntoOptional {
             #[must_use]
             pub fn frontend_contract(self) -> frontend_contract::route_contract::RouteContract {
                 let authentication = match self.authentication {
-                    #identifier_auth_requirement_upper_camel_case::Permission(permission) => frontend_contract::authentication_requirement::AuthenticationRequirement::Permission(frontend_contract::contract_str::ContractStr::from(permission)),
+                    #identifier_auth_requirement_upper_camel_case::Rule(rule) => frontend_contract::authentication_requirement::AuthenticationRequirement::Rule(frontend_contract::contract_str::ContractStr::from(rule)),
                     #identifier_auth_requirement_upper_camel_case::Public => frontend_contract::authentication_requirement::AuthenticationRequirement::Public,
                 };
                 let method = match self.http_method {
@@ -7115,9 +7119,9 @@ enum WrapIntoOptional {
                 }
             }
             #[must_use]
-            pub const fn permission(self) -> Option<&'static str> {
+            pub const fn rule(self) -> Option<&'static str> {
                 match self.authentication {
-                    #identifier_auth_requirement_upper_camel_case::Permission(permission) => Some(permission),
+                    #identifier_auth_requirement_upper_camel_case::Rule(rule) => Some(rule),
                     #identifier_auth_requirement_upper_camel_case::Public => None,
                 }
             }
@@ -7247,7 +7251,7 @@ enum WrapIntoOptional {
         .collect::<Vec<_>>();
     let open_api_security_schemes_token_stream = generate_pg_table_input_model
         .config
-        .permission_prefix
+        .rule_prefix
         .as_ref()
         .map_or_else(proc_macro2::TokenStream::new, |_| {
             quote::quote! {
@@ -7412,14 +7416,14 @@ enum WrapIntoOptional {
     let generated_contract_tests_candidate_token_stream = {
         let route_auth_assertion_token_stream = generate_pg_table_input_model
             .config
-            .permission_prefix
+            .rule_prefix
             .as_ref()
             .map_or_else(
                 || quote::quote! {
                     assert!(#identifier_route_contract_upper_camel_case::ALL.into_iter().all(|contract| contract.authentication() == #identifier_auth_requirement_upper_camel_case::Public));
                 },
                 |_| quote::quote! {
-                    assert!(#identifier_route_contract_upper_camel_case::ALL.into_iter().all(|contract| matches!(contract.authentication(), #identifier_auth_requirement_upper_camel_case::Permission(_))));
+                    assert!(#identifier_route_contract_upper_camel_case::ALL.into_iter().all(|contract| matches!(contract.authentication(), #identifier_auth_requirement_upper_camel_case::Rule(_))));
                 },
             );
         let api_mode_assertion_token_stream = match generate_pg_table_input_model.config.api_mode {
@@ -7512,7 +7516,7 @@ enum WrapIntoOptional {
             let method = match crate::route_http_method::route_http_method(operation_descriptor) {
                 OperationHttpMethod::Post => constants_str::POST_ALT,
                 OperationHttpMethod::Patch => constants_str::PATCH_ALT,
-                OperationHttpMethod::Delete => constants_str::PG_CRUD_DELETE_PERMISSION_ACTION,
+                OperationHttpMethod::Delete => constants_str::PG_CRUD_DELETE_RULE_ACTION,
             };
             let success_status = if crate::route_success_status::route_success_status(operation_descriptor)
                 == macro_helpers::status_code::StatusCode::Created201

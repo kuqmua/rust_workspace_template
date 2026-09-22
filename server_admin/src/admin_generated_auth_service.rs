@@ -35,13 +35,13 @@ where
                 .find_map(|table| {
                     table.route_contract(server_admin_core::std_admin_str_ref::StdAdminStrRef::from(path.as_str()))
                 })
-                .map(|contract| (contract.permission(), contract.mutates(), contract.method()))
+                .map(|contract| (contract.rule(), contract.mutates(), contract.method()))
                 .or_else(|| {
                     (path.as_str() == server_admin_contract::admin_route::AdminRoute::OpenApi.contract().path().as_ref()
                         || path.as_str() == server_admin_contract::admin_frontend_path::AdminFrontendPath::OpenApiDocument.get())
                     .then_some((
                         Some(server_admin_core::std_admin_str_ref::StdAdminStrRef::from(
-                            server_admin_contract::admin_permission::AdminPermission::OpenApiRead
+                            server_admin_contract::admin_rule::AdminRule::OpenApiRead
                                 .as_str()
                                 .get(),
                         )),
@@ -54,7 +54,7 @@ where
                         || path.as_str() == server_admin_contract::admin_frontend_path::AdminFrontendPath::Metrics.get())
                     .then_some((
                         Some(server_admin_core::std_admin_str_ref::StdAdminStrRef::from(
-                            server_admin_contract::admin_permission::AdminPermission::MetricsRead
+                            server_admin_contract::admin_rule::AdminRule::MetricsRead
                                 .as_str()
                                 .get(),
                         )),
@@ -62,7 +62,7 @@ where
                         frontend_contract::route_method::RouteMethod::Get,
                     ))
                 });
-            let Some((Some(permission), mutates, method)) = contract else {
+            let Some((Some(rule), mutates, method)) = contract else {
                 return Ok(axum::response::IntoResponse::into_response(
                     crate::admin_error::AdminError::Authorization,
                 ));
@@ -108,8 +108,8 @@ where
                     state.as_ref(),
                     crate::http_admin_header_map_ref::HttpAdminHeaderMapRef::from(request.headers()),
                     peer,
-                    server_admin_contract::admin_permission_str_ref::AdminPermissionStrRef::from(
-                        permission.get(),
+                    server_admin_contract::admin_rule_str_ref::AdminRuleStrRef::from(
+                        rule.get(),
                     ),
                     mutates,
                 )

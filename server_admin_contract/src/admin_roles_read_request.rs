@@ -41,9 +41,9 @@ impl TryFrom<&crate::admin_table_query::AdminTableQuery> for AdminRolesReadReque
                 | crate::admin_table_sort_field::AdminTableSortField::AuditResource
                 | crate::admin_table_sort_field::AdminTableSortField::AuditSucceeded
                 | crate::admin_table_sort_field::AdminTableSortField::AuditUserId
-                | crate::admin_table_sort_field::AdminTableSortField::PermissionCreatedAt
-                | crate::admin_table_sort_field::AdminTableSortField::PermissionId
-                | crate::admin_table_sort_field::AdminTableSortField::PermissionName
+                | crate::admin_table_sort_field::AdminTableSortField::RuleCreatedAt
+                | crate::admin_table_sort_field::AdminTableSortField::RuleId
+                | crate::admin_table_sort_field::AdminTableSortField::RuleName
                 | crate::admin_table_sort_field::AdminTableSortField::UserId
                 | crate::admin_table_sort_field::AdminTableSortField::UserLogin
                 | crate::admin_table_sort_field::AdminTableSortField::UserDisplayName

@@ -3,7 +3,7 @@ pub(super) const fn route_http_method<
     HttpMethod,
     Logic,
     Operation,
-    PermissionAction,
+    RuleAction,
     StatusCode,
 >(
     operation_descriptor: &crate::operation_descriptor::OperationDescriptor<
@@ -11,7 +11,7 @@ pub(super) const fn route_http_method<
         HttpMethod,
         Logic,
         Operation,
-        PermissionAction,
+        RuleAction,
         StatusCode,
     >,
 ) -> HttpMethod
