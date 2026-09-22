@@ -20,13 +20,20 @@ export async function readUsers(request, query = "") {
 
 export async function usersReadPage(response) {
   const page = await response.json();
+  const names = page.columns.map(column => column.name);
   return {
     ...page,
     items: page.items.map(row => Object.fromEntries(
-      Object.entries(row).map(([field, value]) => [
-        field,
-        value && Object.hasOwn(value, "value") ? value.value : value
-      ])
+      row.values.map((value, index) => {
+        const name = names[index];
+        if (name === "id") {
+          return [name, Number(value)];
+        }
+        if (["is_banned", "must_change_password"].includes(name)) {
+          return [name, value === "true"];
+        }
+        return [name, value];
+      })
     ))
   };
 }

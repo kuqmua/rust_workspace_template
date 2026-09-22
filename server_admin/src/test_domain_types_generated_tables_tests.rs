@@ -100,7 +100,7 @@ fn test_generated_table_catalog_maps_every_supported_data_table_once() {
             server_admin_contract::admin_data_table::AdminDataTable::RolePermissions,
         ),
         (
-            crate::admin_generated_table::AdminGeneratedTable::Users,
+            crate::admin_generated_table::AdminGeneratedTable::UsersDatabaseRead,
             server_admin_contract::admin_data_table::AdminDataTable::Users,
         ),
         (
@@ -119,6 +119,10 @@ fn test_generated_table_catalog_maps_every_supported_data_table_once() {
     assert_eq!(
         crate::admin_generated_table::AdminGeneratedTable::ALL.len(),
         expected.len()
+    );
+    assert!(
+        crate::admin_generated_table::AdminGeneratedTable::ALL
+            .contains(&crate::admin_generated_table::AdminGeneratedTable::UsersDatabaseRead)
     );
     expected.into_iter().for_each(|(generated, data_table)| {
         assert!(crate::admin_generated_table::AdminGeneratedTable::ALL.contains(&generated));
@@ -228,7 +232,7 @@ fn test_open_api_contains_exactly_the_typed_route_locations() {
         [
             crate::admin_access_sessions::AdminAccessSessions::read_route(),
             crate::admin_audit_log::AdminAuditLog::read_route(),
-            crate::admin_users::AdminUsers::read_route(),
+            crate::admin_users_database_read::AdminUsersDatabaseRead::read_route(),
             crate::admin_user_roles::AdminUserRoles::read_route(),
             crate::admin_role_permissions::AdminRolePermissions::read_route(),
             crate::admin_roles::AdminRoles::read_route(),
@@ -581,8 +585,8 @@ fn test_generated_payload_example_routes_have_contracts_and_named_clients() {
             crate::admin_access_sessions::AdminAccessSessions::read_payload_example_route(),
         ),
         (
-            crate::admin_users::AdminUsers::read_route(),
-            crate::admin_users::AdminUsers::read_payload_example_route(),
+            crate::admin_users_database_read::AdminUsersDatabaseRead::read_route(),
+            crate::admin_users_database_read::AdminUsersDatabaseRead::read_payload_example_route(),
         ),
         (
             crate::admin_user_roles::AdminUserRoles::read_route(),
@@ -612,8 +616,9 @@ fn test_generated_payload_example_routes_have_contracts_and_named_clients() {
             format!("{}_payload_example/read", operation.as_ref())
         );
     });
-    let contract = crate::admin_users::AdminUsersRouteContract::for_path(
-        crate::admin_users::AdminUsers::read_payload_example_route().as_ref(),
+    let contract = crate::admin_users_database_read::AdminUsersDatabaseReadRouteContract::for_path(
+        crate::admin_users_database_read::AdminUsersDatabaseRead::read_payload_example_route()
+            .as_ref(),
     )
     .expect(constants_str::DIAGNOSTIC_8FB87492);
     assert_eq!(
@@ -625,7 +630,7 @@ fn test_generated_payload_example_routes_have_contracts_and_named_clients() {
         size_of_val(
             &crate::admin_access_sessions::AdminAccessSessionsFrontendApiClient::<ClientTransport>::read_payload_example,
         ),
-        size_of_val(&crate::admin_users::AdminUsersFrontendApiClient::<ClientTransport>::read_payload_example),
+        size_of_val(&crate::admin_users_database_read::AdminUsersDatabaseReadFrontendApiClient::<ClientTransport>::read_payload_example),
         size_of_val(&crate::admin_user_roles::AdminUserRolesFrontendApiClient::<ClientTransport>::read_payload_example),
         size_of_val(
             &crate::admin_role_permissions::AdminRolePermissionsFrontendApiClient::<ClientTransport>::read_payload_example,
@@ -682,8 +687,9 @@ fn test_generated_read_routes_expose_filter_sort_and_pagination_contract() {
         .get(constants_str::PATHS)
         .and_then(serde_json::Value::as_object)
         .expect(constants_str::DIAGNOSTIC_44D17AB0);
+    let users_read_route = crate::admin_users_database_read::AdminUsersDatabaseRead::read_route();
     [
-        constants_str::ADMIN_USERS_READ,
+        users_read_route.as_ref(),
         constants_str::ADMIN_ROLES_READ,
         constants_str::ADMIN_PERMISSIONS_READ,
         constants_str::ADMIN_ROLE_PERMISSIONS_READ,
@@ -707,7 +713,7 @@ fn test_generated_read_routes_expose_filter_sort_and_pagination_contract() {
         .and_then(serde_json::Value::as_object)
         .expect(constants_str::DIAGNOSTIC_8DCF412E);
     [
-        constants_str::ADMIN_USERS_READ_PAYLOAD,
+        stringify!(AdminUsersDatabaseReadReadPayload),
         constants_str::ADMIN_ROLES_READ_PAYLOAD,
         constants_str::ADMIN_PERMISSIONS_READ_PAYLOAD,
         constants_str::ADMIN_ROLE_PERMISSIONS_READ_PAYLOAD,
@@ -737,7 +743,7 @@ fn test_generated_read_routes_expose_filter_sort_and_pagination_contract() {
 }
 #[test]
 fn test_generated_frontend_filter_metadata_matches_api_filter_schema() {
-    let fields = crate::admin_users::AdminUsers::frontend_fields();
+    let fields = crate::admin_users_database_read::AdminUsersDatabaseRead::frontend_fields();
     let login = fields
         .as_ref()
         .iter()
@@ -761,60 +767,9 @@ fn test_generated_frontend_filter_metadata_matches_api_filter_schema() {
 }
 
 #[test]
-fn test_users_read_page_preserves_selected_fields_and_role_ids() {
-    let decoded = serde_json::from_value::<crate::admin_users_read_page::AdminUsersReadPage>(
-        serde_json::json!({
-            (constants_str::ITEMS): [{(constants_str::LOGIN): {(stringify!(value)): constants_str::ADMIN}, (stringify!(role_ids)): [1i64]}],
-            (constants_str::ROLES_TABLE): [],
-            (constants_str::ADMIN_UI_TOTAL): 7i64
-        }),
-    );
-    assert!(decoded.is_ok(), "{decoded:?}");
-    let encoded = decoded.and_then(serde_json::to_value);
-    assert_eq!(
-        encoded.ok(),
-        Some(serde_json::json!({
-            (constants_str::ITEMS): [{(constants_str::LOGIN): {(stringify!(value)): constants_str::ADMIN}, (stringify!(role_ids)): [1i64]}],
-            (constants_str::ROLES_TABLE): [],
-            (constants_str::ADMIN_UI_TOTAL): 7i64
-        })),
-    );
-}
-
-#[test]
-fn test_users_read_openapi_exposes_search_and_enriched_page() {
-    let document = serde_json::to_value(utoipa::openapi::OpenApi::from(
-        crate::generated_open_api::generated_open_api(),
-    ));
-    assert!(document.is_ok());
-    assert!(document.is_ok_and(|document| {
-        let schemas = document.pointer(constants_str::COMPONENTS_SCHEMAS_ALT);
-        [
-            (
-                constants_str::ADMIN_USERS_READ_PAYLOAD,
-                constants_str::SEARCH_ALT,
-            ),
-            (
-                stringify!(AdminUsersReadPage),
-                constants_str::ADMIN_UI_TOTAL,
-            ),
-            (stringify!(AdminUsersReadPage), constants_str::ROLES_TABLE),
-        ]
-        .into_iter()
-        .all(|(schema, property)| {
-            schemas
-                .and_then(|schemas| schemas.get(schema))
-                .and_then(|schema| schema.get(constants_str::PROPERTIES))
-                .and_then(|properties| properties.get(property))
-                .is_some_and(serde_json::Value::is_object)
-        })
-    }));
-}
-
-#[test]
 fn test_users_read_selection_schema_uses_wire_field_names() {
     let schema = serde_json::to_value(
-        <crate::admin_users::AdminUsersSelect as utoipa::PartialSchema>::schema(),
+        <crate::admin_users_database_read::AdminUsersDatabaseReadSelect as utoipa::PartialSchema>::schema(),
     );
     assert!(schema.is_ok_and(|schema| {
         schema
@@ -832,6 +787,194 @@ fn test_users_read_selection_schema_uses_wire_field_names() {
 }
 
 #[test]
+fn test_database_users_read_exposes_and_filters_every_safe_postgresql_field() {
+    let expected_fields = [
+        constants_str::SQL_NAMES_ID,
+        constants_str::LOGIN,
+        constants_str::DISPLAY_NAME,
+        stringify!(must_change_password),
+        constants_str::IS_BANNED,
+        constants_str::CREATED_AT,
+        constants_str::UPDATED_AT,
+    ];
+    let response_schema = serde_json::to_value(
+        <crate::admin_users_database_read::AdminUsersDatabaseReadRead as utoipa::PartialSchema>::schema(),
+    );
+    let filter_schema = serde_json::to_value(
+        <crate::admin_users_database_read::AdminUsersDatabaseReadWhereMany as utoipa::PartialSchema>::schema(),
+    );
+    let has_only_safe_fields = |schema: &serde_json::Value| {
+        schema
+            .get(constants_str::PROPERTIES)
+            .is_some_and(|properties| {
+                expected_fields
+                    .iter()
+                    .all(|field| properties.get(field).is_some())
+                    && properties.get(constants_str::PASSWORD_HASH).is_none()
+            })
+    };
+    assert!(response_schema.is_ok_and(|schema| has_only_safe_fields(&schema)));
+    assert!(filter_schema.is_ok_and(|schema| has_only_safe_fields(&schema)));
+}
+
+#[test]
+fn test_database_users_read_route_uses_standard_post_read_contract() {
+    let route = crate::admin_users_database_read::AdminUsersDatabaseRead::read_route();
+    assert_eq!(route.as_ref(), constants_str::ADMIN_USERS_READ);
+    assert!(
+        crate::admin_users_database_read::AdminUsersDatabaseReadRouteContract::for_path(
+            route.as_ref()
+        )
+        .is_some_and(|contract| {
+            contract.frontend_contract().method()
+                == frontend_contract::route_method::RouteMethod::Post
+                && !contract.mutates()
+                && contract.permission().is_some()
+        })
+    );
+}
+
+#[test]
+fn test_database_users_read_select_accepts_every_safe_field() {
+    [
+        constants_str::SQL_NAMES_ID,
+        constants_str::LOGIN,
+        constants_str::DISPLAY_NAME,
+        stringify!(must_change_password),
+        constants_str::IS_BANNED,
+        constants_str::CREATED_AT,
+        constants_str::UPDATED_AT,
+    ]
+    .into_iter()
+    .for_each(|field| {
+        assert!(
+            serde_json::from_value::<
+                crate::admin_users_database_read::AdminUsersDatabaseReadSelect,
+            >(serde_json::json!({(field): null}))
+            .is_ok(),
+            "safe users field must be selectable: {field}"
+        );
+    });
+}
+
+#[test]
+fn test_database_users_read_rejects_password_hash_everywhere() {
+    assert_eq!(
+        serde_json::from_value::<crate::admin_users_database_read::AdminUsersDatabaseReadSelect>(
+            serde_json::json!({(constants_str::PASSWORD_HASH): null})
+        )
+        .err()
+        .map(|_error| ()),
+        Some(())
+    );
+    assert_eq!(
+        serde_json::from_value::<crate::admin_users_database_read::AdminUsersDatabaseReadWhereMany>(
+            serde_json::json!({
+                (constants_str::PASSWORD_HASH): {
+                    (constants_str::PG_CRUD_OPERATOR_FIELD): stringify!(And),
+                    (constants_str::PG_CRUD_VALUES_FIELD): [{
+                        (stringify!(Eq)): {
+                            (constants_str::PG_CRUD_OPERATOR_FIELD): stringify!(And),
+                            (constants_str::PG_CRUD_VALUES_FIELD): constants_str::ADMIN_ALT
+                        }
+                    }]
+                }
+            })
+        )
+        .err()
+        .map(|_error| ()),
+        Some(())
+    );
+}
+
+#[test]
+fn test_database_users_read_identifier_filter_accepts_every_supported_operation() {
+    [
+        (stringify!(Eq), serde_json::json!(1i64)),
+        (stringify!(GreaterThan), serde_json::json!(1i64)),
+        (
+            stringify!(Between),
+            serde_json::json!({
+                (constants_str::PG_CRUD_START_FIELD): 1i64,
+                (constants_str::PG_CRUD_END_FIELD): 2i64
+            }),
+        ),
+        (stringify!(In), serde_json::json!([1i64, 2i64])),
+    ]
+    .into_iter()
+    .for_each(|(operation, value)| {
+        assert!(
+            serde_json::from_value::<
+                crate::admin_users_database_read::AdminUsersDatabaseReadWhereMany,
+            >(serde_json::json!({
+                (constants_str::SQL_NAMES_ID): {
+                    (constants_str::PG_CRUD_OPERATOR_FIELD): stringify!(And),
+                    (constants_str::PG_CRUD_VALUES_FIELD): [{
+                        (operation): {
+                            (constants_str::PG_CRUD_OPERATOR_FIELD): stringify!(And),
+                            (constants_str::PG_CRUD_VALUES_FIELD): value
+                        }
+                    }]
+                }
+            }))
+            .is_ok(),
+            "identifier filter operation must be accepted: {operation}"
+        );
+    });
+}
+
+#[test]
+fn test_database_users_read_filters_accept_every_logical_operator() {
+    [
+        stringify!(And),
+        stringify!(AndNot),
+        stringify!(Or),
+        stringify!(OrNot),
+    ]
+    .into_iter()
+    .for_each(|operator| {
+        assert!(
+            serde_json::from_value::<
+                crate::admin_users_database_read::AdminUsersDatabaseReadWhereMany,
+            >(serde_json::json!({
+                (constants_str::LOGIN): {
+                    (constants_str::PG_CRUD_OPERATOR_FIELD): operator,
+                    (constants_str::PG_CRUD_VALUES_FIELD): [{
+                        (stringify!(Eq)): {
+                            (constants_str::PG_CRUD_OPERATOR_FIELD): operator,
+                            (constants_str::PG_CRUD_VALUES_FIELD): constants_str::ADMIN_ALT
+                        }
+                    }]
+                }
+            }))
+            .is_ok(),
+            "logical filter operator must be accepted: {operator}"
+        );
+    });
+}
+
+#[test]
+fn test_database_users_read_payload_has_standard_query_controls() {
+    let schema = serde_json::to_value(
+        <crate::admin_users_database_read::AdminUsersDatabaseReadReadPayload as utoipa::PartialSchema>::schema(),
+    );
+    assert!(schema.is_ok_and(|schema| {
+        schema
+            .get(constants_str::PROPERTIES)
+            .is_some_and(|properties| {
+                [
+                    constants_str::WHERE_MANY,
+                    constants_str::SELECT_ALT_3,
+                    constants_str::ORDER_BY,
+                    constants_str::PAGINATION,
+                ]
+                .into_iter()
+                .all(|field| properties.get(field).is_some())
+            })
+    }));
+}
+
+#[test]
 fn test_users_read_client_request_is_accepted_by_generated_contract() {
     let client_request =
         server_admin_contract::admin_users_read_request::AdminUsersReadRequest::try_from(
@@ -840,9 +983,10 @@ fn test_users_read_client_request_is_accepted_by_generated_contract() {
         .expect(constants_str::DIAGNOSTIC_8F53BBB4);
     let client_json =
         serde_json::to_value(client_request).expect(constants_str::DIAGNOSTIC_66DAD9EF);
-    let generated_request =
-        serde_json::from_value::<crate::admin_users::AdminUsersReadPayload>(client_json.clone())
-            .expect(constants_str::DIAGNOSTIC_F28CAA74);
+    let generated_request = serde_json::from_value::<
+        crate::admin_users_database_read::AdminUsersDatabaseReadReadPayload,
+    >(client_json.clone())
+    .expect(constants_str::DIAGNOSTIC_F28CAA74);
     assert_eq!(
         serde_json::to_value(generated_request).expect(constants_str::DIAGNOSTIC_5E6CEA0A),
         client_json
@@ -1148,14 +1292,14 @@ fn test_users_read_client_request_accepts_supported_filters_and_logical_operator
                     >(client_json)
                     .map_err(|error| error.to_string())?;
                     let wire_request = serde_json::to_value(client_request).map_err(|error| error.to_string())?;
-                    let _generated_request = serde_json::from_value::<crate::admin_users::AdminUsersReadPayload>(wire_request.clone())
+                    let _generated_request = serde_json::from_value::<crate::admin_users_database_read::AdminUsersDatabaseReadReadPayload>(wire_request.clone())
                         .map_err(|error| error.to_string())?;
                     let where_many = wire_request
                         .get(constants_str::WHERE_MANY)
                         .ok_or_else(String::new)?;
                     let where_many_json = serde_json::to_string(where_many)
                         .map_err(|error| error.to_string())?;
-                    let filter = crate::admin_generated_table::AdminGeneratedTable::Users
+                    let filter = crate::admin_generated_table::AdminGeneratedTable::UsersDatabaseRead
                         .parse_filter(server_admin_core::std_admin_str_ref::StdAdminStrRef::from(
                             where_many_json.as_str(),
                         ))
@@ -1214,7 +1358,10 @@ fn test_legacy_users_get_is_absent_from_openapi() {
         server_admin_contract::admin_route::AdminRoute::Users
             .path()
             .as_ref(),
-        constants_str::ADMIN_USERS_READ
+        frontend_contract::typed_route_path::typed_route_path::<
+            server_admin_contract::admin_read_users_route::AdminReadUsersRoute,
+        >()
+        .as_ref()
     );
 }
 

@@ -1,3 +1,7 @@
+#[allow(
+    clippy::single_call_fn,
+    reason = "the user-management SSR repository query remains a named ownership boundary for its independently testable role catalog conversion"
+)]
 pub(crate) async fn load_users_role_catalog(
     sqlx_pg_pool_ref: app_state::sqlx_pg_pool_ref::SqlxPgPoolRef<'_>,
 ) -> Result<

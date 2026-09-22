@@ -2,7 +2,7 @@
     clippy::arbitrary_source_item_ordering,
     clippy::needless_for_each,
     clippy::partial_pub_fields,
-    reason = "admin users keeps declaration order aligned with generated layout or processing flow"
+    reason = "database users read keeps declaration order aligned with the PostgreSQL table"
 )]
 #[derive(
     Clone,
@@ -14,13 +14,13 @@
     "api_mode": "ReadOnly",
     "db_table_name": "users",
     "create_exclude_fields": ["password_hash", "must_change_password", "created_at", "updated_at"],
-    "read_exclude_fields": ["password_hash", "must_change_password"],
+    "read_exclude_fields": ["password_hash"],
     "permission_prefix": "users",
     "read_page": {
         "search_columns": ["login", "display_name"],
-        "response": "crate::admin_users_read_page::AdminUsersReadPage",
-        "enrich": "crate::enrich_users_read_page::enrich_users_read_page",
-        "error": "crate::admin_users_read_page_error::AdminUsersReadPageError"
+        "response": "server_admin_contract::admin_data_table_view::AdminDataTableView",
+        "enrich": "crate::enrich_users_database_read_page::enrich_users_database_read_page",
+        "error": "crate::admin_users_database_read_page_error::AdminUsersDatabaseReadPageError"
     },
     "tests_write_into_file": "False",
     "common_write_into_file": "False",
@@ -28,10 +28,10 @@
 }}]
 #[allow(
     dead_code,
-    reason = "admin users declares fixture or generated API members exercised outside ordinary reachability analysis"
+    reason = "database users read declares generated API members exercised through routing"
 )]
 #[derive(proc_macro_getters::Getters)]
-pub struct AdminUsers {
+pub struct AdminUsersDatabaseRead {
     #[generate_pg_table_primary_key]
     id: pg_types_numeric::generate_pg_types_mod::I64AsNonNullBigSerialInitializationByPg,
     login: pg_types_text_misc::generate_pg_types_mod::StringAsNonNullText,
@@ -46,21 +46,15 @@ pub struct AdminUsers {
     #[generate_pg_table_db_default]
     updated_at: pg_types_chrono_net::generate_pg_types_mod::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsNonNullTimestampTz,
 }
+
 #[allow(
     clippy::missing_fields_in_debug,
-    reason = "admin users requires this localized allowance for generated or framework-constrained code verified by focused tests"
+    reason = "database users read debug output intentionally omits every field to protect credentials"
 )]
-impl std::fmt::Debug for AdminUsers {
+impl std::fmt::Debug for AdminUsersDatabaseRead {
     fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         formatter
             .debug_struct(constants_str::ADMINUSERS)
-            .field(constants_str::SQL_NAMES_ID, self.get_id())
-            .field(constants_str::LOGIN, self.get_login())
-            .field(constants_str::DISPLAY_NAME, self.get_display_name())
-            .field(constants_str::PASSWORD_HASH, &constants_str::REDACTED_ALT_3)
-            .field(constants_str::IS_BANNED, self.get_is_banned())
-            .field(constants_str::CREATED_AT, &self.created_at)
-            .field(constants_str::UPDATED_AT, &self.updated_at)
-            .finish()
+            .finish_non_exhaustive()
     }
 }

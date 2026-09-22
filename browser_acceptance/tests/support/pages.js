@@ -34,7 +34,7 @@ export const tablePages = Object.freeze([
   }),
   Object.freeze({
     ...adminPages.sessions,
-    headers: Object.freeze(["session", "created", "expires", "current", "actions"]),
+    headers: Object.freeze(["id", "created", "expires", "current", "actions"]),
     pagination: false,
     readOnly: false
   })

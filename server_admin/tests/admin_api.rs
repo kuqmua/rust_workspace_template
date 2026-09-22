@@ -1325,13 +1325,13 @@ mod test_data_tables {
                 let _previous_select_alt_3 = request_payload.insert(constants_str::SELECT_ALT_3.to_owned(), serde_json::json!([{(constants_str::LOGIN): null}]));
                 let _previous_pagination = request_payload.insert(constants_str::PAGINATION.to_owned(), serde_json::json!({(stringify!(limit)): 1i32, (stringify!(offset)): offset}));
                 let body = serde_json::to_string(&request_payload).expect(constants_str::DIAGNOSTIC_B0B639F8);
-                let parsed = serde_json::from_str::<server_admin::admin_users::AdminUsersReadPayload>(&body);
+                let parsed = serde_json::from_str::<server_admin::admin_users_database_read::AdminUsersDatabaseReadReadPayload>(&body);
                 assert!(parsed.is_ok(), "{parsed:?}");
                 let response = tower::ServiceExt::oneshot(
                     crate::router_with_pool(&fixture.pool).0,
                     crate::request_with_peer(
                         super::HttpAdminApiTestMethod::from(http::Method::POST),
-                        super::StdAdminApiTestStrRef::from(server_admin::admin_users::AdminUsers::read_route().as_ref()),
+                        super::StdAdminApiTestStrRef::from(server_admin::admin_users_database_read::AdminUsersDatabaseRead::read_route().as_ref()),
                         super::StdAdminApiTestStrRef::from(body.as_str()),
                         Some(super::StdAdminApiTestStrRef::from(fixture.cookie.0.as_str())),
                         Some(super::StdAdminApiTestStrRef::from(fixture.csrf.0.as_str())),
@@ -1483,7 +1483,7 @@ mod test_data_tables {
                 let body = serde_json::to_string(&request_payload)
                     .expect(constants_str::DIAGNOSTIC_B6096484);
                 let parsed = serde_json::from_str::<
-                    server_admin::admin_users::AdminUsersReadPayload,
+                    server_admin::admin_users_database_read::AdminUsersDatabaseReadReadPayload,
                 >(&body);
                 assert!(
                     parsed.is_ok(),
@@ -1494,7 +1494,7 @@ mod test_data_tables {
                     crate::request_with_peer(
                         super::HttpAdminApiTestMethod::from(http::Method::POST),
                         super::StdAdminApiTestStrRef::from(
-                            server_admin::admin_users::AdminUsers::read_route().as_ref(),
+                            server_admin::admin_users_database_read::AdminUsersDatabaseRead::read_route().as_ref(),
                         ),
                         super::StdAdminApiTestStrRef::from(body.as_str()),
                         Some(super::StdAdminApiTestStrRef::from(fixture.cookie.0.as_str())),
@@ -4727,13 +4727,13 @@ mod test_maintenance {
 mod test_policy {
     #[test]
     fn test_policy() {
-        let read_excluded = <server_admin::admin_users::AdminUsers as pg_crud_common::db_table_schema::DbTableSchema>::read_excluded_columns();
+        let read_excluded = <server_admin::admin_users_database_read::AdminUsersDatabaseRead as pg_crud_common::db_table_schema::DbTableSchema>::read_excluded_columns();
         assert!(
             read_excluded
                 .iter()
                 .any(|field| field.as_ref() == constants_str::PASSWORD_HASH)
         );
-        let create_excluded = <server_admin::admin_users::AdminUsers as pg_crud_common::db_table_schema::DbTableSchema>::create_excluded_columns();
+        let create_excluded = <server_admin::admin_users_database_read::AdminUsersDatabaseRead as pg_crud_common::db_table_schema::DbTableSchema>::create_excluded_columns();
         assert!(
             create_excluded
                 .iter()
@@ -4775,6 +4775,17 @@ mod test_routing {
         .await
         .expect(constants_str::DIAGNOSTIC_1FE80AD3);
         assert_eq!(response.status(), http::StatusCode::UNAUTHORIZED);
+        let mut database_users_request = http::Request::new(axum::body::Body::empty());
+        *database_users_request.method_mut() = http::Method::POST;
+        *database_users_request.uri_mut() = http::Uri::from_static(constants_str::ADMIN_USERS_READ);
+        let database_users_response =
+            tower::ServiceExt::oneshot(crate::admin_api_test_router().0, database_users_request)
+                .await;
+        assert_eq!(
+            database_users_response
+                .map(|database_users_response_value| database_users_response_value.status()),
+            Ok(http::StatusCode::UNAUTHORIZED)
+        );
     }
     #[tokio::test]
     #[allow(

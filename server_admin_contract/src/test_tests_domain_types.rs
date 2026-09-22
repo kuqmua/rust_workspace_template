@@ -683,6 +683,7 @@ fn test_data_tables_round_trip_and_require_read_permissions() {
             crate::admin_data_table::AdminDataTable::RolePermissions,
             crate::admin_data_table::AdminDataTable::SystemSettings,
             crate::admin_data_table::AdminDataTable::UserRoles,
+            crate::admin_data_table::AdminDataTable::Users,
         ]
     );
     assert_eq!(
@@ -852,8 +853,17 @@ fn test_data_table_api_routes_use_dedicated_resources() {
                         .as_ref()
                     );
                 }
-                crate::admin_data_table::AdminDataTable::Users
-                | crate::admin_data_table::AdminDataTable::Roles
+                crate::admin_data_table::AdminDataTable::Users => {
+                    assert_eq!(
+                        route.path().as_ref(),
+                        frontend_contract::typed_route_path::typed_route_path::<
+                            crate::admin_read_users_route::AdminReadUsersRoute,
+                        >()
+                        .as_ref()
+                    );
+                    assert_eq!(route.path().as_ref(), route.contract().path().as_ref());
+                }
+                crate::admin_data_table::AdminDataTable::Roles
                 | crate::admin_data_table::AdminDataTable::Permissions
                 | crate::admin_data_table::AdminDataTable::UserRoles
                 | crate::admin_data_table::AdminDataTable::RolePermissions

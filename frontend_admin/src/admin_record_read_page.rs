@@ -11,6 +11,7 @@ pub(crate) enum AdminRecordReadPage {
     RolePermission,
     SystemSetting,
     UserRole,
+    User,
 }
 impl AdminRecordReadPage {
     pub(crate) const fn data_page(self) -> &'static str {
@@ -24,6 +25,7 @@ impl AdminRecordReadPage {
             Self::RolePermission => constants_str::ADMIN_ROLE_PERMISSION_READ_PAGE,
             Self::SystemSetting => constants_str::ADMIN_SYSTEM_SETTING_READ_PAGE,
             Self::UserRole => constants_str::ADMIN_USER_ROLE_READ_PAGE,
+            Self::User => constants_str::ADMIN_USER_READ_PAGE,
         }
     }
 }

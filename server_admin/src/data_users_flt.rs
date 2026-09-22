@@ -5,4 +5,6 @@
     proc_macro_newtype_into_inner::IntoInner,
     proc_macro_getters::Getters,
 )]
-pub(crate) struct DataUsersFlt(crate::admin_users::StdOptionalOptionalAdminUsersWhereMany);
+pub(crate) struct DataUsersFlt(
+    crate::admin_users_database_read::StdOptionalOptionalAdminUsersDatabaseReadWhereMany,
+);

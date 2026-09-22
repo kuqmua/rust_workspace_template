@@ -29,10 +29,6 @@ pub(crate) enum AdminLoadState {
         server_admin_contract::authenticated_admin::AuthenticatedAdmin,
         server_admin_contract::admin_data_table_view::AdminDataTableView,
     ),
-    Users(
-        server_admin_contract::authenticated_admin::AuthenticatedAdmin,
-        server_admin_contract::admin_users_page::AdminUsersPage,
-    ),
 }
 
 impl AdminLoadState {
@@ -47,7 +43,6 @@ impl AdminLoadState {
             | Self::Sessions(admin, _)
             | Self::Settings(admin, _)
             | Self::Table(admin, _)
-            | Self::Users(admin, _)
             | Self::Empty(admin)
             | Self::Profile(admin) => Some(admin),
             Self::Error(_) | Self::Loading => None,

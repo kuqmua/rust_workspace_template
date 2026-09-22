@@ -30,6 +30,7 @@ pub(crate) fn AdminAlertDialog(
     description: &'static str,
     trigger: &'static str,
     confirm: &'static str,
+    #[prop(optional)] dialog_only: bool,
     #[prop(optional)] bool: bool,
     callback: leptos::prelude::Callback<()>,
 ) -> impl leptos::prelude::IntoView {
@@ -37,6 +38,16 @@ pub(crate) fn AdminAlertDialog(
         if bool {
             return leptos::prelude::IntoAny::into_any(leptos::view! {
                 <crate::admin_button::AdminButton admin_button_variant=crate::admin_button_variant::AdminButtonVariant::Danger admin_button_kind=crate::admin_button_kind::AdminButtonKind::Button bool=true>{trigger}</crate::admin_button::AdminButton>
+            });
+        }
+        if dialog_only {
+            return leptos::prelude::IntoAny::into_any(leptos::view! {
+                <dialog id=string class="singlestage-dialog" aria-label=title aria-description=description>
+                    <form method="dialog">
+                        <crate::admin_button::AdminButton admin_button_variant=crate::admin_button_variant::AdminButtonVariant::Danger on_click=leptos::prelude::Callback::new(move |_event| callback.run(()))>{confirm}</crate::admin_button::AdminButton>
+                        <crate::admin_button::AdminButton admin_button_variant=crate::admin_button_variant::AdminButtonVariant::Secondary>{constants_str::ADMIN_BUTTON_CANCEL}</crate::admin_button::AdminButton>
+                    </form>
+                </dialog>
             });
         }
         leptos::prelude::IntoAny::into_any(leptos::view! {

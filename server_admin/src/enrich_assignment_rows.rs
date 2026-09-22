@@ -1,3 +1,7 @@
+#[allow(
+    clippy::single_call_fn,
+    reason = "the generic assignment enrichment algorithm requires a named function to keep its explicit conversion and error bounds readable at the generated page boundary"
+)]
 pub(crate) async fn enrich_assignment_rows<Row, Identifier, Enriched, Error, BuildRow>(
     list_items: pg_crud_common::list_items::ListItems<Row>,
     list_items_primary_keys: pg_crud_common::list_items::ListItems<<pg_types_numeric::generate_pg_types_mod::I64AsNonNullBigSerialInitializationByPg as pg_crud_common::pg_type::PgType>::Read>,

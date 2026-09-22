@@ -50,7 +50,7 @@ pub(crate) fn AdminApp() -> impl leptos::prelude::IntoView {
             server_admin_contract::admin_page::AdminPage::Users => {
                 return crate::fetch_users_read::fetch_users_read(admin_csr_query)
                     .await
-                    .map(|page| crate::admin_load_state::AdminLoadState::Users(admin, page));
+                    .map(|page| crate::admin_load_state::AdminLoadState::Table(admin, page));
             }
             server_admin_contract::admin_page::AdminPage::Tables => {
                 let Some(table) = admin_csr_query.table() else {
@@ -203,7 +203,7 @@ pub(crate) fn AdminApp() -> impl leptos::prelude::IntoView {
                     server_admin_contract::admin_route::AdminRoute::Users,
                 )
                 .await
-                .map(|value| crate::admin_load_state::AdminLoadState::Users(admin, value))
+                .map(|value| crate::admin_load_state::AdminLoadState::Table(admin, value))
             }
             server_admin_contract::admin_page::AdminPage::Metrics
             | server_admin_contract::admin_page::AdminPage::OpenApi
@@ -328,7 +328,7 @@ pub(crate) fn AdminApp() -> impl leptos::prelude::IntoView {
                 },
                 crate::admin_load_state::AdminLoadState::Sessions(_admin, page) => leptos::prelude::IntoAny::into_any(leptos::view! { <super::admin_sessions_view::AdminSessionsView admin_sessions_page=page admin_csr_query=query.clone() /> }),
                 crate::admin_load_state::AdminLoadState::Settings(admin, page) => leptos::prelude::IntoAny::into_any(leptos::view! { <super::admin_settings_view::AdminSettingsView authenticated_admin=admin admin_settings_view=page /> }),
-                crate::admin_load_state::AdminLoadState::Table(_admin, view) => if query.user_role_id().is_some() {
+                crate::admin_load_state::AdminLoadState::Table(admin, view) => if query.user_role_id().is_some() {
                     leptos::prelude::IntoAny::into_any(leptos::view! {
                         <super::admin_record_view::AdminRecordView
                             admin_data_table_view=view
@@ -391,13 +391,15 @@ pub(crate) fn AdminApp() -> impl leptos::prelude::IntoView {
                             admin_record_read_page=crate::admin_record_read_page::AdminRecordReadPage::RateLimit
                         />
                     })
+                } else if query.user_id().is_some() {
+                    leptos::prelude::IntoAny::into_any(leptos::view! {
+                        <super::admin_record_view::AdminRecordView
+                            admin_data_table_view=view
+                            admin_record_read_page=crate::admin_record_read_page::AdminRecordReadPage::User
+                        />
+                    })
                 } else {
-                    leptos::prelude::IntoAny::into_any(leptos::view! { <super::admin_data_grid::AdminDataGrid admin_data_table_view=view admin_csr_query=query.clone() /> })
-                },
-                crate::admin_load_state::AdminLoadState::Users(admin, page) => if query.user_id().is_some() {
-                    leptos::prelude::IntoAny::into_any(leptos::view! { <super::admin_user_view::AdminUserView admin_users_page=page /> })
-                } else {
-                    leptos::prelude::IntoAny::into_any(leptos::view! { <super::admin_users_view::AdminUsersView authenticated_admin=admin admin_users_page=page admin_csr_query=query.clone() /> })
+                    leptos::prelude::IntoAny::into_any(leptos::view! { <super::admin_data_grid::AdminDataGrid authenticated_admin=admin admin_data_table_view=view admin_csr_query=query.clone() /> })
                 },
             };
             leptos::view! { <super::csr_admin_nav::CsrAdminNav option=navigation_admin admin_bool=server_admin_contract::admin_bool::AdminBool::from(password_change_required) /><main class="main-content"><div class="page-frame">{password_change_required.then(|| leptos::view! { <crate::admin_alert::AdminAlert>{constants_str::ADMIN_UI_CHANGE_YOUR_INITIAL_PASSWORD_TO_UNLOCK_ADMINISTRATOR_NAVIGATION}</crate::admin_alert::AdminAlert> })}{content}</div></main> }

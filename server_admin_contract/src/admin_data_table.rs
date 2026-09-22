@@ -213,7 +213,7 @@ impl AdminDataTable {
                 ),
                 crate::admin_data_order_ref::AdminDataOrderRef::from(constants_str::SQL_NAMES_ID),
                 crate::admin_permission::AdminPermission::UsersRead,
-                crate::admin_bool::AdminBool::from(false),
+                crate::admin_bool::AdminBool::from(true),
             ),
         }
     }

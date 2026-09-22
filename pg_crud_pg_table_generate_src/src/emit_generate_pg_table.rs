@@ -300,6 +300,8 @@ pub fn emit_generate_pg_table(
         #[serde(default)]
         db_table_name: Option<String>,
         #[serde(default)]
+        route_resource_name: Option<GeneratePgTableDbColumn>,
+        #[serde(default)]
         db_unique_keys: Vec<Vec<String>>,
         read_exclude_fields: Option<UsizeReadExcludeFields>,
         #[serde(default)]
@@ -1123,8 +1125,13 @@ pub fn emit_generate_pg_table(
         generate_quotes::dq_token_stream::dq_token_stream(&identifier_snake_case_string);
     let route_resource_name = generate_pg_table_input_model
         .config
-        .db_table_name
-        .as_deref()
+        .route_resource_name
+        .as_ref()
+        .map(AsRef::<str>::as_ref)
+        .or(generate_pg_table_input_model
+            .config
+            .db_table_name
+            .as_deref())
         .unwrap_or(identifier_snake_case_string.as_str());
     let db_table_name_double_quoted_token_stream =
         generate_quotes::dq_token_stream::dq_token_stream(

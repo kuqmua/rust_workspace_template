@@ -21,9 +21,15 @@ pub fn render_admin_sessions_page(
         let expires_at = item.expires_at().to_string();
         let current_text = item.is_current().to_string();
         let confirm_form_id = form_id.clone();
+        let action_dialog_id = dialog_id.clone();
+        let read_path = server_admin_contract::admin_access_session_id::AdminAccessSessionId::try_from(
+            item.id().to_string(),
+        )
+        .ok()
+        .map(server_admin_contract::admin_route_path::AdminRoutePath::from)
+        .map(|admin_route_path| admin_route_path.to_string());
         let dialog = crate::with_owner::with_owner(move || {
             leptos::view! {
-                <crate::admin_button::AdminButton admin_button_variant=crate::admin_button_variant::AdminButtonVariant::Danger admin_button_kind=crate::admin_button_kind::AdminButtonKind::Button command_for=dialog_id.clone() command="show-modal">{constants_str::ADMIN_BUTTON_REVOKE_SESSION}</crate::admin_button::AdminButton>
                 <dialog id=dialog_id class="singlestage-dialog" aria-label=constants_str::ADMIN_UI_REVOKE_SESSION>
                     <form id=form_id method="post" action=server_admin_contract::admin_html_action::AdminHtmlAction::SessionRevoke.get()>
                         <input type="hidden" name="session_id" value=hidden_session_id />
@@ -36,19 +42,21 @@ pub fn render_admin_sessions_page(
         });
         leptos::view! {
             <crate::table_row::TableRow>
-                <crate::table_cell::TableCell data_label="session">{session_id}</crate::table_cell::TableCell>
+                <crate::table_cell::TableCell data_label=constants_str::SQL_NAMES_ID>{session_id}</crate::table_cell::TableCell>
                 <crate::table_cell::TableCell data_label="created">{created_at}</crate::table_cell::TableCell>
                 <crate::table_cell::TableCell data_label="expires">{expires_at}</crate::table_cell::TableCell>
                 <crate::table_cell::TableCell data_label="current">{current_text}</crate::table_cell::TableCell>
                 <crate::table_cell::TableCell data_label="actions" bool=true>
-                    {dialog}
+                    <crate::admin_table_actions::AdminTableActions read_path=read_path command_for=action_dialog_id>
+                        {dialog}
+                    </crate::admin_table_actions::AdminTableActions>
                 </crate::table_cell::TableCell>
             </crate::table_row::TableRow>
         }
     }).collect::<Vec<_>>();
     let content_view = leptos::view! {
         <section class="table-page">
-        <crate::table_wrapper::TableWrapper><crate::table::Table><crate::table_header::TableHeader><crate::table_row::TableRow><crate::table_head::TableHead>"session"</crate::table_head::TableHead><crate::table_head::TableHead>"created"</crate::table_head::TableHead><crate::table_head::TableHead>"expires"</crate::table_head::TableHead><crate::table_head::TableHead>"current"</crate::table_head::TableHead><crate::table_head::TableHead>"actions"</crate::table_head::TableHead></crate::table_row::TableRow></crate::table_header::TableHeader>
+        <crate::table_wrapper::TableWrapper><crate::table::Table><crate::table_header::TableHeader><crate::table_row::TableRow><crate::table_head::TableHead>{constants_str::SQL_NAMES_ID}</crate::table_head::TableHead><crate::table_head::TableHead>"created"</crate::table_head::TableHead><crate::table_head::TableHead>"expires"</crate::table_head::TableHead><crate::table_head::TableHead>"current"</crate::table_head::TableHead><crate::table_head::TableHead>"actions"</crate::table_head::TableHead></crate::table_row::TableRow></crate::table_header::TableHeader>
         <crate::table_body::TableBody>{rows}</crate::table_body::TableBody></crate::table::Table></crate::table_wrapper::TableWrapper>
         {crate::table_pagination::table_pagination(server_admin_contract::admin_page::AdminPage::Sessions, admin_table_query, admin_sessions_page.total(), None, None)}
         </section>

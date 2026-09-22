@@ -16,6 +16,7 @@ use leptos::prelude::{AddAnyAttr, ClassAttribute, CustomAttribute, ElementChild}
     reason = "Leptos props own page data so the generated component factory can move it across reactive render closures"
 )]
 pub(crate) fn AdminDataGrid(
+    authenticated_admin: server_admin_contract::authenticated_admin::AuthenticatedAdmin,
     admin_csr_query: super::admin_csr_query::AdminCsrQuery,
     admin_data_table_view: server_admin_contract::admin_data_table_view::AdminDataTableView,
 ) -> impl leptos::prelude::IntoView {
@@ -71,8 +72,21 @@ pub(crate) fn AdminDataGrid(
     let previous_action = table_path.as_ref().to_owned();
     let next_action = table_path.as_ref().to_owned();
     let previous_limit = limit_text.clone();
+    let create_user = (admin_data_table_view.table()
+        == server_admin_contract::admin_data_table::AdminDataTable::Users
+        && bool::from(authenticated_admin.has_permission(
+            server_admin_contract::admin_permission::AdminPermission::UsersCreate,
+        )))
+    .then(|| {
+        leptos::view! {
+            <div class="resource-actions">
+                <crate::admin_button_link::AdminButtonLink str=server_admin_contract::admin_frontend_path::AdminFrontendPath::UsersCreate.get()>{constants_str::PG_CRUD_CREATE_PERMISSION_ACTION}</crate::admin_button_link::AdminButtonLink>
+            </div>
+        }
+    });
     leptos::view! {
         <section class="table-page" data-renderer="csr">
+            {create_user}
             {grid}
             <singlestage::Pagination attr:data-name="Pagination" attr:aria-label=constants_str::ADMIN_UI_TABLE_PAGES class="table-pagination mx-auto flex w-full items-center justify-center gap-2">
                 <singlestage::PaginationContent class="contents">

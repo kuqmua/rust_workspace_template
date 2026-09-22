@@ -1,3 +1,5 @@
+use leptos::prelude::ElementChild;
+
 fn render_owned_view<View>(view: View) -> String
 where
     View: leptos::prelude::IntoAny,
@@ -284,4 +286,24 @@ fn test_alert_dialog_wires_singlestage_trigger_and_dialog_forms() {
     assert!(html.contains(constants_str::VALUE_706A5FC3));
     assert!(html.contains(constants_str::VALUE_C1451BBC));
     assert!(html.contains(constants_str::VALUE_3B0143B5));
+}
+
+#[test]
+fn test_table_actions_render_read_and_delete_in_one_row() {
+    let html = render_owned_view(leptos::view! {
+        <crate::admin_table_actions::AdminTableActions
+            read_path=Some(String::from("/admin/access_sessions/example"))
+            command_for=String::from("session-action-dialog")
+        >
+            <span>{constants_str::ADMIN_BUTTON_CANCEL}</span>
+        </crate::admin_table_actions::AdminTableActions>
+    });
+
+    assert!(html.contains(constants_str::PG_CRUD_READ_PERMISSION_ACTION));
+    assert!(html.contains(constants_str::PG_CRUD_DELETE_PERMISSION_ACTION));
+    assert!(
+        html.find(constants_str::PG_CRUD_READ_PERMISSION_ACTION)
+            < html.find(constants_str::PG_CRUD_DELETE_PERMISSION_ACTION)
+    );
+    assert_eq!(html.matches(constants_str::VALUE_24B9818D).count(), 2);
 }

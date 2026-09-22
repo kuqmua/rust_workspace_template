@@ -45,11 +45,10 @@ pub async fn validate_catalog_schema(
                             >(sqlx_pg_catalog_pool_ref, db_schema_name_ref)
                             .await
                         }
-                        crate::admin_generated_table::AdminGeneratedTable::Users => {
-                            validate_generated_table::<crate::admin_users::AdminUsers>(
-                                sqlx_pg_catalog_pool_ref,
-                                db_schema_name_ref,
-                            )
+                        crate::admin_generated_table::AdminGeneratedTable::UsersDatabaseRead => {
+                            validate_generated_table::<
+                                crate::admin_users_database_read::AdminUsersDatabaseRead,
+                            >(sqlx_pg_catalog_pool_ref, db_schema_name_ref)
                             .await
                         }
                         crate::admin_generated_table::AdminGeneratedTable::Permissions => {

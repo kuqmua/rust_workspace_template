@@ -12,7 +12,7 @@ pub(crate) enum AdminGeneratedTable {
     AuditLog,
     Roles,
     RolePermissions,
-    Users,
+    UsersDatabaseRead,
     Permissions,
     SystemSettings,
     UserRoles,
@@ -28,7 +28,9 @@ impl AdminGeneratedTable {
             Self::RolePermissions => {
                 crate::admin_role_permissions::AdminRolePermissions::frontend_fields()
             }
-            Self::Users => crate::admin_users::AdminUsers::frontend_fields(),
+            Self::UsersDatabaseRead => {
+                crate::admin_users_database_read::AdminUsersDatabaseRead::frontend_fields()
+            }
             Self::Permissions => crate::admin_permissions::AdminPermissions::frontend_fields(),
             Self::SystemSettings => {
                 crate::admin_system_settings::AdminSystemSettings::frontend_fields()
@@ -68,10 +70,12 @@ impl AdminGeneratedTable {
                     form_value_ref,
                 )
             }
-            Self::Users => crate::admin_users::AdminUsers::frontend_filter_value(
-                form_field_name_ref,
-                form_value_ref,
-            ),
+            Self::UsersDatabaseRead => {
+                crate::admin_users_database_read::AdminUsersDatabaseRead::frontend_filter_value(
+                    form_field_name_ref,
+                    form_value_ref,
+                )
+            }
             Self::Permissions => crate::admin_permissions::AdminPermissions::frontend_filter_value(
                 form_field_name_ref,
                 form_value_ref,
@@ -129,8 +133,8 @@ impl AdminGeneratedTable {
             >(std_admin_str_ref.get())
             .map(crate::data_user_roles_flt::DataUserRolesFlt::from)
             .map(crate::data_flt::DataFlt::UserRoles),
-            Self::Users => serde_json::from_str::<
-                crate::admin_users::StdOptionalOptionalAdminUsersWhereMany,
+            Self::UsersDatabaseRead => serde_json::from_str::<
+                crate::admin_users_database_read::StdOptionalOptionalAdminUsersDatabaseReadWhereMany,
             >(std_admin_str_ref.get())
             .map(crate::data_users_flt::DataUsersFlt::from)
             .map(crate::data_flt::DataFlt::Users),
@@ -163,7 +167,9 @@ impl AdminGeneratedTable {
             server_admin_contract::admin_data_table::AdminDataTable::UserRoles => {
                 Some(Self::UserRoles)
             }
-            server_admin_contract::admin_data_table::AdminDataTable::Users => Some(Self::Users),
+            server_admin_contract::admin_data_table::AdminDataTable::Users => {
+                Some(Self::UsersDatabaseRead)
+            }
             server_admin_contract::admin_data_table::AdminDataTable::CleanupStatus
             | server_admin_contract::admin_data_table::AdminDataTable::LoginAttempts
             | server_admin_contract::admin_data_table::AdminDataTable::RateLimits
@@ -181,7 +187,9 @@ impl AdminGeneratedTable {
             Self::RolePermissions => {
                 crate::admin_role_permissions::AdminRolePermissionsOpenApi::open_api()
             }
-            Self::Users => crate::admin_users::AdminUsersOpenApi::open_api(),
+            Self::UsersDatabaseRead => {
+                crate::admin_users_database_read::AdminUsersDatabaseReadOpenApi::open_api()
+            }
             Self::Permissions => crate::admin_permissions::AdminPermissionsOpenApi::open_api(),
             Self::SystemSettings => {
                 crate::admin_system_settings::AdminSystemSettingsOpenApi::open_api()
@@ -207,9 +215,11 @@ impl AdminGeneratedTable {
             Self::RolePermissions => crate::admin_role_permissions::AdminRolePermissions::routes(
                 std::sync::Arc::clone(shared_admin_generated_table_state_arc.get_inner()),
             ),
-            Self::Users => crate::admin_users::AdminUsers::routes(std::sync::Arc::clone(
-                shared_admin_generated_table_state_arc.get_inner(),
-            )),
+            Self::UsersDatabaseRead => {
+                crate::admin_users_database_read::AdminUsersDatabaseRead::routes(
+                    std::sync::Arc::clone(shared_admin_generated_table_state_arc.get_inner()),
+                )
+            }
             Self::Permissions => crate::admin_permissions::AdminPermissions::routes(
                 std::sync::Arc::clone(shared_admin_generated_table_state_arc.get_inner()),
             ),
@@ -279,18 +289,20 @@ impl AdminGeneratedTable {
                     )
                 })
             }
-            Self::Users => crate::admin_users::AdminUsersRouteContract::for_path(
-                std_admin_str_ref.get(),
-            )
-            .map(|contract| {
-                crate::admin_generated_route_contract::AdminGeneratedRouteContract::new(
-                    contract
-                        .permission()
-                        .map(server_admin_core::std_admin_str_ref::StdAdminStrRef::from),
-                    server_admin_core::std_admin_bool::StdAdminBool::from(contract.mutates()),
-                    contract.frontend_contract().method(),
+            Self::UsersDatabaseRead => {
+                crate::admin_users_database_read::AdminUsersDatabaseReadRouteContract::for_path(
+                    std_admin_str_ref.get(),
                 )
-            }),
+                .map(|contract| {
+                    crate::admin_generated_route_contract::AdminGeneratedRouteContract::new(
+                        contract
+                            .permission()
+                            .map(server_admin_core::std_admin_str_ref::StdAdminStrRef::from),
+                        server_admin_core::std_admin_bool::StdAdminBool::from(contract.mutates()),
+                        contract.frontend_contract().method(),
+                    )
+                })
+            }
             Self::Permissions => crate::admin_permissions::AdminPermissionsRouteContract::for_path(
                 std_admin_str_ref.get(),
             )

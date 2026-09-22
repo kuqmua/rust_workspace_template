@@ -105,8 +105,11 @@ pub(crate) fn admin_data_table_grid(
                     .and_then(|value| server_admin_contract::admin_system_setting_id::AdminSystemSettingId::try_from(value).ok())
                     .map(server_admin_contract::admin_route_path::AdminRoutePath::from),
                 server_admin_contract::admin_data_table::AdminDataTable::Permissions
-                | server_admin_contract::admin_data_table::AdminDataTable::Roles
-                | server_admin_contract::admin_data_table::AdminDataTable::Users => None,
+                | server_admin_contract::admin_data_table::AdminDataTable::Roles => None,
+                server_admin_contract::admin_data_table::AdminDataTable::Users => row_identifier
+                    .and_then(|value| value.parse::<i64>().ok())
+                    .and_then(|value| server_admin_contract::admin_user_id::AdminUserId::try_from(value).ok())
+                    .map(server_admin_contract::admin_route_path::AdminRoutePath::from),
             };
             let read_link = read_path.map(|admin_route_path| {
                     leptos::view! { <singlestage::Link class=crate::admin_button_variant::AdminButtonVariant::Secondary.class() href=admin_route_path.to_string() attr:aria-label=constants_str::PG_CRUD_READ_PERMISSION_ACTION attr:title=constants_str::PG_CRUD_READ_PERMISSION_ACTION>

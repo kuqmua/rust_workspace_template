@@ -5,14 +5,14 @@ operations. Paths below are rooted at the server origin. The frontend must follo
 permission, request, and table catalogs in `server_admin_contract`.
 
 Generated read APIs use the configured database resource name in their URL, independently
-of the Rust type name: `/users/read` and the corresponding
-`*_payload_example` routes. The same rule applies to `roles`, `permissions`,
+of the Rust type name. The users list and record pages use the direct database projection at `/users/read` and its corresponding
+`*_payload_example` route. The same rule applies to `roles`, `permissions`,
 `system_settings`, and `role_permissions`; these paths have no `admin_` prefix. Single-record reads use a primary-key equality
-filter with a limit of one and offset zero. Missing records return empty items; `/users/read` returns `{ items, roles, total }`.
+filter with a limit of one and offset zero. Missing records return empty items.
 The table generator exposes reads through `read`; `read_one` and `read_one_payload_example` have been removed from every API mode.
 Mutations use `create_many`, `update`, and `delete_many`; the corresponding `_one` routes and payload examples have been removed. Single-record creation submits a one-element array. Single-record updates submit a one-element array keyed by the primary key; deletions use an equality filter on the primary key. Revision-aware bulk updates require `If-Match` and roll back the entire batch if any key is missing or its revision does not match.
 
-The legacy `GET /users` endpoint has been removed. The users CSR client sends a typed JSON request to `/users/read`; the generated read registry owns its full request and response schemas.
+The legacy `GET /users` endpoint has been removed. The users CSR client sends a typed JSON request to `/users/read`; the typed route registry owns its full request and response schemas.
 
 This audit maps each operation to its administrator integration. Validation evidence
 below covers user-visible workflows and direct API behavior.
@@ -28,7 +28,7 @@ below covers user-visible workflows and direct API behavior.
 | DELETE `/auth/sessions/{session_id}` | Per-session confirmation dialog |
 | DELETE `/auth/sessions` | Revoke-all confirmation dialog; includes the current session |
 | DELETE `/access_sessions/delete` | Administrative filtered session revocation; soft-deletes matching active sessions |
-| POST `/users/read` | Users list with selected fields, combined search and filters, sorting, pagination, role assignments, and total count |
+| POST `/users/read` | Direct users-table projection without `password_hash`; includes password-change state, ban state, and timestamps |
 | POST `/users/create` | Create-user page; server-rendered HTML adapter |
 | PATCH `/users/update` | Atomic batch updates through the typed API; uses the same user validation, administrator protection, audit, and session revocation as single-user updates |
 | DELETE `/users/delete` | Atomic deletion of users matching a required filter |

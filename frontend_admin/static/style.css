@@ -525,8 +525,7 @@ p {
     align-items: center;
   }
 
-  table td .table-actions button:not(dialog button),
-  table td button:not(dialog button) {
+  table td button:not(dialog button, .table-actions button) {
     height: calc(var(--header-height) - 1px) !important;
     min-height: 0 !important;
     padding-block: 0 !important;
@@ -622,8 +621,7 @@ p {
   }
 
   .table-admin_sessions_page td .table-actions,
-  .table-admin_sessions_page td .table-actions > div,
-  .table-admin_sessions_page td .table-actions button:not(dialog button) {
+  .table-admin_sessions_page td .table-actions > div {
     width: 100% !important;
   }
 
@@ -1347,15 +1345,13 @@ th:has(.table-column-filter[data-filter-active="true"]) {
   padding: 16px;
 }
 
-.mutation-form:is(form) button,
-.table-actions button {
+.mutation-form:is(form) button {
   background: var(--accent);
   color: #fff;
   padding: 9px 12px;
 }
 
-.mutation-form:is(form) button:hover,
-.table-actions button:hover {
+.mutation-form:is(form) button:hover {
   background: var(--accent-hover);
 }
 
@@ -1388,6 +1384,28 @@ th:has(.table-column-filter[data-filter-active="true"]) {
 
 .table-actions button {
   font-size: 11px;
+}
+
+.table-actions > :is(a, button) {
+  width: 36px;
+  min-width: 36px;
+  height: 36px;
+  padding: 8px;
+}
+
+.table-actions > :is(a, button) svg {
+  width: 1.25em;
+  height: 1.25em;
+}
+
+.table-admin_sessions_page .table-actions {
+  flex-wrap: nowrap;
+  gap: 0;
+}
+
+.table-admin_sessions_page .table-actions > :is(a, button) {
+  border: 0;
+  box-shadow: none;
 }
 
 table {

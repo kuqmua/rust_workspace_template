@@ -105,13 +105,17 @@ test("one-session and all-session revocation are enforced", async ({
     .filter({ hasText: "false" })
     .first();
   const revokedSessionId = await otherSession.locator("td").first().innerText();
+  await expect(otherSession.getByRole("link", { name: "read", exact: true })).toHaveAttribute(
+    "href",
+    `/admin/access_sessions/${revokedSessionId}`
+  );
   const oneRevoked = page.waitForResponse(
     response =>
       response.request().method() === "DELETE" &&
       response.url().includes("/auth/sessions/") &&
       response.status() === 204
   );
-  await otherSession.getByRole("button", { name: "revoke_session" }).click();
+  await otherSession.getByRole("button", { name: "delete", exact: true }).click();
   await otherSession
     .getByRole("dialog", { name: "revoke_session" })
     .getByRole("button", { name: "revoke", exact: true })

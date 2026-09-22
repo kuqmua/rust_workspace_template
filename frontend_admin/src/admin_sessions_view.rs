@@ -26,18 +26,24 @@ pub(crate) fn AdminSessionsView(
         let expires_at = item.expires_at().to_string();
         let current_text = item.is_current().to_string();
         let revoke_session_id = item.id().clone();
+        let read_path = server_admin_contract::admin_access_session_id::AdminAccessSessionId::try_from(
+            item.id().to_string(),
+        )
+        .ok()
+        .map(server_admin_contract::admin_route_path::AdminRoutePath::from)
+        .map(|admin_route_path| admin_route_path.to_string());
         let dialog_id = format!("revoke-session-{revoke_session_id}");
         leptos::view! {
             <crate::table_row::TableRow>
-                <crate::table_cell::TableCell data_label="session">{session_id}</crate::table_cell::TableCell>
+                <crate::table_cell::TableCell data_label=constants_str::SQL_NAMES_ID>{session_id}</crate::table_cell::TableCell>
                 <crate::table_cell::TableCell data_label="created">{created_at}</crate::table_cell::TableCell>
                 <crate::table_cell::TableCell data_label="expires">{expires_at}</crate::table_cell::TableCell>
                 <crate::table_cell::TableCell data_label="current">{current_text}</crate::table_cell::TableCell>
-                <crate::table_cell::TableCell data_label="actions" bool=true><div class="table-actions"><crate::admin_alert_dialog::AdminAlertDialog string=dialog_id title=constants_str::ADMIN_UI_REVOKE_SESSION description=constants_str::ADMIN_UI_THIS_ADMINISTRATOR_SESSION_WILL_BE_SIGNED_OUT_IMMEDIATELY trigger=constants_str::ADMIN_BUTTON_REVOKE_SESSION confirm=constants_str::ADMIN_BUTTON_REVOKE callback=leptos::prelude::Callback::new(move |()| {
+                <crate::table_cell::TableCell data_label="actions" bool=true><crate::admin_table_actions::AdminTableActions read_path=read_path command_for=dialog_id.clone()><crate::admin_alert_dialog::AdminAlertDialog string=dialog_id title=constants_str::ADMIN_UI_REVOKE_SESSION description=constants_str::ADMIN_UI_THIS_ADMINISTRATOR_SESSION_WILL_BE_SIGNED_OUT_IMMEDIATELY trigger=constants_str::ADMIN_BUTTON_REVOKE_SESSION confirm=constants_str::ADMIN_BUTTON_REVOKE dialog_only=true callback=leptos::prelude::Callback::new(move |()| {
                     if let Ok(path) = crate::admin_route_path_url::admin_route_path_url(&server_admin_contract::admin_parameterized_route_path::admin_parameterized_route_path::<server_admin_contract::admin_revoke_session_route::AdminRevokeSessionRoute>(&revoke_session_id)) {
                         crate::reload_after::reload_after(crate::admin_mutation_method::AdminMutationMethod::Delete, path, server_admin_contract::admin_no_body::AdminNoBody);
                     }
-                }) /></div></crate::table_cell::TableCell>
+                }) /></crate::admin_table_actions::AdminTableActions></crate::table_cell::TableCell>
             </crate::table_row::TableRow>
         }
     }).collect::<Vec<_>>();
@@ -138,7 +144,7 @@ pub(crate) fn AdminSessionsView(
                     })
                 />
             </div>
-            <crate::table_wrapper::TableWrapper><crate::table::Table><crate::table_header::TableHeader><crate::table_row::TableRow><crate::table_head::TableHead data_field=constants_str::SQL_NAMES_ID.to_owned() data_filter_count=identifier_filters.len().to_string()><div class="table-column-heading"><span>"session"</span>{identifier_filter}</div></crate::table_head::TableHead><crate::table_head::TableHead data_field=constants_str::CREATED_AT.to_owned() data_filter_count=timestamp_filters.len().to_string()><div class="table-column-heading"><span>"created"</span>{created_at_filter}</div></crate::table_head::TableHead><crate::table_head::TableHead data_field=constants_str::EXPIRES_AT.to_owned() data_filter_count=timestamp_filters.len().to_string()><div class="table-column-heading"><span>"expires"</span>{expires_at_filter}</div></crate::table_head::TableHead><crate::table_head::TableHead data_field=constants_str::CURRENT.to_owned() data_filter_count=boolean_filters.len().to_string()><div class="table-column-heading"><span>"current"</span>{current_filter}</div></crate::table_head::TableHead><crate::table_head::TableHead>"actions"</crate::table_head::TableHead></crate::table_row::TableRow></crate::table_header::TableHeader>
+            <crate::table_wrapper::TableWrapper><crate::table::Table><crate::table_header::TableHeader><crate::table_row::TableRow><crate::table_head::TableHead data_field=constants_str::SQL_NAMES_ID.to_owned() data_filter_count=identifier_filters.len().to_string()><div class="table-column-heading"><span>{constants_str::SQL_NAMES_ID}</span>{identifier_filter}</div></crate::table_head::TableHead><crate::table_head::TableHead data_field=constants_str::CREATED_AT.to_owned() data_filter_count=timestamp_filters.len().to_string()><div class="table-column-heading"><span>"created"</span>{created_at_filter}</div></crate::table_head::TableHead><crate::table_head::TableHead data_field=constants_str::EXPIRES_AT.to_owned() data_filter_count=timestamp_filters.len().to_string()><div class="table-column-heading"><span>"expires"</span>{expires_at_filter}</div></crate::table_head::TableHead><crate::table_head::TableHead data_field=constants_str::CURRENT.to_owned() data_filter_count=boolean_filters.len().to_string()><div class="table-column-heading"><span>"current"</span>{current_filter}</div></crate::table_head::TableHead><crate::table_head::TableHead>"actions"</crate::table_head::TableHead></crate::table_row::TableRow></crate::table_header::TableHeader>
             <crate::table_body::TableBody>{rows}</crate::table_body::TableBody></crate::table::Table></crate::table_wrapper::TableWrapper>
             <super::admin_pagination::AdminPagination admin_frontend_path=server_admin_contract::admin_frontend_path::AdminFrontendPath::Sessions admin_csr_query=admin_csr_query admin_page_total=total />
         </section>

@@ -116,7 +116,7 @@ fn test_every_generated_read_filter_accepts_every_logical_operator_variation() {
     [
         crate::admin_generated_table::AdminGeneratedTable::Roles,
         crate::admin_generated_table::AdminGeneratedTable::RolePermissions,
-        crate::admin_generated_table::AdminGeneratedTable::Users,
+        crate::admin_generated_table::AdminGeneratedTable::UsersDatabaseRead,
         crate::admin_generated_table::AdminGeneratedTable::Permissions,
         crate::admin_generated_table::AdminGeneratedTable::SystemSettings,
         crate::admin_generated_table::AdminGeneratedTable::UserRoles,
@@ -270,7 +270,7 @@ fn test_every_read_table_filter_column_and_operation_builds_a_typed_predicate() 
             crate::admin_user_roles::AdminUserRoles::frontend_fields()
         }
         server_admin_contract::admin_data_table::AdminDataTable::Users => {
-            crate::admin_users::AdminUsers::frontend_fields()
+            crate::admin_users_database_read::AdminUsersDatabaseRead::frontend_fields()
         }
     };
     let table_filter_value = |admin_data_table,

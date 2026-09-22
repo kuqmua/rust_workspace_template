@@ -60,7 +60,7 @@ test("test_interface_labels_are_snake_case_across_all_admin_pages", async ({ pag
       await expect(page.locator("dd").nth(1)).toHaveText("Initial Administrator");
     }
     if (path === "/admin/settings" || path === "/admin/sessions") {
-      const trigger = path === "/admin/settings" ? "reset_to_template_defaults" : "revoke_session";
+      const trigger = path === "/admin/settings" ? "reset_to_template_defaults" : "delete";
       await page.getByRole("button", { name: trigger, exact: true }).first().click();
       await expect(page.getByRole("dialog")).toBeVisible();
       await assertInterfaceText(page);

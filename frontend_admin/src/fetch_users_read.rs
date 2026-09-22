@@ -5,7 +5,7 @@
 pub(crate) async fn fetch_users_read(
     admin_csr_query: &crate::admin_csr_query::AdminCsrQuery,
 ) -> Result<
-    server_admin_contract::admin_users_page::AdminUsersPage,
+    server_admin_contract::admin_data_table_view::AdminDataTableView,
     crate::admin_table_load_error::AdminTableLoadError,
 > {
     let query = crate::admin_table_query::admin_table_query(admin_csr_query)?;
@@ -47,6 +47,17 @@ pub(crate) async fn fetch_users_read(
         }
         Some(field) if field.as_ref() == constants_str::IS_BANNED => {
             frontend_contract::input_kind::InputKind::Checkbox
+        }
+        Some(field) if field.as_ref() == stringify!(must_change_password) => {
+            frontend_contract::input_kind::InputKind::Checkbox
+        }
+        Some(field)
+            if matches!(
+                field.as_ref(),
+                constants_str::CREATED_AT | constants_str::UPDATED_AT
+            ) =>
+        {
+            frontend_contract::input_kind::InputKind::DateTime
         }
         Some(_) => return Err(crate::admin_table_load_error::AdminTableLoadError::Query),
     };

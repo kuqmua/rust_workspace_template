@@ -88,7 +88,7 @@ fn test_data_grid() {
     );
     assert!(html.as_ref().contains(constants_str::VALUE_80DFAFAE));
     assert!(html.as_ref().contains(constants_str::VALUE_ED7335DF));
-    assert!(!html.as_ref().contains(constants_str::VALUE_B2F8E281));
+    assert!(html.as_ref().contains(constants_str::VALUE_B2F8E281));
 
     let query = server_admin_contract::admin_data_table_query::AdminDataTableQuery::new(
         server_admin_contract::admin_data_table_filter_query::AdminDataTableFilterQuery::new(

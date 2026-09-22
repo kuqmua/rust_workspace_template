@@ -42,7 +42,7 @@ test.afterEach(async ({ page }) => {
 test("test_compact_session_dialog_keeps_text_inside_its_mobile_bounds", async ({ page }) => {
   await page.setViewportSize({ width: 320, height: 844 });
   await page.goto("/admin/sessions");
-  await page.getByRole("button", { name: "revoke_session", exact: true }).first().click();
+  await page.getByRole("button", { name: "delete", exact: true }).first().click();
   const dialog = page.locator("dialog:visible");
   await expect(dialog).toBeVisible();
   expect(await dialog.evaluate(element => element.scrollWidth - element.clientWidth)).toBeLessThanOrEqual(1);

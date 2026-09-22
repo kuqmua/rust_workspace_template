@@ -120,6 +120,7 @@ pub mod admin_ssr_text;
 pub mod admin_ssr_text_try_from_string_error;
 #[cfg(test)]
 pub mod admin_ssr_view_ext_tests;
+mod admin_table_actions;
 #[cfg(target_arch = "wasm32")]
 pub mod admin_table_load_error;
 #[cfg(target_arch = "wasm32")]
