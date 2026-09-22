@@ -25,15 +25,11 @@ pub(crate) fn AdminRoleView(
             })
         },
         |admin_role_summary| {
-            let permissions = String::from(crate::join_text::join_text(
-                admin_roles_page.permissions().iter()
-                    .filter(|permission| admin_role_summary.permission_ids().contains(&permission.id()))
-                    .map(server_admin_contract::admin_permission_summary::AdminPermissionSummary::name)
-                    .map(|name| name.as_ref().as_str()),
-            ));
             let id = admin_role_summary.id().to_string();
             let name = admin_role_summary.name().to_string();
             let is_system = admin_role_summary.is_system().to_string();
+            let created_at = admin_role_summary.created_at().to_string();
+            let updated_at = admin_role_summary.updated_at().to_string();
             leptos::prelude::IntoAny::into_any(leptos::view! {
                 <div class="health-label">{constants_str::SQL_NAMES_ID}</div>
                 <div class="health-result">{id}</div>
@@ -41,8 +37,10 @@ pub(crate) fn AdminRoleView(
                 <div class="health-result">{name}</div>
                 <div class="health-label">{constants_str::IS_SYSTEM}</div>
                 <div class="health-result">{is_system}</div>
-                <div class="health-label">{constants_str::ADMIN_UI_PERMISSIONS}</div>
-                <div class="health-result">{permissions}</div>
+                <div class="health-label">{constants_str::CREATED_AT}</div>
+                <div class="health-result">{created_at}</div>
+                <div class="health-label">{constants_str::UPDATED_AT}</div>
+                <div class="health-result">{updated_at}</div>
             })
         },
     );

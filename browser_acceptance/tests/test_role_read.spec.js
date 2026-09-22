@@ -22,7 +22,7 @@ test("test_role_details_follow_table_link_and_ignore_list_filters", async ({ pag
   await page.goto("/admin/roles");
   const row = page.locator("tbody tr").first();
   const cells = row.locator("td");
-  await expect(cells).toHaveCount(5);
+  await expect(cells).toHaveCount(6);
   const values = await cells.allTextContents();
   const path = `/admin/roles/${values[0].trim()}`;
   const link = row.getByRole("link", { name: "read", exact: true });
@@ -31,11 +31,11 @@ test("test_role_details_follow_table_link_and_ignore_list_filters", async ({ pag
   await link.click();
   await expect(page).toHaveURL(new RegExp(`${path}$`));
   const detail = page.locator('[data-page="role-read"]');
-  await expect(detail.locator(".health-result")).toHaveText(values.slice(0, 4));
+  await expect(detail.locator(".health-result")).toHaveText(values.slice(0, 5));
   await page.reload();
-  await expect(detail.locator(".health-result")).toHaveText(values.slice(0, 4));
+  await expect(detail.locator(".health-result")).toHaveText(values.slice(0, 5));
   await page.goto(`${path}?search=missing&offset=999&filter_field=id&filter_operation=eq&filter_value=999`);
-  await expect(detail.locator(".health-result")).toHaveText(values.slice(0, 4));
+  await expect(detail.locator(".health-result")).toHaveText(values.slice(0, 5));
   const created = await page.request.post("/roles/create", {
     data: [{ name: "role_detail_fixture" }],
     headers: await adminHeaders(page.context())
@@ -43,9 +43,13 @@ test("test_role_details_follow_table_link_and_ignore_list_filters", async ({ pag
   expect(created.status()).toBe(201);
   const [id] = await created.json();
   await page.goto(`/admin/roles/${id}`);
-  await expect(detail.locator(".health-result")).toHaveText([
-    String(id), "role_detail_fixture", "false", ""
-  ]);
+  const createdRoleValues = detail.locator(".health-result");
+  await expect(createdRoleValues).toHaveCount(5);
+  await expect(createdRoleValues.nth(0)).toHaveText(String(id));
+  await expect(createdRoleValues.nth(1)).toHaveText("role_detail_fixture");
+  await expect(createdRoleValues.nth(2)).toHaveText("false");
+  await expect(createdRoleValues.nth(3)).not.toBeEmpty();
+  await expect(createdRoleValues.nth(4)).not.toBeEmpty();
   await page.goto("/admin/roles/9223372036854775807");
   await expect(detail).toContainText("resource not found");
   await expect(detail.locator(".health-result")).toHaveCount(0);

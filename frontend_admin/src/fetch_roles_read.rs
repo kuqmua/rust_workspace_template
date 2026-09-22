@@ -59,7 +59,6 @@ pub(crate) async fn fetch_roles_read(
     let base_request =
         server_admin_contract::admin_roles_read_request::AdminRolesReadRequest::try_from(&query)?;
     let request = server_admin_contract::admin_roles_read_request::AdminRolesReadRequest::new(
-        base_request.get_permissions_query().cloned(),
         base_request.get_search().cloned(),
         base_request.get_pagination().clone(),
         base_request.get_select().clone(),

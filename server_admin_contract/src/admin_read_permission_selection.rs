@@ -8,9 +8,9 @@
     proc_macro_newtype_from_inner::FromInner,
     utoipa::ToSchema,
 )]
-#[serde(from = "[crate::admin_read_permission_column::AdminReadPermissionColumn; 2]")]
+#[serde(from = "[crate::admin_read_permission_column::AdminReadPermissionColumn; 3]")]
 pub struct AdminReadPermissionSelection(
-    [crate::admin_read_permission_column::AdminReadPermissionColumn; 2],
+    [crate::admin_read_permission_column::AdminReadPermissionColumn; 3],
 );
 impl Default for AdminReadPermissionSelection {
     fn default() -> Self {
@@ -19,6 +19,9 @@ impl Default for AdminReadPermissionSelection {
                 crate::admin_no_body::AdminNoBody,
             ),
             crate::admin_read_permission_column::AdminReadPermissionColumn::Name(
+                crate::admin_no_body::AdminNoBody,
+            ),
+            crate::admin_read_permission_column::AdminReadPermissionColumn::CreatedAt(
                 crate::admin_no_body::AdminNoBody,
             ),
         ])

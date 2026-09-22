@@ -27,11 +27,14 @@ pub(crate) fn AdminPermissionView(
         |admin_permission_summary| {
             let id = admin_permission_summary.id().to_string();
             let name = admin_permission_summary.name().to_string();
+            let created_at = admin_permission_summary.created_at().to_string();
             leptos::prelude::IntoAny::into_any(leptos::view! {
                 <div class="health-label">{constants_str::SQL_NAMES_ID}</div>
                 <div class="health-result">{id}</div>
                 <div class="health-label">{constants_str::NAME}</div>
                 <div class="health-result">{name}</div>
+                <div class="health-label">{constants_str::CREATED_AT}</div>
+                <div class="health-result">{created_at}</div>
             })
         },
     );

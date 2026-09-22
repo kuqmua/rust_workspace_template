@@ -936,6 +936,165 @@ fn test_create_roles_request_validates_members_and_collection_bound() {
 }
 
 #[test]
+fn test_role_read_selection_contains_every_roles_table_column() {
+    assert!(
+        serde_json::to_value(crate::admin_read_role_selection::AdminReadRoleSelection::default())
+            .is_ok_and(|value| value.as_array().is_some_and(|columns| {
+                columns.len() == 5
+                    && [
+                        constants_str::SQL_NAMES_ID,
+                        constants_str::NAME,
+                        constants_str::IS_SYSTEM,
+                        constants_str::CREATED_AT,
+                        constants_str::UPDATED_AT,
+                    ]
+                    .into_iter()
+                    .all(|column| {
+                        columns.iter().any(|column_value| {
+                            column_value
+                                .as_object()
+                                .is_some_and(|object| object.contains_key(column))
+                        })
+                    })
+            }))
+    );
+}
+
+#[test]
+fn test_permission_read_selection_contains_every_permissions_table_column() {
+    assert!(
+        serde_json::to_value(
+            crate::admin_read_permission_selection::AdminReadPermissionSelection::default(),
+        )
+        .is_ok_and(|value| value.as_array().is_some_and(|columns| {
+            columns.len() == 3
+                && [
+                    constants_str::SQL_NAMES_ID,
+                    constants_str::NAME,
+                    constants_str::CREATED_AT,
+                ]
+                .into_iter()
+                .all(|column| {
+                    columns.iter().any(|column_value| {
+                        column_value
+                            .as_object()
+                            .is_some_and(|object| object.contains_key(column))
+                    })
+                })
+        }))
+    );
+}
+
+#[test]
+fn test_permission_read_response_contains_every_permissions_table_column() {
+    let values = (
+        crate::admin_permission_id::AdminPermissionId::try_from(constants_i64::ONE),
+        crate::admin_permission_value::AdminPermissionValue::try_from(String::from(
+            constants_str::VALUE_C6919F81,
+        )),
+        crate::admin_role_timestamp::AdminRoleTimestamp::try_from(String::from(
+            constants_str::ADMIN_FIXTURE_AUDIT_CREATED_AT,
+        )),
+    );
+    assert!(matches!(&values, (Ok(_), Ok(_), Ok(_))));
+    if let (Ok(id), Ok(name), Ok(created_at)) = values {
+        let permission = crate::admin_permission_summary::AdminPermissionSummary::new(
+            id,
+            name,
+            crate::admin_permission_timestamp::AdminPermissionTimestamp::from(created_at),
+        );
+        assert!(serde_json::to_value(permission).is_ok_and(|value| {
+            value.as_object().is_some_and(|object| {
+                object.len() == 3
+                    && [
+                        constants_str::SQL_NAMES_ID,
+                        constants_str::NAME,
+                        constants_str::CREATED_AT,
+                    ]
+                    .into_iter()
+                    .all(|column| object.contains_key(column))
+            })
+        }));
+    }
+}
+
+#[test]
+fn test_role_read_response_contains_every_roles_table_column() {
+    let values = (
+        crate::admin_role_id::AdminRoleId::try_from(constants_i64::ONE),
+        crate::admin_role_name::AdminRoleName::try_from(String::from(constants_str::LOGIN)),
+        crate::admin_role_timestamp::AdminRoleTimestamp::try_from(String::from(
+            constants_str::ADMIN_FIXTURE_AUDIT_CREATED_AT,
+        )),
+        crate::admin_role_timestamp::AdminRoleTimestamp::try_from(String::from(
+            constants_str::ADMIN_FIXTURE_SESSION_CREATED_AT,
+        )),
+    );
+    assert!(matches!(&values, (Ok(_), Ok(_), Ok(_), Ok(_))));
+    if let (Ok(id), Ok(name), Ok(created_at), Ok(updated_at)) = values {
+        let role = crate::admin_role_summary::AdminRoleSummary::new(
+            id,
+            crate::admin_bool::AdminBool::from(false),
+            name,
+            created_at,
+            updated_at,
+        );
+        assert!(
+            serde_json::to_value(role).is_ok_and(|value| value.as_object().is_some_and(|object| {
+                object.len() == 5
+                    && [
+                        constants_str::SQL_NAMES_ID,
+                        constants_str::NAME,
+                        constants_str::IS_SYSTEM,
+                        constants_str::CREATED_AT,
+                        constants_str::UPDATED_AT,
+                    ]
+                    .into_iter()
+                    .all(|column| object.contains_key(column))
+            }))
+        );
+    }
+}
+
+#[test]
+fn test_role_read_response_accepts_generated_timestamp_wire_values() {
+    let timestamp = serde_json::json!({
+        (constants_str::DATE_NAIVE): "2026-07-13",
+        (constants_str::PG_CRUD_PG_TIME): {
+            (constants_str::HOUR): 12u64,
+            (constants_str::MIN): 30u64,
+            (constants_str::SEC): 0u64,
+            (constants_str::MICRO): 0u64,
+        },
+    });
+    assert_eq!(
+        serde_json::from_value::<crate::admin_role_timestamp::AdminRoleTimestamp>(
+            timestamp.clone(),
+        )
+        .expect(constants_str::DIAGNOSTIC_CC4D5B64)
+        .to_string(),
+        constants_str::VALUE_2026_07_13T12_30_00
+    );
+    let role_result =
+        serde_json::from_value::<crate::admin_role_summary::AdminRoleSummary>(serde_json::json!({
+            (constants_str::SQL_NAMES_ID): {(stringify!(value)): 1i64},
+            (constants_str::NAME): {(stringify!(value)): constants_str::LOGIN},
+            (constants_str::IS_SYSTEM): {(stringify!(value)): true},
+            (constants_str::CREATED_AT): {(stringify!(value)): timestamp},
+            (constants_str::UPDATED_AT): {(stringify!(value)): timestamp},
+        }));
+    let role = role_result.expect(constants_str::DIAGNOSTIC_18CFBE03);
+    assert_eq!(
+        role.created_at().to_string(),
+        constants_str::VALUE_2026_07_13T12_30_00
+    );
+    assert_eq!(
+        role.updated_at().to_string(),
+        constants_str::VALUE_2026_07_13T12_30_00
+    );
+}
+
+#[test]
 fn test_role_update_batch_validates_ids_names_and_collection_bound() {
     let item = serde_json::json!({(stringify!(filter)): {(stringify!(role_id)): 1i64}, (stringify!(changes)): {(stringify!(name)): constants_str::LOGIN}});
     let update = serde_json::from_value::<crate::admin_role_update::AdminRoleUpdate>(item.clone())

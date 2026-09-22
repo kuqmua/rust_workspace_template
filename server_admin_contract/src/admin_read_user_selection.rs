@@ -8,8 +8,8 @@
     proc_macro_newtype_from_inner::FromInner,
     utoipa::ToSchema,
 )]
-#[serde(from = "[crate::admin_read_user_column::AdminReadUserColumn; 6]")]
-pub struct AdminReadUserSelection([crate::admin_read_user_column::AdminReadUserColumn; 6]);
+#[serde(from = "[crate::admin_read_user_column::AdminReadUserColumn; 7]")]
+pub struct AdminReadUserSelection([crate::admin_read_user_column::AdminReadUserColumn; 7]);
 impl Default for AdminReadUserSelection {
     fn default() -> Self {
         Self::from([
@@ -20,6 +20,9 @@ impl Default for AdminReadUserSelection {
                 crate::admin_no_body::AdminNoBody,
             ),
             crate::admin_read_user_column::AdminReadUserColumn::DisplayName(
+                crate::admin_no_body::AdminNoBody,
+            ),
+            crate::admin_read_user_column::AdminReadUserColumn::MustChangePassword(
                 crate::admin_no_body::AdminNoBody,
             ),
             crate::admin_read_user_column::AdminReadUserColumn::IsBanned(

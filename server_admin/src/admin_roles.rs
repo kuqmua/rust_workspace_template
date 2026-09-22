@@ -20,11 +20,7 @@
         "search_columns": ["name"],
         "response": "crate::admin_roles_read_page::AdminRolesReadPage",
         "enrich": "crate::enrich_roles_read_page::enrich_roles_read_page",
-        "error": "crate::admin_roles_read_page_error::AdminRolesReadPageError",
-        "context_field": {
-            "name": "permissions_query",
-            "rust_type": "server_admin_contract::admin_table_query::AdminTableQuery"
-        }
+        "error": "crate::admin_roles_read_page_error::AdminRolesReadPageError"
     },
     "tests_write_into_file": "False",
     "common_write_into_file": "False",

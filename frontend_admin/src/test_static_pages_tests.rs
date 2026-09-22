@@ -15,6 +15,12 @@ fn test_static_pages() {
                         String::from(constants_str::VALUE_C6919F81),
                     )
                     .expect(constants_str::VALUE_8431554A),
+                    server_admin_contract::admin_permission_timestamp::AdminPermissionTimestamp::from(
+                        server_admin_contract::admin_role_timestamp::AdminRoleTimestamp::try_from(
+                            String::from(constants_str::ADMIN_FIXTURE_AUDIT_CREATED_AT),
+                        )
+                        .expect(constants_str::VALUE_A0034DA1),
+                    ),
                 ),
             ],
         )
@@ -72,9 +78,13 @@ fn test_static_pages() {
                     constants_str::VALUE_2D70999A,
                 ))
                 .expect(constants_str::VALUE_4DDA1CCE),
-                server_admin_contract::admin_permission_ids::AdminPermissionIds::try_from(vec![
-                    permission_id,
-                ])
+                server_admin_contract::admin_role_timestamp::AdminRoleTimestamp::try_from(
+                    String::from(constants_str::ADMIN_FIXTURE_AUDIT_CREATED_AT),
+                )
+                .expect(constants_str::VALUE_A0034DA1),
+                server_admin_contract::admin_role_timestamp::AdminRoleTimestamp::try_from(
+                    String::from(constants_str::ADMIN_FIXTURE_SESSION_CREATED_AT),
+                )
                 .expect(constants_str::VALUE_A0034DA1),
             ),
         ])
@@ -93,17 +103,21 @@ fn test_static_pages() {
             users.roles().to_vec(),
         )
         .expect(constants_str::DIAGNOSTIC_7CE41B06),
-        server_admin_contract::admin_permission_summaries::AdminPermissionSummaries::try_from(
-            permissions.items().to_vec(),
-        )
-        .expect(constants_str::DIAGNOSTIC_C306D98A),
         server_admin_contract::admin_page_total::AdminPageTotal::from(1u64),
-        server_admin_contract::admin_page_total::AdminPageTotal::from(2u64),
     );
     let roles_html = crate::render_roles::render_roles(&roles, &query, &admin, &branding);
     assert!(roles_html.as_ref().contains(constants_str::VALUE_91121F81));
     assert!(roles_html.as_ref().contains(constants_str::VALUE_DA7048B9));
-    assert!(roles_html.as_ref().contains(constants_str::VALUE_785F0083));
+    assert!(
+        roles_html
+            .as_ref()
+            .contains(constants_str::ADMIN_FIXTURE_AUDIT_CREATED_AT)
+    );
+    assert!(
+        roles_html
+            .as_ref()
+            .contains(constants_str::ADMIN_FIXTURE_SESSION_CREATED_AT)
+    );
 
     let sessions = server_admin_contract::admin_sessions_page::AdminSessionsPage::new(
         server_admin_contract::admin_session_views::AdminSessionViews::try_from(vec![

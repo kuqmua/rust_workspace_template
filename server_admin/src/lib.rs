@@ -401,12 +401,7 @@ mod replace_user_roles_in_connection;
 
 pub mod admin_roles_read_page;
 pub mod admin_roles_read_page_error;
-pub mod admin_roles_read_row;
 pub mod enrich_roles_read_page;
-
-mod enrich_assignment_rows;
-
-mod load_role_permission_catalog;
 
 mod admin_role_update_slice;
 mod api_create_roles;

@@ -103,46 +103,6 @@ where
                     crate::admin_error::AdminError::Authentication,
                 ));
             };
-            let permissions_query = if path.as_str()
-                == server_admin_contract::admin_route::AdminRoute::Roles
-                    .contract()
-                    .path()
-                    .as_ref()
-                && request.method() == http::Method::POST
-            {
-                let (parts, body) = request.into_parts();
-                let body = match axum::body::to_bytes(
-                    body,
-                    server_admin_contract::default_admin_api_body_max_bytes::default_admin_api_body_max_bytes()
-                        .get(),
-                )
-                .await
-                {
-                    Ok(value) => value,
-                    Err(_error) => {
-                        return Ok(axum::response::IntoResponse::into_response(
-                            crate::admin_error::AdminError::PayloadTooLarge,
-                        ));
-                    }
-                };
-                let permissions_query = serde_json::from_slice::<
-                    crate::admin_roles::AdminRolesReadPayload,
-                >(body.as_ref())
-                .is_ok_and(|payload| payload.get_permissions_query().is_some());
-                request = axum::extract::Request::from_parts(parts, axum::body::Body::from(body));
-                permissions_query
-            } else {
-                false
-            };
-            let permission = if permissions_query {
-                server_admin_core::std_admin_str_ref::StdAdminStrRef::from(
-                    server_admin_contract::admin_permission::AdminPermission::PermissionsRead
-                        .as_str()
-                        .get(),
-                )
-            } else {
-                permission
-            };
             let authenticated =
                 match crate::authorization_authorize_generated_request::authorization_authorize_generated_request(
                     state.as_ref(),

@@ -72,8 +72,9 @@ pub(crate) fn AdminDataGrid(
     let previous_action = table_path.as_ref().to_owned();
     let next_action = table_path.as_ref().to_owned();
     let previous_limit = limit_text.clone();
-    let create_user = (admin_data_table_view.table()
-        == server_admin_contract::admin_data_table::AdminDataTable::Users
+    let is_users = admin_data_table_view.table()
+        == server_admin_contract::admin_data_table::AdminDataTable::Users;
+    let create_user = (is_users
         && bool::from(authenticated_admin.has_permission(
             server_admin_contract::admin_permission::AdminPermission::UsersCreate,
         )))
@@ -85,7 +86,7 @@ pub(crate) fn AdminDataGrid(
         }
     });
     leptos::view! {
-        <section class="table-page" data-renderer="csr">
+        <section class="table-page" class=("table-admin_users_page", is_users) data-renderer="csr">
             {create_user}
             {grid}
             <singlestage::Pagination attr:data-name="Pagination" attr:aria-label=constants_str::ADMIN_UI_TABLE_PAGES class="table-pagination mx-auto flex w-full items-center justify-center gap-2">

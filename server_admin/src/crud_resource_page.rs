@@ -77,7 +77,7 @@ pub(crate) async fn crud_resource_page(
                         .fetch_one(role_pool)
                         .await
                         .map_err(crate::sqlx_admin_error::SqlxAdminError::from)?;
-                        let rows = sqlx::query_as::<_, (i64, String, bool)>(
+                        let rows = sqlx::query_as::<_, (i64, String, bool, String, String)>(
                             constants_str::SERVER_ADMIN_PAGE_ROLES_SQL,
                         )
                         .bind(search)
@@ -88,34 +88,9 @@ pub(crate) async fn crud_resource_page(
                         .fetch_all(role_pool)
                         .await
                         .map_err(crate::sqlx_admin_error::SqlxAdminError::from)?;
-                        let role_ids = rows.iter().map(|row| row.0).collect::<Vec<_>>();
-                        let links = sqlx::query_as::<_, (i64, i64)>(
-                            constants_str::SERVER_ADMIN_LIST_ROLE_PERMISSION_IDS_SQL,
-                        )
-                        .bind(role_ids.as_slice())
-                        .fetch_all(role_pool)
-                        .await
-                        .map_err(crate::sqlx_admin_error::SqlxAdminError::from)?;
-                        let mut permission_ids_by_role = links.into_iter().try_fold(
-                            std::collections::HashMap::<
-                                i64,
-                                Vec<server_admin_contract::admin_permission_id::AdminPermissionId>,
-                            >::with_capacity(role_ids.len()),
-                            |mut values, (role_id, permission_id)| {
-                                values.entry(role_id).or_default().push(
-                    server_admin_contract::admin_permission_id::AdminPermissionId::try_from(
-                        permission_id,
-                    )
-                    .map_err(|_error| {
-                        crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue
-                    })?,
-                );
-                                Ok::<_, crate::admin_repository_error::AdminRepositoryError>(values)
-                            },
-                        )?;
                         let items = rows
             .into_iter()
-            .map(|(id, name, is_system)| {
+            .map(|(id, name, is_system, created_at, updated_at)| {
                 Ok(server_admin_contract::admin_role_summary::AdminRoleSummary::new(
                     server_admin_contract::admin_role_id::AdminRoleId::try_from(id).map_err(
                         |_error| {
@@ -128,8 +103,14 @@ pub(crate) async fn crud_resource_page(
                             crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue
                         },
                     )?,
-                    server_admin_contract::admin_permission_ids::AdminPermissionIds::try_from(
-                        permission_ids_by_role.remove(&id).unwrap_or_default(),
+                    server_admin_contract::admin_role_timestamp::AdminRoleTimestamp::try_from(
+                        created_at,
+                    )
+                    .map_err(|_error| {
+                        crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue
+                    })?,
+                    server_admin_contract::admin_role_timestamp::AdminRoleTimestamp::try_from(
+                        updated_at,
                     )
                     .map_err(|_error| {
                         crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue
@@ -147,24 +128,10 @@ pub(crate) async fn crud_resource_page(
                     }
                     .await
                     .map_err(crate::map_repository_error::map_repository_error)?;
-                    let permissions =
-                        crate::load_role_permission_catalog::load_role_permission_catalog(
-                            app_state::sqlx_pg_pool_ref::SqlxPgPoolRef::from(role_pool),
-                        )
-                        .await
-                        .map_err(crate::map_repository_error::map_repository_error)?;
-                    let permissions_total = crate::page_total::page_total(
-                        crate::admin_page_total_count::AdminPageTotalCount::from(
-                            i64::try_from(permissions.as_ref().len())
-                                .map_err(|_error| crate::admin_error::AdminError::Validation)?,
-                        ),
-                    )?;
                     Ok(
                         server_admin_contract::admin_roles_page::AdminRolesPage::new(
                             roles,
-                            permissions,
                             crate::page_total::page_total(total)?,
-                            permissions_total,
                         ),
                     )
                 };

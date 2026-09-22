@@ -23,11 +23,6 @@ impl TryFrom<Vec<crate::admin_permission_id::AdminPermissionId>> for AdminPermis
         crate::admin_bounded_vec::AdminBoundedVec::try_from(value).map(Self)
     }
 }
-impl AdminPermissionIds {
-    pub(crate) const fn as_slice(&self) -> &[crate::admin_permission_id::AdminPermissionId] {
-        self.0.as_slice()
-    }
-}
 #[allow(
     clippy::derivable_impls,
     reason = "only identifier request collections intentionally expose Default"

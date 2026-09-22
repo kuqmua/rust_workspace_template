@@ -13,4 +13,5 @@ pub struct AdminPermissionSummary {
     #[getters(copy)]
     id: crate::admin_permission_id::AdminPermissionId,
     name: crate::admin_permission_value::AdminPermissionValue,
+    created_at: crate::admin_permission_timestamp::AdminPermissionTimestamp,
 }

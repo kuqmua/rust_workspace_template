@@ -22,7 +22,7 @@ test("test_permission_details_follow_table_link_and_ignore_list_filters", async 
   await page.goto("/admin/permissions");
   const row = page.locator("tbody tr").last();
   const cells = row.locator("td");
-  await expect(cells).toHaveCount(3);
+  await expect(cells).toHaveCount(4);
   const values = await cells.allTextContents();
   const path = `/admin/permissions/${values[0].trim()}`;
   const link = row.getByRole("link", { name: "read", exact: true });
@@ -31,11 +31,11 @@ test("test_permission_details_follow_table_link_and_ignore_list_filters", async 
   await link.click();
   await expect(page).toHaveURL(new RegExp(`${path}$`));
   const detail = page.locator('[data-page="permission-read"]');
-  await expect(detail.locator(".health-result")).toHaveText(values.slice(0, 2));
+  await expect(detail.locator(".health-result")).toHaveText(values.slice(0, 3));
   await page.reload();
-  await expect(detail.locator(".health-result")).toHaveText(values.slice(0, 2));
+  await expect(detail.locator(".health-result")).toHaveText(values.slice(0, 3));
   await page.goto(`${path}?search=missing&offset=999&filter_field=id&filter_operation=eq&filter_value=999`);
-  await expect(detail.locator(".health-result")).toHaveText(values.slice(0, 2));
+  await expect(detail.locator(".health-result")).toHaveText(values.slice(0, 3));
   await page.goto("/admin/permissions/9223372036854775807");
   await expect(detail).toContainText("resource not found");
   await expect(detail.locator(".health-result")).toHaveCount(0);

@@ -66,19 +66,12 @@ fn test_crud() {
                     constants_str::VALUE_6186A0EE,
                 ))
                 .expect(constants_str::VALUE_5D15A9A0),
-                server_admin_contract::admin_permission_ids::AdminPermissionIds::try_from(
-                    Vec::new(),
-                )
-                .expect(constants_str::VALUE_97520E5E),
+                server_admin_contract::admin_role_timestamp::AdminRoleTimestamp::default(),
+                server_admin_contract::admin_role_timestamp::AdminRoleTimestamp::default(),
             ),
         ])
         .expect(constants_str::DIAGNOSTIC_5FFB690C),
-        server_admin_contract::admin_permission_summaries::AdminPermissionSummaries::try_from(
-            Vec::new(),
-        )
-        .expect(constants_str::DIAGNOSTIC_B1A319F1),
         server_admin_contract::admin_page_total::AdminPageTotal::from(1u64),
-        server_admin_contract::admin_page_total::AdminPageTotal::from(0u64),
     );
     let user_create = crate::render_user_create::render_user_create(&admin, &branding);
     assert!(

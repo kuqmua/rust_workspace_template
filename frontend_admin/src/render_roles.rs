@@ -18,16 +18,15 @@ pub fn render_roles(
             let id = item.id().to_string();
             let name = item.name().to_string();
             let system = item.is_system().to_string();
-            let permissions =
-                crate::admin_role_permissions::admin_role_permissions(
-                    item, admin_roles_page,
-                );
+            let created_at = item.created_at().to_string();
+            let updated_at = item.updated_at().to_string();
             leptos::view! {
                 <crate::table_row::TableRow>
                     <crate::table_cell::TableCell data_label="id">{id}</crate::table_cell::TableCell>
                     <crate::table_cell::TableCell data_label="name">{name}</crate::table_cell::TableCell>
                     <crate::table_cell::TableCell data_label="system">{system}</crate::table_cell::TableCell>
-                    {permissions}
+                    <crate::table_cell::TableCell data_label=constants_str::CREATED_AT>{created_at}</crate::table_cell::TableCell>
+                    <crate::table_cell::TableCell data_label=constants_str::UPDATED_AT>{updated_at}</crate::table_cell::TableCell>
                     <crate::table_cell::TableCell data_label=constants_str::ADMIN_UI_ACTIONS bool=true>{constants_str::EMPTY}</crate::table_cell::TableCell>
                 </crate::table_row::TableRow>
             }
@@ -38,7 +37,7 @@ pub fn render_roles(
         <div class="resource-actions">
             {can_create.then(|| leptos::view! { <crate::admin_button_link::AdminButtonLink str=server_admin_contract::admin_frontend_path::AdminFrontendPath::RolesCreate.get()>{constants_str::PG_CRUD_CREATE_PERMISSION_ACTION}</crate::admin_button_link::AdminButtonLink> })}
         </div>
-        <crate::table_wrapper::TableWrapper><crate::table::Table><crate::table_header::TableHeader><crate::table_row::TableRow><crate::table_head::TableHead>"id"</crate::table_head::TableHead><crate::table_head::TableHead>"name"</crate::table_head::TableHead><crate::table_head::TableHead>"system"</crate::table_head::TableHead><crate::table_head::TableHead>"permissions"</crate::table_head::TableHead><crate::table_head::TableHead>{constants_str::ADMIN_UI_ACTIONS}</crate::table_head::TableHead></crate::table_row::TableRow></crate::table_header::TableHeader>
+        <crate::table_wrapper::TableWrapper><crate::table::Table><crate::table_header::TableHeader><crate::table_row::TableRow><crate::table_head::TableHead>"id"</crate::table_head::TableHead><crate::table_head::TableHead>"name"</crate::table_head::TableHead><crate::table_head::TableHead>"system"</crate::table_head::TableHead><crate::table_head::TableHead>{constants_str::CREATED_AT}</crate::table_head::TableHead><crate::table_head::TableHead>{constants_str::UPDATED_AT}</crate::table_head::TableHead><crate::table_head::TableHead>{constants_str::ADMIN_UI_ACTIONS}</crate::table_head::TableHead></crate::table_row::TableRow></crate::table_header::TableHeader>
         <crate::table_body::TableBody>{rows}</crate::table_body::TableBody></crate::table::Table></crate::table_wrapper::TableWrapper>
         {crate::table_pagination::table_pagination(server_admin_contract::admin_page::AdminPage::Roles, admin_table_query, admin_roles_page.total(), None, None)}
         </section>

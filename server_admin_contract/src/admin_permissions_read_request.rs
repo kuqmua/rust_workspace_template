@@ -24,17 +24,21 @@ impl TryFrom<&crate::admin_table_query::AdminTableQuery> for AdminPermissionsRea
     type Error =
         crate::admin_table_sort_field_try_from_key_error::AdminTableSortFieldTryFromKeyError;
     fn try_from(value: &crate::admin_table_query::AdminTableQuery) -> Result<Self, Self::Error> {
-        let column = if value.sort().as_ref().is_empty() {
-            crate::admin_read_permission_column::AdminReadPermissionColumn::Id(
-                crate::admin_no_body::AdminNoBody,
+        let (column, order) = if value.sort().as_ref().is_empty() {
+            (
+                crate::admin_read_permission_column::AdminReadPermissionColumn::Id(
+                    crate::admin_no_body::AdminNoBody,
+                ),
+                crate::admin_sort_direction::AdminSortDirection::Ascending,
             )
         } else {
-            match crate::admin_table_sort_field::AdminTableSortField::try_from_key(
+            let selected_column = match crate::admin_table_sort_field::AdminTableSortField::try_from_key(
                 &crate::admin_table_sort_field::AdminTableSortField::PERMISSION,
                 crate::admin_table_sort_key_ref::AdminTableSortKeyRef::from(value.sort().as_ref()),
             )? {
                 crate::admin_table_sort_field::AdminTableSortField::PermissionId => crate::admin_read_permission_column::AdminReadPermissionColumn::Id(crate::admin_no_body::AdminNoBody),
                 crate::admin_table_sort_field::AdminTableSortField::PermissionName => crate::admin_read_permission_column::AdminReadPermissionColumn::Name(crate::admin_no_body::AdminNoBody),
+                crate::admin_table_sort_field::AdminTableSortField::PermissionCreatedAt => crate::admin_read_permission_column::AdminReadPermissionColumn::CreatedAt(crate::admin_no_body::AdminNoBody),
                 crate::admin_table_sort_field::AdminTableSortField::AuditAction
                 | crate::admin_table_sort_field::AdminTableSortField::AuditCreatedAt
                 | crate::admin_table_sort_field::AdminTableSortField::AuditResource
@@ -47,12 +51,8 @@ impl TryFrom<&crate::admin_table_query::AdminTableQuery> for AdminPermissionsRea
                 | crate::admin_table_sort_field::AdminTableSortField::UserId
                 | crate::admin_table_sort_field::AdminTableSortField::UserLogin
                 | crate::admin_table_sort_field::AdminTableSortField::UserStatus => return Err(crate::admin_table_sort_field_try_from_key_error::AdminTableSortFieldTryFromKeyError::Unknown),
-            }
-        };
-        let order = if value.sort().as_ref().is_empty() {
-            crate::admin_sort_direction::AdminSortDirection::Ascending
-        } else {
-            value.direction()
+            };
+            (selected_column, value.direction())
         };
         Ok(Self::new(
             Some(value.search().clone()),

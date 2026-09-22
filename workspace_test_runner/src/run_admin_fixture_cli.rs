@@ -177,6 +177,12 @@ pub(crate) fn run_admin_fixture_cli() -> crate::runner_cli_outcome::RunnerCliOut
                         )
                         .map_err(|error| macro_helpers::tool_console_stream::ToolConsoleStream::write_or_exit(macro_helpers::tool_console_stream::ToolConsoleStream::StandardError, macro_helpers::std_fmt_arguments::StdFmtArguments::from(format_args!("{}{}", format_args!("{error}"), constants_str::NEWLINE))))?,
                         permission,
+                        server_admin_contract::admin_permission_timestamp::AdminPermissionTimestamp::from(
+                            server_admin_contract::admin_role_timestamp::AdminRoleTimestamp::try_from(
+                                String::from(constants_str::ADMIN_FIXTURE_AUDIT_CREATED_AT),
+                            )
+                            .map_err(|error| macro_helpers::tool_console_stream::ToolConsoleStream::write_or_exit(macro_helpers::tool_console_stream::ToolConsoleStream::StandardError, macro_helpers::std_fmt_arguments::StdFmtArguments::from(format_args!("{}{}", format_args!("{error}"), constants_str::NEWLINE))))?,
+                        ),
                     ),
                 )
             })
@@ -198,24 +204,16 @@ pub(crate) fn run_admin_fixture_cli() -> crate::runner_cli_outcome::RunnerCliOut
                 server_admin_contract::admin_role_name::AdminRoleName,
             >(String::from(constants_str::ADMIN_FIXTURE_ROLE_NAME))
             .map_err(render_admin_fixture_conversion_error)?,
-            server_admin_contract::admin_permission_ids::AdminPermissionIds::try_from(
-                permission_summaries
-                    .iter()
-                    .map(
-                        server_admin_contract::admin_permission_summary::AdminPermissionSummary::id,
-                    )
-                    .collect::<Vec<_>>(),
-            )
-            .map_err(|error| {
-                macro_helpers::tool_console_stream::ToolConsoleStream::write_or_exit(
-                    macro_helpers::tool_console_stream::ToolConsoleStream::StandardError,
-                    macro_helpers::std_fmt_arguments::StdFmtArguments::from(format_args!(
-                        "{}{}",
-                        format_args!("{error}"),
-                        constants_str::NEWLINE
-                    )),
-                );
-            })?,
+            crate::create_admin_fixture_string::create_admin_fixture_string::<
+                server_admin_contract::admin_role_timestamp::AdminRoleTimestamp,
+            >(String::from(constants_str::ADMIN_FIXTURE_AUDIT_CREATED_AT))
+            .map_err(render_admin_fixture_conversion_error)?,
+            crate::create_admin_fixture_string::create_admin_fixture_string::<
+                server_admin_contract::admin_role_timestamp::AdminRoleTimestamp,
+            >(String::from(
+                constants_str::ADMIN_FIXTURE_SESSION_CREATED_AT,
+            ))
+            .map_err(render_admin_fixture_conversion_error)?,
         );
         let role_summaries = vec![role_summary];
         let audit_details =
@@ -405,21 +403,7 @@ pub(crate) fn run_admin_fixture_cli() -> crate::runner_cli_outcome::RunnerCliOut
                     )),
                 );
             })?,
-            server_admin_contract::admin_permission_summaries::AdminPermissionSummaries::try_from(
-                permission_summaries.clone(),
-            )
-            .map_err(|error| {
-                macro_helpers::tool_console_stream::ToolConsoleStream::write_or_exit(
-                    macro_helpers::tool_console_stream::ToolConsoleStream::StandardError,
-                    macro_helpers::std_fmt_arguments::StdFmtArguments::from(format_args!(
-                        "{}{}",
-                        format_args!("{error}"),
-                        constants_str::NEWLINE
-                    )),
-                );
-            })?,
             server_admin_contract::admin_page_total::AdminPageTotal::from(role_total),
-            server_admin_contract::admin_page_total::AdminPageTotal::from(permission_total),
         );
         let permissions_page = server_admin_contract::admin_permissions_page::AdminPermissionsPage::new(
             server_admin_contract::admin_permission_summaries::AdminPermissionSummaries::try_from(

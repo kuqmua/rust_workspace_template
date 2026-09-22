@@ -8,11 +8,11 @@
     proc_macro_newtype_from_inner::FromInner,
     utoipa::ToSchema,
 )]
-#[serde(from = "[crate::admin_read_role_column::AdminReadRoleColumn; 3]")]
-pub struct AdminReadRoleSelection([crate::admin_read_role_column::AdminReadRoleColumn; 3]);
+#[serde(from = "[crate::admin_read_role_column::AdminReadRoleColumn; 5]")]
+pub struct AdminReadRoleSelection([crate::admin_read_role_column::AdminReadRoleColumn; 5]);
 impl Default for AdminReadRoleSelection {
     fn default() -> Self {
-        Self::from([
+        let columns = [
             crate::admin_read_role_column::AdminReadRoleColumn::Id(
                 crate::admin_no_body::AdminNoBody,
             ),
@@ -22,6 +22,13 @@ impl Default for AdminReadRoleSelection {
             crate::admin_read_role_column::AdminReadRoleColumn::IsSystem(
                 crate::admin_no_body::AdminNoBody,
             ),
-        ])
+            crate::admin_read_role_column::AdminReadRoleColumn::CreatedAt(
+                crate::admin_no_body::AdminNoBody,
+            ),
+            crate::admin_read_role_column::AdminReadRoleColumn::UpdatedAt(
+                crate::admin_no_body::AdminNoBody,
+            ),
+        ];
+        Self::from(columns)
     }
 }

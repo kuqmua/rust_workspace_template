@@ -12,4 +12,6 @@ pub enum AdminReadRoleColumn {
     Name(crate::admin_no_body::AdminNoBody),
     Id(crate::admin_no_body::AdminNoBody),
     IsSystem(crate::admin_no_body::AdminNoBody),
+    CreatedAt(crate::admin_no_body::AdminNoBody),
+    UpdatedAt(crate::admin_no_body::AdminNoBody),
 }

@@ -369,14 +369,7 @@ mod test_data_tables {
             (0u32, true, 0u64, None),
         ]), (), async |(), (offset, is_system, total, expected_name)| {
             let read_body = serde_json::json!({
-                (stringify!(permissions_query)): {
-                    (stringify!(search)): server_admin_contract::admin_permission::AdminPermission::UsersRead.as_str().get(),
-                    (stringify!(sort)): constants_str::NAME,
-                    (stringify!(offset)): 0u32,
-                    (stringify!(limit)): 1u16,
-                    (stringify!(direction)): server_admin_contract::admin_sort_direction::AdminSortDirection::Ascending
-                },
-                (stringify!(select)): [{(stringify!(id)): null}, {(stringify!(name)): null}, {(stringify!(is_system)): null}],
+                (stringify!(select)): [{(stringify!(id)): null}, {(stringify!(name)): null}, {(stringify!(is_system)): null}, {(stringify!(created_at)): null}, {(stringify!(updated_at)): null}],
                 (stringify!(search)): constants_str::VALUE_2562E0C2.to_uppercase(),
                 (stringify!(where_many)): {(stringify!(is_system)): {
                     (constants_str::PG_CRUD_OPERATOR_FIELD): constants_str::SERVER_ADMIN_FILTER_OPERATOR_AND,
@@ -401,13 +394,10 @@ mod test_data_tables {
             let value = serde_json::from_slice::<serde_json::Value>(&bytes).expect(constants_str::DIAGNOSTIC_8E7012EF);
             assert_eq!(value.get(constants_str::ADMIN_UI_TOTAL), Some(&serde_json::json!(total)));
             let page = serde_json::from_slice::<server_admin_contract::admin_roles_page::AdminRolesPage>(&bytes).expect(constants_str::DIAGNOSTIC_6065FF9E);
-            assert_eq!(page.permissions().len(), 1);
-            assert_eq!(u64::from(page.permissions_total()), 1u64);
-            assert_eq!(page.permissions().first().map(|permission| permission.name().as_ref().as_str()), Some(server_admin_contract::admin_permission::AdminPermission::UsersRead.as_str().get()));
             assert_eq!(page.items().first().map(|item| item.name().as_ref().as_str()), expected_name);
             page.items().iter().for_each(|item| {
-                assert_eq!(item.permission_ids().len(), 1);
-                assert_eq!(i64::from(*item.permission_ids().first().expect(constants_str::DIAGNOSTIC_03777378)), role_permission);
+                assert!(!item.created_at().to_string().is_empty());
+                assert!(!item.updated_at().to_string().is_empty());
             });
         }).await;
         let old_get = tower::ServiceExt::oneshot(
@@ -469,49 +459,6 @@ mod test_data_tables {
             },
         )
         .await;
-        let permissions_read_body = serde_json::json!({
-            (stringify!(permissions_query)): {
-                (stringify!(search)): server_admin_contract::admin_permission::AdminPermission::UsersRead.as_str().get(),
-                (stringify!(sort)): constants_str::NAME,
-                (stringify!(offset)): 0u32,
-                (stringify!(limit)): 1u16,
-                (stringify!(direction)): server_admin_contract::admin_sort_direction::AdminSortDirection::Ascending
-            },
-            (stringify!(select)): [{(stringify!(id)): null}],
-            (stringify!(search)): null,
-            (stringify!(where_many)): null,
-            (stringify!(order_by)): {(stringify!(column)): {(stringify!(id)): null}, (stringify!(order)): server_admin_contract::admin_sort_direction::AdminSortDirection::Ascending},
-            (stringify!(pagination)): {(stringify!(limit)): 1u16, (stringify!(offset)): 0u32}
-        })
-        .to_string();
-        let permissions_read = tower::ServiceExt::oneshot(
-            crate::router_with_pool(&fixture.pool).0,
-            crate::request_with_peer(
-                crate::HttpAdminApiTestMethod::from(http::Method::POST),
-                crate::StdAdminApiTestStrRef::from(constants_str::ADMIN_ROLES_READ),
-                crate::StdAdminApiTestStrRef::from(permissions_read_body.as_str()),
-                Some(crate::StdAdminApiTestStrRef::from(
-                    fixture.cookie.0.as_str(),
-                )),
-                None,
-            )
-            .0,
-        )
-        .await
-        .expect(constants_str::DIAGNOSTIC_6D2EC7A5);
-        assert_eq!(permissions_read.status(), http::StatusCode::OK);
-        let permissions_read_bytes = axum::body::to_bytes(
-            permissions_read.into_body(),
-            constants_usize::VALUE_1_048_576,
-        )
-        .await
-        .expect(constants_str::DIAGNOSTIC_F73B4C18);
-        let permissions_read_page = serde_json::from_slice::<
-            server_admin_contract::admin_roles_page::AdminRolesPage,
-        >(&permissions_read_bytes)
-        .expect(constants_str::DIAGNOSTIC_A91E5D64);
-        assert!(permissions_read_page.items().is_empty());
-        assert_eq!(permissions_read_page.permissions().len(), 1);
         fixture
             .lock
             .0
@@ -2681,7 +2628,7 @@ mod test_flow {
                     >()
                     .as_ref(),
                 ),
-                super::StdAdminApiTestStrRef::from(serde_json::json!({(stringify!(select)): [{(stringify!(id)): null}, {(stringify!(name)): null}, {(stringify!(is_system)): null}], (stringify!(where_many)): null, (stringify!(search)): null, (stringify!(order_by)): {(stringify!(column)): {(stringify!(id)): null}, (stringify!(order)): server_admin_contract::admin_sort_direction::AdminSortDirection::Ascending}, (stringify!(pagination)): {(stringify!(limit)): 20u16, (stringify!(offset)): 0u32}}).to_string().as_str()),
+                super::StdAdminApiTestStrRef::from(serde_json::json!({(stringify!(select)): [{(stringify!(id)): null}, {(stringify!(name)): null}, {(stringify!(is_system)): null}, {(stringify!(created_at)): null}, {(stringify!(updated_at)): null}], (stringify!(where_many)): null, (stringify!(search)): null, (stringify!(order_by)): {(stringify!(column)): {(stringify!(id)): null}, (stringify!(order)): server_admin_contract::admin_sort_direction::AdminSortDirection::Ascending}, (stringify!(pagination)): {(stringify!(limit)): 20u16, (stringify!(offset)): 0u32}}).to_string().as_str()),
                 Some(super::StdAdminApiTestStrRef::from(active_cookie.as_str())),
                 None,
             )

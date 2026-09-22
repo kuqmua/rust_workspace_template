@@ -11,12 +11,7 @@
 pub struct AdminRolesPage {
     #[contract_struct_api(into, slice = crate::admin_role_summary::AdminRoleSummary)]
     items: crate::admin_role_summaries::AdminRoleSummaries,
-    #[contract_struct_api(slice = crate::admin_permission_summary::AdminPermissionSummary)]
-    permissions: crate::admin_permission_summaries::AdminPermissionSummaries,
     #[schema(value_type = u64)]
     #[contract_struct_api(copy_ref)]
     total: crate::admin_page_total::AdminPageTotal,
-    #[schema(value_type = u64)]
-    #[contract_struct_api(copy_ref)]
-    permissions_total: crate::admin_page_total::AdminPageTotal,
 }

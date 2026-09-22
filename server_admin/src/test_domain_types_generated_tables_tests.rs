@@ -983,6 +983,21 @@ fn test_users_read_client_request_is_accepted_by_generated_contract() {
         .expect(constants_str::DIAGNOSTIC_8F53BBB4);
     let client_json =
         serde_json::to_value(client_request).expect(constants_str::DIAGNOSTIC_66DAD9EF);
+    assert_eq!(
+        client_json
+            .get(constants_str::SELECT_ALT_3)
+            .and_then(serde_json::Value::as_array)
+            .map(Vec::len),
+        Some(7usize)
+    );
+    assert!(
+        client_json
+            .get(constants_str::SELECT_ALT_3)
+            .and_then(serde_json::Value::as_array)
+            .is_some_and(|selection| selection
+                .iter()
+                .any(|field| { field.get(stringify!(must_change_password)).is_some() }))
+    );
     let generated_request = serde_json::from_value::<
         crate::admin_users_database_read::AdminUsersDatabaseReadReadPayload,
     >(client_json.clone())
@@ -1442,7 +1457,6 @@ fn test_roles_read_client_request_accepts_every_identifier_filter() {
             )
             .map_err(|error| error.to_string())?;
             let request = server_admin_contract::admin_roles_read_request::AdminRolesReadRequest::new(
-                base_request.get_permissions_query().cloned(),
                 base_request.get_search().cloned(),
                 base_request.get_pagination().clone(),
                 base_request.get_select().clone(),
@@ -1521,18 +1535,6 @@ fn test_roles_read_client_request_accepts_text_and_boolean_filters() {
         Ok::<_, String>(increment.get())
     })();
     assert_eq!(result, Ok(3u64));
-}
-
-#[test]
-fn test_roles_read_permissions_query_matches_generated_payload() {
-    assert!(
-        server_admin_contract::admin_roles_read_request::AdminRolesReadRequest::with_permissions_query(
-            &server_admin_contract::admin_table_query::AdminTableQuery::default(),
-        )
-        .is_ok_and(|request| serde_json::to_value(request).is_ok_and(|value| {
-            serde_json::from_value::<crate::admin_roles::AdminRolesReadPayload>(value).is_ok()
-        }))
-    );
 }
 
 #[test]

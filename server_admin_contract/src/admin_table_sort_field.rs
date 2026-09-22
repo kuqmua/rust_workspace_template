@@ -7,6 +7,7 @@ pub enum AdminTableSortField {
     AuditResource,
     AuditSucceeded,
     AuditUserId,
+    PermissionCreatedAt,
     PermissionId,
     PermissionName,
     RoleId,
@@ -26,7 +27,11 @@ impl AdminTableSortField {
         Self::UserStatus,
     ];
     pub const ROLE: [Self; 3] = [Self::RoleName, Self::RoleId, Self::RoleSystem];
-    pub const PERMISSION: [Self; 2] = [Self::PermissionName, Self::PermissionId];
+    pub const PERMISSION: [Self; 3] = [
+        Self::PermissionName,
+        Self::PermissionId,
+        Self::PermissionCreatedAt,
+    ];
     pub const AUDIT: [Self; 5] = [
         Self::AuditCreatedAt,
         Self::AuditUserId,
@@ -59,6 +64,9 @@ impl AdminTableSortField {
         let (key, label) = match self {
             Self::AuditAction => (constants_str::ACTION, constants_str::SHARED_VALUES_ACTION_2),
             Self::AuditCreatedAt => (constants_str::CREATED_AT, constants_str::SHARED_VALUES_TIME),
+            Self::PermissionCreatedAt => {
+                (constants_str::CREATED_AT, constants_str::SHARED_VALUES_TIME)
+            }
             Self::AuditResource => (
                 constants_str::RESOURCE,
                 constants_str::SHARED_VALUES_RESOURCE_2,

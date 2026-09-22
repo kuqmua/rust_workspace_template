@@ -21,6 +21,10 @@ pub async fn enrich_permissions_read_page(
             let name = optional_name.as_ref().ok_or(
                 crate::admin_permissions_read_page_error::AdminPermissionsReadPageError::MissingName,
             )?;
+            let optional_created_at = item.get_created_at();
+            let created_at = optional_created_at.as_ref().ok_or(
+                crate::admin_permissions_read_page_error::AdminPermissionsReadPageError::MissingCreatedAt,
+            )?;
             Ok(server_admin_contract::admin_permission_summary::AdminPermissionSummary::new(
                 server_admin_contract::admin_permission_id::AdminPermissionId::try_from(
                     <pg_types_numeric::generate_pg_types_mod::I64AsNonNullBigSerialInitializationByPg as pg_crud_common::pg_type::PgType>::into_inner(id),
@@ -31,6 +35,15 @@ pub async fn enrich_permissions_read_page(
                     Ok(admin_permission_value) => admin_permission_value,
                     Err(_) => return Err(crate::admin_permissions_read_page_error::AdminPermissionsReadPageError::StoredPermission),
                 },
+                server_admin_contract::admin_permission_timestamp::AdminPermissionTimestamp::from(
+                    server_admin_contract::admin_role_timestamp::AdminRoleTimestamp::try_from(
+                        <pg_types_chrono_net::generate_pg_types_mod::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsNonNullTimestampTz as pg_crud_common::pg_type::PgType>::into_inner(
+                            created_at.get_value().clone(),
+                    )
+                    .to_string(),
+                )
+                .map_err(crate::admin_permissions_read_page_error::AdminPermissionsReadPageError::CreatedAt)?,
+                ),
             ))
         })
         .collect::<Result<Vec<_>, crate::admin_permissions_read_page_error::AdminPermissionsReadPageError>>()?;

@@ -20,6 +20,10 @@ pub(crate) enum AdminFixtureConversionError {
     #[error("{0}")]
     RoleName(server_admin_contract::admin_role_name::AdminRoleNameTryFromStringError),
     #[error("{0}")]
+    RoleTimestamp(
+        server_admin_contract::admin_role_timestamp::AdminRoleTimestampTryFromStringError,
+    ),
+    #[error("{0}")]
     SessionIdentifier(
         server_admin_contract::admin_session_identifier::AdminSessionIdentifierTryFromStringError,
     ),
@@ -84,6 +88,16 @@ impl From<server_admin_contract::admin_role_name::AdminRoleNameTryFromStringErro
         value: server_admin_contract::admin_role_name::AdminRoleNameTryFromStringError,
     ) -> Self {
         Self::RoleName(value)
+    }
+}
+
+impl From<server_admin_contract::admin_role_timestamp::AdminRoleTimestampTryFromStringError>
+    for AdminFixtureConversionError
+{
+    fn from(
+        value: server_admin_contract::admin_role_timestamp::AdminRoleTimestampTryFromStringError,
+    ) -> Self {
+        Self::RoleTimestamp(value)
     }
 }
 

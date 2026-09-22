@@ -88,7 +88,6 @@ pub mod admin_profile_view;
 pub mod admin_record_read_page;
 #[cfg(target_arch = "wasm32")]
 pub mod admin_record_view;
-pub mod admin_role_permissions;
 #[cfg(target_arch = "wasm32")]
 pub mod admin_role_view;
 #[cfg(target_arch = "wasm32")]
@@ -128,11 +127,8 @@ pub mod admin_table_query;
 pub mod admin_table_query_direction;
 pub mod admin_table_query_hidden_inputs;
 pub mod admin_textarea;
+#[cfg(not(target_arch = "wasm32"))]
 pub mod admin_user_roles;
-#[cfg(target_arch = "wasm32")]
-pub mod admin_user_view;
-#[cfg(target_arch = "wasm32")]
-pub mod admin_users_view;
 #[cfg(not(target_arch = "wasm32"))]
 pub mod axum_admin_frontend_router;
 #[cfg(not(target_arch = "wasm32"))]

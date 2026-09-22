@@ -11,4 +11,5 @@
 pub enum AdminReadPermissionColumn {
     Name(crate::admin_no_body::AdminNoBody),
     Id(crate::admin_no_body::AdminNoBody),
+    CreatedAt(crate::admin_no_body::AdminNoBody),
 }

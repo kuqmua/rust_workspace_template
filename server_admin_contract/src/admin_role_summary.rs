@@ -22,8 +22,8 @@ pub struct AdminRoleSummary {
     is_system: crate::admin_bool::AdminBool,
     #[serde(deserialize_with = "crate::admin_read_field::AdminReadField::deserialize_value")]
     name: crate::admin_role_name::AdminRoleName,
-    #[serde(default)]
-    #[getters(skip)]
-    #[contract_struct_api(slice = crate::admin_permission_id::AdminPermissionId)]
-    permission_ids: crate::admin_permission_ids::AdminPermissionIds,
+    #[serde(deserialize_with = "crate::admin_read_field::AdminReadField::deserialize_value")]
+    created_at: crate::admin_role_timestamp::AdminRoleTimestamp,
+    #[serde(deserialize_with = "crate::admin_read_field::AdminReadField::deserialize_value")]
+    updated_at: crate::admin_role_timestamp::AdminRoleTimestamp,
 }

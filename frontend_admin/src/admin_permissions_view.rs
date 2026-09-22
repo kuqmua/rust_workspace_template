@@ -23,9 +23,10 @@ pub(crate) fn AdminPermissionsView(
     let rows = admin_permissions_page.items().iter().map(|item| {
         let permission_path = server_admin_contract::admin_route_path::AdminRoutePath::from(item.id()).to_string();
         let id = item.id().to_string();
-        let permission = item.name().to_string();
+        let name = item.name().to_string();
+        let created_at = item.created_at().to_string();
         leptos::view! {
-            <crate::table_row::TableRow><crate::table_cell::TableCell data_label="id">{id}</crate::table_cell::TableCell><crate::table_cell::TableCell data_label="permission">{permission}</crate::table_cell::TableCell><crate::table_cell::TableCell data_label=constants_str::ADMIN_UI_ACTIONS bool=true><singlestage::Link class=crate::admin_button_variant::AdminButtonVariant::Secondary.class() href=permission_path attr:aria-label=constants_str::PG_CRUD_READ_PERMISSION_ACTION attr:title=constants_str::PG_CRUD_READ_PERMISSION_ACTION>
+            <crate::table_row::TableRow><crate::table_cell::TableCell data_label="id">{id}</crate::table_cell::TableCell><crate::table_cell::TableCell data_label="name">{name}</crate::table_cell::TableCell><crate::table_cell::TableCell data_label=constants_str::CREATED_AT>{created_at}</crate::table_cell::TableCell><crate::table_cell::TableCell data_label=constants_str::ADMIN_UI_ACTIONS bool=true><singlestage::Link class=crate::admin_button_variant::AdminButtonVariant::Secondary.class() href=permission_path attr:aria-label=constants_str::PG_CRUD_READ_PERMISSION_ACTION attr:title=constants_str::PG_CRUD_READ_PERMISSION_ACTION>
                         <svg viewBox="0 0 24 24" aria-hidden=constants_str::TRUE fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"></path>
                             <circle cx="12" cy="12" r="3"></circle>
@@ -81,7 +82,7 @@ pub(crate) fn AdminPermissionsView(
     });
     leptos::view! {
         <section class="table-admin_permissions_page" data-renderer="csr">
-            <crate::table_wrapper::TableWrapper><crate::table::Table><crate::table_header::TableHeader><crate::table_row::TableRow><crate::table_head::TableHead data_field=constants_str::SQL_NAMES_ID.to_owned() data_filter_count=identifier_filters.len().to_string()><div class="table-column-heading"><span>{constants_str::SQL_NAMES_ID}</span>{identifier_filter}</div></crate::table_head::TableHead><crate::table_head::TableHead data_field=constants_str::NAME.to_owned() data_filter_count=text_filters.len().to_string()><div class="table-column-heading"><span>{constants_str::NAME}</span>{name_filter}</div></crate::table_head::TableHead><crate::table_head::TableHead>{constants_str::ADMIN_UI_ACTIONS}</crate::table_head::TableHead></crate::table_row::TableRow></crate::table_header::TableHeader>
+            <crate::table_wrapper::TableWrapper><crate::table::Table><crate::table_header::TableHeader><crate::table_row::TableRow><crate::table_head::TableHead data_field=constants_str::SQL_NAMES_ID.to_owned() data_filter_count=identifier_filters.len().to_string()><div class="table-column-heading"><span>{constants_str::SQL_NAMES_ID}</span>{identifier_filter}</div></crate::table_head::TableHead><crate::table_head::TableHead data_field=constants_str::NAME.to_owned() data_filter_count=text_filters.len().to_string()><div class="table-column-heading"><span>{constants_str::NAME}</span>{name_filter}</div></crate::table_head::TableHead><crate::table_head::TableHead>{constants_str::CREATED_AT}</crate::table_head::TableHead><crate::table_head::TableHead>{constants_str::ADMIN_UI_ACTIONS}</crate::table_head::TableHead></crate::table_row::TableRow></crate::table_header::TableHeader>
             <crate::table_body::TableBody>{rows}</crate::table_body::TableBody></crate::table::Table></crate::table_wrapper::TableWrapper>
             <super::admin_pagination::AdminPagination admin_frontend_path=server_admin_contract::admin_frontend_path::AdminFrontendPath::Permissions admin_csr_query=admin_csr_query admin_page_total=total />
         </section>
