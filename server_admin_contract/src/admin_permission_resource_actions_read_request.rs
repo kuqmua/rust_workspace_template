@@ -1,0 +1,42 @@
+#[derive(
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Debug,
+    serde::Serialize,
+    serde::Deserialize,
+    utoipa::ToSchema,
+    proc_macro_new::New,
+    proc_macro_getters::Getters,
+)]
+pub struct AdminPermissionResourceActionsReadRequest {
+    #[constructor(order = 3)]
+    where_many: Option<crate::admin_where_many::AdminWhereMany>,
+    #[constructor(order = 0)]
+    pagination: crate::admin_read_page::AdminReadPage,
+    #[constructor(order = 1)]
+    select: crate::admin_read_permission_resource_action_selection::AdminReadPermissionResourceActionSelection,
+    #[constructor(order = 2)]
+    order_by: crate::admin_read_permission_resource_action_order::AdminReadPermissionResourceActionOrder,
+}
+
+impl TryFrom<&crate::admin_table_query::AdminTableQuery>
+    for AdminPermissionResourceActionsReadRequest
+{
+    type Error =
+        crate::admin_table_sort_field_try_from_key_error::AdminTableSortFieldTryFromKeyError;
+
+    fn try_from(value: &crate::admin_table_query::AdminTableQuery) -> Result<Self, Self::Error> {
+        let column = match value.sort().as_ref() {
+            constants_str::EMPTY | constants_str::SQL_NAMES_ID => crate::admin_read_permission_resource_action_column::AdminReadPermissionResourceActionColumn::Id(crate::admin_no_body::AdminNoBody),
+            constants_str::PERMISSION_RESOURCE_ID => crate::admin_read_permission_resource_action_column::AdminReadPermissionResourceActionColumn::PermissionResourceId(crate::admin_no_body::AdminNoBody),
+            constants_str::PERMISSION_ACTION_ID => crate::admin_read_permission_resource_action_column::AdminReadPermissionResourceActionColumn::PermissionActionId(crate::admin_no_body::AdminNoBody),
+            _ => return Err(crate::admin_table_sort_field_try_from_key_error::AdminTableSortFieldTryFromKeyError::Unknown),
+        };
+        Ok(Self::new(
+            crate::admin_read_page::AdminReadPage::new(value.offset(), value.limit()),
+            crate::admin_read_permission_resource_action_selection::AdminReadPermissionResourceActionSelection::default(),
+            crate::admin_read_permission_resource_action_order::AdminReadPermissionResourceActionOrder::new(column, value.direction()),
+            None,
+        ))
+    }
+}

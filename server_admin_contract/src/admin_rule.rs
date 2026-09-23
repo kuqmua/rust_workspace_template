@@ -29,6 +29,10 @@ pub enum AdminRule {
     OpenApiRead,
     #[wire("permission_actions:read")]
     PermissionActionsRead,
+    #[wire("permission_resource_actions:read")]
+    PermissionResourceActionsRead,
+    #[wire("permission_resources:read")]
+    PermissionResourcesRead,
     #[wire("rules:read")]
     RulesRead,
     #[wire("rate_limits:read")]

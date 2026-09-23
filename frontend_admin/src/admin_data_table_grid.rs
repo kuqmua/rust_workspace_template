@@ -106,7 +106,9 @@ pub(crate) fn admin_data_table_grid(
                     .map(server_admin_contract::admin_route_path::AdminRoutePath::from),
                 server_admin_contract::admin_data_table::AdminDataTable::Rules
                 | server_admin_contract::admin_data_table::AdminDataTable::Roles
-                | server_admin_contract::admin_data_table::AdminDataTable::PermissionActions => None,
+                | server_admin_contract::admin_data_table::AdminDataTable::PermissionActions
+                | server_admin_contract::admin_data_table::AdminDataTable::PermissionResourceActions
+                | server_admin_contract::admin_data_table::AdminDataTable::PermissionResources => None,
                 server_admin_contract::admin_data_table::AdminDataTable::Users => row_identifier
                     .and_then(|value| value.parse::<i64>().ok())
                     .and_then(|value| server_admin_contract::admin_user_id::AdminUserId::try_from(value).ok())

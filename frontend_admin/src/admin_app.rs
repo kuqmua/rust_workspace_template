@@ -70,6 +70,30 @@ pub(crate) fn AdminApp() -> impl leptos::prelude::IntoView {
                     .await
                     .map(|value| crate::admin_load_state::AdminLoadState::Table(admin, value));
                 }
+                if table
+                    == server_admin_contract::admin_data_table::AdminDataTable::PermissionResourceActions
+                {
+                    let query = crate::admin_table_query::admin_table_query(admin_csr_query)?;
+                    let request = server_admin_contract::admin_permission_resource_actions_read_request::AdminPermissionResourceActionsReadRequest::try_from(&query)?;
+                    return crate::fetch_account_read_request::fetch_account_read_request(
+                        &request,
+                        server_admin_contract::admin_route::AdminRoute::PermissionResourceActions,
+                    )
+                    .await
+                    .map(|value| crate::admin_load_state::AdminLoadState::Table(admin, value));
+                }
+                if table
+                    == server_admin_contract::admin_data_table::AdminDataTable::PermissionResources
+                {
+                    let query = crate::admin_table_query::admin_table_query(admin_csr_query)?;
+                    let request = server_admin_contract::admin_permission_resources_read_request::AdminPermissionResourcesReadRequest::try_from(&query)?;
+                    return crate::fetch_account_read_request::fetch_account_read_request(
+                        &request,
+                        server_admin_contract::admin_route::AdminRoute::PermissionResources,
+                    )
+                    .await
+                    .map(|value| crate::admin_load_state::AdminLoadState::Table(admin, value));
+                }
                 if table == server_admin_contract::admin_data_table::AdminDataTable::AccessSessions
                 {
                     return crate::fetch_access_sessions_read::fetch_access_sessions_read(

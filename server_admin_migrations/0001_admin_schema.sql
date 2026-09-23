@@ -30,6 +30,48 @@ CREATE TABLE rules (
     CONSTRAINT rules_name_length CHECK (char_length(name) BETWEEN 3 AND 128),
     CONSTRAINT rules_name_format CHECK (name = lower(name) AND name ~ '^[a-z0-9_]+:[a-z0-9_]+$')
 );
+CREATE TYPE permission_action_key AS ENUM ('create', 'read', 'update', 'delete');
+CREATE TABLE permission_actions (
+    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    key permission_action_key NOT NULL UNIQUE
+);
+CREATE VIEW permission_actions_read AS
+SELECT id, key::TEXT AS key
+FROM permission_actions;
+CREATE TYPE permission_resource_key AS ENUM (
+    'users',
+    'roles',
+    'role_rules',
+    'user_roles',
+    'access_sessions',
+    'system_settings',
+    'permission_actions',
+    'permission_resource_actions',
+    'audit_log',
+    'cleanup_status',
+    'login_attempts',
+    'rate_limits',
+    'refresh_tokens',
+    'rules',
+    'metrics',
+    'openapi',
+    'tables'
+);
+CREATE TABLE permission_resources (
+    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    key permission_resource_key NOT NULL UNIQUE
+);
+CREATE VIEW permission_resources_read AS
+SELECT id, key::TEXT AS key
+FROM permission_resources;
+CREATE TABLE permission_resource_actions (
+    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    permission_resource_id BIGINT NOT NULL REFERENCES permission_resources(id) ON DELETE CASCADE,
+    permission_action_id BIGINT NOT NULL REFERENCES permission_actions(id) ON DELETE CASCADE,
+    UNIQUE (permission_resource_id, permission_action_id)
+);
+CREATE INDEX permission_resource_actions_permission_action_id_idx
+    ON permission_resource_actions (permission_action_id);
 CREATE TABLE user_roles (
     id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,

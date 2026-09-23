@@ -11,6 +11,8 @@ pub(crate) enum AdminGeneratedTable {
     AccessSessions,
     AuditLog,
     PermissionActions,
+    PermissionResourceActions,
+    PermissionResources,
     Roles,
     RoleRules,
     UsersDatabaseRead,
@@ -27,6 +29,10 @@ impl AdminGeneratedTable {
             Self::AuditLog => crate::admin_audit_log::AdminAuditLog::frontend_fields(),
             Self::PermissionActions => {
                 crate::admin_permission_actions::AdminPermissionActions::frontend_fields()
+            }
+            Self::PermissionResourceActions => crate::admin_permission_resource_actions::AdminPermissionResourceActions::frontend_fields(),
+            Self::PermissionResources => {
+                crate::admin_permission_resources::AdminPermissionResources::frontend_fields()
             }
             Self::Roles => crate::admin_roles::AdminRoles::frontend_fields(),
             Self::RoleRules => crate::admin_role_rules::AdminRoleRules::frontend_fields(),
@@ -64,6 +70,16 @@ impl AdminGeneratedTable {
             ),
             Self::PermissionActions => {
                 crate::admin_permission_actions::AdminPermissionActions::frontend_filter_value(
+                    form_field_name_ref,
+                    form_value_ref,
+                )
+            }
+            Self::PermissionResourceActions => crate::admin_permission_resource_actions::AdminPermissionResourceActions::frontend_filter_value(
+                form_field_name_ref,
+                form_value_ref,
+            ),
+            Self::PermissionResources => {
+                crate::admin_permission_resources::AdminPermissionResources::frontend_filter_value(
                     form_field_name_ref,
                     form_value_ref,
                 )
@@ -119,6 +135,16 @@ impl AdminGeneratedTable {
             >(std_admin_str_ref.get())
             .map(crate::data_permission_actions_flt::DataPermissionActionsFlt::from)
             .map(crate::data_flt::DataFlt::PermissionActions),
+            Self::PermissionResourceActions => serde_json::from_str::<
+                crate::admin_permission_resource_actions::StdOptionalOptionalAdminPermissionResourceActionsWhereMany,
+            >(std_admin_str_ref.get())
+            .map(crate::data_permission_resource_actions_flt::DataPermissionResourceActionsFlt::from)
+            .map(crate::data_flt::DataFlt::PermissionResourceActions),
+            Self::PermissionResources => serde_json::from_str::<
+                crate::admin_permission_resources::StdOptionalOptionalAdminPermissionResourcesWhereMany,
+            >(std_admin_str_ref.get())
+            .map(crate::data_permission_resources_flt::DataPermissionResourcesFlt::from)
+            .map(crate::data_flt::DataFlt::PermissionResources),
             Self::Rules => serde_json::from_str::<
                 crate::admin_rules::StdOptionalOptionalAdminRulesWhereMany,
             >(std_admin_str_ref.get())
@@ -168,6 +194,12 @@ impl AdminGeneratedTable {
             server_admin_contract::admin_data_table::AdminDataTable::PermissionActions => {
                 Some(Self::PermissionActions)
             }
+            server_admin_contract::admin_data_table::AdminDataTable::PermissionResourceActions => {
+                Some(Self::PermissionResourceActions)
+            }
+            server_admin_contract::admin_data_table::AdminDataTable::PermissionResources => {
+                Some(Self::PermissionResources)
+            }
             server_admin_contract::admin_data_table::AdminDataTable::Rules => Some(Self::Rules),
             server_admin_contract::admin_data_table::AdminDataTable::RoleRules => {
                 Some(Self::RoleRules)
@@ -198,6 +230,10 @@ impl AdminGeneratedTable {
             Self::PermissionActions => {
                 crate::admin_permission_actions::AdminPermissionActionsOpenApi::open_api()
             }
+            Self::PermissionResourceActions => crate::admin_permission_resource_actions::AdminPermissionResourceActionsOpenApi::open_api(),
+            Self::PermissionResources => {
+                crate::admin_permission_resources::AdminPermissionResourcesOpenApi::open_api()
+            }
             Self::Roles => crate::admin_roles::AdminRolesOpenApi::open_api(),
             Self::RoleRules => crate::admin_role_rules::AdminRoleRulesOpenApi::open_api(),
             Self::UsersDatabaseRead => {
@@ -224,6 +260,16 @@ impl AdminGeneratedTable {
             )),
             Self::PermissionActions => {
                 crate::admin_permission_actions::AdminPermissionActions::routes(
+                    std::sync::Arc::clone(shared_admin_generated_table_state_arc.get_inner()),
+                )
+            }
+            Self::PermissionResourceActions => {
+                crate::admin_permission_resource_actions::AdminPermissionResourceActions::routes(
+                    std::sync::Arc::clone(shared_admin_generated_table_state_arc.get_inner()),
+                )
+            }
+            Self::PermissionResources => {
+                crate::admin_permission_resources::AdminPermissionResources::routes(
                     std::sync::Arc::clone(shared_admin_generated_table_state_arc.get_inner()),
                 )
             }
@@ -283,6 +329,32 @@ impl AdminGeneratedTable {
             }),
             Self::PermissionActions => {
                 crate::admin_permission_actions::AdminPermissionActionsRouteContract::for_path(
+                    std_admin_str_ref.get(),
+                )
+                .map(|contract| {
+                    crate::admin_generated_route_contract::AdminGeneratedRouteContract::new(
+                        contract
+                            .rule()
+                            .map(server_admin_core::std_admin_str_ref::StdAdminStrRef::from),
+                        server_admin_core::std_admin_bool::StdAdminBool::from(contract.mutates()),
+                        contract.frontend_contract().method(),
+                    )
+                })
+            }
+            Self::PermissionResourceActions => crate::admin_permission_resource_actions::AdminPermissionResourceActionsRouteContract::for_path(
+                std_admin_str_ref.get(),
+            )
+            .map(|contract| {
+                crate::admin_generated_route_contract::AdminGeneratedRouteContract::new(
+                    contract
+                        .rule()
+                        .map(server_admin_core::std_admin_str_ref::StdAdminStrRef::from),
+                    server_admin_core::std_admin_bool::StdAdminBool::from(contract.mutates()),
+                    contract.frontend_contract().method(),
+                )
+            }),
+            Self::PermissionResources => {
+                crate::admin_permission_resources::AdminPermissionResourcesRouteContract::for_path(
                     std_admin_str_ref.get(),
                 )
                 .map(|contract| {

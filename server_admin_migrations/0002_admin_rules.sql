@@ -6,6 +6,9 @@ INSERT INTO rules (name) VALUES
     ('login_attempts:read'),
     ('metrics:read'),
     ('openapi:read'),
+    ('permission_actions:read'),
+    ('permission_resource_actions:read'),
+    ('permission_resources:read'),
     ('rules:read'),
     ('rate_limits:read'),
     ('refresh_tokens:read'),
@@ -29,6 +32,65 @@ INSERT INTO rules (name) VALUES
     ('users:read'),
     ('users:update')
 ON CONFLICT (name) DO NOTHING;
+INSERT INTO permission_actions (id, key) OVERRIDING SYSTEM VALUE VALUES
+    (1, 'create'),
+    (2, 'read'),
+    (3, 'update'),
+    (4, 'delete');
+INSERT INTO permission_resources (id, key) OVERRIDING SYSTEM VALUE VALUES
+    (1, 'users'),
+    (2, 'roles'),
+    (3, 'role_rules'),
+    (4, 'user_roles'),
+    (5, 'access_sessions'),
+    (6, 'system_settings'),
+    (7, 'permission_actions'),
+    (8, 'audit_log'),
+    (9, 'cleanup_status'),
+    (10, 'login_attempts'),
+    (11, 'rate_limits'),
+    (12, 'refresh_tokens'),
+    (13, 'rules'),
+    (14, 'metrics'),
+    (15, 'openapi'),
+    (16, 'tables'),
+    (17, 'permission_resource_actions');
+INSERT INTO permission_resource_actions (
+    id,
+    permission_resource_id,
+    permission_action_id
+) OVERRIDING SYSTEM VALUE VALUES
+    (1, 1, 1),
+    (2, 1, 2),
+    (3, 1, 3),
+    (4, 1, 4),
+    (5, 2, 1),
+    (6, 2, 2),
+    (7, 2, 3),
+    (8, 2, 4),
+    (9, 3, 1),
+    (10, 3, 2),
+    (11, 3, 3),
+    (12, 3, 4),
+    (13, 4, 1),
+    (14, 4, 2),
+    (15, 4, 3),
+    (16, 4, 4),
+    (17, 5, 2),
+    (18, 5, 4),
+    (19, 6, 2),
+    (20, 6, 3),
+    (21, 7, 2),
+    (22, 8, 2),
+    (23, 9, 2),
+    (24, 10, 2),
+    (25, 11, 2),
+    (26, 12, 2),
+    (27, 13, 2),
+    (28, 14, 2),
+    (29, 15, 2),
+    (30, 16, 2),
+    (31, 17, 2);
 INSERT INTO roles (name, is_system) VALUES ('admin', TRUE)
 ON CONFLICT (name) DO UPDATE SET is_system = TRUE;
 INSERT INTO role_rules (role_id, rule_id)

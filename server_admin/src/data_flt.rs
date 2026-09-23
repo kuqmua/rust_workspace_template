@@ -5,6 +5,10 @@ pub(crate) enum DataFlt {
     CleanupStatus(crate::data_cleanup_status_flt::DataCleanupStatusFlt),
     LoginAttempts(crate::data_login_attempts_flt::DataLoginAttemptsFlt),
     PermissionActions(crate::data_permission_actions_flt::DataPermissionActionsFlt),
+    PermissionResourceActions(
+        crate::data_permission_resource_actions_flt::DataPermissionResourceActionsFlt,
+    ),
+    PermissionResources(crate::data_permission_resources_flt::DataPermissionResourcesFlt),
     Rules(crate::data_rules_flt::DataRulesFlt),
     RateLimits(crate::data_rate_limits_flt::DataRateLimitsFlt),
     RefreshTokens(crate::data_refresh_tokens_flt::DataRefreshTokensFlt),
@@ -49,6 +53,18 @@ impl DataFlt {
                 )
             }
             Self::PermissionActions(value) => {
+                pg_crud_common::pg_type_where_filter::PgTypeWhereFilter::query_bind(
+                    value.into_inner(),
+                    sqlx_postgres_query,
+                )
+            }
+            Self::PermissionResourceActions(value) => {
+                pg_crud_common::pg_type_where_filter::PgTypeWhereFilter::query_bind(
+                    value.into_inner(),
+                    sqlx_postgres_query,
+                )
+            }
+            Self::PermissionResources(value) => {
                 pg_crud_common::pg_type_where_filter::PgTypeWhereFilter::query_bind(
                     value.into_inner(),
                     sqlx_postgres_query,
@@ -146,6 +162,22 @@ impl DataFlt {
                 )
             }
             Self::PermissionActions(value) => {
+                pg_crud_common::pg_type_where_filter::PgTypeWhereFilter::query_part(
+                    value.get_inner(),
+                    query_part_increment,
+                    pg_crud_common::sql_column_ref::SqlColumnRef::from(&column),
+                    pg_crud_common::add_operator::AddOperator::from(false),
+                )
+            }
+            Self::PermissionResourceActions(value) => {
+                pg_crud_common::pg_type_where_filter::PgTypeWhereFilter::query_part(
+                    value.get_inner(),
+                    query_part_increment,
+                    pg_crud_common::sql_column_ref::SqlColumnRef::from(&column),
+                    pg_crud_common::add_operator::AddOperator::from(false),
+                )
+            }
+            Self::PermissionResources(value) => {
                 pg_crud_common::pg_type_where_filter::PgTypeWhereFilter::query_part(
                     value.get_inner(),
                     query_part_increment,

@@ -235,7 +235,8 @@ fn test_every_generated_read_filter_accepts_every_logical_operator_variation() {
 
 #[test]
 fn test_every_read_table_filter_column_and_operation_builds_a_typed_predicate() {
-    let table_field_contracts = |admin_data_table| match admin_data_table {
+    let table_field_contracts = |admin_data_table| {
+        match admin_data_table {
         server_admin_contract::admin_data_table::AdminDataTable::AccessSessions => {
             crate::admin_access_sessions::AdminAccessSessions::frontend_fields()
         }
@@ -250,6 +251,12 @@ fn test_every_read_table_filter_column_and_operation_builds_a_typed_predicate() 
         }
         server_admin_contract::admin_data_table::AdminDataTable::PermissionActions => {
             crate::admin_permission_actions::AdminPermissionActions::frontend_fields()
+        }
+        server_admin_contract::admin_data_table::AdminDataTable::PermissionResourceActions => {
+            crate::admin_permission_resource_actions::AdminPermissionResourceActions::frontend_fields()
+        }
+        server_admin_contract::admin_data_table::AdminDataTable::PermissionResources => {
+            crate::admin_permission_resources::AdminPermissionResources::frontend_fields()
         }
         server_admin_contract::admin_data_table::AdminDataTable::Rules => {
             crate::admin_rules::AdminRules::frontend_fields()
@@ -275,6 +282,7 @@ fn test_every_read_table_filter_column_and_operation_builds_a_typed_predicate() 
         server_admin_contract::admin_data_table::AdminDataTable::Users => {
             crate::admin_users_database_read::AdminUsersDatabaseRead::frontend_fields()
         }
+    }
     };
     let table_filter_value = |admin_data_table,
                               field_name: &str,
@@ -322,6 +330,8 @@ fn test_every_read_table_filter_column_and_operation_builds_a_typed_predicate() 
             }
             server_admin_contract::admin_data_table::AdminDataTable::Rules
             | server_admin_contract::admin_data_table::AdminDataTable::PermissionActions
+            | server_admin_contract::admin_data_table::AdminDataTable::PermissionResourceActions
+            | server_admin_contract::admin_data_table::AdminDataTable::PermissionResources
             | server_admin_contract::admin_data_table::AdminDataTable::RoleRules
             | server_admin_contract::admin_data_table::AdminDataTable::Roles
             | server_admin_contract::admin_data_table::AdminDataTable::SystemSettings

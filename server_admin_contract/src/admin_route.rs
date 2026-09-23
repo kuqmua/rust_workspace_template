@@ -29,6 +29,18 @@ pub enum AdminRoute {
     )]
     PermissionActions,
     #[route_catalog_route(
+        contract = <crate::admin_permission_resource_actions_table_route::AdminPermissionResourceActionsTableRoute as frontend_contract::typed_route::TypedRoute>::metadata().contract(),
+        path = frontend_contract::typed_route_path::typed_route_path::<crate::admin_permission_resource_actions_table_route::AdminPermissionResourceActionsTableRoute>(),
+        exclude_from_family,
+    )]
+    PermissionResourceActions,
+    #[route_catalog_route(
+        contract = <crate::admin_permission_resources_table_route::AdminPermissionResourcesTableRoute as frontend_contract::typed_route::TypedRoute>::metadata().contract(),
+        path = frontend_contract::typed_route_path::typed_route_path::<crate::admin_permission_resources_table_route::AdminPermissionResourcesTableRoute>(),
+        exclude_from_family,
+    )]
+    PermissionResources,
+    #[route_catalog_route(
         contract = <crate::admin_access_sessions_table_route::AdminAccessSessionsTableRoute as frontend_contract::typed_route::TypedRoute>::metadata().contract(),
         path = frontend_contract::typed_route_path::typed_route_path::<crate::admin_access_sessions_table_route::AdminAccessSessionsTableRoute>(),
         exclude_from_family,
