@@ -23,12 +23,12 @@ CREATE TABLE roles (
     CONSTRAINT roles_name_length CHECK (char_length(name) BETWEEN 1 AND 128),
     CONSTRAINT roles_name_format CHECK (name = lower(name) AND name ~ '^[a-z0-9_.-]+$')
 );
-CREATE TABLE permissions (
+CREATE TABLE rules (
     id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     name TEXT NOT NULL UNIQUE,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    CONSTRAINT permissions_name_length CHECK (char_length(name) BETWEEN 3 AND 128),
-    CONSTRAINT permissions_name_format CHECK (name = lower(name) AND name ~ '^[a-z0-9_]+:[a-z0-9_]+$')
+    CONSTRAINT rules_name_length CHECK (char_length(name) BETWEEN 3 AND 128),
+    CONSTRAINT rules_name_format CHECK (name = lower(name) AND name ~ '^[a-z0-9_]+:[a-z0-9_]+$')
 );
 CREATE TABLE user_roles (
     id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
@@ -38,14 +38,14 @@ CREATE TABLE user_roles (
     UNIQUE (user_id, role_id)
 );
 CREATE INDEX user_roles_role_id_idx ON user_roles (role_id);
-CREATE TABLE role_permissions (
+CREATE TABLE role_rules (
     id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     role_id BIGINT NOT NULL REFERENCES roles(id) ON DELETE CASCADE,
-    permission_id BIGINT NOT NULL REFERENCES permissions(id) ON DELETE CASCADE,
+    rule_id BIGINT NOT NULL REFERENCES rules(id) ON DELETE CASCADE,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    UNIQUE (role_id, permission_id)
+    UNIQUE (role_id, rule_id)
 );
-CREATE INDEX role_permissions_permission_id_idx ON role_permissions (permission_id);
+CREATE INDEX role_rules_rule_id_idx ON role_rules (rule_id);
 CREATE TABLE refresh_tokens (
     id UUID PRIMARY KEY,
     user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,

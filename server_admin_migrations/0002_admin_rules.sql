@@ -1,4 +1,4 @@
-INSERT INTO permissions (name) VALUES
+INSERT INTO rules (name) VALUES
     ('access_sessions:delete'),
     ('access_sessions:read'),
     ('audit_log:read'),
@@ -6,13 +6,13 @@ INSERT INTO permissions (name) VALUES
     ('login_attempts:read'),
     ('metrics:read'),
     ('openapi:read'),
-    ('permissions:read'),
+    ('rules:read'),
     ('rate_limits:read'),
     ('refresh_tokens:read'),
-    ('role_permissions:create'),
-    ('role_permissions:delete'),
-    ('role_permissions:read'),
-    ('role_permissions:update'),
+    ('role_rules:create'),
+    ('role_rules:delete'),
+    ('role_rules:read'),
+    ('role_rules:update'),
     ('roles:create'),
     ('roles:delete'),
     ('roles:read'),
@@ -31,9 +31,9 @@ INSERT INTO permissions (name) VALUES
 ON CONFLICT (name) DO NOTHING;
 INSERT INTO roles (name, is_system) VALUES ('admin', TRUE)
 ON CONFLICT (name) DO UPDATE SET is_system = TRUE;
-INSERT INTO role_permissions (role_id, permission_id)
-SELECT roles.id, permissions.id
+INSERT INTO role_rules (role_id, rule_id)
+SELECT roles.id, rules.id
 FROM roles
-CROSS JOIN permissions
+CROSS JOIN rules
 WHERE roles.name = 'admin'
-ON CONFLICT (role_id, permission_id) DO NOTHING;
+ON CONFLICT (role_id, rule_id) DO NOTHING;
