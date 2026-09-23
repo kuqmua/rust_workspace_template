@@ -345,10 +345,10 @@ pub(crate) fn AdminApp() -> impl leptos::prelude::IntoView {
                     leptos::prelude::IntoAny::into_any(leptos::view! { <crate::admin_alert::AdminAlert>{message}</crate::admin_alert::AdminAlert> })
                 },
                 crate::admin_load_state::AdminLoadState::Loading => leptos::prelude::IntoAny::into_any(leptos::view! { <crate::admin_spinner::AdminSpinner /> }),
-                crate::admin_load_state::AdminLoadState::Rules(_admin, page) => if query.rule_id().is_some() {
-                    leptos::prelude::IntoAny::into_any(leptos::view! { <super::admin_rule_view::AdminRuleView admin_rules_page=page /> })
+                crate::admin_load_state::AdminLoadState::Rules(admin, page) => if query.rule_id().is_some() {
+                    leptos::prelude::IntoAny::into_any(leptos::view! { <super::admin_rule_view::AdminRuleView admin_data_table_view=page /> })
                 } else {
-                    leptos::prelude::IntoAny::into_any(leptos::view! { <super::admin_rules_view::AdminRulesView admin_rules_page=page admin_csr_query=query.clone() /> })
+                    leptos::prelude::IntoAny::into_any(leptos::view! { <super::admin_rules_view::AdminRulesView authenticated_admin=admin admin_data_table_view=page admin_csr_query=query.clone() /> })
                 },
                 crate::admin_load_state::AdminLoadState::Profile(admin) => leptos::prelude::IntoAny::into_any(leptos::view! { <super::admin_profile_view::AdminProfileView authenticated_admin=admin /> }),
                 crate::admin_load_state::AdminLoadState::Roles(admin, page) => if query.role_id().is_some() {

@@ -12,13 +12,14 @@
 )]
 #[proc_macro_generate_pg_table_generate_pg_table_config::generate_pg_table_config{{
     "api_mode": "ReadOnly",
-    "db_table_name": "rules",
+    "db_table_name": "rules_read",
+    "route_resource_name": "rules",
     "create_exclude_fields": ["created_at"],
-    "db_unique_keys": [["name"]],
+    "db_unique_keys": [["id"]],
     "rule_prefix": "rules",
     "read_page": {
         "search_columns": ["name"],
-        "response": "server_admin_contract::admin_rules_page::AdminRulesPage",
+        "response": "server_admin_contract::admin_data_table_view::AdminDataTableView",
         "enrich": "crate::enrich_rules_read_page::enrich_rules_read_page",
         "error": "crate::admin_rules_read_page_error::AdminRulesReadPageError"
     },
@@ -30,8 +31,22 @@
 pub struct AdminRules {
     #[generate_pg_table_primary_key]
     id: pg_types_numeric::generate_pg_types_mod::I64AsNonNullBigSerialInitializationByPg,
-    name: pg_types_text_misc::generate_pg_types_mod::StringAsNonNullText,
+    permission_resource_action_id: pg_types_numeric::generate_pg_types_mod::I64AsNonNullInt8,
+    basemap_id: pg_types_numeric::generate_pg_types_mod::OptionalI64AsNullableInt8,
+    layer_group_id: pg_types_numeric::generate_pg_types_mod::OptionalI64AsNullableInt8,
+    layer_id: pg_types_numeric::generate_pg_types_mod::OptionalI64AsNullableInt8,
+    project_group_id: pg_types_numeric::generate_pg_types_mod::OptionalI64AsNullableInt8,
+    project_id: pg_types_numeric::generate_pg_types_mod::OptionalI64AsNullableInt8,
+    property_id: pg_types_numeric::generate_pg_types_mod::OptionalI64AsNullableInt8,
+    role_id: pg_types_numeric::generate_pg_types_mod::OptionalI64AsNullableInt8,
+    user_id: pg_types_numeric::generate_pg_types_mod::OptionalI64AsNullableInt8,
+    feature_id: pg_types_numeric::generate_pg_types_mod::OptionalI64AsNullableInt8,
+    value_item_id: pg_types_numeric::generate_pg_types_mod::OptionalI64AsNullableInt8,
     #[generate_pg_table_db_default]
     created_at:
         pg_types_chrono_net::generate_pg_types_mod::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsNonNullTimestampTz,
+    #[generate_pg_table_db_default]
+    updated_at:
+        pg_types_chrono_net::generate_pg_types_mod::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsNonNullTimestampTz,
+    name: pg_types_text_misc::generate_pg_types_mod::StringAsNonNullText,
 }

@@ -8,20 +8,28 @@
     proc_macro_newtype_from_inner::FromInner,
     utoipa::ToSchema,
 )]
-#[serde(from = "[crate::admin_read_rule_column::AdminReadRuleColumn; 3]")]
-pub struct AdminReadRuleSelection([crate::admin_read_rule_column::AdminReadRuleColumn; 3]);
+#[serde(from = "[crate::admin_read_rule_column::AdminReadRuleColumn; 15]")]
+pub struct AdminReadRuleSelection([crate::admin_read_rule_column::AdminReadRuleColumn; 15]);
+
 impl Default for AdminReadRuleSelection {
     fn default() -> Self {
+        let empty = crate::admin_no_body::AdminNoBody;
         Self::from([
-            crate::admin_read_rule_column::AdminReadRuleColumn::Id(
-                crate::admin_no_body::AdminNoBody,
-            ),
-            crate::admin_read_rule_column::AdminReadRuleColumn::Name(
-                crate::admin_no_body::AdminNoBody,
-            ),
-            crate::admin_read_rule_column::AdminReadRuleColumn::CreatedAt(
-                crate::admin_no_body::AdminNoBody,
-            ),
+            crate::admin_read_rule_column::AdminReadRuleColumn::Id(empty),
+            crate::admin_read_rule_column::AdminReadRuleColumn::PermissionResourceActionId(empty),
+            crate::admin_read_rule_column::AdminReadRuleColumn::BasemapId(empty),
+            crate::admin_read_rule_column::AdminReadRuleColumn::LayerGroupId(empty),
+            crate::admin_read_rule_column::AdminReadRuleColumn::LayerId(empty),
+            crate::admin_read_rule_column::AdminReadRuleColumn::ProjectGroupId(empty),
+            crate::admin_read_rule_column::AdminReadRuleColumn::ProjectId(empty),
+            crate::admin_read_rule_column::AdminReadRuleColumn::PropertyId(empty),
+            crate::admin_read_rule_column::AdminReadRuleColumn::RoleId(empty),
+            crate::admin_read_rule_column::AdminReadRuleColumn::UserId(empty),
+            crate::admin_read_rule_column::AdminReadRuleColumn::FeatureId(empty),
+            crate::admin_read_rule_column::AdminReadRuleColumn::ValueItemId(empty),
+            crate::admin_read_rule_column::AdminReadRuleColumn::CreatedAt(empty),
+            crate::admin_read_rule_column::AdminReadRuleColumn::UpdatedAt(empty),
+            crate::admin_read_rule_column::AdminReadRuleColumn::Name(empty),
         ])
     }
 }

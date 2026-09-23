@@ -5,7 +5,7 @@
 pub(crate) async fn fetch_rules_read(
     admin_csr_query: &crate::admin_csr_query::AdminCsrQuery,
 ) -> Result<
-    server_admin_contract::admin_rules_page::AdminRulesPage,
+    server_admin_contract::admin_data_table_view::AdminDataTableView,
     crate::admin_table_load_error::AdminTableLoadError,
 > {
     let query = if admin_csr_query.rule_id().is_some() {
@@ -44,7 +44,13 @@ pub(crate) async fn fetch_rules_read(
         Some(field) if field.as_ref() == constants_str::NAME => {
             frontend_contract::input_kind::InputKind::Text
         }
-        Some(_) => return Err(crate::admin_table_load_error::AdminTableLoadError::Query),
+        Some(field)
+            if field.as_ref() == constants_str::CREATED_AT
+                || field.as_ref() == constants_str::UPDATED_AT =>
+        {
+            frontend_contract::input_kind::InputKind::DateTime
+        }
+        Some(_) => frontend_contract::input_kind::InputKind::Number,
     };
     let where_many = match server_admin_contract::admin_where_many::AdminWhereMany::try_from_filter(
         &filter_query,

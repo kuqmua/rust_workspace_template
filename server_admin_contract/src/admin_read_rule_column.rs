@@ -9,7 +9,19 @@
 )]
 #[serde(rename_all = "snake_case")]
 pub enum AdminReadRuleColumn {
-    Name(crate::admin_no_body::AdminNoBody),
     Id(crate::admin_no_body::AdminNoBody),
+    PermissionResourceActionId(crate::admin_no_body::AdminNoBody),
+    BasemapId(crate::admin_no_body::AdminNoBody),
+    LayerGroupId(crate::admin_no_body::AdminNoBody),
+    LayerId(crate::admin_no_body::AdminNoBody),
+    ProjectGroupId(crate::admin_no_body::AdminNoBody),
+    ProjectId(crate::admin_no_body::AdminNoBody),
+    PropertyId(crate::admin_no_body::AdminNoBody),
+    RoleId(crate::admin_no_body::AdminNoBody),
+    UserId(crate::admin_no_body::AdminNoBody),
+    FeatureId(crate::admin_no_body::AdminNoBody),
+    ValueItemId(crate::admin_no_body::AdminNoBody),
     CreatedAt(crate::admin_no_body::AdminNoBody),
+    UpdatedAt(crate::admin_no_body::AdminNoBody),
+    Name(crate::admin_no_body::AdminNoBody),
 }

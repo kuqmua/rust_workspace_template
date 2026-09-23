@@ -24,41 +24,29 @@ impl TryFrom<&crate::admin_table_query::AdminTableQuery> for AdminRulesReadReque
     type Error =
         crate::admin_table_sort_field_try_from_key_error::AdminTableSortFieldTryFromKeyError;
     fn try_from(value: &crate::admin_table_query::AdminTableQuery) -> Result<Self, Self::Error> {
-        let (column, order) = if value.sort().as_ref().is_empty() {
-            (
-                crate::admin_read_rule_column::AdminReadRuleColumn::Id(
-                    crate::admin_no_body::AdminNoBody,
-                ),
-                crate::admin_sort_direction::AdminSortDirection::Ascending,
-            )
-        } else {
-            let selected_column = match crate::admin_table_sort_field::AdminTableSortField::try_from_key(
-                &crate::admin_table_sort_field::AdminTableSortField::RULE,
-                crate::admin_table_sort_key_ref::AdminTableSortKeyRef::from(value.sort().as_ref()),
-            )? {
-                crate::admin_table_sort_field::AdminTableSortField::RuleId => crate::admin_read_rule_column::AdminReadRuleColumn::Id(crate::admin_no_body::AdminNoBody),
-                crate::admin_table_sort_field::AdminTableSortField::RuleName => crate::admin_read_rule_column::AdminReadRuleColumn::Name(crate::admin_no_body::AdminNoBody),
-                crate::admin_table_sort_field::AdminTableSortField::RuleCreatedAt => crate::admin_read_rule_column::AdminReadRuleColumn::CreatedAt(crate::admin_no_body::AdminNoBody),
-                crate::admin_table_sort_field::AdminTableSortField::AuditAction
-                | crate::admin_table_sort_field::AdminTableSortField::AuditCreatedAt
-                | crate::admin_table_sort_field::AdminTableSortField::AuditResource
-                | crate::admin_table_sort_field::AdminTableSortField::AuditSucceeded
-                | crate::admin_table_sort_field::AdminTableSortField::AuditUserId
-                | crate::admin_table_sort_field::AdminTableSortField::RoleId
-                | crate::admin_table_sort_field::AdminTableSortField::RoleName
-                | crate::admin_table_sort_field::AdminTableSortField::RoleSystem
-                | crate::admin_table_sort_field::AdminTableSortField::UserDisplayName
-                | crate::admin_table_sort_field::AdminTableSortField::UserId
-                | crate::admin_table_sort_field::AdminTableSortField::UserLogin
-                | crate::admin_table_sort_field::AdminTableSortField::UserStatus => return Err(crate::admin_table_sort_field_try_from_key_error::AdminTableSortFieldTryFromKeyError::Unknown),
-            };
-            (selected_column, value.direction())
+        let column = match value.sort().as_ref() {
+            constants_str::EMPTY | constants_str::SQL_NAMES_ID => crate::admin_read_rule_column::AdminReadRuleColumn::Id(crate::admin_no_body::AdminNoBody),
+            constants_str::PERMISSION_RESOURCE_ACTION_ID => crate::admin_read_rule_column::AdminReadRuleColumn::PermissionResourceActionId(crate::admin_no_body::AdminNoBody),
+            constants_str::BASEMAP_ID => crate::admin_read_rule_column::AdminReadRuleColumn::BasemapId(crate::admin_no_body::AdminNoBody),
+            constants_str::LAYER_GROUP_ID => crate::admin_read_rule_column::AdminReadRuleColumn::LayerGroupId(crate::admin_no_body::AdminNoBody),
+            constants_str::LAYER_ID => crate::admin_read_rule_column::AdminReadRuleColumn::LayerId(crate::admin_no_body::AdminNoBody),
+            constants_str::PROJECT_GROUP_ID => crate::admin_read_rule_column::AdminReadRuleColumn::ProjectGroupId(crate::admin_no_body::AdminNoBody),
+            constants_str::PROJECT_ID => crate::admin_read_rule_column::AdminReadRuleColumn::ProjectId(crate::admin_no_body::AdminNoBody),
+            constants_str::PROPERTY_ID => crate::admin_read_rule_column::AdminReadRuleColumn::PropertyId(crate::admin_no_body::AdminNoBody),
+            constants_str::ROLE_ID => crate::admin_read_rule_column::AdminReadRuleColumn::RoleId(crate::admin_no_body::AdminNoBody),
+            constants_str::USER_ID => crate::admin_read_rule_column::AdminReadRuleColumn::UserId(crate::admin_no_body::AdminNoBody),
+            constants_str::FEATURE_ID => crate::admin_read_rule_column::AdminReadRuleColumn::FeatureId(crate::admin_no_body::AdminNoBody),
+            constants_str::VALUE_ITEM_ID => crate::admin_read_rule_column::AdminReadRuleColumn::ValueItemId(crate::admin_no_body::AdminNoBody),
+            constants_str::CREATED_AT => crate::admin_read_rule_column::AdminReadRuleColumn::CreatedAt(crate::admin_no_body::AdminNoBody),
+            constants_str::UPDATED_AT => crate::admin_read_rule_column::AdminReadRuleColumn::UpdatedAt(crate::admin_no_body::AdminNoBody),
+            constants_str::NAME => crate::admin_read_rule_column::AdminReadRuleColumn::Name(crate::admin_no_body::AdminNoBody),
+            _ => return Err(crate::admin_table_sort_field_try_from_key_error::AdminTableSortFieldTryFromKeyError::Unknown),
         };
         Ok(Self::new(
             Some(value.search().clone()),
             crate::admin_read_page::AdminReadPage::new(value.offset(), value.limit()),
             crate::admin_read_rule_selection::AdminReadRuleSelection::default(),
-            crate::admin_read_rule_order::AdminReadRuleOrder::new(column, order),
+            crate::admin_read_rule_order::AdminReadRuleOrder::new(column, value.direction()),
             None,
         ))
     }

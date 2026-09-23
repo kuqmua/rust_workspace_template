@@ -11,12 +11,7 @@ pub async fn prepare_postgresql(
         .await
         .map_err(crate::sqlx_admin_migrate_error::SqlxAdminMigrateError::from)
         .map_err(crate::admin_migrate_error::AdminMigrateError::from)?;
-    let rule_names = server_admin_contract::admin_rule::AdminRule::ALL
-        .into_iter()
-        .map(|rule| rule.as_str().as_ref().to_owned())
-        .collect::<Vec<_>>();
     let _rule_result = sqlx::query(constants_str::SERVER_ADMIN_RECONCILE_RULES_SQL)
-        .bind(rule_names)
         .execute(sqlx_pg_pool_ref.as_ref())
         .await
         .map_err(crate::sqlx_admin_error::SqlxAdminError::from)

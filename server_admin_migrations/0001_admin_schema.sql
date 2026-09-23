@@ -23,13 +23,6 @@ CREATE TABLE roles (
     CONSTRAINT roles_name_length CHECK (char_length(name) BETWEEN 1 AND 128),
     CONSTRAINT roles_name_format CHECK (name = lower(name) AND name ~ '^[a-z0-9_.-]+$')
 );
-CREATE TABLE rules (
-    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    name TEXT NOT NULL UNIQUE,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    CONSTRAINT rules_name_length CHECK (char_length(name) BETWEEN 3 AND 128),
-    CONSTRAINT rules_name_format CHECK (name = lower(name) AND name ~ '^[a-z0-9_]+:[a-z0-9_]+$')
-);
 CREATE TYPE permission_action_key AS ENUM ('create', 'read', 'update', 'delete');
 CREATE TABLE permission_actions (
     id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
@@ -46,6 +39,7 @@ CREATE TYPE permission_resource_key AS ENUM (
     'access_sessions',
     'system_settings',
     'permission_actions',
+    'permission_resources',
     'permission_resource_actions',
     'audit_log',
     'cleanup_status',
@@ -55,7 +49,15 @@ CREATE TYPE permission_resource_key AS ENUM (
     'rules',
     'metrics',
     'openapi',
-    'tables'
+    'tables',
+    'basemaps',
+    'layer_groups',
+    'layers',
+    'project_groups',
+    'projects',
+    'properties',
+    'features',
+    'value_items'
 );
 CREATE TABLE permission_resources (
     id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
@@ -72,6 +74,91 @@ CREATE TABLE permission_resource_actions (
 );
 CREATE INDEX permission_resource_actions_permission_action_id_idx
     ON permission_resource_actions (permission_action_id);
+CREATE TABLE rules (
+    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    permission_resource_action_id BIGINT NOT NULL REFERENCES permission_resource_actions(id) ON DELETE CASCADE,
+    basemap_id BIGINT,
+    layer_group_id BIGINT,
+    layer_id BIGINT,
+    project_group_id BIGINT,
+    project_id BIGINT,
+    property_id BIGINT,
+    role_id BIGINT,
+    user_id BIGINT,
+    feature_id BIGINT,
+    value_item_id BIGINT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    CONSTRAINT rules_at_most_one_scope CHECK (
+        num_nonnulls(
+            basemap_id,
+            layer_group_id,
+            layer_id,
+            project_group_id,
+            project_id,
+            property_id,
+            role_id,
+            user_id,
+            feature_id,
+            value_item_id
+        ) <= 1
+    ),
+    UNIQUE NULLS NOT DISTINCT (
+        permission_resource_action_id,
+        basemap_id,
+        layer_group_id,
+        layer_id,
+        project_group_id,
+        project_id,
+        property_id,
+        role_id,
+        user_id,
+        feature_id,
+        value_item_id
+    )
+);
+CREATE INDEX rules_permission_resource_action_id_idx
+    ON rules (permission_resource_action_id);
+CREATE VIEW rules_read AS
+SELECT
+    rules.id,
+    rules.permission_resource_action_id,
+    rules.basemap_id,
+    rules.layer_group_id,
+    rules.layer_id,
+    rules.project_group_id,
+    rules.project_id,
+    rules.property_id,
+    rules.role_id,
+    rules.user_id,
+    rules.feature_id,
+    rules.value_item_id,
+    rules.created_at,
+    rules.updated_at,
+    permission_resources.key::TEXT || ':' || permission_actions.key::TEXT AS name,
+    num_nonnulls(
+        rules.basemap_id,
+        rules.layer_group_id,
+        rules.layer_id,
+        rules.project_group_id,
+        rules.project_id,
+        rules.property_id,
+        rules.role_id,
+        rules.user_id,
+        rules.feature_id,
+        rules.value_item_id
+    ) = 0 AS is_global
+FROM rules
+JOIN permission_resource_actions
+    ON permission_resource_actions.id = rules.permission_resource_action_id
+JOIN permission_resources
+    ON permission_resources.id = permission_resource_actions.permission_resource_id
+JOIN permission_actions
+    ON permission_actions.id = permission_resource_actions.permission_action_id;
+CREATE VIEW auth_rules AS
+SELECT id, name
+FROM rules_read
+WHERE is_global;
 CREATE TABLE user_roles (
     id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,

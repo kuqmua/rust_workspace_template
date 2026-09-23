@@ -72,13 +72,21 @@ fn test_migration_inventory_is_not_empty() {
 }
 #[test]
 fn test_rule_seed_contains_the_complete_typed_catalog() {
+    let migration_sql = crate::migrator::migrator()
+        .iter()
+        .map(|migration| migration.sql.as_str())
+        .collect::<Vec<_>>()
+        .join(constants_str::EMPTY);
     assert!(
         server_admin_contract::admin_rule::AdminRule::ALL
             .into_iter()
             .all(|rule| {
-                crate::migrator::migrator()
-                    .iter()
-                    .any(|migration| migration.sql.as_str().contains(rule.as_str().as_ref()))
+                rule.as_str()
+                    .as_ref()
+                    .split_once(char::from(58u8))
+                    .is_some_and(|(resource, action)| {
+                        migration_sql.contains(resource) && migration_sql.contains(action)
+                    })
             })
     );
 }

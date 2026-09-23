@@ -1,37 +1,3 @@
-INSERT INTO rules (name) VALUES
-    ('access_sessions:delete'),
-    ('access_sessions:read'),
-    ('audit_log:read'),
-    ('cleanup_status:read'),
-    ('login_attempts:read'),
-    ('metrics:read'),
-    ('openapi:read'),
-    ('permission_actions:read'),
-    ('permission_resource_actions:read'),
-    ('permission_resources:read'),
-    ('rules:read'),
-    ('rate_limits:read'),
-    ('refresh_tokens:read'),
-    ('role_rules:create'),
-    ('role_rules:delete'),
-    ('role_rules:read'),
-    ('role_rules:update'),
-    ('roles:create'),
-    ('roles:delete'),
-    ('roles:read'),
-    ('roles:update'),
-    ('system_settings:read'),
-    ('system_settings:update'),
-    ('tables:read'),
-    ('user_roles:create'),
-    ('user_roles:delete'),
-    ('user_roles:read'),
-    ('user_roles:update'),
-    ('users:create'),
-    ('users:delete'),
-    ('users:read'),
-    ('users:update')
-ON CONFLICT (name) DO NOTHING;
 INSERT INTO permission_actions (id, key) OVERRIDING SYSTEM VALUE VALUES
     (1, 'create'),
     (2, 'read'),
@@ -54,7 +20,16 @@ INSERT INTO permission_resources (id, key) OVERRIDING SYSTEM VALUE VALUES
     (14, 'metrics'),
     (15, 'openapi'),
     (16, 'tables'),
-    (17, 'permission_resource_actions');
+    (17, 'permission_resource_actions'),
+    (18, 'permission_resources'),
+    (19, 'basemaps'),
+    (20, 'layer_groups'),
+    (21, 'layers'),
+    (22, 'project_groups'),
+    (23, 'projects'),
+    (24, 'properties'),
+    (25, 'features'),
+    (26, 'value_items');
 INSERT INTO permission_resource_actions (
     id,
     permission_resource_id,
@@ -90,7 +65,12 @@ INSERT INTO permission_resource_actions (
     (28, 14, 2),
     (29, 15, 2),
     (30, 16, 2),
-    (31, 17, 2);
+    (31, 17, 2),
+    (32, 18, 2);
+INSERT INTO rules (permission_resource_action_id)
+SELECT id
+FROM permission_resource_actions
+ON CONFLICT DO NOTHING;
 INSERT INTO roles (name, is_system) VALUES ('admin', TRUE)
 ON CONFLICT (name) DO UPDATE SET is_system = TRUE;
 INSERT INTO role_rules (role_id, rule_id)

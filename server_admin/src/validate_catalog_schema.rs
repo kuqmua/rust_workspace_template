@@ -34,7 +34,8 @@ pub async fn validate_catalog_schema(
                         }
                         crate::admin_generated_table::AdminGeneratedTable::PermissionActions
                         | crate::admin_generated_table::AdminGeneratedTable::PermissionResourceActions
-                        | crate::admin_generated_table::AdminGeneratedTable::PermissionResources => {
+                        | crate::admin_generated_table::AdminGeneratedTable::PermissionResources
+                        | crate::admin_generated_table::AdminGeneratedTable::Rules => {
                             Ok(())
                         }
                         crate::admin_generated_table::AdminGeneratedTable::Roles => {
@@ -54,13 +55,6 @@ pub async fn validate_catalog_schema(
                             validate_generated_table::<
                                 crate::admin_users_database_read::AdminUsersDatabaseRead,
                             >(sqlx_pg_catalog_pool_ref, db_schema_name_ref)
-                            .await
-                        }
-                        crate::admin_generated_table::AdminGeneratedTable::Rules => {
-                            validate_generated_table::<crate::admin_rules::AdminRules>(
-                                sqlx_pg_catalog_pool_ref,
-                                db_schema_name_ref,
-                            )
                             .await
                         }
                         crate::admin_generated_table::AdminGeneratedTable::SystemSettings => {

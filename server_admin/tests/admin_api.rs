@@ -1637,6 +1637,59 @@ mod test_data_tables {
             .await
             .expect(constants_str::DIAGNOSTIC_17E0C1D3);
     }
+
+    #[tokio::test]
+    #[ignore = "requires PostgreSQL; run through workspace_test_runner database"]
+    async fn test_postgresql_rules_read_returns_table_view() {
+        let fixture = crate::admin_html_test_fixture().await;
+        let request =
+            server_admin_contract::admin_rules_read_request::AdminRulesReadRequest::try_from(
+                &server_admin_contract::admin_table_query::AdminTableQuery::default(),
+            )
+            .expect(constants_str::DIAGNOSTIC_B9A13791);
+        let request_body =
+            serde_json::to_string(&request).expect(constants_str::DIAGNOSTIC_D8320F22);
+        let response = tower::ServiceExt::oneshot(
+            crate::router_with_pool(&fixture.pool).0,
+            crate::request_with_peer(
+                super::HttpAdminApiTestMethod::from(http::Method::POST),
+                super::StdAdminApiTestStrRef::from(constants_str::ADMIN_RULES_READ),
+                super::StdAdminApiTestStrRef::from(request_body.as_str()),
+                Some(super::StdAdminApiTestStrRef::from(
+                    fixture.cookie.0.as_str(),
+                )),
+                None,
+            )
+            .0,
+        )
+        .await
+        .expect(constants_str::DIAGNOSTIC_F6B5BFCB);
+        let status = response.status();
+        let body = axum::body::to_bytes(response.into_body(), constants_usize::VALUE_1_048_576)
+            .await
+            .expect(constants_str::DIAGNOSTIC_9FD3CA69);
+        assert_eq!(
+            status,
+            http::StatusCode::OK,
+            "{}",
+            String::from_utf8_lossy(body.as_ref())
+        );
+        let view = serde_json::from_slice::<
+            server_admin_contract::admin_data_table_view::AdminDataTableView,
+        >(body.as_ref())
+        .expect(constants_str::DIAGNOSTIC_7098F270);
+        assert_eq!(
+            view.table(),
+            server_admin_contract::admin_data_table::AdminDataTable::Rules
+        );
+        fixture
+            .lock
+            .0
+            .rollback()
+            .await
+            .expect(constants_str::DIAGNOSTIC_17E0C1D3);
+    }
+
     #[tokio::test]
     #[ignore = "requires PostgreSQL; run through workspace_test_runner database"]
     async fn test_postgresql_generated_mutation_idempotency_contract() {
