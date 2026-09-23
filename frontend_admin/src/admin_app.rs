@@ -61,6 +61,15 @@ pub(crate) fn AdminApp() -> impl leptos::prelude::IntoView {
                         .await
                         .map(|value| crate::admin_load_state::AdminLoadState::Table(admin, value));
                 }
+                if table
+                    == server_admin_contract::admin_data_table::AdminDataTable::PermissionActions
+                {
+                    return crate::fetch_permission_actions_read::fetch_permission_actions_read(
+                        admin_csr_query,
+                    )
+                    .await
+                    .map(|value| crate::admin_load_state::AdminLoadState::Table(admin, value));
+                }
                 if table == server_admin_contract::admin_data_table::AdminDataTable::AccessSessions
                 {
                     return crate::fetch_access_sessions_read::fetch_access_sessions_read(

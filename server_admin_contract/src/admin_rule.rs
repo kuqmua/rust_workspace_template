@@ -27,6 +27,8 @@ pub enum AdminRule {
     MetricsRead,
     #[wire("openapi:read")]
     OpenApiRead,
+    #[wire("permission_actions:read")]
+    PermissionActionsRead,
     #[wire("rules:read")]
     RulesRead,
     #[wire("rate_limits:read")]

@@ -62,7 +62,7 @@ fn test_unknown_rule_is_rejected() {
 fn test_migration_inventory_is_not_empty() {
     let migrator = crate::migrator::migrator();
     let migrations = migrator.iter().collect::<Vec<_>>();
-    assert_eq!(migrations.len(), 2usize);
+    assert_eq!(migrations.len(), 3usize);
     assert!(!migrator.ignore_missing);
     assert!(
         migrations

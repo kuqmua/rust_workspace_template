@@ -23,6 +23,8 @@ pub enum AdminDataTable {
     CleanupStatus,
     #[wire("login_attempts")]
     LoginAttempts,
+    #[wire("permission_actions")]
+    PermissionActions,
     #[wire("rules")]
     Rules,
     #[wire("rate_limits")]
@@ -50,6 +52,7 @@ impl AdminDataTable {
             Self::RefreshTokens => crate::admin_route::AdminRoute::RefreshTokensTable,
             Self::AccessSessions => crate::admin_route::AdminRoute::AccessSessionsTable,
             Self::LoginAttempts => crate::admin_route::AdminRoute::LoginAttemptsTable,
+            Self::PermissionActions => crate::admin_route::AdminRoute::PermissionActions,
             Self::RateLimits => crate::admin_route::AdminRoute::RateLimitsTable,
             Self::CleanupStatus => crate::admin_route::AdminRoute::CleanupStatusTable,
             Self::Users => crate::admin_route::AdminRoute::Users,
@@ -60,10 +63,11 @@ impl AdminDataTable {
         }
     }
 
-    pub const PG_ORDER: [Self; 12] = [
+    pub const PG_ORDER: [Self; 13] = [
         Self::Users,
         Self::Roles,
         Self::Rules,
+        Self::PermissionActions,
         Self::UserRoles,
         Self::RoleRules,
         Self::RefreshTokens,
@@ -145,6 +149,14 @@ impl AdminDataTable {
                     constants_str::SERVER_ADMIN_DATA_ORDER_ATTEMPTED_AT,
                 ),
                 crate::admin_rule::AdminRule::LoginAttemptsRead,
+                crate::admin_bool::AdminBool::from(true),
+            ),
+            Self::PermissionActions => crate::admin_data_table_spec::AdminDataTableSpec::new(
+                crate::admin_data_columns_csv_ref::AdminDataColumnsCsvRef::from(
+                    constants_str::SERVER_ADMIN_DATA_PERMISSION_ACTIONS_COLUMNS,
+                ),
+                crate::admin_data_order_ref::AdminDataOrderRef::from(constants_str::SQL_NAMES_ID),
+                crate::admin_rule::AdminRule::PermissionActionsRead,
                 crate::admin_bool::AdminBool::from(true),
             ),
             Self::Rules => crate::admin_data_table_spec::AdminDataTableSpec::new(

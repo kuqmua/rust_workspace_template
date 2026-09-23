@@ -554,13 +554,14 @@ fn test_table_sort_fields_reject_unknown_and_wrong_table_keys() {
     reason = "repository source policy requires iterator methods"
 )]
 fn test_data_tables_round_trip_and_require_read_rules() {
-    assert_eq!(crate::admin_data_table::AdminDataTable::ALL.len(), 12usize);
+    assert_eq!(crate::admin_data_table::AdminDataTable::ALL.len(), 13usize);
     assert_eq!(
         crate::admin_data_table::AdminDataTable::PG_ORDER,
         [
             crate::admin_data_table::AdminDataTable::Users,
             crate::admin_data_table::AdminDataTable::Roles,
             crate::admin_data_table::AdminDataTable::Rules,
+            crate::admin_data_table::AdminDataTable::PermissionActions,
             crate::admin_data_table::AdminDataTable::UserRoles,
             crate::admin_data_table::AdminDataTable::RoleRules,
             crate::admin_data_table::AdminDataTable::RefreshTokens,
@@ -674,6 +675,7 @@ fn test_data_tables_round_trip_and_require_read_rules() {
             crate::admin_data_table::AdminDataTable::AuditLog,
             crate::admin_data_table::AdminDataTable::CleanupStatus,
             crate::admin_data_table::AdminDataTable::LoginAttempts,
+            crate::admin_data_table::AdminDataTable::PermissionActions,
             crate::admin_data_table::AdminDataTable::RateLimits,
             crate::admin_data_table::AdminDataTable::RefreshTokens,
             crate::admin_data_table::AdminDataTable::RoleRules,
@@ -689,6 +691,9 @@ fn test_data_tables_round_trip_and_require_read_rules() {
             String::from(constants_str::VALUE_074B6E5E),
             String::from(constants_str::VALUE_DB2C56E6),
             String::from(constants_str::VALUE_84ECA72B),
+            crate::admin_data_table::AdminDataTable::PermissionActions
+                .frontend_path()
+                .to_string(),
             String::from(constants_str::VALUE_6B410750),
             String::from(constants_str::VALUE_1199CAE6),
             String::from(constants_str::VALUE_00257BE7),
@@ -860,6 +865,7 @@ fn test_data_table_api_routes_use_dedicated_resources() {
                 }
                 crate::admin_data_table::AdminDataTable::Roles
                 | crate::admin_data_table::AdminDataTable::Rules
+                | crate::admin_data_table::AdminDataTable::PermissionActions
                 | crate::admin_data_table::AdminDataTable::UserRoles
                 | crate::admin_data_table::AdminDataTable::RoleRules
                 | crate::admin_data_table::AdminDataTable::RefreshTokens

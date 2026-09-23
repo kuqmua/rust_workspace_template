@@ -92,6 +92,10 @@ fn test_generated_table_catalog_maps_every_supported_data_table_once() {
             server_admin_contract::admin_data_table::AdminDataTable::AuditLog,
         ),
         (
+            crate::admin_generated_table::AdminGeneratedTable::PermissionActions,
+            server_admin_contract::admin_data_table::AdminDataTable::PermissionActions,
+        ),
+        (
             crate::admin_generated_table::AdminGeneratedTable::Roles,
             server_admin_contract::admin_data_table::AdminDataTable::Roles,
         ),
@@ -232,6 +236,7 @@ fn test_open_api_contains_exactly_the_typed_route_locations() {
         [
             crate::admin_access_sessions::AdminAccessSessions::read_route(),
             crate::admin_audit_log::AdminAuditLog::read_route(),
+            crate::admin_permission_actions::AdminPermissionActions::read_route(),
             crate::admin_users_database_read::AdminUsersDatabaseRead::read_route(),
             crate::admin_user_roles::AdminUserRoles::read_route(),
             crate::admin_role_rules::AdminRoleRules::read_route(),
@@ -549,7 +554,7 @@ fn test_generated_admin_open_api_combines_enabled_routes_only() {
         .get(constants_str::PATHS)
         .and_then(serde_json::Value::as_object)
         .expect(constants_str::DIAGNOSTIC_274479A7);
-    assert_eq!(paths.len(), 36usize);
+    assert_eq!(paths.len(), 37usize);
     assert!(paths.contains_key(constants_str::ADMIN_ROLES_CREATE_PAYLOAD_EXAMPLE_READ));
     assert!(paths.contains_key(constants_str::ADMIN_ROLES_UPDATE_PAYLOAD_EXAMPLE_READ));
     assert!(paths.contains_key(constants_str::ADMIN_ROLES_DELETE_PAYLOAD_EXAMPLE_READ));
