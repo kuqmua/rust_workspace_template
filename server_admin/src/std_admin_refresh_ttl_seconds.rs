@@ -13,9 +13,9 @@ impl TryFrom<u64> for StdAdminRefreshTtlSeconds {
     type Error = crate::admin_auth_positive_value_error::AdminAuthPositiveValueError;
 
     fn try_from(value: u64) -> Result<Self, Self::Error> {
-        std::num::NonZeroU64::new(value)
+        crate::std_admin_auth_ttl_seconds::StdAdminAuthTtlSeconds::try_from(value)
+            .map(std::num::NonZeroU64::from)
             .map(Self::from)
-            .ok_or(crate::admin_auth_positive_value_error::AdminAuthPositiveValueError::Zero)
     }
 }
 impl StdAdminRefreshTtlSeconds {

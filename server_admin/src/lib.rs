@@ -312,6 +312,7 @@ pub mod sqlx_admin_repository_pool_ref;
 mod sqlx_admin_transaction;
 pub mod std_admin_access_token;
 pub mod std_admin_access_ttl_seconds;
+mod std_admin_auth_ttl_seconds;
 pub mod std_admin_cookie;
 pub mod std_admin_failure_delay_millis;
 pub mod std_admin_failure_threshold;
