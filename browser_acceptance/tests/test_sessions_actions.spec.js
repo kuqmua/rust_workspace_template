@@ -10,8 +10,11 @@ test("test_sessions_rows_expose_read_and_icon_delete_actions", async ({ page }) 
     await page.goto("/admin/sessions");
     const row = page.locator("tbody tr").first();
     const sessionId = (await row.locator('td[data-label="id"]').innerText()).trim();
-    const read = row.getByRole("link", { name: "read", exact: true });
-    await expect(read).toHaveAttribute("href", `/admin/access_sessions/${sessionId}`);
+    const read = row.getByRole("button", { name: "read", exact: true });
+    await read.click();
+    await expect(page).toHaveURL("/admin/sessions");
+    await expect(row.getByRole("dialog", { name: "read" }).locator(".health-result").first()).toHaveText(sessionId);
+    await row.getByRole("dialog", { name: "read" }).getByRole("button", { name: "close" }).click();
     await expect(read.locator("svg")).toHaveCount(1);
     const deleteButton = row.getByRole("button", { name: "delete", exact: true });
     await expect(deleteButton.locator("svg")).toHaveCount(1);

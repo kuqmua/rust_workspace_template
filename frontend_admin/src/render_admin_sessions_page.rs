@@ -26,8 +26,23 @@ pub fn render_admin_sessions_page(
             item.id().to_string(),
         )
         .ok()
-        .map(server_admin_contract::admin_route_path::AdminRoutePath::from)
-        .map(|admin_route_path| admin_route_path.to_string());
+        .map(server_admin_contract::admin_route_path::AdminRoutePath::from);
+        let read_session_id = session_id.clone();
+        let read_created_at = created_at.clone();
+        let read_expires_at = expires_at.clone();
+        let read_current_text = current_text.clone();
+        let read_action = read_path.map(|read_path| leptos::prelude::IntoAny::into_any(leptos::view! {
+            <crate::admin_read_action::AdminReadAction read_path=read_path>
+                <div class="health-label">{constants_str::SQL_NAMES_ID}</div>
+                <div class="health-result">{read_session_id}</div>
+                <div class="health-label">"created"</div>
+                <div class="health-result">{read_created_at}</div>
+                <div class="health-label">"expires"</div>
+                <div class="health-result">{read_expires_at}</div>
+                <div class="health-label">"current"</div>
+                <div class="health-result">{read_current_text}</div>
+            </crate::admin_read_action::AdminReadAction>
+        }));
         let dialog = crate::with_owner::with_owner(move || {
             leptos::view! {
                 <dialog id=dialog_id class="singlestage-dialog" aria-label=constants_str::ADMIN_UI_REVOKE_SESSION>
@@ -47,7 +62,7 @@ pub fn render_admin_sessions_page(
                 <crate::table_cell::TableCell data_label="expires">{expires_at}</crate::table_cell::TableCell>
                 <crate::table_cell::TableCell data_label="current">{current_text}</crate::table_cell::TableCell>
                 <crate::table_cell::TableCell data_label="actions" bool=true>
-                    <crate::admin_table_actions::AdminTableActions read_path=read_path command_for=action_dialog_id>
+                    <crate::admin_table_actions::AdminTableActions read_action=read_action command_for=action_dialog_id>
                         {dialog}
                     </crate::admin_table_actions::AdminTableActions>
                 </crate::table_cell::TableCell>

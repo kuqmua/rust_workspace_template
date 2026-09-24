@@ -98,6 +98,49 @@ impl From<crate::admin_user_id::AdminUserId> for AdminRoutePath {
     }
 }
 
+impl From<crate::admin_permission_resource_id::AdminPermissionResourceId> for AdminRoutePath {
+    fn from(value: crate::admin_permission_resource_id::AdminPermissionResourceId) -> Self {
+        Self(
+            format!(
+                "{}/{}",
+                crate::admin_data_table::AdminDataTable::PermissionResources.frontend_path(),
+                value
+            )
+            .into_boxed_str(),
+        )
+    }
+}
+
+impl From<crate::admin_permission_resource_action_id::AdminPermissionResourceActionId>
+    for AdminRoutePath
+{
+    fn from(
+        value: crate::admin_permission_resource_action_id::AdminPermissionResourceActionId,
+    ) -> Self {
+        Self(
+            format!(
+                "{}/{}",
+                crate::admin_data_table::AdminDataTable::PermissionResourceActions.frontend_path(),
+                value
+            )
+            .into_boxed_str(),
+        )
+    }
+}
+
+impl From<crate::admin_permission_action_id::AdminPermissionActionId> for AdminRoutePath {
+    fn from(value: crate::admin_permission_action_id::AdminPermissionActionId) -> Self {
+        Self(
+            format!(
+                "{}/{}",
+                crate::admin_data_table::AdminDataTable::PermissionActions.frontend_path(),
+                value
+            )
+            .into_boxed_str(),
+        )
+    }
+}
+
 impl From<crate::admin_role_id::AdminRoleId> for AdminRoutePath {
     fn from(value: crate::admin_role_id::AdminRoleId) -> Self {
         Self(

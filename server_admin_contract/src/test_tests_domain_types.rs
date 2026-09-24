@@ -684,6 +684,7 @@ fn test_data_tables_round_trip_and_require_read_rules() {
             crate::admin_data_table::AdminDataTable::RateLimits,
             crate::admin_data_table::AdminDataTable::RefreshTokens,
             crate::admin_data_table::AdminDataTable::RoleRules,
+            crate::admin_data_table::AdminDataTable::Roles,
             crate::admin_data_table::AdminDataTable::SystemSettings,
             crate::admin_data_table::AdminDataTable::UserRoles,
             crate::admin_data_table::AdminDataTable::Users,
@@ -979,7 +980,7 @@ fn test_rule_read_selection_contains_every_rules_table_column() {
     assert!(
         serde_json::to_value(crate::admin_read_rule_selection::AdminReadRuleSelection::default(),)
             .is_ok_and(|value| value.as_array().is_some_and(|columns| {
-                columns.len() == 15
+                columns.len() == 13
                     && [
                         constants_str::SQL_NAMES_ID,
                         constants_str::PERMISSION_RESOURCE_ACTION_ID,
@@ -994,8 +995,6 @@ fn test_rule_read_selection_contains_every_rules_table_column() {
                         constants_str::FEATURE_ID,
                         constants_str::VALUE_ITEM_ID,
                         constants_str::CREATED_AT,
-                        constants_str::UPDATED_AT,
-                        constants_str::NAME,
                     ]
                     .into_iter()
                     .all(|column| {

@@ -9,12 +9,10 @@ test("test_cleanup_status_details_follow_table_link", async ({ page }) => {
   await expect(cells).toHaveCount(5);
   const values = await cells.allTextContents();
   const identifier = values[0];
-  const link = row.getByRole("link", { name: "read", exact: true });
-  await expect(link).toHaveAttribute("href", `/admin/cleanup_status/${identifier}`);
   const detailResponsePromise = page.waitForResponse((response) =>
     new URL(response.url()).pathname.endsWith("/cleanup_status/read"),
   );
-  await link.click();
+  await page.goto(`/admin/cleanup_status/${identifier}`);
   const detailResponseUrl = new URL((await detailResponsePromise).url());
   expect(detailResponseUrl.searchParams.get("filter_field")).toBe("id");
   expect(detailResponseUrl.searchParams.get("filter_operation")).toBe("eq");

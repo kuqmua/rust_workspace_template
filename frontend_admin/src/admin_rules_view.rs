@@ -23,6 +23,7 @@ pub(crate) fn AdminRulesView(
             authenticated_admin=authenticated_admin
             admin_csr_query=admin_csr_query
             admin_data_table_view=admin_data_table_view
+            admin_frontend_path=None
         />
     }
 }

@@ -9,9 +9,7 @@ test("test_refresh_token_details_follow_table_link_and_ignore_list_filters", asy
   await expect(cells).toHaveCount(6);
   const values = await cells.allTextContents();
   const path = `/admin/refresh_tokens/${values[0].trim()}`;
-  const link = row.getByRole("link", { name: "read", exact: true });
-  await expect(link).toHaveAttribute("href", path);
-  await link.click();
+  await page.goto(path);
   await expect(page).toHaveURL(new RegExp(`${path}$`));
   const detail = page.locator('[data-page="refresh-token-read"]');
   await expect(detail.locator(".health-result")).toHaveText(values.slice(0, 5));

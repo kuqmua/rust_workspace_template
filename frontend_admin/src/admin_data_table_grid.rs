@@ -3,7 +3,7 @@
     reason = "the Leptos grid cells and column headings require attribute traits after macro expansion"
 )]
 
-use leptos::prelude::{AddAnyAttr, ClassAttribute, CustomAttribute, ElementChild};
+use leptos::prelude::{ClassAttribute, ElementChild};
 
 #[allow(
     clippy::single_call_fn,
@@ -18,7 +18,11 @@ pub(crate) fn admin_data_table_grid(
     active_value: Option<&server_admin_contract::admin_filter_value::AdminFilterValue>,
     active_end: Option<&server_admin_contract::admin_filter_value::AdminFilterValue>,
     admin_page_limit: server_admin_contract::admin_page_limit::AdminPageLimit,
+    admin_data_table_frontend_path: &server_admin_contract::admin_data_table_frontend_path::AdminDataTableFrontendPath,
+    is_sessions: bool,
 ) -> impl leptos::prelude::IntoView + use<> {
+    #[cfg(not(target_arch = "wasm32"))]
+    let _: bool = is_sessions;
     let columns = admin_data_table_view
         .columns()
         .iter()
@@ -26,12 +30,11 @@ pub(crate) fn admin_data_table_grid(
             let field = column.name().to_string();
             let label = column.name().to_string();
             let filter_count = column.filters().len().to_string();
-            let table_path = admin_data_table_view.table().frontend_path();
             let filter = (bool::from(admin_data_table_view.table().supports_filters())
                 && !column.filters().is_empty())
             .then(|| {
                 crate::admin_column_filter::admin_column_filter(
-                    &table_path,
+                    admin_data_table_frontend_path,
                     column.name(),
                     column.input_kind(),
                     column.filters(),
@@ -108,22 +111,39 @@ pub(crate) fn admin_data_table_grid(
                     .and_then(|value| value.parse::<i64>().ok())
                     .and_then(|value| server_admin_contract::admin_rule_id::AdminRuleId::try_from(value).ok())
                     .map(server_admin_contract::admin_route_path::AdminRoutePath::from),
-                server_admin_contract::admin_data_table::AdminDataTable::Roles
-                | server_admin_contract::admin_data_table::AdminDataTable::PermissionActions
-                | server_admin_contract::admin_data_table::AdminDataTable::PermissionResourceActions
-                | server_admin_contract::admin_data_table::AdminDataTable::PermissionResources => None,
+                server_admin_contract::admin_data_table::AdminDataTable::Roles => row_identifier
+                    .and_then(|value| value.parse::<i64>().ok())
+                    .and_then(|value| server_admin_contract::admin_role_id::AdminRoleId::try_from(value).ok())
+                    .map(server_admin_contract::admin_route_path::AdminRoutePath::from),
+                server_admin_contract::admin_data_table::AdminDataTable::PermissionActions => row_identifier
+                    .and_then(|value| value.parse::<i64>().ok())
+                    .and_then(|value| server_admin_contract::admin_permission_action_id::AdminPermissionActionId::try_from(value).ok())
+                    .map(server_admin_contract::admin_route_path::AdminRoutePath::from),
+                server_admin_contract::admin_data_table::AdminDataTable::PermissionResourceActions => row_identifier
+                    .and_then(|value| value.parse::<i64>().ok())
+                    .and_then(|value| server_admin_contract::admin_permission_resource_action_id::AdminPermissionResourceActionId::try_from(value).ok())
+                    .map(server_admin_contract::admin_route_path::AdminRoutePath::from),
+                server_admin_contract::admin_data_table::AdminDataTable::PermissionResources => row_identifier
+                    .and_then(|value| value.parse::<i64>().ok())
+                    .and_then(|value| server_admin_contract::admin_permission_resource_id::AdminPermissionResourceId::try_from(value).ok())
+                    .map(server_admin_contract::admin_route_path::AdminRoutePath::from),
                 server_admin_contract::admin_data_table::AdminDataTable::Users => row_identifier
                     .and_then(|value| value.parse::<i64>().ok())
                     .and_then(|value| server_admin_contract::admin_user_id::AdminUserId::try_from(value).ok())
                     .map(server_admin_contract::admin_route_path::AdminRoutePath::from),
             };
-            let read_link = read_path.map(|admin_route_path| {
-                    leptos::view! { <singlestage::Link class=crate::admin_button_variant::AdminButtonVariant::Secondary.class() href=admin_route_path.to_string() attr:aria-label=constants_str::PG_CRUD_READ_RULE_ACTION attr:title=constants_str::PG_CRUD_READ_RULE_ACTION>
-                        <svg viewBox="0 0 24 24" aria-hidden=constants_str::TRUE fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"></path>
-                            <circle cx="12" cy="12" r="3"></circle>
-                        </svg>
-                    </singlestage::Link> }
+            let read_action = read_path.map(|admin_route_path| {
+                let fields = admin_data_table_view.columns().iter().zip(item.values()).map(|(column, value)| {
+                    let label = column.name().to_string();
+                    let value = value.to_string();
+                    leptos::view! {
+                        <div class="health-label">{label}</div>
+                        <div class="health-result">{value}</div>
+                    }
+                }).collect::<Vec<_>>();
+                leptos::prelude::IntoAny::into_any(leptos::view! {
+                    <crate::admin_read_action::AdminReadAction read_path=admin_route_path>{fields}</crate::admin_read_action::AdminReadAction>
+                })
                 });
             let cells = item
                 .values()
@@ -142,8 +162,34 @@ pub(crate) fn admin_data_table_grid(
                     leptos::view! { <crate::table_cell::TableCell data_label=label data_field=field class=if numeric { "numeric-cell" } else { "" }>{value_text}</crate::table_cell::TableCell> }
                 })
                 .collect::<Vec<_>>();
+            let action_cell = {
+                #[cfg(target_arch = "wasm32")]
+                let actions = if is_sessions {
+                    let session_identifier = row_identifier
+                        .and_then(|value| server_admin_contract::admin_session_identifier::AdminSessionIdentifier::try_from(value.to_owned()).ok());
+                    if let Some(revoke_session_id) = session_identifier {
+                        let dialog_id = format!("revoke-session-{revoke_session_id}");
+                        leptos::prelude::IntoAny::into_any(leptos::view! {
+                            <crate::admin_table_actions::AdminTableActions read_action=read_action command_for=dialog_id.clone()>
+                                <crate::admin_alert_dialog::AdminAlertDialog string=dialog_id title=constants_str::ADMIN_UI_REVOKE_SESSION description=constants_str::ADMIN_UI_THIS_ADMINISTRATOR_SESSION_WILL_BE_SIGNED_OUT_IMMEDIATELY trigger=constants_str::ADMIN_BUTTON_REVOKE_SESSION confirm=constants_str::ADMIN_BUTTON_REVOKE dialog_only=true callback=leptos::prelude::Callback::new(move |()| {
+                                    if let Ok(path) = crate::admin_route_path_url::admin_route_path_url(&server_admin_contract::admin_parameterized_route_path::admin_parameterized_route_path::<server_admin_contract::admin_revoke_session_route::AdminRevokeSessionRoute>(&revoke_session_id)) {
+                                        crate::reload_after::reload_after(crate::admin_mutation_method::AdminMutationMethod::Delete, path, server_admin_contract::admin_no_body::AdminNoBody);
+                                    }
+                                }) />
+                            </crate::admin_table_actions::AdminTableActions>
+                        })
+                    } else {
+                        leptos::prelude::IntoAny::into_any(read_action)
+                    }
+                } else {
+                    leptos::prelude::IntoAny::into_any(read_action)
+                };
+                #[cfg(not(target_arch = "wasm32"))]
+                let actions = read_action;
+                leptos::view! { <crate::table_cell::TableCell data_label=constants_str::ADMIN_UI_ACTIONS bool=true>{actions}</crate::table_cell::TableCell> }
+            };
             leptos::view! {
-                <crate::table_row::TableRow>{cells}<crate::table_cell::TableCell data_label=constants_str::ADMIN_UI_ACTIONS bool=true>{read_link}</crate::table_cell::TableCell></crate::table_row::TableRow>
+                <crate::table_row::TableRow>{cells}{action_cell}</crate::table_row::TableRow>
             }
         })
         .collect::<Vec<_>>();

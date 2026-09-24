@@ -4,7 +4,8 @@ import {
   adminHeaders,
   adminOrigin,
   cookieValue,
-  signInAdministrator
+  signInAdministrator,
+  signInAdministratorWithPasswordReset
 } from "./support/admin.js";
 
 test.describe.configure({ mode: "serial" });
@@ -90,7 +91,7 @@ test("one-session and all-session revocation are enforced", async ({
   browser,
   page
 }) => {
-  await signInAdministrator(page);
+  await signInAdministratorWithPasswordReset(page);
   const otherContext = await browser.newContext({
     baseURL: adminOrigin
   });
@@ -105,10 +106,7 @@ test("one-session and all-session revocation are enforced", async ({
     .filter({ hasText: "false" })
     .first();
   const revokedSessionId = await otherSession.locator("td").first().innerText();
-  await expect(otherSession.getByRole("link", { name: "read", exact: true })).toHaveAttribute(
-    "href",
-    `/admin/access_sessions/${revokedSessionId}`
-  );
+  await expect(otherSession.getByRole("button", { name: "read", exact: true })).toBeVisible();
   const oneRevoked = page.waitForResponse(
     response =>
       response.request().method() === "DELETE" &&

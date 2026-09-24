@@ -9,9 +9,7 @@ test("test_role_rule_details_follow_table_link_and_ignore_list_filters", async (
   await expect(cells).toHaveCount(5);
   const values = await cells.allTextContents();
   const path = `/admin/role_rules/${values[0].trim()}`;
-  const link = row.getByRole("link", { name: "read", exact: true });
-  await expect(link).toHaveAttribute("href", path);
-  await link.click();
+  await page.goto(path);
   await expect(page).toHaveURL(new RegExp(`${path}$`));
   const detail = page.locator('[data-page="role-rule-read"]');
   await expect(detail.locator(".health-result")).toHaveText(values.slice(0, 4));

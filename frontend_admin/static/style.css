@@ -520,6 +520,12 @@ p {
     overflow: auto;
   }
 
+  .table-cell-dialog > .table-cell-content.admin-read-content {
+    height: auto !important;
+    max-height: calc(100dvh - 64px) !important;
+    flex: 0 1 auto;
+  }
+
   .table-actions > div {
     display: flex;
     align-items: center;
@@ -1264,7 +1270,6 @@ th:has(.table-column-filter[data-filter-active="true"]) {
   background: rgb(0 0 0 / 50%);
 }
 
-
 .table-cell-dialog h2 {
   margin: 0;
   overflow-wrap: anywhere;
@@ -1405,7 +1410,12 @@ th:has(.table-column-filter[data-filter-active="true"]) {
 
 .table-admin_sessions_page .table-actions > :is(a, button) {
   border: 0;
-  box-shadow: none;
+}
+
+@layer utilities {
+  .table-admin_sessions_page .table-actions > :is(a, button) {
+    box-shadow: none !important;
+  }
 }
 
 table {
@@ -1806,17 +1816,17 @@ body:has(a[href="/admin/version"][aria-current="page"]) .page-frame {
   overflow-wrap: anywhere;
 }
 
-.table-admin_users_page td[data-label="actions"] > a,
-.table-admin_roles_page td[data-label="actions"] > a,
-.table-admin_rules_page td[data-label="actions"] > a,
-.table-page td[data-label="actions"] > a {
+.table-admin_users_page td[data-label="actions"] > :is(a, button),
+.table-admin_roles_page td[data-label="actions"] > :is(a, button),
+.table-admin_rules_page td[data-label="actions"] > :is(a, button),
+.table-page td[data-label="actions"] > :is(a, button) {
   border: 0;
 }
 
-.table-admin_users_page td[data-label="actions"] > a svg,
-.table-admin_roles_page td[data-label="actions"] > a svg,
-.table-admin_rules_page td[data-label="actions"] > a svg,
-.table-page td[data-label="actions"] > a svg {
+.table-admin_users_page td[data-label="actions"] > :is(a, button) svg,
+.table-admin_roles_page td[data-label="actions"] > :is(a, button) svg,
+.table-admin_rules_page td[data-label="actions"] > :is(a, button) svg,
+.table-page td[data-label="actions"] > :is(a, button) svg {
   width: 1.25em;
   height: 1.25em;
 }

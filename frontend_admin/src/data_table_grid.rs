@@ -17,5 +17,7 @@ pub(super) fn data_table_grid(
         admin_data_table_query.filter().value(),
         admin_data_table_query.filter().end(),
         admin_data_table_query.page().limit(),
+        &admin_data_table_view.table().frontend_path(),
+        false,
     )
 }

@@ -77,9 +77,8 @@ pub mod admin_navigation_link;
 pub mod admin_page_nav_disabled;
 pub mod admin_page_range;
 #[cfg(target_arch = "wasm32")]
-pub mod admin_pagination;
-#[cfg(target_arch = "wasm32")]
 pub mod admin_profile_view;
+mod admin_read_action;
 #[cfg(target_arch = "wasm32")]
 pub mod admin_record_read_page;
 #[cfg(target_arch = "wasm32")]
@@ -87,7 +86,7 @@ pub mod admin_record_view;
 #[cfg(target_arch = "wasm32")]
 pub mod admin_role_view;
 #[cfg(target_arch = "wasm32")]
-pub mod admin_roles_view;
+mod admin_roles_table_view;
 #[cfg(target_arch = "wasm32")]
 pub mod admin_route_path_url;
 #[cfg(target_arch = "wasm32")]
@@ -95,7 +94,7 @@ pub mod admin_rule_view;
 #[cfg(target_arch = "wasm32")]
 pub mod admin_rules_view;
 #[cfg(target_arch = "wasm32")]
-pub mod admin_sessions_view;
+mod admin_sessions_table_view;
 pub mod admin_setting_disabled;
 pub mod admin_setting_input_value;
 pub mod admin_setting_inputs;
@@ -152,7 +151,7 @@ pub mod fetch_json;
 #[cfg(target_arch = "wasm32")]
 pub mod fetch_json_request;
 #[cfg(target_arch = "wasm32")]
-pub mod fetch_permission_actions_read;
+mod fetch_permission_table_read;
 #[cfg(target_arch = "wasm32")]
 pub mod fetch_role_rules_read;
 #[cfg(target_arch = "wasm32")]

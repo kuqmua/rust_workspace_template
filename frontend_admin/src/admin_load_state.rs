@@ -19,7 +19,7 @@ pub(crate) enum AdminLoadState {
     ),
     Sessions(
         server_admin_contract::authenticated_admin::AuthenticatedAdmin,
-        server_admin_contract::admin_sessions_page::AdminSessionsPage,
+        server_admin_contract::admin_data_table_view::AdminDataTableView,
     ),
     Settings(
         server_admin_contract::authenticated_admin::AuthenticatedAdmin,

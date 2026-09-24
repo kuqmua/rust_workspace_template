@@ -22,6 +22,4 @@ pub enum AdminReadRuleColumn {
     FeatureId(crate::admin_no_body::AdminNoBody),
     ValueItemId(crate::admin_no_body::AdminNoBody),
     CreatedAt(crate::admin_no_body::AdminNoBody),
-    UpdatedAt(crate::admin_no_body::AdminNoBody),
-    Name(crate::admin_no_body::AdminNoBody),
 }

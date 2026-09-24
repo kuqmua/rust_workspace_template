@@ -3,7 +3,8 @@ import {
   changePassword,
   changedAdminPassword,
   initialAdminPassword,
-  signInAdministrator
+  signInAdministrator,
+  signInAdministratorWithPasswordReset
 } from "./support/admin.js";
 import { primaryAdminPaths } from "./support/pages.js";
 
@@ -118,12 +119,12 @@ test("administrator users page contains only its header, table, and pagination",
   await expect(page.getByRole("table")).toBeVisible();
 });
 
-test("administrator can open a read-only user page from the users table", async ({ page }) => {
-  await signInAdministrator(page);
+test("administrator can inspect a user without leaving the users table", async ({ page }) => {
+  await signInAdministratorWithPasswordReset(page);
   await page.goto("/admin/users");
 
   const administratorRow = page.locator("tbody tr").filter({ hasText: "administrator" });
-  const readLink = administratorRow.getByRole("link", { name: "read" });
+  const readLink = administratorRow.getByRole("button", { name: "read" });
   await expect(readLink).toBeVisible();
   expect(
     await readLink.evaluate(element => {
@@ -138,12 +139,33 @@ test("administrator can open a read-only user page from the users table", async 
   ).toEqual(["0px", "0px", "0px", "0px"]);
   await readLink.click();
 
-  await expect(page).toHaveURL(/\/admin\/users\/\d+$/);
-  const userDetails = page.locator('section.profile-grid.profile-fields[data-page="user-read"]');
+  await expect(page).toHaveURL(/\/admin\/users$/);
+  const userDetails = administratorRow.getByRole("dialog", { name: "read" });
   await expect(userDetails).toContainText("administrator");
-  await expect(userDetails.locator(".health-label")).toHaveCount(5);
-  await expect(userDetails.locator(".health-result")).toHaveCount(5);
-  await expect(userDetails.locator("input, select, textarea, button")).toHaveCount(0);
+  const readFieldCount = await administratorRow.locator("td").count() - 1;
+  await expect(userDetails.locator(".health-label")).toHaveCount(readFieldCount);
+  await expect(userDetails.locator(".health-result")).toHaveCount(readFieldCount);
+  await expect(userDetails.locator("input, select, textarea")).toHaveCount(0);
+  const appearance = dialog => dialog.evaluate(element => {
+    const style = getComputedStyle(element);
+    const bounds = element.getBoundingClientRect();
+    return {
+      background: style.backgroundColor,
+      backdrop: getComputedStyle(element, "::backdrop").backgroundColor,
+      display: style.display,
+      height: bounds.height,
+      width: bounds.width
+    };
+  });
+  const readAppearance = await appearance(userDetails);
+  await userDetails.getByRole("button", { name: "close" }).click();
+  await administratorRow.locator('td[data-label="display_name"] .table-cell-preview').click();
+  const cellDialog = page.locator(".table-cell-dialog[open]");
+  await expect(cellDialog).toBeVisible();
+  expect(await appearance(cellDialog)).toEqual(readAppearance);
+  await cellDialog.getByRole("button", { name: "close" }).click();
+  await readLink.click();
+  await expect(userDetails).toBeVisible();
 });
 
 test("administrator roles page contains only its header, table, and pagination", async ({
@@ -157,7 +179,8 @@ test("administrator roles page contains only its header, table, and pagination",
   await expect(page.locator("nav.table-pagination")).toHaveCount(1);
   await expect(page.locator("form.table-tools")).toHaveCount(0);
   await expect(page.locator("form.mutation-form")).toHaveCount(0);
-  await expect(page.locator("tbody button, tbody input, tbody select")).toHaveCount(0);
+  await expect(page.locator("tbody button[aria-label='read']")).not.toHaveCount(0);
+  await expect(page.locator("tbody input, tbody select")).toHaveCount(0);
   await expect(page.locator("thead th")).toHaveCount(4);
   const rolesCellStyle = await firstCellStyle(page);
   await page.goto("/admin/rules");

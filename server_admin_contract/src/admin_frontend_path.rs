@@ -26,6 +26,12 @@ pub enum AdminFrontendPath {
     Metrics,
     #[strum(serialize = "/admin/openapi.json")]
     OpenApiDocument,
+    #[strum(serialize = "/admin/permission_actions/{permission_action_id}")]
+    PermissionActionRead,
+    #[strum(serialize = "/admin/permission_resource_actions/{permission_resource_action_id}")]
+    PermissionResourceActionRead,
+    #[strum(serialize = "/admin/permission_resources/{permission_resource_id}")]
+    PermissionResourceRead,
     #[strum(serialize = "/admin/swagger_ui")]
     OpenApi,
     #[strum(serialize = "/admin/rules")]

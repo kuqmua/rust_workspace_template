@@ -9,15 +9,13 @@
     proc_macro_getters::Getters,
 )]
 pub struct AdminRulesReadRequest {
-    #[constructor(order = 4)]
+    #[constructor(order = 3)]
     where_many: Option<crate::admin_where_many::AdminWhereMany>,
     #[constructor(order = 0)]
-    search: Option<crate::admin_table_search::AdminTableSearch>,
-    #[constructor(order = 1)]
     pagination: crate::admin_read_page::AdminReadPage,
-    #[constructor(order = 2)]
+    #[constructor(order = 1)]
     select: crate::admin_read_rule_selection::AdminReadRuleSelection,
-    #[constructor(order = 3)]
+    #[constructor(order = 2)]
     order_by: crate::admin_read_rule_order::AdminReadRuleOrder,
 }
 impl TryFrom<&crate::admin_table_query::AdminTableQuery> for AdminRulesReadRequest {
@@ -38,12 +36,9 @@ impl TryFrom<&crate::admin_table_query::AdminTableQuery> for AdminRulesReadReque
             constants_str::FEATURE_ID => crate::admin_read_rule_column::AdminReadRuleColumn::FeatureId(crate::admin_no_body::AdminNoBody),
             constants_str::VALUE_ITEM_ID => crate::admin_read_rule_column::AdminReadRuleColumn::ValueItemId(crate::admin_no_body::AdminNoBody),
             constants_str::CREATED_AT => crate::admin_read_rule_column::AdminReadRuleColumn::CreatedAt(crate::admin_no_body::AdminNoBody),
-            constants_str::UPDATED_AT => crate::admin_read_rule_column::AdminReadRuleColumn::UpdatedAt(crate::admin_no_body::AdminNoBody),
-            constants_str::NAME => crate::admin_read_rule_column::AdminReadRuleColumn::Name(crate::admin_no_body::AdminNoBody),
             _ => return Err(crate::admin_table_sort_field_try_from_key_error::AdminTableSortFieldTryFromKeyError::Unknown),
         };
         Ok(Self::new(
-            Some(value.search().clone()),
             crate::admin_read_page::AdminReadPage::new(value.offset(), value.limit()),
             crate::admin_read_rule_selection::AdminReadRuleSelection::default(),
             crate::admin_read_rule_order::AdminReadRuleOrder::new(column, value.direction()),

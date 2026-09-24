@@ -14,6 +14,8 @@ pub(crate) enum AdminTableLoadError {
     ReadCollection(
         #[from] server_admin_contract::admin_collection_error::AdminCollectionError,
     ),
+    #[error("{}", constants_str::ADMIN_UI_THE_TABLE_RESPONSE_WAS_INVALID)]
+    ReadText(server_admin_contract::admin_text::AdminTextTryFromStringError),
     #[error("{}", constants_str::ADMIN_UI_THE_TABLE_QUERY_IS_INVALID)]
     ReadFilterField(
         server_admin_contract::admin_filter_field::AdminFilterFieldTryFromStringError,
@@ -58,9 +60,16 @@ impl AdminTableLoadError {
             | Self::ReadSort(_)
             | Self::ReadBody(_)
             | Self::ReadCollection(_)
+            | Self::ReadText(_)
             | Self::ReadFilterField(_)
             | Self::ReadFilterValue(_)
             | Self::ReadPath(_) => false,
         })
+    }
+}
+
+impl From<server_admin_contract::admin_text::AdminTextTryFromStringError> for AdminTableLoadError {
+    fn from(value: server_admin_contract::admin_text::AdminTextTryFromStringError) -> Self {
+        Self::ReadText(value)
     }
 }

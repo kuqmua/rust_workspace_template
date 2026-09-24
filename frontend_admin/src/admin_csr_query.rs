@@ -24,6 +24,16 @@ pub(crate) struct AdminCsrQuery {
     #[getters(copy)]
     login_attempt_id: Option<server_admin_contract::admin_login_attempt_id::AdminLoginAttemptId>,
     #[getters(copy)]
+    permission_action_id:
+        Option<server_admin_contract::admin_permission_action_id::AdminPermissionActionId>,
+    #[getters(copy)]
+    permission_resource_action_id: Option<
+        server_admin_contract::admin_permission_resource_action_id::AdminPermissionResourceActionId,
+    >,
+    #[getters(copy)]
+    permission_resource_id:
+        Option<server_admin_contract::admin_permission_resource_id::AdminPermissionResourceId>,
+    #[getters(copy)]
     offset: server_admin_contract::admin_page_offset::AdminPageOffset,
     search: server_admin_contract::admin_table_search::AdminTableSearch,
     sort: server_admin_contract::admin_table_sort_key::AdminTableSortKey,
@@ -78,6 +88,15 @@ impl AdminCsrQuery {
                     pathname.as_str(),
                 ),
             );
+        let permission_action_id = server_admin_contract::admin_permission_action_id::AdminPermissionActionId::from_frontend_path(
+            server_admin_contract::admin_page_path_ref::AdminPagePathRef::from(pathname.as_str()),
+        );
+        let permission_resource_action_id = server_admin_contract::admin_permission_resource_action_id::AdminPermissionResourceActionId::from_frontend_path(
+            server_admin_contract::admin_page_path_ref::AdminPagePathRef::from(pathname.as_str()),
+        );
+        let permission_resource_id = server_admin_contract::admin_permission_resource_id::AdminPermissionResourceId::from_frontend_path(
+            server_admin_contract::admin_page_path_ref::AdminPagePathRef::from(pathname.as_str()),
+        );
         let user_role_id =
             server_admin_contract::admin_user_role_id::AdminUserRoleId::from_frontend_path(
                 server_admin_contract::admin_page_path_ref::AdminPagePathRef::from(
@@ -136,6 +155,21 @@ impl AdminCsrQuery {
             .or_else(|| {
                 login_attempt_id.map(|_login_attempt_id| {
                     server_admin_contract::admin_data_table::AdminDataTable::LoginAttempts
+                })
+            })
+            .or_else(|| {
+                permission_action_id.map(|_permission_action_id| {
+                    server_admin_contract::admin_data_table::AdminDataTable::PermissionActions
+                })
+            })
+            .or_else(|| {
+                permission_resource_action_id.map(|_permission_resource_action_id| {
+                    server_admin_contract::admin_data_table::AdminDataTable::PermissionResourceActions
+                })
+            })
+            .or_else(|| {
+                permission_resource_id.map(|_permission_resource_id| {
+                    server_admin_contract::admin_data_table::AdminDataTable::PermissionResources
                 })
             })
             .or_else(|| {
@@ -200,6 +234,9 @@ impl AdminCsrQuery {
                 })
                 .unwrap_or_default(),
             login_attempt_id,
+            permission_action_id,
+            permission_resource_action_id,
+            permission_resource_id,
             params
                 .get(constants_str::ADMIN_OFFSET_QUERY_KEY)
                 .and_then(|value| value.parse::<u32>().ok())

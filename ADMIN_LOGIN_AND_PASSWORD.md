@@ -7,7 +7,7 @@
 - Login: `admin`
 - Password: `Dev-admin-2026-Ready!`
 
-These credentials belong to the local development database recreated on 2026-09-06.
+These credentials belong to the local development database recreated on 2026-09-24.
 The initial mandatory password change has been completed.
 
 Run the login check against the running local server:

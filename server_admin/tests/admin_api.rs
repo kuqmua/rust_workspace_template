@@ -1640,15 +1640,15 @@ mod test_data_tables {
 
     #[tokio::test]
     #[ignore = "requires PostgreSQL; run through workspace_test_runner database"]
-    async fn test_postgresql_rules_read_returns_table_view() {
+    async fn test_postgresql_rules_read_matches_rules_table_columns() {
         let fixture = crate::admin_html_test_fixture().await;
         let request =
             server_admin_contract::admin_rules_read_request::AdminRulesReadRequest::try_from(
                 &server_admin_contract::admin_table_query::AdminTableQuery::default(),
             )
-            .expect(constants_str::DIAGNOSTIC_B9A13791);
+            .expect(constants_str::DIAGNOSTIC_E880E144);
         let request_body =
-            serde_json::to_string(&request).expect(constants_str::DIAGNOSTIC_D8320F22);
+            serde_json::to_string(&request).expect(constants_str::DIAGNOSTIC_22DF59FF);
         let response = tower::ServiceExt::oneshot(
             crate::router_with_pool(&fixture.pool).0,
             crate::request_with_peer(
@@ -1663,11 +1663,11 @@ mod test_data_tables {
             .0,
         )
         .await
-        .expect(constants_str::DIAGNOSTIC_F6B5BFCB);
+        .expect(constants_str::DIAGNOSTIC_24D316B5);
         let status = response.status();
         let body = axum::body::to_bytes(response.into_body(), constants_usize::VALUE_1_048_576)
             .await
-            .expect(constants_str::DIAGNOSTIC_9FD3CA69);
+            .expect(constants_str::DIAGNOSTIC_FA3A24B9);
         assert_eq!(
             status,
             http::StatusCode::OK,
@@ -1677,17 +1677,47 @@ mod test_data_tables {
         let view = serde_json::from_slice::<
             server_admin_contract::admin_data_table_view::AdminDataTableView,
         >(body.as_ref())
-        .expect(constants_str::DIAGNOSTIC_7098F270);
+        .expect(constants_str::DIAGNOSTIC_1F51D3A8);
         assert_eq!(
             view.table(),
             server_admin_contract::admin_data_table::AdminDataTable::Rules
         );
+        let mut columns = view
+            .columns()
+            .iter()
+            .map(|column| column.name().to_string())
+            .collect::<Vec<_>>();
+        let database_column_rows = sqlx::query_as::<_, (String, String, String, Option<String>)>(
+            constants_str::DB_SCHEMA_COLUMN_QUERY,
+        )
+        .bind(constants_str::PUBLIC)
+        .bind(constants_str::RULES_TABLE)
+        .fetch_all(&fixture.pool.0)
+        .await
+        .expect(constants_str::DIAGNOSTIC_705C74DD);
+        let mut database_columns = database_column_rows
+            .into_iter()
+            .map(|(column_name, _, _, _)| column_name)
+            .collect::<Vec<_>>();
+        assert_eq!(
+            columns.len(),
+            database_columns.len(),
+            "{columns:?} vs {database_columns:?}"
+        );
+        assert!(
+            view.items()
+                .iter()
+                .all(|item| item.values().len() == columns.len())
+        );
+        columns.sort();
+        database_columns.sort();
+        assert_eq!(columns, database_columns);
         fixture
             .lock
             .0
             .rollback()
             .await
-            .expect(constants_str::DIAGNOSTIC_17E0C1D3);
+            .expect(constants_str::DIAGNOSTIC_454673C2);
     }
 
     #[tokio::test]

@@ -8,8 +8,8 @@
     proc_macro_newtype_from_inner::FromInner,
     utoipa::ToSchema,
 )]
-#[serde(from = "[crate::admin_read_rule_column::AdminReadRuleColumn; 15]")]
-pub struct AdminReadRuleSelection([crate::admin_read_rule_column::AdminReadRuleColumn; 15]);
+#[serde(from = "[crate::admin_read_rule_column::AdminReadRuleColumn; 13]")]
+pub struct AdminReadRuleSelection([crate::admin_read_rule_column::AdminReadRuleColumn; 13]);
 
 impl Default for AdminReadRuleSelection {
     fn default() -> Self {
@@ -28,8 +28,6 @@ impl Default for AdminReadRuleSelection {
             crate::admin_read_rule_column::AdminReadRuleColumn::FeatureId(empty),
             crate::admin_read_rule_column::AdminReadRuleColumn::ValueItemId(empty),
             crate::admin_read_rule_column::AdminReadRuleColumn::CreatedAt(empty),
-            crate::admin_read_rule_column::AdminReadRuleColumn::UpdatedAt(empty),
-            crate::admin_read_rule_column::AdminReadRuleColumn::Name(empty),
         ])
     }
 }

@@ -292,7 +292,9 @@ fn test_alert_dialog_wires_singlestage_trigger_and_dialog_forms() {
 fn test_table_actions_render_read_and_delete_in_one_row() {
     let html = render_owned_view(leptos::view! {
         <crate::admin_table_actions::AdminTableActions
-            read_path=Some(String::from("/admin/access_sessions/example"))
+            read_action=server_admin_contract::admin_route_path::AdminRoutePath::try_from(String::from("/admin/access_sessions/example")).ok().map(|read_path| leptos::prelude::IntoAny::into_any(leptos::view! {
+                <crate::admin_read_action::AdminReadAction read_path=read_path><span>"Session details"</span></crate::admin_read_action::AdminReadAction>
+            }))
             command_for=String::from("session-action-dialog")
         >
             <span>{constants_str::ADMIN_BUTTON_CANCEL}</span>
@@ -306,4 +308,5 @@ fn test_table_actions_render_read_and_delete_in_one_row() {
             < html.find(constants_str::PG_CRUD_DELETE_RULE_ACTION)
     );
     assert_eq!(html.matches(constants_str::VALUE_24B9818D).count(), 2);
+    assert!(html.contains(constants_str::ADMIN_BUTTON_CLOSE));
 }

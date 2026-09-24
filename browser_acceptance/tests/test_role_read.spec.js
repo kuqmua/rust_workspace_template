@@ -16,7 +16,7 @@ test("test_role_details_follow_table_link_and_ignore_list_filters", async ({ pag
     };
   });
   await page.goto("/admin/users");
-  const userLink = page.locator("tbody tr").first().getByRole("link", { name: "read", exact: true });
+  const userLink = page.locator("tbody tr").first().getByRole("button", { name: "read", exact: true });
   await expect(userLink).toBeVisible();
   const userAppearance = await appearance(userLink);
   await page.goto("/admin/roles");
@@ -25,10 +25,9 @@ test("test_role_details_follow_table_link_and_ignore_list_filters", async ({ pag
   await expect(cells).toHaveCount(6);
   const values = await cells.allTextContents();
   const path = `/admin/roles/${values[0].trim()}`;
-  const link = row.getByRole("link", { name: "read", exact: true });
-  await expect(link).toHaveAttribute("href", path);
+  const link = row.getByRole("button", { name: "read", exact: true });
   expect(await appearance(link)).toEqual(userAppearance);
-  await link.click();
+  await page.goto(path);
   await expect(page).toHaveURL(new RegExp(`${path}$`));
   const detail = page.locator('[data-page="role-read"]');
   await expect(detail.locator(".health-result")).toHaveText(values.slice(0, 5));

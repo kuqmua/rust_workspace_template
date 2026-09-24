@@ -41,13 +41,7 @@ pub(crate) async fn fetch_rules_read(
         Some(field) if field.as_ref() == constants_str::SQL_NAMES_ID => {
             frontend_contract::input_kind::InputKind::Number
         }
-        Some(field) if field.as_ref() == constants_str::NAME => {
-            frontend_contract::input_kind::InputKind::Text
-        }
-        Some(field)
-            if field.as_ref() == constants_str::CREATED_AT
-                || field.as_ref() == constants_str::UPDATED_AT =>
-        {
+        Some(field) if field.as_ref() == constants_str::CREATED_AT => {
             frontend_contract::input_kind::InputKind::DateTime
         }
         Some(_) => frontend_contract::input_kind::InputKind::Number,
@@ -62,7 +56,6 @@ pub(crate) async fn fetch_rules_read(
     let base_request =
         server_admin_contract::admin_rules_read_request::AdminRulesReadRequest::try_from(&query)?;
     let request = server_admin_contract::admin_rules_read_request::AdminRulesReadRequest::new(
-        base_request.get_search().cloned(),
         base_request.get_pagination().clone(),
         base_request.get_select().clone(),
         base_request.get_order_by().clone(),

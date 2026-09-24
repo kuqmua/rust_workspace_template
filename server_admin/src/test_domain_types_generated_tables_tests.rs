@@ -1193,12 +1193,12 @@ fn test_rules_read_client_request_accepts_supported_filters_and_logical_operator
                                     }
                                 ]
                             },
-                            (constants_str::NAME): {
+                            (constants_str::PERMISSION_RESOURCE_ACTION_ID): {
                                 (constants_str::PG_CRUD_OPERATOR_FIELD): field_operator,
                                 (constants_str::PG_CRUD_VALUES_FIELD): [{
                                     (stringify!(Eq)): {
                                         (constants_str::PG_CRUD_OPERATOR_FIELD): constants_str::SERVER_ADMIN_FILTER_OPERATOR_AND,
-                                        (constants_str::PG_CRUD_VALUES_FIELD): constants_str::ADMIN_ALT
+                                        (constants_str::PG_CRUD_VALUES_FIELD): 1i64
                                     }
                                 }]
                             }
