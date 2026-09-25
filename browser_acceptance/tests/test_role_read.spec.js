@@ -52,6 +52,13 @@ test("test_role_details_follow_table_link_and_ignore_list_filters", async ({ pag
   await page.goto("/admin/roles/9223372036854775807");
   await expect(detail).toContainText("resource not found");
   await expect(detail.locator(".health-result")).toHaveCount(0);
+  await page.goto("/admin/roles/manage");
+  const createdRole = page.locator("article.crud-record").filter({
+    has: page.locator('input[name="name"][value="role_detail_fixture"]')
+  });
+  await createdRole.getByLabel("i_understand_this_cannot_be_undone").check();
+  await createdRole.getByRole("button", { name: "delete_role" }).click();
+  await expect(page).toHaveURL(/\/admin\/roles#saved$/);
 });
 
 test("test_role_details_require_authentication", async ({ page }) => {

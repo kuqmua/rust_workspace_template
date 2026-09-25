@@ -21,18 +21,24 @@ async fn test_create_user_payload_example_matches_create_request_contract() {
         assert!(body.is_ok());
         if let Ok(bytes) = body {
             let payload = serde_json::from_slice::<
-                server_admin_contract::admin_create_user_request::AdminCreateUserRequest,
+                server_admin_contract::admin_create_users_request::AdminCreateUsersRequest,
             >(bytes.as_ref());
             assert!(payload.is_ok());
-            if let Ok(request) = payload {
-                let (display_name, login, password, role_ids) = request.into_parts();
-                assert_eq!(
-                    display_name.as_ref(),
-                    constants_str::ADMIN_FIXTURE_ALPHA_DISPLAY_NAME
-                );
-                assert_eq!(login.as_ref(), constants_str::ADMIN_FIXTURE_ALPHA_LOGIN);
-                assert_eq!(password.as_ref(), constants_str::TEST_STRONG_PASSWORD);
-                assert!(role_ids.is_none());
+            if let Ok(requests) = payload {
+                let requests = AsRef::<
+                    [server_admin_contract::admin_create_user_request::AdminCreateUserRequest],
+                >::as_ref(&requests);
+                assert_eq!(requests.len(), 1usize);
+                if let Some(request) = requests.first().cloned() {
+                    let (display_name, login, password, role_ids) = request.into_parts();
+                    assert_eq!(
+                        display_name.as_ref(),
+                        constants_str::ADMIN_FIXTURE_ALPHA_DISPLAY_NAME
+                    );
+                    assert_eq!(login.as_ref(), constants_str::ADMIN_FIXTURE_ALPHA_LOGIN);
+                    assert_eq!(password.as_ref(), constants_str::TEST_STRONG_PASSWORD);
+                    assert!(role_ids.is_none());
+                }
             }
         }
     }

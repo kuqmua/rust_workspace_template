@@ -13,6 +13,7 @@
 #[proc_macro_generate_pg_table_generate_pg_table_config::generate_pg_table_config{{
     "api_mode": "ReadOnly",
     "db_table_name": "audit_log",
+    "db_column_type_overrides": [{"column": "details", "data_type": "jsonb"}],
     "create_exclude_fields": ["created_at"],
     "read_exclude_fields": ["details"],
     "rule_prefix": "audit_log",

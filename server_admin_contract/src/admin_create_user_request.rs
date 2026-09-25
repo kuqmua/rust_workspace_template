@@ -3,6 +3,7 @@
     Clone,
     Debug,
     proc_macro_frontend_contract_derive_contract_struct_api::ContractStructApi,
+    proc_macro_getters::Getters,
     serde::Serialize,
     serde::Deserialize,
     utoipa::ToSchema,

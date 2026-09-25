@@ -42,8 +42,8 @@ test("direct API access is denied and refresh restores an access session", async
 test("read-only role rows and runtime branding persist", async ({ page }) => {
   await signInAdministrator(page);
   await page.goto("/admin/roles");
-  const created = await page.request.post("/roles", {
-    data: { name: "browser_role" },
+  const created = await page.request.post("/roles/create", {
+    data: [{ name: "browser_role" }],
     headers: await adminHeaders(page.context())
   });
   expect(created.status()).toBe(201);
@@ -52,7 +52,8 @@ test("read-only role rows and runtime branding persist", async ({ page }) => {
     hasText: "browser_role"
   });
   await expect(roleRow).toBeVisible();
-  await expect(roleRow.locator("button, input, select")).toHaveCount(0);
+  await expect(roleRow.locator("input, select, textarea")).toHaveCount(0);
+  await expect(roleRow.locator('td[data-label="actions"] button[aria-label="read"]')).toHaveCount(1);
 
   await page.goto("/admin/settings");
   await page.getByLabel("site_name").fill("Browser Acceptance Admin");
@@ -85,6 +86,13 @@ test("read-only role rows and runtime branding persist", async ({ page }) => {
   await mutation;
   await expect(page.getByLabel("site_name")).toHaveValue("Admin");
   await expect(page.getByLabel("default_route")).toHaveValue("/admin/users");
+  await page.goto("/admin/roles/manage");
+  const createdRole = page.locator("article.crud-record").filter({
+    has: page.locator('input[name="name"][value="browser_role"]')
+  });
+  await createdRole.getByLabel("i_understand_this_cannot_be_undone").check();
+  await createdRole.getByRole("button", { name: "delete_role" }).click();
+  await expect(page).toHaveURL(/\/admin\/roles#saved$/);
 });
 
 test("one-session and all-session revocation are enforced", async ({

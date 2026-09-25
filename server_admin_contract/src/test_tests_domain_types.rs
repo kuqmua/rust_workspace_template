@@ -494,12 +494,28 @@ fn test_administrator_crud_frontend_paths_are_dedicated_pages() {
         constants_str::VALUE_EE7B8FDF
     );
     assert_eq!(
+        crate::admin_frontend_path::AdminFrontendPath::UsersUpdate.get(),
+        format!(
+            "{}/{}",
+            crate::admin_frontend_path::AdminFrontendPath::Users.get(),
+            constants_str::PG_CRUD_UPDATE_RULE_ACTION
+        )
+    );
+    assert_eq!(
         crate::admin_frontend_path::AdminFrontendPath::RolesCreate.get(),
         constants_str::VALUE_948D5A6C
     );
     assert_eq!(
         crate::admin_frontend_path::AdminFrontendPath::RolesManage.get(),
         constants_str::VALUE_49F831CD
+    );
+    assert_eq!(
+        crate::admin_frontend_path::AdminFrontendPath::RolesUpdate.get(),
+        format!(
+            "{}/{}",
+            crate::admin_frontend_path::AdminFrontendPath::Roles.get(),
+            constants_str::PG_CRUD_UPDATE_RULE_ACTION
+        )
     );
 }
 #[test]
@@ -559,13 +575,13 @@ fn test_data_tables_round_trip_and_require_read_rules() {
         crate::admin_data_table::AdminDataTable::PG_ORDER,
         [
             crate::admin_data_table::AdminDataTable::Users,
+            crate::admin_data_table::AdminDataTable::UserRoles,
             crate::admin_data_table::AdminDataTable::Roles,
+            crate::admin_data_table::AdminDataTable::RoleRules,
             crate::admin_data_table::AdminDataTable::Rules,
             crate::admin_data_table::AdminDataTable::PermissionActions,
             crate::admin_data_table::AdminDataTable::PermissionResourceActions,
             crate::admin_data_table::AdminDataTable::PermissionResources,
-            crate::admin_data_table::AdminDataTable::UserRoles,
-            crate::admin_data_table::AdminDataTable::RoleRules,
             crate::admin_data_table::AdminDataTable::RefreshTokens,
             crate::admin_data_table::AdminDataTable::AccessSessions,
             crate::admin_data_table::AdminDataTable::LoginAttempts,
@@ -695,7 +711,9 @@ fn test_data_tables_round_trip_and_require_read_rules() {
             .map(|table| table.frontend_path().to_string()),
         [
             String::from(constants_str::VALUE_074B6E5E),
+            String::from(constants_str::VALUE_6B410750),
             String::from(constants_str::VALUE_DB2C56E6),
+            String::from(constants_str::VALUE_1199CAE6),
             String::from(constants_str::VALUE_84ECA72B),
             crate::admin_data_table::AdminDataTable::PermissionActions
                 .frontend_path()
@@ -706,8 +724,6 @@ fn test_data_tables_round_trip_and_require_read_rules() {
             crate::admin_data_table::AdminDataTable::PermissionResources
                 .frontend_path()
                 .to_string(),
-            String::from(constants_str::VALUE_6B410750),
-            String::from(constants_str::VALUE_1199CAE6),
             String::from(constants_str::VALUE_00257BE7),
             String::from(constants_str::VALUE_72DD61BC),
             String::from(constants_str::VALUE_1C0E5BAF),
@@ -948,6 +964,59 @@ fn test_create_roles_request_validates_members_and_collection_bound() {
         crate::admin_create_roles_request::AdminCreateRolesRequest::try_from(vec![role; 10_001]),
         Err(crate::admin_collection_error::AdminCollectionError::TooLong)
     ));
+}
+
+#[test]
+fn test_create_users_request_validates_members_and_collection_bound() {
+    let member = serde_json::json!({
+        (stringify!(display_name)): constants_str::ADMIN_FIXTURE_ALPHA_DISPLAY_NAME,
+        (stringify!(login)): constants_str::ADMIN_FIXTURE_ALPHA_LOGIN,
+        (stringify!(password)): constants_str::TEST_STRONG_PASSWORD,
+    });
+    let parsed_batch = serde_json::from_value::<
+        crate::admin_create_users_request::AdminCreateUsersRequest,
+    >(serde_json::json!([&member, &member]));
+    assert!(parsed_batch.is_ok_and(|batch| {
+        AsRef::<[crate::admin_create_user_request::AdminCreateUserRequest]>::as_ref(&batch).len()
+            == 2usize
+    }));
+    assert_eq!(
+        serde_json::from_value::<crate::admin_create_users_request::AdminCreateUsersRequest>(
+            member.clone()
+        )
+        .ok()
+        .map(|_| ()),
+        None
+    );
+    assert_eq!(
+        serde_json::from_value::<crate::admin_create_users_request::AdminCreateUsersRequest>(
+            serde_json::json!([{(stringify!(display_name)): constants_str::EMPTY, (stringify!(login)): constants_str::ADMIN_FIXTURE_ALPHA_LOGIN, (stringify!(password)): constants_str::TEST_STRONG_PASSWORD}])
+        ).ok().map(|_| ()),
+        None
+    );
+    let parsed_user =
+        serde_json::from_value::<crate::admin_create_user_request::AdminCreateUserRequest>(member);
+    assert!(parsed_user.is_ok());
+    if let Ok(user) = parsed_user {
+        assert_eq!(
+            crate::admin_create_users_request::AdminCreateUsersRequest::try_from(vec![
+                user.clone();
+                10_000
+            ])
+            .map(|batch| AsRef::<
+                [crate::admin_create_user_request::AdminCreateUserRequest],
+            >::as_ref(&batch)
+            .len()),
+            Ok(10_000)
+        );
+        assert!(matches!(
+            crate::admin_create_users_request::AdminCreateUsersRequest::try_from(vec![
+                user;
+                10_001
+            ]),
+            Err(crate::admin_collection_error::AdminCollectionError::TooLong)
+        ));
+    }
 }
 
 #[test]

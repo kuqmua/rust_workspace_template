@@ -36,8 +36,10 @@ test.describe("authenticated button labels", () => {
   const paths = [
     ...navigationAdminPaths.filter(path => path !== "/admin/swagger_ui"),
     "/admin/users/create",
+    "/admin/users/update",
     "/admin/users/manage",
     "/admin/roles/create",
+    "/admin/roles/update",
     "/admin/roles/manage"
   ];
 
@@ -50,15 +52,16 @@ test.describe("authenticated button labels", () => {
       await expect(page.getByRole("alert")).toHaveCount(0);
       await expectSnakeCaseButtonLabels(page);
       await page.setViewportSize({ width: 390, height: 844 });
-      await page.getByText("navigation", { exact: true }).click();
+      const navigationToggle = page.getByText("navigation", { exact: true });
+      if (await navigationToggle.isVisible()) await navigationToggle.click();
       await expect(page.locator("header nav")).toBeVisible();
       await expectSnakeCaseButtonLabels(page);
     });
   });
 
   [
-    { path: "/admin/users", labels: ["create_user", "manage_users"] },
-    { path: "/admin/roles", labels: ["create_role", "manage_roles"] }
+    { path: "/admin/users", labels: ["create", "update"] },
+    { path: "/admin/roles", labels: ["create", "update"] }
   ].forEach(({ path, labels }) => {
     test(`test_resource_and_pagination_labels_on_${path.replaceAll("/", "_")}`, async ({ page }) => {
       await page.goto(path);
@@ -85,7 +88,7 @@ test.describe("authenticated button labels", () => {
     await page.getByRole("button", { name: "reset_to_template_defaults", exact: true }).click();
     const dialog = page.getByRole("dialog", { name: "reset_settings" });
     await expect(dialog).toBeVisible();
-    await expect(dialog.getByRole("button")).toHaveText(["cancel", "reset_settings"]);
+    await expect(dialog.getByRole("button")).toHaveText(["reset_settings", "cancel"]);
     await expectSnakeCaseButtonLabels(page);
     await dialog.getByRole("button", { name: "cancel", exact: true }).click();
     await expect(dialog).not.toBeVisible();

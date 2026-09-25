@@ -76,8 +76,8 @@ test.describe("administrator typography", () => {
 
   const paths = [
     ...navigationAdminPaths.filter(path => path !== "/admin/swagger_ui"),
-    "/admin/users/create", "/admin/users/manage",
-    "/admin/roles/create", "/admin/roles/manage"
+    "/admin/users/create", "/admin/users/update", "/admin/users/manage",
+    "/admin/roles/create", "/admin/roles/update", "/admin/roles/manage"
   ];
 
   paths.forEach(path => {
@@ -89,7 +89,8 @@ test.describe("administrator typography", () => {
       await expect(page.getByRole("alert")).toHaveCount(0);
       await expectSharedTypography(page);
       await page.setViewportSize({ width: 390, height: 844 });
-      await page.getByText("navigation", { exact: true }).click();
+      const navigationToggle = page.getByText("navigation", { exact: true });
+      if (await navigationToggle.isVisible()) await navigationToggle.click();
       await expect(page.locator("header nav")).toBeVisible();
       await expectSharedTypography(page);
     });

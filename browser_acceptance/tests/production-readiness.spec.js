@@ -24,43 +24,43 @@ test.skip(
 
 async function createUser(page, login, displayName, password) {
   const response = await page.request.post("/users/create", {
-    data: {
+    data: [{
       display_name: displayName,
       login,
       password
-    },
+    }],
     headers: await adminHeaders(page.context())
   });
   expect(response.status()).toBe(201);
-  return (await response.json()).id;
+  return (await response.json())[0];
 }
 
 async function createRole(page, name) {
-  const response = await page.request.post("/roles", {
-    data: { name },
+  const response = await page.request.post("/roles/create", {
+    data: [{ name }],
     headers: await adminHeaders(page.context())
   });
   expect(response.status()).toBe(201);
-  return (await response.json()).id;
+  return (await response.json())[0];
 }
 
-async function readRules(request) {
-  return request.post("/roles/read", {
-    data: {
-      rules_query: {
-        search: "",
-        sort: "",
-        offset: 0,
-        limit: 100,
-        direction: "ascending"
-      },
-      search: null,
-      pagination: { offset: 0, limit: 1 },
-      select: [{ id: null }],
-      order_by: { column: { id: null }, order: "ascending" },
-      where_many: null
-    }
+async function deleteUser(page, userId) {
+  const response = await page.request.delete("/users/delete", {
+    data: { filter: { user_id: userId } },
+    headers: await adminHeaders(page.context())
   });
+  expect(response.status()).toBe(204);
+}
+
+async function readPermissionRuleIds(page) {
+  const response = page.waitForResponse(value =>
+    new URL(value.url()).pathname === "/rules/read" && value.request().method() === "POST"
+  );
+  await page.goto("/admin/rules?limit=100");
+  const table = await (await response).json();
+  const idIndex = table.columns.findIndex(column => column.name === "id");
+  const actionIndex = table.columns.findIndex(column => column.name === "permission_resource_action_id");
+  return new Map(table.items.map(item => [Number(item.values[actionIndex]), Number(item.values[idIndex])]));
 }
 
 async function changeRequiredPassword(page, currentPassword, newPassword) {
@@ -283,11 +283,11 @@ test("user CRUD rejects duplicates and is visible through the read-only UI", asy
   );
 
   const duplicate = await page.request.post("/users/create", {
-    data: {
+    data: [{
       display_name: "Duplicate User",
       login: "production_user",
       password: "Production-password3!"
-    },
+    }],
     headers: await adminHeaders(page.context())
   });
   expect([409, 422]).toContain(duplicate.status());
@@ -306,7 +306,8 @@ test("user CRUD rejects duplicates and is visible through the read-only UI", asy
   await page.goto("/admin/users?limit=100");
   const row = page.locator("tbody tr").filter({ hasText: "production_user" });
   await expect(row).toContainText("Renamed Production User");
-  await expect(row.locator("button, input, select, textarea")).toHaveCount(0);
+  await expect(row.locator("input, select, textarea")).toHaveCount(0);
+  await expect(row.locator('td[data-label="actions"] button[aria-label="read"]')).toHaveCount(1);
 
   const deleted = await page.request.delete("/users/delete", {
     data: { filter: { user_id: userId } },
@@ -317,6 +318,44 @@ test("user CRUD rejects duplicates and is visible through the read-only UI", asy
   await expect(
     page.locator("tbody tr").filter({ hasText: "production_user" })
   ).toHaveCount(0);
+});
+
+test("user creation accepts a batch and rolls back a conflicting batch", async ({ page }) => {
+  await signInAdministrator(page);
+  for (const data of [[], { display_name: "Single Object", login: "single_object_user", password: "Batch-password1!" }]) {
+    const rejected = await page.request.post("/users/create", {
+      data,
+      headers: await adminHeaders(page.context())
+    });
+    expect(rejected.status()).toBe(422);
+  }
+  const created = await page.request.post("/users/create", {
+    data: [
+      { display_name: "Batch Alpha User", login: "batch_alpha_user", password: "Batch-password1!" },
+      { display_name: "Batch Beta User", login: "batch_beta_user", password: "Batch-password2!" }
+    ],
+    headers: await adminHeaders(page.context())
+  });
+  expect(created.status()).toBe(201);
+  const identifiers = await created.json();
+  expect(identifiers).toHaveLength(2);
+  expect(new Set(identifiers).size).toBe(2);
+  const users = (await usersReadPage(await readUsers(page.request, "search=batch_"))).items;
+  expect(users.find(user => user.id === identifiers[0])?.login).toBe("batch_alpha_user");
+  expect(users.find(user => user.id === identifiers[1])?.login).toBe("batch_beta_user");
+
+  const conflicted = await page.request.post("/users/create", {
+    data: [
+      { display_name: "Rolled Back User", login: "batch_rolled_back_user", password: "Batch-password3!" },
+      { display_name: "Duplicate Batch User", login: "batch_alpha_user", password: "Batch-password4!" }
+    ],
+    headers: await adminHeaders(page.context())
+  });
+  expect(conflicted.status()).toBe(409);
+  const absent = await readUsers(page.request, "search=batch_rolled_back_user");
+  expect(absent.status()).toBe(200);
+  expect((await absent.json()).items).toHaveLength(0);
+  for (const userId of identifiers) await deleteUser(page, userId);
 });
 
 test("administrator password reset invalidates the old session and credentials", async ({
@@ -381,6 +420,7 @@ test("administrator password reset invalidates the old session and credentials",
   );
   await expect(resetPage).toHaveURL(/\/admin\/profile$/);
   await resetContext.close();
+  await deleteUser(page, userId);
 });
 
 test("banning a user revokes active sessions and unbanning restores sign-in", async ({
@@ -441,6 +481,7 @@ test("banning a user revokes active sessions and unbanning restores sign-in", as
   await signIn(userPage, "ban_lifecycle_user", "Ban-password1!");
   await expect(userPage).toHaveURL(/\/admin\/profile$/);
   await userContext.close();
+  await deleteUser(page, userId);
 });
 
 test("role lifecycle enforces uniqueness, stale-assignment conflicts, and deletion", async ({
@@ -448,85 +489,62 @@ test("role lifecycle enforces uniqueness, stale-assignment conflicts, and deleti
 }) => {
   await signInAdministrator(page);
   const roleId = await createRole(page, "lifecycle_role");
-  const duplicate = await page.request.post("/roles", {
-    data: { name: "lifecycle_role" },
+  const duplicate = await page.request.post("/roles/create", {
+    data: [{ name: "lifecycle_role" }],
     headers: await adminHeaders(page.context())
   });
   expect([409, 422]).toContain(duplicate.status());
 
-  const renamed = await page.request.patch(`/roles/${roleId}`, {
-    data: { name: "renamed_lifecycle_role" },
+  const renamed = await page.request.patch("/roles/update", {
+    data: { updates: [{ filter: { role_id: roleId }, changes: { name: "renamed_lifecycle_role" } }] },
     headers: await adminHeaders(page.context())
   });
   expect(renamed.status()).toBe(204);
 
-  const rulesResponse = await readRules(page.request);
-  expect(rulesResponse.status()).toBe(200);
-  const rule = (await rulesResponse.json()).rules.find(
-    item => item.name === "users:read"
-  );
-  expect(rule).toBeTruthy();
-  const assigned = await page.request.put(
-    `/roles/${roleId}/rules`,
-    {
-      data: {
-        expected_rule_ids: [],
-        rule_ids: [rule.id]
-      },
-      headers: await adminHeaders(page.context())
-    }
-  );
+  const ruleId = (await readPermissionRuleIds(page)).get(2);
+  expect(ruleId).toBeDefined();
+  const assigned = await page.request.patch("/roles/update", {
+    data: { updates: [{ filter: { role_id: roleId }, changes: { rules: { expected_rule_ids: [], rule_ids: [ruleId] } } }] },
+    headers: await adminHeaders(page.context())
+  });
   expect(assigned.status()).toBe(204);
-  const stale = await page.request.put(
-    `/roles/${roleId}/rules`,
-    {
-      data: {
-        expected_rule_ids: [],
-        rule_ids: []
-      },
-      headers: await adminHeaders(page.context())
-    }
-  );
+  const stale = await page.request.patch("/roles/update", {
+    data: { updates: [{ filter: { role_id: roleId }, changes: { rules: { expected_rule_ids: [], rule_ids: [] } } }] },
+    headers: await adminHeaders(page.context())
+  });
   expect(stale.status()).toBe(409);
 
-  const rolesBeforeDeletion = await page.request.get(
-    "/roles?limit=100"
-  );
-  expect(rolesBeforeDeletion.status()).toBe(200);
-  const systemRole = (await rolesBeforeDeletion.json()).items.find(
-    role => role.is_system
-  );
-  expect(systemRole).toBeTruthy();
-  const protectedSystemRole = await page.request.delete(
-    `/roles/${systemRole.id}`,
-    {
-      headers: await adminHeaders(page.context())
-    }
-  );
+  await page.goto("/admin/roles");
+  const systemRole = page.locator("tbody tr").first();
+  await expect(systemRole.locator('td[data-label="is_system"]')).toHaveText("true");
+  const systemRoleId = Number(await systemRole.locator('td[data-label="id"]').textContent());
+  const protectedSystemRole = await page.request.delete("/roles/delete", {
+    data: { filter: { role_id: systemRoleId } },
+    headers: await adminHeaders(page.context())
+  });
   expect([409, 422]).toContain(protectedSystemRole.status());
 
-  const deleted = await page.request.delete(`/roles/${roleId}`, {
+  const deleted = await page.request.delete("/roles/delete", {
+    data: { filter: { role_id: roleId } },
     headers: await adminHeaders(page.context())
   });
   expect(deleted.status()).toBe(204);
-  const roles = await page.request.get(
-    "/roles?search=renamed_lifecycle_role&limit=100"
-  );
-  expect(roles.status()).toBe(200);
-  expect((await roles.json()).items).toHaveLength(0);
+  await page.goto("/admin/roles/manage");
+  await expect(page.locator('input[name="name"][value="renamed_lifecycle_role"]')).toHaveCount(0);
 });
 
 test("pagination has stable non-overlapping pages and rejects invalid bounds", async ({
   page
 }) => {
   await signInAdministrator(page);
+  const userIds = [];
   for (const index of [1, 2, 3]) {
-    await createUser(
+    userIds.push(await createUser(
       page,
       `page_user_${index}`,
       `Page User ${index}`,
       `Pagination-password${index}!`
-    );
+    ));
   }
 
   const firstResponse = await readUsers(page.request, "limit=2&offset=0");
@@ -548,19 +566,20 @@ test("pagination has stable non-overlapping pages and rejects invalid bounds", a
     const rejected = await readUsers(page.request, query);
     expect(rejected.status()).toBe(400);
   }
+  for (const userId of userIds) await deleteUser(page, userId);
 });
 
 test("search and sorting are deterministic and survive UI reloads", async ({
   page
 }) => {
   await signInAdministrator(page);
-  await createUser(
+  const alphaUserId = await createUser(
     page,
     "query_alpha_user",
     "Query Alpha User",
     "Query-password1!"
   );
-  await createUser(
+  const zetaUserId = await createUser(
     page,
     "query_zeta_user",
     "Query Zeta User",
@@ -576,23 +595,41 @@ test("search and sorting are deterministic and survive UI reloads", async ({
   expect(ascending).toEqual(["query_alpha_user", "query_zeta_user"]);
   expect(descending).toEqual(["query_zeta_user", "query_alpha_user"]);
 
-  await createRole(page, "query_sort_role");
+  const roleId = await createRole(page, "query_sort_role");
   for (const resource of ["roles", "rules"]) {
-    const ascendingPage = await page.request.get(
-      `/${resource}?sort=name&direction=ascending&limit=100`
+    const path = `/${resource}/read`;
+    const example = page.waitForRequest(value =>
+      new URL(value.url()).pathname === path && value.method() === "POST"
     );
-    const descendingPage = await page.request.get(
-      `/${resource}?sort=name&direction=descending&limit=100`
-    );
+    await page.goto(`/admin/${resource}?limit=100`);
+    const payload = {
+      ...(await example).postDataJSON(),
+      pagination: { limit: 100, offset: 0 }
+    };
+    const sort = resource === "roles" ? "name" : "id";
+    const ascendingPage = await page.request.post(path, {
+      data: { ...payload, order_by: { column: { [sort]: null }, order: "ascending" } }
+    });
+    const descendingPage = await page.request.post(path, {
+      data: { ...payload, order_by: { column: { [sort]: null }, order: "descending" } }
+    });
     expect(ascendingPage.status()).toBe(200);
     expect(descendingPage.status()).toBe(200);
     const ascendingBody = await ascendingPage.json();
     const descendingBody = await descendingPage.json();
     expect(ascendingBody.items.length).toBeGreaterThan(1);
     expect(ascendingBody.items).toHaveLength(ascendingBody.total);
-    expect(descendingBody.items.map(item => item.id)).toEqual(
-      ascendingBody.items.map(item => item.id).reverse()
-    );
+    if (resource === "roles") {
+      expect(descendingBody.items.map(item => item.id)).toEqual(
+        ascendingBody.items.map(item => item.id).reverse()
+      );
+    } else {
+      const idIndex = ascendingBody.columns.findIndex(column => column.name === "id");
+      expect(idIndex).toBeGreaterThanOrEqual(0);
+      expect(descendingBody.items.map(item => item.values[idIndex])).toEqual(
+        ascendingBody.items.map(item => item.values[idIndex]).reverse()
+      );
+    }
   }
 
   const unknownSort = await readUsers(page.request, "sort=unknown_column");
@@ -607,6 +644,13 @@ test("search and sorting are deterministic and survive UI reloads", async ({
   await page.reload();
   await expect(page).toHaveURL(new RegExp(`/admin/users\\?${query}$`));
   await expect(page.locator("tbody tr")).toContainText("query_alpha_user");
+  const deletedRole = await page.request.delete("/roles/delete", {
+    data: { filter: { role_id: roleId } },
+    headers: await adminHeaders(page.context())
+  });
+  expect(deletedRole.status()).toBe(204);
+  await deleteUser(page, alphaUserId);
+  await deleteUser(page, zetaUserId);
 });
 
 test("data-table filters constrain rows and reject malformed filter contracts", async ({
@@ -614,29 +658,21 @@ test("data-table filters constrain rows and reject malformed filter contracts", 
 }) => {
   await signInAdministrator(page);
   const roleId = await createRole(page, "filter_contract_role");
-  const rulesResponse = await readRules(page.request);
-  expect(rulesResponse.status()).toBe(200);
-  const rule = (await rulesResponse.json()).rules.find(
-    item => item.name === "users:read"
-  );
-  expect(rule).toBeTruthy();
-  const assigned = await page.request.put(
-    `/roles/${roleId}/rules`,
-    {
-      data: {
-        expected_rule_ids: [],
-        rule_ids: [rule.id]
-      },
-      headers: await adminHeaders(page.context())
-    }
-  );
+  const ruleId = (await readPermissionRuleIds(page)).get(2);
+  expect(ruleId).toBeDefined();
+  const assigned = await page.request.patch("/roles/update", {
+    data: { updates: [{ filter: { role_id: roleId }, changes: { rules: { expected_rule_ids: [], rule_ids: [ruleId] } } }] },
+    headers: await adminHeaders(page.context())
+  });
   expect(assigned.status()).toBe(204);
 
   const roleRulesPath = "/role_rules/read";
-  const example = await page.request.get(`${roleRulesPath}_payload_example`);
-  expect(example.status()).toBe(200);
+  const example = page.waitForRequest(value =>
+    new URL(value.url()).pathname === roleRulesPath && value.method() === "POST"
+  );
+  await page.goto("/admin/role_rules");
   const payload = {
-    ...await example.json(),
+    ...(await example).postDataJSON(),
     pagination: { limit: 100, offset: 0 },
     where_many: {
       role_id: {
@@ -652,7 +688,7 @@ test("data-table filters constrain rows and reject malformed filter contracts", 
   expect(table.total).toBe(1);
   expect(table.items).toHaveLength(1);
   expect(table.items[0].values).toContain(String(roleId));
-  expect(table.items[0].values).toContain(String(rule.id));
+  expect(table.items[0].values).toContain(String(ruleId));
 
   for (const whereMany of [
     { role_id: { operator: "And", values: [{ Eq: { operator: "And" } }] } },
@@ -661,8 +697,13 @@ test("data-table filters constrain rows and reject malformed filter contracts", 
     const rejected = await page.request.post(roleRulesPath, {
       data: { ...payload, where_many: whereMany }
     });
-    expect(rejected.status()).toBe(422);
+    expect(rejected.status()).toBe(400);
   }
+  const deleted = await page.request.delete("/roles/delete", {
+    data: { filter: { role_id: roleId } },
+    headers: await adminHeaders(page.context())
+  });
+  expect(deleted.status()).toBe(204);
 });
 
 test("audit records mutations without exposing submitted passwords", async ({
@@ -694,6 +735,7 @@ test("audit records mutations without exposing submitted passwords", async ({
     item.values.includes("true")
   )).toBe(true);
   expect(JSON.stringify(auditPage)).not.toContain(password);
+  await deleteUser(page, userId);
 });
 
 test("a read-only administrator sees only authorized navigation and mutations fail", async ({
@@ -702,30 +744,13 @@ test("a read-only administrator sees only authorized navigation and mutations fa
 }) => {
   await signInAdministrator(page);
   const roleId = await createRole(page, "production_reader");
-  const rulesResponse = await readRules(page.request);
-  expect(rulesResponse.status()).toBe(200);
-  const rules = (await rulesResponse.json()).rules;
-  const usersRead = rules.find(rule => rule.name === "users:read");
-  const tablesRead = rules.find(rule => rule.name === "tables:read");
-  const auditRead = rules.find(rule => rule.name === "audit_log:read");
-  const settingsRead = rules.find(
-    rule => rule.name === "system_settings:read"
-  );
-  expect(usersRead).toBeTruthy();
-  expect(tablesRead).toBeTruthy();
-  expect(auditRead).toBeTruthy();
-  expect(settingsRead).toBeTruthy();
-
-  const roleRules = await page.request.put(
-    `/roles/${roleId}/rules`,
-    {
-      data: {
-        expected_rule_ids: [],
-        rule_ids: [auditRead.id, settingsRead.id, tablesRead.id, usersRead.id]
-      },
-      headers: await adminHeaders(page.context())
-    }
-  );
+  const rules = await readPermissionRuleIds(page);
+  const ruleIds = [22, 19, 30, 2].map(actionId => rules.get(actionId));
+  expect(ruleIds.every(ruleId => ruleId !== undefined)).toBe(true);
+  const roleRules = await page.request.patch("/roles/update", {
+    data: { updates: [{ filter: { role_id: roleId }, changes: { rules: { expected_rule_ids: [], rule_ids: ruleIds } } }] },
+    headers: await adminHeaders(page.context())
+  });
   expect(roleRules.status()).toBe(204);
 
   const userId = await createUser(
@@ -809,15 +834,25 @@ test("a read-only administrator sees only authorized navigation and mutations fa
   expect(forbiddenPage).not.toBeNull();
   expect(forbiddenPage.status()).toBe(403);
   const forbiddenApi = await reader.request.post("/users/create", {
-    data: {
+    data: [{
       display_name: "Forbidden User",
       login: "forbidden_user",
       password: "Forbidden-password6!"
-    },
+    }],
     headers: await adminHeaders(context)
   });
   expect(forbiddenApi.status()).toBe(403);
   await context.close();
+  const deletedUser = await page.request.delete("/users/delete", {
+    data: { filter: { user_id: userId } },
+    headers: await adminHeaders(page.context())
+  });
+  expect(deletedUser.status()).toBe(204);
+  const deletedRole = await page.request.delete("/roles/delete", {
+    data: { filter: { role_id: roleId } },
+    headers: await adminHeaders(page.context())
+  });
+  expect(deletedRole.status()).toBe(204);
 });
 
 test("a failed settings mutation preserves input and reports the server error", async ({
@@ -873,7 +908,8 @@ test("interactive controls remain named and keyboard reachable on mobile", async
     await page.goto(path);
     await expect(page.locator("main")).toBeVisible();
     await expect(page.locator('[data-renderer="csr"]')).toBeVisible();
-    await page.getByText("navigation", { exact: true }).click();
+    const navigationToggle = page.getByText("navigation", { exact: true });
+    if (await navigationToggle.isVisible()) await navigationToggle.click();
     await expect(page.getByRole("navigation", { name: "admin_sections" })).toBeVisible();
     const controls = page.locator(
       ":is(a, button, input:not([type='hidden']), select, textarea):visible"

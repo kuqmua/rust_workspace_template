@@ -16,12 +16,26 @@ pub(crate) async fn create_user(
         axum_admin_form.get_password().clone(),
         None,
     );
+    let requests =
+        server_admin_contract::admin_create_users_request::AdminCreateUsersRequest::try_from(vec![
+            request,
+        ])
+        .map_err(
+            |server_admin_contract::admin_collection_error::AdminCollectionError::TooLong| {
+                crate::admin_error::AdminError::Validation
+            },
+        );
     crate::action_result_impl::action_result_impl(
-        crate::user_mutations_create::user_mutations_create(
-            auth,
-            crate::axum_admin_json::AxumAdminJson::from(request),
-        )
-        .await,
+        match requests {
+            Ok(requests) => crate::user_mutations_create::user_mutations_create(auth, requests)
+                .await
+                .map(|identifiers| {
+                    crate::axum_admin_response::AxumAdminResponse::from(
+                        axum::response::IntoResponse::into_response(axum::Json(identifiers)),
+                    )
+                }),
+            Err(error) => Err(error),
+        },
         server_admin_contract::admin_frontend_path::AdminFrontendPath::Users,
     )
 }

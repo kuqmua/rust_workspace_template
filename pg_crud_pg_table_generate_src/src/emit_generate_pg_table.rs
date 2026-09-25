@@ -298,6 +298,8 @@ pub fn emit_generate_pg_table(
         #[serde(default)]
         db_foreign_keys: Vec<GeneratePgTableDbForeignKey>,
         #[serde(default)]
+        db_column_type_overrides: Vec<GeneratePgTableDbColumnTypeOverride>,
+        #[serde(default)]
         db_table_name: Option<String>,
         #[serde(default)]
         route_resource_name: Option<GeneratePgTableDbColumn>,
@@ -342,6 +344,22 @@ pub fn emit_generate_pg_table(
     struct GeneratePgTableReadPageContextConfig {
         rust_type: GeneratePgTableReadRustPath,
         name: String,
+    }
+    #[derive(Debug, serde::Deserialize, proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
+    struct GeneratePgTableDbColumnTypeOverride {
+        column: GeneratePgTableDbColumn,
+        data_type: GeneratePgTableDbDataType,
+    }
+    #[derive(
+        Clone,
+        Copy,
+        Debug,
+        serde::Deserialize,
+        proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+    )]
+    #[serde(rename_all = "lowercase")]
+    enum GeneratePgTableDbDataType {
+        Jsonb,
     }
     #[derive(
         proc_macro_optimal_memory_layout::OptimalMemoryLayout,
@@ -9987,13 +10005,25 @@ enum WrapIntoOptional {
     let db_column_specs_token_stream = fields.iter().enumerate().map(|(index, field)| {
         let field_name = generate_quotes::dq_token_stream::dq_token_stream(field.get_identifier());
         let field_type = field.get_field_type();
+        let column_name = field.get_identifier().to_string();
+        let data_type = generate_pg_table_input_model
+            .config
+            .db_column_type_overrides
+            .iter()
+            .find(|column_type_override| column_type_override.column.as_ref() == column_name)
+            .map_or_else(
+                || quote::quote! { <#field_type as pg_crud_common::pg_column_schema::PgColumnSchema>::data_type() },
+                |column_type_override| match column_type_override.data_type {
+                    GeneratePgTableDbDataType::Jsonb => quote::quote! { pg_crud_common::db_static_schema_text::DbStaticSchemaText::from(stringify!(jsonb)) },
+                },
+            );
         let has_explicit_default = db_default_field_indexes
             .iter()
             .any(|field_index| field_index.get() == index);
         quote::quote! {
             pg_crud_common::db_column_spec::DbColumnSpec::new(
                 pg_crud_common::db_static_schema_text::DbStaticSchemaText::from(#field_name),
-                <#field_type as pg_crud_common::pg_column_schema::PgColumnSchema>::data_type(),
+                #data_type,
                 pg_crud_common::db_column_nullable::DbColumnNullable::from(<#field_type as pg_crud_common::pg_column_schema::PgColumnSchema>::NULLABLE),
                 pg_crud_common::db_column_has_server_default::DbColumnHasServerDefault::from(<#field_type as pg_crud_common::pg_column_schema::PgColumnSchema>::HAS_SERVER_DEFAULT || #has_explicit_default),
             )

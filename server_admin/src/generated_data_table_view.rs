@@ -14,13 +14,37 @@ where
 {
     let admin_generated_table =
         crate::admin_generated_table::AdminGeneratedTable::for_data_table(admin_data_table);
+    let derived_columns = columns.is_none();
     let columns = match columns {
         Some(columns) => columns,
         None => {
             crate::admin_data_columns::admin_data_columns(admin_data_table, admin_generated_table)?
         }
     };
-    let items = Vec::from(list_items)
+    let list_items = Vec::from(list_items);
+    let columns = if derived_columns {
+        match list_items.first() {
+            Some(item) => {
+                let serialized = serde_json::to_value(item)
+                    .map_err(server_runtime_http::serde_json_error::SerdeJsonError::from)?;
+                let object = serialized.as_object().ok_or(
+                    crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue,
+                )?;
+                server_admin_contract::admin_data_columns::AdminDataColumns::try_from(
+                    columns
+                        .as_slice()
+                        .iter()
+                        .filter(|column| object.contains_key(column.name().as_ref()))
+                        .cloned()
+                        .collect::<Vec<_>>(),
+                )?
+            }
+            None => columns,
+        }
+    } else {
+        columns
+    };
+    let items = list_items
         .into_iter()
         .map(|item| {
             let serialized = serde_json::to_value(item)

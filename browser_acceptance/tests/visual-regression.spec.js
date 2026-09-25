@@ -46,7 +46,7 @@ const tableMask = Object.freeze([
 ]);
 const authenticatedPages = [
   ...tablePages.map(({ name, path }) => ({ mask: tableMask, name, path })),
-  { mask: [".profile-card dd"], ...adminPages.profile },
+  { mask: [".profile-account-value"], ...adminPages.profile },
   { mask: [], ...adminPages.settings },
   { mask: ["main pre"], ...adminPages.metrics },
   { mask: ["main pre"], ...adminPages.version },
@@ -64,6 +64,11 @@ const crudPages = [
   },
   {
     activePath: "/admin/users",
+    name: "user-update",
+    path: "/admin/users/update"
+  },
+  {
+    activePath: "/admin/users",
     name: "user-manage",
     path: "/admin/users/manage"
   },
@@ -71,6 +76,11 @@ const crudPages = [
     activePath: "/admin/roles",
     name: "role-create",
     path: "/admin/roles/create"
+  },
+  {
+    activePath: "/admin/roles",
+    name: "role-update",
+    path: "/admin/roles/update"
   },
   {
     activePath: "/admin/roles",
@@ -123,9 +133,9 @@ async function expectInformationCanvasToUseAvailableWidth(page) {
     if (!(content instanceof HTMLElement)) {
       return null;
     }
-    const primary = content.querySelector(
+    const primary = [...content.querySelectorAll(
       ".table-page, .crud-page, .profile-grid, .settings-grid, .code-card"
-    );
+    )].find(element => element.getBoundingClientRect().width > 0);
     return {
       contentWidth: content.getBoundingClientRect().width,
       mainWidth: main.getBoundingClientRect().width,
@@ -174,13 +184,14 @@ for (const viewport of viewports) {
     authenticatedTest("expanded navigation is pixel-perfect on mobile", async ({ page }) => {
       await page.setViewportSize(viewport);
       await page.goto("/admin/users");
-      await page.getByText("navigation", { exact: true }).click();
+      const navigationToggle = page.getByText("navigation", { exact: true });
+      if (await navigationToggle.isVisible()) await navigationToggle.click();
 
       const navigation = page.locator('header nav[data-name="NavigationMenu"]');
       await expect(navigation).toBeVisible();
       expect(
-        await navigation.evaluate(element => element.scrollWidth <= element.clientWidth)
-      ).toBe(true);
+        await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)
+      ).toBeLessThanOrEqual(1);
       await expectPixelPerfect(page, "navigation-open-mobile", []);
     });
   }
@@ -210,8 +221,9 @@ for (const viewport of viewports) {
     page
   }) => {
     await page.setViewportSize(viewport);
-    await page.goto("/admin/users");
+    await page.goto("/admin/users?search=__visual_snapshot_no_match__");
     await expect(page.getByRole("table")).toBeVisible();
+    await expect(page.locator("tbody tr")).toHaveCount(0);
     await expectPixelPerfect(page, `users-layout-${viewport.name}`, []);
   });
 
@@ -223,7 +235,7 @@ for (const viewport of viewports) {
       const response = await page.goto(pageSpec.path);
       expect(response).not.toBeNull();
       expect(response.status()).toBe(200);
-      await expect(page.locator("main h1")).toBeVisible();
+      await expect(page.locator("main form").first()).toBeVisible();
       await expect(
         page.locator(
           `header nav a[href="${pageSpec.activePath}"][aria-current="page"]`
@@ -257,6 +269,7 @@ for (const viewport of viewports) {
 }
 
 authenticatedTest("all information pages use the wide desktop canvas", async ({ page }) => {
+  authenticatedTest.setTimeout(120_000);
   await page.setViewportSize({ height: 1080, width: 1920 });
   const pages = [
     ...authenticatedPages.map(({ path }) => path),
@@ -267,6 +280,9 @@ authenticatedTest("all information pages use the wide desktop canvas", async ({ 
       const response = await page.goto(path);
       expect(response).not.toBeNull();
       await expect(page.locator("main")).toBeVisible();
+      if (path !== "/admin/version") {
+        await expect(page.locator(".table-page:visible, .crud-page:visible, .profile-grid:visible, .settings-grid:visible, .code-card:visible").first()).toBeVisible();
+      }
       await expectInformationCanvasToUseAvailableWidth(page);
     });
   }

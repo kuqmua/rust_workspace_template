@@ -213,6 +213,10 @@ p {
   overscroll-behavior-inline: contain;
   padding: 0;
   scroll-padding-block: 12px;
+}
+
+.topbar nav,
+.table-scroll {
   scrollbar-color: var(--border-strong) transparent;
   scrollbar-width: thin;
 }
@@ -239,28 +243,35 @@ p {
   border-left: 1px solid var(--border);
 }
 
-.topbar nav::-webkit-scrollbar {
+.topbar nav::-webkit-scrollbar,
+.table-scroll::-webkit-scrollbar {
   height: 4px;
+  width: 4px;
 }
 
-.topbar nav::-webkit-scrollbar-track {
+.topbar nav::-webkit-scrollbar-track,
+.table-scroll::-webkit-scrollbar-track {
   background: transparent;
 }
 
-.topbar nav::-webkit-scrollbar-thumb {
+.topbar nav::-webkit-scrollbar-thumb,
+.table-scroll::-webkit-scrollbar-thumb {
   background: var(--border-strong);
 }
 
-.topbar nav::-webkit-scrollbar-button {
+.topbar nav::-webkit-scrollbar-button,
+.table-scroll::-webkit-scrollbar-button {
   display: none;
 }
 
-.topbar nav::-webkit-scrollbar-thumb:hover {
+.topbar nav::-webkit-scrollbar-thumb:hover,
+.table-scroll::-webkit-scrollbar-thumb:hover {
   background: var(--muted);
 }
 
 @supports selector(::-webkit-scrollbar) {
-  .topbar nav {
+  .topbar nav,
+  .table-scroll {
     scrollbar-width: auto;
     scrollbar-color: auto;
   }
@@ -890,6 +901,7 @@ p {
 }
 
 .table-scroll {
+  min-width: 0;
   min-height: 0;
   flex: 1 1 0;
   overflow: auto;
@@ -1205,6 +1217,8 @@ th:has(.table-column-filter[data-filter-active="true"]) {
 }
 
 .table-scroll table {
+  min-width: max-content;
+  max-width: none !important;
   overflow: visible;
 }
 
@@ -1394,8 +1408,9 @@ th:has(.table-column-filter[data-filter-active="true"]) {
 .table-actions > :is(a, button) {
   width: 36px;
   min-width: 36px;
-  height: 36px;
-  padding: 8px;
+  height: 32px;
+  padding: 6px;
+  border: 0;
 }
 
 .table-actions > :is(a, button) svg {

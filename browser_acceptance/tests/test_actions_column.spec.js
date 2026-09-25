@@ -38,9 +38,9 @@ test("test_data_tables_have_consistent_actions_column", async ({ page }) => {
       });
       expect(valid, path).toBe(true);
       const rows = table.locator("tbody tr");
-      const readButtons = table.getByRole("button", { name: "read", exact: true });
+      const readButtons = table.locator('tbody td[data-label="actions"]').getByRole("button", { name: "read", exact: true });
       if (readPaths.has(path)) {
-        await expect(readButtons).toHaveCount(await rows.count());
+        await expect(readButtons, path).toHaveCount(await rows.count());
       } else {
         await expect(readButtons).toHaveCount(0);
         await expect(table.locator('td[data-label="actions"] button, td[data-label="actions"] input')).toHaveCount(0);

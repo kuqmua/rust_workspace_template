@@ -73,13 +73,13 @@ impl AdminDataTable {
 
     pub const PG_ORDER: [Self; 15] = [
         Self::Users,
+        Self::UserRoles,
         Self::Roles,
+        Self::RoleRules,
         Self::Rules,
         Self::PermissionActions,
         Self::PermissionResourceActions,
         Self::PermissionResources,
-        Self::UserRoles,
-        Self::RoleRules,
         Self::RefreshTokens,
         Self::AccessSessions,
         Self::LoginAttempts,

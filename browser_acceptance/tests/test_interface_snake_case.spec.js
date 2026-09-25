@@ -5,15 +5,15 @@ import { dataTablePages, tablePages } from "./support/pages.js";
 const paths = [
   ...tablePages.map(page => page.path),
   ...dataTablePages.map(page => page.path),
-  "/admin/profile", "/admin/settings", "/admin/users/create", "/admin/users/manage",
-  "/admin/roles/create", "/admin/roles/manage", "/admin/metrics", "/admin/version"
+  "/admin/profile", "/admin/settings", "/admin/users/create", "/admin/users/update", "/admin/users/manage",
+  "/admin/roles/create", "/admin/roles/update", "/admin/roles/manage", "/admin/metrics", "/admin/version"
 ];
 
 async function interfaceTextViolations(page) {
   return page.evaluate(() => {
     const violations = [];
     const snakeCase = /^[a-z0-9]+(?:_[a-z0-9]+)*$/;
-    const dataSelector = "script, style, textarea, pre, dd, .crud-record-heading h2, .table-cell-preview";
+    const dataSelector = "script, style, textarea, pre, dd, .crud-record-heading h2, .table-cell-preview, .profile-account-value, .password-policy";
     const check = (element, text, source) => {
       const value = text.trim();
       if (value && /[a-z]/i.test(value) && (!snakeCase.test(value) || getComputedStyle(element).textTransform !== "none")) {
@@ -57,7 +57,7 @@ test("test_interface_labels_are_snake_case_across_all_admin_pages", async ({ pag
     }
     await assertInterfaceText(page);
     if (path === "/admin/profile") {
-      await expect(page.locator("dd").nth(1)).toHaveText("Initial Administrator");
+      await expect(page.locator(".profile-account-value").first()).toHaveText("Initial Administrator");
     }
     if (path === "/admin/settings" || path === "/admin/sessions") {
       const trigger = path === "/admin/settings" ? "reset_to_template_defaults" : "delete";
@@ -95,7 +95,7 @@ test("test_mobile_snake_case_labels_wrap_without_changing_account_data", async (
     await assertInterfaceText(page);
     expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1);
     if (path === "/admin/profile") {
-      await expect(page.locator("dd").nth(1)).toHaveText("Initial Administrator");
+      await expect(page.locator(".profile-account-value").first()).toHaveText("Initial Administrator");
     }
   }
   await page.setViewportSize({ width: 1280, height: 720 });
@@ -106,7 +106,7 @@ test("test_loading_state_has_snake_case_accessible_labels", async ({ page }) => 
   await signInInitialAdministrator(page);
   let release;
   const gate = new Promise(resolve => { release = resolve; });
-  await page.route("**/users**", async route => {
+  await page.route("**/users/read", async route => {
     await gate;
     await route.continue();
   });

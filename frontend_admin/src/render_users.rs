@@ -10,6 +10,9 @@ pub fn render_users(
     let can_create = bool::from(
         authenticated_admin.has_rule(server_admin_contract::admin_rule::AdminRule::UsersCreate),
     );
+    let can_update = bool::from(
+        authenticated_admin.has_rule(server_admin_contract::admin_rule::AdminRule::UsersUpdate),
+    );
     let rows = admin_users_page
         .items()
         .iter()
@@ -27,7 +30,7 @@ pub fn render_users(
                     <crate::table_cell::TableCell data_label="display_name">{display_name}</crate::table_cell::TableCell>
                     <crate::table_cell::TableCell data_label="banned">{banned}</crate::table_cell::TableCell>
                     {roles}
-                    <crate::table_cell::TableCell data_label=constants_str::ADMIN_UI_ACTIONS bool=true>{constants_str::EMPTY}</crate::table_cell::TableCell>
+                    <crate::table_cell::TableCell data_label=constants_str::ADMIN_UI_ACTIONS bool=true>{can_update.then(|| leptos::view! { <crate::admin_user_update_action::AdminUserUpdateAction /> })}</crate::table_cell::TableCell>
                 </crate::table_row::TableRow>
             }
         })
@@ -36,6 +39,7 @@ pub fn render_users(
         <section class="table-page table-admin_users_page">
         <div class="resource-actions">
             {can_create.then(|| leptos::view! { <crate::admin_button_link::AdminButtonLink str=server_admin_contract::admin_frontend_path::AdminFrontendPath::UsersCreate.get()>{constants_str::PG_CRUD_CREATE_RULE_ACTION}</crate::admin_button_link::AdminButtonLink> })}
+            {can_update.then(|| leptos::view! { <crate::admin_button_link::AdminButtonLink str=server_admin_contract::admin_frontend_path::AdminFrontendPath::UsersUpdate.get()>{constants_str::PG_CRUD_UPDATE_RULE_ACTION}</crate::admin_button_link::AdminButtonLink> })}
         </div>
         <crate::table_wrapper::TableWrapper><crate::table::Table><crate::table_header::TableHeader><crate::table_row::TableRow><crate::table_head::TableHead>"id"</crate::table_head::TableHead><crate::table_head::TableHead>"login"</crate::table_head::TableHead><crate::table_head::TableHead>"display_name"</crate::table_head::TableHead><crate::table_head::TableHead>"banned"</crate::table_head::TableHead><crate::table_head::TableHead>"roles"</crate::table_head::TableHead><crate::table_head::TableHead>{constants_str::ADMIN_UI_ACTIONS}</crate::table_head::TableHead></crate::table_row::TableRow></crate::table_header::TableHeader>
         <crate::table_body::TableBody>{rows}</crate::table_body::TableBody></crate::table::Table></crate::table_wrapper::TableWrapper>

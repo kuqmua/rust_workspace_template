@@ -2,6 +2,8 @@
 pub(crate) enum AdminCrudPage {
     RoleCreate,
     RoleManage,
+    RoleUpdate,
     UserCreate,
     UserManage,
+    UserUpdate,
 }

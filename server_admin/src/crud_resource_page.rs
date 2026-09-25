@@ -33,6 +33,17 @@ pub(crate) async fn crud_resource_page(
             )
             .await
         }
+        crate::admin_crud_page::AdminCrudPage::UserUpdate => {
+            crate::crud_page::crud_page(
+                admin_auth_request,
+                &[server_admin_contract::admin_rule::AdminRule::UsersUpdate],
+                async |_auth| Ok(()),
+                |_view, admin, branding| {
+                    frontend_admin::render_user_update::render_user_update(admin, branding)
+                },
+            )
+            .await
+        }
         crate::admin_crud_page::AdminCrudPage::RoleCreate => {
             crate::crud_page::crud_page(
                 admin_auth_request,
@@ -40,6 +51,17 @@ pub(crate) async fn crud_resource_page(
                 async |_auth| Ok(()),
                 |_view, admin, branding| {
                     frontend_admin::render_role_create::render_role_create(admin, branding)
+                },
+            )
+            .await
+        }
+        crate::admin_crud_page::AdminCrudPage::RoleUpdate => {
+            crate::crud_page::crud_page(
+                admin_auth_request,
+                &[server_admin_contract::admin_rule::AdminRule::RolesUpdate],
+                async |_auth| Ok(()),
+                |_view, admin, branding| {
+                    frontend_admin::render_role_update::render_role_update(admin, branding)
                 },
             )
             .await

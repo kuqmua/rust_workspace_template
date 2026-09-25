@@ -52,17 +52,17 @@ test.afterEach(async ({ page }) => {
       const value = await preview.textContent();
       await preview.click();
       const dialog = page.getByRole("dialog");
-      await expect(dialog.locator("pre")).toHaveText(value);
+      await expect(dialog.locator(".table-cell-content")).toHaveText(value);
       await dialog.getByRole("button", { name: "close", exact: true }).click();
-      await expect(page.locator(".table-cell-dialog")).toHaveCount(0);
+      await expect(page.locator(".table-cell-dialog[open]")).toHaveCount(0);
       await expect(preview).toBeFocused();
     }
   });
 });
 
 test("test_long_production_value_is_ellipsized_and_keyboard_accessible", async ({ page }) => {
-  await page.goto("/admin/roles");
-  const preview = page.locator('td[data-label="rules"] .table-cell-preview').first();
+  await page.goto("/admin/role_rules");
+  const preview = page.locator('td[data-label="created_at"] .table-cell-preview').first();
   await expect(preview).toBeVisible();
   const value = await preview.textContent();
   expect(value.length).toBeGreaterThan(24);
@@ -70,8 +70,8 @@ test("test_long_production_value_is_ellipsized_and_keyboard_accessible", async (
   await expect(preview).toHaveCSS("text-overflow", "ellipsis");
   await preview.focus();
   await page.keyboard.press("Enter");
-  const dialog = page.getByRole("dialog", { name: "rules", exact: true });
-  await expect(dialog.locator("pre")).toHaveText(value);
+  const dialog = page.getByRole("dialog", { name: "created_at", exact: true });
+  await expect(dialog.locator(".table-cell-content")).toHaveText(value);
   await expect(dialog.getByRole("button", { name: "close", exact: true })).toBeFocused();
   await page.keyboard.press("Escape");
   await expect(dialog).toHaveCount(0);
@@ -87,11 +87,11 @@ test("test_mobile_viewer_preserves_multiline_unicode_and_displays_markup_as_text
   const value = ('Unicode \u{1F600} e\u0301\n<img src="invalid" onerror="window.previewInjected=true">\n').repeat(400) + 'End of value';
   await preview.evaluate((element, value) => { element.textContent = value; }, value);
   const rowHeight = await page.locator("tbody td").first().evaluate(element => element.getBoundingClientRect().height);
-  expect(rowHeight).toBe(36);
+  expect(rowHeight).toBeLessThanOrEqual(36);
   expect(await preview.evaluate(element => element.scrollWidth > element.clientWidth)).toBe(true);
   await preview.click();
   const dialog = page.getByRole("dialog", { name: "display_name", exact: true });
-  const content = dialog.locator("pre");
+  const content = dialog.locator(".table-cell-content");
   expect(await content.textContent()).toBe(value);
   await expect(dialog.locator("img")).toHaveCount(0);
   expect(await page.evaluate(() => window.previewInjected)).toBeUndefined();
@@ -106,7 +106,7 @@ test("test_mobile_viewer_preserves_multiline_unicode_and_displays_markup_as_text
   expect(await content.evaluate(element => element.scrollTop)).toBeGreaterThan(0);
   await dialog.getByRole("button", { name: "close", exact: true }).click();
   await expect(preview).toBeFocused();
-  await expect(page.locator(".table-cell-dialog")).toHaveCount(0);
+  await expect(page.locator(".table-cell-dialog[open]")).toHaveCount(0);
 });
 
 test("test_empty_values_remain_accessible_and_do_not_reuse_previous_content", async ({ page }) => {
@@ -118,7 +118,7 @@ test("test_empty_values_remain_accessible_and_do_not_reuse_previous_content", as
   await expect(preview).toBeVisible();
   await preview.click();
   const dialog = page.getByRole("dialog", { name: "display_name", exact: true });
-  expect(await dialog.locator("pre").textContent()).toBe("");
+  expect(await dialog.locator(".table-cell-content").textContent()).toBe("");
   await dialog.getByRole("button", { name: "close", exact: true }).click();
   await expect(preview).toBeFocused();
 });

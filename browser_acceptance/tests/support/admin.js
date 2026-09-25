@@ -46,6 +46,7 @@ export async function signInInitialAdministrator(page) {
     await page.goto("/admin/users");
   }
   await expect(page).toHaveURL(/\/admin\/users$/);
+  await expect(page.locator('[data-renderer="csr"]')).toBeVisible();
 }
 
 export function cookieValue(cookies, name) {

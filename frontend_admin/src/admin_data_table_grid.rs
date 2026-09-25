@@ -20,6 +20,7 @@ pub(crate) fn admin_data_table_grid(
     admin_page_limit: server_admin_contract::admin_page_limit::AdminPageLimit,
     admin_data_table_frontend_path: &server_admin_contract::admin_data_table_frontend_path::AdminDataTableFrontendPath,
     is_sessions: bool,
+    can_update: bool,
 ) -> impl leptos::prelude::IntoView + use<> {
     #[cfg(not(target_arch = "wasm32"))]
     let _: bool = is_sessions;
@@ -145,6 +146,23 @@ pub(crate) fn admin_data_table_grid(
                     <crate::admin_read_action::AdminReadAction read_path=admin_route_path>{fields}</crate::admin_read_action::AdminReadAction>
                 })
                 });
+            let update_action = can_update.then(|| {
+                if admin_data_table_view.table()
+                    == server_admin_contract::admin_data_table::AdminDataTable::Users
+                {
+                    Some(leptos::prelude::IntoAny::into_any(leptos::view! {
+                        <crate::admin_user_update_action::AdminUserUpdateAction />
+                    }))
+                } else if admin_data_table_view.table()
+                    == server_admin_contract::admin_data_table::AdminDataTable::Roles
+                {
+                    Some(leptos::prelude::IntoAny::into_any(leptos::view! {
+                        <crate::admin_role_update_action::AdminRoleUpdateAction />
+                    }))
+                } else {
+                    None
+                }
+            }).flatten();
             let cells = item
                 .values()
                 .iter()
@@ -182,10 +200,10 @@ pub(crate) fn admin_data_table_grid(
                         leptos::prelude::IntoAny::into_any(read_action)
                     }
                 } else {
-                    leptos::prelude::IntoAny::into_any(read_action)
+                    leptos::prelude::IntoAny::into_any(leptos::view! { <div class="table-actions">{read_action}{update_action}</div> })
                 };
                 #[cfg(not(target_arch = "wasm32"))]
-                let actions = read_action;
+                let actions = leptos::view! { <div class="table-actions">{read_action}{update_action}</div> };
                 leptos::view! { <crate::table_cell::TableCell data_label=constants_str::ADMIN_UI_ACTIONS bool=true>{actions}</crate::table_cell::TableCell> }
             };
             leptos::view! {

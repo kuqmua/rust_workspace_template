@@ -17,13 +17,6 @@ pub(crate) async fn api_create_roles(
         axum_admin_json.into_inner(),
     )
     .await
-    .map(|identifiers| {
-        crate::axum_admin_response::AxumAdminResponse::from(
-            axum::response::IntoResponse::into_response((
-                http::StatusCode::CREATED,
-                axum::Json(identifiers),
-            )),
-        )
-    })
+    .map(crate::created_json_response::created_json_response)
     .map_err(crate::application_auth::AdminCreateRolesError::from)
 }

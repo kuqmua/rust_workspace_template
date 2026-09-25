@@ -25,12 +25,23 @@ pub(crate) async fn api_create_user_payload_example() -> Result<
     .map_err(
         crate::admin_create_user_payload_example_error::AdminCreateUserPayloadExampleError::Password,
     )?;
-    Ok(crate::json_response::json_response(
-        server_admin_contract::admin_create_user_request::AdminCreateUserRequest::new(
+    let users = server_admin_contract::admin_create_users_request::AdminCreateUsersRequest::try_from(
+        vec![server_admin_contract::admin_create_user_request::AdminCreateUserRequest::new(
             display_name,
             login,
             password,
             None,
-        ),
-    ))
+        )],
+    )
+    .map_err(|error| {
+        crate::admin_create_user_payload_example_error::AdminCreateUserPayloadExampleError::Collection(
+            server_observability::observed_error::ObservedError::capture(
+                error,
+                server_observability::observed_error_code::ObservedErrorCode::from(
+                    constants_str::ADMIN_OBSERVED_ERROR_CREATE_USER_PAYLOAD_EXAMPLE,
+                ),
+            ),
+        )
+    })?;
+    Ok(crate::json_response::json_response(users))
 }

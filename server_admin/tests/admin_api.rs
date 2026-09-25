@@ -201,7 +201,7 @@ mod test_data_tables {
                 ),
                 (
                     constants_str::ADMIN_ROLES_LEGACY_CREATE_MANY,
-                    http::StatusCode::METHOD_NOT_ALLOWED,
+                    http::StatusCode::NOT_FOUND,
                 ),
             ]),
             (),
@@ -304,6 +304,112 @@ mod test_data_tables {
             .rollback()
             .await
             .expect(constants_str::DIAGNOSTIC_44376F9A);
+    }
+
+    #[tokio::test]
+    #[ignore = "requires PostgreSQL; run through workspace_test_runner database"]
+    async fn test_postgresql_create_users_batch_returns_ordered_ids_and_rolls_back_conflicts() {
+        let fixture = crate::admin_html_test_fixture().await;
+        let audit_before = sqlx::query_scalar::<_, i64>(constants_str::ADMIN_TEST_AUDIT_COUNT_SQL)
+            .fetch_one(&fixture.pool.0)
+            .await
+            .expect(constants_str::DIAGNOSTIC_1FC1FC3F);
+        let create_body = serde_json::json!([
+            {(stringify!(display_name)): constants_str::ADMIN_FIXTURE_ALPHA_DISPLAY_NAME, (stringify!(login)): constants_str::ADMIN_FIXTURE_ALPHA_LOGIN, (stringify!(password)): constants_str::TEST_STRONG_PASSWORD},
+            {(stringify!(display_name)): constants_str::ADMIN_FIXTURE_ALPHA_DISPLAY_NAME, (stringify!(login)): constants_str::USERNAME, (stringify!(password)): constants_str::TEST_STRONG_PASSWORD},
+        ])
+        .to_string();
+        let created = tower::ServiceExt::oneshot(
+            crate::router_with_pool(&fixture.pool).0,
+            crate::request_with_peer(
+                crate::HttpAdminApiTestMethod::from(http::Method::POST),
+                crate::StdAdminApiTestStrRef::from(
+                    server_admin_contract::admin_create_user_route::create_user_route().as_ref(),
+                ),
+                crate::StdAdminApiTestStrRef::from(create_body.as_str()),
+                Some(crate::StdAdminApiTestStrRef::from(
+                    fixture.cookie.0.as_str(),
+                )),
+                Some(crate::StdAdminApiTestStrRef::from(fixture.csrf.0.as_str())),
+            )
+            .0,
+        )
+        .await
+        .expect(constants_str::DIAGNOSTIC_423BAE69);
+        assert_eq!(created.status(), http::StatusCode::CREATED);
+        let bytes = axum::body::to_bytes(created.into_body(), constants_usize::VALUE_1_048_576)
+            .await
+            .expect(constants_str::DIAGNOSTIC_66A3DA74);
+        let identifiers =
+            serde_json::from_slice::<Vec<i64>>(&bytes).expect(constants_str::DIAGNOSTIC_4EED79A4);
+        assert_eq!(identifiers.len(), 2usize);
+        assert_ne!(identifiers.first(), identifiers.last());
+        assert_eq!(
+            sqlx::query_scalar::<_, i64>(constants_str::SERVER_ADMIN_USER_ID_BY_LOGIN_SQL)
+                .bind(constants_str::ADMIN_FIXTURE_ALPHA_LOGIN)
+                .fetch_one(&fixture.pool.0)
+                .await
+                .ok(),
+            identifiers.first().copied()
+        );
+        assert_eq!(
+            sqlx::query_scalar::<_, i64>(constants_str::SERVER_ADMIN_USER_ID_BY_LOGIN_SQL)
+                .bind(constants_str::USERNAME)
+                .fetch_one(&fixture.pool.0)
+                .await
+                .ok(),
+            identifiers.get(1usize).copied()
+        );
+        let audit_after = sqlx::query_scalar::<_, i64>(constants_str::ADMIN_TEST_AUDIT_COUNT_SQL)
+            .fetch_one(&fixture.pool.0)
+            .await
+            .expect(constants_str::DIAGNOSTIC_A7D9C6D2);
+        assert_eq!(audit_after, audit_before + 2i64);
+
+        let conflicting_body = serde_json::json!([
+            {(stringify!(display_name)): constants_str::ADMIN_FIXTURE_ALPHA_DISPLAY_NAME, (stringify!(login)): constants_str::LOGIN, (stringify!(password)): constants_str::TEST_STRONG_PASSWORD},
+            {(stringify!(display_name)): constants_str::ADMIN_FIXTURE_ALPHA_DISPLAY_NAME, (stringify!(login)): constants_str::ADMIN_FIXTURE_ALPHA_LOGIN, (stringify!(password)): constants_str::TEST_STRONG_PASSWORD},
+        ])
+        .to_string();
+        let conflict = tower::ServiceExt::oneshot(
+            crate::router_with_pool(&fixture.pool).0,
+            crate::request_with_peer(
+                crate::HttpAdminApiTestMethod::from(http::Method::POST),
+                crate::StdAdminApiTestStrRef::from(
+                    server_admin_contract::admin_create_user_route::create_user_route().as_ref(),
+                ),
+                crate::StdAdminApiTestStrRef::from(conflicting_body.as_str()),
+                Some(crate::StdAdminApiTestStrRef::from(
+                    fixture.cookie.0.as_str(),
+                )),
+                Some(crate::StdAdminApiTestStrRef::from(fixture.csrf.0.as_str())),
+            )
+            .0,
+        )
+        .await
+        .expect(constants_str::DIAGNOSTIC_6C871162);
+        assert_eq!(conflict.status(), http::StatusCode::CONFLICT);
+        assert_eq!(
+            sqlx::query_scalar::<_, i64>(constants_str::SERVER_ADMIN_USER_ID_BY_LOGIN_SQL)
+                .bind(constants_str::LOGIN)
+                .fetch_optional(&fixture.pool.0)
+                .await
+                .expect(constants_str::DIAGNOSTIC_54DB25C4),
+            None
+        );
+        assert_eq!(
+            sqlx::query_scalar::<_, i64>(constants_str::ADMIN_TEST_AUDIT_COUNT_SQL)
+                .fetch_one(&fixture.pool.0)
+                .await
+                .expect(constants_str::DIAGNOSTIC_7E053930),
+            audit_after
+        );
+        fixture
+            .lock
+            .0
+            .rollback()
+            .await
+            .expect(constants_str::DIAGNOSTIC_A494F40A);
     }
 
     #[tokio::test]
@@ -1283,14 +1389,12 @@ mod test_data_tables {
                 assert_eq!(status, http::StatusCode::OK, "{bytes:?}");
                 let page = serde_json::from_slice::<serde_json::Value>(&bytes).expect(constants_str::DIAGNOSTIC_A7367D89);
                 assert_eq!(page.get(constants_str::ADMIN_UI_TOTAL).expect(constants_str::DIAGNOSTIC_D35E769C), &serde_json::json!(total));
-                let items = page.get(constants_str::ITEMS).and_then(serde_json::Value::as_array).expect(constants_str::DIAGNOSTIC_FED7A6A4);
-                assert_eq!(items.len(), count);
-                assert!(!page.get(constants_str::ROLES_TABLE).and_then(serde_json::Value::as_array).expect(constants_str::DIAGNOSTIC_722BB8E3).is_empty());
-                items.iter().for_each(|item| {
-                    assert!(item.get(constants_str::SQL_NAMES_ID).is_none());
-                    assert!(item.get(constants_str::DISPLAY_NAME).is_none());
-                    assert_eq!(item.get(constants_str::LOGIN).and_then(|login| login.get(stringify!(value))).and_then(serde_json::Value::as_str), Some(constants_str::ADMIN_ALT));
-                    assert!(!item.get(stringify!(role_ids)).and_then(serde_json::Value::as_array).expect(constants_str::DIAGNOSTIC_46BD0E83).is_empty());
+                let view = serde_json::from_slice::<server_admin_contract::admin_data_table_view::AdminDataTableView>(&bytes).expect(constants_str::DIAGNOSTIC_FED7A6A4);
+                assert_eq!(view.items().len(), count);
+                view.items().iter().for_each(|item| {
+                    assert_eq!(view.columns().len(), 1usize);
+                    assert_eq!(view.columns().first().map(|column| column.name().as_ref().as_str()), Some(constants_str::LOGIN));
+                    assert_eq!(item.values().first().map(|value| value.as_ref().as_str()), Some(constants_str::ADMIN_ALT));
                 });
             },
         ).await;
@@ -1457,17 +1561,16 @@ mod test_data_tables {
                     http::StatusCode::OK,
                     "filter {variant} {field_operator} {predicate_operator}: {bytes:?}"
                 );
-                let page = serde_json::from_slice::<serde_json::Value>(&bytes)
+                let page = serde_json::from_slice::<server_admin_contract::admin_data_table_view::AdminDataTableView>(&bytes)
                     .expect(constants_str::DIAGNOSTIC_97C36AB0);
+                let identifier_column = page.columns().iter().position(|column| column.name().as_ref().as_str() == constants_str::SQL_NAMES_ID).expect(constants_str::DIAGNOSTIC_2CE764AA);
                 let contains_administrator = page
-                    .get(constants_str::ITEMS)
-                    .and_then(serde_json::Value::as_array)
-                    .expect(constants_str::DIAGNOSTIC_2CE764AA)
+                    .items()
                     .iter()
                     .any(|item| {
-                        item.get(constants_str::SQL_NAMES_ID)
-                            .and_then(|identifier| identifier.get(stringify!(value)))
-                            .and_then(serde_json::Value::as_i64)
+                        item.values()
+                            .get(identifier_column)
+                            .and_then(|identifier| identifier.as_ref().as_str().parse::<i64>().ok())
                             == Some(administrator_identifier)
                     });
                 let expected_administrator = field_operator == stringify!(Or)
@@ -1503,24 +1606,27 @@ mod test_data_tables {
             ),
             (),
             async |(), table| {
-                let (method, uri, request_body) = if table
-                    == server_admin_contract::admin_data_table::AdminDataTable::UserRoles
-                {
-                    (
-                        http::Method::POST,
-                        table.api_route().path().as_ref().to_owned(),
-                        serde_json::json!({
-                            (stringify!(limit)): 100u16,
-                            (stringify!(offset)): 0u32,
-                        })
-                        .to_string(),
-                    )
-                } else {
-                    (
-                        http::Method::GET,
-                        format!("{}?limit=100&offset=0", table.api_route().path().as_ref()),
-                        constants_str::PG_CRUD_EMPTY_SQL_SUFFIX.to_owned(),
-                    )
+                let query = server_admin_contract::admin_table_query::AdminTableQuery::default();
+                let typed_request_body = match table {
+                    server_admin_contract::admin_data_table::AdminDataTable::Users => Some(crate::admin_table_test_read_body::<server_admin_contract::admin_users_read_request::AdminUsersReadRequest>(&query)),
+                    server_admin_contract::admin_data_table::AdminDataTable::Roles => Some(crate::admin_table_test_read_body::<server_admin_contract::admin_roles_read_request::AdminRolesReadRequest>(&query)),
+                    server_admin_contract::admin_data_table::AdminDataTable::Rules => Some(crate::admin_table_test_read_body::<server_admin_contract::admin_rules_read_request::AdminRulesReadRequest>(&query)),
+                    server_admin_contract::admin_data_table::AdminDataTable::PermissionActions => Some(crate::admin_table_test_read_body::<server_admin_contract::admin_permission_actions_read_request::AdminPermissionActionsReadRequest>(&query)),
+                    server_admin_contract::admin_data_table::AdminDataTable::PermissionResources => Some(crate::admin_table_test_read_body::<server_admin_contract::admin_permission_resources_read_request::AdminPermissionResourcesReadRequest>(&query)),
+                    server_admin_contract::admin_data_table::AdminDataTable::PermissionResourceActions => Some(crate::admin_table_test_read_body::<server_admin_contract::admin_permission_resource_actions_read_request::AdminPermissionResourceActionsReadRequest>(&query)),
+                    server_admin_contract::admin_data_table::AdminDataTable::RoleRules => Some(crate::admin_table_test_read_body::<server_admin_contract::admin_role_rules_read_request::AdminRoleRulesReadRequest>(&query)),
+                    server_admin_contract::admin_data_table::AdminDataTable::AuditLog => Some(crate::admin_table_test_read_body::<server_admin_contract::admin_audit_log_read_request::AdminAuditLogReadRequest>(&query)),
+                    server_admin_contract::admin_data_table::AdminDataTable::AccessSessions => Some(crate::admin_table_test_read_body::<server_admin_contract::admin_access_sessions_read_request::AdminAccessSessionsReadRequest>(&query)),
+                    server_admin_contract::admin_data_table::AdminDataTable::SystemSettings => Some(crate::admin_table_test_read_body::<server_admin_contract::admin_system_settings_read_request::AdminSystemSettingsReadRequest>(&query)),
+                    server_admin_contract::admin_data_table::AdminDataTable::UserRoles => Some(crate::AdminHtmlTestBody::try_from(serde_json::json!({(stringify!(limit)): 100u16, (stringify!(offset)): 0u32}).to_string()).expect(constants_str::DIAGNOSTIC_B0BDDF36)),
+                    server_admin_contract::admin_data_table::AdminDataTable::CleanupStatus
+                    | server_admin_contract::admin_data_table::AdminDataTable::LoginAttempts
+                    | server_admin_contract::admin_data_table::AdminDataTable::RateLimits
+                    | server_admin_contract::admin_data_table::AdminDataTable::RefreshTokens => None,
+                };
+                let (method, uri, request_body) = match typed_request_body {
+                    Some(body) => (http::Method::POST, table.api_route().path().as_ref().to_owned(), body.0.as_ref().to_owned()),
+                    None => (http::Method::GET, format!("{}?limit=100&offset=0", table.api_route().path().as_ref()), constants_str::PG_CRUD_EMPTY_SQL_SUFFIX.to_owned()),
                 };
                 let response = tower::ServiceExt::oneshot(
                     crate::router_with_pool(&fixture.pool).0,
@@ -1546,13 +1652,19 @@ mod test_data_tables {
                     axum::body::to_bytes(response.into_body(), constants_usize::VALUE_1_048_576)
                         .await
                         .expect(constants_str::DIAGNOSTIC_78547EED);
+                if table == server_admin_contract::admin_data_table::AdminDataTable::Roles {
+                    let page = serde_json::from_slice::<server_admin_contract::admin_roles_page::AdminRolesPage>(body.as_ref()).expect(constants_str::DIAGNOSTIC_09F8DC78);
+                    assert!(!page.items().is_empty());
+                    assert!(page.items().iter().all(|role| !role.name().as_ref().as_str().is_empty()));
+                    return;
+                }
                 let view = serde_json::from_slice::<
                     server_admin_contract::admin_data_table_view::AdminDataTableView,
                 >(body.as_ref())
                 .expect(constants_str::DIAGNOSTIC_6D2A32E6);
                 assert_eq!(view.table(), table);
                 let expected_columns = table.spec().columns().get().split(',').collect::<Vec<_>>();
-                assert_eq!(view.columns().len(), expected_columns.len());
+                assert_eq!(view.columns().len(), expected_columns.len(), "{table}");
                 expected_columns
                     .iter()
                     .enumerate()
@@ -2066,10 +2178,11 @@ mod test_flow {
         .fetch_all(&pool.0)
         .await
         .expect(constants_str::DIAGNOSTIC_DB765F20);
-        let expected_rules = server_admin_contract::admin_rule::AdminRule::ALL
+        let mut expected_rules = server_admin_contract::admin_rule::AdminRule::ALL
             .into_iter()
             .map(|rule| rule.as_str().as_ref().to_owned())
             .collect::<Vec<_>>();
+        expected_rules.sort();
         assert_eq!(observed_rules, expected_rules);
         let _deleted_rule = sqlx::query(constants_str::DELETE_ADMIN_RULE_BY_NAME)
             .bind(
@@ -2431,7 +2544,7 @@ mod test_flow {
         crate::request_with_peer(
             super::HttpAdminApiTestMethod::from(http::Method::POST),
             super::StdAdminApiTestStrRef::from(frontend_contract::typed_route_path::typed_route_path::<server_admin_contract::admin_create_user_route::AdminCreateUserRoute>().as_ref()),
-            super::StdAdminApiTestStrRef::from(constants_str::LOGIN_LIMITED_USER_DISPLAY_NAME_LIMITED_USER_PASSWORD_LIMITED_PASSWORD),
+            super::StdAdminApiTestStrRef::from(constants_str::LOGIN_LIMITED_USER_DISPLAY_NAME_LIMITED_USER_PASSWORD_LIMITED_PASSWORD_ARRAY),
             Some(super::StdAdminApiTestStrRef::from(active_cookie.as_str())),
             Some(super::StdAdminApiTestStrRef::from(refreshed_csrf.0.as_str())),
         )
@@ -2474,7 +2587,7 @@ mod test_flow {
         crate::request_with_peer(
             super::HttpAdminApiTestMethod::from(http::Method::POST),
             super::StdAdminApiTestStrRef::from(frontend_contract::typed_route_path::typed_route_path::<server_admin_contract::admin_create_user_route::AdminCreateUserRoute>().as_ref()),
-            super::StdAdminApiTestStrRef::from(constants_str::LOGIN_LIMITED_USER_DISPLAY_NAME_LIMITED_USER_PASSWORD_LIMITED_PASSWORD),
+            super::StdAdminApiTestStrRef::from(constants_str::LOGIN_LIMITED_USER_DISPLAY_NAME_LIMITED_USER_PASSWORD_LIMITED_PASSWORD_ARRAY),
             Some(super::StdAdminApiTestStrRef::from(active_cookie.as_str())),
             None,
         )
@@ -2488,7 +2601,7 @@ mod test_flow {
         crate::request_with_peer(
             super::HttpAdminApiTestMethod::from(http::Method::POST),
             super::StdAdminApiTestStrRef::from(frontend_contract::typed_route_path::typed_route_path::<server_admin_contract::admin_create_user_route::AdminCreateUserRoute>().as_ref()),
-            super::StdAdminApiTestStrRef::from(constants_str::LOGIN_LIMITED_USER_DISPLAY_NAME_LIMITED_USER_PASSWORD_LIMITED_PASSWORD),
+            super::StdAdminApiTestStrRef::from(constants_str::LOGIN_LIMITED_USER_DISPLAY_NAME_LIMITED_USER_PASSWORD_LIMITED_PASSWORD_ARRAY),
             Some(super::StdAdminApiTestStrRef::from(active_cookie.as_str())),
             Some(super::StdAdminApiTestStrRef::from(refreshed_csrf.0.as_str())),
         )
@@ -2558,7 +2671,7 @@ mod test_flow {
                 super::HttpAdminApiTestMethod::from(http::Method::DELETE),
                 super::StdAdminApiTestStrRef::from(
                     frontend_contract::typed_route_path::typed_route_path::<
-                        server_admin_contract::admin_sessions_route::AdminSessionsRoute,
+                        server_admin_contract::admin_revoke_all_sessions_route::AdminRevokeAllSessionsRoute,
                     >()
                     .as_ref(),
                 ),
@@ -2951,7 +3064,12 @@ mod test_flow {
             crate::router_with_pool(&pool).0,
             crate::request_with_peer(
                 super::HttpAdminApiTestMethod::from(http::Method::GET),
-                super::StdAdminApiTestStrRef::from(constants_str::VALUE_9B6938A5),
+                super::StdAdminApiTestStrRef::from(
+                    frontend_contract::typed_route_path::typed_route_path::<
+                        server_admin_contract::admin_sessions_route::AdminSessionsRoute,
+                    >()
+                    .as_ref(),
+                ),
                 super::StdAdminApiTestStrRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
                 Some(super::StdAdminApiTestStrRef::from(active_cookie.as_str())),
                 None,
@@ -4710,7 +4828,7 @@ mod test_maintenance {
         .fetch_one(&base_pool)
         .await
         .expect(constants_str::DIAGNOSTIC_5C10C931);
-        assert_eq!(version, 13i64);
+        assert_eq!(version, 4i64);
         let expected_tables = server_admin_contract::admin_data_table::AdminDataTable::PG_ORDER
             .map(|table| table.to_string())
             .into_iter()
@@ -5346,6 +5464,20 @@ fn admin_users_read_test_payload() -> AdminHtmlTestBody {
         serde_json::to_string(&request).expect(constants_str::DIAGNOSTIC_247711CA),
     )
     .expect(constants_str::DIAGNOSTIC_7012F613)
+}
+
+fn admin_table_test_read_body<Request>(
+    admin_table_query: &server_admin_contract::admin_table_query::AdminTableQuery,
+) -> AdminHtmlTestBody
+where
+    Request: serde::Serialize
+        + for<'query> TryFrom<&'query server_admin_contract::admin_table_query::AdminTableQuery>,
+    for<'query> <Request as TryFrom<&'query server_admin_contract::admin_table_query::AdminTableQuery>>::Error:
+        std::fmt::Debug,
+{
+    let request = Request::try_from(admin_table_query).expect(constants_str::DIAGNOSTIC_07308D64);
+    let serialized = serde_json::to_string(&request).expect(constants_str::DIAGNOSTIC_4B532BAC);
+    AdminHtmlTestBody::try_from(serialized).expect(constants_str::DIAGNOSTIC_147C3860)
 }
 
 fn one_admin_role_id(

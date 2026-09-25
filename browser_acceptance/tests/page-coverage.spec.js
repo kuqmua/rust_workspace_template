@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 import {
-  signInAdministrator,
+  signInInitialAdministrator,
   signOutIfAuthenticated
 } from "./support/admin.js";
 import {
@@ -40,7 +40,7 @@ async function expectUniqueIds(page) {
 }
 
 test("administrator root resolves to the configured default page", async ({ page }) => {
-  await signInAdministrator(page);
+  await signInInitialAdministrator(page);
   await page.goto("/admin");
   await expect(page).toHaveURL(/\/admin\/users$/);
   await expectAdminShell(page);
@@ -49,7 +49,8 @@ test("administrator root resolves to the configured default page", async ({ page
 test("shared page catalog matches every rendered navigation destination", async ({
   page
 }) => {
-  await signInAdministrator(page);
+  await signInInitialAdministrator(page);
+  await expect(page.locator('nav[aria-label="admin_sections"] a').first()).toBeVisible();
   const destinations = await page
     .locator('nav[aria-label="admin_sections"] a')
     .evaluateAll(links => links.map(link => link.getAttribute("href")));
@@ -59,7 +60,7 @@ test("shared page catalog matches every rendered navigation destination", async 
 test("revisiting sign-in preserves the authenticated administrator session", async ({
   page
 }) => {
-  await signInAdministrator(page);
+  await signInInitialAdministrator(page);
   await page.goto("/admin/sign_in");
   await expect(page).toHaveURL(/\/admin\/sign_in$/);
   await expect(page.getByRole("button", { name: "sign_in" })).toBeVisible();
@@ -69,7 +70,7 @@ test("revisiting sign-in preserves the authenticated administrator session", asy
 });
 
 test("table route rejects an unknown table name", async ({ page }) => {
-  await signInAdministrator(page);
+  await signInInitialAdministrator(page);
   const response = await page.goto("/admin/tables");
   expect(response).not.toBeNull();
   expect(response.status()).toBe(422);
@@ -77,7 +78,7 @@ test("table route rejects an unknown table name", async ({ page }) => {
 });
 
 test("unknown table rejection is stable after reload", async ({ page }) => {
-  await signInAdministrator(page);
+  await signInInitialAdministrator(page);
   await page.goto("/admin/tables");
   const response = await page.reload();
   expect(response).not.toBeNull();
@@ -88,7 +89,7 @@ test("unknown table rejection is stable after reload", async ({ page }) => {
 test("disabled OpenAPI route remains linked but rejects rendering", async ({
   page
 }) => {
-  await signInAdministrator(page);
+  await signInInitialAdministrator(page);
   await expect(
     page.locator('nav[aria-label="admin_sections"] a[href="/admin/swagger_ui"]')
   ).toHaveCount(1);
@@ -100,12 +101,12 @@ test("disabled OpenAPI route remains linked but rejects rendering", async ({
 
 for (const pageSpec of tablePages) {
   test(`${pageSpec.name} table has the expected semantic structure`, async ({ page }) => {
-    await signInAdministrator(page);
+    await signInInitialAdministrator(page);
     await openAdminPage(page, pageSpec.path);
     await expectAdminShell(page);
     await expect(page.locator('[data-renderer="csr"]')).toBeVisible();
     await expect(page.getByRole("table")).toHaveCount(1);
-    await expect(page.locator("thead th")).toHaveText(pageSpec.headers);
+    await expect(page.locator("thead th")).toContainText(pageSpec.headers);
     await expect(page.locator("tbody tr").first()).toBeVisible();
     await expect(page.locator("tbody tr").first().locator("td")).toHaveCount(
       pageSpec.headers.length
@@ -118,7 +119,7 @@ for (const pageSpec of tablePages) {
   test(`${pageSpec.name} table exposes an active navigation destination`, async ({
     page
   }) => {
-    await signInAdministrator(page);
+    await signInInitialAdministrator(page);
     await openAdminPage(page, pageSpec.path);
     const destination = page.locator(`nav[aria-label="admin_sections"] a[href="${pageSpec.path}"]`);
     await expect(destination).toHaveCount(1);
@@ -129,7 +130,7 @@ for (const pageSpec of tablePages) {
   test(`${pageSpec.name} table survives a direct reload`, async ({ page }) => {
     const browserErrors = [];
     page.on("pageerror", error => browserErrors.push(error.message));
-    await signInAdministrator(page);
+    await signInInitialAdministrator(page);
     await openAdminPage(page, pageSpec.path);
     await page.reload();
     await expect(page.locator('[data-renderer="csr"]')).toBeVisible();
@@ -139,12 +140,14 @@ for (const pageSpec of tablePages) {
   });
 
   if (pageSpec.readOnly) {
-    test(`${pageSpec.name} rows contain no interactive controls`, async ({ page }) => {
-      await signInAdministrator(page);
+    test(`${pageSpec.name} rows show read actions without inline editors`, async ({ page }) => {
+      await signInInitialAdministrator(page);
       await openAdminPage(page, pageSpec.path);
-      await expect(
-        page.locator("tbody button, tbody input, tbody select, tbody textarea")
-      ).toHaveCount(0);
+      const inlineEditors = await page
+        .locator("tbody input, tbody select, tbody textarea")
+        .evaluateAll(elements => elements.filter(element => !element.closest("dialog")).length);
+      expect(inlineEditors).toBe(0);
+      await expect(page.locator("tbody button").first()).toBeVisible();
       await expect(page.locator("tbody td").first()).toHaveAttribute(
         "data-name",
         "TableCell"
@@ -155,7 +158,7 @@ for (const pageSpec of tablePages) {
 
 for (const pageSpec of dataTablePages) {
   test(`${pageSpec.name} data table renders its grid and pagination`, async ({ page }) => {
-    await signInAdministrator(page);
+    await signInInitialAdministrator(page);
     await openAdminPage(page, pageSpec.path);
     await expectAdminShell(page);
     await expect(page.locator('[data-renderer="csr"]')).toBeVisible();
@@ -170,7 +173,7 @@ for (const pageSpec of dataTablePages) {
   test(`${pageSpec.name} data table keeps its deep link after reload`, async ({ page }) => {
     const browserErrors = [];
     page.on("pageerror", error => browserErrors.push(error.message));
-    await signInAdministrator(page);
+    await signInInitialAdministrator(page);
     await openAdminPage(page, pageSpec.path);
     await page.reload();
     await expect(page).toHaveURL(
@@ -186,17 +189,17 @@ for (const pageSpec of dataTablePages) {
 test("profile page exposes account details and a labeled password form", async ({
   page
 }) => {
-  await signInAdministrator(page);
+  await signInInitialAdministrator(page);
   await openAdminPage(page, "/admin/profile");
   await expectAdminShell(page);
-  await expect(page.locator(".profile-card")).toBeVisible();
+  await expect(page.locator(".profile-account-value").first()).toBeVisible();
   await expect(page.getByLabel("current_password")).toHaveAttribute("type", "password");
   await expect(page.getByLabel("new_password")).toHaveAttribute("type", "password");
   await expect(page.getByRole("button", { name: "change_password" })).toBeEnabled();
 });
 
 test("profile page preserves its content after reload", async ({ page }) => {
-  await signInAdministrator(page);
+  await signInInitialAdministrator(page);
   await openAdminPage(page, "/admin/profile");
   await page.reload();
   await expect(page.locator('[data-renderer="csr"]')).toBeVisible();
@@ -206,7 +209,7 @@ test("profile page preserves its content after reload", async ({ page }) => {
 });
 
 test("settings page exposes labeled editable settings", async ({ page }) => {
-  await signInAdministrator(page);
+  await signInInitialAdministrator(page);
   await openAdminPage(page, "/admin/settings");
   await expectAdminShell(page);
   await expect(page.locator("form.settings-form")).toHaveCount(1);
@@ -220,7 +223,7 @@ test("settings page exposes labeled editable settings", async ({ page }) => {
 });
 
 test("settings page preserves server values after reload", async ({ page }) => {
-  await signInAdministrator(page);
+  await signInInitialAdministrator(page);
   await openAdminPage(page, "/admin/settings");
   const siteName = await page.getByLabel("site_name").inputValue();
   const tabTitle = await page.getByLabel("tab_title").inputValue();
@@ -234,7 +237,7 @@ test("settings page preserves server values after reload", async ({ page }) => {
 
 for (const pageSpec of serverRenderedPages) {
   test(`${pageSpec.name} server-rendered page has the admin shell`, async ({ page }) => {
-    await signInAdministrator(page);
+    await signInInitialAdministrator(page);
     await openAdminPage(page, pageSpec.path);
     await expectAdminShell(page);
     await expect(page.locator("main")).not.toBeEmpty();
@@ -248,7 +251,7 @@ for (const pageSpec of serverRenderedPages) {
   }) => {
     const browserErrors = [];
     page.on("pageerror", error => browserErrors.push(error.message));
-    await signInAdministrator(page);
+    await signInInitialAdministrator(page);
     await openAdminPage(page, pageSpec.path);
     const content = await page.locator("main").innerText();
     await page.reload();

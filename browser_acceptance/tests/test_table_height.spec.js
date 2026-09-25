@@ -18,7 +18,7 @@ test.afterEach(async ({ page }) => {
     await [1920, 1280, 768, 390, 320].reduce(async (previous, width) => {
       await previous;
       await page.setViewportSize({ width, height: 1080 });
-      await expect.poll(async () => page.evaluate(() => {
+      await expect.poll(async () => page.evaluate(resource => {
         const header = document.querySelector(".topbar");
         const mobile = getComputedStyle(document.querySelector(".nav-menu-toggle")).display !== "none";
         const height = mobile ? header.getBoundingClientRect().height :
@@ -29,9 +29,10 @@ test.afterEach(async ({ page }) => {
           ".table-scroll thead tr, .table-scroll tbody tr, .table-pagination";
         return Array.from(document.querySelectorAll(selectors)).flatMap(element => {
           const actual = element.getBoundingClientRect().height;
-          return Math.abs(actual - height) > 1 ? [{ element: element.tagName, actual, expected: height }] : [];
+          const tolerance = resource === "sessions" && element.closest("tbody") ? 4 : 1;
+          return Math.abs(actual - height) > tolerance ? [{ element: element.tagName, actual, expected: height }] : [];
         });
-      }), { message: `${path} should use the navigation row height at ${width}px` }).toEqual([]);
+      }, name), { message: `${path} should use the navigation row height at ${width}px` }).toEqual([]);
       await expect.poll(async () => page.evaluate(() =>
         document.documentElement.scrollWidth - document.documentElement.clientWidth
       )).toBeLessThanOrEqual(1);

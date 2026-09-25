@@ -192,9 +192,13 @@ handles a user's own password change.
 
 ## Role assignments
 
-`POST /users/create` accepts optional `role_ids` to assign roles during creation.
-Omission or null creates the user without roles. A supplied array, including an
-empty array, requires `UserRolesUpdate` in addition to `UsersCreate`.
+`POST /users/create` accepts an array of 1 to 10,000 users and returns their IDs
+in request order. All users, role assignments, and audit records are committed
+together; any failure rolls back the batch. Each user accepts optional `role_ids`
+to assign roles during creation. Omission or null creates the user without roles.
+A supplied array, including an empty array, requires `UserRolesUpdate` in addition
+to `UsersCreate`. The 64 KiB administrator API body limit can constrain the
+practical batch size before the collection limit is reached.
 
 `PATCH /users/update` accepts `role_ids` and `expected_role_ids` together in
 `changes`. Both arrays are required when changing roles. Omitted or null arrays

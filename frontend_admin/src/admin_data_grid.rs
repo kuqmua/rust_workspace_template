@@ -26,6 +26,17 @@ pub(crate) fn AdminDataGrid(
         == Some(server_admin_contract::admin_frontend_path::AdminFrontendPath::Sessions);
     let is_roles = admin_data_table_view.table()
         == server_admin_contract::admin_data_table::AdminDataTable::Roles;
+    let is_users = admin_data_table_view.table()
+        == server_admin_contract::admin_data_table::AdminDataTable::Users;
+    let can_update = (is_roles
+        && bool::from(
+            authenticated_admin.has_rule(server_admin_contract::admin_rule::AdminRule::RolesUpdate),
+        ))
+        || (is_users
+            && bool::from(
+                authenticated_admin
+                    .has_rule(server_admin_contract::admin_rule::AdminRule::UsersUpdate),
+            ));
     let table_path = admin_frontend_path.map_or_else(
         || admin_data_table_view.table().frontend_path(),
         server_admin_contract::admin_data_table_frontend_path::AdminDataTableFrontendPath::from,
@@ -59,6 +70,7 @@ pub(crate) fn AdminDataGrid(
         admin_csr_query.limit(),
         &table_path,
         is_sessions,
+        can_update,
     );
     let page_size_filter = crate::admin_filter_hidden_inputs::admin_filter_hidden_inputs(
         filter_field,
@@ -97,28 +109,29 @@ pub(crate) fn AdminDataGrid(
     let previous_action = table_path.as_ref().to_owned();
     let next_action = table_path.as_ref().to_owned();
     let previous_limit = limit_text.clone();
-    let is_users = admin_data_table_view.table()
-        == server_admin_contract::admin_data_table::AdminDataTable::Users;
     let create_user = (is_users
         && bool::from(authenticated_admin.has_rule(
             server_admin_contract::admin_rule::AdminRule::UsersCreate,
         )))
     .then(|| {
-        leptos::view! {
-            <div class="resource-actions">
-                <crate::admin_button_link::AdminButtonLink str=server_admin_contract::admin_frontend_path::AdminFrontendPath::UsersCreate.get()>{constants_str::PG_CRUD_CREATE_RULE_ACTION}</crate::admin_button_link::AdminButtonLink>
-            </div>
-        }
+        leptos::view! { <crate::admin_button_link::AdminButtonLink str=server_admin_contract::admin_frontend_path::AdminFrontendPath::UsersCreate.get()>{constants_str::PG_CRUD_CREATE_RULE_ACTION}</crate::admin_button_link::AdminButtonLink> }
     });
     let create_role = (is_roles
         && bool::from(authenticated_admin.has_rule(
             server_admin_contract::admin_rule::AdminRule::RolesCreate,
         )))
     .then(|| {
+        leptos::view! { <crate::admin_button_link::AdminButtonLink str=server_admin_contract::admin_frontend_path::AdminFrontendPath::RolesCreate.get()>{constants_str::PG_CRUD_CREATE_RULE_ACTION}</crate::admin_button_link::AdminButtonLink> }
+    });
+    let update_user = (is_users && can_update).then(|| leptos::view! {
+        <crate::admin_button_link::AdminButtonLink str=server_admin_contract::admin_frontend_path::AdminFrontendPath::UsersUpdate.get()>{constants_str::PG_CRUD_UPDATE_RULE_ACTION}</crate::admin_button_link::AdminButtonLink>
+    });
+    let update_role = (is_roles && can_update).then(|| leptos::view! {
+        <crate::admin_button_link::AdminButtonLink str=server_admin_contract::admin_frontend_path::AdminFrontendPath::RolesUpdate.get()>{constants_str::PG_CRUD_UPDATE_RULE_ACTION}</crate::admin_button_link::AdminButtonLink>
+    });
+    let resource_actions = (is_users || is_roles).then(|| {
         leptos::view! {
-            <div class="resource-actions">
-                <crate::admin_button_link::AdminButtonLink str=server_admin_contract::admin_frontend_path::AdminFrontendPath::RolesCreate.get()>{constants_str::PG_CRUD_CREATE_RULE_ACTION}</crate::admin_button_link::AdminButtonLink>
-            </div>
+            <div class="resource-actions">{create_user}{update_user}{create_role}{update_role}</div>
         }
     });
     let revoke_all = is_sessions.then(|| {
@@ -146,8 +159,7 @@ pub(crate) fn AdminDataGrid(
     });
     leptos::view! {
         <section class="table-page" class=("table-admin_users_page", is_users) class=("table-admin_roles_page", is_roles) class=("table-admin_sessions_page", is_sessions) data-renderer="csr">
-            {create_user}
-            {create_role}
+            {resource_actions}
             {revoke_all}
             {grid}
             <singlestage::Pagination attr:data-name="Pagination" attr:aria-label=constants_str::ADMIN_UI_TABLE_PAGES class="table-pagination mx-auto flex w-full items-center justify-center gap-2">

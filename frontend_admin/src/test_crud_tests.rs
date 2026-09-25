@@ -87,6 +87,13 @@ fn test_crud() {
             .as_ref()
             .contains(server_admin_contract::admin_html_action::AdminHtmlAction::UserCreate.get())
     );
+    let user_update = crate::render_user_update::render_user_update(&admin, &branding);
+    assert!(
+        user_update
+            .as_ref()
+            .contains(server_admin_contract::admin_html_action::AdminHtmlAction::UserUpdate.get())
+    );
+    assert!(user_update.as_ref().contains(constants_str::USER_ID));
     let user_manage = crate::render_user_manage::render_user_manage(&users, &admin, &branding);
     assert!(user_manage.as_ref().contains(constants_str::VALUE_A7CEAFCE));
     assert!(
@@ -106,6 +113,13 @@ fn test_crud() {
             .as_ref()
             .contains(constants_str::ADMIN_UI_EXPECT_CREATE_ROLE)
     );
+    let role_update = crate::render_role_update::render_role_update(&admin, &branding);
+    assert!(
+        role_update
+            .as_ref()
+            .contains(server_admin_contract::admin_html_action::AdminHtmlAction::RoleUpdate.get())
+    );
+    assert!(role_update.as_ref().contains(constants_str::ROLE_ID));
     let role_manage = crate::render_role_manage::render_role_manage(&roles, &admin, &branding);
     assert!(role_manage.as_ref().contains(constants_str::VALUE_6186A0EE));
     assert!(

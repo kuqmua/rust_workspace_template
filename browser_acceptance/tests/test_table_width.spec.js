@@ -26,6 +26,18 @@ test.afterEach(async ({ page }) => {
       await expect.poll(async () => page.evaluate(() =>
         document.documentElement.scrollWidth - document.documentElement.clientWidth
       ), { message: `${path} should keep horizontal overflow inside the table at ${width}px` }).toBeLessThanOrEqual(1);
+      const horizontalScroll = await table.evaluate(element => {
+        const container = element.closest(".table-scroll");
+        const overflow = container.scrollWidth - container.clientWidth;
+        container.scrollLeft = container.scrollWidth;
+        return { overflow, position: container.scrollLeft };
+      });
+      if (width === 390 && ["users", "roles", "rules"].includes(name)) {
+        expect(horizontalScroll.overflow, `${path} should overflow at ${width}px`).toBeGreaterThan(0);
+      }
+      if (horizontalScroll.overflow > 0) {
+        expect(horizontalScroll.position, `${path} should scroll horizontally`).toBeGreaterThan(0);
+      }
     }, Promise.resolve());
   });
 });

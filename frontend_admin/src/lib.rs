@@ -77,12 +77,15 @@ pub mod admin_navigation_link;
 pub mod admin_page_nav_disabled;
 pub mod admin_page_range;
 #[cfg(target_arch = "wasm32")]
+mod admin_password_generation_error;
+#[cfg(target_arch = "wasm32")]
 pub mod admin_profile_view;
 mod admin_read_action;
 #[cfg(target_arch = "wasm32")]
 pub mod admin_record_read_page;
 #[cfg(target_arch = "wasm32")]
 pub mod admin_record_view;
+mod admin_role_update_action;
 #[cfg(target_arch = "wasm32")]
 pub mod admin_role_view;
 #[cfg(target_arch = "wasm32")]
@@ -118,6 +121,7 @@ pub mod admin_ssr_text;
 pub mod admin_ssr_text_try_from_string_error;
 #[cfg(test)]
 pub mod admin_ssr_view_ext_tests;
+mod admin_table_action_trigger;
 mod admin_table_actions;
 #[cfg(target_arch = "wasm32")]
 pub mod admin_table_load_error;
@@ -128,6 +132,7 @@ pub mod admin_table_query_hidden_inputs;
 pub mod admin_textarea;
 #[cfg(not(target_arch = "wasm32"))]
 pub mod admin_user_roles;
+mod admin_user_update_action;
 #[cfg(not(target_arch = "wasm32"))]
 pub mod axum_admin_frontend_router;
 #[cfg(not(target_arch = "wasm32"))]
@@ -200,6 +205,8 @@ pub mod render_role_create;
 #[cfg(not(target_arch = "wasm32"))]
 pub mod render_role_manage;
 #[cfg(not(target_arch = "wasm32"))]
+pub mod render_role_update;
+#[cfg(not(target_arch = "wasm32"))]
 pub mod render_roles;
 #[cfg(not(target_arch = "wasm32"))]
 pub mod render_sign_in;
@@ -211,6 +218,8 @@ pub mod render_text_page_with_access;
 pub mod render_user_create;
 #[cfg(not(target_arch = "wasm32"))]
 pub mod render_user_manage;
+#[cfg(not(target_arch = "wasm32"))]
+pub mod render_user_update;
 #[cfg(not(target_arch = "wasm32"))]
 pub mod render_users;
 #[cfg(not(target_arch = "wasm32"))]
@@ -275,3 +284,5 @@ mod std_rc_serde_json_error;
 mod std_str_utf8_error;
 #[cfg(target_arch = "wasm32")]
 mod wasm_bindgen_admin_read_error;
+#[cfg(target_arch = "wasm32")]
+mod wasm_bindgen_password_generation_exception;

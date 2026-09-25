@@ -2,6 +2,16 @@
 pub(crate) enum AdminCreateUserPayloadExampleError {
     #[error(
         "{}",
+        constants_str::ADMIN_CREATE_USER_PAYLOAD_EXAMPLE_COLLECTION_ERROR
+    )]
+    Collection(
+        #[source]
+        server_observability::observed_error::ObservedError<
+            server_admin_contract::admin_collection_error::AdminCollectionError,
+        >,
+    ),
+    #[error(
+        "{}",
         constants_str::ADMIN_CREATE_USER_PAYLOAD_EXAMPLE_DISPLAY_NAME_ERROR
     )]
     DisplayName(server_admin_contract::admin_display_name::AdminDisplayNameTryFromStringError),
