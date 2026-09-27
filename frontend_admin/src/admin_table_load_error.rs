@@ -5,6 +5,8 @@ pub(crate) enum AdminTableLoadError {
     #[error("{}", constants_str::ADMIN_UI_THE_TABLE_RESPONSE_WAS_INVALID)]
     ReadJson(#[from] crate::std_rc_serde_json_error::StdRcSerdeJsonError),
     #[error("{}", constants_str::ADMIN_UI_THE_TABLE_QUERY_IS_INVALID)]
+    ReadPagination(#[source] crate::std_rc_serde_json_error::StdRcSerdeJsonError),
+    #[error("{}", constants_str::ADMIN_UI_THE_TABLE_QUERY_IS_INVALID)]
     ReadUtf8(#[from] crate::std_str_utf8_error::StdStrUtf8Error),
     #[error("{}", constants_str::ADMIN_UI_THE_TABLE_QUERY_IS_INVALID)]
     ReadSort(#[from] server_admin_contract::admin_table_sort_field_try_from_key_error::AdminTableSortFieldTryFromKeyError),
@@ -56,6 +58,7 @@ impl AdminTableLoadError {
             | Self::Response
             | Self::ReadBrowser(_)
             | Self::ReadJson(_)
+            | Self::ReadPagination(_)
             | Self::ReadUtf8(_)
             | Self::ReadSort(_)
             | Self::ReadBody(_)

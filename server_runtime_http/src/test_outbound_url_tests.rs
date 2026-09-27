@@ -44,6 +44,14 @@ mod tests {
     }
 
     #[test]
+    fn test_private_ipv6_url_is_rejected() {
+        assert!(matches!(
+            POLICY.validate(constants_str::TEST_LOOPBACK_IPV6_HTTP_URL.into()),
+            Err(crate::outbound_url_error::OutboundUrlError::ForbiddenHost)
+        ));
+    }
+
+    #[test]
     fn test_non_global_special_addresses_are_rejected() {
         assert!(
             [

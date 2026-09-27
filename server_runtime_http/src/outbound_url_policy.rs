@@ -60,11 +60,16 @@ impl OutboundUrlPolicy {
             return Err(crate::outbound_url_error::OutboundUrlError::ForbiddenHost);
         }
         if self.host_policy == crate::outbound_host_policy::OutboundHostPolicy::RejectPrivate
-            && host.parse::<std::net::IpAddr>().is_ok_and(|address| {
-                crate::resolve_outbound_address_disposition::resolve_outbound_address_disposition(
-                    crate::outbound_ip_addr::OutboundIpAddr::from(address),
-                ) == crate::outbound_address_disposition::OutboundAddressDisposition::Forbidden
-            })
+            && host
+                .strip_prefix('[')
+                .and_then(|value| value.strip_suffix(']'))
+                .unwrap_or(host)
+                .parse::<std::net::IpAddr>()
+                .is_ok_and(|address| {
+                    crate::resolve_outbound_address_disposition::resolve_outbound_address_disposition(
+                        crate::outbound_ip_addr::OutboundIpAddr::from(address),
+                    ) == crate::outbound_address_disposition::OutboundAddressDisposition::Forbidden
+                })
         {
             return Err(crate::outbound_url_error::OutboundUrlError::ForbiddenHost);
         }

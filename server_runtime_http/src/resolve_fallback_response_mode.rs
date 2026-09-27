@@ -44,8 +44,7 @@ pub fn resolve_fallback_response_mode(
                                     .is_some_and(|suffix| {
                                         suffix.is_empty()
                                             || suffix.strip_prefix('.').is_some_and(|digits| {
-                                                !digits.is_empty()
-                                                    && digits.bytes().all(|byte| byte == b'0')
+                                                digits.bytes().all(|byte| byte == b'0')
                                             })
                                     })
                             })

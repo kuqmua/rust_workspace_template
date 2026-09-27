@@ -42,7 +42,6 @@ pub(super) fn table_pagination(
         &crate::admin_table_query_direction::AdminTableQueryDirection::Ssr(
             admin_table_query.direction(),
         ),
-        admin_table_query.limit(),
     );
     let page_size_filter = crate::admin_filter_hidden_inputs::admin_filter_hidden_inputs(
         filter_field,
@@ -56,7 +55,6 @@ pub(super) fn table_pagination(
         &crate::admin_table_query_direction::AdminTableQueryDirection::Ssr(
             admin_table_query.direction(),
         ),
-        admin_table_query.limit(),
     );
     let previous_filter = crate::admin_filter_hidden_inputs::admin_filter_hidden_inputs(
         filter_field,
@@ -70,7 +68,6 @@ pub(super) fn table_pagination(
         &crate::admin_table_query_direction::AdminTableQueryDirection::Ssr(
             admin_table_query.direction(),
         ),
-        admin_table_query.limit(),
     );
     let next_filter = crate::admin_filter_hidden_inputs::admin_filter_hidden_inputs(
         filter_field,
@@ -95,12 +92,14 @@ pub(super) fn table_pagination(
             <singlestage::PaginationItem class="contents"><form method="get" action=previous_action>
                 {previous_query}
                 {previous_filter}
+                <input type="hidden" name="limit" value=limit.to_string() />
                 <input type="hidden" name="offset" value=u32::from(range.previous_offset()).to_string() /><crate::admin_button::AdminButton admin_button_variant=crate::admin_button_variant::AdminButtonVariant::Secondary bool=bool::from(range.previous_disabled())>{constants_str::ADMIN_BUTTON_PREVIOUS}</crate::admin_button::AdminButton>
             </form></singlestage::PaginationItem>
             <singlestage::PaginationItem class="contents"><span>{format!("{}_{}_{}_{}_{}", u64::from(range.start()), constants_str::ADMIN_UI_TO, u64::from(range.end()), constants_str::ADMIN_UI_OF, admin_page_total)}</span></singlestage::PaginationItem>
             <singlestage::PaginationItem class="contents"><form method="get" action=action>
                 {next_query}
                 {next_filter}
+                <input type="hidden" name="limit" value=limit.to_string() />
                 <input type="hidden" name="offset" value=u32::from(range.next_offset()).to_string() /><crate::admin_button::AdminButton admin_button_variant=crate::admin_button_variant::AdminButtonVariant::Secondary bool=bool::from(range.next_disabled())>{constants_str::ADMIN_BUTTON_NEXT}</crate::admin_button::AdminButton>
             </form></singlestage::PaginationItem>
             </singlestage::PaginationContent>

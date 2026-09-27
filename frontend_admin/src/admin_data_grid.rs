@@ -98,7 +98,6 @@ pub(crate) fn AdminDataGrid(
                 &crate::admin_table_query_direction::AdminTableQueryDirection::Csr(
                     admin_csr_query.direction().cloned(),
                 ),
-                admin_csr_query.limit(),
             )
         })
     };
@@ -123,15 +122,9 @@ pub(crate) fn AdminDataGrid(
     .then(|| {
         leptos::view! { <crate::admin_button_link::AdminButtonLink str=server_admin_contract::admin_frontend_path::AdminFrontendPath::RolesCreate.get()>{constants_str::PG_CRUD_CREATE_RULE_ACTION}</crate::admin_button_link::AdminButtonLink> }
     });
-    let update_user = (is_users && can_update).then(|| leptos::view! {
-        <crate::admin_button_link::AdminButtonLink str=server_admin_contract::admin_frontend_path::AdminFrontendPath::UsersUpdate.get()>{constants_str::PG_CRUD_UPDATE_RULE_ACTION}</crate::admin_button_link::AdminButtonLink>
-    });
-    let update_role = (is_roles && can_update).then(|| leptos::view! {
-        <crate::admin_button_link::AdminButtonLink str=server_admin_contract::admin_frontend_path::AdminFrontendPath::RolesUpdate.get()>{constants_str::PG_CRUD_UPDATE_RULE_ACTION}</crate::admin_button_link::AdminButtonLink>
-    });
     let resource_actions = (is_users || is_roles).then(|| {
         leptos::view! {
-            <div class="resource-actions">{create_user}{update_user}{create_role}{update_role}</div>
+            <div class="resource-actions">{create_user}{create_role}</div>
         }
     });
     let revoke_all = is_sessions.then(|| {

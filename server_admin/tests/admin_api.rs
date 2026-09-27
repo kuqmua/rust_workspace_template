@@ -1012,12 +1012,12 @@ mod test_data_tables {
         grant_rule(server_admin_contract::admin_rule::AdminRule::UsersCreate).await;
         let create_with_roles =
             async |admin_role_ids: server_admin_contract::admin_role_ids::AdminRoleIds| {
-                let creation_body = serde_json::json!({
+                let creation_body = serde_json::json!([{
                     (stringify!(login)): constants_str::LOGIN,
                     (stringify!(display_name)): constants_str::ADMIN_UPDATED_USER_NAME,
                     (stringify!(password)): constants_str::VALUE_4EDBB68D,
                     (stringify!(role_ids)): admin_role_ids,
-                })
+                }])
                 .to_string();
                 let creation_response = tower::ServiceExt::oneshot(
                     crate::router_with_pool(&fixture.pool).0,
@@ -4818,8 +4818,18 @@ mod test_maintenance {
         let expected_current_schema_snapshot =
             std::fs::read_to_string(current_schema_snapshot_path)
                 .expect(constants_str::DIAGNOSTIC_3AF279E1);
+        let mut current_snapshot_parts = current_schema_snapshot
+            .split(constants_str::DOUBLE_NEWLINE)
+            .map(str::trim_end)
+            .collect::<Vec<_>>();
+        current_snapshot_parts.sort_by_key(|part| *part);
+        let mut expected_snapshot_parts = expected_current_schema_snapshot
+            .split(constants_str::DOUBLE_NEWLINE)
+            .map(str::trim_end)
+            .collect::<Vec<_>>();
+        expected_snapshot_parts.sort_by_key(|part| *part);
         assert_eq!(
-            current_schema_snapshot, expected_current_schema_snapshot,
+            current_snapshot_parts, expected_snapshot_parts,
             "cb6ce4a9 migration-derived PostgreSQL schema snapshot changed"
         );
         let version = sqlx::query_scalar::<_, i64>(

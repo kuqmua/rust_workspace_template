@@ -61,4 +61,46 @@ mod tests {
             )
         ));
     }
+
+    #[test]
+    fn test_origin_rejects_duplicate_headers() {
+        let mut headers = http::HeaderMap::new();
+        let _inserted_referer = headers.append(
+            http::header::REFERER,
+            http::HeaderValue::from_static(constants_str::HTTPS_ADMIN_EXAMPLE_COM_PATH),
+        );
+        let _inserted_first_origin = headers.append(
+            http::header::ORIGIN,
+            http::HeaderValue::from_static(constants_str::HTTPS_ADMIN_EXAMPLE_COM),
+        );
+        let _inserted_second_origin = headers.append(
+            http::header::ORIGIN,
+            http::HeaderValue::from_static(constants_str::HTTPS_ADMIN_EXAMPLE_COM_PATH),
+        );
+        assert!(!bool::from(
+            crate::resolve_request_origin_allowed::resolve_request_origin_allowed(
+                crate::http_origin_headers_ref::HttpOriginHeadersRef::from(&headers),
+                &allowed_origins(),
+            )
+        ));
+    }
+
+    #[test]
+    fn test_referer_rejects_duplicate_headers() {
+        let mut headers = http::HeaderMap::new();
+        let _inserted_first_referer = headers.append(
+            http::header::REFERER,
+            http::HeaderValue::from_static(constants_str::HTTPS_ADMIN_EXAMPLE_COM_PATH),
+        );
+        let _inserted_second_referer = headers.append(
+            http::header::REFERER,
+            http::HeaderValue::from_static(constants_str::HTTPS_ADMIN_EXAMPLE_COM_SETTINGS_UPPER),
+        );
+        assert!(!bool::from(
+            crate::resolve_request_origin_allowed::resolve_request_origin_allowed(
+                crate::http_origin_headers_ref::HttpOriginHeadersRef::from(&headers),
+                &allowed_origins(),
+            )
+        ));
+    }
 }

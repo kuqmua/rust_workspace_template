@@ -7,7 +7,6 @@ pub(crate) fn admin_table_query_hidden_inputs(
     admin_table_search: &server_admin_contract::admin_table_search::AdminTableSearch,
     admin_table_sort_key: &server_admin_contract::admin_table_sort_key::AdminTableSortKey,
     admin_table_query_direction: &crate::admin_table_query_direction::AdminTableQueryDirection,
-    admin_page_limit: server_admin_contract::admin_page_limit::AdminPageLimit,
 ) -> impl leptos::prelude::IntoView + use<> {
     let search = admin_table_search.as_ref().to_owned();
     let sort = admin_table_sort_key.as_ref().to_owned();
@@ -21,9 +20,8 @@ pub(crate) fn admin_table_query_hidden_inputs(
             value.as_ref().to_owned()
         }
     };
-    let limit = u16::from(admin_page_limit).to_string();
     leptos::view! {
         <input type="hidden" name="search" value=search /><input type="hidden" name="sort" value=sort />
-        <input type="hidden" name="direction" value=direction /><input type="hidden" name="limit" value=limit />
+        <input type="hidden" name="direction" value=direction />
     }
 }

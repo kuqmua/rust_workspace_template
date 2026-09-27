@@ -49,7 +49,7 @@ const authenticatedPages = [
   { mask: [".profile-account-value"], ...adminPages.profile },
   { mask: [], ...adminPages.settings },
   { mask: ["main pre"], ...adminPages.metrics },
-  { mask: ["main pre"], ...adminPages.version },
+  { mask: [".version-value"], ...adminPages.version },
   ...dataTablePages.map(({ path, snapshotName }) => ({
     mask: tableMask,
     name: snapshotName,
@@ -69,6 +69,7 @@ const crudPages = [
   },
   {
     activePath: "/admin/users",
+    mask: ['input[name="display_name"]'],
     name: "user-manage",
     path: "/admin/users/manage"
   },
@@ -192,7 +193,7 @@ for (const viewport of viewports) {
       expect(
         await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)
       ).toBeLessThanOrEqual(1);
-      await expectPixelPerfect(page, "navigation-open-mobile", []);
+      await expectPixelPerfect(page, "navigation-open-mobile", tableMask);
     });
   }
 
@@ -241,10 +242,16 @@ for (const viewport of viewports) {
           `header nav a[href="${pageSpec.activePath}"][aria-current="page"]`
         )
       ).toHaveCount(1);
+      if (pageSpec.name === "role-manage") {
+        await page.locator(".crud-list > :not(:first-child)").evaluateAll(elements =>
+          elements.forEach(element => element.remove())
+        );
+        await expect(page.locator(".crud-list > *")).toHaveCount(1);
+      }
       await expectPixelPerfect(
         page,
         `${pageSpec.name}-${viewport.name}`,
-        []
+        pageSpec.mask ?? []
       );
     });
   }

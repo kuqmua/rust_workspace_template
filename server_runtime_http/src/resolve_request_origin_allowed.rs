@@ -3,6 +3,19 @@ pub fn resolve_request_origin_allowed(
     allowed_origins: &crate::allowed_origins::AllowedOrigins,
 ) -> crate::request_origin_allowed::RequestOriginAllowed {
     let header_map = http_origin_headers_ref.get();
+    if header_map
+        .get_all(if header_map.contains_key(http::header::ORIGIN) {
+            http::header::ORIGIN
+        } else {
+            http::header::REFERER
+        })
+        .iter()
+        .take(constants_usize::TWO)
+        .count()
+        > constants_usize::ONE
+    {
+        return crate::request_origin_allowed::RequestOriginAllowed::from(false);
+    }
     let allowed = header_map.get(http::header::ORIGIN).map_or_else(
         || {
             header_map

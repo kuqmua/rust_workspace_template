@@ -64,12 +64,34 @@ impl AdminCsrQuery {
             .location()
             .search()
             .map_err(|_error| crate::admin_table_load_error::AdminTableLoadError::Fetch)?;
-        let params = web_sys::UrlSearchParams::new_with_str(&search)
-            .map_err(|_error| crate::admin_table_load_error::AdminTableLoadError::Fetch)?;
         let pathname = window
             .location()
             .pathname()
             .map_err(|_error| crate::admin_table_load_error::AdminTableLoadError::Fetch)?;
+        let admin_page_path_ref =
+            server_admin_contract::admin_page_path_ref::AdminPagePathRef::from(pathname.as_str());
+        let params =
+            if server_admin_contract::admin_data_table::AdminDataTable::from_frontend_path(
+                admin_page_path_ref,
+            )
+            .is_some()
+                || server_admin_contract::admin_page::AdminPage::from_path(admin_page_path_ref)
+                    .is_some_and(|admin_page| bool::from(admin_page.uses_table_query()))
+            {
+                web_sys::UrlSearchParams::new_with_str(&search)
+            } else {
+                web_sys::UrlSearchParams::new()
+            }
+            .map_err(|_error| crate::admin_table_load_error::AdminTableLoadError::Fetch)?;
+        if [
+            constants_str::ADMIN_LIMIT_QUERY_KEY,
+            constants_str::ADMIN_OFFSET_QUERY_KEY,
+        ]
+        .into_iter()
+        .any(|key| params.get_all(key).length() > 1u32)
+        {
+            return Err(crate::admin_table_load_error::AdminTableLoadError::Query);
+        }
         let access_session_id = server_admin_contract::admin_access_session_id::AdminAccessSessionId::from_frontend_path(
             server_admin_contract::admin_page_path_ref::AdminPagePathRef::from(pathname.as_str()),
         );
@@ -228,10 +250,17 @@ impl AdminCsrQuery {
                 .map_err(|_error| crate::admin_table_load_error::AdminTableLoadError::Query)?,
             params
                 .get(constants_str::ADMIN_LIMIT_QUERY_KEY)
-                .and_then(|value| value.parse::<u16>().ok())
-                .and_then(|value| {
-                    server_admin_contract::admin_page_limit::AdminPageLimit::try_from(value).ok()
+                .map(|value| {
+                    <server_admin_contract::admin_page_limit::AdminPageLimit as serde::Deserialize>::deserialize(
+                        serde::de::value::StringDeserializer::<serde_json::Error>::new(value),
+                    )
                 })
+                .transpose()
+                .map_err(|error| {
+                    crate::admin_table_load_error::AdminTableLoadError::ReadPagination(
+                        crate::std_rc_serde_json_error::StdRcSerdeJsonError::from(error),
+                    )
+                })?
                 .unwrap_or_default(),
             login_attempt_id,
             permission_action_id,
@@ -239,11 +268,18 @@ impl AdminCsrQuery {
             permission_resource_id,
             params
                 .get(constants_str::ADMIN_OFFSET_QUERY_KEY)
-                .and_then(|value| value.parse::<u32>().ok())
-                .map_or_else(
-                    server_admin_contract::admin_page_offset::AdminPageOffset::default,
-                    server_admin_contract::admin_page_offset::AdminPageOffset::from,
-                ),
+                .map(|value| {
+                    <server_admin_contract::admin_page_offset::AdminPageOffset as serde::Deserialize>::deserialize(
+                        serde::de::value::StringDeserializer::<serde_json::Error>::new(value),
+                    )
+                })
+                .transpose()
+                .map_err(|error| {
+                    crate::admin_table_load_error::AdminTableLoadError::ReadPagination(
+                        crate::std_rc_serde_json_error::StdRcSerdeJsonError::from(error),
+                    )
+                })?
+                .unwrap_or_default(),
             params
                 .get(constants_str::ADMIN_SEARCH_QUERY_KEY)
                 .map(server_admin_contract::admin_table_search::AdminTableSearch::try_from)
