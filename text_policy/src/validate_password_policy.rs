@@ -3,13 +3,14 @@ pub fn validate_password_policy(
     password_length_range: crate::password_length_range::PasswordLengthRange,
 ) -> Result<(), crate::password_policy_violation::PasswordPolicyViolation> {
     let password_text: &str = password_text_ref.into();
-    if password_text.len() < usize::from(password_length_range.minimum()) {
+    let password_length = password_text.chars().count();
+    if password_length < usize::from(password_length_range.minimum()) {
         return Err(crate::password_policy_violation::PasswordPolicyViolation::TooShort);
     }
-    if password_text.len() > usize::from(password_length_range.maximum()) {
+    if password_length > usize::from(password_length_range.maximum()) {
         return Err(crate::password_policy_violation::PasswordPolicyViolation::TooLong);
     }
-    if password_text.bytes().any(|byte| byte.is_ascii_whitespace()) {
+    if password_text.chars().any(char::is_whitespace) {
         return Err(crate::password_policy_violation::PasswordPolicyViolation::ContainsWhitespace);
     }
     if !password_text.bytes().any(|byte| byte.is_ascii_digit()) {

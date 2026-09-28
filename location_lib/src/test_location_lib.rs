@@ -152,6 +152,26 @@ fn test_location_text_deserialization_uses_bounded_try_from() {
         .expect_err(constants_str::VALUE_1E61B1AF);
 }
 #[test]
+fn test_overlong_location_file_keeps_original_path_prefix() {
+    let raw = format!(
+        "{}{}",
+        constants_str::SRC_LIB_RS,
+        constants_str::X.repeat(crate::domain_types::LOC_FILE_MAX_LEN)
+    );
+    let location_file = crate::location_file::LocationFile::from(
+        crate::location_file_ref::LocationFileRef::from(raw.as_str()),
+    );
+    assert_eq!(
+        location_file.as_ref().len(),
+        crate::domain_types::LOC_FILE_MAX_LEN
+    );
+    assert!(
+        location_file
+            .as_ref()
+            .starts_with(constants_str::SRC_LIB_RS)
+    );
+}
+#[test]
 fn test_coordinates_and_nanoseconds_reject_zero_based_or_overflowing_values() {
     let _line_error = crate::location_line::LocationLine::try_from(constants_u32::ZERO)
         .expect_err(constants_str::VALUE_3AF5C47B);

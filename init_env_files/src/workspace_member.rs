@@ -30,3 +30,22 @@ impl TryFrom<String> for WorkspaceMember {
         }
     }
 }
+impl TryFrom<crate::toml_member_value::TomlMemberValue<'_>> for WorkspaceMember {
+    type Error = crate::initialize_error::InitializeError;
+
+    fn try_from(value: crate::toml_member_value::TomlMemberValue<'_>) -> Result<Self, Self::Error> {
+        let raw_member = toml::Value::as_str(<&toml::Value>::from(value))
+            .ok_or(Self::Error::InvalidMemberType)?;
+        let member = Self::try_from(raw_member.to_owned())?;
+        let member_path = std::path::Path::new(member.as_ref());
+        if member_path.is_relative()
+            && member_path
+                .components()
+                .all(|component| matches!(component, std::path::Component::Normal(_)))
+        {
+            Ok(member)
+        } else {
+            Err(Self::Error::InvalidMember { member })
+        }
+    }
+}

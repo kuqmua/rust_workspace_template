@@ -52,7 +52,11 @@ pub(crate) fn run_measurements_cli() -> crate::runner_cli_outcome::RunnerCliOutc
             Ok(()) => {}
             Err(error) => match error {},
         }
-        if std::path::Path::new(constants_str::WORKSPACE_TEST_RUNNER_MEMUSAGE_PATH).exists() {
+        if crate::check_tool_available::check_tool_available(crate::tool_path::ToolPath::from(
+            constants_str::WORKSPACE_TEST_RUNNER_MEMUSAGE_PATH,
+        ))
+        .get()
+        {
             macro_helpers::tool_console_stream::ToolConsoleStream::write_or_exit(
                 macro_helpers::tool_console_stream::ToolConsoleStream::StandardOutput,
                 macro_helpers::std_fmt_arguments::StdFmtArguments::from(format_args!(

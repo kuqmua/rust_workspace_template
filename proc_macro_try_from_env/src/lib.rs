@@ -205,6 +205,10 @@ pub fn try_from_env(token_stream: proc_macro::TokenStream) -> proc_macro::TokenS
                     #std_env_var_error_snake_case: std::env::VarError,
                     env_var_name: config_lib::env_var_name::EnvVarName,
                 },
+                ConfigValueTooLong {
+                    error: config_lib::config_lib_string_wrapper_try_from_string_error::ConfigLibStringWrapperTryFromStringError,
+                    env_var_name: config_lib::env_var_name::EnvVarName,
+                },
                 #(#vrts_token_stream),*
             }
         }
@@ -230,6 +234,7 @@ pub fn try_from_env(token_stream: proc_macro::TokenStream) -> proc_macro::TokenS
                         #std_env_var_error_snake_case,
                         env_var_name
                     } => write!(f, "{} {}", #std_env_var_error_snake_case, env_var_name),
+                    Self::ConfigValueTooLong { error, env_var_name } => write!(f, "{} {}", error, env_var_name),
                     #(#vrts_token_stream),*
                 }
             },
@@ -248,6 +253,10 @@ pub fn try_from_env(token_stream: proc_macro::TokenStream) -> proc_macro::TokenS
                     |#std_env_var_error_snake_case, #env_var_name_snake_case| #identifier_try_from_env_error_upper_camel_case::#std_env_var_error_upper_camel_case {
                         #std_env_var_error_snake_case,
                         #env_var_name_snake_case,
+                    },
+                    |error, env_var_name| #identifier_try_from_env_error_upper_camel_case::ConfigValueTooLong {
+                        error,
+                        env_var_name,
                     },
                     |v| <
                         #element_ty as

@@ -20,10 +20,8 @@ pub fn plan_disk_cache_eviction(
         })?;
     let mut ordered = entries.iter().collect::<Vec<_>>();
     ordered.sort_by_key(|entry| std::time::SystemTime::from(entry.modified_at()));
-    let projected = current
-        .checked_add(incoming_size)
-        .ok_or(crate::disk_cache_budget_error::DiskCacheBudgetError::SizeOverflow)?;
-    let required = projected.saturating_sub(maximum_size);
+    let available_for_existing = maximum_size.saturating_sub(incoming_size);
+    let required = current.saturating_sub(available_for_existing);
     let remove_capacity = ordered
         .iter()
         .scan(constants_u64::ZERO, |removed, entry| {
@@ -37,11 +35,7 @@ pub fn plan_disk_cache_eviction(
         .count();
     let mut remove = Vec::with_capacity(remove_capacity);
     let mut candidates = ordered.into_iter();
-    while current
-        .checked_add(incoming_size)
-        .ok_or(crate::disk_cache_budget_error::DiskCacheBudgetError::SizeOverflow)?
-        > maximum_size
-    {
+    while current > available_for_existing {
         let Some(entry) = candidates.next() else {
             break;
         };

@@ -37,10 +37,14 @@ where
         .ok_or(crate::open_api_validation_error::OpenApiValidationError::MissingPaths)?;
     let mut documented = std::collections::BTreeMap::new();
     paths.iter().try_for_each(|(path, path_item)| {
-        path_item
-            .as_object()
-            .into_iter()
-            .flatten()
+        let Some(path_item_object) = path_item.as_object() else {
+            return Err(crate::open_api_validation_error::OpenApiValidationError::InvalidPathItem(
+                crate::open_api_contract_text::OpenApiContractText::try_from(path.clone())
+                    .map_err(crate::open_api_validation_error::OpenApiValidationError::TextTooLong)?,
+            ));
+        };
+        path_item_object
+            .iter()
             .filter(|(method, _)| {
                 [
                     constants_str::DELETE,

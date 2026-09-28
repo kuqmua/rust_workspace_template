@@ -284,6 +284,28 @@ impl<const MINIMUM_LENGTH: usize, const MAXIMUM_LENGTH: usize, const COUNT_CHARS
     }
 
     fn json_schema(schema_generator: &mut schemars::SchemaGenerator) -> schemars::Schema {
-        schema_generator.subschema_for::<String>()
+        let mut schema = schema_generator.subschema_for::<String>();
+        if COUNT_CHARS {
+            let _previous_min = schema.insert(
+                constants_str::VALUE_AF9E4183.to_owned(),
+                MINIMUM_LENGTH.into(),
+            );
+            let _previous_max = schema.insert(
+                constants_str::VALUE_AC1DBF51.to_owned(),
+                MAXIMUM_LENGTH.into(),
+            );
+        } else {
+            let _previous_min = schema.insert(
+                constants_str::OPENAPI_MIN_BYTES_EXTENSION.to_owned(),
+                MINIMUM_LENGTH.into(),
+            );
+            if MAXIMUM_LENGTH.checked_add(1usize).is_some() {
+                let _previous_max = schema.insert(
+                    constants_str::OPENAPI_MAX_BYTES_EXTENSION.to_owned(),
+                    MAXIMUM_LENGTH.into(),
+                );
+            }
+        }
+        schema
     }
 }

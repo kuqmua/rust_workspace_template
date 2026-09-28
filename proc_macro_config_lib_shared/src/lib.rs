@@ -45,11 +45,13 @@ pub fn impl_try_from_non_empty_string(
     let error_name = quote::format_ident!("{error_name_text}");
     quote::quote! {
         #[derive(Debug, Clone, proc_macro_getters::Getters, proc_macro_generate_accessor_traits_for_struct_fields_generate_accessor_trait::GenerateAccessorTrait, proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
-        pub struct #name(String);
+        pub struct #name(bounded_types::bounded_string::BoundedString<1usize, { crate::config_lib_string_wrapper_max_len::CONFIG_LIB_STRING_WRAPPER_MAX_LEN }, false>);
         #[derive(Debug, Clone, Copy, thiserror::Error, proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
         pub enum #error_name {
             #[error("{is_empty:?}")]
             IsEmpty { is_empty: &'static str },
+            #[error("configuration value is too long")]
+            TooLong,
         }
         impl TryFrom<String> for #name {
             type Error = #error_name;
@@ -59,18 +61,16 @@ pub fn impl_try_from_non_empty_string(
                         is_empty: constants_str::CONFIG_ENV_VALUE_IS_EMPTY_MSG,
                     })
                 } else {
-                    Ok(Self(value))
+                    bounded_types::bounded_string::BoundedString::try_from(value)
+                        .map(Self)
+                        .map_err(|_error| Self::Error::TooLong)
                 }
             }
         }
         impl crate::try_from_std_env_var_ok::TryFromStdEnvVarOk for #name {
             type Error = #error_name;
             fn try_from_std_env_var_ok(v: crate::std_env_var_ok::StdEnvVarOk) -> Result<Self, Self::Error> {
-                crate::try_map_non_empty_env_value::try_map_non_empty_env_value(
-                    v,
-                    |is_empty| Self::Error::IsEmpty { is_empty },
-                    Self,
-                )
+                Self::try_from(String::from(v))
             }
         }
     }

@@ -5,7 +5,11 @@
 pub(super) fn failed_test_names(
     text_ref: crate::text_ref::TextRef<'_>,
 ) -> crate::command_texts::CommandTexts {
-    let mut names = text_ref
+    let clean_log =
+        crate::strip_ansi::strip_ansi(macro_helpers::tool_ansi_chars::ToolAnsiChars::from(
+            macro_helpers::tool_ansi_text_ref::ToolAnsiTextRef::from(text_ref.as_ref()),
+        ));
+    let mut names = clean_log
         .as_ref()
         .lines()
         .filter_map(|line| {

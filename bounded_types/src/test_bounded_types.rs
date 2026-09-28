@@ -174,6 +174,52 @@ fn test_unbounded_byte_string_schema_omits_max_bytes_extension() {
 }
 
 #[test]
+fn test_schemars_character_string_schema_matches_runtime_bounds() {
+    let schema = schemars::schema_for!(crate::bounded_string::BoundedString<1, 4, true>);
+    assert_eq!(
+        schema
+            .get(constants_str::VALUE_AF9E4183)
+            .and_then(schemars::_private::serde_json::Value::as_u64),
+        Some(1u64),
+    );
+    assert_eq!(
+        schema
+            .get(constants_str::VALUE_AC1DBF51)
+            .and_then(schemars::_private::serde_json::Value::as_u64),
+        Some(4u64),
+    );
+    assert!(
+        schema
+            .get(constants_str::OPENAPI_MIN_BYTES_EXTENSION)
+            .is_none()
+    );
+}
+
+#[test]
+fn test_schemars_byte_string_schema_reports_byte_bounds() {
+    let schema = schemars::schema_for!(crate::bounded_string::BoundedString<1, 4>);
+    assert_eq!(
+        schema
+            .get(constants_str::OPENAPI_MIN_BYTES_EXTENSION)
+            .and_then(schemars::_private::serde_json::Value::as_u64),
+        Some(1u64),
+    );
+    assert_eq!(
+        schema
+            .get(constants_str::OPENAPI_MAX_BYTES_EXTENSION)
+            .and_then(schemars::_private::serde_json::Value::as_u64),
+        Some(4u64),
+    );
+    assert!(schema.get(constants_str::VALUE_AF9E4183).is_none());
+    let unbounded = schemars::schema_for!(crate::bounded_string::BoundedString<1, { usize::MAX }>);
+    assert!(
+        unbounded
+            .get(constants_str::OPENAPI_MAX_BYTES_EXTENSION)
+            .is_none()
+    );
+}
+
+#[test]
 fn test_vec_bounds_and_growth_are_enforced() {
     let mut values = crate::bounded_vec::BoundedVec::<u8, 0, 1>::try_from(Vec::new())
         .expect(constants_str::DIAGNOSTIC_CB18BC21);

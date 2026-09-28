@@ -5,7 +5,11 @@ pub(super) fn measure_memusage_command(
     memusage_prog_name_ref: crate::memusage_prog_name_ref::MemusageProgNameRef<'_>,
 ) -> Result<(), crate::memusage_measurement_error::MemusageMeasurementError> {
     let measurement_name_value = measurement_name.get();
-    if !std::path::Path::new(constants_str::WORKSPACE_TEST_RUNNER_MEMUSAGE_PATH).exists() {
+    if !crate::check_tool_available::check_tool_available(crate::tool_path::ToolPath::from(
+        constants_str::WORKSPACE_TEST_RUNNER_MEMUSAGE_PATH,
+    ))
+    .get()
+    {
         macro_helpers::tool_console_stream::ToolConsoleStream::StandardOutput.write(macro_helpers::std_fmt_arguments::StdFmtArguments::from(format_args!("{}{}", format_args!("{}{}{}{}", constants_str::RUNNER_MEASUREMENT_PREFIX, measurement_name_value, constants_str::RUNNER_OUTPUT_ALLOCATIONS_STATUS_UNAVAILABLE_REASON_LIBMEMUSAGE_NOT_FOUND_PATH, constants_str::WORKSPACE_TEST_RUNNER_MEMUSAGE_PATH), constants_str::NEWLINE))).map_err(|tool_console_write_error| crate::memusage_measurement_error::MemusageMeasurementError::WriteUnavailable {measurement_name, tool_console_write_error,})?;
         return Ok(());
     }

@@ -19,6 +19,7 @@ pub mod run_mode;
 #[cfg(test)]
 pub mod test_initialize_tests;
 pub mod toml_init_error;
+pub mod toml_member_value;
 pub mod workspace_member;
 pub mod workspace_root_path_ref;
 pub mod write_content;

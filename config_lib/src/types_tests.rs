@@ -1,5 +1,30 @@
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn test_tracing_format_accepts_only_json_and_text() {
+        let parse = |value: &str| {
+            <crate::tracing_format::TracingFormat as crate::try_from_std_env_var_ok::TryFromStdEnvVarOk>::try_from_std_env_var_ok(
+                crate::std_env_var_ok::StdEnvVarOk::try_from(String::from(value))
+                    .expect(constants_str::DIAGNOSTIC_9C260DCE),
+            )
+        };
+        assert_eq!(
+            parse(constants_str::JSON),
+            Ok(crate::tracing_format::TracingFormat::Json)
+        );
+        assert_eq!(
+            parse(&constants_str::JSON.to_ascii_uppercase()),
+            Ok(crate::tracing_format::TracingFormat::Json)
+        );
+        assert_eq!(
+            parse(constants_str::TRACING_FORMAT_TEXT),
+            Ok(crate::tracing_format::TracingFormat::Text)
+        );
+        assert_eq!(
+            parse(constants_str::BAD),
+            Err(crate::try_from_std_env_var_ok_tracing_format_error::TryFromStdEnvVarOkTracingFormatError::Unknown)
+        );
+    }
     fn env_result(
         result: Result<String, std::env::VarError>,
     ) -> crate::env_var_result_var_error::EnvVarResultVarError {

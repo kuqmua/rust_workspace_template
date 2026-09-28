@@ -51,7 +51,9 @@ pub mod memusage_heap_value;
 pub mod memusage_key;
 pub mod memusage_measurement_error;
 pub mod memusage_prog_name_ref;
+pub mod memusage_program_text;
 pub mod memusage_row_name;
+pub mod memusage_summary_text;
 pub mod memusage_table_value;
 pub mod memusage_value_ref;
 pub mod print_without_measurement_footer;
@@ -139,9 +141,23 @@ fn main() {
                 )),
             );
         };
-    let mode = std::env::args().nth(constants_usize::ONE).map(|value| {
-        runner_mode::RunnerMode::try_from(value).unwrap_or_else(runner_mode::RunnerMode::from)
-    });
+    let mode = match std::env::args()
+        .nth(constants_usize::ONE)
+        .map(runner_mode::RunnerMode::try_from)
+        .transpose()
+    {
+        Ok(mode) => mode,
+        Err(error) => {
+            macro_helpers::tool_console_stream::ToolConsoleStream::write_or_exit(
+                macro_helpers::tool_console_stream::ToolConsoleStream::StandardError,
+                macro_helpers::std_fmt_arguments::StdFmtArguments::from(format_args!(
+                    "{error}{}",
+                    constants_str::NEWLINE
+                )),
+            );
+            std::process::exit(1);
+        }
+    };
     let result = match mode.as_ref().map(runner_mode::RunnerMode::as_ref) {
         None | Some(constants_str::STATIC) => run_commands(commands_ref::CommandsRef::from(
             &constants_str::WORKSPACE_TEST_RUNNER_STATIC_COMMANDS,

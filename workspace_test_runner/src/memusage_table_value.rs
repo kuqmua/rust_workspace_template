@@ -3,10 +3,13 @@ pub(crate) fn memusage_table_value(
     memusage_row_name: crate::memusage_row_name::MemusageRowName,
     memory_usage_column_index: crate::memory_usage_column_index::MemoryUsageColumnIndex,
 ) -> crate::memusage_value_ref::MemusageValueRef<'_> {
-    clean_ansi_text
-        .as_ref()
-        .lines()
-        .find(|line| line.contains(memusage_row_name.get()))
+    crate::memusage_summary_text::memusage_summary_text(clean_ansi_text)
+        .and_then(|summary| {
+            summary
+                .get()
+                .lines()
+                .find(|line| line.contains(memusage_row_name.get()))
+        })
         .and_then(|line| line.split('|').nth(1))
         .and_then(|tail| tail.split_whitespace().nth(memory_usage_column_index.get()))
         .map_or_else(

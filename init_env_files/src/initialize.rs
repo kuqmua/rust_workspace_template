@@ -26,20 +26,10 @@ pub(crate) fn initialize(
         .and_then(toml::Value::as_array)
         .ok_or(crate::initialize_error::InitializeError::MembersMissing)?
         .iter()
-        .filter_map(toml::Value::as_str)
-        .map(|raw_member| {
-            let member = crate::workspace_member::WorkspaceMember::try_from(raw_member.to_owned())?;
-            let member_path = std::path::Path::new(member.as_ref());
-            if !member.as_ref().is_empty()
-                && member_path.is_relative()
-                && member_path
-                    .components()
-                    .all(|component| matches!(component, std::path::Component::Normal(_)))
-            {
-                Ok(member)
-            } else {
-                Err(crate::initialize_error::InitializeError::InvalidMember { member })
-            }
+        .map(|member| {
+            crate::workspace_member::WorkspaceMember::try_from(
+                crate::toml_member_value::TomlMemberValue::from(member),
+            )
         })
         .collect::<Result<
             Vec<crate::workspace_member::WorkspaceMember>,

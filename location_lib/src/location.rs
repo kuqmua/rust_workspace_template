@@ -148,8 +148,9 @@ impl Location {
         FileTy: AsRef<str>,
     {
         Self {
-            file: crate::location_file::LocationFile::try_from(file_ty.as_ref().to_owned())
-                .unwrap_or_else(crate::location_file::LocationFile::from),
+            file: crate::location_file::LocationFile::from(
+                crate::location_file_ref::LocationFileRef::from(file_ty.as_ref()),
+            ),
             line: location_line,
             column: location_column,
             commit: crate::location_commit::LocationCommit::try_from(

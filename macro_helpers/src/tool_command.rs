@@ -50,6 +50,59 @@ impl ToolCommand {
             .output()
             .map(crate::process_output::ProcessOutput::from)
     }
+    pub fn bounded_output(
+        &mut self,
+        tool_output_limit: crate::tool_output_limit::ToolOutputLimit,
+    ) -> std::io::Result<crate::process_output::ProcessOutput> {
+        let mut child = self
+            .inner
+            .stdin(std::process::Stdio::null())
+            .stdout(std::process::Stdio::piped())
+            .stderr(std::process::Stdio::piped())
+            .spawn()?;
+        let mut stdout_pipe = child
+            .stdout
+            .take()
+            .ok_or_else(|| std::io::Error::from(std::io::ErrorKind::BrokenPipe))?;
+        let mut stderr_pipe = child
+            .stderr
+            .take()
+            .ok_or_else(|| std::io::Error::from(std::io::ErrorKind::BrokenPipe))?;
+        std::thread::scope(|scope| {
+            let stdout_handle = scope.spawn(move || {
+                let mut tail = crate::tool_output_tail::ToolOutputTail::new(tool_output_limit);
+                let _copied_bytes = std::io::copy(&mut stdout_pipe, &mut tail)?;
+                Ok::<Vec<u8>, std::io::Error>(tail.into_bytes())
+            });
+            let stderr_handle = scope.spawn(move || {
+                let mut tail = crate::tool_output_tail::ToolOutputTail::new(tool_output_limit);
+                let _copied_bytes = std::io::copy(&mut stderr_pipe, &mut tail)?;
+                Ok::<Vec<u8>, std::io::Error>(tail.into_bytes())
+            });
+            let status = child.wait();
+            let stdout_result = stdout_handle.join();
+            let stderr_result = stderr_handle.join();
+            let stdout_bytes = stdout_result.map_err(|panic| {
+                std::io::Error::other(format!(
+                    "{}{panic:?}",
+                    constants_str::COMMAND_THREAD_PANICKED_SUMMARY
+                ))
+            })??;
+            let stderr_bytes = stderr_result.map_err(|panic| {
+                std::io::Error::other(format!(
+                    "{}{panic:?}",
+                    constants_str::COMMAND_THREAD_PANICKED_SUMMARY
+                ))
+            })??;
+            Ok(crate::process_output::ProcessOutput::from(
+                std::process::Output {
+                    status: status?,
+                    stdout: stdout_bytes,
+                    stderr: stderr_bytes,
+                },
+            ))
+        })
+    }
     pub fn status(&mut self) -> std::io::Result<crate::process_exit_status::ProcessExitStatus> {
         self.inner
             .status()
@@ -58,6 +111,27 @@ impl ToolCommand {
 }
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn test_bounded_output_retains_recent_process_bytes() {
+        let mut command = super::ToolCommand::new(crate::tool_program_ref::ToolProgramRef::from(
+            constants_str::PRINTF,
+        ));
+        let _command = command.arg(crate::tool_arg_ref::ToolArgRef::from(
+            constants_str::SECRET_VALUE,
+        ));
+        let result = command.bounded_output(crate::tool_output_limit::ToolOutputLimit::from(
+            constants_usize::THREE,
+        ));
+        assert!(result.is_ok_and(|output| {
+            output.status.success()
+                && constants_str::SECRET_VALUE
+                    .as_bytes()
+                    .get(constants_str::SECRET_VALUE.len() - constants_usize::THREE..)
+                    .is_some_and(|expected| output.stdout.as_slice() == expected)
+                && output.stderr.is_empty()
+        }));
+    }
+
     #[test]
     fn test_debug_redacts_arguments() {
         let mut command = super::ToolCommand::new(crate::tool_program_ref::ToolProgramRef::from(

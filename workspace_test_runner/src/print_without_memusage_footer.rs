@@ -6,10 +6,9 @@ pub(crate) fn print_without_memusage_footer(
             macro_helpers::tool_ansi_text_ref::ToolAnsiTextRef::from(stderr_text_ref.get()),
         ),
     );
-    clean
-        .as_ref()
+    crate::memusage_program_text::memusage_program_text(&clean)
+        .get()
         .lines()
-        .take_while(|line| !line.contains(constants_str::MEMORY_USAGE_SUMMARY))
         .filter(|line| !line.trim().is_empty())
         .try_for_each(|line| {
             macro_helpers::tool_console_stream::ToolConsoleStream::StandardError.write(

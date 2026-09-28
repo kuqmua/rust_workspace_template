@@ -15,18 +15,18 @@ fn test_validates_and_converts_project_names() {
     let valid = crate::project_name_ref::ProjectNameRef::from(constants_str::VALUE_F9EA74B8);
     crate::naming_validate_project_name::naming_validate_project_name(valid)
         .expect(constants_str::DIAGNOSTIC_96DE3A80);
-    assert_eq!(
-        crate::naming_kebab_case::naming_kebab_case(valid).as_ref(),
-        constants_str::VALUE_77A8A329
-    );
-    assert_eq!(
-        crate::naming_title_case::naming_title_case(valid).as_ref(),
-        constants_str::VALUE_3EEF5CDE
-    );
-    assert_eq!(
-        crate::naming_upper_camel_case::naming_upper_camel_case(valid).as_ref(),
-        constants_str::VALUE_6B0B0F05
-    );
+    assert!(matches!(
+        crate::naming_kebab_case::naming_kebab_case(valid),
+        Ok(value) if value.as_ref() == constants_str::VALUE_77A8A329
+    ));
+    assert!(matches!(
+        crate::naming_title_case::naming_title_case(valid),
+        Ok(value) if value.as_ref() == constants_str::VALUE_3EEF5CDE
+    ));
+    assert!(matches!(
+        crate::naming_upper_camel_case::naming_upper_camel_case(valid),
+        Ok(value) if value.as_ref() == constants_str::VALUE_6B0B0F05
+    ));
     assert!(
         crate::naming_validate_project_name::naming_validate_project_name(
             crate::project_name_ref::ProjectNameRef::from(constants_str::VALUE_4F059BD8)
@@ -192,7 +192,7 @@ fn test_service_scaffold_registers_all_artifacts() {
         {
             return Err(crate::scaffold_error::ScaffoldError::ServiceExists);
         }
-        let kebab = crate::naming_kebab_case::naming_kebab_case(service_name);
+        let kebab = crate::naming_kebab_case::naming_kebab_case(service_name)?;
         let upper_snake = service.to_ascii_uppercase();
         let replacements = [
             (
@@ -209,7 +209,7 @@ fn test_service_scaffold_registers_all_artifacts() {
             ),
             (
                 constants_str::WORKSPACE_SCAFFOLD_NOTIFICATION_TITLE,
-                crate::naming_upper_camel_case::naming_upper_camel_case(service_name)
+                crate::naming_upper_camel_case::naming_upper_camel_case(service_name)?
                     .as_ref()
                     .to_owned(),
             ),

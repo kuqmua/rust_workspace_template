@@ -199,6 +199,29 @@ fn test_disk_cache_budget_evicts_oldest_entries_first() {
     assert_eq!(plan.as_ref(), &[old_path]);
 }
 
+#[test]
+fn test_disk_cache_budget_evicts_when_projected_size_overflows() {
+    let result = crate::storage_relative_path_buf::StorageRelativePathBuf::try_from(
+        std::path::PathBuf::from(constants_str::TEST_DISK_CACHE_OLD_PATH),
+    )
+    .map(|old_path| {
+        let entries = [crate::disk_cache_entry::DiskCacheEntry::new(
+            old_path.clone(),
+            u64::MAX.into(),
+            std::time::UNIX_EPOCH.into(),
+        )];
+        crate::plan_disk_cache_eviction::plan_disk_cache_eviction(
+            &entries,
+            u64::MAX.into(),
+            1u64.into(),
+        )
+        .map(|plan| (old_path, plan))
+    });
+    assert!(
+        matches!(result, Ok(Ok((old_path, plan))) if plan.as_ref() == std::slice::from_ref(&old_path))
+    );
+}
+
 #[tokio::test]
 async fn test_staged_upload_delete_and_rollback_preserve_transaction_boundaries() {
     let root_path = std::env::temp_dir().join(constants_str::TEST_FILE_STORAGE_DIRECTORY);

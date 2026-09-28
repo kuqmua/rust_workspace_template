@@ -120,3 +120,14 @@ fn test_oversized_environment_example_is_rejected() {
     ));
     std::fs::remove_dir_all(root).expect(constants_str::DIAGNOSTIC_7D83384C);
 }
+#[test]
+fn test_non_string_workspace_member_is_rejected() {
+    let value = toml::Value::Integer(1);
+    let parsed = crate::workspace_member::WorkspaceMember::try_from(
+        crate::toml_member_value::TomlMemberValue::from(&value),
+    );
+    assert!(matches!(
+        parsed,
+        Err(crate::initialize_error::InitializeError::InvalidMemberType)
+    ));
+}

@@ -1,19 +1,60 @@
 #[test]
 fn test_common_routes_tests() {
-    assert!(
+    assert!(matches!(
         crate::health_report_response::health_report_response(
             crate::health_report::HealthReport::liveness()
-        )
-        .is_some()
-    );
-    assert!(
+        ),
+        Ok(_response)
+    ));
+    assert!(matches!(
         crate::health_report_response::health_report_response(
             crate::health_report::HealthReport::readiness(
                 crate::health_database_available::HealthDatabaseAvailable::from(false),
             )
-        )
-        .is_none()
+        ),
+        Err(crate::health_error::HealthError::Unavailable(_report))
+    ));
+}
+
+#[tokio::test]
+async fn test_degraded_health_response_matches_route_contract() {
+    let health_report = crate::health_report::HealthReport::readiness(
+        crate::health_database_available::HealthDatabaseAvailable::from(false),
     );
+    let result = crate::health_report_response::health_report_response(health_report.clone());
+    assert!(result.is_err());
+    let Err(error) = result else {
+        return;
+    };
+    let response = axum::response::IntoResponse::into_response(error);
+    assert_eq!(
+        response.status(),
+        axum::http::StatusCode::SERVICE_UNAVAILABLE
+    );
+    let body = axum::body::to_bytes(response.into_body(), constants_usize::VALUE_1_048_576).await;
+    assert!(body.is_ok());
+    let Ok(body_bytes) = body else {
+        return;
+    };
+    assert!(matches!(
+        serde_json::from_slice::<crate::health_report::HealthReport>(&body_bytes),
+        Ok(report) if report == health_report
+    ));
+}
+
+#[tokio::test]
+async fn test_unavailable_health_check_has_empty_response_body() {
+    let response = axum::response::IntoResponse::into_response(
+        crate::health_check_error::HealthCheckError::Unavailable,
+    );
+    assert_eq!(
+        response.status(),
+        axum::http::StatusCode::SERVICE_UNAVAILABLE
+    );
+    assert!(matches!(
+        axum::body::to_bytes(response.into_body(), constants_usize::VALUE_1_048_576).await,
+        Ok(body) if body.is_empty()
+    ));
 }
 
 #[test]

@@ -30,7 +30,9 @@ pub(crate) fn run_commands(
                         macro_helpers::tool_program_ref::ToolProgramRef::from(*program),
                     )
                     .args(macro_helpers::tool_args_ref::ToolArgsRef::from(*args))
-                    .output();
+                    .bounded_output(macro_helpers::tool_output_limit::ToolOutputLimit::from(
+                        constants_usize::VALUE_1_048_576 * constants_usize::TWO,
+                    ));
                     let command_index = crate::command_index::CommandIndex::from(index);
                     let mut command_failures_vec_deque = crate::command_failures_vec_deque::CommandFailuresVecDeque::default();
                     let (status_text, log_text) = match output {

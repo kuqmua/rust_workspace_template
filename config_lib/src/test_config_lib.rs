@@ -30,6 +30,10 @@ enum ParseRequiredEnvVarTestError {
     Parse {
         parse: &'static str,
     },
+    ValueTooLong {
+        error: crate::config_lib_string_wrapper_try_from_string_error::ConfigLibStringWrapperTryFromStringError,
+        env_var_name: crate::env_var_name::EnvVarName,
+    },
 }
 fn parse_env<T>(str: &str) -> Result<T, T::Error>
 where
@@ -76,6 +80,25 @@ fn test_cors_allow_origin_parsing_returns_error_for_empty_string() {
         crate::domain_types::CorsAllowOrigin,
         crate::domain_types::TryFromStdEnvVarOkCorsAllowOriginError::IsEmpty { .. }
     );
+}
+#[test]
+fn test_generated_non_empty_config_text_rejects_oversized_direct_string() {
+    let oversized = constants_str::TEST_JWT_SECRET_CHARACTER_A.repeat(
+        crate::config_lib_string_wrapper_max_len::CONFIG_LIB_STRING_WRAPPER_MAX_LEN
+            + constants_usize::ONE,
+    );
+    assert!(matches!(
+        crate::domain_types::CorsAllowOrigin::try_from(oversized.clone()),
+        Err(crate::domain_types::TryFromStdEnvVarOkCorsAllowOriginError::TooLong)
+    ));
+    assert!(matches!(
+        crate::domain_types::TrustedProxyRangesText::try_from(oversized.clone()),
+        Err(crate::domain_types::TryFromStdEnvVarOkTrustedProxyRangesTextError::TooLong)
+    ));
+    assert!(matches!(
+        crate::domain_types::StartingCheckLink::try_from(oversized),
+        Err(crate::domain_types::TryFromStdEnvVarOkStartingCheckLinkError::TooLong)
+    ));
 }
 #[test]
 fn test_database_url_parsing_returns_value_for_non_empty_input() {
@@ -314,6 +337,10 @@ fn test_parse_required_env_var_parses_value_when_env_var_exists() {
     let parsed = crate::parse_required_env_var::parse_required_env_var(
         crate::env_var_name_ref::EnvVarNameRef::from(constants_str::PATH_ALT),
         |_std_env_var_error, env_var_name| ParseRequiredEnvVarTestError::EnvVar { env_var_name },
+        |error, env_var_name| ParseRequiredEnvVarTestError::ValueTooLong {
+            error,
+            env_var_name,
+        },
         |v| Ok::<_, &'static str>(v.len()),
         |parse| ParseRequiredEnvVarTestError::Parse { parse },
     );
@@ -326,6 +353,10 @@ fn test_parse_required_env_var_maps_missing_env_var_error() {
             constants_str::CONFIG_LIB_TEST_ENV_VAR_4E8A7F21,
         ),
         |_std_env_var_error, env_var_name| ParseRequiredEnvVarTestError::EnvVar { env_var_name },
+        |error, env_var_name| ParseRequiredEnvVarTestError::ValueTooLong {
+            error,
+            env_var_name,
+        },
         Ok::<_, &'static str>,
         |parse| ParseRequiredEnvVarTestError::Parse { parse },
     );
@@ -344,6 +375,10 @@ fn test_parse_required_env_var_maps_parse_error() {
     let parsed = crate::parse_required_env_var::parse_required_env_var(
         crate::env_var_name_ref::EnvVarNameRef::from(constants_str::PATH_ALT),
         |_std_env_var_error, env_var_name| ParseRequiredEnvVarTestError::EnvVar { env_var_name },
+        |error, env_var_name| ParseRequiredEnvVarTestError::ValueTooLong {
+            error,
+            env_var_name,
+        },
         |_v| Err::<(), _>(constants_str::PARSE_FAILED),
         |parse| ParseRequiredEnvVarTestError::Parse { parse },
     );
@@ -353,4 +388,38 @@ fn test_parse_required_env_var_maps_parse_error() {
             parse: constants_str::PARSE_FAILED
         })
     );
+}
+#[test]
+fn test_parse_required_env_var_rejects_oversized_value_before_parsing() {
+    let maximum_length =
+        crate::config_lib_string_wrapper_max_len::CONFIG_LIB_STRING_WRAPPER_MAX_LEN;
+    let mut parse_called = false;
+    let parsed = crate::parse_required_env_var_value::parse_required_env_var_value(
+        crate::std_env_var_ok::StdEnvVarOk::try_from(
+            constants_str::TEST_JWT_SECRET_CHARACTER_A
+                .repeat(maximum_length + constants_usize::ONE),
+        ),
+        crate::env_var_name_ref::EnvVarNameRef::from(constants_str::PATH_ALT),
+        |error, env_var_name| ParseRequiredEnvVarTestError::ValueTooLong {
+            error,
+            env_var_name,
+        },
+        |_value| {
+            parse_called = true;
+            Ok::<_, &'static str>(())
+        },
+        |parse| ParseRequiredEnvVarTestError::Parse { parse },
+    );
+    assert_eq!(
+        parsed,
+        Err(ParseRequiredEnvVarTestError::ValueTooLong {
+            error: crate::config_lib_string_wrapper_try_from_string_error::ConfigLibStringWrapperTryFromStringError::TooLong {
+                len: maximum_length + constants_usize::ONE,
+                max: maximum_length,
+            },
+            env_var_name: crate::env_var_name::EnvVarName::try_from(constants_str::PATH_ALT.to_owned())
+                .unwrap_or_else(crate::env_var_name::EnvVarName::from),
+        })
+    );
+    assert!(!parse_called);
 }

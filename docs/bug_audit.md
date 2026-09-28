@@ -2,7 +2,7 @@
 
 Scope: every workspace package and Rust source module. Inventory date: 2026-09-28.
 
-Inventory: 191 packages; 3202 Rust source files.
+Inventory: 191 packages; 3210 Rust source files.
 
 ## Status definitions
 
@@ -64,6 +64,40 @@ Passing workspace tests and policy checks does not establish complete semantic c
 | A47 | Fixed and verified | pg_crud_where_filters_generate_src/src/emit_generate_where_filters.rs | Generated PgTypeWhereIn::query_bind used a `for` loop over values, contrary to repository generated-code policy. It now uses iterator `try_for_each`, retaining value order and short-circuiting with the same typed bind error. Full Clippy, all 306 code-style tests, workspace tests and formatting checks pass. Evidence: target/audit_tmp/in_bind_iterator_clippy.log, in_bind_iterator_static.log and in_bind_iterator_workspace.log. This was a policy defect, not a demonstrated runtime bug. |
 | A48 | Fixed and verified | frontend_contract_validation/src/validate_openapi_contract.rs | The validator normalized HTTP methods before inserting them into a map, so a document with `GET` and `get` for the same path silently discarded one operation and could pass route validation. A regression reproduced acceptance before the fix. A duplicate now returns the typed DuplicateOperation error with its method and path. The regression, full Clippy, all 306 code-style tests and workspace tests pass. Evidence: target/audit_tmp/openapi_duplicate_before.log, openapi_duplicate_after.log, openapi_duplicate_clippy.log, openapi_duplicate_static.log and openapi_duplicate_workspace.log. |
 | A49 | Fixed and verified | frontend_contract_validation/src/openapi_schema_references.rs | A valid nested JSON Pointer such as `#/components/schemas/Item/items` was treated as a component named `Item/items` and rejected. The collector now resolves the full local pointer and decodes `~0` and `~1` in the component name, while retaining its bounded reference set. Regressions cover nested targets and an escaped `/` in a schema name; the nested case failed before and passes after. Full Clippy, all 306 code-style tests and workspace tests pass. OpenAPI and JSON Pointer references: https://spec.openapis.org/oas/v3.1.0 and https://www.rfc-editor.org/rfc/rfc6901. Evidence: target/audit_tmp/openapi_nested_ref_before.log, openapi_nested_ref_after.log, openapi_nested_ref_clippy.log, openapi_nested_ref_static.log and openapi_nested_ref_workspace.log. External URI references remain outside this local-reference validator's scope. |
+| A50 | Fixed and verified | file_storage/src/plan_disk_cache_eviction.rs | Adding the current cache size and incoming size could overflow `u64` before eviction was planned, even when evicting an entry would meet the budget. The planner now compares the current size with the budget remaining after the incoming size. A regression uses a `u64::MAX` existing entry and a one-byte incoming entry. Full Clippy, all 306 code-style tests and workspace tests pass. |
+| A51 | Fixed and verified | frontend_contract_validation/src/validate_openapi_contract.rs | A nonobject OpenAPI path item was silently skipped because `as_object()` returned `None` and the iterator was empty. The existing `test_non_object_path_item_is_rejected` failed before the fix and passes now; the validator returns its existing typed `InvalidPathItem` error. Full Clippy, all 306 code-style tests and workspace tests pass. |
+| A52 | Fixed and verified | text_policy/src/validate_password_policy.rs | The policy said passwords must not contain whitespace, but checked only ASCII whitespace bytes and accepted a nonbreaking space. A deterministic regression failed with `Ok(())` before the fix and passes after the validator checks Unicode whitespace characters. All five `text_policy` unit tests, full Clippy, all 306 code-style tests and workspace tests pass. |
+| A53 | Fixed and verified | text_policy/src/validate_password_policy.rs | Administrator password limits are character counts, but the shared validator used UTF-8 byte lengths. A regression reproduced acceptance of an 11-character password with 12 bytes and covers acceptance of a valid 1,024-character password with more than 1,024 bytes. Length checks now count characters, matching the administrator contract wrapper. All six `text_policy` unit tests, full Clippy, all 306 code-style tests and workspace tests pass. |
+| A54 | Fixed and verified | bounded_types/src/bounded_string.rs | Schemars emitted an unconstrained string schema for bounded strings. Regressions failed before the fix for character minimum/maximum and byte minimum/maximum metadata. Character-counted strings now publish standard length bounds; byte-counted strings publish the same byte-bound extensions as the existing OpenAPI schema and omit the maximum extension for unbounded values. All 38 bounded-types tests, full Clippy, all 306 code-style tests and workspace tests pass. |
+| A55 | Fixed and verified | common_routes/src/health_report_response.rs | The health and readiness route contracts declare a HealthReport for HTTP 503, but unavailable database responses emitted an ApiProblem document and discarded the degraded component report. The error now carries the HealthReport and serializes it with status 503. A deterministic response regression checks status and decoded report. Full Clippy, all 306 code-style tests and workspace tests pass. |
+| A56 | Fixed and verified | common_routes/src/health_check_error.rs | The health-check route declares an empty HTTP 503 response, but the error emitted a nonempty ApiProblem document. A deterministic regression failed on the body before the fix and passes after the error returns status only. Full Clippy, all 306 code-style tests and workspace tests pass. Evidence: target/audit_tmp/a56_style.log and a56_workspace.log. |
+| A57 | Candidate | file_storage/src/safe_file_storage.rs | When an operation and its staging cleanup both fail, several branches return only the cleanup I/O error, losing the original operation failure. The existing AtomicReplaceAndCleanup variant is unused. A deterministic dual-failure reproduction and error-contract review are needed before changing behavior. |
+| A58 | Fixed and verified | config_lib/src/parse_required_env_var.rs | Oversized environment values previously became validation error text that was passed to the parser. The helper now returns a typed length error with the field name, and the generated configuration error carries it. A deterministic regression proves that an oversized value returns the original length error without calling the parser. Focused config tests, full Clippy, all 306 code-style tests, and workspace tests pass. The public helper signature and generated config error enum intentionally add a length-error mapping path. |
+| A59 | Fixed and verified | config_lib/src/domain_types.rs | Any tracing format other than `json` silently became `text`, allowing typos such as `jsno` to pass configuration parsing. The parser now accepts only `json` and `text`, retains case-insensitive matching, and returns a typed error for unknown values. A deterministic test covers both valid values, uppercase JSON, and an invalid value. The generated notification-service descriptor test, full Clippy, all 306 code-style tests, and workspace tests pass; workspace evidence is in `target/audit_tmp/a59_workspace.log`. |
+| A60 | Fixed and verified | location_lib/src/location.rs | An overlong file path supplied to `Location::new` failed bounded conversion, then stored the validation error text as the location file. The constructor now retains a bounded prefix of the original path through `From<LocationFileRef>`. A deterministic regression covers an oversized path and checks its original prefix and bounded length. Full Clippy, all 306 code-style tests, and workspace tests pass; evidence is in `target/audit_tmp/a60_clippy.log`, `a60_style.log`, and `a60_workspace.log`. |
+| A61 | Fixed and verified | init_env_files/src/initialize.rs | The initializer used `filter_map(toml::Value::as_str)` on the workspace members array, silently skipping non-string entries. It now validates each member through a typed TOML wrapper and returns `InvalidMemberType` for a non-string entry. A deterministic conversion regression covers a numeric member. Full Clippy, all 306 code-style tests, and workspace tests pass; evidence is in `target/audit_tmp/a61_clippy.log`, `a61_style.log`, and `a61_workspace.log`. |
+| A62 | Candidate | proc_macro_location_bang/src/lib.rs | The `location!` proc macro drops its input token stream and expands normally, so unexpected arguments are accepted silently. A compile-time rejection regression is needed; the entrypoint crate has no existing compile-fail harness or shared implementation dependency, and adding dependencies is outside the current instructions. |
+| A63 | Fixed and verified | proc_macro_config_lib_shared/src/lib.rs | The shared nonempty config-text generator emitted raw `String` fields and its direct `TryFrom<String>` accepted arbitrary length, bypassing the workspace configuration text bound. Generated wrappers now store `BoundedString` and return `TooLong` for values above the shared limit. The related `ServerConfig` provider returns the bounded field type. A deterministic regression checks all three generated config text types. Full Clippy, all 306 code-style tests, and workspace tests pass; evidence is in `target/audit_tmp/a63_clippy.log`, `a63_style.log`, and `a63_workspace.log`. |
+| A64 | Fixed and verified | workspace_scaffold/src/template_fs_replace_file.rs | Template replacement treated every bounded read failure as a binary file and returned success, hiding missing files and oversized templates. It now skips only invalid UTF-8 and propagates other read failures. A deterministic missing-file regression covers the I/O error path. Full Clippy, code-style tests, and workspace tests pass; evidence is in `target/audit_tmp/a64_clippy.log`, `a64_style.log`, and `a64_workspace.log`. |
+| A65 | Fixed and verified | workspace_scaffold/src/synchronize_deployment_projections.rs | Deployment synchronization validated catalog path components only after it had begun updating generated files. A regression with a parent-directory component failed before the fix because projection handling ran first. Path validation now runs immediately after catalog parsing and before all projection reads and writes. Full Clippy, code-style tests, and workspace tests pass; evidence is in `target/audit_tmp/a65_clippy.log`, `a65_style.log`, and `a65_workspace.log`. |
+| A66 | Fixed and verified | workspace_scaffold/src/template_fs_copy_template_tree.rs | Template copying followed symlinked files and directories from the template source. A symlink could copy content outside the template tree or recurse into an ancestor. The copier now rejects symlinked source directories and entries; a deterministic Unix regression covers file and directory links. Full Clippy, code-style tests, and workspace tests pass; evidence is in `target/audit_tmp/a66_clippy.log`, `a66_style.log`, and `a66_workspace.log`. |
+| A67 | Fixed and verified | workspace_scaffold/src/synchronize_generated_file.rs | Generated-file synchronization accepted duplicate begin and end markers when both blocks already contained the expected text, reporting success while leaving duplicate generated sections. A regression failed before the fix. The synchronizer now requires exactly one nonempty begin marker and one nonempty end marker. Full Clippy, code-style tests, and workspace tests pass; evidence is in `target/audit_tmp/a67_clippy.log`, `a67_style.log`, and `a67_workspace.log`. |
+| A68 | Fixed and verified | workspace_scaffold/src/service_catalog_parse.rs | Invalid `port` and `release` values after valid assignments were silently ignored, so malformed service catalogs passed parsing. A regression failed before the fix. Recognized numeric and boolean assignments now return `Catalog` on parse failure. Full Clippy, code-style tests, and workspace tests pass; evidence is in `target/audit_tmp/a68_clippy.log`, `a68_style.log`, and `a68_workspace.log`. |
+| A69 | Fixed and verified | workspace_scaffold/src/service_catalog_string_value.rs | The shared string-field parser returned `None` for unquoted assignments, letting a malformed field after an earlier valid value pass catalog parsing. An end-to-end catalog regression failed before the fix. Recognized assignments now return `Catalog` unless their values are quoted. Full Clippy, code-style tests, and workspace tests pass; evidence is in `target/audit_tmp/a69_clippy.log`, `a69_style.log`, and `a69_workspace.log`. |
+| A70 | Fixed and verified | workspace_scaffold/src/service_catalog_parse.rs | The service catalog parser silently overwrote duplicate fields, accepting catalogs with repeated keys and using the last value. A regression failed before the fix; its final form covers all nine recognized fields. Every recognized assignment now rejects an existing value with `Catalog`. Full Clippy, code-style tests, and workspace tests pass; evidence is in `target/audit_tmp/a70_clippy.log`, `a70_style.log`, and `a70_workspace.log`. |
+| A71 | Fixed and verified | workspace_scaffold/src/service_catalog_parse.rs | The parser ignored unknown nonempty lines before and inside service entries, allowing misspelled or unsupported catalog keys to pass. A regression failed before the fix for both positions. The parser now permits blank lines and comments and rejects other unrecognized lines with `Catalog`. Full Clippy, code-style tests, and workspace tests pass; evidence is in `target/audit_tmp/a71_clippy.log`, `a71_style.log`, and `a71_workspace.log`. |
+| A72 | Fixed and verified | workspace_scaffold/src/template_fs_replace_file.rs | Sequential template replacements also rewrote text inserted by earlier replacements. A regression failed before the fix: a repository URL containing the project template token was changed by the later project-name replacement. Replacements now scan only the original template text and copy inserted values verbatim. An empty-pattern regression covers the required progress guard. Full Clippy, code-style tests, and workspace tests pass; evidence is in `target/audit_tmp/a72_clippy.log`, `a72_style.log`, and `a72_workspace.log`. |
+| A73 | Fixed and verified | workspace_scaffold/src/service_catalog_string_value.rs | Quoted service-catalog values retained TOML escapes literally, so a value such as `ser\u0076er` reached projections with the wrong name. Focused regressions failed before the fix. Single-line basic-string escapes are now decoded; invalid escapes, control characters, and unescaped quotes are rejected. The parser integration regression and all 26 scaffold tests pass. Formatting, full Clippy, code-style tests, and workspace tests pass; evidence is in `target/audit_tmp/a73_clippy.log`, `a73_style.log`, and `a73_workspace.log`. |
+| A74 | Fixed and verified | workspace_scaffold/src/naming_validate_project_name.rs | Project and service names beginning with a digit passed validation, but the pinned Cargo toolchain rejects such package names. A local `cargo new --lib --name 1foo` probe and a failing validator regression confirm the mismatch. Validation now requires a lowercase ASCII letter first, and the CLI error text states the rule. Full Clippy, code-style tests, and workspace tests pass; evidence is in `target/audit_tmp/a74_clippy.log`, `a74_style.log`, and `a74_workspace.log`. |
+| A75 | Fixed and verified | workspace_scaffold/src/main.rs | The CLI duplicated a test-only URL validator that accepted a hostless URL with a path, such as `https:///notification_service`. A focused regression failed before the fix; the bare `https://` form was already rejected by the trailing-slash rule. The validator now checks for a host and the CLI calls it directly. Full Clippy, code-style tests, and workspace tests pass; evidence is in `target/audit_tmp/a75_clippy.log`, `a75_style.log`, and `a75_workspace.log`. |
+| A76 | Fixed and verified | workspace_scaffold/src/naming_validate_project_name.rs | Validated project names had no length limit, so overlong names could reach bounded conversion helpers, which previously returned their validation error text as the generated name. A validator regression failed before the fix. Validation now enforces the scaffold text bound, and all name conversion helpers return `ProjectName` on overflow; a regression covers the validator and all three conversion forms. Full Clippy, code-style tests, and workspace tests pass; evidence is in `target/audit_tmp/a76_clippy.log`, `a76_style.log`, and `a76_workspace.log`. |
+| A77 | Fixed and verified | workspace_scaffold/src/template_fs_insert_once.rs | Marker insertion returned success whenever a replacement already appeared anywhere in the file, leaving another marker unchanged. A regression failed before the fix. Insertion now searches outside existing replacement spans and keeps repeated calls idempotent; tests cover both cases and an empty marker. Full Clippy, code-style tests, and workspace tests pass; evidence is in `target/audit_tmp/a77_clippy.log`, `a77_style.log`, and `a77_workspace.log`. |
+| A78 | Fixed and verified | workspace_scaffold/src/service_catalog_parse.rs | The service catalog accepted port zero even though service scaffolding rejects it. A catalog regression failed before the fix. Port parsing now returns `Catalog` for zero. Full Clippy, code-style tests, and workspace tests pass; evidence is in `target/audit_tmp/a78_clippy.log`, `a78_style.log`, and `a78_workspace.log`. |
+| A79 | Fixed and verified | workspace_test_runner/src/check_tool_available.rs | Tool availability used `Path::exists`, so an existing directory was reported as a tool; the memusage branches could also try to load a directory at their configured path. A directory regression failed before the initial fix. The availability helper requires a regular file, and both memusage call sites now use that helper. The runner's 17 unit tests, formatting, Clippy, code-style suite, and workspace tests pass after this follow-up. |
+| A80 | Fixed and verified | workspace_test_runner/src/run_commands.rs | `Command::output` buffered unbounded stdout and stderr; an output above the 16 MiB `CommandText` limit became conversion-error text in the report. The shared command owner now drains both pipes concurrently and retains the latest 2 MiB per stream, bounding capture memory and keeping failure output near the end. Tail-buffer, process, and worst-case invalid UTF-8 regressions pass. The runner now prints and reports retained output for oversized commands. Full Clippy, code-style tests, and workspace tests pass; evidence is in `target/audit_tmp/a80_clippy.log`, `a80_style.log`, and `a80_workspace.log`. |
+| A81 | Fixed and verified | workspace_test_runner/src/failed_test_names.rs | Failed-test extraction parsed raw subprocess text, so ANSI color codes before a failure line hid that test name in the summary. A colored-log regression failed before the fix. The parser now removes ANSI sequences with the existing runner helper before extracting names. Full Clippy, code-style tests, and workspace tests pass; evidence is in `target/audit_tmp/a81_clippy.log`, `a81_style.log`, and `a81_workspace.log`. |
+| A82 | Fixed and verified | workspace_test_runner/src/main.rs | An oversized CLI mode was converted into a bounded-string diagnostic, then reported as an unknown mode instead of a length error. The binary regression failed before the fix and now checks the direct length error with a nonzero exit and no unknown-mode fallback. All runner tests, full Clippy, code-style tests, and workspace tests pass; evidence is in `target/audit_tmp/a82_clippy.log`, `a82_style.log`, and `a82_workspace.log`. |
+| A83 | Fixed and verified | workspace_test_runner/src/memusage_summary_text.rs | Memusage parsers scanned all captured stderr, so program text before the tool footer could be reported as heap or allocation measurements. A spoofed-prefix regression failed before the fix. Both parsers now read only after the final `Memory usage summary:` marker, including values on the marker line; missing-footer input returns `unavailable`. The real installed tool's footer format was inspected locally. Full Clippy, code-style tests, and workspace tests pass; evidence is in `target/audit_tmp/a83_clippy.log`, `a83_style.log`, and `a83_workspace.log`. |
 
 Candidate rows are not confirmed bugs. Confirmed queued findings have a reproduction and await a fix; resolve each candidate with a reproduction or a documented dismissal.
 
@@ -122,28 +156,28 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 
 | Source | Semantic review |
 | --- | --- |
-| `administrator_account_initialization_and_password_reset/src/admin_command.rs` | Pending |
-| `administrator_account_initialization_and_password_reset/src/administrator_account_command_error.rs` | Pending |
-| `administrator_account_initialization_and_password_reset/src/administrator_account_command_exit_code.rs` | Pending |
-| `administrator_account_initialization_and_password_reset/src/administrator_account_command_status.rs` | Pending |
-| `administrator_account_initialization_and_password_reset/src/administrator_command_args_error.rs` | Pending |
-| `administrator_account_initialization_and_password_reset/src/administrator_password_file_path_buf.rs` | Pending |
-| `administrator_account_initialization_and_password_reset/src/error_status.rs` | Pending |
-| `administrator_account_initialization_and_password_reset/src/initial_administrator_creation_args.rs` | Pending |
-| `administrator_account_initialization_and_password_reset/src/main.rs` | Pending |
-| `administrator_account_initialization_and_password_reset/src/password_from_bytes.rs` | Pending |
-| `administrator_account_initialization_and_password_reset/src/password_from_file.rs` | Pending |
-| `administrator_account_initialization_and_password_reset/src/password_reset_args.rs` | Pending |
-| `administrator_account_initialization_and_password_reset/src/sqlx_administrator_database_connection_error.rs` | Pending |
+| `administrator_account_initialization_and_password_reset/src/admin_command.rs` | Reviewed: command variants carry the matching validated arguments. |
+| `administrator_account_initialization_and_password_reset/src/administrator_account_command_error.rs` | Reviewed: command failures retain distinct operation errors. |
+| `administrator_account_initialization_and_password_reset/src/administrator_account_command_exit_code.rs` | Reviewed: termination forwards the selected process exit code. |
+| `administrator_account_initialization_and_password_reset/src/administrator_account_command_status.rs` | Reviewed: status wrapper preserves the exit code. |
+| `administrator_account_initialization_and_password_reset/src/administrator_command_args_error.rs` | Reviewed: usage and invalid argument errors are distinct. |
+| `administrator_account_initialization_and_password_reset/src/administrator_password_file_path_buf.rs` | Reviewed: wrapper exposes a typed borrowed path. |
+| `administrator_account_initialization_and_password_reset/src/error_status.rs` | Reviewed: tests cover usage and already initialized status mapping. |
+| `administrator_account_initialization_and_password_reset/src/initial_administrator_creation_args.rs` | Reviewed: ownership transfer preserves argument order. |
+| `administrator_account_initialization_and_password_reset/src/main.rs` | Reviewed: command parsing, startup, operation dispatch, and status mapping are consistent. |
+| `administrator_account_initialization_and_password_reset/src/password_from_bytes.rs` | Reviewed: test helper applies the same bounded UTF-8 and line ending policy. |
+| `administrator_account_initialization_and_password_reset/src/password_from_file.rs` | Reviewed: bounded read and one optional line ending precede password validation. |
+| `administrator_account_initialization_and_password_reset/src/password_reset_args.rs` | Reviewed: ownership transfer preserves argument order. |
+| `administrator_account_initialization_and_password_reset/src/sqlx_administrator_database_connection_error.rs` | Reviewed: database connection error retains its source. |
 
 ### app_state
 
 | Source | Semantic review |
 | --- | --- |
-| `app_state/src/lib.rs` | Pending |
-| `app_state/src/sqlx_pg_pool.rs` | Pending |
-| `app_state/src/sqlx_pg_pool_provider.rs` | Pending |
-| `app_state/src/sqlx_pg_pool_ref.rs` | Pending |
+| `app_state/src/lib.rs` | Reviewed: crate root declares the three pool boundary modules without behavior or state. |
+| `app_state/src/sqlx_pg_pool.rs` | Reviewed: private pool wrapper forwards borrowing and owned construction through generated derives; Clone follows SQLx pool handle semantics. |
+| `app_state/src/sqlx_pg_pool_provider.rs` | Reviewed: provider trait returns the borrowed typed pool reference without allocation or conversion. |
+| `app_state/src/sqlx_pg_pool_ref.rs` | Reviewed: copyable borrowed pool wrapper retains the source lifetime and exposes only generated borrowing/construction. |
 
 ### bounded_string_core
 
@@ -160,20 +194,20 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 | --- | --- |
 | `bounded_types/src/bounded_b_tree_map.rs` | Reviewed: capped construction and insertion, replacement at capacity, immutable keys, removal, serialization and visitor delegation; no raw mutable map access escapes. |
 | `bounded_types/src/bounded_b_tree_map_visitor_phantom_data.rs` | Reviewed: bounded entry count including duplicate keys, stop before decoding overflow values, bounded HashMap preallocation and preserved deserialization errors. |
-| `bounded_types/src/bounded_chars_string.rs` | Pending |
+| `bounded_types/src/bounded_chars_string.rs` | Reviewed: validated construction, deserialization and OpenAPI bounds count Unicode characters; invalid generic bounds fail before conversion. |
 | `bounded_types/src/bounded_hash_map.rs` | Reviewed: capped construction and insertion, replacement at capacity, immutable keys, removal, serialization and visitor delegation; no raw mutable map access escapes. |
 | `bounded_types/src/bounded_hash_map_visitor_phantom_data.rs` | Reviewed: bounded entry count including duplicate keys, stop before decoding overflow values, bounded HashMap preallocation and preserved deserialization errors. |
 | `bounded_types/src/bounded_len.rs` | Reviewed: typed copyable length and generated conversion, getter and display forwarding. |
-| `bounded_types/src/bounded_string.rs` | Pending |
-| `bounded_types/src/bounded_string_error.rs` | Pending |
+| `bounded_types/src/bounded_string.rs` | Reviewed: validated storage, bounded mutation, truncation and serde behavior delegate to the shared core; OpenAPI and Schemars schemas now distinguish character and byte bounds under A54. |
+| `bounded_types/src/bounded_string_error.rs` | Reviewed: typed errors retain actual and configured lengths without displaying string contents. |
 | `bounded_types/src/bounded_value_error.rs` | Reviewed: typed length errors retain configured bounds and actual lengths without displaying input values. |
 | `bounded_types/src/bounded_vec.rs` | Reviewed: min/max validation, fallible bounded growth, immutable slice dereference, unbounded-only infallible insertion, capped size-hint allocation and schema bounds. Schema composition behavior for externally overridden generic arguments was not established. |
 | `bounded_types/src/bounded_vec_visitor_phantom_data.rs` | Reviewed: invalid bounds fail before allocation, capped size-hint reservation, incremental maximum enforcement and final minimum validation. |
 | `bounded_types/src/collection_max_len.rs` | Reviewed: fixed 10,000-item collection limit; callers choose this policy explicitly. |
 | `bounded_types/src/deserialize_bounded_map.rs` | Reviewed: bounded entry count including duplicate keys, stop before decoding overflow values, bounded HashMap preallocation and preserved deserialization errors. |
-| `bounded_types/src/lib.rs` | Pending |
+| `bounded_types/src/lib.rs` | Reviewed: all source modules are declared at the root, with the test module gated by cfg(test). |
 | `bounded_types/src/serde_prealloc_max_items.rs` | Reviewed: fixed 1,024-item reservation cap; it limits initial capacity rather than final collection length. |
-| `bounded_types/src/test_bounded_types.rs` | Pending |
+| `bounded_types/src/test_bounded_types.rs` | Reviewed: deterministic tests cover bounded text, vectors, maps, deserialization limits and both schema systems, including A54 regressions. |
 | `bounded_types/src/try_from_bounded_error_text.rs` | Reviewed: A05 forwarding contract propagates Result unchanged; deterministic success and short-target tests. |
 | `bounded_types/src/validate_len.rs` | Reviewed: invalid bounds take precedence, then minimum and maximum checks, with typed lengths preserved in each failure. |
 
@@ -183,155 +217,156 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 | --- | --- |
 | `common_routes/src/arc_common_routes_app_state.rs` | Reviewed: shared state ownership, immutable provider access, structural Debug that omits the provider state, immediate state extraction and sized/trait-object Arc construction; Send/Sync comes from explicit provider bounds. |
 | `common_routes/src/axum_common_routes.rs` | Reviewed: thin Axum router ownership wrapper; generated transfers preserve router state and clone semantics. |
-| `common_routes/src/axum_health_check_status.rs` | Pending |
-| `common_routes/src/axum_http_uri.rs` | Pending |
-| `common_routes/src/axum_http_uri_ref.rs` | Pending |
-| `common_routes/src/axum_json_payload.rs` | Pending |
-| `common_routes/src/common_no_body.rs` | Pending |
+| `common_routes/src/axum_health_check_status.rs` | Reviewed: status wrapper forwards HTTP status and OK detection. |
+| `common_routes/src/axum_http_uri.rs` | Reviewed: extractor copies the request URI into a typed wrapper. |
+| `common_routes/src/axum_http_uri_ref.rs` | Reviewed: test-only borrowed URI wrapper. |
+| `common_routes/src/axum_json_payload.rs` | Reviewed: JSON response wrapper forwards Axum serialization. |
+| `common_routes/src/common_no_body.rs` | Reviewed: empty route-body marker. |
 | `common_routes/src/common_not_found_error.rs` | Reviewed: typed not-found payload remains HTTP 404; invalid commit-link configuration now produces the shared HTTP 500 API problem under A27. |
-| `common_routes/src/common_route.rs` | Pending |
-| `common_routes/src/common_route_registry.rs` | Pending |
+| `common_routes/src/common_route.rs` | Reviewed: route catalog includes all five operational and metadata routes. |
+| `common_routes/src/common_route_registry.rs` | Reviewed: registry maps each typed route to its matching handler. |
 | `common_routes/src/common_routes.rs` | Reviewed: typed-registry router and fallback URI/message construction; A27 forwards link failures into the distinct fallback error before constructing a not-found payload. |
-| `common_routes/src/common_routes_open_api.rs` | Pending |
+| `common_routes/src/common_routes_open_api.rs` | Reviewed: OpenAPI wrapper forwards the generated registry document. |
 | `common_routes/src/common_routes_parameters.rs` | Reviewed: explicit commit-link/database providers and Send/Sync bounds establish the shared state contract without hidden state. |
-| `common_routes/src/database_is_ready.rs` | Pending |
+| `common_routes/src/database_is_ready.rs` | Reviewed: bounded database probe maps SQL failure or timeout to unavailable. |
 | `common_routes/src/git_info.rs` | Reviewed: serialized commit contract stores a validated bounded GitCommitLinkCow; private construction transfers ownership and the test read compares borrowed text. |
 | `common_routes/src/git_info_response.rs` | Reviewed: A27 preserves successful JSON payloads and maps typed link-building failures to the operation-owned HTTP error. |
 | `common_routes/src/git_info_response_error.rs` | Reviewed: operation-owned thiserror enum retains the typed length failure as diagnostic context and returns the shared internal API problem without publishing that context. |
 | `common_routes/src/git_info_route.rs` | Reviewed: public read-only typed route retains its request/response contract and intentionally declares Internal errors under A27; its exact snapshot entry was reviewed. |
-| `common_routes/src/health.rs` | Pending |
-| `common_routes/src/health_check.rs` | Pending |
-| `common_routes/src/health_check_error.rs` | Pending |
-| `common_routes/src/health_check_route.rs` | Pending |
-| `common_routes/src/health_check_succeeded.rs` | Pending |
-| `common_routes/src/health_component.rs` | Pending |
-| `common_routes/src/health_component_kind.rs` | Pending |
-| `common_routes/src/health_components.rs` | Pending |
-| `common_routes/src/health_components_error.rs` | Pending |
-| `common_routes/src/health_components_max_len.rs` | Pending |
-| `common_routes/src/health_database_available.rs` | Pending |
-| `common_routes/src/health_error.rs` | Pending |
-| `common_routes/src/health_live.rs` | Pending |
-| `common_routes/src/health_live_route.rs` | Pending |
-| `common_routes/src/health_probe_timeout.rs` | Pending |
-| `common_routes/src/health_ready.rs` | Pending |
-| `common_routes/src/health_ready_route.rs` | Pending |
-| `common_routes/src/health_report.rs` | Pending |
-| `common_routes/src/health_report_response.rs` | Pending |
-| `common_routes/src/health_route.rs` | Pending |
-| `common_routes/src/health_status.rs` | Pending |
+| `common_routes/src/health.rs` | Reviewed: returns the readiness report or its typed degraded response. |
+| `common_routes/src/health_check.rs` | Reviewed: probe success maps to OK and failure to typed unavailable error. |
+| `common_routes/src/health_check_error.rs` | A56: unavailable error now matches the empty-body route contract. |
+| `common_routes/src/health_check_route.rs` | Reviewed: typed route declares an empty-body 503 response. |
+| `common_routes/src/health_check_succeeded.rs` | Reviewed: boolean wrapper preserves probe outcome. |
+| `common_routes/src/health_component.rs` | Reviewed: component stores typed kind and status. |
+| `common_routes/src/health_component_kind.rs` | Reviewed: serialized component names are stable snake case. |
+| `common_routes/src/health_components.rs` | Reviewed: construction and deserialization enforce the shared two-component maximum. |
+| `common_routes/src/health_components_error.rs` | Reviewed: oversize list has a typed error. |
+| `common_routes/src/health_components_max_len.rs` | Reviewed: two-component limit matches the report construction. |
+| `common_routes/src/health_database_available.rs` | Reviewed: availability wrapper exposes its boolean state. |
+| `common_routes/src/health_error.rs` | A55: unavailable response now emits a HealthReport with HTTP 503. |
+| `common_routes/src/health_live.rs` | Reviewed: infallible liveness handler emits an OK report. |
+| `common_routes/src/health_live_route.rs` | Reviewed: liveness contract declares only an OK report. |
+| `common_routes/src/health_probe_timeout.rs` | Reviewed: finite two-second probe deadline. |
+| `common_routes/src/health_ready.rs` | Reviewed: readiness handler forwards the report or typed unavailable response. |
+| `common_routes/src/health_ready_route.rs` | Reviewed: readiness contract declares OK and degraded report responses. |
+| `common_routes/src/health_report.rs` | Reviewed: service and database components determine liveness and readiness status. |
+| `common_routes/src/health_report_response.rs` | A55: preserves degraded report in typed error; unit regression covers serialization. |
+| `common_routes/src/health_route.rs` | Reviewed: health contract declares OK and degraded report responses. |
+| `common_routes/src/health_status.rs` | Reviewed: status enum uses stable snake-case serialization. |
 | `common_routes/src/json_response.rs` | Reviewed: typed JSON payload ownership and borrowed access; response conversion delegates once with its required explicit trait bound. |
-| `common_routes/src/lib.rs` | Pending |
-| `common_routes/src/make_git_info_payload_tests.rs` | Pending |
-| `common_routes/src/make_json_response.rs` | Pending |
-| `common_routes/src/make_no_route_message_for_suffix_tests.rs` | Pending |
-| `common_routes/src/make_no_route_message_tests.rs` | Pending |
-| `common_routes/src/make_not_found_payload_tests.rs` | Pending |
-| `common_routes/src/make_not_found_payload_with_message_tests.rs` | Pending |
-| `common_routes/src/map_health_check_status_tests.rs` | Pending |
-| `common_routes/src/no_route_message_capacity.rs` | Pending |
-| `common_routes/src/not_found_payload.rs` | Pending |
-| `common_routes/src/open_api_specification_path.rs` | Pending |
-| `common_routes/src/readiness_report.rs` | Pending |
-| `common_routes/src/test_common_routes_tests.rs` | Pending |
-| `common_routes/src/test_tests_domain_types.rs` | Pending |
-| `common_routes/src/test_tests_domain_types_health.rs` | Pending |
-| `common_routes/src/test_tests_domain_types_route_contract.rs` | Pending |
-| `common_routes/src/uri_suffix_ref.rs` | Pending |
-| `common_routes/src/uri_suffix_tests.rs` | Pending |
-| `common_routes/src/utoipa_common_routes_open_api_document.rs` | Pending |
+| `common_routes/src/lib.rs` | Reviewed: root declarations own production and test-only modules. |
+| `common_routes/src/make_git_info_payload_tests.rs` | Reviewed: test helper constructs Git metadata payload. |
+| `common_routes/src/make_json_response.rs` | Reviewed: response helper wraps a typed payload in Axum JSON. |
+| `common_routes/src/make_no_route_message_for_suffix_tests.rs` | Reviewed: test helper prefixes the URI suffix once and validates bounded text. |
+| `common_routes/src/make_no_route_message_tests.rs` | Reviewed: test helper delegates URI suffix formatting. |
+| `common_routes/src/make_not_found_payload_tests.rs` | Reviewed: test helper carries URI and commit link into the not-found payload. |
+| `common_routes/src/make_not_found_payload_with_message_tests.rs` | Reviewed: test helper constructs typed not-found fields. |
+| `common_routes/src/map_health_check_status_tests.rs` | Reviewed: test-only mapper mirrors the probe status mapping. |
+| `common_routes/src/no_route_message_capacity.rs` | Reviewed: test-only capacity wrapper. |
+| `common_routes/src/not_found_payload.rs` | Reviewed: private fields serialize the validated not-found payload. |
+| `common_routes/src/open_api_specification_path.rs` | Reviewed: static OpenAPI path wrapper. |
+| `common_routes/src/readiness_report.rs` | Reviewed: bounded database probe determines the readiness report. |
+| `common_routes/src/test_common_routes_tests.rs` | Reviewed: success and unavailable report mapping and HTTP response shape are covered. |
+| `common_routes/src/test_tests_domain_types.rs` | Reviewed: tests cover Git metadata, not-found payload, URI suffix, route responses, and provider failures. |
+| `common_routes/src/test_tests_domain_types_health.rs` | Reviewed: tests cover report state, component limit, schema, and serialization. |
+| `common_routes/src/test_tests_domain_types_route_contract.rs` | Reviewed: tests cover route mapping, path spelling, and family coverage. |
+| `common_routes/src/uri_suffix_ref.rs` | Reviewed: test-only borrowed URI suffix wrapper. |
+| `common_routes/src/uri_suffix_tests.rs` | Reviewed: test helper retains path and query when present. |
+| `common_routes/src/utoipa_common_routes_open_api_document.rs` | Reviewed: wrapper serializes the generated OpenAPI document. |
 
 ### config_lib
 
 | Source | Semantic review |
 | --- | --- |
-| `config_lib/src/admin_access_token_ttl_seconds.rs` | Pending |
-| `config_lib/src/admin_cookie_secure.rs` | Pending |
-| `config_lib/src/admin_jwt_secret.rs` | Pending |
-| `config_lib/src/admin_jwt_secret_max_count.rs` | Pending |
-| `config_lib/src/admin_jwt_secret_min_len.rs` | Pending |
-| `config_lib/src/admin_jwt_tests.rs` | Pending |
-| `config_lib/src/admin_login_failure_limit.rs` | Pending |
-| `config_lib/src/admin_password_hash_concurrency.rs` | Pending |
-| `config_lib/src/admin_refresh_token_ttl_seconds.rs` | Pending |
-| `config_lib/src/admin_session_limit.rs` | Pending |
-| `config_lib/src/admin_sign_in_rate_limit.rs` | Pending |
-| `config_lib/src/admin_swagger_enabled.rs` | Pending |
-| `config_lib/src/admin_tests.rs` | Pending |
-| `config_lib/src/admin_token_audience.rs` | Pending |
-| `config_lib/src/admin_token_issuer.rs` | Pending |
-| `config_lib/src/chrono_fixed_offset_error.rs` | Pending |
-| `config_lib/src/chrono_timezone.rs` | Pending |
-| `config_lib/src/config_example_validity.rs` | Pending |
-| `config_lib/src/config_field_descriptor.rs` | Pending |
-| `config_lib/src/config_field_example_ref.rs` | Pending |
-| `config_lib/src/config_field_requirement.rs` | Pending |
-| `config_lib/src/config_field_sensitivity.rs` | Pending |
-| `config_lib/src/config_lib_string_wrapper_max_len.rs` | Pending |
-| `config_lib/src/config_lib_string_wrapper_try_from_string_error.rs` | Pending |
-| `config_lib/src/config_parse_int_error.rs` | Pending |
-| `config_lib/src/config_rust_type_name.rs` | Pending |
-| `config_lib/src/content_security_policy.rs` | Pending |
-| `config_lib/src/content_security_policy_error.rs` | Pending |
-| `config_lib/src/domain_types.rs` | Pending |
-| `config_lib/src/env_parse_error.rs` | Pending |
-| `config_lib/src/env_var_error.rs` | Pending |
+| `config_lib/src/admin_access_token_ttl_seconds.rs` | Reviewed: conversion, bounds, and error propagation inspected; no additional defect confirmed. |
+| `config_lib/src/admin_cookie_secure.rs` | Reviewed: configuration bounds, conversions, error propagation, or test coverage inspected; no additional defect confirmed. |
+| `config_lib/src/admin_jwt_secret.rs` | Reviewed: conversion, bounds, and error propagation inspected; no additional defect confirmed. |
+| `config_lib/src/admin_jwt_secret_max_count.rs` | Reviewed: configuration bounds, conversions, error propagation, or test coverage inspected; no additional defect confirmed. |
+| `config_lib/src/admin_jwt_secret_min_len.rs` | Reviewed: configuration bounds, conversions, error propagation, or test coverage inspected; no additional defect confirmed. |
+| `config_lib/src/admin_jwt_tests.rs` | Reviewed: conversion, bounds, and error propagation inspected; no additional defect confirmed. |
+| `config_lib/src/admin_login_failure_limit.rs` | Reviewed: conversion, bounds, and error propagation inspected; no additional defect confirmed. |
+| `config_lib/src/admin_password_hash_concurrency.rs` | Reviewed: configuration bounds, conversions, error propagation, or test coverage inspected; no additional defect confirmed. |
+| `config_lib/src/admin_refresh_token_ttl_seconds.rs` | Reviewed: conversion, bounds, and error propagation inspected; no additional defect confirmed. |
+| `config_lib/src/admin_session_limit.rs` | Reviewed: conversion, bounds, and error propagation inspected; no additional defect confirmed. |
+| `config_lib/src/admin_sign_in_rate_limit.rs` | Reviewed: configuration bounds, conversions, error propagation, or test coverage inspected; no additional defect confirmed. |
+| `config_lib/src/admin_swagger_enabled.rs` | Reviewed: configuration bounds, conversions, error propagation, or test coverage inspected; no additional defect confirmed. |
+| `config_lib/src/admin_tests.rs` | Reviewed: configuration bounds, conversions, error propagation, or test coverage inspected; no additional defect confirmed. |
+| `config_lib/src/admin_token_audience.rs` | Reviewed: conversion, bounds, and error propagation inspected; no additional defect confirmed. |
+| `config_lib/src/admin_token_issuer.rs` | Reviewed: conversion, bounds, and error propagation inspected; no additional defect confirmed. |
+| `config_lib/src/chrono_fixed_offset_error.rs` | Reviewed: configuration bounds, conversions, error propagation, or test coverage inspected; no additional defect confirmed. |
+| `config_lib/src/chrono_timezone.rs` | Reviewed: conversion, bounds, and error propagation inspected; no additional defect confirmed. |
+| `config_lib/src/config_example_validity.rs` | Reviewed: configuration bounds, conversions, error propagation, or test coverage inspected; no additional defect confirmed. |
+| `config_lib/src/config_field_descriptor.rs` | Reviewed: configuration bounds, conversions, error propagation, or test coverage inspected; no additional defect confirmed. |
+| `config_lib/src/config_field_example_ref.rs` | Reviewed: configuration bounds, conversions, error propagation, or test coverage inspected; no additional defect confirmed. |
+| `config_lib/src/config_field_requirement.rs` | Reviewed: configuration bounds, conversions, error propagation, or test coverage inspected; no additional defect confirmed. |
+| `config_lib/src/config_field_sensitivity.rs` | Reviewed: configuration bounds, conversions, error propagation, or test coverage inspected; no additional defect confirmed. |
+| `config_lib/src/config_lib_string_wrapper_max_len.rs` | Reviewed: configuration bounds, conversions, error propagation, or test coverage inspected; no additional defect confirmed. |
+| `config_lib/src/config_lib_string_wrapper_try_from_string_error.rs` | Reviewed: configuration bounds, conversions, error propagation, or test coverage inspected; no additional defect confirmed. |
+| `config_lib/src/config_parse_int_error.rs` | Reviewed: configuration bounds, conversions, error propagation, or test coverage inspected; no additional defect confirmed. |
+| `config_lib/src/config_rust_type_name.rs` | Reviewed: configuration bounds, conversions, error propagation, or test coverage inspected; no additional defect confirmed. |
+| `config_lib/src/content_security_policy.rs` | Reviewed: conversion, bounds, and error propagation inspected; no additional defect confirmed. |
+| `config_lib/src/content_security_policy_error.rs` | Reviewed: configuration bounds, conversions, error propagation, or test coverage inspected; no additional defect confirmed. |
+| `config_lib/src/domain_types.rs` | Fixed: A59 rejects unknown tracing formats while preserving case-insensitive valid values. |
+| `config_lib/src/env_parse_error.rs` | Reviewed: configuration bounds, conversions, error propagation, or test coverage inspected; no additional defect confirmed. |
+| `config_lib/src/env_var_error.rs` | Reviewed: configuration bounds, conversions, error propagation, or test coverage inspected; no additional defect confirmed. |
 | `config_lib/src/env_var_name.rs` | Reviewed: bounded storage, identical byte limits and error classification; A05 removes diagnostic retries. |
-| `config_lib/src/env_var_name_ref.rs` | Pending |
-| `config_lib/src/env_var_result_var_error.rs` | Pending |
-| `config_lib/src/env_var_value_ref.rs` | Pending |
-| `config_lib/src/http_gzip_enabled.rs` | Pending |
-| `config_lib/src/http_tests.rs` | Pending |
-| `config_lib/src/i32_parse_int_error.rs` | Pending |
-| `config_lib/src/lib.rs` | Pending |
-| `config_lib/src/maximum_size_of_http_body_in_bytes.rs` | Pending |
-| `config_lib/src/maximum_size_of_http_body_in_bytes_try_from_usize_error.rs` | Pending |
-| `config_lib/src/parse_admin_positive_u64.rs` | Pending |
-| `config_lib/src/parse_admin_token_text.rs` | Pending |
-| `config_lib/src/parse_bool_error.rs` | Pending |
-| `config_lib/src/parse_context_ref.rs` | Pending |
-| `config_lib/src/parse_east_fixed_offset.rs` | Pending |
-| `config_lib/src/parse_env_var_name_ref.rs` | Pending |
-| `config_lib/src/parse_from_env_var_from_str_tests.rs` | Pending |
-| `config_lib/src/parse_from_env_var_with_tests.rs` | Pending |
-| `config_lib/src/parse_from_str_with_context_tests.rs` | Pending |
-| `config_lib/src/parse_from_str_with_error.rs` | Pending |
-| `config_lib/src/parse_pg_pool_non_zero_seconds.rs` | Pending |
-| `config_lib/src/parse_required_env_var.rs` | Pending |
-| `config_lib/src/pg_pool_acquire_timeout_seconds.rs` | Pending |
-| `config_lib/src/pg_pool_config_parse_error.rs` | Pending |
-| `config_lib/src/pg_pool_idle_timeout_seconds.rs` | Pending |
-| `config_lib/src/pg_pool_max_connections.rs` | Pending |
-| `config_lib/src/pg_pool_max_connections_try_from_u32_error.rs` | Pending |
-| `config_lib/src/pg_pool_max_lifetime_seconds.rs` | Pending |
-| `config_lib/src/pg_pool_min_connections.rs` | Pending |
-| `config_lib/src/pg_pool_tests.rs` | Pending |
-| `config_lib/src/production_mode.rs` | Pending |
-| `config_lib/src/request_timeout_seconds.rs` | Pending |
-| `config_lib/src/secrecy_secret_box_string.rs` | Pending |
-| `config_lib/src/source_place_type.rs` | Pending |
-| `config_lib/src/std_config_secret_string.rs` | Pending |
+| `config_lib/src/env_var_name_ref.rs` | Reviewed: configuration bounds, conversions, error propagation, or test coverage inspected; no additional defect confirmed. |
+| `config_lib/src/env_var_result_var_error.rs` | Reviewed: configuration bounds, conversions, error propagation, or test coverage inspected; no additional defect confirmed. |
+| `config_lib/src/env_var_value_ref.rs` | Reviewed: configuration bounds, conversions, error propagation, or test coverage inspected; no additional defect confirmed. |
+| `config_lib/src/http_gzip_enabled.rs` | Reviewed: configuration bounds, conversions, error propagation, or test coverage inspected; no additional defect confirmed. |
+| `config_lib/src/http_tests.rs` | Reviewed: configuration bounds, conversions, error propagation, or test coverage inspected; no additional defect confirmed. |
+| `config_lib/src/i32_parse_int_error.rs` | Reviewed: configuration bounds, conversions, error propagation, or test coverage inspected; no additional defect confirmed. |
+| `config_lib/src/lib.rs` | Reviewed: configuration bounds, conversions, error propagation, or test coverage inspected; no additional defect confirmed. |
+| `config_lib/src/maximum_size_of_http_body_in_bytes.rs` | Reviewed: conversion, bounds, and error propagation inspected; no additional defect confirmed. |
+| `config_lib/src/maximum_size_of_http_body_in_bytes_try_from_usize_error.rs` | Reviewed: configuration bounds, conversions, error propagation, or test coverage inspected; no additional defect confirmed. |
+| `config_lib/src/parse_admin_positive_u64.rs` | Reviewed: conversion, bounds, and error propagation inspected; no additional defect confirmed. |
+| `config_lib/src/parse_admin_token_text.rs` | Reviewed: conversion, bounds, and error propagation inspected; no additional defect confirmed. |
+| `config_lib/src/parse_bool_error.rs` | Reviewed: configuration bounds, conversions, error propagation, or test coverage inspected; no additional defect confirmed. |
+| `config_lib/src/parse_context_ref.rs` | Reviewed: configuration bounds, conversions, error propagation, or test coverage inspected; no additional defect confirmed. |
+| `config_lib/src/parse_east_fixed_offset.rs` | Reviewed: conversion, bounds, and error propagation inspected; no additional defect confirmed. |
+| `config_lib/src/parse_env_var_name_ref.rs` | Reviewed: configuration bounds, conversions, error propagation, or test coverage inspected; no additional defect confirmed. |
+| `config_lib/src/parse_from_env_var_from_str_tests.rs` | Reviewed: configuration bounds, conversions, error propagation, or test coverage inspected; no additional defect confirmed. |
+| `config_lib/src/parse_from_env_var_with_tests.rs` | Reviewed: configuration bounds, conversions, error propagation, or test coverage inspected; no additional defect confirmed. |
+| `config_lib/src/parse_from_str_with_context_tests.rs` | Reviewed: configuration bounds, conversions, error propagation, or test coverage inspected; no additional defect confirmed. |
+| `config_lib/src/parse_from_str_with_error.rs` | Reviewed: configuration bounds, conversions, error propagation, or test coverage inspected; no additional defect confirmed. |
+| `config_lib/src/parse_pg_pool_non_zero_seconds.rs` | Reviewed: conversion, bounds, and error propagation inspected; no additional defect confirmed. |
+| `config_lib/src/parse_required_env_var.rs` | Fixed and verified: A58 rejects oversized values before parsing. |
+| `config_lib/src/parse_required_env_var_value.rs` | Fixed and verified: A58 maps bounded-value conversion errors before parsing; directly covered by deterministic regression. |
+| `config_lib/src/pg_pool_acquire_timeout_seconds.rs` | Reviewed: configuration bounds, conversions, error propagation, or test coverage inspected; no additional defect confirmed. |
+| `config_lib/src/pg_pool_config_parse_error.rs` | Reviewed: conversion, bounds, and error propagation inspected; no additional defect confirmed. |
+| `config_lib/src/pg_pool_idle_timeout_seconds.rs` | Reviewed: configuration bounds, conversions, error propagation, or test coverage inspected; no additional defect confirmed. |
+| `config_lib/src/pg_pool_max_connections.rs` | Reviewed: configuration bounds, conversions, error propagation, or test coverage inspected; no additional defect confirmed. |
+| `config_lib/src/pg_pool_max_connections_try_from_u32_error.rs` | Reviewed: configuration bounds, conversions, error propagation, or test coverage inspected; no additional defect confirmed. |
+| `config_lib/src/pg_pool_max_lifetime_seconds.rs` | Reviewed: configuration bounds, conversions, error propagation, or test coverage inspected; no additional defect confirmed. |
+| `config_lib/src/pg_pool_min_connections.rs` | Reviewed: configuration bounds, conversions, error propagation, or test coverage inspected; no additional defect confirmed. |
+| `config_lib/src/pg_pool_tests.rs` | Reviewed: configuration bounds, conversions, error propagation, or test coverage inspected; no additional defect confirmed. |
+| `config_lib/src/production_mode.rs` | Reviewed: configuration bounds, conversions, error propagation, or test coverage inspected; no additional defect confirmed. |
+| `config_lib/src/request_timeout_seconds.rs` | Reviewed: conversion, bounds, and error propagation inspected; no additional defect confirmed. |
+| `config_lib/src/secrecy_secret_box_string.rs` | Reviewed: configuration bounds, conversions, error propagation, or test coverage inspected; no additional defect confirmed. |
+| `config_lib/src/source_place_type.rs` | Reviewed: configuration bounds, conversions, error propagation, or test coverage inspected; no additional defect confirmed. |
+| `config_lib/src/std_config_secret_string.rs` | Reviewed: configuration bounds, conversions, error propagation, or test coverage inspected; no additional defect confirmed. |
 | `config_lib/src/std_env_var_ok.rs` | Reviewed: bounded storage, owned transfer, byte-limit validation and source classification; A05. |
-| `config_lib/src/std_env_var_ok_ref.rs` | Pending |
-| `config_lib/src/svc_mode.rs` | Pending |
-| `config_lib/src/test_config_lib.rs` | Pending |
-| `config_lib/src/timezone_seconds.rs` | Pending |
-| `config_lib/src/tracing_format.rs` | Pending |
-| `config_lib/src/tracing_level.rs` | Pending |
-| `config_lib/src/tracing_level_name.rs` | Pending |
-| `config_lib/src/try_from_std_env_var_ok.rs` | Pending |
-| `config_lib/src/try_from_std_env_var_ok_admin_jwt_secret_error.rs` | Pending |
-| `config_lib/src/try_from_std_env_var_ok_admin_password_hash_concurrency_error.rs` | Pending |
-| `config_lib/src/try_from_std_env_var_ok_admin_positive_u64_error.rs` | Pending |
-| `config_lib/src/try_from_std_env_var_ok_admin_token_text_error.rs` | Pending |
-| `config_lib/src/try_from_std_env_var_ok_maximum_size_of_http_body_in_bytes_error.rs` | Pending |
-| `config_lib/src/try_from_std_env_var_ok_pg_pool_max_connections_error.rs` | Pending |
-| `config_lib/src/try_from_std_env_var_ok_svc_mode_error.rs` | Pending |
-| `config_lib/src/try_from_std_env_var_ok_timezone_error.rs` | Pending |
-| `config_lib/src/try_map_non_empty_env_value.rs` | Pending |
-| `config_lib/src/types_tests.rs` | Pending |
-| `config_lib/src/u32_parse_int_error.rs` | Pending |
-| `config_lib/src/usize_parse_int_error.rs` | Pending |
+| `config_lib/src/std_env_var_ok_ref.rs` | Reviewed: configuration bounds, conversions, error propagation, or test coverage inspected; no additional defect confirmed. |
+| `config_lib/src/svc_mode.rs` | Reviewed: configuration bounds, conversions, error propagation, or test coverage inspected; no additional defect confirmed. |
+| `config_lib/src/test_config_lib.rs` | Reviewed: domain parser, bounds, timezone, and A58 regression cases inspected. |
+| `config_lib/src/timezone_seconds.rs` | Reviewed: conversion, bounds, and error propagation inspected; no additional defect confirmed. |
+| `config_lib/src/tracing_format.rs` | Fixed: A59 rejects unknown tracing formats while preserving case-insensitive valid values. |
+| `config_lib/src/tracing_level.rs` | Reviewed: configuration bounds, conversions, error propagation, or test coverage inspected; no additional defect confirmed. |
+| `config_lib/src/tracing_level_name.rs` | Reviewed: configuration bounds, conversions, error propagation, or test coverage inspected; no additional defect confirmed. |
+| `config_lib/src/try_from_std_env_var_ok.rs` | Reviewed: configuration bounds, conversions, error propagation, or test coverage inspected; no additional defect confirmed. |
+| `config_lib/src/try_from_std_env_var_ok_admin_jwt_secret_error.rs` | Reviewed: configuration bounds, conversions, error propagation, or test coverage inspected; no additional defect confirmed. |
+| `config_lib/src/try_from_std_env_var_ok_admin_password_hash_concurrency_error.rs` | Reviewed: configuration bounds, conversions, error propagation, or test coverage inspected; no additional defect confirmed. |
+| `config_lib/src/try_from_std_env_var_ok_admin_positive_u64_error.rs` | Reviewed: configuration bounds, conversions, error propagation, or test coverage inspected; no additional defect confirmed. |
+| `config_lib/src/try_from_std_env_var_ok_admin_token_text_error.rs` | Reviewed: configuration bounds, conversions, error propagation, or test coverage inspected; no additional defect confirmed. |
+| `config_lib/src/try_from_std_env_var_ok_maximum_size_of_http_body_in_bytes_error.rs` | Reviewed: configuration bounds, conversions, error propagation, or test coverage inspected; no additional defect confirmed. |
+| `config_lib/src/try_from_std_env_var_ok_pg_pool_max_connections_error.rs` | Reviewed: configuration bounds, conversions, error propagation, or test coverage inspected; no additional defect confirmed. |
+| `config_lib/src/try_from_std_env_var_ok_svc_mode_error.rs` | Reviewed: configuration bounds, conversions, error propagation, or test coverage inspected; no additional defect confirmed. |
+| `config_lib/src/try_from_std_env_var_ok_timezone_error.rs` | Reviewed: configuration bounds, conversions, error propagation, or test coverage inspected; no additional defect confirmed. |
+| `config_lib/src/try_from_std_env_var_ok_tracing_format_error.rs` | Fixed: A59 gives unknown tracing formats a typed error. |
+| `config_lib/src/types_tests.rs` | Focused review: environment wrappers, enum conversions, and A59 regression inspected. |
+| `config_lib/src/u32_parse_int_error.rs` | Reviewed: configuration bounds, conversions, error propagation, or test coverage inspected; no additional defect confirmed. |
+| `config_lib/src/usize_parse_int_error.rs` | Reviewed: configuration bounds, conversions, error propagation, or test coverage inspected; no additional defect confirmed. |
 
 ### constants_i32
 
@@ -403,49 +438,49 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 
 | Source | Semantic review |
 | --- | --- |
-| `external_service_emulators/src/create_mock_notification_provider.rs` | Pending |
-| `external_service_emulators/src/lib.rs` | Pending |
-| `external_service_emulators/src/mock_notification_inbox.rs` | Pending |
-| `external_service_emulators/src/mock_notification_provider.rs` | Pending |
-| `external_service_emulators/src/mock_notification_provider_closed.rs` | Pending |
-| `external_service_emulators/src/remote_sync_request_count.rs` | Pending |
-| `external_service_emulators/src/remote_sync_source.rs` | Pending |
-| `external_service_emulators/src/test_external_service_emulators.rs` | Pending |
-| `external_service_emulators/src/tokio_mock_notification_receiver.rs` | Pending |
-| `external_service_emulators/src/tokio_mock_notification_sender.rs` | Pending |
+| `external_service_emulators/src/create_mock_notification_provider.rs` | Reviewed: channel halves are returned as a paired provider and inbox without shared global state. |
+| `external_service_emulators/src/lib.rs` | Reviewed: root owns all emulator modules and gates the test module. |
+| `external_service_emulators/src/mock_notification_inbox.rs` | Reviewed: receive delegates to the owned channel receiver and retains closure as None. |
+| `external_service_emulators/src/mock_notification_provider.rs` | Reviewed: the notification sender delegates to the channel and maps a closed receiver to its typed error. |
+| `external_service_emulators/src/mock_notification_provider_closed.rs` | Reviewed: closed-channel outcome is a typed, nonsensitive error. |
+| `external_service_emulators/src/remote_sync_request_count.rs` | Reviewed: request count is a copyable typed wrapper with saturating increment. |
+| `external_service_emulators/src/remote_sync_source.rs` | Reviewed: each read invocation increments its request count and returns a clone of the same validated payload. |
+| `external_service_emulators/src/test_external_service_emulators.rs` | Reviewed: deterministic tests cover synchronization payload/count and in-memory notification delivery. |
+| `external_service_emulators/src/tokio_mock_notification_receiver.rs` | Reviewed: private receiver delegates async receive to Tokio's channel. |
+| `external_service_emulators/src/tokio_mock_notification_sender.rs` | Reviewed: private sender delegates send and retains the channel error for its parent adapter. |
 
 ### file_storage
 
 | Source | Semantic review |
 | --- | --- |
-| `file_storage/src/atomic_replace_durability.rs` | Pending |
-| `file_storage/src/disk_cache_budget_error.rs` | Pending |
-| `file_storage/src/disk_cache_entry.rs` | Pending |
-| `file_storage/src/disk_cache_eviction_plan.rs` | Pending |
-| `file_storage/src/disk_cache_modified_at_system_time.rs` | Pending |
-| `file_storage/src/domain_types.rs` | Pending |
-| `file_storage/src/file_storage_error.rs` | Pending |
-| `file_storage/src/file_storage_io_error.rs` | Pending |
-| `file_storage/src/file_storage_path_error.rs` | Pending |
-| `file_storage/src/file_storage_root_path_buf.rs` | Pending |
-| `file_storage/src/file_storage_staging_area.rs` | Pending |
-| `file_storage/src/lib.rs` | Pending |
-| `file_storage/src/plan_disk_cache_eviction.rs` | Pending |
-| `file_storage/src/safe_file_storage.rs` | Pending |
-| `file_storage/src/stale_before_system_time.rs` | Pending |
-| `file_storage/src/stale_staging_cleanup_configuration.rs` | Pending |
-| `file_storage/src/stale_staging_cleanup_configuration_error.rs` | Pending |
-| `file_storage/src/stale_staging_cleanup_report.rs` | Pending |
-| `file_storage/src/std_disk_cache_size.rs` | Pending |
-| `file_storage/src/std_file_bytes.rs` | Pending |
-| `file_storage/src/std_stale_staging_entry_count.rs` | Pending |
-| `file_storage/src/std_stale_staging_entry_limit.rs` | Pending |
-| `file_storage/src/std_storage_operation_id.rs` | Pending |
-| `file_storage/src/storage_directory_name_ref.rs` | Pending |
-| `file_storage/src/storage_path_ref.rs` | Pending |
-| `file_storage/src/storage_relative_path_buf.rs` | Pending |
-| `file_storage/src/test_adapters.rs` | Pending |
-| `file_storage/src/test_file_storage.rs` | Pending |
+| `file_storage/src/atomic_replace_durability.rs` | Reviewed: durability enum selects flush or full sync. |
+| `file_storage/src/disk_cache_budget_error.rs` | Reviewed: typed errors distinguish oversized incoming entries and arithmetic overflow. |
+| `file_storage/src/disk_cache_entry.rs` | Reviewed: cache entry stores typed path, size, and modification time. |
+| `file_storage/src/disk_cache_eviction_plan.rs` | Reviewed: eviction plan retains ordered typed paths. |
+| `file_storage/src/disk_cache_modified_at_system_time.rs` | Reviewed: typed modification-time wrapper. |
+| `file_storage/src/domain_types.rs` | Reviewed: file, operation-ID, and path limits are shared by their wrappers. |
+| `file_storage/src/file_storage_error.rs` | Focused review: A57 candidate concerns the unused combined operation and cleanup error. |
+| `file_storage/src/file_storage_io_error.rs` | Reviewed: I/O error wrapper retains its source. |
+| `file_storage/src/file_storage_path_error.rs` | Reviewed: path, ID, and file-size failures have distinct variants. |
+| `file_storage/src/file_storage_root_path_buf.rs` | Reviewed: root path conversion requires an absolute bounded path. |
+| `file_storage/src/file_storage_staging_area.rs` | Reviewed: upload and delete areas map to their dedicated directory names. |
+| `file_storage/src/lib.rs` | Reviewed: root declares storage domain, operations, and tests. |
+| `file_storage/src/plan_disk_cache_eviction.rs` | Reviewed: A50 prevents projected-size overflow; oldest entries are selected until incoming data fits. |
+| `file_storage/src/safe_file_storage.rs` | Focused review: path and staging flows inspected; A57 dual-failure error preservation remains under investigation. |
+| `file_storage/src/stale_before_system_time.rs` | Reviewed: typed stale threshold wrapper. |
+| `file_storage/src/stale_staging_cleanup_configuration.rs` | Reviewed: cleanup configuration carries threshold and bounded scan/removal limits. |
+| `file_storage/src/stale_staging_cleanup_configuration_error.rs` | Reviewed: invalid cleanup limit has a typed error. |
+| `file_storage/src/stale_staging_cleanup_report.rs` | Reviewed: report increments scanned and removed counts without overflow. |
+| `file_storage/src/std_disk_cache_size.rs` | Reviewed: typed cache-size wrapper. |
+| `file_storage/src/std_file_bytes.rs` | Reviewed: file payload conversion enforces the 100 MiB limit. |
+| `file_storage/src/std_stale_staging_entry_count.rs` | Reviewed: count wrapper increments with saturation. |
+| `file_storage/src/std_stale_staging_entry_limit.rs` | Reviewed: cleanup limit conversion requires 1 through 10,000. |
+| `file_storage/src/std_storage_operation_id.rs` | Reviewed: operation IDs are bounded URL-safe tokens. |
+| `file_storage/src/storage_directory_name_ref.rs` | Reviewed: borrowed staging directory-name wrapper. |
+| `file_storage/src/storage_path_ref.rs` | Reviewed: borrowed storage path wrapper. |
+| `file_storage/src/storage_relative_path_buf.rs` | Reviewed: relative paths reject traversal, absolute paths, NUL, and owned staging roots. |
+| `file_storage/src/test_adapters.rs` | Reviewed: test covers creation of both owned staging directories. |
+| `file_storage/src/test_file_storage.rs` | Focused review: lifecycle, path safety, cleanup, and A50 planner tests inspected; A57 needs a dual-failure regression. |
 
 ### frontend_admin
 
@@ -807,7 +842,7 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 | `frontend_contract_validation/src/run_http_contract_fixture.rs` | Reviewed: one callback invocation, metadata and status checks before body checks, bounded 16 MiB body, three-digit status range and private typed fields. Json means syntactically valid JSON; content-type headers are outside this fixture contract. |
 | `frontend_contract_validation/src/runtime_routes_ref.rs` | Reviewed: borrowed typed route slice with generated forwarding. |
 | `frontend_contract_validation/src/serde_json_open_api_serialization_error.rs` | Reviewed: transparent serialization error wrapper preserving the source. |
-| `frontend_contract_validation/src/validate_openapi_contract.rs` | Focused review: schema use, route matching, operation identifiers, duplicate normalized method rejection and A49 local reference integration; external URI reference semantics remain pending. |
+| `frontend_contract_validation/src/validate_openapi_contract.rs` | Focused review: schema use, route matching, operation identifiers, duplicate normalized method rejection, A49 local reference integration and A51 nonobject path-item rejection; external URI reference semantics remain pending. |
 | `frontend_contract_validation/src/validate_openapi_json_payload.rs` | Reviewed: A07 borrows JSON without serialization or owned copies; iterative evaluation and equality preserve scoped reference guards and composition results. Deep input and comparison regressions verified. |
 | `frontend_contract_validation/src/validate_openapi_operations.rs` | Reviewed: operation lookup, effective security inheritance, exact response status and content/schema checks; A21 fixes ignored document security. |
 | `frontend_contract_validation/src/validate_openapi_schema_references.rs` | Reviewed: serialization errors propagate and reference discovery and validation delegate to their tracked owners. |
@@ -857,7 +892,7 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 | `git_info/src/base_git_commit_link_len.rs` | Reviewed: exact compile-time byte sum of the URL prefix and tree segment, used consistently by the size guard and capacity. |
 | `git_info/src/build_git_commit_link.rs` | Reviewed: A27 propagates typed URL-length errors and transfers successful Cow ownership into the bounded owned link. |
 | `git_info/src/build_git_commit_link_cow.rs` | Reviewed: A27 rejects total-byte overflow before allocating, preserves the static project-link shortcut and returns validated URLs through Result. |
-| `git_info/src/check_is_project_commit.rs` | Pending |
+| `git_info/src/check_is_project_commit.rs` | Reviewed: compares the supplied commit with the repository commit. |
 | `git_info/src/git_commit_id.rs` | Reviewed: A27 borrowed-to-owned TryFrom rejects excessive length before allocation; string conversion uses shared byte validation and explicit diagnostic conversion remains bounded. |
 | `git_info/src/git_commit_id_cow.rs` | Reviewed: borrowed or owned byte-length validation and diagnostic conversion; provider substitution remains part of A27. |
 | `git_info/src/git_commit_id_fallback.rs` | Reviewed: optional owned fallback with generated borrowed and mutable access; callers retain lifetime ownership. |
@@ -870,117 +905,118 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 | `git_info/src/git_commit_link_provider.rs` | Reviewed: A27 forwards provider and URL-length errors through Result, preserving borrowed commit dispatch and ownership transfer. |
 | `git_info/src/git_info_string_max_len.rs` | Reviewed: shared 1 MiB byte bound used by commit and link validation. |
 | `git_info/src/git_info_string_try_from_string_error.rs` | Reviewed: copyable TooLong diagnostic preserves actual and maximum lengths without interpolating input text. |
-| `git_info/src/is_project_commit.rs` | Pending |
-| `git_info/src/lib.rs` | Pending |
-| `git_info/src/project_git_commit_link.rs` | Pending |
+| `git_info/src/is_project_commit.rs` | Reviewed: boolean wrapper preserves project-commit classification. |
+| `git_info/src/lib.rs` | Reviewed: root declares commit, link, provider, and validation owners. |
+| `git_info/src/project_git_commit_link.rs` | Reviewed: owned project link derives from the validated static link. |
 | `git_info/src/project_git_commit_link_ref.rs` | Reviewed: static borrowed link wrapper with generated lifetime-preserving conversions and equality. |
-| `git_info/src/project_git_commit_link_ref_value.rs` | Pending |
-| `git_info/src/project_git_info.rs` | Pending |
-| `git_info/src/project_git_info_value.rs` | Pending |
-| `git_info/src/test_git_info.rs` | Pending |
+| `git_info/src/project_git_commit_link_ref_value.rs` | Reviewed: static link constant is wrapped without allocation. |
+| `git_info/src/project_git_info.rs` | Reviewed: project metadata stores a borrowed commit and exposes it through a generated getter. |
+| `git_info/src/project_git_info_value.rs` | Reviewed: wraps the repository commit constant as project metadata. |
+| `git_info/src/test_git_info.rs` | Reviewed: tests cover project link consistency, commit validation, fallback dispatch, and size boundaries. |
 | `git_info/src/try_bounded_git_info_string.rs` | Reviewed: inclusive byte limit and bounded storage validation with matching TooLong classification. |
-| `git_info/src/validate_project_commit.rs` | Pending |
-| `git_info/src/validate_project_commit_error.rs` | Pending |
+| `git_info/src/validate_project_commit.rs` | Reviewed: rejects a different commit with the static project link. |
+| `git_info/src/validate_project_commit_error.rs` | Reviewed: typed validation error retains the project link. |
 | `git_info/src/with_git_commit_id_ref_or.rs` | Reviewed: lifetime-preserving optional reference dispatch invokes exactly one callback and avoids owned allocation when a reference exists. |
 
 ### init_env_files
 
 | Source | Semantic review |
 | --- | --- |
-| `init_env_files/src/env_content.rs` | Pending |
-| `init_env_files/src/env_content_ref.rs` | Pending |
-| `init_env_files/src/env_key.rs` | Pending |
-| `init_env_files/src/env_keys.rs` | Pending |
-| `init_env_files/src/environment_keys.rs` | Pending |
-| `init_env_files/src/init_entries.rs` | Pending |
-| `init_env_files/src/init_io_error.rs` | Pending |
-| `init_env_files/src/init_max_bytes.rs` | Pending |
-| `init_env_files/src/init_path_exists.rs` | Pending |
-| `init_env_files/src/init_path_ref.rs` | Pending |
-| `init_env_files/src/init_string_error.rs` | Pending |
-| `init_env_files/src/initialization_entry.rs` | Pending |
-| `init_env_files/src/initialization_status.rs` | Pending |
-| `init_env_files/src/initialize.rs` | Pending |
-| `init_env_files/src/initialize_error.rs` | Pending |
-| `init_env_files/src/main.rs` | Pending |
-| `init_env_files/src/path_exists.rs` | Pending |
-| `init_env_files/src/read_bounded_content.rs` | Pending |
-| `init_env_files/src/run_mode.rs` | Pending |
-| `init_env_files/src/test_initialize_tests.rs` | Pending |
-| `init_env_files/src/toml_init_error.rs` | Pending |
-| `init_env_files/src/workspace_member.rs` | Pending |
-| `init_env_files/src/workspace_root_path_ref.rs` | Pending |
-| `init_env_files/src/write_content.rs` | Pending |
+| `init_env_files/src/env_content.rs` | Reviewed: environment initialization parsing, bounded I/O, typed metadata, or fixture behavior inspected; no additional defect confirmed. |
+| `init_env_files/src/env_content_ref.rs` | Reviewed: environment initialization parsing, bounded I/O, typed metadata, or fixture behavior inspected; no additional defect confirmed. |
+| `init_env_files/src/env_key.rs` | Reviewed: environment initialization parsing, bounded I/O, typed metadata, or fixture behavior inspected; no additional defect confirmed. |
+| `init_env_files/src/env_keys.rs` | Reviewed: environment initialization parsing, bounded I/O, typed metadata, or fixture behavior inspected; no additional defect confirmed. |
+| `init_env_files/src/environment_keys.rs` | Reviewed: environment initialization parsing, bounded I/O, typed metadata, or fixture behavior inspected; no additional defect confirmed. |
+| `init_env_files/src/init_entries.rs` | Reviewed: environment initialization parsing, bounded I/O, typed metadata, or fixture behavior inspected; no additional defect confirmed. |
+| `init_env_files/src/init_io_error.rs` | Reviewed: environment initialization parsing, bounded I/O, typed metadata, or fixture behavior inspected; no additional defect confirmed. |
+| `init_env_files/src/init_max_bytes.rs` | Reviewed: environment initialization parsing, bounded I/O, typed metadata, or fixture behavior inspected; no additional defect confirmed. |
+| `init_env_files/src/init_path_exists.rs` | Reviewed: environment initialization parsing, bounded I/O, typed metadata, or fixture behavior inspected; no additional defect confirmed. |
+| `init_env_files/src/init_path_ref.rs` | Reviewed: environment initialization parsing, bounded I/O, typed metadata, or fixture behavior inspected; no additional defect confirmed. |
+| `init_env_files/src/init_string_error.rs` | Reviewed: environment initialization parsing, bounded I/O, typed metadata, or fixture behavior inspected; no additional defect confirmed. |
+| `init_env_files/src/initialization_entry.rs` | Reviewed: environment initialization parsing, bounded I/O, typed metadata, or fixture behavior inspected; no additional defect confirmed. |
+| `init_env_files/src/initialization_status.rs` | Reviewed: environment initialization parsing, bounded I/O, typed metadata, or fixture behavior inspected; no additional defect confirmed. |
+| `init_env_files/src/initialize.rs` | Fixed: A61 rejects non-string workspace members with a deterministic regression. |
+| `init_env_files/src/initialize_error.rs` | Fixed: A61 rejects non-string workspace members with a deterministic regression. |
+| `init_env_files/src/main.rs` | Reviewed: environment initialization parsing, bounded I/O, typed metadata, or fixture behavior inspected; no additional defect confirmed. |
+| `init_env_files/src/path_exists.rs` | Reviewed: environment initialization parsing, bounded I/O, typed metadata, or fixture behavior inspected; no additional defect confirmed. |
+| `init_env_files/src/read_bounded_content.rs` | Reviewed: environment initialization parsing, bounded I/O, typed metadata, or fixture behavior inspected; no additional defect confirmed. |
+| `init_env_files/src/run_mode.rs` | Reviewed: environment initialization parsing, bounded I/O, typed metadata, or fixture behavior inspected; no additional defect confirmed. |
+| `init_env_files/src/test_initialize_tests.rs` | Fixed: A61 rejects non-string workspace members with a deterministic regression. |
+| `init_env_files/src/toml_init_error.rs` | Reviewed: environment initialization parsing, bounded I/O, typed metadata, or fixture behavior inspected; no additional defect confirmed. |
+| `init_env_files/src/toml_member_value.rs` | Fixed: typed TOML member boundary for A61. |
+| `init_env_files/src/workspace_member.rs` | Fixed: A61 rejects non-string workspace members with a deterministic regression. |
+| `init_env_files/src/workspace_root_path_ref.rs` | Reviewed: environment initialization parsing, bounded I/O, typed metadata, or fixture behavior inspected; no additional defect confirmed. |
+| `init_env_files/src/write_content.rs` | Reviewed: environment initialization parsing, bounded I/O, typed metadata, or fixture behavior inspected; no additional defect confirmed. |
 
 ### initialize_environment_files
 
 | Source | Semantic review |
 | --- | --- |
-| `initialize_environment_files/src/configuration_field.rs` | Pending |
-| `initialize_environment_files/src/docker_compose_database_service.rs` | Pending |
-| `initialize_environment_files/src/docker_compose_file.rs` | Pending |
-| `initialize_environment_files/src/docker_compose_notification_database_service.rs` | Pending |
-| `initialize_environment_files/src/docker_compose_notification_service.rs` | Pending |
-| `initialize_environment_files/src/docker_compose_notification_service_environment.rs` | Pending |
-| `initialize_environment_files/src/docker_compose_notification_service_migrate_service.rs` | Pending |
-| `initialize_environment_files/src/docker_compose_server_environment.rs` | Pending |
-| `initialize_environment_files/src/docker_compose_server_environment_order.rs` | Pending |
-| `initialize_environment_files/src/docker_compose_server_migrate_service.rs` | Pending |
-| `initialize_environment_files/src/docker_compose_server_service.rs` | Pending |
-| `initialize_environment_files/src/generate_environment_files.rs` | Pending |
-| `initialize_environment_files/src/main.rs` | Pending |
-| `initialize_environment_files/src/std_byte_vector.rs` | Pending |
-| `initialize_environment_files/src/test_initialize_environment_files.rs` | Pending |
+| `initialize_environment_files/src/configuration_field.rs` | Reviewed: static configuration fragments become owned bounded text before assembly. |
+| `initialize_environment_files/src/docker_compose_database_service.rs` | Reviewed: database fields are appended under one service key. |
+| `initialize_environment_files/src/docker_compose_file.rs` | Reviewed: service, network, and volume sections are assembled in fixed order. |
+| `initialize_environment_files/src/docker_compose_notification_database_service.rs` | Reviewed: notification database fields are appended under one service key. |
+| `initialize_environment_files/src/docker_compose_notification_service.rs` | Reviewed: notification service fields include build, dependencies, environment, health, and runtime settings. |
+| `initialize_environment_files/src/docker_compose_notification_service_environment.rs` | Reviewed: notification environment fields are appended once in fixed order. |
+| `initialize_environment_files/src/docker_compose_notification_service_migrate_service.rs` | Reviewed: migration service receives its own environment and dependency settings. |
+| `initialize_environment_files/src/docker_compose_server_environment.rs` | Reviewed: server environment order preserves generated socket markers in serve mode. |
+| `initialize_environment_files/src/docker_compose_server_environment_order.rs` | Reviewed: mode enum selects migration or serve field order. |
+| `initialize_environment_files/src/docker_compose_server_migrate_service.rs` | Reviewed: server migration fields and mode are assembled under the migration service. |
+| `initialize_environment_files/src/docker_compose_server_service.rs` | Reviewed: server fields include build, dependencies, environment, health, and runtime settings. |
+| `initialize_environment_files/src/generate_environment_files.rs` | Reviewed: writes the owned Compose and environment files and propagates I/O errors. |
+| `initialize_environment_files/src/main.rs` | Reviewed: command resolves the workspace root and invokes its filesystem owner. |
+| `initialize_environment_files/src/std_byte_vector.rs` | Reviewed: generated fragments append to the owned unbounded text buffer. |
+| `initialize_environment_files/src/test_initialize_environment_files.rs` | Reviewed: test covers replacement and output of every owned file. |
 
 ### location_lib
 
 | Source | Semantic review |
 | --- | --- |
-| `location_lib/src/chrono_location_date_time.rs` | Pending |
-| `location_lib/src/chrono_location_display_timezone.rs` | Pending |
-| `location_lib/src/domain_types.rs` | Pending |
-| `location_lib/src/formatter_ref_mut.rs` | Pending |
-| `location_lib/src/lib.rs` | Pending |
-| `location_lib/src/location.rs` | Pending |
-| `location_lib/src/location_column.rs` | Pending |
-| `location_lib/src/location_commit.rs` | Pending |
-| `location_lib/src/location_coordinate_try_from_u32_error.rs` | Pending |
-| `location_lib/src/location_duration.rs` | Pending |
-| `location_lib/src/location_file.rs` | Pending |
-| `location_lib/src/location_file_ref.rs` | Pending |
-| `location_lib/src/location_line.rs` | Pending |
-| `location_lib/src/occurrence.rs` | Pending |
-| `location_lib/src/std_time_duration.rs` | Pending |
-| `location_lib/src/std_time_duration_nanos.rs` | Pending |
-| `location_lib/src/std_time_duration_nanos_try_from_u32_error.rs` | Pending |
-| `location_lib/src/std_time_duration_secs.rs` | Pending |
-| `location_lib/src/test_location_lib.rs` | Pending |
+| `location_lib/src/chrono_location_date_time.rs` | Reviewed: location conversion, formatting, schema, or bounds behavior inspected; no additional defect confirmed. |
+| `location_lib/src/chrono_location_display_timezone.rs` | Reviewed: location conversion, formatting, schema, or bounds behavior inspected; no additional defect confirmed. |
+| `location_lib/src/domain_types.rs` | Reviewed: location conversion, formatting, schema, or bounds behavior inspected; no additional defect confirmed. |
+| `location_lib/src/formatter_ref_mut.rs` | Reviewed: location conversion, formatting, schema, or bounds behavior inspected; no additional defect confirmed. |
+| `location_lib/src/lib.rs` | Reviewed: location conversion, formatting, schema, or bounds behavior inspected; no additional defect confirmed. |
+| `location_lib/src/location.rs` | Fixed: A60 retains the original bounded path prefix and adds a deterministic regression. |
+| `location_lib/src/location_column.rs` | Reviewed: location conversion, formatting, schema, or bounds behavior inspected; no additional defect confirmed. |
+| `location_lib/src/location_commit.rs` | Reviewed: location conversion, formatting, schema, or bounds behavior inspected; no additional defect confirmed. |
+| `location_lib/src/location_coordinate_try_from_u32_error.rs` | Reviewed: location conversion, formatting, schema, or bounds behavior inspected; no additional defect confirmed. |
+| `location_lib/src/location_duration.rs` | Reviewed: location conversion, formatting, schema, or bounds behavior inspected; no additional defect confirmed. |
+| `location_lib/src/location_file.rs` | Fixed: A60 retains the original bounded path prefix and adds a deterministic regression. |
+| `location_lib/src/location_file_ref.rs` | Reviewed: location conversion, formatting, schema, or bounds behavior inspected; no additional defect confirmed. |
+| `location_lib/src/location_line.rs` | Reviewed: location conversion, formatting, schema, or bounds behavior inspected; no additional defect confirmed. |
+| `location_lib/src/occurrence.rs` | Reviewed: location conversion, formatting, schema, or bounds behavior inspected; no additional defect confirmed. |
+| `location_lib/src/std_time_duration.rs` | Reviewed: location conversion, formatting, schema, or bounds behavior inspected; no additional defect confirmed. |
+| `location_lib/src/std_time_duration_nanos.rs` | Reviewed: location conversion, formatting, schema, or bounds behavior inspected; no additional defect confirmed. |
+| `location_lib/src/std_time_duration_nanos_try_from_u32_error.rs` | Reviewed: location conversion, formatting, schema, or bounds behavior inspected; no additional defect confirmed. |
+| `location_lib/src/std_time_duration_secs.rs` | Reviewed: location conversion, formatting, schema, or bounds behavior inspected; no additional defect confirmed. |
+| `location_lib/src/test_location_lib.rs` | Fixed: A60 retains the original bounded path prefix and adds a deterministic regression. |
 
 ### location_lib_location_test
 
 | Source | Semantic review |
 | --- | --- |
-| `location_lib_location_test/src/create_location_test_text.rs` | Pending |
-| `location_lib_location_test/src/display_struct.rs` | Pending |
-| `location_lib_location_test/src/error_one.rs` | Pending |
-| `location_lib_location_test/src/error_two.rs` | Pending |
-| `location_lib_location_test/src/error_unnamed_one.rs` | Pending |
-| `location_lib_location_test/src/loc_test_text_max_len.rs` | Pending |
-| `location_lib_location_test/src/location_test_count.rs` | Pending |
-| `location_lib_location_test/src/location_test_flag.rs` | Pending |
-| `location_lib_location_test/src/location_test_text.rs` | Pending |
-| `location_lib_location_test/src/main.rs` | Pending |
-| `location_lib_location_test/src/serde_struct.rs` | Pending |
+| `location_lib_location_test/src/create_location_test_text.rs` | Reviewed: generated-location fixture construction, typed fields, and error rendering inspected. |
+| `location_lib_location_test/src/display_struct.rs` | Reviewed: generated-location fixture construction, typed fields, and error rendering inspected. |
+| `location_lib_location_test/src/error_one.rs` | Reviewed: generated-location fixture construction, typed fields, and error rendering inspected. |
+| `location_lib_location_test/src/error_two.rs` | Reviewed: generated-location fixture construction, typed fields, and error rendering inspected. |
+| `location_lib_location_test/src/error_unnamed_one.rs` | Reviewed: generated-location fixture construction, typed fields, and error rendering inspected. |
+| `location_lib_location_test/src/loc_test_text_max_len.rs` | Reviewed: generated-location fixture construction, typed fields, and error rendering inspected. |
+| `location_lib_location_test/src/location_test_count.rs` | Reviewed: generated-location fixture construction, typed fields, and error rendering inspected. |
+| `location_lib_location_test/src/location_test_flag.rs` | Reviewed: generated-location fixture construction, typed fields, and error rendering inspected. |
+| `location_lib_location_test/src/location_test_text.rs` | Reviewed: generated-location fixture construction, typed fields, and error rendering inspected. |
+| `location_lib_location_test/src/main.rs` | Reviewed: generated-location fixture construction, typed fields, and error rendering inspected. |
+| `location_lib_location_test/src/serde_struct.rs` | Reviewed: generated-location fixture construction, typed fields, and error rendering inspected. |
 
 ### macro_clippy_check_test_common
 
 | Source | Semantic review |
 | --- | --- |
-| `macro_clippy_check_test_common/src/generated_crate_phase.rs` | Pending |
-| `macro_clippy_check_test_common/src/generated_crate_step.rs` | Pending |
-| `macro_clippy_check_test_common/src/generated_crate_steps_tests.rs` | Pending |
-| `macro_clippy_check_test_common/src/lib.rs` | Pending |
-| `macro_clippy_check_test_common/src/remove_dir_on_drop.rs` | Pending |
+| `macro_clippy_check_test_common/src/generated_crate_phase.rs` | Reviewed: generated-crate command sequence, manifest transformation, cleanup, and test coverage inspected. |
+| `macro_clippy_check_test_common/src/generated_crate_step.rs` | Reviewed: generated-crate command sequence, manifest transformation, cleanup, and test coverage inspected. |
+| `macro_clippy_check_test_common/src/generated_crate_steps_tests.rs` | Reviewed: generated-crate command sequence, manifest transformation, cleanup, and test coverage inspected. |
+| `macro_clippy_check_test_common/src/lib.rs` | Reviewed: generated-crate command sequence, manifest transformation, cleanup, and test coverage inspected. |
+| `macro_clippy_check_test_common/src/remove_dir_on_drop.rs` | Reviewed: generated-crate command sequence, manifest transformation, cleanup, and test coverage inspected. |
 
 ### macro_helpers
 
@@ -1089,11 +1125,15 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 | `macro_helpers/src/tool_ansi_text_ref.rs` | Pending |
 | `macro_helpers/src/tool_arg_ref.rs` | Pending |
 | `macro_helpers/src/tool_args_ref.rs` | Pending |
-| `macro_helpers/src/tool_command.rs` | Pending |
+| `macro_helpers/src/tool_command.rs` | Focused review; A80 |
 | `macro_helpers/src/tool_console_stream.rs` | Pending |
 | `macro_helpers/src/tool_console_write_error.rs` | Pending |
 | `macro_helpers/src/tool_env_key_ref.rs` | Pending |
 | `macro_helpers/src/tool_env_value_ref.rs` | Pending |
+| `macro_helpers/src/tool_output_byte.rs` | Reviewed; A80 |
+| `macro_helpers/src/tool_output_byte_vec_deque.rs` | Reviewed; A80 |
+| `macro_helpers/src/tool_output_limit.rs` | Reviewed; A80 |
+| `macro_helpers/src/tool_output_tail.rs` | Reviewed; A80 |
 | `macro_helpers/src/tool_process_command.rs` | Pending |
 | `macro_helpers/src/tool_program_ref.rs` | Pending |
 | `macro_helpers/src/try_get_macro_attr_meta_list_token_stream.rs` | Pending |
@@ -1152,33 +1192,33 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 
 | Source | Semantic review |
 | --- | --- |
-| `notification_service/src/axum_notification_response.rs` | Pending |
-| `notification_service/src/build_notification_router.rs` | Pending |
-| `notification_service/src/create_notification.rs` | Pending |
-| `notification_service/src/create_notification_error.rs` | Pending |
-| `notification_service/src/http_notification_status_code.rs` | Pending |
-| `notification_service/src/main.rs` | Pending |
-| `notification_service/src/metrics.rs` | Pending |
-| `notification_service/src/metrics_error.rs` | Pending |
-| `notification_service/src/metrics_exporter_prometheus_notification_build_error.rs` | Pending |
-| `notification_service/src/notification_api_route_registry.rs` | Pending |
-| `notification_service/src/notification_axum_json.rs` | Pending |
-| `notification_service/src/notification_axum_router.rs` | Pending |
-| `notification_service/src/notification_axum_state.rs` | Pending |
-| `notification_service/src/notification_body_maximum_bytes.rs` | Pending |
-| `notification_service/src/notification_error_code.rs` | Pending |
-| `notification_service/src/notification_exit_code.rs` | Pending |
-| `notification_service/src/notification_io_error.rs` | Pending |
-| `notification_service/src/notification_metrics_exporter_prometheus_renderer.rs` | Pending |
-| `notification_service/src/notification_open_api.rs` | Pending |
-| `notification_service/src/notification_route_registry.rs` | Pending |
-| `notification_service/src/notification_service_error.rs` | Pending |
-| `notification_service/src/notification_state.rs` | Pending |
-| `notification_service/src/open_api_document.rs` | Pending |
-| `notification_service/src/shared_notification_state_arc.rs` | Pending |
-| `notification_service/src/sqlx_notification_database_error.rs` | Pending |
-| `notification_service/src/sqlx_notification_migration_error.rs` | Pending |
-| `notification_service/src/test_notification_service.rs` | Pending |
+| `notification_service/src/axum_notification_response.rs` | Reviewed: response wrapper forwards Axum response ownership. |
+| `notification_service/src/build_notification_router.rs` | Reviewed: API and operational routes use typed registries, a bounded body layer, and shared common routes. |
+| `notification_service/src/create_notification.rs` | Reviewed: inserts validated message and returns its generated UUID only after persistence succeeds. |
+| `notification_service/src/create_notification_error.rs` | Reviewed: persistence and validation failures map to distinct statuses and telemetry. |
+| `notification_service/src/http_notification_status_code.rs` | Reviewed: HTTP status wrapper forwards response conversion. |
+| `notification_service/src/main.rs` | Reviewed: migrate and serve modes propagate startup, runtime, and observability shutdown failures. |
+| `notification_service/src/metrics.rs` | Reviewed: bounded metrics rendering retains observed failure context. |
+| `notification_service/src/metrics_error.rs` | Reviewed: render failure emits internal API problem with diagnostic telemetry. |
+| `notification_service/src/metrics_exporter_prometheus_notification_build_error.rs` | Reviewed: recorder initialization error wrapper preserves display text. |
+| `notification_service/src/notification_api_route_registry.rs` | Reviewed: create route and schemas come from the typed API catalog. |
+| `notification_service/src/notification_axum_json.rs` | Reviewed: JSON extractor maps invalid requests to typed validation failure. |
+| `notification_service/src/notification_axum_router.rs` | Reviewed: typed Axum router ownership wrapper. |
+| `notification_service/src/notification_axum_state.rs` | Reviewed: state extractor returns a clone of the shared pool and metrics handles. |
+| `notification_service/src/notification_body_maximum_bytes.rs` | Reviewed: typed body limit wrapper. |
+| `notification_service/src/notification_error_code.rs` | Reviewed: fixed codes distinguish metrics, persistence, and validation. |
+| `notification_service/src/notification_exit_code.rs` | Reviewed: termination forwards process exit status. |
+| `notification_service/src/notification_io_error.rs` | Reviewed: socket error wrapper preserves display text. |
+| `notification_service/src/notification_metrics_exporter_prometheus_renderer.rs` | Reviewed: renderer validates response size before return. |
+| `notification_service/src/notification_open_api.rs` | Reviewed: API and common-route documents merge for the operational endpoint. |
+| `notification_service/src/notification_route_registry.rs` | Reviewed: operational registry maps metrics and OpenAPI handlers. |
+| `notification_service/src/notification_service_error.rs` | Reviewed: startup and runtime failures use distinct typed variants. |
+| `notification_service/src/notification_state.rs` | Reviewed: pool, metrics, and Git metadata providers forward their stored fields. |
+| `notification_service/src/open_api_document.rs` | Reviewed: test helper exposes the generated API document. |
+| `notification_service/src/shared_notification_state_arc.rs` | Reviewed: one Arc allocation shares immutable service state with common routes. |
+| `notification_service/src/sqlx_notification_database_error.rs` | Reviewed: database error retains its source. |
+| `notification_service/src/sqlx_notification_migration_error.rs` | Reviewed: migration error wrapper preserves display text. |
+| `notification_service/src/test_notification_service.rs` | Reviewed: tests cover routes, OpenAPI, error telemetry, adapters, and provisioned persistence. |
 
 ### notification_service_config
 
@@ -1192,18 +1232,18 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 
 | Source | Semantic review |
 | --- | --- |
-| `notification_service_contract/src/create_notification_request.rs` | Pending |
-| `notification_service_contract/src/create_notification_response.rs` | Pending |
-| `notification_service_contract/src/create_notification_route.rs` | Pending |
-| `notification_service_contract/src/lib.rs` | Pending |
-| `notification_service_contract/src/notification_api_body_max_bytes.rs` | Pending |
-| `notification_service_contract/src/notification_message.rs` | Pending |
-| `notification_service_contract/src/notification_message_max_len.rs` | Pending |
-| `notification_service_contract/src/notification_message_try_from_string_error.rs` | Pending |
-| `notification_service_contract/src/notification_operational_route.rs` | Pending |
-| `notification_service_contract/src/notification_route.rs` | Pending |
-| `notification_service_contract/src/tests_domain_types.rs` | Pending |
-| `notification_service_contract/src/uuid_notification_id.rs` | Pending |
+| `notification_service_contract/src/create_notification_request.rs` | Reviewed: request carries one validated message and rejects unknown JSON fields. |
+| `notification_service_contract/src/create_notification_response.rs` | Reviewed: response carries a typed notification identifier. |
+| `notification_service_contract/src/create_notification_route.rs` | Reviewed: typed public POST contract matches the request and 201 response. |
+| `notification_service_contract/src/lib.rs` | Reviewed: root declares the message, identifier, route, and test modules. |
+| `notification_service_contract/src/notification_api_body_max_bytes.rs` | Reviewed: finite body limit is used by both route catalogs. |
+| `notification_service_contract/src/notification_message.rs` | Reviewed: string conversion and deserialization enforce nonempty and 4,096-byte bounds. |
+| `notification_service_contract/src/notification_message_max_len.rs` | Reviewed: message maximum matches the bounded storage type. |
+| `notification_service_contract/src/notification_message_try_from_string_error.rs` | Reviewed: typed errors distinguish empty and excessive messages. |
+| `notification_service_contract/src/notification_operational_route.rs` | Reviewed: operational routes are registered and excluded from the API family. |
+| `notification_service_contract/src/notification_route.rs` | Reviewed: API family contains the create route and shares the body limit. |
+| `notification_service_contract/src/tests_domain_types.rs` | Reviewed: tests cover route generation, message bounds, and validated deserialization. |
+| `notification_service_contract/src/uuid_notification_id.rs` | Reviewed: UUID wrapper serializes and deserializes through the typed conversion. |
 
 ### panic_location
 
@@ -1829,20 +1869,20 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 
 | Source | Semantic review |
 | --- | --- |
-| `prepare_pg_databases/src/database_preparation_spec.rs` | Pending |
-| `prepare_pg_databases/src/database_url.rs` | Pending |
-| `prepare_pg_databases/src/database_url_error.rs` | Pending |
-| `prepare_pg_databases/src/lib.rs` | Pending |
-| `prepare_pg_databases/src/migration_commands.rs` | Pending |
-| `prepare_pg_databases/src/migrations_source.rs` | Pending |
-| `prepare_pg_databases/src/migrations_source_error.rs` | Pending |
-| `prepare_pg_databases/src/process_argument.rs` | Pending |
-| `prepare_pg_databases/src/process_arguments.rs` | Pending |
-| `prepare_pg_databases/src/process_command.rs` | Pending |
-| `prepare_pg_databases/src/process_commands.rs` | Pending |
-| `prepare_pg_databases/src/process_program.rs` | Pending |
-| `prepare_pg_databases/src/process_static_argument.rs` | Pending |
-| `prepare_pg_databases/src/tests_domain_types.rs` | Pending |
+| `prepare_pg_databases/src/database_preparation_spec.rs` | Reviewed: typed specification transfers URL and migration source in constructor order. |
+| `prepare_pg_databases/src/database_url.rs` | Reviewed: conversion rejects empty or excessive text within its declared byte bound. |
+| `prepare_pg_databases/src/database_url_error.rs` | Reviewed: URL length failures use typed variants. |
+| `prepare_pg_databases/src/lib.rs` | Reviewed: root declares the migration command and domain modules. |
+| `prepare_pg_databases/src/migration_commands.rs` | Reviewed: one input specification produces one SQLx migration command with ordered flags. |
+| `prepare_pg_databases/src/migrations_source.rs` | Reviewed: migration source conversion enforces its declared maximum byte length. |
+| `prepare_pg_databases/src/migrations_source_error.rs` | Reviewed: source length failure is typed. |
+| `prepare_pg_databases/src/process_argument.rs` | Reviewed: typed argument variants expose the corresponding text. |
+| `prepare_pg_databases/src/process_arguments.rs` | Reviewed: command arguments retain insertion order. |
+| `prepare_pg_databases/src/process_command.rs` | Reviewed: process command stores program and ordered arguments. |
+| `prepare_pg_databases/src/process_commands.rs` | Reviewed: generated command collection retains input order. |
+| `prepare_pg_databases/src/process_program.rs` | Reviewed: static executable-name wrapper. |
+| `prepare_pg_databases/src/process_static_argument.rs` | Reviewed: static flag wrapper exposes its value. |
+| `prepare_pg_databases/src/tests_domain_types.rs` | Reviewed: tests cover command shape and empty URL rejection. |
 
 ### proc_macro_bool_enum_to_tokens
 
@@ -1896,10 +1936,10 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 
 | Source | Semantic review |
 | --- | --- |
-| `proc_macro_config_lib_shared/src/lib.rs` | Pending |
-| `proc_macro_config_lib_shared/src/proc_macro2_try_from_parse_fixed_error_ty.rs` | Pending |
-| `proc_macro_config_lib_shared/src/proc_macro2_try_from_parse_input.rs` | Pending |
-| `proc_macro_config_lib_shared/src/proc_macro_try_from_parse_token_stream.rs` | Pending |
+| `proc_macro_config_lib_shared/src/lib.rs` | Fixed: A63 generates bounded nonempty text and typed overlength errors; remaining generator branches reviewed. |
+| `proc_macro_config_lib_shared/src/proc_macro2_try_from_parse_fixed_error_ty.rs` | Reviewed: typed optional generated error token wrapper. |
+| `proc_macro_config_lib_shared/src/proc_macro2_try_from_parse_input.rs` | Reviewed: typed parse input token wrapper. |
+| `proc_macro_config_lib_shared/src/proc_macro_try_from_parse_token_stream.rs` | Reviewed: typed generated token result wrapper. |
 
 ### proc_macro_constants_str_shared
 
@@ -2159,13 +2199,13 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 
 | Source | Semantic review |
 | --- | --- |
-| `proc_macro_location_bang/src/lib.rs` | Pending |
+| `proc_macro_location_bang/src/lib.rs` | Focused review: A62 unexpected token input is currently ignored. |
 
 ### proc_macro_location_derive_location
 
 | Source | Semantic review |
 | --- | --- |
-| `proc_macro_location_derive_location/src/lib.rs` | Pending |
+| `proc_macro_location_derive_location/src/lib.rs` | Reviewed: sole derive entrypoint forwards tokens to shared implementation. |
 
 ### proc_macro_location_errors_with_location
 
@@ -2177,8 +2217,8 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 
 | Source | Semantic review |
 | --- | --- |
-| `proc_macro_location_shared/src/lib.rs` | Pending |
-| `proc_macro_location_shared/src/syn_item_enum_mut_ref.rs` | Pending |
+| `proc_macro_location_shared/src/lib.rs` | Reviewed: location field injection, named and unnamed enum generation, and error-display paths inspected. |
+| `proc_macro_location_shared/src/syn_item_enum_mut_ref.rs` | Reviewed: mutable enum wrapper used by the location field injector. |
 
 ### proc_macro_naming_as_ref_str_enum_with_unit_fields_to_snake_case_str
 
@@ -2515,7 +2555,7 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 | `proc_macro_newtype_shared/src/syn_identifier_ref.rs` | Reviewed: borrowed Syn identifier forwarding preserves its lifetime. |
 | `proc_macro_newtype_shared/src/syn_type.rs` | Reviewed: owned Syn type forwarding through derived references. |
 | `proc_macro_newtype_shared/src/syn_type_ref.rs` | Reviewed: borrowed Syn type forwarding preserves its lifetime. |
-| `proc_macro_newtype_shared/src/test_proc_macro_newtype_shared.rs` | Pending |
+| `proc_macro_newtype_shared/src/test_proc_macro_newtype_shared.rs` | Reviewed: bounded-string derive diagnostics cover missing maximum, byte schema mismatch, and duplicate options. |
 | `proc_macro_newtype_shared/src/to_err_string_mode.rs` | Reviewed: exhaustive ordered formatting modes; generic expansion behavior is tracked in A18. |
 | `proc_macro_newtype_shared/src/wire_enum_attrs.rs` | Focused review: parses required error and reference types; duplicate scalar option behavior remains to be checked. |
 
@@ -2523,8 +2563,8 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 
 | Source | Semantic review |
 | --- | --- |
-| `proc_macro_newtype_tests/tests/test_foundation_derives.rs` | Pending |
-| `proc_macro_newtype_tests/tests/test_newtype.rs` | Pending |
+| `proc_macro_newtype_tests/tests/test_foundation_derives.rs` | Reviewed: foundation derive fixtures cover borrowed and owned getters, references, and token forwarding. |
+| `proc_macro_newtype_tests/tests/test_newtype.rs` | Reviewed: newtype derive integration fixtures cover conversions, bounds, schemas, generics, and secret redaction. |
 
 ### proc_macro_newtype_to_err_string
 
@@ -2640,113 +2680,113 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 
 | Source | Semantic review |
 | --- | --- |
-| `route_validators/src/assert_err_status_code.rs` | Pending |
-| `route_validators/src/assert_err_status_code_only.rs` | Pending |
-| `route_validators/src/assert_err_status_code_variant_ref.rs` | Pending |
-| `route_validators/src/assert_ok_eq.rs` | Pending |
-| `route_validators/src/assert_panics.rs` | Pending |
-| `route_validators/src/axum_body.rs` | Pending |
-| `route_validators/src/axum_body_size_error.rs` | Pending |
-| `route_validators/src/axum_commit_to_str_conversion_error.rs` | Pending |
-| `route_validators/src/axum_header_value_ref.rs` | Pending |
-| `route_validators/src/axum_headers_ref.rs` | Pending |
-| `route_validators/src/axum_http_status_code.rs` | Pending |
-| `route_validators/src/axum_http_status_code_provider.rs` | Pending |
-| `route_validators/src/axum_test_header_value.rs` | Pending |
-| `route_validators/src/axum_test_headers.rs` | Pending |
-| `route_validators/src/axum_test_headers_mut_ref.rs` | Pending |
-| `route_validators/src/body_size_error.rs` | Pending |
-| `route_validators/src/body_size_limit_bytes.rs` | Pending |
-| `route_validators/src/bytes_body_bytes.rs` | Pending |
-| `route_validators/src/check_body_size.rs` | Pending |
-| `route_validators/src/check_commit.rs` | Pending |
-| `route_validators/src/commit_error.rs` | Pending |
-| `route_validators/src/commit_header_name.rs` | Pending |
-| `route_validators/src/commit_not_eq_message.rs` | Pending |
-| `route_validators/src/commit_to_use.rs` | Pending |
-| `route_validators/src/enable_api_git_commit_check.rs` | Pending |
-| `route_validators/src/expect_err_variant_ref_with_status.rs` | Pending |
-| `route_validators/src/expect_error.rs` | Pending |
-| `route_validators/src/expect_error_mapped.rs` | Pending |
-| `route_validators/src/expect_error_variant_ref.rs` | Pending |
-| `route_validators/src/expect_ok.rs` | Pending |
-| `route_validators/src/expect_variant.rs` | Pending |
-| `route_validators/src/expect_variant_ref.rs` | Pending |
-| `route_validators/src/header_str_ref.rs` | Pending |
-| `route_validators/src/header_value_tests.rs` | Pending |
-| `route_validators/src/http_body_size_hint.rs` | Pending |
-| `route_validators/src/increment_block_on_poll_count.rs` | Pending |
-| `route_validators/src/insert_header_no_prev.rs` | Pending |
-| `route_validators/src/is_block_on_poll_limit_reached.rs` | Pending |
-| `route_validators/src/lib.rs` | Pending |
-| `route_validators/src/make_headers_with_entry.rs` | Pending |
-| `route_validators/src/map_err.rs` | Pending |
-| `route_validators/src/map_err_after_status_check.rs` | Pending |
-| `route_validators/src/map_or_panic_unexpected_variant.rs` | Pending |
-| `route_validators/src/max_block_on_polls.rs` | Pending |
-| `route_validators/src/no_commit_header_message.rs` | Pending |
-| `route_validators/src/non_utf8_header_value.rs` | Pending |
-| `route_validators/src/panic_unexpected_result.rs` | Pending |
-| `route_validators/src/panic_unexpected_variant.rs` | Pending |
-| `route_validators/src/poll_test_future.rs` | Pending |
-| `route_validators/src/read_commit_header_str.rs` | Pending |
-| `route_validators/src/replace_header_name.rs` | Pending |
-| `route_validators/src/required_header_str.rs` | Pending |
-| `route_validators/src/required_header_str_parsed.rs` | Pending |
-| `route_validators/src/required_header_value.rs` | Pending |
-| `route_validators/src/test_exp_id.rs` | Pending |
-| `route_validators/src/test_helper.rs` | Pending |
-| `route_validators/src/test_panic_text.rs` | Pending |
-| `route_validators/src/test_poll_count.rs` | Pending |
-| `route_validators/src/test_poll_limit_reached.rs` | Pending |
-| `route_validators/src/validate_commit_header.rs` | Pending |
-| `route_validators/src/validate_commit_header_value.rs` | Pending |
+| `route_validators/src/assert_err_status_code.rs` | Reviewed: typed wrapper or test utility preserves its stated conversion, assertion, or panic behavior. |
+| `route_validators/src/assert_err_status_code_only.rs` | Reviewed: typed wrapper or test utility preserves its stated conversion, assertion, or panic behavior. |
+| `route_validators/src/assert_err_status_code_variant_ref.rs` | Reviewed: typed wrapper or test utility preserves its stated conversion, assertion, or panic behavior. |
+| `route_validators/src/assert_ok_eq.rs` | Reviewed: typed wrapper or test utility preserves its stated conversion, assertion, or panic behavior. |
+| `route_validators/src/assert_panics.rs` | Reviewed: typed wrapper or test utility preserves its stated conversion, assertion, or panic behavior. |
+| `route_validators/src/axum_body.rs` | Reviewed: body wrapper forwards ownership and size hint. |
+| `route_validators/src/axum_body_size_error.rs` | Reviewed: typed wrapper or test utility preserves its stated conversion, assertion, or panic behavior. |
+| `route_validators/src/axum_commit_to_str_conversion_error.rs` | Reviewed: typed wrapper or test utility preserves its stated conversion, assertion, or panic behavior. |
+| `route_validators/src/axum_header_value_ref.rs` | Reviewed: borrowed header value preserves lifetime. |
+| `route_validators/src/axum_headers_ref.rs` | Reviewed: borrowed header map returns matching values. |
+| `route_validators/src/axum_http_status_code.rs` | Reviewed: fixed status constructors match their HTTP codes. |
+| `route_validators/src/axum_http_status_code_provider.rs` | Reviewed: trait and test preserve error status dispatch. |
+| `route_validators/src/axum_test_header_value.rs` | Reviewed: typed wrapper or test utility preserves its stated conversion, assertion, or panic behavior. |
+| `route_validators/src/axum_test_headers.rs` | Reviewed: typed wrapper or test utility preserves its stated conversion, assertion, or panic behavior. |
+| `route_validators/src/axum_test_headers_mut_ref.rs` | Reviewed: typed wrapper or test utility preserves its stated conversion, assertion, or panic behavior. |
+| `route_validators/src/body_size_error.rs` | Reviewed: exceeded body limit maps to HTTP 413 with size context. |
+| `route_validators/src/body_size_limit_bytes.rs` | Reviewed: typed body-size limit preserves byte count. |
+| `route_validators/src/bytes_body_bytes.rs` | Reviewed: typed wrapper or test utility preserves its stated conversion, assertion, or panic behavior. |
+| `route_validators/src/check_body_size.rs` | Reviewed: bounded read accepts the exact limit and rejects excess bytes. |
+| `route_validators/src/check_commit.rs` | Reviewed: enabled check validates the commit header and disabled check bypasses it. |
+| `route_validators/src/commit_error.rs` | Reviewed: missing, non-UTF8, and mismatched commits map to HTTP 400. |
+| `route_validators/src/commit_header_name.rs` | Reviewed: typed wrapper or test utility preserves its stated conversion, assertion, or panic behavior. |
+| `route_validators/src/commit_not_eq_message.rs` | Reviewed: typed wrapper or test utility preserves its stated conversion, assertion, or panic behavior. |
+| `route_validators/src/commit_to_use.rs` | Reviewed: mismatch response retains the static project link. |
+| `route_validators/src/enable_api_git_commit_check.rs` | Reviewed: boolean wrapper controls commit validation. |
+| `route_validators/src/expect_err_variant_ref_with_status.rs` | Reviewed: typed wrapper or test utility preserves its stated conversion, assertion, or panic behavior. |
+| `route_validators/src/expect_error.rs` | Reviewed: typed wrapper or test utility preserves its stated conversion, assertion, or panic behavior. |
+| `route_validators/src/expect_error_mapped.rs` | Reviewed: typed wrapper or test utility preserves its stated conversion, assertion, or panic behavior. |
+| `route_validators/src/expect_error_variant_ref.rs` | Reviewed: typed wrapper or test utility preserves its stated conversion, assertion, or panic behavior. |
+| `route_validators/src/expect_ok.rs` | Reviewed: typed wrapper or test utility preserves its stated conversion, assertion, or panic behavior. |
+| `route_validators/src/expect_variant.rs` | Reviewed: typed wrapper or test utility preserves its stated conversion, assertion, or panic behavior. |
+| `route_validators/src/expect_variant_ref.rs` | Reviewed: typed wrapper or test utility preserves its stated conversion, assertion, or panic behavior. |
+| `route_validators/src/header_str_ref.rs` | Reviewed: borrowed header text wrapper preserves lifetime. |
+| `route_validators/src/header_value_tests.rs` | Reviewed: deterministic header and test-helper cases cover success and error paths. |
+| `route_validators/src/http_body_size_hint.rs` | Reviewed: size hint wrapper renders bounded diagnostic text. |
+| `route_validators/src/increment_block_on_poll_count.rs` | Reviewed: typed wrapper or test utility preserves its stated conversion, assertion, or panic behavior. |
+| `route_validators/src/insert_header_no_prev.rs` | Reviewed: typed wrapper or test utility preserves its stated conversion, assertion, or panic behavior. |
+| `route_validators/src/is_block_on_poll_limit_reached.rs` | Reviewed: typed wrapper or test utility preserves its stated conversion, assertion, or panic behavior. |
+| `route_validators/src/lib.rs` | Reviewed: module declarations and test-only ownership match the implementation. |
+| `route_validators/src/make_headers_with_entry.rs` | Reviewed: typed wrapper or test utility preserves its stated conversion, assertion, or panic behavior. |
+| `route_validators/src/map_err.rs` | Reviewed: test helper inspects errors before mapping. |
+| `route_validators/src/map_err_after_status_check.rs` | Reviewed: test helper verifies status before mapping. |
+| `route_validators/src/map_or_panic_unexpected_variant.rs` | Reviewed: typed wrapper or test utility preserves its stated conversion, assertion, or panic behavior. |
+| `route_validators/src/max_block_on_polls.rs` | Reviewed: typed wrapper or test utility preserves its stated conversion, assertion, or panic behavior. |
+| `route_validators/src/no_commit_header_message.rs` | Reviewed: typed wrapper or test utility preserves its stated conversion, assertion, or panic behavior. |
+| `route_validators/src/non_utf8_header_value.rs` | Reviewed: typed wrapper or test utility preserves its stated conversion, assertion, or panic behavior. |
+| `route_validators/src/panic_unexpected_result.rs` | Reviewed: typed wrapper or test utility preserves its stated conversion, assertion, or panic behavior. |
+| `route_validators/src/panic_unexpected_variant.rs` | Reviewed: typed wrapper or test utility preserves its stated conversion, assertion, or panic behavior. |
+| `route_validators/src/poll_test_future.rs` | Reviewed: test helper bounds manual future polls. |
+| `route_validators/src/read_commit_header_str.rs` | Reviewed: typed header reader distinguishes absent and non-UTF8 values. |
+| `route_validators/src/replace_header_name.rs` | Reviewed: typed wrapper or test utility preserves its stated conversion, assertion, or panic behavior. |
+| `route_validators/src/required_header_str.rs` | Reviewed: reader delegates missing and decoding errors through callbacks. |
+| `route_validators/src/required_header_str_parsed.rs` | Reviewed: parsed reader preserves borrowed header lifetime and parse failures. |
+| `route_validators/src/required_header_value.rs` | Reviewed: header lookup maps absence to caller-owned error. |
+| `route_validators/src/test_exp_id.rs` | Reviewed: typed wrapper or test utility preserves its stated conversion, assertion, or panic behavior. |
+| `route_validators/src/test_helper.rs` | Reviewed: deterministic header and test-helper cases cover success and error paths. |
+| `route_validators/src/test_panic_text.rs` | Reviewed: typed wrapper or test utility preserves its stated conversion, assertion, or panic behavior. |
+| `route_validators/src/test_poll_count.rs` | Reviewed: typed wrapper or test utility preserves its stated conversion, assertion, or panic behavior. |
+| `route_validators/src/test_poll_limit_reached.rs` | Reviewed: typed wrapper or test utility preserves its stated conversion, assertion, or panic behavior. |
+| `route_validators/src/validate_commit_header.rs` | Reviewed: header reader passes typed text to commit validator. |
+| `route_validators/src/validate_commit_header_value.rs` | Reviewed: mismatch retains the project commit link. |
 
 ### runtime_tests
 
 | Source | Semantic review |
 | --- | --- |
-| `runtime_tests/src/http_runtime_test_status.rs` | Pending |
-| `runtime_tests/src/lib.rs` | Pending |
-| `runtime_tests/src/main.rs` | Pending |
-| `runtime_tests/src/reqwest_runtime_test_client.rs` | Pending |
-| `runtime_tests/src/reqwest_runtime_test_response.rs` | Pending |
-| `runtime_tests/src/runtime_test_config.rs` | Pending |
-| `runtime_tests/src/runtime_test_error.rs` | Pending |
-| `runtime_tests/src/runtime_test_kind.rs` | Pending |
-| `runtime_tests/src/runtime_test_report.rs` | Pending |
-| `runtime_tests/src/runtime_test_url.rs` | Pending |
-| `runtime_tests/src/service_base_url.rs` | Pending |
-| `runtime_tests/src/service_base_url_error.rs` | Pending |
-| `runtime_tests/src/tests_domain_types.rs` | Pending |
+| `runtime_tests/src/http_runtime_test_status.rs` | Reviewed: typed status wrapper supports exact comparisons. |
+| `runtime_tests/src/lib.rs` | Reviewed: probe runner checks liveness, readiness, creation status and decoded responses in order. |
+| `runtime_tests/src/main.rs` | Reviewed: command invokes local configuration and returns probe failures. |
+| `runtime_tests/src/reqwest_runtime_test_client.rs` | Reviewed: blocking client sends typed GET and JSON POST requests. |
+| `runtime_tests/src/reqwest_runtime_test_response.rs` | Reviewed: response wrapper decodes the matching typed report or creation response. |
+| `runtime_tests/src/runtime_test_config.rs` | Reviewed: config stores distinct application and notification service base URLs. |
+| `runtime_tests/src/runtime_test_error.rs` | Reviewed: errors retain the failed test and request, response, status, or validation source. |
+| `runtime_tests/src/runtime_test_kind.rs` | Reviewed: fixed test kinds have stable display text. |
+| `runtime_tests/src/runtime_test_report.rs` | Reviewed: report bounds the five expected passed test kinds. |
+| `runtime_tests/src/runtime_test_url.rs` | Reviewed: assembled route URL enforces the configured byte limit. |
+| `runtime_tests/src/service_base_url.rs` | Reviewed: base URL normalization accepts HTTP(S) hosts and rejects query or fragment suffixes. |
+| `runtime_tests/src/service_base_url_error.rs` | Reviewed: typed errors distinguish host, length, scheme, and suffix failures. |
+| `runtime_tests/src/tests_domain_types.rs` | Reviewed: tests cover trailing slash normalization and invalid scheme or suffix. |
 
 ### server
 
 | Source | Semantic review |
 | --- | --- |
-| `server/src/admin_metrics.rs` | Pending |
-| `server/src/admin_metrics_error.rs` | Pending |
-| `server/src/admin_metrics_page.rs` | Pending |
-| `server/src/admin_metrics_page_route_registry.rs` | Pending |
-| `server/src/admin_metrics_route_registry.rs` | Pending |
-| `server/src/admin_open_api.rs` | Pending |
-| `server/src/admin_open_api_route_registry.rs` | Pending |
-| `server/src/axum_api_routes.rs` | Pending |
-| `server/src/axum_metrics_exporter_prometheus_renderer.rs` | Pending |
-| `server/src/frontend_fallback_routes.rs` | Pending |
-| `server/src/http_body_maximum_bytes.rs` | Pending |
-| `server/src/main.rs` | Pending |
-| `server/src/make_postgresql_pool.rs` | Pending |
-| `server/src/metrics_exporter_prometheus_build_error.rs` | Pending |
-| `server/src/metrics_exporter_prometheus_renderer.rs` | Pending |
-| `server/src/mount_service_routes.rs` | Pending |
-| `server/src/run_server_error.rs` | Pending |
-| `server/src/server_exit_code.rs` | Pending |
-| `server/src/server_io_error.rs` | Pending |
-| `server/src/shared_server_app_state_arc.rs` | Pending |
-| `server/src/sqlx_server_pg_connect_error.rs` | Pending |
-| `server/src/tests_domain_types.rs` | Pending |
-| `server/src/tokio_server_runtime.rs` | Pending |
+| `server/src/admin_metrics.rs` | Reviewed: bounded metrics rendering returns an OK response or typed render error. |
+| `server/src/admin_metrics_error.rs` | Reviewed: render failure maps to HTTP 500. |
+| `server/src/admin_metrics_page.rs` | Reviewed: metrics page validates rendered text before HTML response. |
+| `server/src/admin_metrics_page_route_registry.rs` | Reviewed: page registry maps the metrics path to its handler. |
+| `server/src/admin_metrics_route_registry.rs` | Reviewed: API registry maps the metrics route to its handler. |
+| `server/src/admin_open_api.rs` | Reviewed: handler serializes the generated administrator OpenAPI document. |
+| `server/src/admin_open_api_route_registry.rs` | Reviewed: OpenAPI registry maps the typed administrator route. |
+| `server/src/axum_api_routes.rs` | Reviewed: typed API router ownership wrapper. |
+| `server/src/axum_metrics_exporter_prometheus_renderer.rs` | Reviewed: extractor clones the shared metrics handle. |
+| `server/src/frontend_fallback_routes.rs` | Reviewed: unknown frontend paths redirect to the typed sign-in path. |
+| `server/src/http_body_maximum_bytes.rs` | Reviewed: typed body-limit wrapper. |
+| `server/src/main.rs` | Reviewed: startup validates config, builds the pool and routes, supervises cleanup, and shuts down observability. |
+| `server/src/make_postgresql_pool.rs` | Reviewed: pool options reject inverted connection bounds and preserve connection errors. |
+| `server/src/metrics_exporter_prometheus_build_error.rs` | Reviewed: metrics recorder build error retains its source. |
+| `server/src/metrics_exporter_prometheus_renderer.rs` | Reviewed: typed Prometheus handle wrapper. |
+| `server/src/mount_service_routes.rs` | Reviewed: operational and API routes are root mounted with API body limits. |
+| `server/src/run_server_error.rs` | Reviewed: startup and serving failure variants retain their operation context. |
+| `server/src/server_exit_code.rs` | Reviewed: termination forwards the selected exit code. |
+| `server/src/server_io_error.rs` | Reviewed: I/O error wrapper retains its source. |
+| `server/src/shared_server_app_state_arc.rs` | Reviewed: one Arc allocation shares immutable application state across handlers. |
+| `server/src/sqlx_server_pg_connect_error.rs` | Reviewed: connection error wrapper retains its source. |
+| `server/src/tests_domain_types.rs` | Reviewed: tests cover router mounting, fallback redirect, asset serving, and bind errors. |
+| `server/src/tokio_server_runtime.rs` | Reviewed: typed Tokio runtime ownership wrapper. |
 
 ### server_admin
 
@@ -3428,29 +3468,29 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 
 | Source | Semantic review |
 | --- | --- |
-| `server_admin_core/src/admin_entity_id_from_i64.rs` | Pending |
-| `server_admin_core/src/admin_entity_id_try_from_i64_error.rs` | Pending |
-| `server_admin_core/src/admin_resource_text.rs` | Pending |
-| `server_admin_core/src/admin_role_record_id.rs` | Pending |
-| `server_admin_core/src/admin_socket_addr.rs` | Pending |
-| `server_admin_core/src/admin_user_record_id.rs` | Pending |
-| `server_admin_core/src/lib.rs` | Pending |
-| `server_admin_core/src/secrecy_admin_string.rs` | Pending |
-| `server_admin_core/src/std_admin_bool.rs` | Pending |
-| `server_admin_core/src/std_admin_str_ref.rs` | Pending |
-| `server_admin_core/src/std_admin_string.rs` | Pending |
-| `server_admin_core/src/tests_domain_types.rs` | Pending |
-| `server_admin_core/src/uuid_admin_value.rs` | Pending |
+| `server_admin_core/src/admin_entity_id_from_i64.rs` | Reviewed: positive nonzero conversion maps invalid IDs to a typed domain error. |
+| `server_admin_core/src/admin_entity_id_try_from_i64_error.rs` | Reviewed: invalid entity IDs use one typed error. |
+| `server_admin_core/src/admin_resource_text.rs` | Reviewed: enum distinguishes positive IDs, system settings, and UUID resource text. |
+| `server_admin_core/src/admin_role_record_id.rs` | Reviewed: validated ID wrapper deserializes through positive nonzero conversion. |
+| `server_admin_core/src/admin_socket_addr.rs` | Reviewed: typed socket-address wrapper forwards owned and borrowed access. |
+| `server_admin_core/src/admin_user_record_id.rs` | Reviewed: validated user ID deserializes through positive nonzero conversion. |
+| `server_admin_core/src/lib.rs` | Reviewed: root declarations and bounded-string validator reference are consistent. |
+| `server_admin_core/src/secrecy_admin_string.rs` | Reviewed: secret stores bounded text, redacts Debug, and exposes through secrecy's trait. |
+| `server_admin_core/src/std_admin_bool.rs` | Reviewed: boolean wrapper deserializes through its typed conversion. |
+| `server_admin_core/src/std_admin_str_ref.rs` | Reviewed: borrowed string wrapper preserves its lifetime. |
+| `server_admin_core/src/std_admin_string.rs` | Reviewed: bounded internal text supports zeroization and bounded resource formatting. |
+| `server_admin_core/src/tests_domain_types.rs` | Reviewed: tests cover secret length, redaction, zeroization, and resource values. |
+| `server_admin_core/src/uuid_admin_value.rs` | Reviewed: UUID wrapper serializes and deserializes through typed conversion. |
 
 ### server_app_state
 
 | Source | Semantic review |
 | --- | --- |
-| `server_app_state/src/lib.rs` | Pending |
-| `server_app_state/src/make_test_server_app_state.rs` | Pending |
-| `server_app_state/src/server_app_state.rs` | Pending |
-| `server_app_state/src/test_env.rs` | Pending |
-| `server_app_state/src/test_server_app_state.rs` | Pending |
+| `server_app_state/src/lib.rs` | Reviewed: module declarations and test utility gating are consistent. |
+| `server_app_state/src/make_test_server_app_state.rs` | Reviewed: test state uses validated configuration values and a lazy database pool. |
+| `server_app_state/src/server_app_state.rs` | Reviewed: provider implementations forward the corresponding state and configuration fields. |
+| `server_app_state/src/test_env.rs` | Reviewed: test conversion propagates invalid fixtures through a diagnostic failure. |
+| `server_app_state/src/test_server_app_state.rs` | Reviewed: tests cover configuration forwarding, pool identity, and Git metadata. |
 
 ### server_config
 
@@ -3466,37 +3506,37 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 
 | Source | Semantic review |
 | --- | --- |
-| `server_observability/src/init_service_observability.rs` | Pending |
-| `server_observability/src/initialization_tests.rs` | Pending |
-| `server_observability/src/initialize_otlp_tracer_provider.rs` | Pending |
-| `server_observability/src/lib.rs` | Pending |
-| `server_observability/src/observability_guard.rs` | Pending |
-| `server_observability/src/observability_init_error.rs` | Pending |
-| `server_observability/src/observed_error.rs` | Pending |
-| `server_observability/src/observed_error_backtrace.rs` | Pending |
-| `server_observability/src/observed_error_code.rs` | Pending |
-| `server_observability/src/opentelemetry_otlp_exporter_build_error.rs` | Pending |
-| `server_observability/src/opentelemetry_sdk_observability_shutdown_error.rs` | Pending |
-| `server_observability/src/opentelemetry_sdk_tracer_provider.rs` | Pending |
-| `server_observability/src/otlp_export_mode.rs` | Pending |
-| `server_observability/src/service_name.rs` | Pending |
-| `server_observability/src/service_tracing_format.rs` | Pending |
-| `server_observability/src/std_panic_location.rs` | Pending |
-| `server_observability/src/tracing_observed_error_span_trace.rs` | Pending |
-| `server_observability/src/tracing_subscriber_init_error.rs` | Pending |
+| `server_observability/src/init_service_observability.rs` | Reviewed: optional OTLP setup, subscriber initialization, and cleanup preserve failures. |
+| `server_observability/src/initialization_tests.rs` | Reviewed: tests cover disabled export and explicit or drop-based tracer shutdown. |
+| `server_observability/src/initialize_otlp_tracer_provider.rs` | Reviewed: disabled export avoids client creation; enabled export builds a named provider. |
+| `server_observability/src/lib.rs` | Reviewed: root declares initialization, guard, and observed-error owners. |
+| `server_observability/src/observability_guard.rs` | Reviewed: explicit shutdown consumes the provider and Drop supervises an unconsumed provider. |
+| `server_observability/src/observability_init_error.rs` | Reviewed: exporter and subscriber failures remain distinct. |
+| `server_observability/src/observed_error.rs` | Reviewed: captured error retains source, code, call-site location, backtrace, and span data. |
+| `server_observability/src/observed_error_backtrace.rs` | Reviewed: backtrace wrapper forwards display text. |
+| `server_observability/src/observed_error_code.rs` | Reviewed: static error-code wrapper preserves typed display. |
+| `server_observability/src/opentelemetry_otlp_exporter_build_error.rs` | Reviewed: exporter error wrapper retains its source. |
+| `server_observability/src/opentelemetry_sdk_observability_shutdown_error.rs` | Reviewed: shutdown error wrapper retains SDK failure. |
+| `server_observability/src/opentelemetry_sdk_tracer_provider.rs` | Reviewed: typed provider forwards owned shutdown. |
+| `server_observability/src/otlp_export_mode.rs` | Reviewed: boolean mode conversion selects enabled or disabled export. |
+| `server_observability/src/service_name.rs` | Reviewed: static service name wrapper supports display. |
+| `server_observability/src/service_tracing_format.rs` | Reviewed: format enum selects JSON or text subscriber. |
+| `server_observability/src/std_panic_location.rs` | Reviewed: static source-location wrapper supports display. |
+| `server_observability/src/tracing_observed_error_span_trace.rs` | Reviewed: owned span text wrapper supports display. |
+| `server_observability/src/tracing_subscriber_init_error.rs` | Reviewed: subscriber error wrapper retains its source. |
 
 ### server_runtime_core
 
 | Source | Semantic review |
 | --- | --- |
-| `server_runtime_core/src/arc_single_flight_rw_lock.rs` | Pending |
+| `server_runtime_core/src/arc_single_flight_rw_lock.rs` | Reviewed: typed wrapper, validation, error mapping, or module wiring inspected; no defect confirmed. |
 | `server_runtime_core/src/async_run_history.rs` | Reviewed: nonzero capacity, bounded initial reservation, oldest-report eviction, shared clone ownership and snapshot counts; no lock guard crosses a subsequent await. |
 | `server_runtime_core/src/async_run_history_maximum_len_non_zero_usize.rs` | Reviewed: nonzero capacity, bounded initial reservation, oldest-report eviction, shared clone ownership and snapshot counts; no lock guard crosses a subsequent await. |
 | `server_runtime_core/src/async_run_history_snapshot.rs` | Reviewed: nonzero capacity, bounded initial reservation, oldest-report eviction, shared clone ownership and snapshot counts; no lock guard crosses a subsequent await. |
-| `server_runtime_core/src/background_job.rs` | Pending |
+| `server_runtime_core/src/background_job.rs` | Reviewed: typed wrapper, validation, error mapping, or module wiring inspected; no defect confirmed. |
 | `server_runtime_core/src/bounded_secret_text.rs` | Reviewed: byte bounds, whitespace and repeated-byte rejection, redacted formatting and equality over the bounded range. Timing guarantees were not established by this review. |
 | `server_runtime_core/src/bounded_secret_text_error.rs` | Reviewed: byte bounds, whitespace and repeated-byte rejection, redacted formatting and equality over the bounded range. Timing guarantees were not established by this review. |
-| `server_runtime_core/src/bulk_item_resource_budget_provider.rs` | Pending |
+| `server_runtime_core/src/bulk_item_resource_budget_provider.rs` | Reviewed: typed wrapper, validation, error mapping, or module wiring inspected; no defect confirmed. |
 | `server_runtime_core/src/calculate_resource_utilization.rs` | Reviewed: exhaustive identity decisions or bounded resource arithmetic and threshold tests; zero and u64 maximum cases inspected. |
 | `server_runtime_core/src/collections_hash_set.rs` | Reviewed: bounded initial allocation, duplicate-before-full precedence, FIFO removal and key release; paired collections are privately owned. Deterministic maximum and reinsertion tests inspected. |
 | `server_runtime_core/src/collections_vec_deque.rs` | Reviewed: bounded initial allocation, duplicate-before-full precedence, FIFO removal and key release; paired collections are privately owned. Deterministic maximum and reinsertion tests inspected. |
@@ -3515,7 +3555,7 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 | `server_runtime_core/src/generation_begin_error.rs` | Reviewed: atomic transitions, release on guard drop, and generation overflow; deterministic tests inspected. Classification is an observation of the current generation. |
 | `server_runtime_core/src/generation_commit.rs` | Reviewed: atomic transitions, release on guard drop, and generation overflow; deterministic tests inspected. Classification is an observation of the current generation. |
 | `server_runtime_core/src/generation_gate.rs` | Reviewed: atomic transitions, release on guard drop, and generation overflow; deterministic tests inspected. Classification is an observation of the current generation. |
-| `server_runtime_core/src/idempotency_response_resource_budget_provider.rs` | Pending |
+| `server_runtime_core/src/idempotency_response_resource_budget_provider.rs` | Reviewed: typed wrapper, validation, error mapping, or module wiring inspected; no defect confirmed. |
 | `server_runtime_core/src/identity_creation_decision.rs` | Reviewed: exhaustive identity decisions or bounded resource arithmetic and threshold tests; zero and u64 maximum cases inspected. |
 | `server_runtime_core/src/identity_creation_plan_tests.rs` | Reviewed: exhaustive identity decisions or bounded resource arithmetic and threshold tests; zero and u64 maximum cases inspected. |
 | `server_runtime_core/src/identity_presence.rs` | Reviewed: exhaustive identity decisions or bounded resource arithmetic and threshold tests; zero and u64 maximum cases inspected. |
@@ -3532,21 +3572,21 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 | `server_runtime_core/src/lease_reservation.rs` | Reviewed: paired lease indexes, stale cleanup, rebinding at capacity, heartbeat and release transitions; lock scope and paused-clock tests inspected. Stale listings can repeat already-stale leases. |
 | `server_runtime_core/src/lease_stale_timeout_duration.rs` | Reviewed: paired lease indexes, stale cleanup, rebinding at capacity, heartbeat and release transitions; lock scope and paused-clock tests inspected. Stale listings can repeat already-stale leases. |
 | `server_runtime_core/src/lease_state.rs` | Reviewed: paired lease indexes, stale cleanup, rebinding at capacity, heartbeat and release transitions; lock scope and paused-clock tests inspected. Stale listings can repeat already-stale leases. |
-| `server_runtime_core/src/lease_text_error.rs` | Pending |
-| `server_runtime_core/src/lease_text_maximum_bytes.rs` | Pending |
-| `server_runtime_core/src/lease_text_ref.rs` | Pending |
-| `server_runtime_core/src/lib.rs` | Pending |
+| `server_runtime_core/src/lease_text_error.rs` | Reviewed: typed wrapper, validation, error mapping, or module wiring inspected; no defect confirmed. |
+| `server_runtime_core/src/lease_text_maximum_bytes.rs` | Reviewed: typed wrapper, validation, error mapping, or module wiring inspected; no defect confirmed. |
+| `server_runtime_core/src/lease_text_ref.rs` | Reviewed: typed wrapper, validation, error mapping, or module wiring inspected; no defect confirmed. |
+| `server_runtime_core/src/lib.rs` | Reviewed: typed wrapper, validation, error mapping, or module wiring inspected; no defect confirmed. |
 | `server_runtime_core/src/plan_identity_creation.rs` | Reviewed: exhaustive identity decisions or bounded resource arithmetic and threshold tests; zero and u64 maximum cases inspected. |
 | `server_runtime_core/src/queue_maximum_non_zero_usize.rs` | Reviewed: bounded initial allocation, duplicate-before-full precedence, FIFO removal and key release; paired collections are privately owned. Deterministic maximum and reinsertion tests inspected. |
 | `server_runtime_core/src/queue_push.rs` | Reviewed: bounded initial allocation, duplicate-before-full precedence, FIFO removal and key release; paired collections are privately owned. Deterministic maximum and reinsertion tests inspected. |
 | `server_runtime_core/src/reject_non_essential_writes_percent.rs` | Reviewed: exhaustive identity decisions or bounded resource arithmetic and threshold tests; zero and u64 maximum cases inspected. |
 | `server_runtime_core/src/resource_amount.rs` | Reviewed: exhaustive identity decisions or bounded resource arithmetic and threshold tests; zero and u64 maximum cases inspected. |
-| `server_runtime_core/src/resource_budget.rs` | Pending |
-| `server_runtime_core/src/resource_budget_amount.rs` | Pending |
-| `server_runtime_core/src/resource_budget_config_error.rs` | Pending |
-| `server_runtime_core/src/resource_budget_maximum.rs` | Pending |
-| `server_runtime_core/src/resource_budget_reservation.rs` | Pending |
-| `server_runtime_core/src/resource_budget_reserve_error.rs` | Pending |
+| `server_runtime_core/src/resource_budget.rs` | Reviewed: atomic accounting, retry exits, owner release, waiter wakeup, and cancellation behavior inspected. |
+| `server_runtime_core/src/resource_budget_amount.rs` | Reviewed: typed wrapper, validation, error mapping, or module wiring inspected; no defect confirmed. |
+| `server_runtime_core/src/resource_budget_config_error.rs` | Reviewed: typed wrapper, validation, error mapping, or module wiring inspected; no defect confirmed. |
+| `server_runtime_core/src/resource_budget_maximum.rs` | Reviewed: typed wrapper, validation, error mapping, or module wiring inspected; no defect confirmed. |
+| `server_runtime_core/src/resource_budget_reservation.rs` | Reviewed: atomic accounting, retry exits, owner release, waiter wakeup, and cancellation behavior inspected. |
+| `server_runtime_core/src/resource_budget_reserve_error.rs` | Reviewed: typed wrapper, validation, error mapping, or module wiring inspected; no defect confirmed. |
 | `server_runtime_core/src/resource_utilization.rs` | Reviewed: exhaustive identity decisions or bounded resource arithmetic and threshold tests; zero and u64 maximum cases inspected. |
 | `server_runtime_core/src/resource_utilization_error.rs` | Reviewed: exhaustive identity decisions or bounded resource arithmetic and threshold tests; zero and u64 maximum cases inspected. |
 | `server_runtime_core/src/resource_utilization_known_percent.rs` | Reviewed: exhaustive identity decisions or bounded resource arithmetic and threshold tests; zero and u64 maximum cases inspected. |
@@ -3555,44 +3595,44 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 | `server_runtime_core/src/resource_utilization_status.rs` | Reviewed: exhaustive identity decisions or bounded resource arithmetic and threshold tests; zero and u64 maximum cases inspected. |
 | `server_runtime_core/src/retry_attempts_non_zero_usize.rs` | Reviewed: policy storage, nonzero attempts, apply and dry-run dispatch; propagation and no-mutation tests inspected. |
 | `server_runtime_core/src/retry_delay_duration.rs` | Reviewed: policy storage, nonzero attempts, apply and dry-run dispatch; propagation and no-mutation tests inspected. |
-| `server_runtime_core/src/retry_outcome.rs` | Pending |
+| `server_runtime_core/src/retry_outcome.rs` | Reviewed: typed wrapper, validation, error mapping, or module wiring inspected; no defect confirmed. |
 | `server_runtime_core/src/retry_policy.rs` | Reviewed: policy storage, nonzero attempts, apply and dry-run dispatch; propagation and no-mutation tests inspected. |
-| `server_runtime_core/src/retry_tests.rs` | Pending |
+| `server_runtime_core/src/retry_tests.rs` | Reviewed: typed wrapper, validation, error mapping, or module wiring inspected; no defect confirmed. |
 | `server_runtime_core/src/run_reports_vec_deque.rs` | Reviewed: nonzero capacity, bounded initial reservation, oldest-report eviction, shared clone ownership and snapshot counts; no lock guard crosses a subsequent await. |
-| `server_runtime_core/src/run_with_retries.rs` | Pending |
+| `server_runtime_core/src/run_with_retries.rs` | Reviewed: atomic accounting, retry exits, owner release, waiter wakeup, and cancellation behavior inspected. |
 | `server_runtime_core/src/secret_text_match.rs` | Reviewed: byte bounds, whitespace and repeated-byte rejection, redacted formatting and equality over the bounded range. Timing guarantees were not established by this review. |
 | `server_runtime_core/src/secret_text_minimum_bytes.rs` | Reviewed: byte bounds, whitespace and repeated-byte rejection, redacted formatting and equality over the bounded range. Timing guarantees were not established by this review. |
 | `server_runtime_core/src/secret_text_ref.rs` | Reviewed: byte bounds, whitespace and repeated-byte rejection, redacted formatting and equality over the bounded range. Timing guarantees were not established by this review. |
 | `server_runtime_core/src/secret_text_tests.rs` | Reviewed: byte bounds, whitespace and repeated-byte rejection, redacted formatting and equality over the bounded range. Timing guarantees were not established by this review. |
 | `server_runtime_core/src/secret_texts_match.rs` | Reviewed: byte bounds, whitespace and repeated-byte rejection, redacted formatting and equality over the bounded range. Timing guarantees were not established by this review. |
-| `server_runtime_core/src/select_sources.rs` | Pending |
-| `server_runtime_core/src/shared_atomic_usize_arc.rs` | Pending |
+| `server_runtime_core/src/select_sources.rs` | Reviewed: typed wrapper, validation, error mapping, or module wiring inspected; no defect confirmed. |
+| `server_runtime_core/src/shared_atomic_usize_arc.rs` | Reviewed: typed wrapper, validation, error mapping, or module wiring inspected; no defect confirmed. |
 | `server_runtime_core/src/shared_run_reports_arc.rs` | Reviewed: nonzero capacity, bounded initial reservation, oldest-report eviction, shared clone ownership and snapshot counts; no lock guard crosses a subsequent await. |
-| `server_runtime_core/src/single_flight.rs` | Pending |
-| `server_runtime_core/src/single_flight_acquire.rs` | Pending |
-| `server_runtime_core/src/single_flight_inner.rs` | Pending |
-| `server_runtime_core/src/single_flight_key.rs` | Pending |
-| `server_runtime_core/src/single_flight_key_error.rs` | Pending |
-| `server_runtime_core/src/single_flight_key_maximum_bytes.rs` | Pending |
-| `server_runtime_core/src/single_flight_maximum_non_zero_usize.rs` | Pending |
-| `server_runtime_core/src/single_flight_owner.rs` | Pending |
-| `server_runtime_core/src/single_flight_rw_lock_write_guard.rs` | Pending |
-| `server_runtime_core/src/single_flight_signal.rs` | Pending |
-| `server_runtime_core/src/single_flight_wait_outcome.rs` | Pending |
-| `server_runtime_core/src/single_flight_waiter.rs` | Pending |
-| `server_runtime_core/src/source_selection.rs` | Pending |
-| `server_runtime_core/src/source_selection_error.rs` | Pending |
+| `server_runtime_core/src/single_flight.rs` | Reviewed: atomic accounting, retry exits, owner release, waiter wakeup, and cancellation behavior inspected. |
+| `server_runtime_core/src/single_flight_acquire.rs` | Reviewed: typed wrapper, validation, error mapping, or module wiring inspected; no defect confirmed. |
+| `server_runtime_core/src/single_flight_inner.rs` | Reviewed: typed wrapper, validation, error mapping, or module wiring inspected; no defect confirmed. |
+| `server_runtime_core/src/single_flight_key.rs` | Reviewed: typed wrapper, validation, error mapping, or module wiring inspected; no defect confirmed. |
+| `server_runtime_core/src/single_flight_key_error.rs` | Reviewed: typed wrapper, validation, error mapping, or module wiring inspected; no defect confirmed. |
+| `server_runtime_core/src/single_flight_key_maximum_bytes.rs` | Reviewed: typed wrapper, validation, error mapping, or module wiring inspected; no defect confirmed. |
+| `server_runtime_core/src/single_flight_maximum_non_zero_usize.rs` | Reviewed: typed wrapper, validation, error mapping, or module wiring inspected; no defect confirmed. |
+| `server_runtime_core/src/single_flight_owner.rs` | Reviewed: atomic accounting, retry exits, owner release, waiter wakeup, and cancellation behavior inspected. |
+| `server_runtime_core/src/single_flight_rw_lock_write_guard.rs` | Reviewed: typed wrapper, validation, error mapping, or module wiring inspected; no defect confirmed. |
+| `server_runtime_core/src/single_flight_signal.rs` | Reviewed: typed wrapper, validation, error mapping, or module wiring inspected; no defect confirmed. |
+| `server_runtime_core/src/single_flight_wait_outcome.rs` | Reviewed: typed wrapper, validation, error mapping, or module wiring inspected; no defect confirmed. |
+| `server_runtime_core/src/single_flight_waiter.rs` | Reviewed: atomic accounting, retry exits, owner release, waiter wakeup, and cancellation behavior inspected. |
+| `server_runtime_core/src/source_selection.rs` | Reviewed: typed wrapper, validation, error mapping, or module wiring inspected; no defect confirmed. |
+| `server_runtime_core/src/source_selection_error.rs` | Reviewed: typed wrapper, validation, error mapping, or module wiring inspected; no defect confirmed. |
 | `server_runtime_core/src/std_async_run_history_maximum_len_try_from_usize_error.rs` | Reviewed: nonzero capacity, bounded initial reservation, oldest-report eviction, shared clone ownership and snapshot counts; no lock guard crosses a subsequent await. |
 | `server_runtime_core/src/std_async_run_history_report_count.rs` | Reviewed: nonzero capacity, bounded initial reservation, oldest-report eviction, shared clone ownership and snapshot counts; no lock guard crosses a subsequent await. |
-| `server_runtime_core/src/std_lease_stale_timeout_error.rs` | Pending |
-| `server_runtime_core/src/std_retry_attempts_error.rs` | Pending |
+| `server_runtime_core/src/std_lease_stale_timeout_error.rs` | Reviewed: typed wrapper, validation, error mapping, or module wiring inspected; no defect confirmed. |
+| `server_runtime_core/src/std_retry_attempts_error.rs` | Reviewed: typed wrapper, validation, error mapping, or module wiring inspected; no defect confirmed. |
 | `server_runtime_core/src/tokio_lease_instant.rs` | Reviewed: paired lease indexes, stale cleanup, rebinding at capacity, heartbeat and release transitions; lock scope and paused-clock tests inspected. Stale listings can repeat already-stale leases. |
 | `server_runtime_core/src/tokio_lease_registry_rw_lock_arc.rs` | Reviewed: paired lease indexes, stale cleanup, rebinding at capacity, heartbeat and release transitions; lock scope and paused-clock tests inspected. Stale listings can repeat already-stale leases. |
-| `server_runtime_core/src/tokio_single_flight_receiver.rs` | Pending |
-| `server_runtime_core/src/tokio_single_flight_sender.rs` | Pending |
-| `server_runtime_core/src/validate_lease_text.rs` | Pending |
+| `server_runtime_core/src/tokio_single_flight_receiver.rs` | Reviewed: typed wrapper, validation, error mapping, or module wiring inspected; no defect confirmed. |
+| `server_runtime_core/src/tokio_single_flight_sender.rs` | Reviewed: typed wrapper, validation, error mapping, or module wiring inspected; no defect confirmed. |
+| `server_runtime_core/src/validate_lease_text.rs` | Reviewed: typed wrapper, validation, error mapping, or module wiring inspected; no defect confirmed. |
 | `server_runtime_core/src/warning_percent.rs` | Reviewed: exhaustive identity decisions or bounded resource arithmetic and threshold tests; zero and u64 maximum cases inspected. |
-| `server_runtime_core/src/write_inner.rs` | Pending |
+| `server_runtime_core/src/write_inner.rs` | Reviewed: typed wrapper, validation, error mapping, or module wiring inspected; no defect confirmed. |
 
 ### server_runtime_http
 
@@ -4076,24 +4116,24 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 
 | Source | Semantic review |
 | --- | --- |
-| `text_policy/src/bounded_text_policy_error.rs` | Pending |
-| `text_policy/src/fixed_length_ascii_hex_text.rs` | Pending |
-| `text_policy/src/fixed_length_ascii_hex_text_error.rs` | Pending |
-| `text_policy/src/lib.rs` | Pending |
-| `text_policy/src/non_empty_trimmed_text.rs` | Pending |
-| `text_policy/src/password_length.rs` | Pending |
-| `text_policy/src/password_length_range.rs` | Pending |
-| `text_policy/src/password_length_range_error.rs` | Pending |
-| `text_policy/src/password_policy_violation.rs` | Pending |
-| `text_policy/src/password_text_ref.rs` | Pending |
-| `text_policy/src/required_nul_free_bounded_text.rs` | Pending |
-| `text_policy/src/tests_domain_types.rs` | Pending |
-| `text_policy/src/url_safe_token_part_maximum_bytes.rs` | Pending |
-| `text_policy/src/url_safe_token_part_ref.rs` | Pending |
-| `text_policy/src/url_safe_token_part_text.rs` | Pending |
-| `text_policy/src/url_safe_token_part_text_error.rs` | Pending |
-| `text_policy/src/validate_password_policy.rs` | Pending |
-| `text_policy/src/validate_url_safe_token_part.rs` | Pending |
+| `text_policy/src/bounded_text_policy_error.rs` | Reviewed: empty, NUL and byte-limit failures have distinct variants; no source is discarded by this enum. |
+| `text_policy/src/fixed_length_ascii_hex_text.rs` | Reviewed: construction requires exactly 40 bytes and lowercase ASCII hexadecimal symbols before bounded storage. |
+| `text_policy/src/fixed_length_ascii_hex_text_error.rs` | Reviewed: separate length and symbol errors match the fixed-hex constructor. |
+| `text_policy/src/lib.rs` | Reviewed: all 18 source modules are declared from the crate root; tests are compiled only for test builds. |
+| `text_policy/src/non_empty_trimmed_text.rs` | Reviewed: input byte length is bounded before trimming; the trimmed value must be nonempty and NUL-free. No repository consumer currently uses this public wrapper. |
+| `text_policy/src/password_length.rs` | Reviewed: typed length forwards its private usize value through generated conversion derives. |
+| `text_policy/src/password_length_range.rs` | Reviewed: TryFrom rejects inverted bounds; the explicitly named prevalidated constructor is used with ordered administrator constants. |
+| `text_policy/src/password_length_range_error.rs` | Reviewed: the single invalid-range variant describes inverted bounds. |
+| `text_policy/src/password_policy_violation.rs` | Reviewed: typed password policy outcomes include a general whitespace violation; A52 aligns detection with that meaning. |
+| `text_policy/src/password_text_ref.rs` | Reviewed: borrowed password text has redacted Debug and private storage. |
+| `text_policy/src/required_nul_free_bounded_text.rs` | Reviewed: rejects oversized, empty and NUL-bearing input before validated bounded storage. |
+| `text_policy/src/tests_domain_types.rs` | Reviewed: deterministic fixtures cover fixed hex, URL-safe tokens, required NUL-free text and password policy including A52 and A53. |
+| `text_policy/src/url_safe_token_part_maximum_bytes.rs` | Reviewed: private catalog maximum is 4096 bytes; the public wrapper carries caller-selected limits for the reusable validator. |
+| `text_policy/src/url_safe_token_part_ref.rs` | Reviewed: borrowed token text uses private storage and generated conversion. |
+| `text_policy/src/url_safe_token_part_text.rs` | Reviewed: construction applies the 4096-byte limit and URL-safe validator before bounded storage. |
+| `text_policy/src/url_safe_token_part_text_error.rs` | Reviewed: empty, invalid symbol and excessive length are distinguished. |
+| `text_policy/src/validate_password_policy.rs` | Reviewed: A53 counts characters for password length and A52 rejects Unicode whitespace before checking required digit, letter and punctuation classes. |
+| `text_policy/src/validate_url_safe_token_part.rs` | Reviewed: nonempty input must fit the caller's byte limit and contain only ASCII alphanumeric, hyphen or underscore bytes. |
 
 ### to_err_string
 
@@ -4137,7 +4177,7 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 | `workspace_macro_helpers/src/part_index.rs` | Reviewed: private Copy index wrapper with generated construction and crate-scoped read access. |
 | `workspace_macro_helpers/src/proc_macro2_macro_tokens.rs` | Reviewed: owned token-tree adapter, display and quote forwarding, and complete parse cursor advancement. |
 | `workspace_macro_helpers/src/proc_macro2_top_level_comma_parts.rs` | Reviewed: construction and parsing enforce the collection maximum; A10 removes mutable Vec access to preserve the validated collection limit. |
-| `workspace_macro_helpers/src/split_fat_arrow.rs` | Pending |
+| `workspace_macro_helpers/src/split_fat_arrow.rs` | Reviewed: top-level arrow tokenizer validates punctuation and preserves before and after streams. |
 | `workspace_macro_helpers/src/split_top_level_commas.rs` | Focused review: token parsing, generic comma handling and bounded conversions; A10 and A11 require follow-up. |
 | `workspace_macro_helpers/src/std_unique_option_set_contains.rs` | Reviewed: private Copy membership-result wrapper with generated conversion/read access. |
 | `workspace_macro_helpers/src/std_unique_option_set_is_empty.rs` | Reviewed: private Copy emptiness-result wrapper with generated conversion/read access. |
@@ -4154,53 +4194,53 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 
 | Source | Semantic review |
 | --- | --- |
-| `workspace_scaffold/src/cargo_args_ref.rs` | Pending |
-| `workspace_scaffold/src/generated_projection.rs` | Pending |
-| `workspace_scaffold/src/main.rs` | Pending |
-| `workspace_scaffold/src/naming_capitalized_parts.rs` | Pending |
-| `workspace_scaffold/src/naming_kebab_case.rs` | Pending |
-| `workspace_scaffold/src/naming_title_case.rs` | Pending |
-| `workspace_scaffold/src/naming_upper_camel_case.rs` | Pending |
-| `workspace_scaffold/src/naming_validate_project_name.rs` | Pending |
-| `workspace_scaffold/src/naming_validate_repository_url.rs` | Pending |
-| `workspace_scaffold/src/project_name_ref.rs` | Pending |
-| `workspace_scaffold/src/replacements_ref.rs` | Pending |
-| `workspace_scaffold/src/repository_url_ref.rs` | Pending |
-| `workspace_scaffold/src/scaffold_error.rs` | Pending |
-| `workspace_scaffold/src/scaffold_io_error.rs` | Pending |
-| `workspace_scaffold/src/scaffold_path_ref.rs` | Pending |
-| `workspace_scaffold/src/scaffold_run_ok.rs` | Pending |
-| `workspace_scaffold/src/scaffold_text.rs` | Pending |
-| `workspace_scaffold/src/scaffold_text_ref.rs` | Pending |
-| `workspace_scaffold/src/service_catalog_draft.rs` | Pending |
-| `workspace_scaffold/src/service_catalog_entries.rs` | Pending |
-| `workspace_scaffold/src/service_catalog_entries_ref.rs` | Pending |
-| `workspace_scaffold/src/service_catalog_entry.rs` | Pending |
-| `workspace_scaffold/src/service_catalog_parse.rs` | Pending |
-| `workspace_scaffold/src/service_catalog_render_release_entries.rs` | Pending |
-| `workspace_scaffold/src/service_catalog_string_value.rs` | Pending |
-| `workspace_scaffold/src/service_compose_file.rs` | Pending |
-| `workspace_scaffold/src/service_compose_name.rs` | Pending |
-| `workspace_scaffold/src/service_crate.rs` | Pending |
-| `workspace_scaffold/src/service_dockerfile.rs` | Pending |
-| `workspace_scaffold/src/service_image.rs` | Pending |
-| `workspace_scaffold/src/service_kubernetes_manifest.rs` | Pending |
-| `workspace_scaffold/src/service_port.rs` | Pending |
-| `workspace_scaffold/src/service_socket_env.rs` | Pending |
-| `workspace_scaffold/src/should_release.rs` | Pending |
-| `workspace_scaffold/src/should_skip.rs` | Pending |
-| `workspace_scaffold/src/should_write.rs` | Pending |
-| `workspace_scaffold/src/synchronize_cargo_owned_projection.rs` | Pending |
-| `workspace_scaffold/src/synchronize_deployment_projections.rs` | Pending |
-| `workspace_scaffold/src/synchronize_generated_file.rs` | Pending |
-| `workspace_scaffold/src/template_fs_copy_template_tree.rs` | Pending |
-| `workspace_scaffold/src/template_fs_insert_once.rs` | Pending |
-| `workspace_scaffold/src/template_fs_read_bounded_text.rs` | Pending |
-| `workspace_scaffold/src/template_fs_replace_file.rs` | Pending |
-| `workspace_scaffold/src/template_fs_should_skip.rs` | Pending |
-| `workspace_scaffold/src/template_fs_write_text.rs` | Pending |
-| `workspace_scaffold/src/test_workspace_scaffold.rs` | Pending |
-| `workspace_scaffold/src/update_env_name.rs` | Pending |
+| `workspace_scaffold/src/cargo_args_ref.rs` | Reviewed |
+| `workspace_scaffold/src/generated_projection.rs` | Reviewed |
+| `workspace_scaffold/src/main.rs` | Focused review; A75 |
+| `workspace_scaffold/src/naming_capitalized_parts.rs` | Reviewed; A76 |
+| `workspace_scaffold/src/naming_kebab_case.rs` | Reviewed; A76 |
+| `workspace_scaffold/src/naming_title_case.rs` | Reviewed; A76 |
+| `workspace_scaffold/src/naming_upper_camel_case.rs` | Reviewed; A76 |
+| `workspace_scaffold/src/naming_validate_project_name.rs` | Reviewed; A74, A76 |
+| `workspace_scaffold/src/naming_validate_repository_url.rs` | Reviewed; A75 |
+| `workspace_scaffold/src/project_name_ref.rs` | Reviewed |
+| `workspace_scaffold/src/replacements_ref.rs` | Reviewed |
+| `workspace_scaffold/src/repository_url_ref.rs` | Reviewed |
+| `workspace_scaffold/src/scaffold_error.rs` | Reviewed |
+| `workspace_scaffold/src/scaffold_io_error.rs` | Reviewed |
+| `workspace_scaffold/src/scaffold_path_ref.rs` | Reviewed |
+| `workspace_scaffold/src/scaffold_run_ok.rs` | Reviewed |
+| `workspace_scaffold/src/scaffold_text.rs` | Reviewed |
+| `workspace_scaffold/src/scaffold_text_ref.rs` | Reviewed |
+| `workspace_scaffold/src/service_catalog_draft.rs` | Reviewed |
+| `workspace_scaffold/src/service_catalog_entries.rs` | Reviewed |
+| `workspace_scaffold/src/service_catalog_entries_ref.rs` | Reviewed |
+| `workspace_scaffold/src/service_catalog_entry.rs` | Reviewed |
+| `workspace_scaffold/src/service_catalog_parse.rs` | Focused review; A68, A70, A71, A73, A78 |
+| `workspace_scaffold/src/service_catalog_render_release_entries.rs` | Reviewed |
+| `workspace_scaffold/src/service_catalog_string_value.rs` | Reviewed; A69, A73 |
+| `workspace_scaffold/src/service_compose_file.rs` | Reviewed |
+| `workspace_scaffold/src/service_compose_name.rs` | Reviewed |
+| `workspace_scaffold/src/service_crate.rs` | Reviewed |
+| `workspace_scaffold/src/service_dockerfile.rs` | Reviewed |
+| `workspace_scaffold/src/service_image.rs` | Reviewed |
+| `workspace_scaffold/src/service_kubernetes_manifest.rs` | Reviewed |
+| `workspace_scaffold/src/service_port.rs` | Reviewed |
+| `workspace_scaffold/src/service_socket_env.rs` | Reviewed |
+| `workspace_scaffold/src/should_release.rs` | Reviewed |
+| `workspace_scaffold/src/should_skip.rs` | Reviewed |
+| `workspace_scaffold/src/should_write.rs` | Reviewed |
+| `workspace_scaffold/src/synchronize_cargo_owned_projection.rs` | Reviewed |
+| `workspace_scaffold/src/synchronize_deployment_projections.rs` | Focused review; A65 |
+| `workspace_scaffold/src/synchronize_generated_file.rs` | Reviewed; A67 |
+| `workspace_scaffold/src/template_fs_copy_template_tree.rs` | Reviewed; A66 |
+| `workspace_scaffold/src/template_fs_insert_once.rs` | Reviewed; A77 |
+| `workspace_scaffold/src/template_fs_read_bounded_text.rs` | Reviewed |
+| `workspace_scaffold/src/template_fs_replace_file.rs` | Reviewed; A64, A72 |
+| `workspace_scaffold/src/template_fs_should_skip.rs` | Reviewed |
+| `workspace_scaffold/src/template_fs_write_text.rs` | Reviewed |
+| `workspace_scaffold/src/test_workspace_scaffold.rs` | Focused review; A76 call sites |
+| `workspace_scaffold/src/update_env_name.rs` | Reviewed |
 
 ### workspace_test_runner
 
@@ -4214,66 +4254,68 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 | `workspace_test_runner/src/cargo_args.rs` | Pending |
 | `workspace_test_runner/src/cargo_measurement_error.rs` | Pending |
 | `workspace_test_runner/src/cargo_subcommand_available.rs` | Pending |
-| `workspace_test_runner/src/check_tool_available.rs` | Pending |
+| `workspace_test_runner/src/check_tool_available.rs` | Reviewed; A79 |
 | `workspace_test_runner/src/clean_ansi_text.rs` | Pending |
 | `workspace_test_runner/src/command_duration.rs` | Pending |
 | `workspace_test_runner/src/command_duration_millis.rs` | Pending |
-| `workspace_test_runner/src/command_failure.rs` | Pending |
-| `workspace_test_runner/src/command_failures_vec_deque.rs` | Pending |
+| `workspace_test_runner/src/command_failure.rs` | Reviewed |
+| `workspace_test_runner/src/command_failures_vec_deque.rs` | Reviewed |
 | `workspace_test_runner/src/command_index.rs` | Pending |
 | `workspace_test_runner/src/command_run.rs` | Pending |
 | `workspace_test_runner/src/command_started_at_instant.rs` | Pending |
 | `workspace_test_runner/src/command_text.rs` | Pending |
-| `workspace_test_runner/src/command_texts.rs` | Pending |
+| `workspace_test_runner/src/command_texts.rs` | Reviewed |
 | `workspace_test_runner/src/commands_ref.rs` | Pending |
 | `workspace_test_runner/src/create_admin_fixture_string.rs` | Pending |
-| `workspace_test_runner/src/direct_generation_measurement.rs` | Pending |
-| `workspace_test_runner/src/direct_generation_output_measurement.rs` | Pending |
+| `workspace_test_runner/src/direct_generation_measurement.rs` | Reviewed |
+| `workspace_test_runner/src/direct_generation_output_measurement.rs` | Reviewed |
 | `workspace_test_runner/src/domain_types.rs` | Pending |
-| `workspace_test_runner/src/execution_tests.rs` | Pending |
-| `workspace_test_runner/src/failed_test_names.rs` | Pending |
+| `workspace_test_runner/src/execution_tests.rs` | Reviewed; A81 |
+| `workspace_test_runner/src/failed_test_names.rs` | Reviewed; A81 |
 | `workspace_test_runner/src/generate_pg_table_measure_input_token_stream.rs` | Pending |
-| `workspace_test_runner/src/generation_stage_measurement.rs` | Pending |
-| `workspace_test_runner/src/macro_generation_measurements.rs` | Pending |
-| `workspace_test_runner/src/main.rs` | Pending |
+| `workspace_test_runner/src/generation_stage_measurement.rs` | Reviewed |
+| `workspace_test_runner/src/macro_generation_measurements.rs` | Reviewed |
+| `workspace_test_runner/src/main.rs` | Focused review; A82 |
 | `workspace_test_runner/src/measure_cargo_command.rs` | Pending |
-| `workspace_test_runner/src/measure_direct_generation.rs` | Pending |
-| `workspace_test_runner/src/measure_generation_stages.rs` | Pending |
-| `workspace_test_runner/src/measure_memusage_command.rs` | Pending |
+| `workspace_test_runner/src/measure_direct_generation.rs` | Reviewed |
+| `workspace_test_runner/src/measure_generation_stages.rs` | Reviewed |
+| `workspace_test_runner/src/measure_memusage_command.rs` | Focused review; A79 |
 | `workspace_test_runner/src/measurement_name.rs` | Pending |
 | `workspace_test_runner/src/memory_usage_column_index.rs` | Pending |
-| `workspace_test_runner/src/memusage_heap_value.rs` | Pending |
+| `workspace_test_runner/src/memusage_heap_value.rs` | Reviewed; A83 |
 | `workspace_test_runner/src/memusage_key.rs` | Pending |
 | `workspace_test_runner/src/memusage_measurement_error.rs` | Pending |
 | `workspace_test_runner/src/memusage_prog_name_ref.rs` | Pending |
 | `workspace_test_runner/src/memusage_row_name.rs` | Pending |
-| `workspace_test_runner/src/memusage_table_value.rs` | Pending |
+| `workspace_test_runner/src/memusage_summary_text.rs` | Reviewed; A83 |
+| `workspace_test_runner/src/memusage_table_value.rs` | Reviewed; A83 |
 | `workspace_test_runner/src/memusage_value_ref.rs` | Pending |
-| `workspace_test_runner/src/print_without_measurement_footer.rs` | Pending |
-| `workspace_test_runner/src/print_without_memusage_footer.rs` | Pending |
+| `workspace_test_runner/src/print_without_measurement_footer.rs` | Reviewed |
+| `workspace_test_runner/src/print_without_memusage_footer.rs` | Reviewed |
 | `workspace_test_runner/src/program_args_ref.rs` | Pending |
 | `workspace_test_runner/src/program_path_ref.rs` | Pending |
 | `workspace_test_runner/src/quote_token_stream_generate_pg_table_measure_input_token_stream.rs` | Pending |
 | `workspace_test_runner/src/run_admin_fixture_cli.rs` | Pending |
-| `workspace_test_runner/src/run_commands.rs` | Pending |
-| `workspace_test_runner/src/run_commands_error.rs` | Pending |
+| `workspace_test_runner/src/run_commands.rs` | Focused review; A80 |
+| `workspace_test_runner/src/run_commands_error.rs` | Reviewed |
 | `workspace_test_runner/src/run_counter.rs` | Pending |
-| `workspace_test_runner/src/run_measurements_cli.rs` | Pending |
-| `workspace_test_runner/src/run_report_error.rs` | Pending |
-| `workspace_test_runner/src/run_workspace_tests.rs` | Pending |
+| `workspace_test_runner/src/run_measurements_cli.rs` | Focused review; A79 |
+| `workspace_test_runner/src/run_report_error.rs` | Reviewed |
+| `workspace_test_runner/src/run_workspace_tests.rs` | Reviewed |
 | `workspace_test_runner/src/runner_cli_outcome.rs` | Pending |
-| `workspace_test_runner/src/runner_mode.rs` | Pending |
+| `workspace_test_runner/src/runner_mode.rs` | Reviewed; A82 |
 | `workspace_test_runner/src/stderr_text_ref.rs` | Pending |
-| `workspace_test_runner/src/strip_ansi.rs` | Pending |
+| `workspace_test_runner/src/strip_ansi.rs` | Focused review; A81 |
 | `workspace_test_runner/src/strip_ansi_codes.rs` | Pending |
-| `workspace_test_runner/src/summary_text.rs` | Pending |
+| `workspace_test_runner/src/summary_text.rs` | Reviewed |
 | `workspace_test_runner/src/summary_text_append_error.rs` | Pending |
 | `workspace_test_runner/src/test_runner_errors.rs` | Pending |
-| `workspace_test_runner/src/test_workspace_test_runner.rs` | Pending |
+| `workspace_test_runner/src/test_workspace_test_runner.rs` | Focused review; A79, A80, A83 |
 | `workspace_test_runner/src/text_ref.rs` | Pending |
 | `workspace_test_runner/src/tool_available.rs` | Pending |
 | `workspace_test_runner/src/tool_name.rs` | Pending |
 | `workspace_test_runner/src/tool_path.rs` | Pending |
+| `workspace_test_runner/tests/test_runner_cli.rs` | Reviewed; A82 |
 
 A07 iterative traversal verification: final full Clippy passes, all workspace tests excluding the style crate pass, including 13 frontend_contract_validation tests and generated-client checks. The code-style suite passed once (306 tests) through the workspace runner before the subsequent Clippy-driven private-helper removal, binding cleanup and formatting changes. The public validation owner now contains the same reviewed workflow directly. The scoped work/reference vectors grow amortized with active traversal depth; reference-tree insertion replaces the former repeated active-set cloning, and no child lists or whole documents are allocated per descent. No lint allowance, dependency, crate, process-static state or lifetime exception was added. Cargo formatting/check and whitespace checks pass. Logs: target/audit_tmp/deep_composition_static.log, deep_composition_clippy.log and deep_composition_workspace.log. Initial generic serde serialization remains a confirmed open part of A07, rather than being hidden by the green traversal tests.
 

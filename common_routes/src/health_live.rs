@@ -3,12 +3,7 @@
     clippy::single_call_fn,
     reason = "route registry owns this Axum handler"
 )]
-pub(super) async fn health_live() -> Result<
-    crate::json_response::JsonResponse<crate::health_report::HealthReport>,
-    crate::health_error::HealthError,
-> {
-    super::health_report_response::health_report_response(
-        crate::health_report::HealthReport::liveness(),
-    )
-    .ok_or(crate::health_error::HealthError::Unavailable)
+pub(super) async fn health_live()
+-> crate::json_response::JsonResponse<crate::health_report::HealthReport> {
+    crate::make_json_response::make_json_response(crate::health_report::HealthReport::liveness())
 }

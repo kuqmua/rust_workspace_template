@@ -13,7 +13,6 @@ pub mod naming_title_case;
 #[cfg(test)]
 pub mod naming_upper_camel_case;
 pub mod naming_validate_project_name;
-#[cfg(test)]
 pub mod naming_validate_repository_url;
 pub mod project_name_ref;
 pub mod replacements_ref;
@@ -84,13 +83,9 @@ fn main() {
                     let repository_url_ref =
                         repository_url_ref::RepositoryUrlRef::from(repository_url.as_str());
                     naming_validate_project_name::naming_validate_project_name(name_ref)?;
-                    if !repository_url_ref
-                        .get()
-                        .starts_with(constants_str::HTTPS_SCHEME_PREFIX)
-                        || repository_url_ref.get().ends_with('/')
-                    {
-                        return Err(scaffold_error::ScaffoldError::RepositoryUrl);
-                    }
+                    naming_validate_repository_url::naming_validate_repository_url(
+                        repository_url_ref,
+                    )?;
                     let root = workspace_root()?;
                     let replacements = [
                         (
@@ -103,7 +98,7 @@ fn main() {
                         ),
                         (
                             constants_str::WORKSPACE_SCAFFOLD_TEMPLATE_PROJECT_KEBAB,
-                            naming_kebab_case::naming_kebab_case(name_ref)
+                            naming_kebab_case::naming_kebab_case(name_ref)?
                                 .as_ref()
                                 .to_owned(),
                         ),
@@ -112,7 +107,7 @@ fn main() {
                             naming_capitalized_parts::naming_capitalized_parts(
                                 name_ref,
                                 scaffold_text_ref::ScaffoldTextRef::from(constants_str::SPACE),
-                            )
+                            )?
                             .as_ref()
                             .to_owned(),
                         ),
@@ -176,7 +171,7 @@ fn main() {
                         {
                             return Err(scaffold_error::ScaffoldError::ServiceExists);
                         }
-                        let kebab = naming_kebab_case::naming_kebab_case(service_name);
+                        let kebab = naming_kebab_case::naming_kebab_case(service_name)?;
                         let upper_snake = service.to_ascii_uppercase();
                         let replacements = [
                             (
@@ -196,7 +191,7 @@ fn main() {
                                 naming_capitalized_parts::naming_capitalized_parts(
                                     service_name,
                                     scaffold_text_ref::ScaffoldTextRef::from(constants_str::EMPTY),
-                                )
+                                )?
                                 .as_ref()
                                 .to_owned(),
                             ),

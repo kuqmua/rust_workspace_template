@@ -1,28 +1,25 @@
-pub fn parse_required_env_var<T, ParseError, Error, MapEnvVarError, MapValueError, Parse, MapParseError>(
+#[allow(
+    clippy::single_call_fn,
+    reason = "a named conversion boundary permits deterministic testing of oversized environment values without mutating process environment"
+)]
+pub(crate) fn parse_required_env_var_value<T, ParseError, Error, MapValueError, Parse, MapParseError>(
+    std_env_var_ok_result: Result<crate::std_env_var_ok::StdEnvVarOk, crate::config_lib_string_wrapper_try_from_string_error::ConfigLibStringWrapperTryFromStringError>,
     env_var_name_ref: crate::env_var_name_ref::EnvVarNameRef<'_>,
-    map_env_var_error: MapEnvVarError,
     map_value_error: MapValueError,
     parse: Parse,
     map_parse_error: MapParseError,
 ) -> Result<T, Error>
 where
-    MapEnvVarError: FnOnce(std::env::VarError, crate::env_var_name::EnvVarName) -> Error,
     MapValueError: FnOnce(crate::config_lib_string_wrapper_try_from_string_error::ConfigLibStringWrapperTryFromStringError, crate::env_var_name::EnvVarName) -> Error,
     Parse: FnOnce(crate::std_env_var_ok::StdEnvVarOk) -> Result<T, ParseError>,
     MapParseError: FnOnce(ParseError) -> Error,
 {
-    let v = std::env::var(env_var_name_ref.as_ref()).map_err(|std_env_var_error| {
-        map_env_var_error(
-            std_env_var_error,
+    let std_env_var_ok = std_env_var_ok_result.map_err(|error| {
+        map_value_error(
+            error,
             crate::env_var_name::EnvVarName::try_from(env_var_name_ref.as_ref().to_owned())
                 .unwrap_or_else(crate::env_var_name::EnvVarName::from),
         )
     })?;
-    crate::parse_required_env_var_value::parse_required_env_var_value(
-        crate::std_env_var_ok::StdEnvVarOk::try_from(v),
-        env_var_name_ref,
-        map_value_error,
-        parse,
-        map_parse_error,
-    )
+    parse(std_env_var_ok).map_err(map_parse_error)
 }

@@ -9,7 +9,5 @@ pub(super) async fn health(
     crate::json_response::JsonResponse<crate::health_report::HealthReport>,
     crate::health_error::HealthError,
 > {
-    super::readiness_report::readiness_report(&arc_common_routes_app_state)
-        .await
-        .ok_or(crate::health_error::HealthError::Unavailable)
+    super::readiness_report::readiness_report(&arc_common_routes_app_state).await
 }

@@ -246,6 +246,7 @@ async fn test_create_notification_persists_through_http_route() {
     let database_url = config_lib::parse_required_env_var::parse_required_env_var(
         config_lib::env_var_name_ref::EnvVarNameRef::from(constants_str::ENV_NAMES_DATABASE_URL),
         |error, name| format!("{error} {name}"),
+        |error, name| format!("{error} {name}"),
         <config_lib::domain_types::DatabaseUrl as config_lib::try_from_std_env_var_ok::TryFromStdEnvVarOk>::try_from_std_env_var_ok,
         |error| error.to_string(),
     )

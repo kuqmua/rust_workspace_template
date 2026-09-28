@@ -51,17 +51,18 @@ proc_macro_config_lib_impl_try_from_non_empty_string::impl_try_from_non_empty_st
     TryFromStdEnvVarOkStartingCheckLinkError
 );
 impl crate::try_from_std_env_var_ok::TryFromStdEnvVarOk for crate::tracing_format::TracingFormat {
-    type Error = std::convert::Infallible;
+    type Error =
+        crate::try_from_std_env_var_ok_tracing_format_error::TryFromStdEnvVarOkTracingFormatError;
     fn try_from_std_env_var_ok(
         std_env_var_ok: crate::std_env_var_ok::StdEnvVarOk,
     ) -> Result<Self, Self::Error> {
-        Ok(
-            if std_env_var_ok.eq_ignore_ascii_case(constants_str::JSON) {
-                Self::Json
-            } else {
-                Self::Text
-            },
-        )
+        if std_env_var_ok.eq_ignore_ascii_case(constants_str::JSON) {
+            Ok(Self::Json)
+        } else if std_env_var_ok.eq_ignore_ascii_case(constants_str::TRACING_FORMAT_TEXT) {
+            Ok(Self::Text)
+        } else {
+            Err(Self::Error::Unknown)
+        }
     }
 }
 proc_macro_config_lib_impl_try_from_parse_string_error::impl_try_from_parse_string_error!(

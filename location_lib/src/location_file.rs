@@ -22,3 +22,13 @@ pub struct LocationFile(
         false,
     >,
 );
+
+impl From<crate::location_file_ref::LocationFileRef<'_>> for LocationFile {
+    fn from(value: crate::location_file_ref::LocationFileRef<'_>) -> Self {
+        Self(
+            bounded_types::bounded_string::BoundedString::from_truncated(
+                <&str>::from(value).to_owned(),
+            ),
+        )
+    }
+}

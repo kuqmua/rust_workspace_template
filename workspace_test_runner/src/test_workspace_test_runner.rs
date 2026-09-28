@@ -1,4 +1,18 @@
 #[test]
+fn test_bounded_capture_fits_command_log_after_utf8_replacement() {
+    let stream_limit = constants_usize::VALUE_1_048_576 * constants_usize::TWO;
+    let invalid_bytes = vec![u8::MAX; stream_limit];
+    let text = String::from_utf8_lossy(invalid_bytes.as_slice());
+    let log = format!("{text}{text}");
+    assert!(
+        crate::command_text::CommandText::try_from(log).is_ok_and(|command_text| {
+            command_text.as_ref().len()
+                == stream_limit * constants_usize::TWO * constants_usize::THREE
+        })
+    );
+}
+
+#[test]
 fn test_ansi_adapters_preserve_distinct_length_error_fallbacks() {
     let maximum = constants_usize::VALUE_16_777_216;
     let length = maximum + constants_usize::ONE;
@@ -34,9 +48,124 @@ fn test_ansi_adapters_preserve_distinct_length_error_fallbacks() {
     );
 }
 #[test]
+fn test_memusage_program_text_preserves_output_without_footer() {
+    let result =
+        crate::clean_ansi_text::CleanAnsiText::try_from(String::from(constants_str::VALUE_1));
+    assert!(result.is_ok_and(|clean| {
+        crate::memusage_program_text::memusage_program_text(&clean).get() == constants_str::VALUE_1
+    }));
+}
+
+#[test]
+fn test_memusage_program_text_keeps_lines_before_final_summary() {
+    let input = [
+        constants_str::VALUE_1,
+        constants_str::MEMORY_USAGE_SUMMARY,
+        constants_str::VALUE_2,
+        constants_str::MEMORY_USAGE_SUMMARY,
+        constants_str::VALUE_4,
+    ]
+    .join(constants_str::NEWLINE);
+    let result = crate::clean_ansi_text::CleanAnsiText::try_from(input);
+    assert!(result.is_ok_and(|clean| {
+        crate::memusage_program_text::memusage_program_text(&clean)
+            .get()
+            .lines()
+            .eq([
+                constants_str::VALUE_1,
+                constants_str::MEMORY_USAGE_SUMMARY,
+                constants_str::VALUE_2,
+            ])
+    }));
+}
+
+#[test]
+fn test_memusage_parsers_require_summary_marker() {
+    let result = crate::clean_ansi_text::CleanAnsiText::try_from(format!(
+        "{}{}{}{}{}",
+        constants_str::HEAP_TOTAL,
+        constants_str::SPACE,
+        constants_str::VALUE_1,
+        constants_str::NEWLINE,
+        constants_str::MALLOC,
+    ));
+    assert!(result.is_ok_and(|text| {
+        crate::memusage_heap_value::memusage_heap_value(
+            &text,
+            crate::memusage_key::MemusageKey::from(constants_str::HEAP_TOTAL),
+        )
+        .get()
+            == constants_str::UNAVAILABLE
+            && crate::memusage_table_value::memusage_table_value(
+                &text,
+                crate::memusage_row_name::MemusageRowName::from(constants_str::MALLOC),
+                crate::memory_usage_column_index::MemoryUsageColumnIndex::from(
+                    constants_usize::ZERO,
+                ),
+            )
+            .get()
+                == constants_str::UNAVAILABLE
+    }));
+}
+
+#[test]
+fn test_memusage_parsers_ignore_program_stderr_before_summary() {
+    let text = [
+        format!(
+            "{}{}{}",
+            constants_str::HEAP_TOTAL,
+            constants_str::SPACE,
+            constants_str::VALUE_1
+        ),
+        format!(
+            "{}{}{}",
+            constants_str::MALLOC,
+            constants_str::SPACE,
+            constants_str::VALUE_1
+        ),
+        format!(
+            "{}{}{}{}{}",
+            constants_str::MEMORY_USAGE_SUMMARY,
+            constants_str::SPACE,
+            constants_str::HEAP_TOTAL,
+            constants_str::SPACE,
+            constants_str::VALUE_2
+        ),
+        format!(
+            "{}{}{}",
+            constants_str::MALLOC,
+            constants_str::SPACE,
+            constants_str::VALUE_4
+        ),
+    ]
+    .join(constants_str::NEWLINE);
+    let result = crate::clean_ansi_text::CleanAnsiText::try_from(text);
+    assert!(result.is_ok_and(|clean| {
+        crate::memusage_heap_value::memusage_heap_value(
+            &clean,
+            crate::memusage_key::MemusageKey::from(constants_str::HEAP_TOTAL),
+        )
+        .get()
+            == constants_str::VALUE_2
+            && crate::memusage_table_value::memusage_table_value(
+                &clean,
+                crate::memusage_row_name::MemusageRowName::from(constants_str::MALLOC),
+                crate::memory_usage_column_index::MemoryUsageColumnIndex::from(
+                    constants_usize::ZERO,
+                ),
+            )
+            .get()
+                == constants_str::VALUE_4
+    }));
+}
+
+#[test]
 fn test_memusage_parsers_distinguish_values_and_missing_fields() {
-    let text = crate::clean_ansi_text::CleanAnsiText::try_from(String::from(
-        constants_str::VALUE_D36CD261,
+    let text = crate::clean_ansi_text::CleanAnsiText::try_from(format!(
+        "{}{}{}",
+        constants_str::MEMORY_USAGE_SUMMARY,
+        constants_str::NEWLINE,
+        constants_str::VALUE_D36CD261
     ))
     .expect(constants_str::DIAGNOSTIC_AFA44055);
     assert_eq!(
@@ -106,7 +235,7 @@ fn test_measurement_catalogs_are_complete_and_ordered() {
 #[test]
 fn test_tool_discovery_checks_the_exact_path() {
     assert!(
-        crate::check_tool_available::check_tool_available(crate::tool_path::ToolPath::from(env!(
+        !crate::check_tool_available::check_tool_available(crate::tool_path::ToolPath::from(env!(
             "CARGO_MANIFEST_DIR"
         )))
         .get()

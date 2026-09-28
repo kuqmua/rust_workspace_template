@@ -16,7 +16,9 @@ pub(crate) enum ScaffoldError {
     Io(#[from] crate::scaffold_io_error::ScaffoldIoError),
     #[error("workspace file does not contain the expected template marker")]
     Marker,
-    #[error("project or service name must be non-empty lowercase snake_case ASCII")]
+    #[error(
+        "project or service name must start with a lowercase ASCII letter and use lowercase snake_case ASCII"
+    )]
     ProjectName,
     #[error("workspace content read failed: {0}")]
     Read(#[from] server_runtime_http::bounded_read_error::BoundedReadError),

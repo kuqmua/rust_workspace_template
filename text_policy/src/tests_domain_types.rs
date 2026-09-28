@@ -92,4 +92,55 @@ mod tests {
             .contains(secret)
         );
     }
+
+    #[test]
+    fn test_password_policy_rejects_unicode_whitespace() {
+        let range = crate::password_length_range::PasswordLengthRange::from_prevalidated(
+            crate::password_length::PasswordLength::from(12usize),
+            crate::password_length::PasswordLength::from(128usize),
+        );
+        let mut password = constants_str::TEST_STRONG_PASSWORD.to_owned();
+        password.extend(char::from_u32(0x00A0u32));
+        assert_eq!(
+            crate::validate_password_policy::validate_password_policy(
+                crate::password_text_ref::PasswordTextRef::from(password.as_str()),
+                range,
+            ),
+            Err(crate::password_policy_violation::PasswordPolicyViolation::ContainsWhitespace),
+        );
+    }
+
+    #[test]
+    fn test_password_policy_counts_characters_for_length_bounds() {
+        let range = crate::password_length_range::PasswordLengthRange::from_prevalidated(
+            crate::password_length::PasswordLength::from(12usize),
+            crate::password_length::PasswordLength::from(1024usize),
+        );
+        let short_password = constants_str::TEST_STRONG_PASSWORD
+            .chars()
+            .enumerate()
+            .filter_map(|(index, character)| {
+                (index != 1usize && index != 2usize).then_some(character)
+            })
+            .chain(char::from_u32(0x430u32))
+            .collect::<String>();
+        assert_eq!(short_password.chars().count(), 11usize);
+        assert_eq!(
+            crate::validate_password_policy::validate_password_policy(
+                crate::password_text_ref::PasswordTextRef::from(short_password.as_str()),
+                range,
+            ),
+            Err(crate::password_policy_violation::PasswordPolicyViolation::TooShort),
+        );
+        let mut maximum_password = constants_str::TEST_STRONG_PASSWORD.to_owned();
+        maximum_password.extend(char::from_u32(0x430u32).into_iter().cycle().take(1012usize));
+        assert_eq!(maximum_password.chars().count(), 1024usize);
+        assert_eq!(
+            crate::validate_password_policy::validate_password_policy(
+                crate::password_text_ref::PasswordTextRef::from(maximum_password.as_str()),
+                range,
+            ),
+            Ok(()),
+        );
+    }
 }

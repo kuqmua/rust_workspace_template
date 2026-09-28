@@ -12,6 +12,26 @@ pub(crate) fn synchronize_deployment_projections(
     let entries_ref = crate::service_catalog_entries_ref::ServiceCatalogEntriesRef::from(
         entries.get_inner().as_slice(),
     );
+    entries_ref.get().iter().try_for_each(|entry| {
+        if [
+            entry.get_crate_name().as_ref(),
+            entry.get_compose_file().as_ref(),
+            entry.get_dockerfile().as_ref(),
+            entry.get_kubernetes_manifest().as_ref(),
+        ]
+        .into_iter()
+        .all(|path| {
+            let entry_path = std::path::Path::new(path);
+            entry_path.is_relative()
+                && entry_path
+                    .components()
+                    .all(|component| matches!(component, std::path::Component::Normal(_)))
+        }) {
+            Ok(())
+        } else {
+            Err(crate::scaffold_error::ScaffoldError::Catalog)
+        }
+    })?;
     let synchronize_static_projection =
         |projection_path_ref: crate::scaffold_path_ref::ScaffoldPathRef<'_>,
          begin: crate::scaffold_text_ref::ScaffoldTextRef<'_>,
@@ -256,22 +276,6 @@ pub(crate) fn synchronize_deployment_projections(
         )
     })?;
     entries_ref.get().iter().try_for_each(|entry| {
-        if ![
-            entry.get_crate_name().as_ref(),
-            entry.get_compose_file().as_ref(),
-            entry.get_dockerfile().as_ref(),
-            entry.get_kubernetes_manifest().as_ref(),
-        ]
-        .into_iter()
-        .all(|path| {
-            let entry_path = std::path::Path::new(path);
-            entry_path.is_relative()
-                && entry_path
-                    .components()
-                    .all(|component| matches!(component, std::path::Component::Normal(_)))
-        }) {
-            return Err(crate::scaffold_error::ScaffoldError::Catalog);
-        }
         if !scaffold_path_ref
             .get()
             .join(entry.get_crate_name().as_ref())
@@ -323,4 +327,39 @@ pub(crate) fn synchronize_deployment_projections(
         }
         Ok(())
     })
+}
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn test_invalid_catalog_path_is_rejected_before_projection_reads() {
+        let root = std::env::temp_dir().join(format!(
+            "{}-{}",
+            constants_str::WORKSPACE_SCAFFOLD_NODE_MODULES,
+            std::process::id()
+        ));
+        let catalog_path = root.join(constants_str::VALUE_C1590960);
+        let parent = catalog_path
+            .parent()
+            .expect(constants_str::DIAGNOSTIC_CC0196DB);
+        std::fs::create_dir_all(parent).expect(constants_str::DIAGNOSTIC_C170D00C);
+        std::fs::write(
+            catalog_path.as_path(),
+            format!(
+                "{}{}",
+                constants_str::VALUE_D4291B4A,
+                constants_str::WORKSPACE_SCAFFOLD_INVALID_CATALOG_PATH_SUFFIX
+            ),
+        )
+        .expect(constants_str::DIAGNOSTIC_FD12FAC2);
+        let result = crate::synchronize_deployment_projections::synchronize_deployment_projections(
+            crate::scaffold_path_ref::ScaffoldPathRef::from(root.as_path()),
+            crate::should_write::ShouldWrite::from(true),
+        );
+        assert!(matches!(
+            result,
+            Err(crate::scaffold_error::ScaffoldError::Catalog)
+        ));
+        std::fs::remove_dir_all(root).expect(constants_str::DIAGNOSTIC_6D501DA2);
+    }
 }

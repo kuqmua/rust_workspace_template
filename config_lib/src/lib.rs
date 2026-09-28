@@ -63,6 +63,7 @@ pub mod parse_from_str_with_context_tests;
 pub mod parse_from_str_with_error;
 pub mod parse_pg_pool_non_zero_seconds;
 pub mod parse_required_env_var;
+mod parse_required_env_var_value;
 pub mod pg_pool_acquire_timeout_seconds;
 pub mod pg_pool_config_parse_error;
 pub mod pg_pool_idle_timeout_seconds;
@@ -95,7 +96,7 @@ pub mod try_from_std_env_var_ok_maximum_size_of_http_body_in_bytes_error;
 pub mod try_from_std_env_var_ok_pg_pool_max_connections_error;
 pub mod try_from_std_env_var_ok_svc_mode_error;
 pub mod try_from_std_env_var_ok_timezone_error;
-pub mod try_map_non_empty_env_value;
+pub mod try_from_std_env_var_ok_tracing_format_error;
 #[cfg(test)]
 pub mod types_tests;
 pub mod u32_parse_int_error;

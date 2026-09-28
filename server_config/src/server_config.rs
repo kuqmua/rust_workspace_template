@@ -134,7 +134,9 @@ impl ServerConfig {
     }
 }
 impl config_lib::domain_types::CorsAllowOriginProvider for ServerConfig {
-    fn cors_allow_origin(&self) -> &String {
+    fn cors_allow_origin(
+        &self,
+    ) -> &bounded_types::bounded_string::BoundedString<1usize, 1_048_576usize, false> {
         self.cors_allow_origin.get_inner()
     }
 }

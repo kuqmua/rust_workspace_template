@@ -4,6 +4,8 @@ pub(crate) enum InitializeError {
     InvalidMember {
         member: crate::workspace_member::WorkspaceMember,
     },
+    #[error("workspace member must be a string")]
+    InvalidMemberType,
     #[error("failed to parse workspace manifest")]
     ManifestParse {
         #[source]
