@@ -126,5 +126,25 @@ mod tests {
         *cfg.get_admin_jwt_secret_mut() =
             server_config_test_env(constants_str::TEST_ONLY_ADMIN_JWT_SECRET_WITH_32_BYTES);
         assert_eq!(cfg.validate_for_startup(), Ok(()));
+        *cfg.get_cors_allow_origin_mut() = server_config_test_env(
+            constants_str::HTTPS_EXAMPLE_COM
+                .to_ascii_uppercase()
+                .as_str(),
+        );
+        assert_eq!(cfg.validate_for_startup(), Ok(()));
+        *cfg.get_cors_allow_origin_mut() = server_config_test_env(
+            constants_str::HTTPS_EXAMPLE_COM
+                .replacen(
+                    constants_str::HTTPS_SCHEME_PREFIX,
+                    constants_str::HTTP_SCHEME_PREFIX,
+                    1usize,
+                )
+                .to_ascii_uppercase()
+                .as_str(),
+        );
+        assert_eq!(
+            cfg.validate_for_startup(),
+            Err(crate::production_config_error::ProductionConfigError::CorsOriginInsecure)
+        );
     }
 }

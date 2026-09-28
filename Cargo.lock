@@ -3498,7 +3498,6 @@ dependencies = [
  "hmac",
  "location_lib",
  "naming",
- "naming_common",
  "proc_macro_getters",
  "proc_macro_location_bang",
  "proc_macro_location_derive_location",
@@ -3859,9 +3858,6 @@ dependencies = [
 name = "proc_macro_bool_enum_to_tokens"
 version = "0.1.0"
 dependencies = [
- "constants_str",
- "proc-macro2",
- "quote",
  "workspace_macro_helpers",
 ]
 
@@ -4864,9 +4860,6 @@ dependencies = [
 name = "proc_macro_trait_alias"
 version = "0.1.0"
 dependencies = [
- "constants_str",
- "proc-macro2",
- "quote",
  "workspace_macro_helpers",
 ]
 
@@ -7571,7 +7564,6 @@ dependencies = [
  "proc_macro_newtype_into_inner",
  "proc_macro_newtype_into_inner_from",
  "proc_macro_optimal_memory_layout",
- "regex",
  "schemars",
  "serde",
  "sqlx",

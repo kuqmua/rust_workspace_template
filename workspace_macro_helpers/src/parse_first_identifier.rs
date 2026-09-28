@@ -3,10 +3,9 @@ where
     I: Iterator<Item = proc_macro2::TokenTree>,
 {
     match i.next()? {
-        proc_macro2::TokenTree::Ident(identifier) => Some(
-            crate::first_identifier::FirstIdentifier::try_from(identifier.to_string())
-                .unwrap_or_else(crate::first_identifier::FirstIdentifier::from),
-        ),
+        proc_macro2::TokenTree::Ident(identifier) => {
+            crate::first_identifier::FirstIdentifier::try_from(identifier.to_string()).ok()
+        }
         proc_macro2::TokenTree::Group(group)
             if group.delimiter() == proc_macro2::Delimiter::None =>
         {

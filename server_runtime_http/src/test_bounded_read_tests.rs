@@ -156,4 +156,44 @@ mod tests {
         .expect(constants_str::DIAGNOSTIC_26FC4688);
         assert_eq!(bytes.into_inner(), b"abcd");
     }
+    #[tokio::test]
+    async fn test_http_response_growth_preserves_the_read_limit() {
+        let read = async |bounded_read_maximum_bytes: crate::bounded_read_maximum_bytes::BoundedReadMaximumBytes| {
+            let response = http::Response::new(
+                constants_str::X.repeat(constants_usize::VALUE_8_192),
+            );
+            crate::read_bounded_http_response::read_bounded_http_response(
+                crate::reqwest_response::ReqwestResponse::from(reqwest::Response::from(response)),
+                bounded_read_maximum_bytes,
+                crate::bounded_read_concurrency_arc_semaphore::BoundedReadConcurrencyArcSemaphore::new(
+                    crate::bounded_read_concurrency_maximum_non_zero_usize::BoundedReadConcurrencyMaximumNonZeroUsize::from(
+                        std::num::NonZeroUsize::MIN,
+                    ),
+                ),
+            )
+            .await
+        };
+        let read_result = read(
+            crate::bounded_read_maximum_bytes::BoundedReadMaximumBytes::from(
+                constants_usize::VALUE_8_192,
+            ),
+        )
+        .await
+        .map(crate::bounded_bytes::BoundedBytes::into_inner);
+        assert!(matches!(
+            read_result,
+            Ok(bytes) if bytes.len() == constants_usize::VALUE_8_192 && bytes.iter().all(|byte| *byte == b'x')
+        ));
+        let over_limit = read(
+            crate::bounded_read_maximum_bytes::BoundedReadMaximumBytes::from(
+                constants_usize::VALUE_4_096,
+            ),
+        )
+        .await;
+        assert!(matches!(
+            over_limit,
+            Err(crate::bounded_read_error::BoundedReadError::ExceedsMaximum { maximum_bytes })
+                if maximum_bytes.get() == constants_usize::VALUE_4_096
+        ));
+    }
 }

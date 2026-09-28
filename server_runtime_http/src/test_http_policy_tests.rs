@@ -27,6 +27,67 @@ mod tests {
         );
     }
     #[test]
+    fn test_bearer_authorization_accepts_spaces_and_trailing_padding() {
+        assert!([
+            (constants_str::TEST_BEARER_AUTHORIZATION_MULTIPLE_SPACES, constants_str::SECRET),
+            (constants_str::TEST_BEARER_AUTHORIZATION_PADDED, constants_str::TEST_BEARER_TOKEN_PADDED),
+        ].into_iter().all(|(header, expected)| matches!(
+            crate::resolve_bearer_authorization::resolve_bearer_authorization(
+                crate::http_authorization_header_text_ref::HttpAuthorizationHeaderTextRef::from(Some(header)),
+            ),
+            crate::bearer_authorization_resolution::BearerAuthorizationResolution::Resolved(token)
+                if token == crate::http_bearer_token_ref::HttpBearerTokenRef::from(expected)
+        )));
+        assert!(['-', '.', '_', '~', '+', '/'].into_iter().all(|character| {
+            let mut header = constants_str::TEST_BEARER_AUTHORIZATION.to_owned();
+            header.push(character);
+            matches!(
+                crate::resolve_bearer_authorization::resolve_bearer_authorization(
+                    crate::http_authorization_header_text_ref::HttpAuthorizationHeaderTextRef::from(
+                        Some(header.as_str())
+                    ),
+                ),
+                crate::bearer_authorization_resolution::BearerAuthorizationResolution::Resolved(_)
+            )
+        }));
+    }
+
+    #[test]
+    fn test_bearer_authorization_rejects_invalid_characters_and_padding() {
+        assert!(
+            [
+                constants_str::TEST_BEARER_AUTHORIZATION_INTERIOR_PADDING,
+                constants_str::TEST_BEARER_AUTHORIZATION_ONLY_PADDING,
+            ]
+            .into_iter()
+            .all(|header| matches!(
+                crate::resolve_bearer_authorization::resolve_bearer_authorization(
+                    crate::http_authorization_header_text_ref::HttpAuthorizationHeaderTextRef::from(
+                        Some(header)
+                    ),
+                ),
+                crate::bearer_authorization_resolution::BearerAuthorizationResolution::Invalid
+            ))
+        );
+        assert!(
+            [':', '\0', '\u{7f}', '\u{e9}']
+                .into_iter()
+                .all(|character| {
+                    let mut header = constants_str::TEST_BEARER_AUTHORIZATION.to_owned();
+                    header.push(character);
+                    matches!(
+                crate::resolve_bearer_authorization::resolve_bearer_authorization(
+                    crate::http_authorization_header_text_ref::HttpAuthorizationHeaderTextRef::from(
+                        Some(header.as_str())
+                    ),
+                ),
+                crate::bearer_authorization_resolution::BearerAuthorizationResolution::Invalid
+            )
+                })
+        );
+    }
+
+    #[test]
     fn test_duplicate_cookie_is_invalid() {
         let mut headers = http::HeaderMap::new();
         let _previous = headers.insert(

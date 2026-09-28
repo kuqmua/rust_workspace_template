@@ -14,22 +14,17 @@ where
         swagger_url_path_prefix: crate::swagger_url_path_prefix::SwaggerUrlPathPrefix<'_>,
     ) -> generate_quotes::proc_macro2_quoted_literal_token_stream::ProcMacro2QuotedLiteralTokenStream
     {
-        match self
-            .swagger_url_path_self_quotes_str(swagger_url_path_prefix)
-            .as_ref()
-            .parse::<proc_macro2::TokenStream>()
-        {
-            Ok(parsed_token_stream) => {
-                generate_quotes::proc_macro2_quoted_literal_token_stream::ProcMacro2QuotedLiteralTokenStream::from(
-                    parsed_token_stream,
-                )
-            }
-            Err(error) => {
-                let message = error.to_string();
-                generate_quotes::proc_macro2_quoted_literal_token_stream::ProcMacro2QuotedLiteralTokenStream::from(
-                    quote::quote! {compile_error!(#message);},
-                )
-            }
+        let compile_error = |message| {
+            generate_quotes::proc_macro2_quoted_literal_token_stream::ProcMacro2QuotedLiteralTokenStream::from(
+                quote::quote! {compile_error!(#message);},
+            )
+        };
+        match self.swagger_url_path_self_quotes_str(swagger_url_path_prefix) {
+            Ok(quoted_literal) => match quoted_literal.as_ref().parse::<proc_macro2::TokenStream>() {
+                Ok(tokens) => generate_quotes::proc_macro2_quoted_literal_token_stream::ProcMacro2QuotedLiteralTokenStream::from(tokens),
+                Err(error) => compile_error(error.to_string()),
+            },
+            Err(error) => compile_error(error.to_string()),
         }
     }
 }

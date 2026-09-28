@@ -22,7 +22,9 @@ pub async fn read_bounded_http_response(
         .content_length()
         .and_then(|length| usize::try_from(length).ok())
         .map_or(constants_usize::ZERO, |length| {
-            length.min(bounded_read_maximum_bytes.get())
+            length
+                .min(bounded_read_maximum_bytes.get())
+                .min(constants_usize::VALUE_4_096)
         });
     let mut bytes = Vec::with_capacity(initial_capacity);
     while let Some(chunk) = inner_response.chunk().await.map_err(|source| {

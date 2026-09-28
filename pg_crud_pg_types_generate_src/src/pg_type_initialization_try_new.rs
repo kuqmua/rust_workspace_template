@@ -4,6 +4,7 @@
 )]
 #[derive(Debug, proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
 pub(super) enum PgTypeInitializationTryNew {
+    F32AsFloat4,
     F64AsFloat8,
     StringAsText,
     SqlxTypesChronoNaiveTimeAsTime,
@@ -24,6 +25,7 @@ impl TryFrom<&crate::pg_type_catalog_kind::PgTypeCatalogKind> for PgTypeInitiali
     ) -> Result<Self, Self::Error> {
         match crate::schema_wire_kind::schema_wire_kind(&(*value).spec()) {
             crate::wire_kind::WireKind::Date => Ok(Self::SqlxTypesChronoNaiveDateAsDate),
+            crate::wire_kind::WireKind::Float32 => Ok(Self::F32AsFloat4),
             crate::wire_kind::WireKind::Float64 => Ok(Self::F64AsFloat8),
             crate::wire_kind::WireKind::RangeDate => {
                 Ok(Self::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsDateRange)
@@ -47,7 +49,6 @@ impl TryFrom<&crate::pg_type_catalog_kind::PgTypeCatalogKind> for PgTypeInitiali
             }
             crate::wire_kind::WireKind::Bool
             | crate::wire_kind::WireKind::Bytes
-            | crate::wire_kind::WireKind::Float32
             | crate::wire_kind::WireKind::Inet
             | crate::wire_kind::WireKind::Int16
             | crate::wire_kind::WireKind::Int32
@@ -61,6 +62,7 @@ impl TryFrom<&crate::pg_type_catalog_kind::PgTypeCatalogKind> for PgTypeInitiali
 impl From<&PgTypeInitializationTryNew> for crate::pg_type_catalog_kind::PgTypeCatalogKind {
     fn from(value: &PgTypeInitializationTryNew) -> Self {
         match value {
+                PgTypeInitializationTryNew::F32AsFloat4 => Self::F32AsFloat4,
                 PgTypeInitializationTryNew::F64AsFloat8 => Self::F64AsFloat8,
                 PgTypeInitializationTryNew::StringAsText => Self::StringAsText,
                 PgTypeInitializationTryNew::SqlxTypesChronoNaiveTimeAsTime => Self::SqlxTypesChronoNaiveTimeAsTime,

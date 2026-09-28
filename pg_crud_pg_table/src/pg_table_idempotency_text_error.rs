@@ -25,3 +25,10 @@ pub enum PgTableIdempotencyTextError {
         maximum_bytes: crate::pg_table_idempotency_text_bytes::PgTableIdempotencyTextBytes,
     },
 }
+
+impl to_err_string::to_err_string::ToErrString for PgTableIdempotencyTextError {
+    fn to_err_string(&self) -> to_err_string::error_text::ErrorText {
+        to_err_string::error_text::ErrorText::try_from(self.to_string())
+            .unwrap_or_else(to_err_string::error_text::ErrorText::from)
+    }
+}

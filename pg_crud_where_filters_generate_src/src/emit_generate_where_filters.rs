@@ -537,11 +537,14 @@ pub fn emit_generate_where_filters(
                             is_query_bind_mut_true,
                             quote::quote! {
                                 #maybe_dimensions_query_bind_token_stream
-                                for element in Vec::from(#self_snake_case.#values_snake_case) {
-                                    if let Err(#error_snake_case) = #query_snake_case.as_mut().try_bind(element) {
-                                        return Err(#import::sqlx_postgres_query_bind_error::SqlxPostgresQueryBindError::from(#error_snake_case));
-                                    }
-                                }
+                                Vec::from(#self_snake_case.#values_snake_case)
+                                    .into_iter()
+                                    .try_for_each(|element| {
+                                        #query_snake_case
+                                            .as_mut()
+                                            .try_bind(element)
+                                            .map_err(#import::sqlx_postgres_query_bind_error::SqlxPostgresQueryBindError::from)
+                                    })?;
                                 Ok(#query_snake_case)
                             },
                         )
@@ -686,54 +689,53 @@ pub fn emit_generate_where_filters(
                                 },
                             )
                         };
-                    let generate_range_bound_cmp_filter_token_stream =
-                        |pg_type_ptrn: &PgTypePtrn, bound_fn, operator| {
-                            generate_cmp_filter_token_stream(
-                                pg_type_ptrn,
-                                &|pg_type_kind: &PgTypeKind| {
-                                    format!(
-                                        "{{}}({bound_fn}({{}}{}) {operator} ${{}})",
-                                        pg_type_kind.format_argument()
-                                    )
-                                },
-                            )
+                    let generate_range_bound_inclusivity_filter_token_stream =
+                        |pg_type_ptrn: &PgTypePtrn, bound_fn, inclusivity_fn, operator| {
+                            generate_cmp_filter_token_stream(pg_type_ptrn, &|_: &PgTypeKind| {
+                                format!(
+                                    "{{0}}({inclusivity_fn}({{1}}) AND {bound_fn}({{1}}) {operator} ${{2}})"
+                                )
+                            })
                         };
                     let generate_range_len_token_stream = |pg_type_ptrn: &PgTypePtrn| {
                         let (
-                            maybe_dimensions_declaration_token_stream,
-                            maybe_dimensions_default_initialization_token_stream,
-                            maybe_dimensions_ies_initialization_token_stream,
-                            pg_type_kind,
-                            maybe_extra_parameters_token_stream,
-                            maybe_dimensions_query_bind_token_stream,
-                        ) = generate_pg_type_dimensions_helpers_pg_type(pg_type_ptrn);
+                            _,
+                            fields,
+                            defaults,
+                            increment,
+                            standard_query_part,
+                            is_query_bind_mut,
+                            query_bind,
+                        ) = generate_cmp_filter_token_stream(pg_type_ptrn, &|_: &PgTypeKind| {
+                            constants_str::PG_CRUD_RANGE_LEN_SQL_FORMAT.to_owned()
+                        });
+                        let empty = proc_macro2::TokenStream::new();
+                        let numeric_query_part = generate_query_part_format_with_v_token_stream(
+                            &empty,
+                            &generate_quotes::dq_token_stream::dq_token_stream(
+                                constants_str::PG_CRUD_RANGE_LEN_NUMERIC_SQL_FORMAT,
+                            ),
+                            &empty,
+                        );
+                        let sqlx_traits = generate_sqlx_type_pg_encode_token_stream();
                         (
-                            Generic::False,
-                            quote::quote! {
-                                #maybe_dimensions_declaration_token_stream
-                                #values_snake_case: #import::not_zero_unsigned_part_of_i32::NotZeroUnsignedPartOfI32
+                            Generic::True {
+                                maybe_extra_traits_token_stream: Some(quote::quote! {
+                                    #sqlx_traits + pg_crud_common::pg_range_length_sql::PgRangeLengthSql
+                                }),
                             },
-                            generate_maybe_dimensions_default_initialization_v_default_token_stream(
-                                &maybe_dimensions_default_initialization_token_stream,
-                            ),
-                            pg_crud_macro_common::emission_types::IncrementParameterUndrscr::False,
-                            generate_query_part_format_with_v_token_stream(
-                                &maybe_dimensions_ies_initialization_token_stream,
-                                &generate_quotes::dq_token_stream::dq_token_stream(&format!(
-                                    "{{}}(upper({{}}{}) - lower({{}}{}) = ${{}})",
-                                    pg_type_kind.format_argument(),
-                                    pg_type_kind.format_argument(),
-                                )),
-                                &quote::quote! {
-                                    #maybe_extra_parameters_token_stream
-                                    #column_snake_case,
-                                },
-                            ),
-                            is_query_bind_mut_true,
+                            fields,
+                            defaults,
+                            increment,
                             quote::quote! {
-                                #maybe_dimensions_query_bind_token_stream
-                                #query_bind_one_v_token_stream
+                                if <T as pg_crud_common::pg_range_length_sql::PgRangeLengthSql>::USE_NUMERIC_DIFFERENCE {
+                                    #numeric_query_part
+                                } else {
+                                    #standard_query_part
+                                }
                             },
+                            is_query_bind_mut,
+                            query_bind,
                         )
                     };
                     let equality_sql_operator =
@@ -827,10 +829,10 @@ pub fn emit_generate_where_filters(
                         generate_pg_syntax_filter_token_stream(&pg_type_ptrn_standard, &constants_str::CURRENT_TIMESTAMP_ALT)
                     }
                     pg_crud_macro_common::pg_type_filter::PgTypeFilter::CurrentTime => {
-                        generate_pg_syntax_filter_token_stream(&pg_type_ptrn_standard, &constants_str::CURRENT_TIME)
+                        generate_pg_syntax_filter_token_stream(&pg_type_ptrn_standard, &constants_str::LOCALTIME)
                     }
                     pg_crud_macro_common::pg_type_filter::PgTypeFilter::GreaterThanCurrentTime => {
-                        generate_pg_syntax_filter_token_stream(&pg_type_ptrn_standard, &constants_str::CURRENT_TIME_ALT)
+                        generate_pg_syntax_filter_token_stream(&pg_type_ptrn_standard, &constants_str::LOCALTIME_ALT)
                     }
                     pg_crud_macro_common::pg_type_filter::PgTypeFilter::EqToEncodedStringRepresentation => {
                         generate_eq_to_encoded_string_representation_token_stream(&pg_type_ptrn_standard)
@@ -860,16 +862,16 @@ pub fn emit_generate_where_filters(
                         )
                     }
                     pg_crud_macro_common::pg_type_filter::PgTypeFilter::IncludedLowerBound { .. } => {
-                        generate_range_bound_cmp_filter_token_stream(&pg_type_ptrn_standard, constants_str::LOWER, constants_str::PG_CRUD_EQUALITY_SQL_OPERATOR)
+                        generate_range_bound_inclusivity_filter_token_stream(&pg_type_ptrn_standard, constants_str::LOWER, constants_str::LOWER_INC, constants_str::PG_CRUD_EQUALITY_SQL_OPERATOR)
                     }
                     pg_crud_macro_common::pg_type_filter::PgTypeFilter::ExcludedUpperBound { .. } => {
-                        generate_range_bound_cmp_filter_token_stream(&pg_type_ptrn_standard, constants_str::UPPER, constants_str::PG_CRUD_EQUALITY_SQL_OPERATOR)
+                        generate_range_bound_inclusivity_filter_token_stream(&pg_type_ptrn_standard, constants_str::UPPER, constants_str::NOT_UPPER_INC, constants_str::PG_CRUD_EQUALITY_SQL_OPERATOR)
                     }
                     pg_crud_macro_common::pg_type_filter::PgTypeFilter::GreaterThanIncludedLowerBound { .. } => {
-                        generate_range_bound_cmp_filter_token_stream(&pg_type_ptrn_standard, constants_str::LOWER, constants_str::TEXT_ALT_11)
+                        generate_range_bound_inclusivity_filter_token_stream(&pg_type_ptrn_standard, constants_str::LOWER, constants_str::LOWER_INC, constants_str::TEXT_ALT_11)
                     }
                     pg_crud_macro_common::pg_type_filter::PgTypeFilter::GreaterThanExcludedUpperBound { .. } => {
-                        generate_range_bound_cmp_filter_token_stream(&pg_type_ptrn_standard, constants_str::UPPER, constants_str::TEXT_ALT_11)
+                        generate_range_bound_inclusivity_filter_token_stream(&pg_type_ptrn_standard, constants_str::UPPER, constants_str::NOT_UPPER_INC, constants_str::TEXT_ALT_11)
                     }
                     pg_crud_macro_common::pg_type_filter::PgTypeFilter::OverlapWithRange { .. } => {
                         generate_operator_cmp_filter_token_stream(
@@ -883,7 +885,7 @@ pub fn emit_generate_where_filters(
                             &crate::filter_spec::FilterSpec::adjacent().sql_operator(),
                         )
                     }
-                    pg_crud_macro_common::pg_type_filter::PgTypeFilter::RangeLen => {
+                    pg_crud_macro_common::pg_type_filter::PgTypeFilter::RangeLen { .. } => {
                         generate_range_len_token_stream(&pg_type_ptrn_standard)
                     }
                 }
@@ -980,6 +982,8 @@ pub fn emit_generate_where_filters(
                 Empty,
                 #[error("text search value exceeds {maximum_bytes} bytes: got {actual_bytes}")]
                 TooLong { actual_bytes: usize, maximum_bytes: usize },
+                #[error("text search value violates its bounded string invariant")]
+                Bounded { #[source] source: bounded_types::bounded_string_error::BoundedStringError },
             }
             impl TryFrom<String> for TextSearchPattern {
                 type Error = TextSearchValueError;
@@ -1029,7 +1033,7 @@ pub fn emit_generate_where_filters(
             #[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize, schemars::JsonSchema, utoipa::ToSchema)]
             #[serde(deny_unknown_fields)]
             pub struct PgTypeWhereTextSearch {
-                value: String,
+                value: bounded_types::bounded_string::BoundedString<1usize, 1_024usize, false>,
                 mode: TextSearchMode,
                 operator: pg_crud_common::operator::Operator,
             }
@@ -1050,10 +1054,12 @@ pub fn emit_generate_where_filters(
             impl PgTypeWhereTextSearch {
                 pub fn try_new(operator: pg_crud_common::operator::Operator, mode: TextSearchMode, value: String) -> Result<Self, TextSearchValueError> {
                     let _validated_pattern = build_text_search_pattern(value.as_str(), mode)?;
+                    let value = bounded_types::bounded_string::BoundedString::try_from(value)
+                        .map_err(|source| TextSearchValueError::Bounded { source })?;
                     Ok(Self { value, mode, operator })
                 }
                 pub fn pattern(&self) -> Result<TextSearchPattern, TextSearchValueError> {
-                    build_text_search_pattern(self.value.as_str(), self.mode)
+                    build_text_search_pattern(self.value.as_ref(), self.mode)
                 }
             }
         }

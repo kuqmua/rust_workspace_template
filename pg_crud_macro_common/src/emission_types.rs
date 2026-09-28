@@ -25,6 +25,22 @@ proc_macro_bool_enum_to_tokens::bool_enum_to_tokens!(UpdateQueryPartValueUndrscr
 #[cfg(test)]
 mod tests {
     #[test]
+    fn test_bool_enum_preserves_nested_branch_delimiters() {
+        proc_macro_bool_enum_to_tokens::bool_enum_to_tokens!(
+            NestedBoolEnumFixture,
+            false => quote::quote! { value, true => value },
+            true => quote::quote! { other }
+        );
+        assert_eq!(
+            quote::ToTokens::to_token_stream(&NestedBoolEnumFixture::False).to_string(),
+            quote::quote! { value, true => value }.to_string(),
+        );
+        assert_eq!(
+            quote::ToTokens::to_token_stream(&NestedBoolEnumFixture::True).to_string(),
+            quote::quote! { other }.to_string(),
+        );
+    }
+    #[test]
     fn test_import_paths_match_their_owners() {
         assert_eq!(
             crate::import::Import::Crate.to_path().to_string(),

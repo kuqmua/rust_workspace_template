@@ -37,9 +37,10 @@ impl crate::default_some_one_element::DefaultSomeOneElement for Order {
 impl Order {
     #[must_use]
     pub fn to_snake_case_str(&self) -> crate::order_snake_case_str::OrderSnakeCaseStr {
-        crate::order_snake_case_str::OrderSnakeCaseStr::try_from(
-            naming_common::domain_types::DisplayToSnakeCaseStr::case(self),
-        )
+        crate::order_snake_case_str::OrderSnakeCaseStr::try_from(String::from(match self {
+            Self::Ascending => constants_str::ASC_ALT,
+            Self::Descending => constants_str::DESC_ALT,
+        }))
         .unwrap_or_else(crate::order_snake_case_str::OrderSnakeCaseStr::from)
     }
 
@@ -47,9 +48,10 @@ impl Order {
     pub fn to_upper_camel_case_str(
         &self,
     ) -> crate::order_upper_camel_case_str::OrderUpperCamelCaseStr {
-        crate::order_upper_camel_case_str::OrderUpperCamelCaseStr::try_from(
-            naming_common::domain_types::DisplayToUpperCamelCaseStr::case(self),
-        )
+        crate::order_upper_camel_case_str::OrderUpperCamelCaseStr::try_from(match self {
+            Self::Ascending => naming::domain_types::AscUpperCamelCase.to_string(),
+            Self::Descending => naming::domain_types::DescUpperCamelCase.to_string(),
+        })
         .unwrap_or_else(crate::order_upper_camel_case_str::OrderUpperCamelCaseStr::from)
     }
 }

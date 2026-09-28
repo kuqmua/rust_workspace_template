@@ -16,11 +16,6 @@ pub struct PgTableQueryPartFragment(
         false,
     >,
 );
-impl From<crate::pg_table_string_wrapper_try_from_string_error::PgTableStringWrapperTryFromStringError> for PgTableQueryPartFragment {
-    fn from(value: crate::pg_table_string_wrapper_try_from_string_error::PgTableStringWrapperTryFromStringError) -> Self {
-        bounded_types::try_from_bounded_error_text::try_from_bounded_error_text(value)
-    }
-}
 impl TryFrom<String> for PgTableQueryPartFragment {
     type Error = crate::pg_table_string_wrapper_try_from_string_error::PgTableStringWrapperTryFromStringError;
     fn try_from(value: String) -> Result<Self, Self::Error> {

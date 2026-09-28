@@ -19,18 +19,60 @@ pub(super) fn openapi_schema_references(
         match current {
             serde_json::Value::Array(values) => pending.extend(values),
             serde_json::Value::Object(values) => {
-                if let Some(name) = values
+                if let Some((name, reference)) = values
                     .get(constants_str::DOLLAR_REF)
                     .and_then(serde_json::Value::as_str)
-                    .and_then(|reference| reference.strip_prefix(constants_str::COMPONENTS_SCHEMAS))
+                    .and_then(|reference| {
+                        reference
+                            .strip_prefix(constants_str::COMPONENTS_SCHEMAS)
+                            .map(|name| (name, reference))
+                    })
                 {
-                    let reference = crate::open_api_contract_text::OpenApiContractText::try_from(
-                        name.to_owned(),
+                    let mut decoded_name = name.to_owned();
+                    if reference
+                        .get(1..)
+                        .and_then(|pointer| document_value.pointer(pointer))
+                        .is_none()
+                    {
+                        return Err(crate::open_api_validation_error::OpenApiValidationError::MissingSchemaReference(
+                            crate::open_api_contract_text::OpenApiContractText::try_from(decoded_name)
+                                .map_err(crate::open_api_validation_error::OpenApiValidationError::TextTooLong)?,
+                        ));
+                    }
+                    if let Some(index) = decoded_name.find('/') {
+                        decoded_name.truncate(index);
+                    }
+                    let mut search_start = 0usize;
+                    while let Some(relative_index) = decoded_name
+                        .get(search_start..)
+                        .and_then(|remaining| remaining.find('~'))
+                    {
+                        let index = search_start.saturating_add(relative_index);
+                        let after_index = index.saturating_add(1);
+                        let decoded_character = match decoded_name.as_bytes().get(after_index) {
+                            Some(b'0') => '~',
+                            Some(b'1') => '/',
+                            Some(_) | None => {
+                                return Err(crate::open_api_validation_error::OpenApiValidationError::MissingSchemaReference(
+                                    crate::open_api_contract_text::OpenApiContractText::try_from(decoded_name)
+                                        .map_err(crate::open_api_validation_error::OpenApiValidationError::TextTooLong)?,
+                                ));
+                            }
+                        };
+                        let mut buffer = [0u8; 4];
+                        decoded_name.replace_range(
+                            index..after_index.saturating_add(1),
+                            decoded_character.encode_utf8(&mut buffer),
+                        );
+                        search_start = after_index;
+                    }
+                    let schema_reference = crate::open_api_contract_text::OpenApiContractText::try_from(
+                        decoded_name,
                     )
                     .map_err(
                         crate::open_api_validation_error::OpenApiValidationError::TextTooLong,
                     )?;
-                    let _inserted: bool = references.insert(reference);
+                    let _inserted: bool = references.insert(schema_reference);
                 }
                 pending.extend(values.values());
             }

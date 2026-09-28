@@ -7,7 +7,7 @@ proc_macro_naming_common::case_trait_pair!(
             self_ref.as_ref(),
             crate::convert_case_kind::ConvertCaseKind::from(convert_case::Case::UpperCamel),
         )
-        .into_inner()
+        .map(crate::case_string::CaseString::into_inner)
     }
 );
 proc_macro_naming_common::case_trait_pair!(
@@ -19,7 +19,7 @@ proc_macro_naming_common::case_trait_pair!(
             self_ref.as_ref(),
             crate::convert_case_kind::ConvertCaseKind::from(convert_case::Case::Snake),
         )
-        .into_inner()
+        .map(crate::case_string::CaseString::into_inner)
     }
 );
 proc_macro_naming_common::case_trait_pair!(
@@ -30,7 +30,7 @@ proc_macro_naming_common::case_trait_pair!(
         self_ref.as_ref(),
         crate::convert_case_kind::ConvertCaseKind::from(convert_case::Case::UpperSnake)
     )
-    .into_inner()
+    .map(crate::case_string::CaseString::into_inner)
 );
 proc_macro_naming_common::case_trait_pair!(
     DisplayToUpperCamelCaseStr,
@@ -41,7 +41,7 @@ proc_macro_naming_common::case_trait_pair!(
             self_ref,
             crate::convert_case_kind::ConvertCaseKind::from(convert_case::Case::UpperCamel),
         )
-        .into_inner()
+        .map(crate::case_string::CaseString::into_inner)
     }
 );
 proc_macro_naming_common::case_trait_pair!(
@@ -53,7 +53,7 @@ proc_macro_naming_common::case_trait_pair!(
             self_ref,
             crate::convert_case_kind::ConvertCaseKind::from(convert_case::Case::Snake),
         )
-        .into_inner()
+        .map(crate::case_string::CaseString::into_inner)
     }
 );
 proc_macro_naming_common::case_trait_pair!(
@@ -64,7 +64,7 @@ proc_macro_naming_common::case_trait_pair!(
         self_ref,
         crate::convert_case_kind::ConvertCaseKind::from(convert_case::Case::UpperSnake)
     )
-    .into_inner()
+    .map(crate::case_string::CaseString::into_inner)
 );
 proc_macro_naming_common::case_trait_pair!(
     ToTokensToUpperCamelCaseStr,
@@ -75,7 +75,7 @@ proc_macro_naming_common::case_trait_pair!(
             self_ref,
             crate::convert_case_kind::ConvertCaseKind::from(convert_case::Case::UpperCamel),
         )
-        .into_inner()
+        .map(crate::case_string::CaseString::into_inner)
     }
 );
 proc_macro_naming_common::case_trait_pair!(
@@ -87,7 +87,7 @@ proc_macro_naming_common::case_trait_pair!(
             self_ref,
             crate::convert_case_kind::ConvertCaseKind::from(convert_case::Case::Snake),
         )
-        .into_inner()
+        .map(crate::case_string::CaseString::into_inner)
     }
 );
 proc_macro_naming_common::case_trait_pair!(
@@ -98,7 +98,7 @@ proc_macro_naming_common::case_trait_pair!(
         self_ref,
         crate::convert_case_kind::ConvertCaseKind::from(convert_case::Case::UpperSnake)
     )
-    .into_inner()
+    .map(crate::case_string::CaseString::into_inner)
 );
 #[cfg(test)]
 mod tests {
@@ -167,6 +167,19 @@ mod tests {
                 .to_string(),
             super::ToTokensToUpperSnakeCaseTokenStream::case_or_panic(&quote::quote! {helloWorld})
                 .to_string(),
+        );
+    }
+    #[test]
+    fn test_fallible_case_conversion_reports_expansion_and_tokens_emit_compile_error() {
+        let input = constants_str::HELLOWORLD_ALT.repeat(104_858usize);
+        assert!(matches!(
+            super::AsRefStrToSnakeCaseStr::try_case(&input),
+            Err(crate::case_string::CaseStringTryFromStringError::TooLong { .. })
+        ));
+        assert!(
+            super::AsRefStrToSnakeCaseTokenStream::case_or_panic(&input)
+                .to_string()
+                .contains(constants_str::VALUE_2EDAC0BF)
         );
     }
 }

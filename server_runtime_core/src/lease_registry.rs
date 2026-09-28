@@ -101,6 +101,66 @@ mod tests {
     }
 
     #[tokio::test(start_paused = true)]
+    async fn test_rebinding_existing_lease_at_capacity_preserves_indexes() {
+        let registry = super::LeaseRegistry::new();
+        let lease_id = id(constants_str::TEST_LEASE_ID_ONE);
+        assert_eq!(
+            registry
+                .reserve(
+                    lease_id.clone(),
+                    lease_key(constants_str::TEST_LEASE_KEY_ONE),
+                    maximum(),
+                )
+                .await,
+            crate::lease_reservation::LeaseReservation::Reserved
+        );
+        assert_eq!(
+            registry
+                .reserve(
+                    lease_id.clone(),
+                    lease_key(constants_str::TEST_LEASE_KEY_TWO),
+                    maximum(),
+                )
+                .await,
+            crate::lease_reservation::LeaseReservation::Reserved
+        );
+        assert_eq!(
+            registry
+                .reserve(
+                    id(constants_str::TEST_LEASE_ID_TWO),
+                    lease_key(constants_str::TEST_LEASE_KEY_TWO),
+                    maximum(),
+                )
+                .await,
+            crate::lease_reservation::LeaseReservation::Existing(lease_id.clone())
+        );
+        assert_eq!(
+            registry
+                .reserve(
+                    id(constants_str::TEST_LEASE_ID_TWO),
+                    lease_key(constants_str::TEST_LEASE_KEY_ONE),
+                    maximum(),
+                )
+                .await,
+            crate::lease_reservation::LeaseReservation::LimitReached
+        );
+        assert_eq!(
+            registry.release(&lease_id).await,
+            crate::lease_heartbeat::LeaseHeartbeat::Accepted
+        );
+        assert_eq!(
+            registry
+                .reserve(
+                    id(constants_str::TEST_LEASE_ID_TWO),
+                    lease_key(constants_str::TEST_LEASE_KEY_TWO),
+                    maximum(),
+                )
+                .await,
+            crate::lease_reservation::LeaseReservation::Reserved
+        );
+    }
+
+    #[tokio::test(start_paused = true)]
     async fn test_heartbeat_and_stale_transition_are_observable() {
         let registry = super::LeaseRegistry::new();
         let lease_id = id(constants_str::TEST_LEASE_ID_ONE);

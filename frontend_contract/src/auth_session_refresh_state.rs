@@ -3,5 +3,6 @@
 )]
 pub(super) enum AuthSessionRefreshState {
     Idle,
+    IntervalOverflow,
     Running,
 }

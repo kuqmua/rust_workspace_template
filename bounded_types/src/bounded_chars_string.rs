@@ -38,6 +38,7 @@ impl<const MIN: usize, const MAX: usize> TryFrom<String> for BoundedCharsString<
     type Error = crate::bounded_value_error::BoundedValueError;
 
     fn try_from(value: String) -> Result<Self, Self::Error> {
+        crate::validate_len::validate_len::<MIN, MAX>(crate::bounded_len::BoundedLen::from(MIN))?;
         crate::bounded_string::BoundedString::try_from(value)
             .map(Self)
             .map_err(|source| match source {
@@ -109,6 +110,22 @@ mod tests {
         .expect(constants_str::DIAGNOSTIC_AD96C37E);
         assert_eq!(value.len().get(), 2);
         assert_eq!(value.as_ref().chars().count(), 2);
+    }
+
+    #[test]
+    fn test_char_string_construction_reports_invalid_bounds_consistently() {
+        let expected = crate::bounded_value_error::BoundedValueError::InvalidBounds {
+            min: crate::bounded_len::BoundedLen::from(2usize),
+            max: crate::bounded_len::BoundedLen::from(1usize),
+        };
+        assert_eq!(
+            super::BoundedCharsString::<2, 1>::validate_str(constants_str::VALUE_1),
+            Err(expected),
+        );
+        assert_eq!(
+            super::BoundedCharsString::<2, 1>::try_from(String::from(constants_str::VALUE_1)),
+            Err(expected),
+        );
     }
 
     #[test]

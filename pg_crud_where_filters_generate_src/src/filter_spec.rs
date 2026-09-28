@@ -47,7 +47,7 @@ impl FilterSpec {
     }
     pub(crate) fn left_of() -> Self {
         Self::scalar(crate::filter_sql_operator::FilterSqlOperator::from(
-            constants_str::PG_CRUD_LEFT_OF_SQL_OPERATOR,
+            constants_str::PG_CRUD_STRICTLY_LEFT_SQL_OPERATOR,
         ))
     }
     pub(crate) fn overlaps() -> Self {
@@ -57,7 +57,7 @@ impl FilterSpec {
     }
     pub(crate) fn right_of() -> Self {
         Self::scalar(crate::filter_sql_operator::FilterSqlOperator::from(
-            constants_str::PG_CRUD_RIGHT_OF_SQL_OPERATOR,
+            constants_str::PG_CRUD_STRICTLY_RIGHT_SQL_OPERATOR,
         ))
     }
     fn scalar(filter_sql_operator: crate::filter_sql_operator::FilterSqlOperator) -> Self {

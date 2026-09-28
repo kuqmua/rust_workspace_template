@@ -623,6 +623,7 @@ pub fn enum_from_str(
     };
     let generated = (|| {
         let identifier = &input.ident;
+        let (impl_generics, type_generics, where_clause) = input.generics.split_for_impl();
         let data_enum = match &input.data {
             syn::Data::Enum(value) => value,
             syn::Data::Struct(_) | syn::Data::Union(_) => {
@@ -677,7 +678,7 @@ pub fn enum_from_str(
         Ok::<_, syn::Error>(
             proc_macro2_generated_token_stream::ProcMacro2GeneratedTokenStream::from(
                 quote::quote! {
-                    impl std::str::FromStr for #identifier {
+                    impl #impl_generics std::str::FromStr for #identifier #type_generics #where_clause {
                         type Err = String;
                         fn from_str(s: &str) -> Result<Self, Self::Err> {
                             match s {
@@ -815,11 +816,12 @@ pub fn wire_enum(
         .collect::<Vec<_>>();
     let identifier = &input.ident;
     let error_identifier = quote::format_ident!("{}TryFromStrError", identifier);
+    let (impl_generics, type_generics, where_clause) = input.generics.split_for_impl();
     let error_message = attrs.get_error_message().as_ref();
     let ref_type = attrs.get_ref_type().as_ref();
     let variant_count = identifiers.len();
     quote::quote! {
-        impl #identifier {
+        impl #impl_generics #identifier #type_generics #where_clause {
             pub const ALL: [Self; #variant_count] = [#(Self::#identifiers),*];
             #[must_use]
             pub fn as_str(self) -> #ref_type<'static> {
@@ -831,7 +833,7 @@ pub fn wire_enum(
         #[derive(Debug, Clone, Copy, PartialEq, Eq, thiserror::Error)]
         #[error("{}", #error_message)]
         pub struct #error_identifier;
-        impl TryFrom<&str> for #identifier {
+        impl #impl_generics TryFrom<&str> for #identifier #type_generics #where_clause {
             type Error = #error_identifier;
             fn try_from(value: &str) -> Result<Self, Self::Error> {
                 match value {
@@ -840,7 +842,7 @@ pub fn wire_enum(
                 }
             }
         }
-        impl serde::Serialize for #identifier {
+        impl #impl_generics serde::Serialize for #identifier #type_generics #where_clause {
             fn serialize<Serializer>(
                 &self,
                 serializer: Serializer,
@@ -848,7 +850,9 @@ pub fn wire_enum(
             where
                 Serializer: serde::Serializer,
             {
-                serializer.serialize_str(self.as_str().as_ref())
+                serializer.serialize_str(match self {
+                    #(Self::#identifiers => #ref_type::from(#values)),*
+                }.as_ref())
             }
         }
     }
@@ -1441,10 +1445,13 @@ fn generate_newtype_token_stream_with_attrs(
             }
         });
     let as_ref_target_token_stream = newtype_attrs.contains(newtype_option::NewtypeOption::AsRefTarget).get().then(|| {
+        let mut as_ref_generics = input_ref.generics.clone();
+        as_ref_generics.make_where_clause().predicates.push(syn::parse_quote! {
+            #inner_ty_ref: std::ops::Deref
+        });
+        let (as_ref_impl_generics, as_ref_ty_generics, as_ref_where_clause) = as_ref_generics.split_for_impl();
         quote::quote! {
-            impl #impl_generics AsRef<<#inner_ty_ref as std::ops::Deref>::Target> for #identifier #ty_generics #where_clause
-            where
-                #inner_ty_ref: std::ops::Deref,
+            impl #as_ref_impl_generics AsRef<<#inner_ty_ref as std::ops::Deref>::Target> for #identifier #as_ref_ty_generics #as_ref_where_clause
             {
                 fn as_ref(&self) -> &<#inner_ty_ref as std::ops::Deref>::Target {
                     std::ops::Deref::deref(&self.0)
@@ -1514,12 +1521,15 @@ fn generate_newtype_token_stream_with_attrs(
         }
     });
     let borrow_path_token_stream = newtype_attrs.contains(newtype_option::NewtypeOption::BorrowPath).get().then(|| {
+        let mut borrow_generics = input_ref.generics.clone();
+        borrow_generics.make_where_clause().predicates.push(syn::parse_quote! {
+            #inner_ty_ref: std::borrow::Borrow<std::path::Path>
+        });
+        let (borrow_impl_generics, borrow_ty_generics, borrow_where_clause) = borrow_generics.split_for_impl();
         quote::quote! {
 
             #[allow(single_use_lifetimes, reason = "lib requires this localized allowance for generated or framework-constrained code verified by focused tests")]
-            impl #impl_generics std::borrow::Borrow<std::path::Path> for #identifier #ty_generics #where_clause
-            where
-                #inner_ty_ref: std::borrow::Borrow<std::path::Path>,
+            impl #borrow_impl_generics std::borrow::Borrow<std::path::Path> for #identifier #borrow_ty_generics #borrow_where_clause
             {
                 fn borrow(&self) -> &std::path::Path {
                     std::borrow::Borrow::<std::path::Path>::borrow(&self.0)
@@ -1612,21 +1622,22 @@ fn generate_newtype_token_stream_with_attrs(
         .contains(newtype_option::NewtypeOption::Accessor)
         .get()
         .then(|| {
+            let generics = &input_ref.generics;
             let trait_identifier = quote::format_ident!("{identifier}Provider");
             let fn_name =
                 identifier_to_snake(syn_identifier_ref::SynIdentifierRef::from(identifier));
             let fn_identifier = quote::format_ident!("{}", fn_name.as_ref());
             if inner_is_bounded_string {
                 quote::quote! {
-                    pub trait #trait_identifier {
+                    pub trait #trait_identifier #generics #where_clause {
                         fn #fn_identifier(&self) -> &String;
                     }
-                    impl #impl_generics #trait_identifier for #identifier #ty_generics #where_clause {
+                    impl #impl_generics #trait_identifier #ty_generics for #identifier #ty_generics #where_clause {
                         fn #fn_identifier(&self) -> &String {
                             self.0.as_string()
                         }
                     }
-                    impl #impl_generics #trait_identifier for &#identifier #ty_generics #where_clause {
+                    impl #impl_generics #trait_identifier #ty_generics for &#identifier #ty_generics #where_clause {
                         fn #fn_identifier(&self) -> &String {
                             self.0.as_string()
                         }
@@ -1634,15 +1645,15 @@ fn generate_newtype_token_stream_with_attrs(
                 }
             } else {
                 quote::quote! {
-                    pub trait #trait_identifier {
+                    pub trait #trait_identifier #generics #where_clause {
                         fn #fn_identifier(&self) -> &#inner_ty_ref;
                     }
-                    impl #impl_generics #trait_identifier for #identifier #ty_generics #where_clause {
+                    impl #impl_generics #trait_identifier #ty_generics for #identifier #ty_generics #where_clause {
                         fn #fn_identifier(&self) -> &#inner_ty_ref {
                             &self.0
                         }
                     }
-                    impl #impl_generics #trait_identifier for &#identifier #ty_generics #where_clause {
+                    impl #impl_generics #trait_identifier #ty_generics for &#identifier #ty_generics #where_clause {
                         fn #fn_identifier(&self) -> &#inner_ty_ref {
                             &self.0
                         }
@@ -1787,7 +1798,7 @@ fn generate_newtype_token_stream_with_attrs(
         .map(|mode| match mode {
         to_err_string_mode::ToErrStringMode::AsRefStr => {
             proc_macro2_generated_token_stream::ProcMacro2GeneratedTokenStream::from(quote::quote! {
-                impl to_err_string::to_err_string::ToErrString for #identifier {
+                impl #impl_generics to_err_string::to_err_string::ToErrString for #identifier #ty_generics #where_clause {
                     fn to_err_string(&self) -> to_err_string::error_text::ErrorText {
                         to_err_string::error_text::ErrorText::try_from(AsRef::<str>::as_ref(&self.0).to_owned()).unwrap_or_else(to_err_string::error_text::ErrorText::from)
                     }
@@ -1796,7 +1807,7 @@ fn generate_newtype_token_stream_with_attrs(
         }
         to_err_string_mode::ToErrStringMode::Debug => {
             proc_macro2_generated_token_stream::ProcMacro2GeneratedTokenStream::from(quote::quote! {
-                impl to_err_string::to_err_string::ToErrString for #identifier {
+                impl #impl_generics to_err_string::to_err_string::ToErrString for #identifier #ty_generics #where_clause {
                     fn to_err_string(&self) -> to_err_string::error_text::ErrorText {
                         to_err_string::error_text::ErrorText::try_from(format!("{:?}", self.0)).unwrap_or_else(to_err_string::error_text::ErrorText::from)
                     }
@@ -1805,7 +1816,7 @@ fn generate_newtype_token_stream_with_attrs(
         }
         to_err_string_mode::ToErrStringMode::Display => {
             proc_macro2_generated_token_stream::ProcMacro2GeneratedTokenStream::from(quote::quote! {
-                impl to_err_string::to_err_string::ToErrString for #identifier {
+                impl #impl_generics to_err_string::to_err_string::ToErrString for #identifier #ty_generics #where_clause {
                     fn to_err_string(&self) -> to_err_string::error_text::ErrorText {
                         to_err_string::error_text::ErrorText::try_from(self.0.to_string()).unwrap_or_else(to_err_string::error_text::ErrorText::from)
                     }

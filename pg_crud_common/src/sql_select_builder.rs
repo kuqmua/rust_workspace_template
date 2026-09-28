@@ -14,8 +14,12 @@ pub struct SqlSelectBuilder {
 }
 
 impl SqlSelectBuilder {
-    #[must_use]
-    pub fn build(&self) -> crate::query_part_fragment::QueryPartFragment {
+    pub fn build(
+        &self,
+    ) -> Result<
+        crate::query_part_fragment::QueryPartFragment,
+        crate::pg_crud_string_wrapper_try_from_string_error::PgCrudStringWrapperTryFromStringError,
+    > {
         let fixed_len = constants_str::SELECT
             .len()
             .saturating_add(constants_str::FROM.len())
@@ -32,6 +36,5 @@ impl SqlSelectBuilder {
         query.push('.');
         query.push_str(self.table.get_table().as_ref());
         crate::query_part_fragment::QueryPartFragment::try_from(query)
-            .unwrap_or_else(crate::query_part_fragment::QueryPartFragment::from)
     }
 }

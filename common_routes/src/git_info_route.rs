@@ -7,7 +7,7 @@
 )]
 #[typed_route(
     authentication = frontend_contract::authentication_requirement::AuthenticationRequirement::Public,
-    error_statuses = &[],
+    error_statuses = &[frontend_contract::route_error_status::RouteErrorStatus::Internal],
     method = frontend_contract::route_method::RouteMethod::Get,
     mutation = frontend_contract::route_mutation::RouteMutation::ReadOnly,
     obligations = frontend_contract::route_coverage_obligation::PUBLIC_READ_ROUTE_COVERAGE_OBLIGATIONS,

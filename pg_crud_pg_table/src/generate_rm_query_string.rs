@@ -3,12 +3,14 @@
     reason = "split owner modules import the private facade vocabulary used by the moved implementation"
 )]
 
-#[must_use]
 pub fn generate_rm_query_string(
     pg_table_name_ref: crate::pg_table_name_ref::PgTableNameRef<'_>,
     select_string: crate::pg_table_sql_fragment_ref::PgTableSqlFragmentRef<'_>,
     where_string: crate::pg_table_sql_fragment_ref::PgTableSqlFragmentRef<'_>,
-) -> crate::pg_table_query_string::PgTableQueryString {
+) -> Result<
+    crate::pg_table_query_string::PgTableQueryString,
+    crate::pg_table_string_wrapper_try_from_string_error::PgTableStringWrapperTryFromStringError,
+> {
     let mut query = String::with_capacity(
         13usize
             .saturating_add(select_string.as_ref().len())
@@ -23,5 +25,4 @@ pub fn generate_rm_query_string(
     query.push(' ');
     query.push_str(where_string.as_ref());
     crate::pg_table_query_string::PgTableQueryString::try_from(query)
-        .unwrap_or_else(crate::pg_table_query_string::PgTableQueryString::from)
 }

@@ -63,11 +63,11 @@ impl<T: sqlx::Type<sqlx::Postgres> + for<'__> sqlx::Encode<'__, sqlx::Postgres> 
         start: T,
         end: T,
     ) -> Result<Self, crate::between_try_new_error::BetweenTryNewError<T>> {
-        if start < end {
+        if start <= end {
             Ok(Self { start, end })
         } else {
             Err(
-                crate::between_try_new_error::BetweenTryNewError::StartMoreOrEqToEnd {
+                crate::between_try_new_error::BetweenTryNewError::StartNotLessThanOrEqualToEnd {
                     start,
                     end,
                     location: proc_macro_location_bang::location!(),

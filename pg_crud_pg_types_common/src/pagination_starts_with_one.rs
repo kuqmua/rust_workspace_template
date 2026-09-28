@@ -4,7 +4,6 @@
     Copy,
     PartialEq,
     Eq,
-    Default,
     serde::Serialize,
     serde::Deserialize,
     utoipa::ToSchema,
@@ -14,6 +13,12 @@
 #[serde(try_from = "crate::pagination_starts_with_one_raw::PaginationStartsWithOneRaw")]
 #[derive(proc_macro_newtype_from_inner::FromInner)]
 pub struct PaginationStartsWithOne(pg_crud_common::pagination_base::PaginationBase);
+
+impl Default for PaginationStartsWithOne {
+    fn default() -> Self {
+        <Self as pg_crud_common::default_some_one_element::DefaultSomeOneElement>::default_some_one_element()
+    }
+}
 
 impl PaginationStartsWithOne {
     #[must_use]
@@ -166,6 +171,15 @@ mod tests {
 
     #[test]
     fn test_pagination_defaults_start_at_one_and_use_the_expected_limits() {
+        let default = super::PaginationStartsWithOne::default();
+        assert_eq!(default.start().get(), constants_i64::ONE);
+        assert_eq!(
+            default.end().get(),
+            pg_crud_common::pagination_policy::PaginationPolicy::standard()
+                .default_limit()
+                .get()
+                + constants_i64::ONE
+        );
         let standard =
             <super::PaginationStartsWithOne as pg_crud_common::default_some_one_element::DefaultSomeOneElement>::default_some_one_element();
         assert_eq!(standard.start().get(), constants_i64::ONE);

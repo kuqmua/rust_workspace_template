@@ -108,7 +108,11 @@ impl ServerConfig {
             .split(',')
             .map(str::trim)
             .all(|origin| {
-                !origin.is_empty() && origin.starts_with(constants_str::HTTPS_SCHEME_PREFIX)
+                origin
+                    .get(..constants_str::HTTPS_SCHEME_PREFIX.len())
+                    .is_some_and(|prefix| {
+                        prefix.eq_ignore_ascii_case(constants_str::HTTPS_SCHEME_PREFIX)
+                    })
             })
         {
             return Err(crate::production_config_error::ProductionConfigError::CorsOriginInsecure);

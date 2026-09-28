@@ -3,15 +3,17 @@
     reason = "split owner modules import the private facade vocabulary used by the moved implementation"
 )]
 
-#[must_use]
 pub fn add_update_optimistic_revision_predicate(
     pg_table_query_string: crate::pg_table_query_string::PgTableQueryString,
     revision_column: crate::pg_table_sql_fragment_ref::PgTableSqlFragmentRef<'_>,
     expected_revision_query_part: crate::pg_table_sql_fragment_ref::PgTableSqlFragmentRef<'_>,
-) -> crate::pg_table_query_string::PgTableQueryString {
+) -> Result<
+    crate::pg_table_query_string::PgTableQueryString,
+    crate::pg_table_string_wrapper_try_from_string_error::PgTableStringWrapperTryFromStringError,
+> {
     let query_text = pg_table_query_string.to_string();
     let Some((statement, returning)) = query_text.rsplit_once(constants_str::RETURNING) else {
-        return pg_table_query_string;
+        return Ok(pg_table_query_string);
     };
     let mut optimistic_query = String::with_capacity(
         query_text
@@ -28,5 +30,4 @@ pub fn add_update_optimistic_revision_predicate(
     optimistic_query.push_str(constants_str::RETURNING);
     optimistic_query.push_str(returning);
     crate::pg_table_query_string::PgTableQueryString::try_from(optimistic_query)
-        .unwrap_or_else(crate::pg_table_query_string::PgTableQueryString::from)
 }

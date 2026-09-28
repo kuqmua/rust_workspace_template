@@ -20,9 +20,12 @@ pub fn common_routes(
                     message.push_str(uri_suffix);
                     crate::common_not_found_error::CommonNotFoundError::NotFound(
                         crate::not_found_payload::NotFoundPayload::from_parts(
-                            git_info::git_commit_link_provider::GitCommitLinkProvider::build_git_commit_link_cow(
+                            match git_info::git_commit_link_provider::GitCommitLinkProvider::build_git_commit_link_cow(
                                 app_state_19103bd5.get(),
-                            ),
+                            ) {
+                                Ok(link) => link,
+                                Err(error) => return crate::common_not_found_error::CommonNotFoundError::CommitLink(error),
+                            },
                             to_err_string::error_text::ErrorText::try_from(message)
                                 .unwrap_or_else(to_err_string::error_text::ErrorText::from),
                             crate::open_api_specification_path::OpenApiSpecificationPath::from(

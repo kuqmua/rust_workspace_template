@@ -22,6 +22,7 @@ pub mod common_routes_parameters;
 pub mod database_is_ready;
 pub mod git_info;
 pub mod git_info_response;
+pub mod git_info_response_error;
 pub mod git_info_route;
 pub mod health;
 pub mod health_check;

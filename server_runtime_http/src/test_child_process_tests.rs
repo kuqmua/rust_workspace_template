@@ -16,6 +16,14 @@ mod tests {
             std::task::Poll::Ready(Err(std::io::Error::other(constants_str::VALUE_0DEDD057)))
         }
     }
+    fn diagnostic_join_timeout_fixture() -> crate::request_timeout_duration::RequestTimeoutDuration
+    {
+        crate::request_timeout_duration::RequestTimeoutDuration::try_from(
+            std::time::Duration::from_secs(1u64),
+        )
+        .expect(constants_str::DIAGNOSTIC_02C5C4E9)
+    }
+
     fn empty_supervisor() -> crate::child_process_supervisor::ChildProcessSupervisor {
         crate::child_process_supervisor::ChildProcessSupervisor::default()
     }
@@ -47,18 +55,76 @@ mod tests {
 
     #[tokio::test]
     async fn test_missing_child_and_absent_diagnostic_are_explicit() {
-        let timeout = crate::request_timeout_duration::RequestTimeoutDuration::try_from(
-            std::time::Duration::from_secs(1u64),
-        )
-        .expect(constants_str::DIAGNOSTIC_02C5C4E9);
+        let timeout = diagnostic_join_timeout_fixture();
         assert!(matches!(
             empty_supervisor().shutdown(timeout).await,
             Err(crate::child_process_error::ChildProcessError::MissingChild)
         ));
-        let diagnostic = crate::join_diagnostic::join_diagnostic(None)
+        let diagnostic = crate::join_diagnostic::join_diagnostic(None, timeout)
             .await
             .expect(constants_str::DIAGNOSTIC_BFC19618);
         assert!(diagnostic.as_ref().is_empty());
+    }
+
+    #[tokio::test(start_paused = true)]
+    async fn test_cancelled_diagnostic_join_preserves_task_ownership() {
+        let mut diagnostic_task =
+            crate::tokio_child_diagnostic_task::TokioChildDiagnosticTask::from(tokio::spawn(
+                std::future::pending(),
+            ));
+        async {
+            let mut diagnostic_join = std::pin::pin!(crate::join_diagnostic::join_diagnostic(
+                Some(&mut diagnostic_task),
+                diagnostic_join_timeout_fixture(),
+            ));
+            std::future::poll_fn(|context| {
+                assert!(diagnostic_join.as_mut().poll(context).is_pending());
+                std::task::Poll::Ready(())
+            })
+            .await;
+        }
+        .await;
+        diagnostic_task.abort();
+        assert!(matches!(
+            crate::join_diagnostic::join_diagnostic(
+                Some(&mut diagnostic_task),
+                diagnostic_join_timeout_fixture(),
+            )
+            .await,
+            Err(crate::child_process_error::ChildProcessError::Join(_))
+        ));
+    }
+
+    #[tokio::test(start_paused = true)]
+    async fn test_diagnostic_join_has_a_deadline_and_retains_ownership() {
+        let mut diagnostic_task =
+            crate::tokio_child_diagnostic_task::TokioChildDiagnosticTask::from(tokio::spawn(
+                std::future::pending(),
+            ));
+        let result = tokio::time::timeout(
+            std::time::Duration::from_secs(2u64),
+            crate::join_diagnostic::join_diagnostic(
+                Some(&mut diagnostic_task),
+                diagnostic_join_timeout_fixture(),
+            ),
+        )
+        .await;
+        diagnostic_task.abort();
+        assert!(matches!(
+            crate::join_diagnostic::join_diagnostic(
+                Some(&mut diagnostic_task),
+                diagnostic_join_timeout_fixture(),
+            )
+            .await,
+            Err(crate::child_process_error::ChildProcessError::Join(_))
+        ));
+        assert!(matches!(
+            result,
+            Ok(Err(error))
+                if matches!(&error, crate::child_process_error::ChildProcessError::DiagnosticTimeout(_))
+                    && std::error::Error::source(&error)
+                        .is_some_and(<dyn std::error::Error>::is::<tokio::time::error::Elapsed>)
+        ));
     }
 
     #[tokio::test]
@@ -93,6 +159,23 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn test_diagnostic_read_does_not_allocate_maximum_upfront() {
+        let maximum = crate::child_diagnostic_maximum_non_zero_usize::ChildDiagnosticMaximumNonZeroUsize::from(
+            std::num::NonZeroUsize::MAX,
+        );
+        assert!(matches!(
+            crate::read_child_diagnostic::read_child_diagnostic(tokio::io::empty(), maximum).await,
+            Ok(diagnostic) if diagnostic.as_ref().is_empty()
+        ));
+        let reader = tokio::io::AsyncReadExt::take(tokio::io::repeat(1u8), 4097u64);
+        assert!(matches!(
+            crate::read_child_diagnostic::read_child_diagnostic(reader, maximum).await,
+            Ok(diagnostic) if diagnostic.as_ref().len() == 4097usize
+                && diagnostic.as_ref().iter().all(|byte| *byte == 1u8)
+        ));
+    }
+
+    #[tokio::test]
     async fn test_diagnostic_read_is_bounded() {
         let (mut writer, reader) = tokio::io::duplex(64usize);
         let write = tokio::spawn(async move {
@@ -111,5 +194,30 @@ mod tests {
         .expect(constants_str::DIAGNOSTIC_35F4E073);
         write.await.expect(constants_str::DIAGNOSTIC_F859FB47);
         assert_eq!(diagnostic.as_ref(), b"1234");
+    }
+
+    #[tokio::test]
+    async fn test_diagnostic_capture_limit_keeps_the_writer_open_until_eof() {
+        let (mut writer, reader) = tokio::io::duplex(4usize);
+        let write = tokio::spawn(async move {
+            tokio::io::AsyncWriteExt::write_all(
+                &mut writer,
+                constants_str::X.repeat(16usize).as_bytes(),
+            )
+            .await
+        });
+        let diagnostic = crate::read_child_diagnostic::read_child_diagnostic(
+            reader,
+            crate::child_diagnostic_maximum_non_zero_usize::ChildDiagnosticMaximumNonZeroUsize::from(
+                std::num::NonZeroUsize::MIN,
+            ),
+        )
+        .await;
+        let write_result = write.await;
+        assert!(matches!(
+            diagnostic,
+            Ok(value) if value.as_ref() == constants_str::X.as_bytes()
+        ));
+        assert!(matches!(write_result, Ok(Ok(()))));
     }
 }

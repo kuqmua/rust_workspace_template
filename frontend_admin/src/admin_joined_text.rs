@@ -32,6 +32,6 @@ impl From<crate::admin_joined_text_try_from_string_error::AdminJoinedTextTryFrom
     fn from(
         value: crate::admin_joined_text_try_from_string_error::AdminJoinedTextTryFromStringError,
     ) -> Self {
-        bounded_types::try_from_bounded_error_text::try_from_bounded_error_text(value)
+        Self(bounded_types::bounded_string::BoundedString::from_truncated(value.to_string()))
     }
 }

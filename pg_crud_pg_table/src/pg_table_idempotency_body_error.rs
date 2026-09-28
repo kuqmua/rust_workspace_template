@@ -9,5 +9,5 @@
 )]
 pub enum PgTableIdempotencyBodyError {
     #[error("{}", constants_str::IDEMPOTENCY_RESPONSE_EXCEEDS_THE_STORAGE_LIMIT)]
-    TooLarge,
+    TooLarge(#[source] bounded_types::bounded_value_error::BoundedValueError),
 }

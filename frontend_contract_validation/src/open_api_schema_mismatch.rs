@@ -8,6 +8,7 @@ pub enum OpenApiSchemaMismatch {
     Enum,
     MissingReference,
     OneOf,
+    ReferenceCycle,
     RequiredProperty,
     Type,
 }

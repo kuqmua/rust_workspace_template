@@ -25,8 +25,7 @@ where
     }
     let parsed = syn::parse2::<ClosureIdentifierAndBody>(t.into().into_inner()).ok()?;
     Some((
-        crate::first_identifier::FirstIdentifier::try_from(parsed.identifier.to_string())
-            .unwrap_or_else(crate::first_identifier::FirstIdentifier::from),
+        crate::first_identifier::FirstIdentifier::try_from(parsed.identifier.to_string()).ok()?,
         parsed.body,
     ))
 }

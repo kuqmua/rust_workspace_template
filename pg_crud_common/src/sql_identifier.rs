@@ -85,10 +85,39 @@ mod tests {
             ])
             .expect(constants_str::DIAGNOSTIC_C4CF723E),
         );
-        let first = builder.build();
-        let second = builder.build();
-        assert_eq!(first.into_inner(), constants_str::VALUE_F0B7B783);
-        assert_eq!(second.into_inner(), constants_str::VALUE_F0B7B783);
+        assert!(matches!(
+            builder.build(),
+            Ok(query) if query.as_ref() == constants_str::VALUE_F0B7B783
+        ));
+        assert!(matches!(
+            builder.build(),
+            Ok(query) if query.as_ref() == constants_str::VALUE_F0B7B783
+        ));
+    }
+    #[test]
+    fn test_query_builder_preserves_oversized_query_failure() {
+        let identifier = sql_identifier_fixture(&constants_str::X.repeat(128usize));
+        let result =
+            crate::sql_identifiers::SqlIdentifiers::try_from(vec![identifier.clone(); 8065usize])
+                .map(|columns| {
+                    crate::sql_select_builder::SqlSelectBuilder::new(
+                        crate::sql_qualified_identifier::SqlQualifiedIdentifier::new(
+                            identifier.clone(),
+                            identifier,
+                        ),
+                        columns,
+                    )
+                    .build()
+                });
+        assert!(matches!(
+            result,
+            Ok(Err(
+                crate::pg_crud_string_wrapper_try_from_string_error::PgCrudStringWrapperTryFromStringError::TooLong {
+                    len,
+                    max,
+                }
+            )) if len > max && max == crate::pg_crud_string_wrapper_max_len::PG_CRUD_STRING_WRAPPER_MAX_LEN
+        ));
     }
     #[test]
     fn test_benchmark_black_box_dependency_is_available() {

@@ -15,7 +15,9 @@ impl<RunReport: Send + Sync> AsyncRunHistory<RunReport> {
     ) -> Self {
         let reports = super::run_reports_vec_deque::RunReportsVecDeque::from(
             std::collections::VecDeque::with_capacity(
-                async_run_history_maximum_len_non_zero_usize.get(),
+                async_run_history_maximum_len_non_zero_usize
+                    .get()
+                    .min(constants_usize::VALUE_4_096),
             ),
         );
         Self {
@@ -48,6 +50,18 @@ impl<RunReport: Clone + Send + Sync> AsyncRunHistory<RunReport> {
 }
 #[cfg(test)]
 mod tests {
+    #[tokio::test]
+    async fn test_history_does_not_allocate_maximum_upfront() {
+        let maximum = crate::async_run_history_maximum_len_non_zero_usize::AsyncRunHistoryMaximumLenNonZeroUsize::try_from(
+            usize::from(std::num::NonZeroUsize::MAX),
+        ).expect(constants_str::DIAGNOSTIC_DCDE8137);
+        let history = super::AsyncRunHistory::new(maximum);
+        history.push(1u8).await;
+        let snapshot = history.snapshot().await;
+        assert_eq!(usize::from(snapshot.report_count()), constants_usize::ONE);
+        assert_eq!(snapshot.latest_report(), Some(&1u8));
+    }
+
     #[test]
     fn test_history_clone_does_not_require_report_clone() {
         #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout)]

@@ -543,6 +543,27 @@ mod tests {
         );
     }
     #[test]
+    fn test_generated_float4_rejects_non_finite_values() {
+        let finite =
+            pg_types_numeric::generate_pg_types_mod::F32AsNonNullFloat4TableType::try_new(1.5f32);
+        assert!(finite.ok().is_some());
+        assert!(
+            pg_types_numeric::generate_pg_types_mod::F32AsNonNullFloat4Origin::try_new(f32::NAN)
+                .err()
+                .is_some()
+        );
+        assert!(
+            pg_types_numeric::generate_pg_types_mod::F32AsNonNullFloat4Origin::try_new(
+                f32::INFINITY
+            )
+            .err()
+            .is_some()
+        );
+        assert!(<pg_types_numeric::generate_pg_types_mod::F32AsNonNullFloat4Origin as serde::Deserialize>::deserialize(
+            serde::de::value::F32Deserializer::<serde::de::value::Error>::new(f32::NEG_INFINITY),
+        ).err().is_some());
+    }
+    #[test]
     fn test_generated_wrapper_roles_have_standard_conversions_and_borrows() {
         assert_wrapper_traits::<
             pg_types_numeric::generate_pg_types_mod::I16AsNonNullInt2TableType,

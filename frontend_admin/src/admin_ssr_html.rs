@@ -40,6 +40,6 @@ impl From<crate::admin_ssr_html_try_from_string_error::AdminSsrHtmlTryFromString
     fn from(
         value: crate::admin_ssr_html_try_from_string_error::AdminSsrHtmlTryFromStringError,
     ) -> Self {
-        bounded_types::try_from_bounded_error_text::try_from_bounded_error_text(value)
+        Self(bounded_types::bounded_string::BoundedString::from_truncated(value.to_string()))
     }
 }

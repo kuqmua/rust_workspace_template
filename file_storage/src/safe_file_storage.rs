@@ -130,12 +130,20 @@ impl SafeFileStorage {
                     let destination_parent = relative_path
                         .as_ref()
                         .parent()
+                        .filter(|parent| !parent.as_os_str().is_empty())
                         .unwrap_or_else(|| std::path::Path::new(constants_str::DOT));
-                    let directory = root.open_dir(destination_parent).map_err(|error| {
-                        crate::file_storage_error::FileStorageError::Io(error.into())
-                    })?;
-                    directory.into_std_file().sync_all().map_err(|error| {
-                        crate::file_storage_error::FileStorageError::Io(error.into())
+                    [
+                        destination_parent,
+                        std::path::Path::new(constants_str::FILE_UPLOAD_STAGING_DIRECTORY),
+                    ]
+                    .into_iter()
+                    .try_for_each(|directory_path| {
+                        let directory = root.open(directory_path).map_err(|error| {
+                            crate::file_storage_error::FileStorageError::Io(error.into())
+                        })?;
+                        directory.sync_all().map_err(|error| {
+                            crate::file_storage_error::FileStorageError::Io(error.into())
+                        })
                     })?;
                 }
                 Ok(())
@@ -282,8 +290,31 @@ impl SafeFileStorage {
             }
             let staged_path = std::path::Path::new(constants_str::FILE_DELETE_STAGING_DIRECTORY)
                 .join(operation_id.as_ref());
-            root.rename(relative_path.as_ref(), &root, staged_path)
-                .map_err(|error| crate::file_storage_error::FileStorageError::Io(error.into()))
+            let mut options = cap_std::fs::OpenOptions::new();
+            let _configured_options = options.create_new(true).write(true);
+            let reservation = root.open_with(&staged_path, &options).map_err(|error| {
+                if error.kind() == std::io::ErrorKind::AlreadyExists {
+                    crate::file_storage_error::FileStorageError::StagingEntryExists
+                } else {
+                    crate::file_storage_error::FileStorageError::Io(error.into())
+                }
+            })?;
+            drop(reservation);
+            let rename_result = root
+                .rename(relative_path.as_ref(), &root, &staged_path)
+                .map_err(|error| crate::file_storage_error::FileStorageError::Io(error.into()));
+            if let Err(rename_error) = rename_result {
+                return match root.remove_file(&staged_path) {
+                    Ok(()) => Err(rename_error),
+                    Err(cleanup) if cleanup.kind() == std::io::ErrorKind::NotFound => {
+                        Err(rename_error)
+                    }
+                    Err(cleanup) => Err(crate::file_storage_error::FileStorageError::Io(
+                        cleanup.into(),
+                    )),
+                };
+            }
+            Ok(())
         })
         .await
     }
@@ -359,12 +390,19 @@ impl SafeFileStorage {
                     ));
                 }
             }
-            root.rename(
-                std::path::Path::new(storage_directory_name).join(operation_id.as_ref()),
-                &root,
-                relative_path.as_ref(),
-            )
-            .map_err(|error| crate::file_storage_error::FileStorageError::Io(error.into()))
+            let staged_path =
+                std::path::Path::new(storage_directory_name).join(operation_id.as_ref());
+            let metadata = root
+                .symlink_metadata(&staged_path)
+                .map_err(|error| crate::file_storage_error::FileStorageError::Io(error.into()))?;
+            if metadata.file_type().is_symlink() {
+                return Err(crate::file_storage_error::FileStorageError::Symlink);
+            }
+            if !metadata.is_file() {
+                return Err(crate::file_storage_error::FileStorageError::SourceNotRegular);
+            }
+            root.rename(&staged_path, &root, relative_path.as_ref())
+                .map_err(|error| crate::file_storage_error::FileStorageError::Io(error.into()))
         })
         .await
     }

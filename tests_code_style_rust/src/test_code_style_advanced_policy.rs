@@ -938,13 +938,6 @@ fn test_lock_guards_are_not_held_across_await() {
 fn test_allocations_inside_loops_match_reviewed_inventory() {
     let reviewed = std::collections::BTreeMap::from([
         (
-            constants_str::BOUNDED_STRING_ERROR_RETRY_ALLOCATION,
-            (
-                constants_usize::ONE,
-                constants_str::BOUNDED_STRING_ERROR_RETRY_ALLOCATION_REASON,
-            ),
-        ),
-        (
             constants_str::VALUE_B7558033,
             (constants_usize::ONE, constants_str::VALUE_F3EA9A31),
         ),
@@ -1148,7 +1141,7 @@ fn test_arc_lock_and_trait_object_usage_matches_reviewed_inventory() {
             (
                 0,
                 0,
-                12,
+                14,
                 constants_str::CODE_STYLE_SHARED_DISPATCH_OWNER_REASON,
             ),
         ),
@@ -1472,10 +1465,6 @@ fn test_ignored_map_err_bindings_match_reviewed_inventory() {
         ),
         (
             constants_str::VALUE_B29D07A8,
-            (constants_usize::ONE, constants_str::VALUE_099B4392),
-        ),
-        (
-            constants_str::VALUE_A1750307,
             (constants_usize::ONE, constants_str::VALUE_099B4392),
         ),
         (

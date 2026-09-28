@@ -388,6 +388,7 @@ pub mod tokio_abort_task;
 pub mod tokio_acquire_error;
 pub mod tokio_background_task_join;
 pub mod tokio_background_task_shutdown_sender;
+pub mod tokio_child_diagnostic_elapsed;
 pub mod tokio_child_diagnostic_task;
 pub mod tokio_child_process;
 pub mod tokio_child_process_join_error;

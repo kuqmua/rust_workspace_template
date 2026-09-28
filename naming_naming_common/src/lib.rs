@@ -6,5 +6,7 @@ pub mod display_case_str;
 pub mod domain_types;
 pub mod proc_macro2_case_token_stream;
 pub mod str_case;
+#[cfg(test)]
+mod test_case_trait_pair;
 pub mod to_token_stream_or_panic;
 pub mod tokenized_case_str;

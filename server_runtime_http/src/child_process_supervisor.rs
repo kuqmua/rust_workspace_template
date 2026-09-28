@@ -38,9 +38,9 @@ impl ChildProcessSupervisor {
         crate::child_process_report::ChildProcessReport,
         crate::child_process_error::ChildProcessError,
     > {
-        let mut child = self
+        let child = self
             .child
-            .take()
+            .as_mut()
             .ok_or(crate::child_process_error::ChildProcessError::MissingChild)?;
         let (completion, status) =
             match tokio::time::timeout(request_timeout_duration.get(), child.wait()).await {
@@ -68,7 +68,11 @@ impl ChildProcessSupervisor {
                     )
                 }
             };
-        let diagnostic = crate::join_diagnostic::join_diagnostic(self.diagnostic.take()).await?;
+        let diagnostic = crate::join_diagnostic::join_diagnostic(
+            self.diagnostic.as_mut(),
+            request_timeout_duration,
+        )
+        .await?;
         Ok(crate::child_process_report::ChildProcessReport::new(
             diagnostic,
             crate::child_exit_status::ChildExitStatus::from(status),

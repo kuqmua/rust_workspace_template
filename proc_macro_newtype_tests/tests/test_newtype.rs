@@ -797,6 +797,127 @@ mod tests {
         );
     }
     #[test]
+    fn test_enum_from_str_preserves_const_generics() {
+        #[derive(
+            proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+            Debug,
+            PartialEq,
+            Eq,
+            proc_macro_newtype_enum_from_str::EnumFromStr,
+        )]
+        enum ConstGenericParsedFixture<const COUNT: usize>
+        where
+            [(); COUNT]: Sized,
+        {
+            Second,
+        }
+        assert_eq!(
+            constants_str::SECOND_ALT.parse::<ConstGenericParsedFixture<0usize>>(),
+            Ok(ConstGenericParsedFixture::Second)
+        );
+        assert!(matches!(
+            constants_str::BAD.parse::<ConstGenericParsedFixture<1usize>>(),
+            Err(error) if error.ends_with(constants_str::SECOND_ALT)
+        ));
+    }
+    #[test]
+    fn test_forwarding_derives_preserve_existing_where_clause() {
+        #[derive(
+            proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+            proc_macro_newtype_as_ref_target::AsRefTarget,
+            proc_macro_newtype_borrow_path::BorrowPath,
+            proc_macro_newtype_from_inner::FromInner,
+        )]
+        struct BoundedGenericPathFixture<Value>(Value)
+        where
+            Value: std::ops::Deref<Target = std::path::Path> + std::borrow::Borrow<std::path::Path>;
+
+        let wrapped = BoundedGenericPathFixture::from(std::path::PathBuf::from(constants_str::X));
+        assert_eq!(
+            AsRef::<std::path::Path>::as_ref(&wrapped),
+            std::path::Path::new(constants_str::X)
+        );
+        assert_eq!(
+            std::borrow::Borrow::<std::path::Path>::borrow(&wrapped),
+            std::path::Path::new(constants_str::X)
+        );
+    }
+    #[test]
+    fn test_provider_derive_preserves_borrowed_generics() {
+        #[derive(
+            proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+            proc_macro_newtype_accessor::Accessor,
+            proc_macro_newtype_from_inner::FromInner,
+        )]
+        struct GenericBorrowedProviderFixture<'value_lt, Value>(&'value_lt Value)
+        where
+            Value: std::fmt::Debug;
+
+        let inner = constants_usize::ONE;
+        let wrapped = GenericBorrowedProviderFixture::from(&inner);
+        assert!(std::ptr::eq(
+            std::ptr::from_ref(
+                *GenericBorrowedProviderFixtureProvider::generic_borrowed_provider_fixture(
+                    &wrapped
+                ),
+            ),
+            std::ptr::from_ref(&inner)
+        ));
+        assert!(std::ptr::eq(
+            std::ptr::from_ref(
+                *GenericBorrowedProviderFixtureProvider::generic_borrowed_provider_fixture(
+                    &&wrapped
+                ),
+            ),
+            std::ptr::from_ref(&inner)
+        ));
+    }
+    #[test]
+    fn test_error_text_derives_preserve_const_generics() {
+        #[derive(
+            proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+            proc_macro_newtype_to_err_string::ToErrString,
+            proc_macro_newtype_from_inner::FromInner,
+        )]
+        struct GenericDisplayErrorFixture<Value, const COUNT: usize>(Value)
+        where
+            Value: std::fmt::Display,
+            [(); COUNT]: Sized;
+        #[derive(
+            proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+            proc_macro_newtype_to_err_string_debug::ToErrStringDebug,
+            proc_macro_newtype_from_inner::FromInner,
+        )]
+        struct GenericDebugErrorFixture<Value, const COUNT: usize>(Value)
+        where
+            Value: std::fmt::Debug,
+            [(); COUNT]: Sized;
+        #[derive(
+            proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+            proc_macro_newtype_to_err_string_as_ref_str::ToErrStringAsRefStr,
+            proc_macro_newtype_from_inner::FromInner,
+        )]
+        struct GenericReferenceErrorFixture<const COUNT: usize>(StringValue)
+        where
+            [(); COUNT]: Sized;
+
+        let display = GenericDisplayErrorFixture::<_, 0usize>::from(42u8);
+        let debug = GenericDebugErrorFixture::<_, 1usize>::from(42u8);
+        assert_eq!(
+            to_err_string::to_err_string::ToErrString::to_err_string(&display).as_ref(),
+            constants_str::VALUE_42
+        );
+        assert_eq!(
+            to_err_string::to_err_string::ToErrString::to_err_string(&debug).as_ref(),
+            constants_str::VALUE_42
+        );
+        let reference = StringValue::try_from(constants_str::X.to_owned())
+            .map(GenericReferenceErrorFixture::<2usize>::from);
+        assert!(matches!(reference, Ok(value) if
+            to_err_string::to_err_string::ToErrString::to_err_string(&value).as_ref() == constants_str::X
+        ));
+    }
+    #[test]
     fn test_enum_from_str_error_mentions_allowed_values() {
         let error = <SampleEnum as std::str::FromStr>::from_str(constants_str::BAD)
             .expect_err(constants_str::VALUE_42D13F7A);

@@ -15,14 +15,8 @@ impl BackgroundTask {
         crate::background_task_shutdown_error::BackgroundTaskShutdownError,
     > {
         let _shutdown_tx = self.shutdown_tx.take();
-        match self.task_join.take() {
-            Some(task_join) => tokio::task::JoinHandle::from(task_join)
-                .await
-                .map_err(|error| {
-                    crate::background_task_shutdown_error::BackgroundTaskShutdownError::Join(
-                        crate::tokio_task_join_error::TokioTaskJoinError::from(error),
-                    )
-                }),
+        match self.task_join.as_mut() {
+            Some(task_join) => task_join.join().await,
             None => Ok(crate::background_task_outcome::BackgroundTaskOutcome::Completed),
         }
     }
@@ -37,18 +31,14 @@ impl BackgroundTask {
         if let Some(shutdown_tx) = self.shutdown_tx.take() {
             let _send_result = tokio::sync::oneshot::Sender::from(shutdown_tx).send(());
         }
-        let Some(mut task_join) = self.task_join.take().map(tokio::task::JoinHandle::from) else {
+        let Some(task_join) = self.task_join.as_mut() else {
             return Ok(crate::background_task_outcome::BackgroundTaskOutcome::ShutdownRequested);
         };
-        match tokio::time::timeout(request_timeout_duration.get(), &mut task_join).await {
-            Ok(result) => result.map_err(|error| {
-                crate::background_task_shutdown_error::BackgroundTaskShutdownError::Join(
-                    crate::tokio_task_join_error::TokioTaskJoinError::from(error),
-                )
-            }),
+        match tokio::time::timeout(request_timeout_duration.get(), task_join.join()).await {
+            Ok(result) => result,
             Err(_elapsed) => {
                 task_join.abort();
-                match task_join.await {
+                match task_join.join().await {
                     Ok(_) | Err(_) => Err(
                         crate::background_task_shutdown_error::BackgroundTaskShutdownError::Timeout,
                     ),

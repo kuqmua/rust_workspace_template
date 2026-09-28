@@ -3,31 +3,15 @@
     reason = "split owner modules import the private facade vocabulary used by the moved implementation"
 )]
 
-#[must_use]
 pub fn generate_when_column_id_then_v_um_query_part(
     column: crate::pg_table_sql_fragment_ref::PgTableSqlFragmentRef<'_>,
     id: crate::pg_table_sql_fragment_ref::PgTableSqlFragmentRef<'_>,
     value: crate::pg_table_sql_fragment_ref::PgTableSqlFragmentRef<'_>,
-) -> crate::pg_table_query_part_fragment::PgTableQueryPartFragment {
-    let mut query_part = String::with_capacity(
-        column
-            .as_ref()
-            .len()
-            .saturating_add(id.as_ref().len())
-            .saturating_add(value.as_ref().len())
-            .saturating_add(15),
-    );
-    if std::fmt::Write::write_fmt(
-        &mut query_part,
-        format_args!("when {column} = {id} then {value} "),
-    )
-    .is_err()
-    {
-        return crate::pg_table_query_part_fragment::PgTableQueryPartFragment::try_from(
-            String::default(),
-        )
-        .unwrap_or_else(crate::pg_table_query_part_fragment::PgTableQueryPartFragment::from);
-    }
-    crate::pg_table_query_part_fragment::PgTableQueryPartFragment::try_from(query_part)
-        .unwrap_or_else(crate::pg_table_query_part_fragment::PgTableQueryPartFragment::from)
+) -> Result<
+    crate::pg_table_query_part_fragment::PgTableQueryPartFragment,
+    crate::pg_table_string_wrapper_try_from_string_error::PgTableStringWrapperTryFromStringError,
+> {
+    crate::pg_table_query_part_fragment::PgTableQueryPartFragment::try_from(format!(
+        "when {column} = {id} then {value} "
+    ))
 }

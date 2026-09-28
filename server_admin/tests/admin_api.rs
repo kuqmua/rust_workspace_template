@@ -1933,14 +1933,31 @@ mod test_data_tables {
             pg_table::pg_table_idempotency_begin::PgTableIdempotencyBegin::Conflict
         );
         let response_body = br#"{"desirable":{"id":1}}"#;
+        let response_status = pg_table::pg_table_idempotency_response_status::PgTableIdempotencyResponseStatus::try_from(201u16).expect(constants_str::DIAGNOSTIC_4DF2DD1F);
         pg_table::complete_pg_table_idempotency::complete_pg_table_idempotency(
             app_state::sqlx_pg_pool_ref::SqlxPgPoolRef::from(&pool),
             &first_request,
-            pg_table::pg_table_idempotency_response_status::PgTableIdempotencyResponseStatus::try_from(201u16).expect(constants_str::DIAGNOSTIC_4DF2DD1F),
-            pg_table::pg_table_idempotency_body_ref::PgTableIdempotencyBodyRef::from(response_body.as_slice()),
+            response_status,
+            pg_table::pg_table_idempotency_body_ref::PgTableIdempotencyBodyRef::from(
+                response_body.as_slice(),
+            ),
         )
         .await
         .expect(constants_str::DIAGNOSTIC_9106C1E6);
+        let duplicate_completion =
+            pg_table::complete_pg_table_idempotency::complete_pg_table_idempotency(
+                app_state::sqlx_pg_pool_ref::SqlxPgPoolRef::from(&pool),
+                &first_request,
+                response_status,
+                pg_table::pg_table_idempotency_body_ref::PgTableIdempotencyBodyRef::from(
+                    response_body.as_slice(),
+                ),
+            )
+            .await;
+        assert!(matches!(
+            duplicate_completion.map_err(sqlx::Error::from),
+            Err(sqlx::Error::Protocol(message)) if message == constants_str::IDEMPOTENCY_RESERVATION_IS_UNAVAILABLE_FOR_COMPLETION
+        ));
         let replay = pg_table::begin_pg_table_idempotency::begin_pg_table_idempotency(
             app_state::sqlx_pg_pool_ref::SqlxPgPoolRef::from(&pool),
             &first_request,

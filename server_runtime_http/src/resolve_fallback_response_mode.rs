@@ -36,17 +36,33 @@ pub fn resolve_fallback_response_mode(
                         parameter
                             .split_once('=')
                             .is_some_and(|(name, quality_value)| {
-                                name.trim().eq_ignore_ascii_case(
+                                if !name.trim().eq_ignore_ascii_case(
                                     constants_str::HTTP_ACCEPT_QUALITY_PARAMETER,
-                                ) && quality_value
-                                    .trim()
-                                    .strip_prefix('0')
-                                    .is_some_and(|suffix| {
-                                        suffix.is_empty()
-                                            || suffix.strip_prefix('.').is_some_and(|digits| {
-                                                digits.bytes().all(|byte| byte == b'0')
-                                            })
+                                ) {
+                                    return false;
+                                }
+                                let trimmed_quality_value = quality_value.trim();
+                                let (integer, fraction) =
+                                    trimmed_quality_value.split_once('.').map_or(
+                                        (trimmed_quality_value, None),
+                                        |(integer, fraction)| (integer, Some(fraction)),
+                                    );
+                                let valid_fraction = fraction.is_none_or(|digits| {
+                                    digits.len() <= constants_usize::THREE
+                                        && digits.bytes().all(|byte| byte.is_ascii_digit())
+                                });
+                                let positive_quality = if integer == constants_str::VALUE_1 {
+                                    fraction.is_none_or(|digits| {
+                                        digits.bytes().all(|byte| byte == b'0')
                                     })
+                                } else if integer == constants_str::VALUE_0 {
+                                    fraction.is_some_and(|digits| {
+                                        digits.bytes().any(|byte| byte != b'0')
+                                    })
+                                } else {
+                                    false
+                                };
+                                !valid_fraction || !positive_quality
                             })
                     })
                 })

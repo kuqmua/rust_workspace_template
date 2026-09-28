@@ -8,6 +8,35 @@
 struct NonClone(u8);
 
 #[test]
+fn test_pg_filter_vec_default_respects_fixed_length() {
+    let default = crate::pg_filter_vec::PgFilterVec::<u8, 2>::default();
+    assert_eq!(default.as_slice().len(), 2);
+}
+
+#[test]
+fn test_pg_type_not_empty_unique_vec_default_contains_element() {
+    let default = crate::pg_type_not_empty_unique_vec::PgTypeNotEmptyUniqueVec::<u8>::default();
+    assert_eq!(default.as_slice().len(), 1);
+}
+
+#[test]
+fn test_between_accepts_equal_inclusive_bounds() {
+    assert!(
+        crate::between::Between::<i32>::try_new(5i32, 5i32)
+            .ok()
+            .is_some()
+    );
+    assert!(matches!(
+        crate::between::Between::<i32>::try_new(6i32, 5i32),
+        Err(crate::between_try_new_error::BetweenTryNewError::StartNotLessThanOrEqualToEnd { .. })
+    ));
+    assert!(matches!(
+        crate::between::Between::<f32>::try_new(f32::NAN, 5.0),
+        Err(crate::between_try_new_error::BetweenTryNewError::StartNotLessThanOrEqualToEnd { .. })
+    ));
+}
+
+#[test]
 fn test_pg_type_not_empty_unique_vec_try_from_ok() {
     let rslt = crate::pg_type_not_empty_unique_vec::PgTypeNotEmptyUniqueVec::<i32>::try_from(vec![
         1i32, 2i32, 3i32,
@@ -110,4 +139,33 @@ fn test_regex_regex_eq_compares_pattern_content() {
         .expect(constants_str::DIAGNOSTIC_ABCC9A72);
     assert_eq!(left, right);
     assert_ne!(left, other);
+    assert_eq!(
+        other,
+        crate::regex_regex::RegexRegex::from(crate::default_regex_pattern::DefaultRegexPattern),
+    );
+}
+
+#[test]
+fn test_regex_regex_accepts_postgres_word_start_escape() {
+    let pattern = crate::regex_regex::RegexRegex::try_from(String::from(
+        constants_str::PG_CRUD_REGEX_POSTGRES_WORD_START,
+    ));
+    assert!(pattern.ok().is_some());
+}
+
+#[test]
+fn test_regex_regex_preserves_oversized_pattern_length() {
+    let length = constants_usize::VALUE_1_048_576 + constants_usize::ONE;
+    let pattern = std::iter::repeat_n('x', length).collect::<String>();
+    assert!(matches!(
+        crate::regex_regex::RegexRegex::try_from(pattern),
+        Err(crate::regex_regex_try_from_string_error::RegexRegexTryFromStringError::TooLong {
+            source: bounded_types::bounded_string_error::BoundedStringError::AboveMaximum {
+                actual_length,
+                maximum_length,
+            },
+        }) if actual_length == bounded_types::bounded_len::BoundedLen::from(length)
+            && maximum_length
+                == bounded_types::bounded_len::BoundedLen::from(constants_usize::VALUE_1_048_576)
+    ));
 }

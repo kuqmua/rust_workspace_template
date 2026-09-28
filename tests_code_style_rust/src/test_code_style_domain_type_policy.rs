@@ -615,6 +615,12 @@ fn test_tuple_wrapper_initialization_policy_rejects_direct_constructors() {
             }
         }
 
+        impl From<bounded_types::bounded_string_error::BoundedStringError> for BoundedValue {
+            fn from(value: bounded_types::bounded_string_error::BoundedStringError) -> Self {
+                Self(bounded_types::bounded_string::BoundedString::from_truncated(value.to_string()))
+            }
+        }
+
         impl TryFrom<&str> for BoundedValue {
             type Error = bounded_types::bounded_string_error::BoundedStringError;
 

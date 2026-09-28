@@ -3,5 +3,6 @@
 )]
 pub enum BackgroundTaskOutcome {
     Completed,
+    IntervalOverflow,
     ShutdownRequested,
 }

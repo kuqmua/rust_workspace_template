@@ -78,7 +78,10 @@ pub enum PgTypeFilter {
         identifier:
             macro_helpers::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream,
     },
-    RangeLen,
+    RangeLen {
+        identifier:
+            macro_helpers::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream,
+    },
 
 }
 impl crate::pg_filter::PgFilter for PgTypeFilter {
@@ -102,7 +105,8 @@ impl crate::pg_filter::PgFilter for PgTypeFilter {
             | Self::GreaterThanIncludedLowerBound { identifier }
             | Self::GreaterThanExcludedUpperBound { identifier }
             | Self::OverlapWithRange { identifier }
-            | Self::AdjacentWithRange { identifier } => Some(identifier.clone()),
+            | Self::AdjacentWithRange { identifier }
+            | Self::RangeLen { identifier } => Some(identifier.clone()),
             Self::Regex
             | Self::CurrentDate
             | Self::GreaterThanCurrentDate
@@ -110,8 +114,7 @@ impl crate::pg_filter::PgFilter for PgTypeFilter {
             | Self::GreaterThanCurrentTimestamp
             | Self::CurrentTime
             | Self::GreaterThanCurrentTime
-            | Self::EqToEncodedStringRepresentation
-            | Self::RangeLen => None,
+            | Self::EqToEncodedStringRepresentation => None,
         }
     }
     fn prefix_where_self_upper_camel_case(
@@ -174,7 +177,7 @@ impl crate::pg_filter::PgFilter for PgTypeFilter {
             Self::AdjacentWithRange { .. } => {
                 &naming::domain_types::AdjacentWithRangeUpperCamelCase
             }
-            Self::RangeLen => &naming::domain_types::RangeLenUpperCamelCase,
+            Self::RangeLen { .. } => &naming::domain_types::RangeLenUpperCamelCase,
         }
     }
 }

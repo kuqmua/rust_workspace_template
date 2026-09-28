@@ -15,7 +15,7 @@ pub fn generate_derive_token_stream_builder(
     let make_pub_snake_case_token_stream = quote::quote! {make_pub};
     let make_pub_if_snake_case_token_stream = quote::quote! {make_pub_if};
     let make_pub_upper_camel_case_token_stream = quote::quote! {MakePub};
-    let element_vec = serde_json::from_str::<Vec<String>>(&token_stream.to_string())
+    let element_result = serde_json::from_str::<Vec<String>>(&token_stream.to_string())
         .expect(constants_str::DIAGNOSTIC_C5D09740)
         .into_iter()
         .map(|element| {
@@ -35,11 +35,22 @@ pub fn generate_derive_token_stream_builder(
                     }
                 },
             );
-            let sc = snake_case_string::SnakeCaseString::try_from(
-                naming_common::domain_types::AsRefStrToSnakeCaseStr::case(&normalized),
-            )
-            .unwrap_or_else(snake_case_string::SnakeCaseString::from);
-            Element {
+            let converted =
+                match naming_common::domain_types::AsRefStrToSnakeCaseStr::try_case(&normalized) {
+                    Ok(converted) => converted,
+                    Err(error) => {
+                        let message = error.to_string();
+                        return Err(quote::quote! {compile_error!(#message);});
+                    }
+                };
+            let sc = match snake_case_string::SnakeCaseString::try_from(converted) {
+                Ok(snake_case_string) => snake_case_string,
+                Err(error) => {
+                    let message = error.to_string();
+                    return Err(quote::quote! {compile_error!(#message);});
+                }
+            };
+            Ok(Element {
                 d_trait_name_upper_camel_case: {
                     let v = naming::parameter::DSelfUpperCamelCase::from_display(&sc.as_ref());
                     quote::quote! {#v}
@@ -55,9 +66,13 @@ pub fn generate_derive_token_stream_builder(
                 trait_type: element
                     .parse::<proc_macro2::TokenStream>()
                     .expect(constants_str::DIAGNOSTIC_8672240F),
-            }
+            })
         })
-        .collect::<Vec<Element>>();
+        .collect::<Result<Vec<Element>, proc_macro2::TokenStream>>();
+    let element_vec = match element_result {
+        Ok(element_vec) => element_vec,
+        Err(error_tokens) => return error_tokens.into(),
+    };
     let (make_pub_pub_enum_token_stream, pub_enum_derive_vec_token_stream) = {
         fn enum_token_stream(identifier: &dyn quote::ToTokens) -> proc_macro2::TokenStream {
             quote::quote! {

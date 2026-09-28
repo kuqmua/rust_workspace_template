@@ -71,17 +71,28 @@ pub fn try_from_env(token_stream: proc_macro::TokenStream) -> proc_macro::TokenS
             ))
         })
     };
+    let field_environment_names = match fields_named
+        .iter()
+        .map(|field| {
+            let environment_field_identifier =
+                field_identifier(field, constants_str::VALUE_8B79A379);
+            naming_common::domain_types::ToTokensToUpperSnakeCaseStr::try_case(
+                &environment_field_identifier,
+            )
+            .map_err(|error| syn::Error::new_spanned(environment_field_identifier, error))
+        })
+        .collect::<syn::Result<Vec<_>>>()
+    {
+        Ok(field_environment_names) => field_environment_names,
+        Err(error) => return error.into_compile_error().into(),
+    };
     let config_descriptors = fields_named
         .iter()
         .zip(field_attributes.iter())
-        .map(|(field, attributes)| {
-        let descriptor_field_identifier =
-            field_identifier(field, constants_str::VALUE_8B79A379);
+        .zip(field_environment_names.iter())
+        .map(|((field, attributes), field_environment_name)| {
         let field_type = &field.ty;
-        let env_name = syn::LitStr::new(
-            &naming_common::domain_types::ToTokensToUpperSnakeCaseStr::case(&descriptor_field_identifier),
-            identifier.span(),
-        );
+        let env_name = syn::LitStr::new(field_environment_name, identifier.span());
         let sensitivity = if attributes.2 {
             quote::quote!(config_lib::config_field_sensitivity::ConfigFieldSensitivity::Secret)
         } else {
@@ -113,13 +124,10 @@ pub fn try_from_env(token_stream: proc_macro::TokenStream) -> proc_macro::TokenS
         let lines = fields_named
             .iter()
             .zip(field_attributes.iter())
-            .map(|(field, attributes)| {
-                let example_field_identifier =
-                    field_identifier(field, constants_str::VALUE_8B79A379);
-                let env_name = naming_common::domain_types::ToTokensToUpperSnakeCaseStr::case(
-                    &example_field_identifier,
-                );
-                let env_name_literal = syn::LitStr::new(&env_name, identifier.span());
+            .zip(field_environment_names.iter())
+            .map(|((field, attributes), field_environment_name)| {
+                let env_name = field_environment_name;
+                let env_name_literal = syn::LitStr::new(env_name, identifier.span());
                 attributes.0.as_ref().map_or_else(
                     || {
                         Err(syn::Error::new_spanned(
@@ -159,7 +167,7 @@ pub fn try_from_env(token_stream: proc_macro::TokenStream) -> proc_macro::TokenS
             .collect::<syn::Result<Vec<_>>>();
         match lines {
             Ok(mut generated_lines) => {
-                generated_lines.sort_by(|left, right| left.0.cmp(&right.0));
+                generated_lines.sort_by(|left, right| left.0.cmp(right.0));
                 let line_tokens = generated_lines.iter().map(|line| &line.1);
                 quote::quote! {
                     #[must_use]
@@ -228,11 +236,11 @@ pub fn try_from_env(token_stream: proc_macro::TokenStream) -> proc_macro::TokenS
         )
     };
     let try_from_env_token_stream = {
-        let fields_initialization_token_stream = fields_named.iter().map(|element| {
+        let fields_initialization_token_stream = fields_named.iter().zip(field_environment_names.iter()).map(|(element, field_environment_name)| {
             let element_identifier = field_identifier(element, constants_str::EBF4E1B2);
             let element_ty = &element.ty;
             let element_identifier_quotes_upper_snake_case_string =
-                syn::LitStr::new(&naming_common::domain_types::ToTokensToUpperSnakeCaseStr::case(&element_identifier), identifier.span());
+                syn::LitStr::new(field_environment_name, identifier.span());
             let element_identifier_upper_camel_case_token_stream = naming_common::domain_types::ToTokensToUpperCamelCaseTokenStream::case_or_panic(&element_identifier);
             quote::quote! {
                 let #element_identifier = config_lib::parse_required_env_var::parse_required_env_var(

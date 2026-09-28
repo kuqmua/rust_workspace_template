@@ -8,6 +8,11 @@ pub enum OpenApiValidationError {
     DocumentSerialization(
         crate::serde_json_open_api_serialization_error::SerdeJsonOpenApiSerializationError,
     ),
+    DuplicateOperation(
+        crate::open_api_contract_text::OpenApiContractText,
+        crate::open_api_contract_text::OpenApiContractText,
+    ),
+    InvalidPathItem(crate::open_api_contract_text::OpenApiContractText),
     MissingOperationId(
         crate::open_api_contract_text::OpenApiContractText,
         crate::open_api_contract_text::OpenApiContractText,

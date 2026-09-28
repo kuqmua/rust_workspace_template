@@ -22,10 +22,18 @@ where
     ) -> Self {
         Self {
             items: crate::collections_vec_deque::CollectionsVecDeque::from(
-                std::collections::VecDeque::with_capacity(queue_maximum_non_zero_usize.get()),
+                std::collections::VecDeque::with_capacity(
+                    queue_maximum_non_zero_usize
+                        .get()
+                        .min(constants_usize::VALUE_4_096),
+                ),
             ),
             keys: crate::collections_hash_set::CollectionsHashSet::from(
-                std::collections::HashSet::with_capacity(queue_maximum_non_zero_usize.get()),
+                std::collections::HashSet::with_capacity(
+                    queue_maximum_non_zero_usize
+                        .get()
+                        .min(constants_usize::VALUE_4_096),
+                ),
             ),
             maximum: queue_maximum_non_zero_usize,
         }
@@ -51,6 +59,18 @@ where
 }
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn test_queue_does_not_allocate_maximum_upfront() {
+        let mut queue = super::DeduplicatingQueue::new(
+            crate::queue_maximum_non_zero_usize::QueueMaximumNonZeroUsize::from(
+                std::num::NonZeroUsize::MAX,
+            ),
+        );
+        assert_eq!(queue.push(1u8), crate::queue_push::QueuePush::Queued);
+        assert_eq!(queue.push(1u8), crate::queue_push::QueuePush::Duplicate);
+        assert_eq!(queue.pop(), Some(1u8));
+    }
+
     #[test]
     fn test_queue_deduplicates_limits_and_releases_key_after_pop() {
         let mut queue = super::DeduplicatingQueue::new(

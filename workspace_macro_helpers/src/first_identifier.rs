@@ -15,7 +15,11 @@ impl
     fn from(
         value: crate::first_identifierifier_try_from_string_error::FirstIdentifierifierTryFromStringError,
     ) -> Self {
-        bounded_string_core::try_from_error_text::try_from_error_text(value)
+        Self(
+            bounded_string_core::bounded_string_storage::BoundedStringStorage::from_truncated(
+                value.to_string(),
+            ),
+        )
     }
 }
 impl TryFrom<String> for FirstIdentifier {

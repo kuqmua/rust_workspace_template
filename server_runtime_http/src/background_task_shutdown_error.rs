@@ -4,4 +4,6 @@ pub enum BackgroundTaskShutdownError {
     Join(#[source] crate::tokio_task_join_error::TokioTaskJoinError),
     #[error("{}", constants_str::BACKGROUND_TASK_SHUTDOWN_TIMED_OUT)]
     Timeout,
+    #[error("{}", constants_str::RUN_INTERVAL_OVERFLOW)]
+    IntervalOverflow,
 }

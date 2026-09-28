@@ -21,14 +21,15 @@ where
             .and_then(|paths| paths.get(metadata.path().as_ref()))
             .and_then(|path| path.get(method.as_str()))
             .ok_or(crate::open_api_operation_validation_error::OpenApiOperationValidationError::MissingOperation)?;
+        let effective_security = operation
+            .get(constants_str::SECURITY)
+            .or_else(|| document_value.get(constants_str::SECURITY));
         let security_matches = match security {
-            crate::open_api_security_expectation::OpenApiSecurityExpectation::Public => operation
-                .get(constants_str::SECURITY)
+            crate::open_api_security_expectation::OpenApiSecurityExpectation::Public => effective_security
                 .is_none_or(|security_value| {
                     security_value.as_array().is_some_and(Vec::is_empty)
                 }),
-            crate::open_api_security_expectation::OpenApiSecurityExpectation::Required(name) => operation
-                .get(constants_str::SECURITY)
+            crate::open_api_security_expectation::OpenApiSecurityExpectation::Required(name) => effective_security
                 .and_then(serde_json::Value::as_array)
                 .is_some_and(|requirements| {
                     requirements.iter().any(|requirement| {

@@ -31,6 +31,12 @@ fn test_idempotency_text_types_enforce_boundaries_and_protocol_shape() {
         ),
         Err(crate::pg_table_idempotency_text_error::PgTableIdempotencyTextError::InvalidRoute)
     );
+    let idempotency_text_error =
+        crate::pg_table_idempotency_text_error::PgTableIdempotencyTextError::InvalidMethod;
+    assert_eq!(
+        to_err_string::to_err_string::ToErrString::to_err_string(&idempotency_text_error).as_ref(),
+        idempotency_text_error.to_string(),
+    );
     let oversized = constants_str::A_ALT.repeat(
         crate::pg_tbl_idempotency_text_max_bytes::PG_TBL_IDEMPOTENCY_TEXT_MAX_BYTES
             .saturating_add(constants_usize::ONE),
@@ -54,8 +60,10 @@ fn test_idempotency_text_types_enforce_boundaries_and_protocol_shape() {
 
 #[test]
 fn test_generated_idempotency_keys_are_valid_and_distinct() {
-    let first = crate::new_pg_table_idempotency_key::new_pg_table_idempotency_key();
-    let second = crate::new_pg_table_idempotency_key::new_pg_table_idempotency_key();
+    let first = crate::new_pg_table_idempotency_key::new_pg_table_idempotency_key()
+        .expect(constants_str::DIAGNOSTIC_2C2E015B);
+    let second = crate::new_pg_table_idempotency_key::new_pg_table_idempotency_key()
+        .expect(constants_str::DIAGNOSTIC_632ACE74);
     assert_ne!(first, second);
     assert!(!first.as_ref().is_empty());
     assert!(
@@ -72,13 +80,15 @@ fn test_persisted_idempotency_body_enforces_inclusive_storage_limit() {
     ])
     .expect(constants_str::DIAGNOSTIC_AA90EF11);
     assert_eq!(exact.as_ref().len(), constants_usize::VALUE_1_048_576);
-    assert_eq!(
+    assert!(matches!(
         crate::pg_table_idempotency_body::PgTableIdempotencyBody::try_from(vec![
             constants_u8::ZERO;
             constants_usize::VALUE_1_048_576
                 + constants_usize::ONE
-        ])
-        .map(drop),
-        Err(crate::pg_table_idempotency_body_error::PgTableIdempotencyBodyError::TooLarge)
-    );
+        ]),
+        Err(crate::pg_table_idempotency_body_error::PgTableIdempotencyBodyError::TooLarge(
+            bounded_types::bounded_value_error::BoundedValueError::AboveMax { actual, max }
+        )) if actual.get() == constants_usize::VALUE_1_048_576 + constants_usize::ONE
+            && max.get() == constants_usize::VALUE_1_048_576
+    ));
 }

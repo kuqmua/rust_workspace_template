@@ -41,7 +41,6 @@ proc_macro_location_errors_with_location = { workspace = true }
 strum = { workspace = true }
 strum_macros = { workspace = true }
 naming = { workspace = true }
-naming_common = { workspace = true }
 proc_macro_optimal_memory_layout = { workspace = true }
 proc_macro_trait_alias = { workspace = true }
 proc_macro_newtype_as_mut = { workspace = true }

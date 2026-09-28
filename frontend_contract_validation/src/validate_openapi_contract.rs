@@ -75,11 +75,22 @@ where
                         ),
                     );
                 };
-                let _previous = documented.insert(
-                    (method.to_ascii_uppercase(), path.clone()),
-                    operation_id.to_owned(),
-                );
-                Ok(())
+                if documented
+                    .insert(
+                        (method.to_ascii_uppercase(), path.clone()),
+                        operation_id.to_owned(),
+                    )
+                    .is_some()
+                {
+                    Err(crate::open_api_validation_error::OpenApiValidationError::DuplicateOperation(
+                        crate::open_api_contract_text::OpenApiContractText::try_from(method.clone())
+                            .map_err(crate::open_api_validation_error::OpenApiValidationError::TextTooLong)?,
+                        crate::open_api_contract_text::OpenApiContractText::try_from(path.clone())
+                            .map_err(crate::open_api_validation_error::OpenApiValidationError::TextTooLong)?,
+                    ))
+                } else {
+                    Ok(())
+                }
             })
     })?;
     runtime_routes_ref.iter().try_for_each(|route| {

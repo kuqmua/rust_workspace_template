@@ -22,9 +22,17 @@ impl TryFrom<String> for GitCommitId {
         crate::try_bounded_git_info_string::try_bounded_git_info_string(value).map(Self)
     }
 }
-impl From<crate::git_commit_id_ref::GitCommitIdRef<'_>> for GitCommitId {
-    fn from(value: crate::git_commit_id_ref::GitCommitIdRef<'_>) -> Self {
-        Self::try_from(<&str>::from(value).to_owned()).unwrap_or_else(Self::from)
+impl TryFrom<crate::git_commit_id_ref::GitCommitIdRef<'_>> for GitCommitId {
+    type Error = crate::git_info_string_try_from_string_error::GitInfoStringTryFromStringError;
+    fn try_from(value: crate::git_commit_id_ref::GitCommitIdRef<'_>) -> Result<Self, Self::Error> {
+        let text = <&str>::from(value);
+        if text.len() > crate::git_info_string_max_len::GIT_INFO_STRING_MAX_LEN {
+            return Err(Self::Error::TooLong {
+                len: text.len(),
+                max: crate::git_info_string_max_len::GIT_INFO_STRING_MAX_LEN,
+            });
+        }
+        Self::try_from(text.to_owned())
     }
 }
 impl From<crate::git_info_string_try_from_string_error::GitInfoStringTryFromStringError>
@@ -33,6 +41,6 @@ impl From<crate::git_info_string_try_from_string_error::GitInfoStringTryFromStri
     fn from(
         value: crate::git_info_string_try_from_string_error::GitInfoStringTryFromStringError,
     ) -> Self {
-        bounded_types::try_from_bounded_error_text::try_from_bounded_error_text(value)
+        Self(bounded_types::bounded_string::BoundedString::from_truncated(value.to_string()))
     }
 }

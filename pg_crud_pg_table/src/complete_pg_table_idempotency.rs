@@ -28,7 +28,7 @@ pub async fn complete_pg_table_idempotency(
             .await;
         }
     };
-    let _query_result = sqlx::query(constants_str::PG_CRUD_COMPLETE_IDEMPOTENCY_SQL)
+    let result = sqlx::query(constants_str::PG_CRUD_COMPLETE_IDEMPOTENCY_SQL)
         .bind(
             pg_table_idempotency_request
                 .get_scope()
@@ -59,5 +59,15 @@ pub async fn complete_pg_table_idempotency(
         .execute(sqlx_pg_pool_ref.as_ref())
         .await
         .map_err(crate::sqlx_pg_table_idempotency_error::SqlxPgTableIdempotencyError::from)?;
-    Ok(())
+    if result.rows_affected() == 1u64 {
+        Ok(())
+    } else {
+        Err(
+            crate::sqlx_pg_table_idempotency_error::SqlxPgTableIdempotencyError::from(
+                sqlx::Error::Protocol(
+                    constants_str::IDEMPOTENCY_RESERVATION_IS_UNAVAILABLE_FOR_COMPLETION.to_owned(),
+                ),
+            ),
+        )
+    }
 }

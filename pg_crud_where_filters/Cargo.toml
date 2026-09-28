@@ -24,7 +24,6 @@ sqlx = { workspace = true }
 serde = { workspace = true }
 schemars = { workspace = true }
 utoipa = { workspace = true }
-regex = { workspace = true }
 thiserror = { workspace = true }
 proc_macro_generate_where_filters = { workspace = true }
 location_lib = { workspace = true }

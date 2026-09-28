@@ -51,7 +51,7 @@ pub fn tp(token_stream: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
     .into()
 }
 pub fn tp_parts(token_stream: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
-    let mut parts = workspace_macro_helpers::split_top_level_commas::split_top_level_commas(
+    let parts = workspace_macro_helpers::split_top_level_commas::split_top_level_commas(
         workspace_macro_helpers::proc_macro2_macro_tokens::ProcMacro2MacroTokens::from_into(
             token_stream,
         ),
@@ -63,7 +63,8 @@ pub fn tp_parts(token_stream: proc_macro2::TokenStream) -> proc_macro2::TokenStr
         .into_inner()
         .into();
     }
-    let mut name_iter = parts.remove(0).into_iter();
+    let mut part_iterator = parts.into_iter();
+    let mut name_iter = part_iterator.next().into_iter().flatten();
     let Some(name) =
         workspace_macro_helpers::parse_first_identifier::parse_first_identifier(&mut name_iter)
     else {
@@ -74,7 +75,7 @@ pub fn tp_parts(token_stream: proc_macro2::TokenStream) -> proc_macro2::TokenStr
         .into();
     };
     let name_identifier = quote::format_ident!("{name}");
-    let part_streams = parts.into_iter().collect::<Vec<proc_macro2::TokenStream>>();
+    let part_streams = part_iterator.collect::<Vec<proc_macro2::TokenStream>>();
     quote::quote! {
         #[derive(Debug, Clone, Copy, proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
         pub struct #name_identifier;

@@ -100,6 +100,10 @@ impl crate::default_some_one_element::DefaultSomeOneElement for NotZeroUnsignedP
     }
 }
 
+impl crate::pg_range_length_sql::PgRangeLengthSql for NotZeroUnsignedPartOfI32 {
+    const USE_NUMERIC_DIFFERENCE: bool = false;
+}
+
 #[cfg(test)]
 mod tests {
     #[test]

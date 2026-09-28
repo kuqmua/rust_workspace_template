@@ -62,6 +62,49 @@ async fn test_background_task_panic_is_observable() {
 }
 
 #[tokio::test(start_paused = true)]
+async fn test_cancelled_background_waits_abort_owned_tasks() {
+    let assert_cancelled =
+        async |option: Option<crate::request_timeout_duration::RequestTimeoutDuration>| {
+            let (sender, receiver) = tokio::sync::oneshot::channel::<()>();
+            let task_join = tokio::spawn(async move {
+                let retained_sender = sender;
+                let outcome = std::future::pending().await;
+                drop(retained_sender);
+                outcome
+            });
+            let task = crate::background_task::BackgroundTask::new(
+                None,
+                Some(crate::tokio_background_task_join::TokioBackgroundTaskJoin::from(task_join)),
+            );
+            if let Some(timeout) = option {
+                let mut shutdown = std::pin::pin!(task.shutdown(timeout));
+                std::future::poll_fn(|context| {
+                    assert!(shutdown.as_mut().poll(context).is_pending());
+                    std::task::Poll::Ready(())
+                })
+                .await;
+            } else {
+                let mut join = std::pin::pin!(task.join());
+                std::future::poll_fn(|context| {
+                    assert!(join.as_mut().poll(context).is_pending());
+                    std::task::Poll::Ready(())
+                })
+                .await;
+            }
+            assert!(matches!(
+                tokio::time::timeout(std::time::Duration::from_secs(1u64), receiver).await,
+                Ok(Err(_))
+            ));
+        };
+    assert_cancelled(None).await;
+    let timeout = crate::request_timeout_duration::RequestTimeoutDuration::try_from(
+        std::time::Duration::from_secs(1u64),
+    )
+    .expect(constants_str::DIAGNOSTIC_22D2BE20);
+    assert_cancelled(Some(timeout)).await;
+}
+
+#[tokio::test(start_paused = true)]
 async fn test_stuck_background_task_reaches_shutdown_timeout() {
     let interval = crate::run_interval_duration::RunIntervalDuration::try_from(
         std::time::Duration::from_secs(1u64),
@@ -174,4 +217,95 @@ fn test_zero_limits_are_rejected() {
         timeout_error,
         crate::std_request_timeout_try_from_duration_error::StdRequestTimeoutTryFromDurationError::Zero
     );
+}
+
+#[tokio::test(start_paused = true)]
+async fn test_extreme_interval_reports_failure_without_running_callback() {
+    let interval =
+        crate::run_interval_duration::RunIntervalDuration::try_from(std::time::Duration::MAX)
+            .expect(constants_str::DIAGNOSTIC_A104298F);
+    let task = crate::spawn_interval_task::spawn_interval_task(Some(interval), async || {
+        std::future::pending::<()>().await;
+    })
+    .expect(constants_str::DIAGNOSTIC_7CE0ABD6);
+    assert!(matches!(
+        tokio::time::timeout(std::time::Duration::from_secs(1u64), task.join()).await,
+        Ok(Err(
+            crate::background_task_shutdown_error::BackgroundTaskShutdownError::IntervalOverflow
+        ))
+    ));
+}
+
+async fn assert_interval_skip_cadence(
+    run_interval_duration: crate::run_interval_duration::RunIntervalDuration,
+) {
+    let period = run_interval_duration.get();
+    let margin = period
+        .checked_div(100u32)
+        .expect(constants_str::DIAGNOSTIC_8204AC59);
+    let half_margin = margin
+        .checked_div(2u32)
+        .expect(constants_str::DIAGNOSTIC_7EAC7AE5);
+    let elapsed = period
+        .checked_mul(4u32)
+        .and_then(|total| total.checked_sub(margin))
+        .expect(constants_str::DIAGNOSTIC_5A95A59C);
+    let (sender, mut receiver) = tokio::sync::mpsc::channel(4usize);
+    let optional_task =
+        crate::spawn_interval_task::spawn_interval_task(Some(run_interval_duration), move || {
+            assert!(matches!(sender.try_send(()), Ok(())));
+            async {}
+        });
+    assert!(matches!(
+        tokio::time::timeout(std::time::Duration::from_millis(1u64), receiver.recv()).await,
+        Ok(Some(()))
+    ));
+    tokio::time::advance(elapsed).await;
+    assert!(matches!(
+        tokio::time::timeout(std::time::Duration::from_millis(1u64), receiver.recv()).await,
+        Ok(Some(()))
+    ));
+    assert!(matches!(
+        receiver.try_recv(),
+        Err(tokio::sync::mpsc::error::TryRecvError::Empty)
+    ));
+    tokio::time::advance(half_margin).await;
+    assert!(matches!(
+        receiver.try_recv(),
+        Err(tokio::sync::mpsc::error::TryRecvError::Empty)
+    ));
+    tokio::time::advance(half_margin).await;
+    assert!(matches!(
+        tokio::time::timeout(std::time::Duration::from_millis(1u64), receiver.recv()).await,
+        Ok(Some(()))
+    ));
+    let Some(task) = optional_task else {
+        assert!(run_interval_duration.get().is_zero());
+        return;
+    };
+    let timeout = crate::request_timeout_duration::RequestTimeoutDuration::try_from(
+        std::time::Duration::from_secs(1u64),
+    );
+    assert!(matches!(timeout, Ok(request_timeout_duration)
+        if matches!(task.shutdown(request_timeout_duration).await,
+            Ok(crate::background_task_outcome::BackgroundTaskOutcome::ShutdownRequested))));
+}
+
+#[tokio::test(start_paused = true)]
+async fn test_interval_skip_keeps_original_cadence() {
+    let interval = crate::run_interval_duration::RunIntervalDuration::try_from(
+        std::time::Duration::from_millis(10u64),
+    )
+    .expect(constants_str::DIAGNOSTIC_E1C936F5);
+    assert_interval_skip_cadence(interval).await;
+}
+
+#[cfg(target_os = "linux")]
+#[tokio::test(start_paused = true)]
+async fn test_interval_skip_handles_remainders_above_u64_nanoseconds() {
+    let interval = crate::run_interval_duration::RunIntervalDuration::try_from(
+        std::time::Duration::from_hours(5_256_000u64),
+    )
+    .expect(constants_str::DIAGNOSTIC_27887819);
+    assert_interval_skip_cadence(interval).await;
 }

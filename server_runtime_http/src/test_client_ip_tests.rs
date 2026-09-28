@@ -25,6 +25,112 @@ mod tests {
         .to_string()
     }
     #[test]
+    fn test_proxy_ranges_match_ipv4_mapped_addresses() {
+        let trusted_range = range(constants_str::VALUE_127_0_0_1_32);
+        let mapped = std::net::Ipv4Addr::LOCALHOST.to_ipv6_mapped();
+        assert!(
+            trusted_range
+                .contains(crate::parsed_ip_addr::ParsedIpAddr::from(
+                    std::net::IpAddr::V6(mapped),
+                ))
+                .get()
+        );
+        assert!(
+            !trusted_range
+                .contains(crate::parsed_ip_addr::ParsedIpAddr::from(
+                    std::net::IpAddr::V6(
+                        std::net::Ipv4Addr::new(127u8, 0u8, 0u8, 2u8).to_ipv6_mapped()
+                    ),
+                ))
+                .get()
+        );
+        assert!(
+            !trusted_range
+                .contains(crate::parsed_ip_addr::ParsedIpAddr::from(
+                    std::net::IpAddr::V6(std::net::Ipv6Addr::LOCALHOST),
+                ))
+                .get()
+        );
+        let mut mapped_network_text = mapped.to_string();
+        mapped_network_text.push('/');
+        mapped_network_text.push_str(constants_str::VALUE_128);
+        assert!(
+            range(mapped_network_text.as_str())
+                .contains(crate::parsed_ip_addr::ParsedIpAddr::from(
+                    std::net::IpAddr::V6(mapped),
+                ))
+                .get()
+        );
+    }
+
+    #[test]
+    fn test_forwarded_ip_is_resolved_for_ipv4_mapped_proxy() {
+        let mut headers = http::HeaderMap::new();
+        let _previous = headers.insert(
+            constants_str::RUNTIME_FORWARDED_FOR_HEADER_NAME,
+            http::HeaderValue::from_static(constants_str::VALUE_203_0_113_1),
+        );
+        let ranges = crate::trusted_proxy_ranges::TrustedProxyRanges::try_from(vec![range(
+            constants_str::VALUE_127_0_0_1_32,
+        )]);
+        assert!(matches!(ranges, Ok(trusted_ranges) if {
+            let resolve = |client_socket_addr: crate::client_socket_addr::ClientSocketAddr| {
+                crate::resolve_client_ip::resolve_client_ip(
+                    crate::http_header_map_ref::HttpHeaderMapRef::from(&headers),
+                    client_socket_addr,
+                    &trusted_ranges,
+                )
+            };
+            let trusted_peer = std::net::Ipv4Addr::LOCALHOST.to_ipv6_mapped();
+            let untrusted_peer = std::net::Ipv4Addr::new(127u8, 0u8, 0u8, 2u8).to_ipv6_mapped();
+            resolve(crate::client_socket_addr::ClientSocketAddr::from(
+                std::net::SocketAddr::from((trusted_peer, 0u16)),
+            )) == crate::resolved_client_ip_addr::ResolvedClientIpAddr::from(
+                std::net::IpAddr::V4(std::net::Ipv4Addr::new(203u8, 0u8, 113u8, 1u8)),
+            ) && resolve(crate::client_socket_addr::ClientSocketAddr::from(
+                std::net::SocketAddr::from((untrusted_peer, 0u16)),
+            )) == crate::resolved_client_ip_addr::ResolvedClientIpAddr::from(
+                std::net::IpAddr::V6(untrusted_peer),
+            )
+        }));
+    }
+
+    #[test]
+    fn test_trusted_proxy_range_parser_stops_after_exceeding_item_limit() {
+        let mut text = vec![constants_str::VALUE_127_0_0_1_32; constants_usize::VALUE_128]
+            .join(constants_str::COMMA_SPACE);
+        assert!(matches!(
+            crate::parse_trusted_proxy_ranges::parse_trusted_proxy_ranges(
+                crate::trusted_proxy_ranges_text_ref::TrustedProxyRangesTextRef::from(
+                    text.as_str()
+                )
+            )
+            .map(|ranges| ranges
+                .contains(crate::parsed_ip_addr::ParsedIpAddr::from(
+                    std::net::IpAddr::V4(std::net::Ipv4Addr::LOCALHOST)
+                ))
+                .get()),
+            Ok(true)
+        ));
+        text.push_str(constants_str::COMMA_SPACE);
+        text.push_str(constants_str::VALUE_127_0_0_1_32);
+        text.push_str(constants_str::COMMA_SPACE);
+        text.push_str(constants_str::VALUE_127_0_0_1);
+        assert!(matches!(
+            crate::parse_trusted_proxy_ranges::parse_trusted_proxy_ranges(
+                crate::trusted_proxy_ranges_text_ref::TrustedProxyRangesTextRef::from(
+                    text.as_str()
+                )
+            ),
+            Err(
+                crate::trusted_proxy_ranges_parse_error::TrustedProxyRangesParseError::Ranges(
+                    crate::trusted_proxy_ranges_error::TrustedProxyRangesError::TooMany
+                )
+            )
+        ));
+    }
+
+    #[test]
     fn test_trusted_proxy_ranges_reject_oversized_lists() {
         let item = range(constants_str::VALUE_127_0_0_1_32);
         let values = vec![item; constants_usize::VALUE_128.saturating_add(constants_usize::ONE)];

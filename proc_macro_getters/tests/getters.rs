@@ -3,6 +3,29 @@ mod tests {
     #[derive(
         proc_macro_getters::Getters, proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     )]
+    #[getters(bare, get_mut)]
+    struct GetterBoundaryFixture {
+        #[getters(copy)]
+        get_value: workspace_macro_helpers::part_index::PartIndex,
+        #[getters(copy)]
+        r#type: workspace_macro_helpers::part_index::PartIndex,
+        #[getters(copy)]
+        value: workspace_macro_helpers::part_index::PartIndex,
+    }
+
+    impl From<workspace_macro_helpers::part_index::PartIndex> for GetterBoundaryFixture {
+        fn from(value: workspace_macro_helpers::part_index::PartIndex) -> Self {
+            Self {
+                r#type: value,
+                value,
+                get_value: value,
+            }
+        }
+    }
+
+    #[derive(
+        proc_macro_getters::Getters, proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+    )]
     #[getters(get_mut)]
     struct NamedFields {
         optional: Option<u16>,
@@ -133,6 +156,28 @@ mod tests {
         assert_eq!(*bare.get_count(), 34);
         assert_eq!(bare.get_value_count(), 34);
         assert_eq!(bare.text_len(), constants_usize::ONE);
+    }
+
+    #[test]
+    fn test_raw_and_prefixed_getters_read_and_mutate_distinct_fields() {
+        let mut fixture = GetterBoundaryFixture::from(
+            workspace_macro_helpers::part_index::PartIndex::from(constants_usize::ZERO),
+        );
+        let first = workspace_macro_helpers::part_index::PartIndex::from(constants_usize::ONE);
+        let second = workspace_macro_helpers::part_index::PartIndex::from(constants_usize::TWO);
+        let third = workspace_macro_helpers::part_index::PartIndex::from(constants_usize::THREE);
+        *fixture.type_mut() = first;
+        *fixture.value_mut() = second;
+        *fixture.get_value_mut() = third;
+        assert_eq!(fixture.r#type(), first);
+        assert_eq!(fixture.get_ref_type(), &first);
+        assert_eq!(fixture.get_value_type(), first);
+        assert_eq!(fixture.value(), second);
+        assert_eq!(fixture.get_ref_value(), &second);
+        assert_eq!(fixture.get_value_value(), second);
+        assert_eq!(fixture.get_value(), third);
+        assert_eq!(fixture.get_ref_get_value(), &third);
+        assert_eq!(fixture.get_value_get_value(), third);
     }
 
     const _: usize = constants_str::DOT.len();

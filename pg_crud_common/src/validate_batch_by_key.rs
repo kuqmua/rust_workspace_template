@@ -29,7 +29,8 @@ where
 {
     let maximum_invalid_item_count = batch_invalid_item_count.get();
     let mut records_by_key = std::collections::BTreeMap::new();
-    let mut invalid_items = Vec::with_capacity(maximum_invalid_item_count);
+    let mut invalid_items =
+        Vec::with_capacity(maximum_invalid_item_count.min(constants_usize::VALUE_4_096));
     let mut processed_item_count = constants_usize::ZERO;
     let mut stopped_early = false;
     let _validation_flow =
@@ -75,4 +76,31 @@ where
         records_by_key.into(),
         crate::batch_stopped_early::BatchStoppedEarly::from(stopped_early),
     )
+}
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn test_empty_batch_does_not_allocate_invalid_item_maximum() {
+        let report = super::validate_batch_by_key(
+            std::iter::empty::<u8>(),
+            crate::batch_invalid_item_count::BatchInvalidItemCount::from(usize::from(
+                std::num::NonZeroUsize::MAX,
+            )),
+            crate::batch_duplicate_policy::BatchDuplicatePolicy::Reject,
+            Ok::<u8, u8>,
+            |record| *record,
+            |_item_index, error| error,
+            |_item_index, key| *key,
+        );
+        assert!(report.invalid_items().is_empty());
+        assert_eq!(
+            report.processed_item_count(),
+            crate::batch_processed_item_count::BatchProcessedItemCount::from(constants_usize::ZERO),
+        );
+        assert_eq!(
+            report.stopped_early(),
+            crate::batch_stopped_early::BatchStoppedEarly::from(false),
+        );
+    }
 }

@@ -4,6 +4,8 @@ pub enum ChildProcessError {
     DiagnosticIo(crate::child_process_io_error::ChildProcessIoError),
     #[error("child process diagnostic buffer range is invalid")]
     DiagnosticRange,
+    #[error("{}", constants_str::CHILD_PROCESS_DIAGNOSTIC_TIMEOUT)]
+    DiagnosticTimeout(#[source] crate::tokio_child_diagnostic_elapsed::TokioChildDiagnosticElapsed),
     #[error("child process operation failed")]
     Io(crate::child_process_io_error::ChildProcessIoError),
     #[error("child process diagnostic task failed")]

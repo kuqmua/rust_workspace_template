@@ -72,7 +72,9 @@ impl LeaseRegistryInner {
                 let _removed = self.by_key.remove(&entry.into_key());
             }
         });
-        if self.by_id.len().get() >= lease_registry_maximum_non_zero_usize.get() {
+        if self.by_id.len().get() >= lease_registry_maximum_non_zero_usize.get()
+            && self.by_id.get(&lease_id).is_none()
+        {
             return crate::lease_reservation::LeaseReservation::LimitReached;
         }
         if let Some(previous) = self.by_id.remove(&lease_id) {

@@ -13,12 +13,6 @@ pub struct PgTableQueryString(
     >,
 );
 
-impl From<crate::pg_table_string_wrapper_try_from_string_error::PgTableStringWrapperTryFromStringError> for PgTableQueryString {
-    fn from(value: crate::pg_table_string_wrapper_try_from_string_error::PgTableStringWrapperTryFromStringError) -> Self {
-        bounded_types::try_from_bounded_error_text::try_from_bounded_error_text(value)
-    }
-}
-
 impl TryFrom<String> for PgTableQueryString {
     type Error = crate::pg_table_string_wrapper_try_from_string_error::PgTableStringWrapperTryFromStringError;
 

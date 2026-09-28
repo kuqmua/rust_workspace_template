@@ -735,14 +735,19 @@ impl<'ast> syn::visit::Visit<'ast> for DirectTupleWrapperConstructorVisitor<'_> 
                 .last()
                 .is_some_and(|segment| segment.ident == constants_str::FROM_ALT_3)
         });
-        self.inside_conversion_impl = crate::analyzer_bool::AnalyzerBool::from(
-            is_try_from
-                || (is_from
-                    && self
-                        .current_wrapper_name
-                        .as_ref()
-                        .is_none_or(|name| !self.bounded_string_names.contains(name.as_str()))),
-        );
+        self.inside_conversion_impl =
+            crate::analyzer_bool::AnalyzerBool::from(
+                is_try_from
+                    || (is_from
+                        && (self.current_wrapper_name.as_ref().is_none_or(|name| {
+                            !self.bounded_string_names.contains(name.as_str())
+                        }) || item_impl.trait_.as_ref().is_some_and(|(path, _)| {
+                            !crate::code_style::from_trait_arg_is_string(
+                                crate::syn_path_ref::SynPathRef::from(path),
+                            )
+                            .get()
+                        }))),
+            );
         syn::visit::visit_item_impl(self, item_impl);
         self.inside_conversion_impl = previous;
         self.current_wrapper_name = previous_wrapper_name;

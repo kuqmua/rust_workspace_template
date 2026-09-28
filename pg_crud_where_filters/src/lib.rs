@@ -9,7 +9,6 @@ pub mod pg_filter_vec_len;
 pub mod pg_type_not_empty_unique_vec;
 pub mod regex_case;
 pub mod regex_case_postgreql_syntax;
-pub mod regex_error;
 pub mod regex_regex;
 pub mod regex_regex_try_from_string_error;
 pub mod variant;

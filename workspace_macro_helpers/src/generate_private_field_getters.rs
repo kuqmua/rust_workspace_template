@@ -97,7 +97,7 @@ pub fn generate_private_field_getters(
                     Some(field_identifier) => {
                         let prefixed_name = quote::format_ident!(
                             "{}{}", constants_str::GETTER_PREFIX,
-                            field_identifier.to_string().chars().enumerate().fold(
+                            syn::ext::IdentExt::unraw(field_identifier).to_string().chars().enumerate().fold(
                                 String::new(),
                                 |mut snake_case, (character_index, character)| {
                                     if character.is_uppercase() {
@@ -127,15 +127,23 @@ pub fn generate_private_field_getters(
                 };
                 let field_type = &field.ty;
                 let is_single_tuple_field = field.ident.is_none();
+                let field_name_text = syn::ext::IdentExt::unraw(&field_name).to_string();
+                let field_name_suffix = if container_bare {
+                    field_name_text.as_str()
+                } else {
+                    field_name_text
+                        .strip_prefix(constants_str::GETTER_PREFIX)
+                        .unwrap_or(field_name_text.as_str())
+                };
                 let reference_name = if is_single_tuple_field {
                     quote::format_ident!("{}", constants_str::GETTERS_REFERENCE_NAME)
                 } else {
-                    quote::format_ident!("{}{}", constants_str::GETTERS_REFERENCE_PREFIX, field_name.to_string().trim_start_matches(constants_str::GETTER_PREFIX))
+                    quote::format_ident!("{}{}", constants_str::GETTERS_REFERENCE_PREFIX, field_name_suffix)
                 };
                 let value_name = if is_single_tuple_field {
                     quote::format_ident!("{}", constants_str::GETTERS_VALUE_NAME)
                 } else {
-                    quote::format_ident!("{}{}", constants_str::GETTERS_VALUE_PREFIX, field_name.to_string().trim_start_matches(constants_str::GETTER_PREFIX))
+                    quote::format_ident!("{}{}", constants_str::GETTERS_VALUE_PREFIX, field_name_suffix)
                 };
                 let generate_reference = |syn_ident| { if let syn::Type::Path(type_path) = field_type
                     && type_path.qself.is_none()
@@ -204,7 +212,7 @@ pub fn generate_private_field_getters(
                     }
                 });
                 let mutable = (container_get_mut || get_mut).then(|| {
-                    let mutable_name = quote::format_ident!("{}{}", field_name, constants_str::GETTERS_MUTABLE_SUFFIX);
+                    let mutable_name = quote::format_ident!("{}{}", syn::ext::IdentExt::unraw(&field_name), constants_str::GETTERS_MUTABLE_SUFFIX);
                     quote::quote! {
                         #visibility const fn #mutable_name(&mut self) -> &mut #field_type {
                             &mut self.#field_member

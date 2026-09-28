@@ -1,5 +1,9 @@
-#[must_use]
-pub fn binary_single_quotes_str<Dsp>(dsp: &Dsp) -> crate::quoted_literal::QuotedLiteral
+pub fn binary_single_quotes_str<Dsp>(
+    dsp: &Dsp,
+) -> Result<
+    crate::quoted_literal::QuotedLiteral,
+    crate::quoted_literal::QuotedLiteralTryFromStringError,
+>
 where
     Dsp: std::fmt::Display + ?Sized,
 {

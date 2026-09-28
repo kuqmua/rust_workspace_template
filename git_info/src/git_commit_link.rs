@@ -31,7 +31,7 @@ impl From<crate::git_info_string_try_from_string_error::GitInfoStringTryFromStri
     fn from(
         value: crate::git_info_string_try_from_string_error::GitInfoStringTryFromStringError,
     ) -> Self {
-        bounded_types::try_from_bounded_error_text::try_from_bounded_error_text(value)
+        Self(bounded_types::bounded_string::BoundedString::from_truncated(value.to_string()))
     }
 }
 impl PartialEq<crate::project_git_commit_link_ref::ProjectGitCommitLinkRef> for GitCommitLink {

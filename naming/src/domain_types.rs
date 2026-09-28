@@ -548,7 +548,9 @@ mod tests {
             &name,
             crate::swagger_url_path_prefix::SwaggerUrlPathPrefix::from(constants_str::SERVICE),
         );
-        assert_eq!(path.as_ref(), constants_str::VALUE_25F6ECFA);
+        assert!(
+            matches!(path, Ok(quoted_literal) if quoted_literal.as_ref() == constants_str::VALUE_25F6ECFA)
+        );
         let tokens =
             crate::swagger_url_path_self_quotes_token_stream::SwaggerUrlPathSelfQuotesTokenStream::swagger_url_path_self_quotes_token_stream(
                 &name,
@@ -558,5 +560,40 @@ mod tests {
             quote::quote!(#tokens).to_string(),
             constants_str::VALUE_25F6ECFA
         );
+    }
+    #[test]
+    fn test_swagger_quote_helpers_reject_oversized_prefix() {
+        let prefix = constants_str::X.repeat(2_097_152usize);
+        let name = constants_str::X;
+        let result = crate::swagger_url_path_self_quotes_str::SwaggerUrlPathSelfQuotesStr::swagger_url_path_self_quotes_str(
+            &name, crate::swagger_url_path_prefix::SwaggerUrlPathPrefix::from(prefix.as_str()),
+        );
+        assert!(
+            matches!(result, Err(generate_quotes::quoted_literal::QuotedLiteralTryFromStringError::TooLong {len, max}) if len == prefix.len() + 5usize && max < len)
+        );
+        let tokens = crate::swagger_url_path_self_quotes_token_stream::SwaggerUrlPathSelfQuotesTokenStream::swagger_url_path_self_quotes_token_stream(
+            &name, crate::swagger_url_path_prefix::SwaggerUrlPathPrefix::from(prefix.as_str()),
+        );
+        assert!(tokens.to_string().contains(constants_str::VALUE_2EDAC0BF));
+    }
+    #[test]
+    fn test_swagger_quote_helpers_reject_oversized_case_expansion() {
+        let name = constants_str::HELLOWORLD_ALT.repeat(104_858usize);
+        let prefix =
+            crate::swagger_url_path_prefix::SwaggerUrlPathPrefix::from(constants_str::SERVICE);
+        let result = crate::swagger_url_path_self_quotes_str::SwaggerUrlPathSelfQuotesStr::swagger_url_path_self_quotes_str(
+            &name, prefix,
+        );
+        assert!(matches!(
+            result,
+            Err(generate_quotes::quoted_literal::QuotedLiteralTryFromStringError::TooLong {
+                len,
+                max,
+            }) if len > max
+        ));
+        let tokens = crate::swagger_url_path_self_quotes_token_stream::SwaggerUrlPathSelfQuotesTokenStream::swagger_url_path_self_quotes_token_stream(
+            &name, prefix,
+        );
+        assert!(tokens.to_string().contains(constants_str::VALUE_2EDAC0BF));
     }
 }

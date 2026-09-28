@@ -109,6 +109,94 @@ mod tests {
     }
 
     #[test]
+    fn test_outbound_ipv6_rejects_non_global_special_prefixes() {
+        assert!(
+            [
+                [0x64u16, 0xff9b, 1, 0, 0, 0, 0, 1],
+                [0x64, 0xff9b, 0, 0, 0, 0, 0x7f00, 1],
+                [0x64, 0xff9b, 0, 0, 0, 0, 0xa9fe, 0xa9fe],
+                [0x100, 0, 0, 0, 0, 0, 0, 1],
+                [0x100, 0, 0, 1, 0, 0, 0, 1],
+                [0x2001, 1, 0, 0, 0, 0, 0, 4],
+                [0x2001, 2, 0, 0, 0, 0, 0, 1],
+                [0x2001, 0x10, 0, 0, 0, 0, 0, 1],
+                [
+                    0x2001, 0x1ff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff
+                ],
+                [0x3fff, 0, 0, 0, 0, 0, 0, 1],
+                [
+                    0x3fff, 0xfff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff
+                ],
+                [0x5f00, 0xffff, 0, 0, 0, 0, 0, 1],
+                [0xfec0, 0, 0, 0, 0, 0, 0, 1],
+                [0xfeff, 0xffff, 0, 0, 0, 0, 0, 1],
+            ]
+            .into_iter()
+            .all(|segments| matches!(
+                POLICY.validate_resolved_addresses(&[std::net::IpAddr::V6(
+                    std::net::Ipv6Addr::from(segments)
+                )
+                .into()]),
+                Err(crate::outbound_url_error::OutboundUrlError::ForbiddenHost)
+            ))
+        );
+    }
+
+    #[test]
+    fn test_outbound_ipv6_preserves_allowed_special_and_adjacent_prefixes() {
+        assert!(
+            [
+                [0x64u16, 0xff9b, 0, 0, 0, 0, 0x808, 0x808],
+                [0x100, 0, 0, 2, 0, 0, 0, 1],
+                [0x2001, 0, 0, 0, 0, 0, 0, 1],
+                [0x2001, 1, 0, 0, 0, 0, 0, 1],
+                [0x2001, 1, 0, 0, 0, 0, 0, 2],
+                [0x2001, 1, 0, 0, 0, 0, 0, 3],
+                [0x2001, 3, 0, 0, 0, 0, 0, 1],
+                [0x2001, 4, 0x112, 0, 0, 0, 0, 1],
+                [0x2001, 0x20, 0, 0, 0, 0, 0, 1],
+                [0x2001, 0x2f, 0xffff, 0, 0, 0, 0, 1],
+                [0x2001, 0x30, 0, 0, 0, 0, 0, 1],
+                [0x2001, 0x3f, 0xffff, 0, 0, 0, 0, 1],
+                [0x2001, 0x200, 0, 0, 0, 0, 0, 1],
+                [0x2001, 0x4860, 0, 0, 0, 0, 0, 0x8888],
+                [0x2002, 0x808, 0x808, 0, 0, 0, 0, 1],
+                [0x3fff, 0x1000, 0, 0, 0, 0, 0, 1],
+                [0x5f01, 0, 0, 0, 0, 0, 0, 1],
+            ]
+            .into_iter()
+            .all(|segments| POLICY
+                .validate_resolved_addresses(&[std::net::IpAddr::V6(std::net::Ipv6Addr::from(
+                    segments
+                ))
+                .into()])
+                .is_ok())
+        );
+    }
+
+    #[test]
+    fn test_allow_private_policy_accepts_special_ipv6_addresses() {
+        let policy = crate::outbound_url_policy::OutboundUrlPolicy::new(
+            &[
+                crate::outbound_url_scheme::OutboundUrlScheme::Http,
+                crate::outbound_url_scheme::OutboundUrlScheme::Https,
+            ],
+            crate::outbound_host_policy::OutboundHostPolicy::AllowPrivate,
+        );
+        assert_eq!(
+            policy.validate_resolved_addresses(&[
+                std::net::IpAddr::V6(std::net::Ipv6Addr::new(
+                    0x64u16, 0xff9b, 0, 0, 0, 0, 0x7f00, 1,
+                ))
+                .into(),
+                std::net::IpAddr::V6(std::net::Ipv6Addr::new(0xfec0u16, 0, 0, 0, 0, 0, 0, 1,))
+                    .into(),
+            ]),
+            Ok(())
+        );
+    }
+
+    #[test]
     fn test_allowlist_requires_exact_host_and_url_rejects_userinfo() {
         let allowed_host = crate::outbound_allowed_host::OutboundAllowedHost::try_from(
             String::from(constants_str::TEST_PUBLIC_HOST),

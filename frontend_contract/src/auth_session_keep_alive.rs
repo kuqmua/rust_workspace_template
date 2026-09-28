@@ -24,6 +24,11 @@ impl AuthSessionKeepAlive {
         if self.state == crate::auth_session_refresh_state::AuthSessionRefreshState::Running {
             return crate::auth_session_keep_alive_decision::AuthSessionKeepAliveDecision::SkipAlreadyRunning;
         }
+        if self.state
+            == crate::auth_session_refresh_state::AuthSessionRefreshState::IntervalOverflow
+        {
+            return crate::auth_session_keep_alive_decision::AuthSessionKeepAliveDecision::SkipIntervalOverflow;
+        }
         if let Some(next) = self.next
             && auth_session_instant.get() < next.get()
         {
@@ -37,19 +42,25 @@ impl AuthSessionKeepAlive {
         &mut self,
         auth_session_instant: crate::auth_session_instant::AuthSessionInstant,
         auth_session_refresh_outcome: crate::auth_session_refresh_outcome::AuthSessionRefreshOutcome,
-    ) -> crate::auth_session_refresh_outcome::AuthSessionRefreshOutcome {
-        self.state = crate::auth_session_refresh_state::AuthSessionRefreshState::Idle;
-        self.next = match auth_session_refresh_outcome {
+    ) -> Result<
+        crate::auth_session_refresh_outcome::AuthSessionRefreshOutcome,
+        crate::auth_session_keep_alive_error::AuthSessionKeepAliveError,
+    > {
+        let next = match auth_session_refresh_outcome {
             crate::auth_session_refresh_outcome::AuthSessionRefreshOutcome::Failed
             | crate::auth_session_refresh_outcome::AuthSessionRefreshOutcome::Refreshed => {
-                auth_session_instant
-                    .get()
-                    .checked_add(self.interval.get())
-                    .map(crate::auth_session_instant::AuthSessionInstant::from)
+                let Some(next) = auth_session_instant.get().checked_add(self.interval.get()) else {
+                    self.next = None;
+                    self.state = crate::auth_session_refresh_state::AuthSessionRefreshState::IntervalOverflow;
+                    return Err(crate::auth_session_keep_alive_error::AuthSessionKeepAliveError::IntervalOverflow);
+                };
+                Some(crate::auth_session_instant::AuthSessionInstant::from(next))
             }
             crate::auth_session_refresh_outcome::AuthSessionRefreshOutcome::Rejected => None,
         };
-        auth_session_refresh_outcome
+        self.next = next;
+        self.state = crate::auth_session_refresh_state::AuthSessionRefreshState::Idle;
+        Ok(auth_session_refresh_outcome)
     }
 
     pub const fn mark_missing(&mut self) {
@@ -71,7 +82,7 @@ impl AuthSessionKeepAlive {
 #[cfg(test)]
 mod tests {
     #[test]
-    fn test_refresh_is_single_flight_and_rejection_clears_schedule() {
+    fn test_refresh_schedule_handles_single_flight_rejection_and_overflow() {
         let interval = crate::auth_session_refresh_interval_duration::AuthSessionRefreshIntervalDuration::try_from(
             std::time::Duration::from_secs(60u64),
         )
@@ -94,7 +105,7 @@ mod tests {
                 now,
                 crate::auth_session_refresh_outcome::AuthSessionRefreshOutcome::Rejected
             ),
-            crate::auth_session_refresh_outcome::AuthSessionRefreshOutcome::Rejected
+            Ok(crate::auth_session_refresh_outcome::AuthSessionRefreshOutcome::Rejected)
         );
         assert_eq!(
             keep_alive.begin(
@@ -103,5 +114,35 @@ mod tests {
             ),
             crate::auth_session_keep_alive_decision::AuthSessionKeepAliveDecision::SkipMissing
         );
+        assert_eq!(
+            keep_alive.begin(
+                now,
+                crate::auth_session_presence::AuthSessionPresence::Present
+            ),
+            crate::auth_session_keep_alive_decision::AuthSessionKeepAliveDecision::RefreshNow
+        );
+        assert_eq!(
+            keep_alive.finish(
+                now,
+                crate::auth_session_refresh_outcome::AuthSessionRefreshOutcome::Refreshed
+            ),
+            Ok(crate::auth_session_refresh_outcome::AuthSessionRefreshOutcome::Refreshed)
+        );
+        assert!(
+            matches!(keep_alive.begin(now, crate::auth_session_presence::AuthSessionPresence::Present),
+            crate::auth_session_keep_alive_decision::AuthSessionKeepAliveDecision::SkipNotDue { next }
+                if next.get().duration_since(now.get()) == std::time::Duration::from_secs(60u64))
+        );
+        let result = crate::auth_session_refresh_interval_duration::AuthSessionRefreshIntervalDuration::try_from(std::time::Duration::MAX)
+            .map(|auth_session_refresh_interval_duration| {
+                let mut overflow = super::AuthSessionKeepAlive::new(auth_session_refresh_interval_duration);
+                assert_eq!(overflow.begin(now, crate::auth_session_presence::AuthSessionPresence::Present), crate::auth_session_keep_alive_decision::AuthSessionKeepAliveDecision::RefreshNow);
+                assert_eq!(overflow.finish(now, crate::auth_session_refresh_outcome::AuthSessionRefreshOutcome::Refreshed), Err(crate::auth_session_keep_alive_error::AuthSessionKeepAliveError::IntervalOverflow));
+                assert_eq!(overflow.begin(now, crate::auth_session_presence::AuthSessionPresence::Present), crate::auth_session_keep_alive_decision::AuthSessionKeepAliveDecision::SkipIntervalOverflow);
+                assert_eq!(overflow.finish(now, crate::auth_session_refresh_outcome::AuthSessionRefreshOutcome::Failed), Err(crate::auth_session_keep_alive_error::AuthSessionKeepAliveError::IntervalOverflow));
+                overflow.mark_missing();
+                assert_eq!(overflow.begin(now, crate::auth_session_presence::AuthSessionPresence::Present), crate::auth_session_keep_alive_decision::AuthSessionKeepAliveDecision::RefreshNow);
+            });
+        assert!(matches!(result, Ok(())));
     }
 }

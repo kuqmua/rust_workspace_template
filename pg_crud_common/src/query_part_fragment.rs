@@ -23,7 +23,7 @@ impl
     fn from(
         value: crate::pg_crud_string_wrapper_try_from_string_error::PgCrudStringWrapperTryFromStringError,
     ) -> Self {
-        bounded_types::try_from_bounded_error_text::try_from_bounded_error_text(value)
+        Self(bounded_types::bounded_string::BoundedString::from_truncated(value.to_string()))
     }
 }
 impl TryFrom<String> for QueryPartFragment {

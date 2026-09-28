@@ -17,34 +17,19 @@ pub struct RegexRegex(bounded_types::bounded_string::BoundedString<0usize, 1_048
 impl From<crate::default_regex_pattern::DefaultRegexPattern> for RegexRegex {
     fn from(value: crate::default_regex_pattern::DefaultRegexPattern) -> Self {
         let _: crate::default_regex_pattern::DefaultRegexPattern = value;
-        match Self::try_from(String::from(constants_str::A_Z_PLUS)) {
-            Ok(regex_regex) => regex_regex,
-            Err(error) => {
-                bounded_types::try_from_bounded_error_text::try_from_bounded_error_text(error)
-            }
-        }
+        Self(
+            bounded_types::bounded_string::BoundedString::from_truncated(String::from(
+                constants_str::A_Z_PLUS,
+            )),
+        )
     }
 }
 impl TryFrom<String> for RegexRegex {
     type Error = crate::regex_regex_try_from_string_error::RegexRegexTryFromStringError;
     fn try_from(value: String) -> Result<Self, Self::Error> {
-        if value.len() > constants_usize::VALUE_1_048_576 {
-            return Err(
-                crate::regex_regex_try_from_string_error::RegexRegexTryFromStringError::TooLong,
-            );
-        }
-        let _validated_regex =
-            regex::Regex::new(&value).map_err(crate::regex_error::RegexError::from)?;
         bounded_types::bounded_string::BoundedString::try_from(value)
             .map(Self)
-            .map_err(|source| match source {
-                bounded_types::bounded_string_error::BoundedStringError::AboveMaximum {
-                    ..
-                }
-                | bounded_types::bounded_string_error::BoundedStringError::BelowMinimum {
-                    ..
-                } => Self::Error::TooLong,
-            })
+            .map_err(|source| Self::Error::TooLong { source })
     }
 }
 

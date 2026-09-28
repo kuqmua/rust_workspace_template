@@ -1,6 +1,5 @@
 #[derive(
     Debug,
-    Default,
     Clone,
     PartialEq,
     Eq,
@@ -12,6 +11,11 @@
     proc_macro_newtype_into_inner::IntoInner,
 )]
 pub struct PgFilterVec<T, const LENGTH: usize>(Vec<T>);
+impl<T: Default, const LENGTH: usize> Default for PgFilterVec<T, LENGTH> {
+    fn default() -> Self {
+        Self::from(std::array::from_fn(|_| T::default()))
+    }
+}
 impl<T, const LENGTH: usize> From<[T; LENGTH]> for PgFilterVec<T, LENGTH> {
     fn from(value: [T; LENGTH]) -> Self {
         Self(Vec::from(value))

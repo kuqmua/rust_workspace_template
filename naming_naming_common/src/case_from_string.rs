@@ -1,7 +1,7 @@
 pub(super) fn case_from_string<S>(
     s: S,
     convert_case_kind: crate::convert_case_kind::ConvertCaseKind,
-) -> crate::case_string::CaseString
+) -> Result<crate::case_string::CaseString, crate::case_string::CaseStringTryFromStringError>
 where
     S: AsRef<str>,
 {

@@ -1647,13 +1647,13 @@ pub(super) enum IsConst {
                             crate::pg_type_catalog_kind::PgTypeCatalogKind::I16AsInt2 |
                             crate::pg_type_catalog_kind::PgTypeCatalogKind::I32AsInt4 |
                             crate::pg_type_catalog_kind::PgTypeCatalogKind::I64AsInt8 |
-                            crate::pg_type_catalog_kind::PgTypeCatalogKind::F32AsFloat4 |
                             crate::pg_type_catalog_kind::PgTypeCatalogKind::I16AsSmallSerialInitializationByPg |
                             crate::pg_type_catalog_kind::PgTypeCatalogKind::I32AsSerialInitializationByPg |
                             crate::pg_type_catalog_kind::PgTypeCatalogKind::I64AsBigSerialInitializationByPg |
                             crate::pg_type_catalog_kind::PgTypeCatalogKind::BoolAsBool |
                             crate::pg_type_catalog_kind::PgTypeCatalogKind::StdVecVecU8AsBytea |
                             crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesIpnetworkIpNetworkAsInet => proc_macro2::TokenStream::new(),
+                            crate::pg_type_catalog_kind::PgTypeCatalogKind::F32AsFloat4 => generate_serde_try_from_token_stream(&quote::quote! {"f32"}),
                             crate::pg_type_catalog_kind::PgTypeCatalogKind::F64AsFloat8 => generate_serde_try_from_token_stream(&quote::quote! {"f64"}),
                             crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgMoneyAsMoney => generate_serde_from_token_stream(&quote::quote! {"i64"}),
                             crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoNaiveTimeAsTime |
@@ -1795,7 +1795,7 @@ pub(super) enum IsConst {
                                 }
                             );
                             let ts: &dyn quote::ToTokens = match &pg_type_initialization_try_new {
-                                crate::pg_type_initialization_try_new::PgTypeInitializationTryNew::F64AsFloat8 =>
+                                crate::pg_type_initialization_try_new::PgTypeInitializationTryNew::F32AsFloat4 | crate::pg_type_initialization_try_new::PgTypeInitializationTryNew::F64AsFloat8 =>
                                     &f64_as_float8_try_new_error_variants_token_stream,
                                 crate::pg_type_initialization_try_new::PgTypeInitializationTryNew::StringAsText => &string_as_text_try_new_error_variants_token_stream,
                                 crate::pg_type_initialization_try_new::PgTypeInitializationTryNew::SqlxTypesChronoNaiveTimeAsTime | crate::pg_type_initialization_try_new::PgTypeInitializationTryNew::SqlxTypesTimeTimeAsTime => &nanosecond_precision_is_not_supported_variant_try_new_token_stream,
@@ -2119,7 +2119,7 @@ pub(super) enum IsConst {
                                         }
                                     };
                                     match &pg_type_initialization_try_new {
-                                        crate::pg_type_initialization_try_new::PgTypeInitializationTryNew::F64AsFloat8 => quote::quote! {
+                                        crate::pg_type_initialization_try_new::PgTypeInitializationTryNew::F32AsFloat4 | crate::pg_type_initialization_try_new::PgTypeInitializationTryNew::F64AsFloat8 => quote::quote! {
                                             if #v_snake_case.is_finite() {
                                                 Ok(Self(#v_snake_case))
                                             } else {
@@ -2558,7 +2558,6 @@ pub(super) enum IsConst {
                     crate::pg_type_catalog_kind::PgTypeCatalogKind::I16AsInt2 |
                     crate::pg_type_catalog_kind::PgTypeCatalogKind::I32AsInt4 |
                     crate::pg_type_catalog_kind::PgTypeCatalogKind::I64AsInt8 |
-                    crate::pg_type_catalog_kind::PgTypeCatalogKind::F32AsFloat4 |
                     crate::pg_type_catalog_kind::PgTypeCatalogKind::I16AsSmallSerialInitializationByPg |
                     crate::pg_type_catalog_kind::PgTypeCatalogKind::I32AsSerialInitializationByPg |
                     crate::pg_type_catalog_kind::PgTypeCatalogKind::I64AsBigSerialInitializationByPg |
@@ -2573,7 +2572,7 @@ pub(super) enum IsConst {
                     crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsDateRange |
                     crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsTimestampRange |
                     crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange => proc_macro2::TokenStream::new(),
-                    crate::pg_type_catalog_kind::PgTypeCatalogKind::F64AsFloat8 | crate::pg_type_catalog_kind::PgTypeCatalogKind::StringAsText => generate_impl_try_from_origin_token_stream(
+                    crate::pg_type_catalog_kind::PgTypeCatalogKind::F32AsFloat4 | crate::pg_type_catalog_kind::PgTypeCatalogKind::F64AsFloat8 | crate::pg_type_catalog_kind::PgTypeCatalogKind::StringAsText => generate_impl_try_from_origin_token_stream(
                         &inner_type_standard_non_null_token_stream,
                         &identifier_standard_non_null_origin_try_new_error_upper_camel_case,
                         &quote::quote! {Self::try_new(v)}
@@ -2757,7 +2756,6 @@ pub(super) enum IsConst {
                             crate::pg_type_catalog_kind::PgTypeCatalogKind::I16AsInt2
                             | crate::pg_type_catalog_kind::PgTypeCatalogKind::I32AsInt4
                             | crate::pg_type_catalog_kind::PgTypeCatalogKind::I64AsInt8
-                            | crate::pg_type_catalog_kind::PgTypeCatalogKind::F32AsFloat4
                             | crate::pg_type_catalog_kind::PgTypeCatalogKind::I16AsSmallSerialInitializationByPg
                             | crate::pg_type_catalog_kind::PgTypeCatalogKind::I32AsSerialInitializationByPg
                             | crate::pg_type_catalog_kind::PgTypeCatalogKind::I64AsBigSerialInitializationByPg
@@ -2777,7 +2775,7 @@ pub(super) enum IsConst {
                             | crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsDateRange
                             | crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsTimestampRange
                             | crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange => ok_self_scopes_v_token_stream,
-                            crate::pg_type_catalog_kind::PgTypeCatalogKind::F64AsFloat8 | crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoNaiveDateAsDate | crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeI32AsInt4Range | crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeI64AsInt8Range => quote::quote! {
+                            crate::pg_type_catalog_kind::PgTypeCatalogKind::F32AsFloat4 | crate::pg_type_catalog_kind::PgTypeCatalogKind::F64AsFloat8 | crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoNaiveDateAsDate | crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeI32AsInt4Range | crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeI64AsInt8Range => quote::quote! {
                                 match Self::#try_new_snake_case #scopes_v_token_stream {
                                     Ok(v_93eb5329) => Ok(v_93eb5329),
                                     Err(error) => Err(Box::#new_snake_case(error)),
@@ -3020,7 +3018,16 @@ pub(super) enum IsConst {
                                 pg_crud_macro_common::pg_type_filter::PgTypeFilter::GreaterThanExcludedUpperBound { identifier: generate_range_identifier_token_stream() },
                                 pg_crud_macro_common::pg_type_filter::PgTypeFilter::OverlapWithRange { identifier: generate_range_identifier_token_stream() },
                                 pg_crud_macro_common::pg_type_filter::PgTypeFilter::AdjacentWithRange { identifier: generate_range_identifier_token_stream() },
-                                pg_crud_macro_common::pg_type_filter::PgTypeFilter::RangeLen,
+                                pg_crud_macro_common::pg_type_filter::PgTypeFilter::RangeLen {
+                                    identifier: macro_helpers::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream::from(match &pg_type {
+                                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeI32AsInt4Range
+                                        | crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeI64AsInt8Range => quote::quote! {pg_crud_common::pg_numeric_range_length::PgNumericRangeLength},
+                                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsDateRange => quote::quote! {pg_crud_common::not_zero_unsigned_part_of_i32::NotZeroUnsignedPartOfI32},
+                                        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsTimestampRange
+                                        | crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange => quote::quote! {pg_crud_common::std_duration_range_length::StdDurationRangeLength},
+                                        _ => proc_macro2::TokenStream::new(),
+                                    }),
+                                },
                             ])
                         };
                         match pg_type.spec().get_filter_kind() {
@@ -3064,7 +3071,7 @@ pub(super) enum IsConst {
                     pg_crud_macro_common::pg_type_filter::PgTypeFilter::GreaterThanExcludedUpperBound { .. } => quote::quote! {GreaterThanExcludedUpperBound},
                     pg_crud_macro_common::pg_type_filter::PgTypeFilter::OverlapWithRange { .. } => quote::quote! {OverlapWithRange},
                     pg_crud_macro_common::pg_type_filter::PgTypeFilter::AdjacentWithRange { .. } => quote::quote! {AdjacentWithRange},
-                    pg_crud_macro_common::pg_type_filter::PgTypeFilter::RangeLen => quote::quote! {RangeLen},
+                    pg_crud_macro_common::pg_type_filter::PgTypeFilter::RangeLen { .. } => quote::quote! {RangeLen},
                 };
                 quote::quote! {frontend_contract::filter_operation::FilterOperation::#operation}
             });
@@ -4318,7 +4325,7 @@ pub(super) enum RangeBoundToken<'token_lt> {
                                     &quote::quote! {#i64_token_stream::MAX},
                                     &quote::quote! {#i64_token_stream::MAX - 1}
                                 )),
-                                crate::pg_type_catalog_kind::PgTypeCatalogKind::F32AsFloat4 => wrap_into_not_empty_unique_vec_token_stream(&generate_greater_than_test_new_new_vec_token_stream(
+                                crate::pg_type_catalog_kind::PgTypeCatalogKind::F32AsFloat4 => wrap_into_not_empty_unique_vec_token_stream(&generate_greater_than_test_try_new_try_new_vec_token_stream(
                                     &quote::quote! {#f32_token_stream::MIN},
                                     &quote::quote! {#f32_token_stream::MIN.next_up()},
                                     &quote::quote! {0.0},

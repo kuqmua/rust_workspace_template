@@ -10,7 +10,7 @@
     proc_macro_newtype_into_inner::IntoInner,
 )]
 #[bounded_string(max = crate::case_string_max_len::CASE_STRING_MAX_LEN)]
-pub(super) struct CaseString(
+pub struct CaseString(
     bounded_types::bounded_string::BoundedString<
         0usize,
         { crate::case_string_max_len::CASE_STRING_MAX_LEN },

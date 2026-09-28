@@ -38,8 +38,18 @@ impl TrustedProxyRange {
         self,
         parsed_ip_addr: crate::parsed_ip_addr::ParsedIpAddr,
     ) -> crate::std_range_contains::StdRangeContains {
+        let address = parsed_ip_addr.get();
+        let network = self.network.get();
         crate::std_range_contains::StdRangeContains::from(
-            self.network.get().contains(&parsed_ip_addr.get()),
+            network.contains(&address)
+                || match address {
+                    std::net::IpAddr::V6(ipv6_address) => {
+                        ipv6_address.to_ipv4_mapped().is_some_and(|ipv4_address| {
+                            network.contains(&std::net::IpAddr::V4(ipv4_address))
+                        })
+                    }
+                    std::net::IpAddr::V4(_) => false,
+                },
         )
     }
 }

@@ -1138,7 +1138,14 @@ pub fn emit_generate_pg_table(
     let WhereUpperCamelCase = naming::domain_types::WhereUpperCamelCase;
     let identifier = &di.ident;
     let identifier_snake_case_string =
-        naming_common::domain_types::ToTokensToSnakeCaseStr::case(&identifier);
+        match naming_common::domain_types::ToTokensToSnakeCaseStr::try_case(&identifier) {
+            Ok(identifier_snake_case_string) => identifier_snake_case_string,
+            Err(error) => {
+                return macro_helpers::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream::from(
+                    syn::Error::new_spanned(identifier, error.to_string()).into_compile_error(),
+                );
+            }
+        };
     let identifier_snake_case_double_quoted_token_stream =
         generate_quotes::dq_token_stream::dq_token_stream(&identifier_snake_case_string);
     let route_resource_name = generate_pg_table_input_model
@@ -2534,6 +2541,21 @@ pub fn emit_generate_pg_table(
                 constants_str::QUERY_PART_ERROR,
                 &QueryPartErrorUpperCamelCase.to_string(),
             ]),
+        )],
+        false,
+    );
+    let query_string_error_path: syn::Path = syn::parse_quote!(
+        pg_table::pg_table_string_wrapper_try_from_string_error::PgTableStringWrapperTryFromStringError
+    );
+    let query_string_syn_variant = new_syn_variant(
+        &quote::quote! {QueryString},
+        Some(macro_helpers::status_code::StatusCode::BadRequest400),
+        vec![(
+            macro_helpers::location_field_attr::LocationFieldAttr::EoToErrString,
+            &ErrorSnakeCase,
+            macro_helpers::syn_path_segments::SynPathSegments::from(
+                query_string_error_path.segments,
+            ),
         )],
         false,
     );
@@ -4061,6 +4083,20 @@ enum WrapIntoOptional {
         )>::default(),
         false,
     );
+    let idempotency_key_syn_variant = new_syn_variant(
+        &quote::quote! { IdempotencyKey },
+        None,
+        vec![(
+            macro_helpers_location_field_attr_eo_to_err_string,
+            &quote::quote! { idempotency_key },
+            <macro_helpers::syn_path_segments::SynPathSegments as From<
+                syn::punctuated::Punctuated<syn::PathSegment, syn::token::PathSep>,
+            >>::from(syn::parse_quote!(
+                pg_table::pg_table_idempotency_text_error::PgTableIdempotencyTextError
+            )),
+        )],
+        false,
+    );
     let common_http_req_syn_variants = {
         vec![
             GeneratePgTableVariantEmissionRef::Syn(serde_json_to_string_syn_variant.variant()),
@@ -4864,7 +4900,10 @@ enum WrapIntoOptional {
         let operation_client_method_snake_case_token_stream = operation.self_snake_case_token_stream();
         let frontend_idempotency_request_token_stream = if idempotency_enabled {
             quote::quote! {
-                .with_idempotency_key(match frontend_contract::transport_idempotency_key::TransportIdempotencyKey::try_from(pg_table::new_pg_table_idempotency_key::new_pg_table_idempotency_key().as_ref().to_owned()) {
+                .with_idempotency_key(match frontend_contract::transport_idempotency_key::TransportIdempotencyKey::try_from(match pg_table::new_pg_table_idempotency_key::new_pg_table_idempotency_key() {
+                    Ok(value) => value,
+                    Err(error) => return Err(frontend_contract::client_error::ClientError::Encode(frontend_contract::form_value_error::FormValueError::try_from(error.to_string()).unwrap_or_default())),
+                }.as_ref().to_owned()) {
                     Ok(value) => value,
                     Err(error) => return Err(frontend_contract::client_error::ClientError::Encode(frontend_contract::form_value_error::FormValueError::try_from(error.to_string()).unwrap_or_default())),
                 })
@@ -5064,6 +5103,12 @@ enum WrapIntoOptional {
         };
         let operation_error_initialization_query_part_token_stream =
             generate_operation_error_initialization_eprintln_res_token_stream(operation, &query_part_syn_variant, std::panic::Location::caller());
+        let query_string_error_initialization_token_stream =
+            generate_operation_error_initialization_eprintln_res_token_stream(
+                operation,
+                &query_string_syn_variant,
+                std::panic::Location::caller(),
+            );
         let generate_match_ok_err_update_token_stream = |ts0: &dyn quote::ToTokens, ts1: &dyn quote::ToTokens| {
             generate_match_ok_err_short_token_stream(&ts0, &ts1, &quote::quote! {{#operation_error_initialization_query_part_token_stream}})
         };
@@ -5111,6 +5156,7 @@ enum WrapIntoOptional {
                 ));
             }
             accumulator.push(GeneratePgTableVariantEmissionRef::Syn(query_part_syn_variant.variant()));
+            accumulator.push(GeneratePgTableVariantEmissionRef::Syn(query_string_syn_variant.variant()));
             if operation.requires_row_and_rollback_error() {
                 accumulator.push(GeneratePgTableVariantEmissionRef::Syn(
                     row_and_rollback_syn_variant.variant(),
@@ -5262,8 +5308,15 @@ enum WrapIntoOptional {
                         .header(reqwest::header::CONTENT_TYPE, #app_json_double_quoted_token_stream)
                     };
                     let idempotency_header_addition_token_stream = if idempotency_enabled {
+                        let idempotency_key_initialization_token_stream = generate_initialization_token_stream(
+                            &idempotency_key_syn_variant,
+                            std::panic::Location::caller(),
+                        );
                         quote::quote! {
-                            .header("idempotency-key", pg_table::new_pg_table_idempotency_key::new_pg_table_idempotency_key().as_ref())
+                            .header("idempotency-key", match pg_table::new_pg_table_idempotency_key::new_pg_table_idempotency_key() {
+                                Ok(value) => value,
+                                Err(error_0) => return Err(#identifier_try_operation_error_upper_camel_case::#idempotency_key_initialization_token_stream),
+                            }.as_ref())
                         }
                     } else {
                         proc_macro2::TokenStream::new()
@@ -5838,11 +5891,16 @@ enum WrapIntoOptional {
                                                 &quote::quote! {v_8797585c},
                                             );
                                             quote::quote! {
-                                                accumulator_8ad06c8c.push_str(&pg_table::generate_when_column_id_then_v_um_query_part::#GenerateWhenColumnIdThenVUmQueryPartSnakeCase(
+                                                let fragment_result_954ecf9a = pg_table::generate_when_column_id_then_v_um_query_part::#GenerateWhenColumnIdThenVUmQueryPartSnakeCase(
                                                     pg_table::pg_table_sql_fragment_ref::PgTableSqlFragmentRef::from(Self::#PrimaryKeySnakeCase()),
                                                     pg_table::pg_table_sql_fragment_ref::PgTableSqlFragmentRef::from(&#ts0),
                                                     pg_table::pg_table_sql_fragment_ref::PgTableSqlFragmentRef::from(&#ts1)
-                                                ));
+                                                );
+                                                let fragment_954ecf9a = match fragment_result_954ecf9a {
+                                                    Ok(fragment) => fragment,
+                                                    Err(#Error0) => {#query_string_error_initialization_token_stream}
+                                                };
+                                                accumulator_8ad06c8c.push_str(&fragment_954ecf9a);
                                             }
                                         },
                                     );
@@ -5851,16 +5909,19 @@ enum WrapIntoOptional {
                                             let mut #is_field_update_exists_snake_case = false;
                                             #for_element_update_field_exists_token_stream
                                             if #is_field_update_exists_snake_case {
-                                                accumulator_b86a253a.push_str(&
-                                                    pg_table::generate_column_eqs_case_accumulator_else_column_end_comma_um_query_part::generate_column_eqs_case_accumulator_else_column_end_comma_um_query_part(
-                                                        pg_table::pg_table_sql_fragment_ref::PgTableSqlFragmentRef::from(#field_double_quoted_token_stream),
-                                                        pg_table::pg_table_sql_fragment_ref::PgTableSqlFragmentRef::from(&{
-                                                            let mut accumulator_8ad06c8c = #StringTokenStream::default();
-                                                            #for_element_update_field_query_part_token_stream
-                                                            accumulator_8ad06c8c
-                                                        })
-                                                    )
+                                                let fragment_result_46f4d413 = pg_table::generate_column_eqs_case_accumulator_else_column_end_comma_um_query_part::generate_column_eqs_case_accumulator_else_column_end_comma_um_query_part(
+                                                    pg_table::pg_table_sql_fragment_ref::PgTableSqlFragmentRef::from(#field_double_quoted_token_stream),
+                                                    pg_table::pg_table_sql_fragment_ref::PgTableSqlFragmentRef::from(&{
+                                                        let mut accumulator_8ad06c8c = #StringTokenStream::default();
+                                                        #for_element_update_field_query_part_token_stream
+                                                        accumulator_8ad06c8c
+                                                    })
                                                 );
+                                                let fragment_46f4d413 = match fragment_result_46f4d413 {
+                                                    Ok(fragment) => fragment,
+                                                    Err(#Error0) => {#query_string_error_initialization_token_stream}
+                                                };
+                                                accumulator_b86a253a.push_str(&fragment_46f4d413);
                                             }
                                         }
                                     }
@@ -5896,12 +5957,14 @@ enum WrapIntoOptional {
                                 |revision_identifier| {
                                     let revision_column = generate_quotes::dq_token_stream::dq_token_stream(revision_identifier);
                                     quote::quote! {
-                                        let revision_query_part = format!("${}", #IncrementSnakeCase.saturating_add(1u64));
-                                        pg_table::add_update_optimistic_revision_predicate::add_update_optimistic_revision_predicate(
-                                            bulk_update_query,
-                                            pg_table::pg_table_sql_fragment_ref::PgTableSqlFragmentRef::from(#revision_column),
-                                            pg_table::pg_table_sql_fragment_ref::PgTableSqlFragmentRef::from(&revision_query_part),
-                                        )
+                                        bulk_update_query.and_then(|bulk_update_query| {
+                                            let revision_query_part = format!("${}", #IncrementSnakeCase.saturating_add(1u64));
+                                            pg_table::add_update_optimistic_revision_predicate::add_update_optimistic_revision_predicate(
+                                                bulk_update_query,
+                                                pg_table::pg_table_sql_fragment_ref::PgTableSqlFragmentRef::from(#revision_column),
+                                                pg_table::pg_table_sql_fragment_ref::PgTableSqlFragmentRef::from(&revision_query_part),
+                                            )
+                                        })
                                     }
                                 },
                             );
@@ -6306,7 +6369,13 @@ enum WrapIntoOptional {
                         #parameters_logic_token_stream
                         #idempotency_begin_token_stream
                         #read_page_initialization
-                        let #QueryStringSnakeCase = #query_string_token_stream;
+                        let query_string_result_2e43c49b = #query_string_token_stream;
+                        let #QueryStringSnakeCase = match query_string_result_2e43c49b {
+                            Ok(query_string) => query_string,
+                            Err(#Error0) => {
+                                #query_string_error_initialization_token_stream
+                            }
+                        };
                         let #BindedQuerySnakeCase = {
                             let mut #QuerySnakeCase = #sqlx_query_sqlx_pg_token_stream(
                                 sqlx::AssertSqlSafe(#QueryStringSnakeCase.to_string())
@@ -6809,8 +6878,11 @@ enum WrapIntoOptional {
             let try_operation_token_stream = {
                 let enum_token_stream = pg_crud_macro_common::error_enum_d_token_stream_builder::error_enum_d_token_stream_builder()
                         .build_enum(&proc_macro2::TokenStream::new(), &generate_identifier_try_operation_error_upper_camel_case(operation), &proc_macro2::TokenStream::new(), &{
-                        let mut syn_variants = Vec::with_capacity(common_http_req_syn_variants.len().saturating_add(constants_usize::ONE));
+                        let mut syn_variants = Vec::with_capacity(common_http_req_syn_variants.len().saturating_add(2usize));
                         syn_variants.extend_from_slice(common_http_req_syn_variants.as_slice());
+                        if idempotency_enabled {
+                            syn_variants.push(GeneratePgTableVariantEmissionRef::Syn(idempotency_key_syn_variant.variant()));
+                        }
                         if matches!(operation, Operation::Read) {
                             syn_variants.push(GeneratePgTableVariantEmissionRef::Syn(not_unique_field_syn_variant.variant()));
                         }
@@ -7235,7 +7307,6 @@ enum WrapIntoOptional {
         naming::domain_types::CurrentTimeUpperCamelCase.to_string(),
         naming::domain_types::GreaterThanCurrentTimeUpperCamelCase.to_string(),
         naming::domain_types::EqToEncodedStringRepresentationUpperCamelCase.to_string(),
-        naming::domain_types::RangeLenUpperCamelCase.to_string(),
     ]
     .into_iter()
     .map(|name| {
@@ -7244,6 +7315,21 @@ enum WrapIntoOptional {
         let schema = quote::quote! {<where_filters::domain_types::#type_name as utoipa::PartialSchema>::schema()};
         (schema_name, schema)
     })
+    .chain(std::iter::once((
+        format!(
+            "where_filters.PgTypeWhere{}",
+            naming::domain_types::RangeLenUpperCamelCase
+        ),
+        quote::quote! {
+            utoipa::openapi::schema::Schema::from(
+                utoipa::openapi::OneOfBuilder::new()
+                    .item(<where_filters::domain_types::PgTypeWhereRangeLen<pg_crud_common::not_zero_unsigned_part_of_i32::NotZeroUnsignedPartOfI32> as utoipa::PartialSchema>::schema())
+                    .item(<where_filters::domain_types::PgTypeWhereRangeLen<pg_crud_common::pg_numeric_range_length::PgNumericRangeLength> as utoipa::PartialSchema>::schema())
+                    .item(<where_filters::domain_types::PgTypeWhereRangeLen<pg_crud_common::std_duration_range_length::StdDurationRangeLength> as utoipa::PartialSchema>::schema())
+                    .build()
+            ).into()
+        },
+    )))
     .collect::<Vec<_>>();
     let static_filter_schema_names = static_filter_schemas.iter().map(|(name, _schema)| name);
     let static_filter_schema_values = static_filter_schemas.iter().map(|(_name, schema)| schema);
@@ -7776,9 +7862,7 @@ enum WrapIntoOptional {
             )
         };
         let identifier_double_quoted_token_stream =
-            generate_quotes::dq_token_stream::dq_token_stream(
-                &naming_common::domain_types::DisplayToSnakeCaseStr::case(&identifier),
-            );
+            generate_quotes::dq_token_stream::dq_token_stream(&identifier_snake_case_string);
         let identifier_cm_parameters_upper_camel_case =
             generate_identifier_operation_parameters_upper_camel_case(&Operation::CreateMany);
         let identifier_rm_parameters_upper_camel_case =

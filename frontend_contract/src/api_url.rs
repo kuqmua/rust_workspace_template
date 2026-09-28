@@ -22,7 +22,9 @@ impl ApiUrl {
         &mut self,
         api_url_path_segment_ref: crate::api_url_path_segment_ref::ApiUrlPathSegmentRef<'_>,
     ) -> Result<(), ApiUrlTryFromStringError> {
-        let mut value = self.0.as_str().to_owned();
+        let original = self.0.as_str();
+        let (path, suffix) = original.split_at(original.find(['?', '#']).unwrap_or(original.len()));
+        let mut value = path.to_owned();
         if !value.ends_with('/') {
             value.push('/');
         }
@@ -30,6 +32,7 @@ impl ApiUrl {
             api_url_path_segment_ref.get(),
             crate::api_url_component_encode_set::API_URL_COMPONENT_ENCODE_SET,
         ));
+        value.push_str(suffix);
         *self = Self::try_from(value)?;
         Ok(())
     }
@@ -39,7 +42,10 @@ impl ApiUrl {
         name: crate::api_url_query_component_ref::ApiUrlQueryComponentRef<'_>,
         value: crate::api_url_query_component_ref::ApiUrlQueryComponentRef<'_>,
     ) -> Result<(), ApiUrlTryFromStringError> {
-        let mut url = self.0.as_str().to_owned();
+        let original = self.0.as_str();
+        let (path_and_query, fragment) =
+            original.split_at(original.find('#').unwrap_or(original.len()));
+        let mut url = path_and_query.to_owned();
         url.push(if url.contains('?') { '&' } else { '?' });
         [name.get(), value.get()]
             .into_iter()
@@ -53,6 +59,7 @@ impl ApiUrl {
                     crate::api_url_component_encode_set::API_URL_COMPONENT_ENCODE_SET,
                 ));
             });
+        url.push_str(fragment);
         *self = Self::try_from(url)?;
         Ok(())
     }

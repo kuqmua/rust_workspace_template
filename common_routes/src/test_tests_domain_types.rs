@@ -3,10 +3,13 @@ struct TestState {
     commit: &'static str,
 }
 impl git_info::git_commit_id_provider::GitCommitIdProvider for TestState {
-    fn git_commit_id(&self) -> git_info::git_commit_id::GitCommitId {
-        git_info::git_commit_id::GitCommitId::from(
-            git_info::git_commit_id_ref::GitCommitIdRef::from(self.commit),
-        )
+    fn git_commit_id(
+        &self,
+    ) -> Result<
+        git_info::git_commit_id::GitCommitId,
+        git_info::git_info_string_try_from_string_error::GitInfoStringTryFromStringError,
+    > {
+        git_info::git_commit_id_provider::GitCommitIdProvider::git_commit_id(self.commit)
     }
     fn git_commit_id_ref(&self) -> Option<git_info::git_commit_id_ref::GitCommitIdRef<'_>> {
         Some(git_info::git_commit_id_ref::GitCommitIdRef::from(
@@ -26,15 +29,16 @@ fn test_state() -> std::sync::Arc<dyn crate::common_routes_parameters::CommonRou
     })
 }
 fn test_commit_link() -> String {
-    git_info::build_git_commit_link::build_git_commit_link(constants_str::TEST_VALUES_COMMIT)
-        .as_ref()
-        .to_owned()
+    test_commit_value(git_info::build_git_commit_link::build_git_commit_link(
+        constants_str::TEST_VALUES_COMMIT,
+    ))
+    .as_ref()
+    .to_owned()
 }
 fn test_commit_link_cow() -> git_info::git_commit_link_cow::GitCommitLinkCow {
-    git_info::git_commit_link_cow::GitCommitLinkCow::try_from(std::borrow::Cow::Owned(
-        test_commit_link(),
+    test_commit_value(git_info::git_commit_link_cow::GitCommitLinkCow::try_from(
+        std::borrow::Cow::Owned(test_commit_link()),
     ))
-    .expect(constants_str::DIAGNOSTIC_931B775C)
 }
 fn b_cow(str: &'static str) -> git_info::git_commit_link_cow::GitCommitLinkCow {
     git_info::git_commit_link_cow::GitCommitLinkCow::try_from(std::borrow::Cow::Borrowed(str))
@@ -140,11 +144,11 @@ fn test_git_info_response_contains_commit_link() {
 #[test]
 fn test_git_info_payload_from_state_contains_commit_link() {
     let state = test_state();
-    let payload = crate::make_git_info_payload_tests::make_git_info_payload(
+    let payload = crate::make_git_info_payload_tests::make_git_info_payload(test_commit_value(
         git_info::git_commit_link_provider::GitCommitLinkProvider::build_git_commit_link_cow(
             state.as_ref(),
         ),
-    );
+    ));
     assert_git_info_commit(&payload, test_commit_link().as_str());
 }
 #[test]
@@ -163,8 +167,10 @@ fn test_not_found_payload_from_state_uses_uri_and_swagger_path() {
     let state = test_state();
     let payload = crate::make_not_found_payload_tests::make_not_found_payload(
         uri_ref(&uri),
-        git_info::git_commit_link_provider::GitCommitLinkProvider::build_git_commit_link_cow(
-            state.as_ref(),
+        test_commit_value(
+            git_info::git_commit_link_provider::GitCommitLinkProvider::build_git_commit_link_cow(
+                state.as_ref(),
+            ),
         ),
     );
     assert_not_found_payload_with_commit(&payload, &test_commit_link(), constants_str::MISSING);
@@ -192,8 +198,10 @@ fn test_no_route_prefix_stays_stable() {
 fn test_make_state_payload_uses_state_trait_object() {
     let state = test_state();
     assert_eq!(
-        git_info::git_commit_link_provider::GitCommitLinkProvider::build_git_commit_link_cow(
-            state.as_ref()
+        test_commit_value(
+            git_info::git_commit_link_provider::GitCommitLinkProvider::build_git_commit_link_cow(
+                state.as_ref()
+            )
         )
         .as_ref(),
         test_commit_link()
@@ -213,8 +221,10 @@ fn test_make_state_payload_passes_commit_link_to_mapper() {
     let state = test_state();
     let actual = format!(
         "v={}",
-        git_info::git_commit_link_provider::GitCommitLinkProvider::build_git_commit_link_cow(
-            state.as_ref()
+        test_commit_value(
+            git_info::git_commit_link_provider::GitCommitLinkProvider::build_git_commit_link_cow(
+                state.as_ref()
+            )
         )
     );
     assert_eq!(actual, format!("v={}", test_commit_link()));
@@ -223,11 +233,11 @@ fn test_make_state_payload_passes_commit_link_to_mapper() {
 fn test_make_commit_json_response_combines_status_and_commit_payload() {
     let state = test_state();
     let response = crate::make_json_response::make_json_response(
-        crate::make_git_info_payload_tests::make_git_info_payload(
+        crate::make_git_info_payload_tests::make_git_info_payload(test_commit_value(
             git_info::git_commit_link_provider::GitCommitLinkProvider::build_git_commit_link_cow(
                 state.as_ref(),
             ),
-        ),
+        )),
     );
     assert_git_info_commit(response.as_ref(), test_commit_link().as_str());
 }
@@ -335,4 +345,58 @@ async fn test_default_service_routes_return_success_statuses_and_match_openapi()
     .await
     .expect(constants_str::DIAGNOSTIC_D2B9CC45);
     assert_eq!(not_found.status(), axum::http::StatusCode::NOT_FOUND);
+}
+
+fn test_commit_value<Value>(
+    result: Result<
+        Value,
+        git_info::git_info_string_try_from_string_error::GitInfoStringTryFromStringError,
+    >,
+) -> Value {
+    result.expect(constants_str::DIAGNOSTIC_931B775C)
+}
+
+#[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Debug)]
+enum TestInvalidGitRouteState {
+    Invalid,
+}
+impl git_info::git_commit_id_provider::GitCommitIdProvider for TestInvalidGitRouteState {
+    fn git_commit_id(
+        &self,
+    ) -> Result<
+        git_info::git_commit_id::GitCommitId,
+        git_info::git_info_string_try_from_string_error::GitInfoStringTryFromStringError,
+    > {
+        Err(git_info::git_info_string_try_from_string_error::GitInfoStringTryFromStringError::TooLong {
+            len: constants_usize::ONE, max: constants_usize::ZERO,
+        })
+    }
+}
+impl app_state::sqlx_pg_pool_provider::SqlxPgPoolProvider for TestInvalidGitRouteState {
+    fn sqlx_pg_pool(&self) -> app_state::sqlx_pg_pool_ref::SqlxPgPoolRef<'_> {
+        std::panic::panic_any(constants_str::DIAGNOSTIC_8854EE29)
+    }
+}
+impl crate::common_routes_parameters::CommonRoutesParameters for TestInvalidGitRouteState {}
+
+#[tokio::test]
+async fn test_http_adapters_propagate_commit_provider_failure() {
+    let state = crate::arc_common_routes_app_state::ArcCommonRoutesAppState::from(
+        std::sync::Arc::new(TestInvalidGitRouteState::Invalid),
+    );
+    let result = crate::git_info_response::git_info_response(state.clone()).await;
+    assert!(matches!(result, Err(crate::git_info_response_error::GitInfoResponseError::CommitLink(
+        git_info::git_info_string_try_from_string_error::GitInfoStringTryFromStringError::TooLong {len: constants_usize::ONE, max: constants_usize::ZERO}
+    ))));
+    let router = axum::Router::from(crate::common_routes::common_routes(state));
+    let mut request = axum::http::Request::new(axum::body::Body::empty());
+    *request.uri_mut() = axum::http::Uri::from_static(constants_str::MISSING);
+    let response = match tower::ServiceExt::oneshot(router, request).await {
+        Ok(response) => response,
+        Err(infallible) => match infallible {},
+    };
+    assert_eq!(
+        response.status(),
+        axum::http::StatusCode::INTERNAL_SERVER_ERROR
+    );
 }

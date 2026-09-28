@@ -12,6 +12,7 @@ pub fn parse_trusted_proxy_ranges(
     }
     let ranges = value_text
         .split(',')
+        .take(constants_usize::VALUE_128.saturating_add(constants_usize::ONE))
         .map(str::trim)
         .map(|item| {
             crate::trusted_proxy_range::TrustedProxyRange::try_from(item.to_owned()).map_err(

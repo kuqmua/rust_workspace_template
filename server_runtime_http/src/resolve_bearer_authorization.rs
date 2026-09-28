@@ -11,14 +11,18 @@ pub fn resolve_bearer_authorization(
     let Some((scheme, token)) = value.split_once(' ') else {
         return crate::bearer_authorization_resolution::BearerAuthorizationResolution::Invalid;
     };
+    let token_text = token.trim_start_matches(' ');
+    let unpadded_token = token_text.trim_end_matches('=');
     if !scheme.eq_ignore_ascii_case(constants_str::BEARER)
-        || token.is_empty()
-        || token.contains(char::is_whitespace)
+        || unpadded_token.is_empty()
+        || !unpadded_token.bytes().all(|byte| {
+            byte.is_ascii_alphanumeric() || matches!(byte, b'-' | b'.' | b'_' | b'~' | b'+' | b'/')
+        })
     {
         crate::bearer_authorization_resolution::BearerAuthorizationResolution::Invalid
     } else {
         crate::bearer_authorization_resolution::BearerAuthorizationResolution::Resolved(
-            crate::http_bearer_token_ref::HttpBearerTokenRef::from(token),
+            crate::http_bearer_token_ref::HttpBearerTokenRef::from(token_text),
         )
     }
 }

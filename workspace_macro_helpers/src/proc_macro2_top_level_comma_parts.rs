@@ -21,11 +21,6 @@ impl std::ops::Deref for ProcMacro2TopLevelCommaParts {
         &self.0
     }
 }
-impl std::ops::DerefMut for ProcMacro2TopLevelCommaParts {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.0
-    }
-}
 impl IntoIterator for ProcMacro2TopLevelCommaParts {
     type IntoIter = std::vec::IntoIter<proc_macro2::TokenStream>;
     type Item = proc_macro2::TokenStream;

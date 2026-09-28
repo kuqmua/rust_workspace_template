@@ -9,7 +9,7 @@
     proc_macro_optimal_memory_layout::OptimalMemoryLayout,
 )]
 pub enum BetweenTryNewError<T> {
-    StartMoreOrEqToEnd {
+    StartNotLessThanOrEqualToEnd {
         #[eo_to_err_string_serde]
         start: T,
         #[eo_to_err_string_serde]

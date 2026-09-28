@@ -1,7 +1,6 @@
 #[derive(
     Debug,
     Clone,
-    Default,
     PartialEq,
     Eq,
     serde::Serialize,
@@ -11,6 +10,11 @@
     proc_macro_newtype_into_inner_from::IntoInnerFrom,
 )]
 pub struct PgTypeNotEmptyUniqueVec<T>(Vec<T>);
+impl<T: Default> Default for PgTypeNotEmptyUniqueVec<T> {
+    fn default() -> Self {
+        Self::from([T::default()])
+    }
+}
 impl<T> From<[T; 1]> for PgTypeNotEmptyUniqueVec<T> {
     fn from(value: [T; 1]) -> Self {
         Self(Vec::from(value))
