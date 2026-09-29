@@ -4708,16 +4708,15 @@ pub(super) enum CreateReadIds {
             crate::wire_kind::WireKind::TimeChrono => frontend_time_json_token_stream(&quote::quote! {value.as_ref()}, constants_str::MIN, constants_str::SEC, constants_str::MICRO),
             crate::wire_kind::WireKind::TimeTime => frontend_time_json_token_stream(&quote::quote! {value.as_ref()}, constants_str::MINUTE, constants_str::SECOND_ALT, constants_str::MICROSECOND),
             crate::wire_kind::WireKind::Timestamp | crate::wire_kind::WireKind::TimestampTz => {
-                let date_name = match crate::rust_type_wire_kind::rust_type_wire_kind(&pg_type_dsc) {
-                    crate::wire_kind::WireKind::Timestamp => constants_str::PG_CRUD_PG_DATE,
-                    crate::wire_kind::WireKind::TimestampTz => constants_str::DATE_NAIVE,
+                let value_format = match crate::rust_type_wire_kind::rust_type_wire_kind(&pg_type_dsc) {
+                    crate::wire_kind::WireKind::Timestamp => quote::quote! {frontend_contract::value_format::ValueFormat::Timestamp},
+                    crate::wire_kind::WireKind::TimestampTz => quote::quote! {frontend_contract::value_format::ValueFormat::TimestampTz},
                     _ => unreachable!(),
                 };
-                let time_json_token_stream = frontend_time_json_token_stream(&quote::quote! {time}, constants_str::MIN, constants_str::SEC, constants_str::MICRO);
                 quote::quote! {{
-                    let (date, time) = value.as_ref().split_once('T').ok_or_else(|| frontend_contract::form_value_error::FormValueError::try_from("timestamp must contain `T` between date and time".to_owned()).unwrap_or_default())?;
-                    let time = #time_json_token_stream;
-                    serde_json::json!({#date_name: date, "time": time})
+                    let wire = frontend_contract::parse_timestamp_filter_wire_json::parse_timestamp_filter_wire_json(value, #value_format)?;
+                    serde_json::from_str::<serde_json::Value>(wire.as_ref())
+                        .map_err(|error| frontend_contract::form_value_error::FormValueError::try_from(error.to_string()).unwrap_or_default())?
                 }}
             },
             crate::wire_kind::WireKind::Bool | crate::wire_kind::WireKind::Bytes | crate::wire_kind::WireKind::Float32 | crate::wire_kind::WireKind::Float64 | crate::wire_kind::WireKind::Int16 | crate::wire_kind::WireKind::Int32 | crate::wire_kind::WireKind::Int64 | crate::wire_kind::WireKind::Interval | crate::wire_kind::WireKind::RangeDate | crate::wire_kind::WireKind::RangeInt32 | crate::wire_kind::WireKind::RangeInt64 | crate::wire_kind::WireKind::RangeTimestamp | crate::wire_kind::WireKind::RangeTimestampTz => quote::quote! {serde_json::from_str::<serde_json::Value>(value.as_ref()).map_err(|error| frontend_contract::form_value_error::FormValueError::try_from(error.to_string()).unwrap_or_default())?},

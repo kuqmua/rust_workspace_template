@@ -34,18 +34,38 @@ impl TryFrom<&syn::Field> for LocationFieldAttr {
     type Error = String;
 
     fn try_from(value: &syn::Field) -> Result<Self, Self::Error> {
-        let mut supported_attrs = value.attrs.iter().filter_map(|element| {
-            if element.path().segments.len() != 1 {
-                return None;
-            }
-            let first_segment_identifier = &element.path().segments.first()?.ident;
-            std::str::FromStr::from_str(&first_segment_identifier.to_string()).ok()
-        });
-        let optional_attr = supported_attrs.next();
-        if supported_attrs.next().is_some() {
-            return Err(constants_str::TWO_OR_MORE_SUPPORTED_ATTRS.to_owned());
-        }
-        optional_attr.map_or_else(|| Err(constants_str::OPT_ATTR_IS_NONE.to_owned()), Ok)
+        value
+            .attrs
+            .iter()
+            .try_fold(None, |supported_attr, element| {
+                if element.path().segments.len() != 1 {
+                    return Ok(supported_attr);
+                }
+                let Some(first_segment_identifier) = element
+                    .path()
+                    .segments
+                    .first()
+                    .map(|segment| &segment.ident)
+                else {
+                    return Ok(supported_attr);
+                };
+                let Ok(location_field_attr) =
+                    std::str::FromStr::from_str(&first_segment_identifier.to_string())
+                else {
+                    return Ok(supported_attr);
+                };
+                if !matches!(element.meta, syn::Meta::Path(_)) {
+                    return Err(
+                        constants_str::SUPPORTED_LOCATION_FIELD_ATTR_MUST_NOT_HAVE_ARGUMENTS
+                            .to_owned(),
+                    );
+                }
+                if supported_attr.is_some() {
+                    return Err(constants_str::TWO_OR_MORE_SUPPORTED_ATTRS.to_owned());
+                }
+                Ok(Some(location_field_attr))
+            })?
+            .ok_or_else(|| constants_str::OPT_ATTR_IS_NONE.to_owned())
     }
 }
 
@@ -98,5 +118,59 @@ impl LocationFieldAttr {
                 super::compile_error_message::CompileErrorMessage::from(&error.to_string()),
             ),
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn test_supported_location_field_attributes_reject_arguments() {
+        let list_field: syn::Field = syn::parse_quote! {
+            #[eo_location(unexpected)] value: Location
+        };
+        let named_field: syn::Field = syn::parse_quote! {
+            #[eo_location = "unexpected"] value: Location
+        };
+        assert_eq!(
+            super::LocationFieldAttr::try_from(&list_field)
+                .err()
+                .as_deref(),
+            Some(constants_str::SUPPORTED_LOCATION_FIELD_ATTR_MUST_NOT_HAVE_ARGUMENTS)
+        );
+        assert_eq!(
+            super::LocationFieldAttr::try_from(&named_field)
+                .err()
+                .as_deref(),
+            Some(constants_str::SUPPORTED_LOCATION_FIELD_ATTR_MUST_NOT_HAVE_ARGUMENTS)
+        );
+    }
+
+    #[test]
+    fn test_supported_location_field_attributes_require_exactly_one_marker() {
+        let valid_field: syn::Field = syn::parse_quote! {
+            #[serde(skip)] #[eo_location] value: Location
+        };
+        let duplicated_field: syn::Field = syn::parse_quote! {
+            #[eo_location] #[eo_vec_location] value: Location
+        };
+        let missing_field: syn::Field = syn::parse_quote! {
+            #[serde(skip)] value: Location
+        };
+        assert!(matches!(
+            super::LocationFieldAttr::try_from(&valid_field),
+            Ok(super::LocationFieldAttr::EoLocation)
+        ));
+        assert_eq!(
+            super::LocationFieldAttr::try_from(&duplicated_field)
+                .err()
+                .as_deref(),
+            Some(constants_str::TWO_OR_MORE_SUPPORTED_ATTRS)
+        );
+        assert_eq!(
+            super::LocationFieldAttr::try_from(&missing_field)
+                .err()
+                .as_deref(),
+            Some(constants_str::OPT_ATTR_IS_NONE)
+        );
     }
 }

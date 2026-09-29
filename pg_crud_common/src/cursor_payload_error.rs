@@ -10,4 +10,6 @@
 pub enum CursorPayloadError {
     #[error("{message}", message = constants_str::CURSOR_PAYLOAD_MUST_NOT_BE_EMPTY)]
     Empty,
+    #[error("{message}", message = constants_str::CURSOR_EXCEEDS_MAXIMUM_LENGTH)]
+    TooLong,
 }

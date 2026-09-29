@@ -26,7 +26,7 @@ pub(crate) fn AdminTableActions(
     leptos::view! {
         <div class="table-actions">
             {read_action}
-            <crate::admin_button::AdminButton admin_button_variant=crate::admin_button_variant::AdminButtonVariant::Secondary admin_button_kind=crate::admin_button_kind::AdminButtonKind::Button command_for=command_for command="show-modal" aria_label=String::from(constants_str::PG_CRUD_DELETE_RULE_ACTION) attr:title=constants_str::PG_CRUD_DELETE_RULE_ACTION>
+            <crate::admin_button::AdminButton admin_button_variant=crate::admin_button_variant::AdminButtonVariant::Secondary admin_button_kind=crate::admin_button_kind::AdminButtonKind::Button command_for=command_for command="show-modal" aria_label=String::from(constants_str::ADMIN_BUTTON_REVOKE_SESSION) attr:title=constants_str::ADMIN_BUTTON_REVOKE_SESSION>
                 <svg viewBox="0 0 24 24" aria-hidden=constants_str::TRUE fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M3 6h18"></path>
                     <path d="M8 6V4h8v2"></path>

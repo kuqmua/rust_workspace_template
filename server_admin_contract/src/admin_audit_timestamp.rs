@@ -14,6 +14,7 @@
     chars,
     serde,
     utoipa,
+    error,
     description = "administrator audit timestamp"
 )]
 pub struct AdminAuditTimestamp(bounded_types::bounded_string::BoundedString<0usize, 64, true>);

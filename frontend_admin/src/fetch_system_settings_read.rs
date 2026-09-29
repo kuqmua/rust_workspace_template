@@ -23,7 +23,17 @@ pub(crate) async fn fetch_system_settings_read(
         Some(field) if field.as_ref() == constants_str::UPDATED_AT => {
             frontend_contract::input_kind::InputKind::DateTime
         }
-        Some(_) => frontend_contract::input_kind::InputKind::Text,
+        Some(field)
+            if server_admin_contract::admin_data_table::AdminDataTable::SystemSettings
+                .spec()
+                .columns()
+                .get()
+                .split(',')
+                .any(|column| column == field.as_ref()) =>
+        {
+            frontend_contract::input_kind::InputKind::Text
+        }
+        Some(_) => return Err(crate::admin_table_load_error::AdminTableLoadError::Query),
     };
     let where_many = server_admin_contract::admin_where_many::AdminWhereMany::try_from_filter(
         &filter_query,

@@ -97,48 +97,72 @@ where
                 }
             })
     })?;
-    runtime_routes_ref.iter().try_for_each(|route| {
-        let method = route.method().as_ref().to_ascii_uppercase();
-        let path = route.path().as_ref().to_owned();
-        let Some(operation_id) = documented.get(&(method.clone(), path.clone())) else {
-            return Err(
-                crate::open_api_validation_error::OpenApiValidationError::RuntimeRouteMissing(
-                    crate::open_api_contract_text::OpenApiContractText::try_from(method).map_err(
-                        crate::open_api_validation_error::OpenApiValidationError::TextTooLong,
-                    )?,
-                    crate::open_api_contract_text::OpenApiContractText::try_from(path).map_err(
-                        crate::open_api_validation_error::OpenApiValidationError::TextTooLong,
-                    )?,
-                ),
-            );
-        };
-        if operation_id == route.openapi_operation_id().as_ref() {
-            Ok(())
-        } else {
-            Err(
-                crate::open_api_validation_error::OpenApiValidationError::OperationIdMismatch(
-                    crate::open_api_contract_text::OpenApiContractText::try_from(method).map_err(
-                        crate::open_api_validation_error::OpenApiValidationError::TextTooLong,
-                    )?,
-                    crate::open_api_contract_text::OpenApiContractText::try_from(path).map_err(
-                        crate::open_api_validation_error::OpenApiValidationError::TextTooLong,
-                    )?,
-                    crate::open_api_contract_text::OpenApiContractText::try_from(
-                        route.openapi_operation_id().as_ref().to_owned(),
-                    )
-                    .map_err(
-                        crate::open_api_validation_error::OpenApiValidationError::TextTooLong,
-                    )?,
-                    crate::open_api_contract_text::OpenApiContractText::try_from(
-                        operation_id.clone(),
-                    )
-                    .map_err(
-                        crate::open_api_validation_error::OpenApiValidationError::TextTooLong,
-                    )?,
-                ),
-            )
-        }
-    })?;
+    runtime_routes_ref
+        .iter()
+        .enumerate()
+        .try_for_each(|(index, route)| {
+            let method = route.method().as_ref().to_ascii_uppercase();
+            let path = route.path().as_ref().to_owned();
+            if runtime_routes_ref.iter().take(index).any(|previous| {
+                previous.method().as_ref().eq_ignore_ascii_case(&method)
+                    && previous.path().as_ref() == path
+            }) {
+                return Err(
+                    crate::open_api_validation_error::OpenApiValidationError::DuplicateOperation(
+                        crate::open_api_contract_text::OpenApiContractText::try_from(method)
+                            .map_err(
+                            crate::open_api_validation_error::OpenApiValidationError::TextTooLong,
+                        )?,
+                        crate::open_api_contract_text::OpenApiContractText::try_from(path)
+                            .map_err(
+                            crate::open_api_validation_error::OpenApiValidationError::TextTooLong,
+                        )?,
+                    ),
+                );
+            }
+            let Some(operation_id) = documented.get(&(method.clone(), path.clone())) else {
+                return Err(
+                    crate::open_api_validation_error::OpenApiValidationError::RuntimeRouteMissing(
+                        crate::open_api_contract_text::OpenApiContractText::try_from(method)
+                            .map_err(
+                            crate::open_api_validation_error::OpenApiValidationError::TextTooLong,
+                        )?,
+                        crate::open_api_contract_text::OpenApiContractText::try_from(path)
+                            .map_err(
+                            crate::open_api_validation_error::OpenApiValidationError::TextTooLong,
+                        )?,
+                    ),
+                );
+            };
+            if operation_id == route.openapi_operation_id().as_ref() {
+                Ok(())
+            } else {
+                Err(
+                    crate::open_api_validation_error::OpenApiValidationError::OperationIdMismatch(
+                        crate::open_api_contract_text::OpenApiContractText::try_from(method)
+                            .map_err(
+                            crate::open_api_validation_error::OpenApiValidationError::TextTooLong,
+                        )?,
+                        crate::open_api_contract_text::OpenApiContractText::try_from(path)
+                            .map_err(
+                            crate::open_api_validation_error::OpenApiValidationError::TextTooLong,
+                        )?,
+                        crate::open_api_contract_text::OpenApiContractText::try_from(
+                            route.openapi_operation_id().as_ref().to_owned(),
+                        )
+                        .map_err(
+                            crate::open_api_validation_error::OpenApiValidationError::TextTooLong,
+                        )?,
+                        crate::open_api_contract_text::OpenApiContractText::try_from(
+                            operation_id.clone(),
+                        )
+                        .map_err(
+                            crate::open_api_validation_error::OpenApiValidationError::TextTooLong,
+                        )?,
+                    ),
+                )
+            }
+        })?;
     documented.into_iter().try_for_each(|((method, path), _)| {
         if runtime_routes_ref.iter().any(|route| {
             route

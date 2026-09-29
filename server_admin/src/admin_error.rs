@@ -26,6 +26,13 @@ pub(crate) enum AdminError {
     RateLimited,
     #[error("{message}", message = constants_str::ADMIN_DIAGNOSTIC_ADMINISTRATOR_REQUEST_VALIDATION_FAILED)]
     Validation,
+    #[error("{message}", message = constants_str::ADMIN_DIAGNOSTIC_ADMINISTRATOR_REQUEST_VALIDATION_FAILED)]
+    ValidationCollection(
+        #[source]
+        server_observability::observed_error::ObservedError<
+            server_admin_contract::admin_collection_error::AdminCollectionError,
+        >,
+    ),
     #[error("{message}: {0:?}", message = constants_str::ADMIN_DIAGNOSTIC_ADMINISTRATOR_API_DATABASE_OPERATION_FAILED)]
     Pg(
         #[source]

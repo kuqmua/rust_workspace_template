@@ -22,12 +22,6 @@ pub(super) fn should_write_string_into_file(
                     if offset == string_cnt_ref.len() {
                         return Ok(crate::should_write_string::ShouldWriteString::from(false));
                     }
-                    crate::validate_existing_file_text::validate_existing_file_text(
-                        written_file_path_ref,
-                        crate::generated_file_maximum_bytes::GeneratedFileMaximumBytes::from(
-                            string_cnt_ref.len(),
-                        ),
-                    )?;
                     return Ok(crate::should_write_string::ShouldWriteString::from(true));
                 }
                 let end = offset.checked_add(read_len).ok_or_else(|| {
@@ -36,24 +30,12 @@ pub(super) fn should_write_string_into_file(
                     )
                 })?;
                 let Some(new_chunk) = string_cnt_ref.as_bytes().get(offset..end) else {
-                    crate::validate_existing_file_text::validate_existing_file_text(
-                        written_file_path_ref,
-                        crate::generated_file_maximum_bytes::GeneratedFileMaximumBytes::from(
-                            string_cnt_ref.len(),
-                        ),
-                    )?;
                     return Ok(crate::should_write_string::ShouldWriteString::from(true));
                 };
                 let Some(old_chunk_read) = old_chunk.get(..read_len) else {
                     return Err(std::io::Error::other(constants_str::F83D470A_GENERATED_FILE_COMPARISON_READ_LENGTH_EXCEEDS_BUFFER));
                 };
                 if old_chunk_read != new_chunk {
-                    crate::validate_existing_file_text::validate_existing_file_text(
-                        written_file_path_ref,
-                        crate::generated_file_maximum_bytes::GeneratedFileMaximumBytes::from(
-                            string_cnt_ref.len(),
-                        ),
-                    )?;
                     return Ok(crate::should_write_string::ShouldWriteString::from(true));
                 }
                 offset = end;

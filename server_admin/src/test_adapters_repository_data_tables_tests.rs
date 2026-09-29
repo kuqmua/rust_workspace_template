@@ -30,6 +30,180 @@ fn filter_query(
     )
 }
 
+#[test]
+fn test_generic_table_sql_uses_search_and_whitelisted_sort() {
+    let query = serde_json::json!({
+        (stringify!(search)): constants_str::ADMIN,
+        (stringify!(sort)): constants_str::LOGIN,
+        (stringify!(direction)): server_admin_contract::admin_sort_direction::AdminSortDirection::Descending,
+    });
+    assert!(
+        serde_json::from_value::<server_admin_contract::admin_table_query::AdminTableQuery>(query)
+            .is_ok_and(|admin_table_query| {
+                crate::data_table_query_sql::data_table_query_sql(
+                    server_admin_contract::admin_data_table::AdminDataTable::Users,
+                    &admin_table_query,
+                    None,
+                    pg_crud_common::query_part_increment::QueryPartIncrement::from(
+                        constants_u64::ZERO,
+                    ),
+                )
+                .is_ok_and(|(count_sql, data_sql)| {
+                    let expected_order = [
+                        constants_str::LOGIN,
+                        constants_str::SERVER_ADMIN_DATA_SORT_DESC,
+                        constants_str::SERVER_ADMIN_DATA_SORT_TIE_SEPARATOR,
+                        constants_str::SERVER_ADMIN_DATA_SORT_DESC,
+                    ]
+                    .concat();
+                    count_sql
+                        .as_ref()
+                        .contains(constants_str::SERVER_ADMIN_DATA_SEARCH_MATCH_PREFIX)
+                        && count_sql.as_ref().contains(constants_str::DOLLAR_1_ALT)
+                        && data_sql.as_ref().contains(expected_order.as_str())
+                        && data_sql
+                            .as_ref()
+                            .contains(constants_str::SERVER_ADMIN_FILTER_LIMIT_PREFIX)
+                        && data_sql.as_ref().ends_with(constants_str::DOLLAR_3)
+                })
+            })
+    );
+}
+
+#[test]
+fn test_generic_table_sql_keeps_default_order_for_every_catalog_table() {
+    assert!(
+        server_admin_contract::admin_data_table::AdminDataTable::PG_ORDER
+            .into_iter()
+            .all(|table| {
+                crate::data_table_query_sql::data_table_query_sql(
+                    table,
+                    &server_admin_contract::admin_table_query::AdminTableQuery::default(),
+                    None,
+                    pg_crud_common::query_part_increment::QueryPartIncrement::from(
+                        constants_u64::ZERO,
+                    ),
+                )
+                .is_ok_and(|(count_sql, data_sql)| {
+                    count_sql.as_ref().ends_with(table.as_str().get())
+                        && data_sql.as_ref().contains(table.spec().order().get())
+                        && data_sql
+                            .as_ref()
+                            .ends_with(constants_str::SERVER_ADMIN_FILTER_LIMIT_SEPARATOR)
+                })
+            })
+    );
+}
+
+#[test]
+fn test_generic_table_sql_searches_every_catalog_table() {
+    let query = serde_json::json!({ (stringify!(search)): constants_str::ADMIN });
+    assert!(
+        serde_json::from_value::<server_admin_contract::admin_table_query::AdminTableQuery>(query)
+            .is_ok_and(|admin_table_query| {
+                server_admin_contract::admin_data_table::AdminDataTable::PG_ORDER
+                    .into_iter()
+                    .all(|table| {
+                        crate::data_table_query_sql::data_table_query_sql(
+                            table,
+                            &admin_table_query,
+                            None,
+                            pg_crud_common::query_part_increment::QueryPartIncrement::from(
+                                constants_u64::ZERO,
+                            ),
+                        )
+                        .is_ok_and(|(count_sql, data_sql)| {
+                            count_sql
+                                .as_ref()
+                                .contains(constants_str::SERVER_ADMIN_DATA_SEARCH_MATCH_PREFIX)
+                                && data_sql.as_ref().contains(
+                                    table
+                                        .spec()
+                                        .columns()
+                                        .get()
+                                        .split(',')
+                                        .next()
+                                        .unwrap_or_default(),
+                                )
+                                && data_sql.as_ref().ends_with(constants_str::DOLLAR_3)
+                        })
+                    })
+            })
+    );
+}
+
+#[test]
+fn test_generic_table_sql_keeps_filter_placeholders_before_search() {
+    let filtered = filter_query(
+        constants_str::LOGIN,
+        frontend_contract::filter_operation::FilterOperation::Eq,
+        Some(constants_str::ADMIN),
+        None,
+    );
+    let filter = crate::data_filter::data_filter(
+        server_admin_contract::admin_data_table::AdminDataTable::Users,
+        filtered.filter(),
+    );
+    assert!(filter.is_ok_and(|filter| {
+        filter.is_some_and(|filter| {
+            let mut increment =
+                pg_crud_common::query_part_increment::QueryPartIncrement::from(constants_u64::ZERO);
+            filter.query_part(&mut increment).is_ok_and(|fragment| {
+                let query = serde_json::json!({
+                    (stringify!(search)): constants_str::ADMIN,
+                });
+                serde_json::from_value::<server_admin_contract::admin_table_query::AdminTableQuery>(
+                    query,
+                )
+                .is_ok_and(|admin_table_query| {
+                    crate::data_table_query_sql::data_table_query_sql(
+                        server_admin_contract::admin_data_table::AdminDataTable::Users,
+                        &admin_table_query,
+                        Some(&fragment),
+                        increment,
+                    )
+                    .is_ok_and(|(count_sql, data_sql)| {
+                        increment.get() == 1u64
+                            && count_sql.as_ref().contains(fragment.as_ref())
+                            && count_sql.as_ref().contains(constants_str::AND)
+                            && count_sql.as_ref().contains(constants_str::DOLLAR_2)
+                            && data_sql
+                                .as_ref()
+                                .contains(constants_str::SERVER_ADMIN_FILTER_LIMIT_PREFIX)
+                            && data_sql.as_ref().ends_with('4')
+                    })
+                })
+            })
+        })
+    }));
+}
+
+#[test]
+fn test_generic_table_sql_rejects_unknown_sort_column() {
+    let query = serde_json::json!({
+        (stringify!(sort)): constants_str::VALUE_2BD806C9,
+    });
+    assert!(
+        serde_json::from_value::<server_admin_contract::admin_table_query::AdminTableQuery>(query)
+            .is_ok_and(|admin_table_query| {
+                crate::data_table_query_sql::data_table_query_sql(
+                    server_admin_contract::admin_data_table::AdminDataTable::Users,
+                    &admin_table_query,
+                    None,
+                    pg_crud_common::query_part_increment::QueryPartIncrement::from(
+                        constants_u64::ZERO,
+                    ),
+                )
+                .is_err_and(|error| {
+                    matches!(
+                        error,
+                        crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue
+                    )
+                })
+            })
+    );
+}
+
 fn filter_test_value(
     field_name: &str,
     input_kind: frontend_contract::input_kind::InputKind,

@@ -19,7 +19,8 @@ pub(crate) fn AdminSettingsView(
     authenticated_admin: server_admin_contract::authenticated_admin::AuthenticatedAdmin,
     admin_settings_view: server_admin_contract::admin_settings_view::AdminSettingsView,
 ) -> impl leptos::prelude::IntoView {
-    let save = |admin_settings_form_signals: crate::admin_settings_form_signals::AdminSettingsFormSignals,| {
+    let validation_failed = leptos::prelude::RwSignal::new(false);
+    let save = move |admin_settings_form_signals: crate::admin_settings_form_signals::AdminSettingsFormSignals,| {
     let default_route = admin_settings_form_signals
         .get(server_admin_contract::admin_setting::AdminSetting::DefaultRoute);
     let main_logo = admin_settings_form_signals
@@ -109,6 +110,7 @@ pub(crate) fn AdminSettingsView(
         Ok(path),
     ) = values
     {
+        leptos::prelude::Set::set(&validation_failed, false);
         crate::reload_after::reload_after(
             crate::admin_mutation_method::AdminMutationMethod::Patch,
             path,
@@ -124,10 +126,12 @@ pub(crate) fn AdminSettingsView(
                 request_clear,
             ),
         );
+    } else {
+        leptos::prelude::Set::set(&validation_failed, true);
     }
     };
 
-    let reset = || {
+    let reset = move || {
         let clear = server_admin_contract::admin_optional_settings::AdminOptionalSettings::try_from(
             server_admin_contract::admin_optional_setting::AdminOptionalSetting::ALL.to_vec(),
         );
@@ -148,6 +152,7 @@ pub(crate) fn AdminSettingsView(
         if let (Ok(request_default_route), Ok(request_site_name), Ok(request_clear), Ok(path)) =
             values
         {
+            leptos::prelude::Set::set(&validation_failed, false);
             crate::reload_after::reload_after(
             crate::admin_mutation_method::AdminMutationMethod::Patch,
             path,
@@ -163,6 +168,8 @@ pub(crate) fn AdminSettingsView(
                 request_clear,
             ),
         );
+        } else {
+            leptos::prelude::Set::set(&validation_failed, true);
         }
     };
 
@@ -179,6 +186,9 @@ pub(crate) fn AdminSettingsView(
             save(signals);
         }>
             {crate::admin_setting_inputs::admin_setting_inputs(signals, crate::admin_setting_disabled::AdminSettingDisabled::from(!can_update))}
+            {move || leptos::prelude::Get::get(&validation_failed).then(|| leptos::view! {
+                <singlestage::FieldError>{constants_str::ADMIN_UI_CHECK_SETTINGS_VALUES}</singlestage::FieldError>
+            })}
             <div class="settings-actions">
                 <crate::admin_button::AdminButton bool=!can_update>{constants_str::ADMIN_BUTTON_SAVE_SETTINGS}</crate::admin_button::AdminButton>
                 <crate::admin_alert_dialog::AdminAlertDialog string=String::from(constants_str::ADMIN_UI_RESET_SETTINGS) title=constants_str::ADMIN_UI_RESET_SETTINGS description=constants_str::ADMIN_UI_ALL_ADMINISTRATOR_SETTINGS_WILL_RETURN_TO_THE_TEMPLATE_DEFAULTS trigger=constants_str::ADMIN_BUTTON_RESET_TO_TEMPLATE_DEFAULTS confirm=constants_str::ADMIN_BUTTON_RESET_SETTINGS bool=!can_update callback=leptos::prelude::Callback::new(move |()| { reset(); }) />

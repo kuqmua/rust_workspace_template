@@ -37,8 +37,15 @@ impl syn::parse::Parse for TypedRouteArgs {
         let mut response = None;
         let mut success_status = None;
         let mut transport = None;
+        let mut seen = std::collections::HashSet::new();
         while !parse_stream.is_empty() {
             let name: syn::Ident = parse_stream.parse()?;
+            if seen.contains(&name) {
+                return Err(syn::Error::new_spanned(
+                    name,
+                    constants_str::DUPLICATE_FRONTEND_CONTRACT_FIELD,
+                ));
+            }
             let _equals: syn::Token![=] = parse_stream.parse()?;
             match &name {
                 value if value == constants_str::TYPED_ROUTE_FIELD_AUTHENTICATION => {
@@ -123,6 +130,7 @@ impl syn::parse::Parse for TypedRouteArgs {
                     ));
                 }
             }
+            let _inserted = seen.insert(name);
             if !parse_stream.is_empty() {
                 let _comma: syn::Token![,] = parse_stream.parse()?;
             }

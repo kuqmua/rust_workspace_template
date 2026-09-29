@@ -1,6 +1,11 @@
 #[proc_macro]
 pub fn location(token_stream: proc_macro::TokenStream) -> proc_macro::TokenStream {
-    drop(token_stream);
+    if !token_stream.is_empty() {
+        return quote::quote! {
+            compile_error!(stringify!(location! accepts no arguments));
+        }
+        .into();
+    }
     quote::quote! {
         location_lib::location::Location::new(
             file!(),

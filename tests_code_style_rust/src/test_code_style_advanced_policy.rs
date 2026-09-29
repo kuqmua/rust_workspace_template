@@ -1409,11 +1409,7 @@ fn test_ignored_map_err_bindings_match_reviewed_inventory() {
         ),
         (
             constants_str::CODE_STYLE_SERVER_ADMIN_OWNER,
-            (94usize, constants_str::CODE_STYLE_MAP_ERR_OWNER_REASON),
-        ),
-        (
-            constants_str::CODE_STYLE_SERVER_ADMIN_CONTRACT_OWNER,
-            (1usize, constants_str::CODE_STYLE_MAP_ERR_OWNER_REASON),
+            (90usize, constants_str::CODE_STYLE_MAP_ERR_OWNER_REASON),
         ),
         (
             constants_str::CODE_STYLE_SERVER_ADMIN_CORE_OWNER,
@@ -1739,13 +1735,6 @@ fn test_usize_max_usage_matches_reviewed_inventory() {
             (
                 constants_usize::ONE,
                 constants_str::COMPILE_TIME_CATALOG_MAX_REASON,
-            ),
-        ),
-        (
-            constants_str::RUN_COMMANDS_PATH,
-            (
-                constants_usize::ONE,
-                constants_str::FAILURE_SENTINEL_MAX_REASON,
             ),
         ),
         (

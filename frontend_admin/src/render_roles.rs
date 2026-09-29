@@ -20,6 +20,7 @@ pub fn render_roles(
             let id = item.id().to_string();
             let name = item.name().to_string();
             let system = item.is_system().to_string();
+            let can_update_role = can_update && !bool::from(item.is_system());
             let created_at = item.created_at().to_string();
             let updated_at = item.updated_at().to_string();
             leptos::view! {
@@ -29,7 +30,7 @@ pub fn render_roles(
                     <crate::table_cell::TableCell data_label="system">{system}</crate::table_cell::TableCell>
                     <crate::table_cell::TableCell data_label=constants_str::CREATED_AT>{created_at}</crate::table_cell::TableCell>
                     <crate::table_cell::TableCell data_label=constants_str::UPDATED_AT>{updated_at}</crate::table_cell::TableCell>
-                    <crate::table_cell::TableCell data_label=constants_str::ADMIN_UI_ACTIONS bool=true>{can_update.then(|| leptos::view! { <crate::admin_role_update_action::AdminRoleUpdateAction /> })}</crate::table_cell::TableCell>
+                    <crate::table_cell::TableCell data_label=constants_str::ADMIN_UI_ACTIONS bool=true>{can_update_role.then(|| leptos::view! { <crate::admin_role_update_action::AdminRoleUpdateAction /> })}</crate::table_cell::TableCell>
                 </crate::table_row::TableRow>
             }
         })

@@ -10,4 +10,6 @@
 pub enum SignedCursorError {
     #[error("{message}", message = constants_str::SIGNED_CURSOR_MUST_NOT_BE_EMPTY)]
     Empty,
+    #[error("{message}", message = constants_str::CURSOR_EXCEEDS_MAXIMUM_LENGTH)]
+    TooLong,
 }

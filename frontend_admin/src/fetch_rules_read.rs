@@ -44,7 +44,7 @@ pub(crate) async fn fetch_rules_read(
         Some(field) if field.as_ref() == constants_str::CREATED_AT => {
             frontend_contract::input_kind::InputKind::DateTime
         }
-        Some(_) => frontend_contract::input_kind::InputKind::Number,
+        Some(_) => return Err(crate::admin_table_load_error::AdminTableLoadError::Query),
     };
     let where_many = match server_admin_contract::admin_where_many::AdminWhereMany::try_from_filter(
         &filter_query,

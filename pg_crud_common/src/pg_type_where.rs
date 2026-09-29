@@ -45,7 +45,22 @@ impl<T: utoipa::PartialSchema> utoipa::__dev::ComposeSchema for PgTypeWhere<T> {
 }
 impl<T: utoipa::ToSchema> utoipa::ToSchema for PgTypeWhere<T> {
     fn name() -> std::borrow::Cow<'static, str> {
-        std::borrow::Cow::Borrowed(constants_str::PG_CRUD_PG_TYPE_WHERE_SCHEMA_NAME)
+        std::borrow::Cow::Owned(
+            bounded_types::utoipa_schema_type_name::UtoipaSchemaTypeName::for_type::<Self>()
+                .into_inner(),
+        )
+    }
+
+    fn schemas(
+        schemas: &mut Vec<(
+            String,
+            utoipa::openapi::RefOr<utoipa::openapi::schema::Schema>,
+        )>,
+    ) {
+        bounded_types::utoipa_schema_entries_mut::UtoipaSchemaEntriesMut::from(&mut *schemas)
+            .register_item_schema::<crate::not_empty_unique_vec::NotEmptyUniqueVec<T>>();
+        bounded_types::utoipa_schema_entries_mut::UtoipaSchemaEntriesMut::from(schemas)
+            .register_item_schema::<crate::operator::Operator>();
     }
 }
 impl<T: PartialEq + Clone> PgTypeWhere<T> {
@@ -325,10 +340,9 @@ impl<'query_lt, T: crate::pg_type_where_filter::PgTypeWhereFilter<'query_lt>>
             Ok::<(), crate::query_part_error::QueryPartError>(())
         })?;
         query_part.push(')');
-        Ok(
-            crate::query_part_fragment::QueryPartFragment::try_from(query_part)
-                .unwrap_or_else(crate::query_part_fragment::QueryPartFragment::from),
-        )
+        Ok(crate::query_part_fragment::QueryPartFragment::try_from(
+            query_part,
+        )?)
     }
 }
 impl<T: std::fmt::Debug + PartialEq + Clone + crate::all_enum_variants_array_default_some_one_element::AllEnumVariantsArrayDefaultSomeOneElement>

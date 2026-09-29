@@ -44,7 +44,10 @@ where
     T: std::fmt::Debug + PartialEq + Clone + utoipa::ToSchema,
 {
     fn name() -> std::borrow::Cow<'static, str> {
-        std::borrow::Cow::Borrowed(stringify!(SingleOrMultiple))
+        std::borrow::Cow::Owned(
+            bounded_types::utoipa_schema_type_name::UtoipaSchemaTypeName::for_type::<Self>()
+                .into_inner(),
+        )
     }
 
     fn schemas(
@@ -53,6 +56,27 @@ where
             utoipa::openapi::RefOr<utoipa::openapi::schema::Schema>,
         )>,
     ) {
-        T::schemas(vec);
+        bounded_types::utoipa_schema_entries_mut::UtoipaSchemaEntriesMut::from(vec)
+            .register_item_schema::<crate::not_empty_unique_vec::NotEmptyUniqueVec<T>>();
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn test_openapi_schema_registers_single_or_multiple_item() {
+        let mut schemas = Vec::new();
+        <crate::single_or_multiple::SingleOrMultiple<crate::pagination_base::PaginationBase> as utoipa::ToSchema>::schemas(
+            &mut schemas,
+        );
+        assert!(schemas.iter().any(|(name, _schema)| {
+            name == <crate::pagination_base::PaginationBase as utoipa::ToSchema>::name().as_ref()
+        }));
+        assert!(schemas.iter().any(|(name, _schema)| {
+            name == <crate::not_empty_unique_vec::NotEmptyUniqueVec<
+                crate::pagination_base::PaginationBase,
+            > as utoipa::ToSchema>::name()
+            .as_ref()
+        }));
     }
 }

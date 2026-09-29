@@ -10,6 +10,10 @@ pub enum AdminIdentifierFilterError {
     InvalidValue,
     #[error("administrator identifier filter end value is invalid")]
     InvalidEnd,
+    #[error("administrator timestamp filter value is invalid: {0}")]
+    InvalidTimestampValue(frontend_contract::form_value_error::FormValueError),
+    #[error("administrator timestamp filter end value is invalid: {0}")]
+    InvalidTimestampEnd(frontend_contract::form_value_error::FormValueError),
     #[error("administrator identifier filter has an unexpected end value")]
     UnexpectedEnd,
     #[error("administrator identifier filter could not be represented")]

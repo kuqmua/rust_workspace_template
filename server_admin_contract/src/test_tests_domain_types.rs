@@ -185,7 +185,7 @@ fn test_administrator_collections_enforce_item_limit_for_construction_and_deseri
     ];
     assert!(matches!(
         crate::admin_role_ids::AdminRoleIds::try_from(oversized),
-        Err(crate::admin_collection_error::AdminCollectionError::TooLong)
+        Err(crate::admin_collection_error::AdminCollectionError::TooLong(_))
     ));
     let oversized_json_values = vec![
         constants_i64::ONE;
@@ -266,6 +266,160 @@ fn test_route_contract_keeps_custom_action_policy_and_path_together() {
                 crate::admin_rule::AdminRule::UsersUpdate.as_str().get(),
             )
         )
+    );
+}
+#[test]
+fn test_data_table_routes_require_their_catalog_rules() {
+    assert!(
+        crate::admin_data_table::AdminDataTable::PG_ORDER
+            .into_iter()
+            .all(|table| {
+                table.api_route().contract().authentication()
+                    == crate::admin_rule_requirement::admin_rule_requirement(table.rule())
+            })
+    );
+}
+
+#[test]
+fn test_data_table_query_accepts_default_and_search_only_payloads() {
+    let empty = serde_json::from_value::<crate::admin_data_table_query::AdminDataTableQuery>(
+        serde_json::json!({}),
+    );
+    assert!(empty.is_ok_and(|query| query.page().search().as_ref().is_empty()));
+    let search = serde_json::from_value::<crate::admin_data_table_query::AdminDataTableQuery>(
+        serde_json::json!({ (stringify!(search)): constants_str::ADMIN }),
+    );
+    assert!(search.is_ok_and(|query| query.page().search().as_ref() == constants_str::ADMIN));
+}
+
+#[test]
+fn test_admin_collection_error_retains_bounded_length_source() {
+    let maximum = crate::admin_collection_max_items::ADMIN_COLLECTION_MAX_ITEMS;
+    let result = crate::admin_bounded_vec::AdminBoundedVec::try_from(vec![0u8; maximum + 1]);
+    assert!(result.is_err());
+    if let Err(error) = result {
+        assert!(std::error::Error::source(&error).is_some());
+        assert!(matches!(
+            error,
+            crate::admin_collection_error::AdminCollectionError::TooLong(
+                bounded_types::bounded_value_error::BoundedValueError::AboveMax {
+                    actual,
+                    max
+                }
+            ) if actual.get() == maximum + 1 && max.get() == maximum
+        ));
+    }
+}
+
+#[test]
+fn test_data_filter_rejects_value_shape_inconsistent_with_operation() {
+    let invalid = serde_json::json!({
+        (stringify!(operation)): frontend_contract::filter_operation::FilterOperation::Between,
+        (stringify!(value_shape)): frontend_contract::filter_value_shape::FilterValueShape::Scalar,
+    });
+    assert!(
+        serde_json::from_value::<crate::admin_data_filter::AdminDataFilter>(invalid)
+            .is_err_and(|error| error.is_data())
+    );
+    let valid = crate::admin_data_filter::AdminDataFilter::from(
+        frontend_contract::filter_operation::FilterOperation::Between,
+    );
+    assert!(
+        serde_json::to_value(valid)
+            .and_then(serde_json::from_value::<crate::admin_data_filter::AdminDataFilter>)
+            .is_ok_and(|parsed| {
+                parsed.value_shape()
+                    == frontend_contract::filter_value_shape::FilterValueShape::Range
+            })
+    );
+}
+
+#[test]
+fn test_data_filters_enforce_declared_schema_limit() {
+    let filter = crate::admin_data_filter::AdminDataFilter::from(
+        frontend_contract::filter_operation::FilterOperation::Eq,
+    );
+    assert!(
+        crate::admin_data_filters::AdminDataFilters::try_from(vec![filter; 100usize])
+            .is_ok_and(|filters| filters.as_slice().len() == 100usize)
+    );
+    let filters = vec![filter; 101usize];
+    assert!(matches!(
+        crate::admin_data_filters::AdminDataFilters::try_from(filters.clone()),
+        Err(crate::admin_collection_error::AdminCollectionError::TooLong(
+            bounded_types::bounded_value_error::BoundedValueError::AboveMax { actual, max }
+        )) if actual.get() == 101usize && max.get() == 100usize
+    ));
+    assert!(
+        serde_json::to_value(filters)
+            .and_then(serde_json::from_value::<crate::admin_data_filters::AdminDataFilters>)
+            .err()
+            .is_some()
+    );
+}
+
+#[test]
+fn test_administrator_url_settings_reject_invalid_ports() {
+    let invalid = constants_str::HTTPS_ADMIN_EXAMPLE_COM_WITH_INVALID_PORT.to_owned();
+    assert!(
+        crate::admin_main_logo::AdminMainLogo::try_from(invalid.clone())
+            .err()
+            .is_some()
+    );
+    assert!(
+        crate::admin_support_url::AdminSupportUrl::try_from(invalid)
+            .err()
+            .is_some()
+    );
+}
+
+#[test]
+fn test_page_pagination_accepts_nonnegative_signed_integer_deserializers() {
+    let limit = <crate::admin_page_limit::AdminPageLimit as serde::Deserialize>::deserialize(
+        serde::de::value::I64Deserializer::<serde::de::value::Error>::new(7i64),
+    );
+    let offset = <crate::admin_page_offset::AdminPageOffset as serde::Deserialize>::deserialize(
+        serde::de::value::I64Deserializer::<serde::de::value::Error>::new(7i64),
+    );
+    assert!(limit.is_ok_and(|value| u16::from(value) == 7u16));
+    assert!(offset.is_ok_and(|value| u32::from(value) == 7u32));
+    assert!(
+        <crate::admin_page_limit::AdminPageLimit as serde::Deserialize>::deserialize(
+            serde::de::value::I128Deserializer::<serde::de::value::Error>::new(7i128),
+        )
+        .is_ok_and(|value| u16::from(value) == 7u16)
+    );
+    assert!(
+        <crate::admin_page_offset::AdminPageOffset as serde::Deserialize>::deserialize(
+            serde::de::value::U128Deserializer::<serde::de::value::Error>::new(7u128),
+        )
+        .is_ok_and(|value| u32::from(value) == 7u32)
+    );
+    assert!(
+        <crate::admin_page_limit::AdminPageLimit as serde::Deserialize>::deserialize(
+            serde::de::value::I64Deserializer::<serde::de::value::Error>::new(-1i64),
+        )
+        .is_err_and(|error| !error.to_string().is_empty())
+    );
+    assert!(
+        <crate::admin_page_limit::AdminPageLimit as serde::Deserialize>::deserialize(
+            serde::de::value::I64Deserializer::<serde::de::value::Error>::new(101i64),
+        )
+        .is_err_and(|error| !error.to_string().is_empty())
+    );
+    assert!(
+        <crate::admin_page_offset::AdminPageOffset as serde::Deserialize>::deserialize(
+            serde::de::value::I64Deserializer::<serde::de::value::Error>::new(-1i64),
+        )
+        .is_err_and(|error| !error.to_string().is_empty())
+    );
+    assert!(
+        <crate::admin_page_offset::AdminPageOffset as serde::Deserialize>::deserialize(
+            serde::de::value::I64Deserializer::<serde::de::value::Error>::new(
+                i64::from(u32::MAX) + 1i64,
+            ),
+        )
+        .is_err_and(|error| !error.to_string().is_empty())
     );
 }
 #[test]
@@ -628,6 +782,7 @@ fn test_data_tables_round_trip_and_require_read_rules() {
             crate::admin_page::AdminPage::Users,
             crate::admin_page::AdminPage::Roles,
             crate::admin_page::AdminPage::Rules,
+            crate::admin_page::AdminPage::Sessions,
         ]
     );
     assert_eq!(
@@ -962,7 +1117,7 @@ fn test_create_roles_request_validates_members_and_collection_bound() {
     );
     assert!(matches!(
         crate::admin_create_roles_request::AdminCreateRolesRequest::try_from(vec![role; 10_001]),
-        Err(crate::admin_collection_error::AdminCollectionError::TooLong)
+        Err(crate::admin_collection_error::AdminCollectionError::TooLong(_))
     ));
 }
 
@@ -1014,7 +1169,7 @@ fn test_create_users_request_validates_members_and_collection_bound() {
                 user;
                 10_001
             ]),
-            Err(crate::admin_collection_error::AdminCollectionError::TooLong)
+            Err(crate::admin_collection_error::AdminCollectionError::TooLong(_))
         ));
     }
 }
@@ -1199,7 +1354,7 @@ fn test_role_update_batch_validates_ids_names_and_collection_bound() {
     );
     assert!(matches!(
         crate::admin_role_updates::AdminRoleUpdates::try_from(vec![update; 10_001]),
-        Err(crate::admin_collection_error::AdminCollectionError::TooLong)
+        Err(crate::admin_collection_error::AdminCollectionError::TooLong(_))
     ));
     let request = serde_json::from_value::<
         crate::admin_update_roles_request::AdminUpdateRolesRequest,

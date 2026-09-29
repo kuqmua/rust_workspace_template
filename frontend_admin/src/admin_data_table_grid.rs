@@ -18,6 +18,10 @@ pub(crate) fn admin_data_table_grid(
     active_value: Option<&server_admin_contract::admin_filter_value::AdminFilterValue>,
     active_end: Option<&server_admin_contract::admin_filter_value::AdminFilterValue>,
     admin_page_limit: server_admin_contract::admin_page_limit::AdminPageLimit,
+    #[cfg(target_arch = "wasm32")] admin_csr_query: Option<&crate::admin_csr_query::AdminCsrQuery>,
+    #[cfg(not(target_arch = "wasm32"))] admin_table_query: Option<
+        &server_admin_contract::admin_table_query::AdminTableQuery,
+    >,
     admin_data_table_frontend_path: &server_admin_contract::admin_data_table_frontend_path::AdminDataTableFrontendPath,
     is_sessions: bool,
     can_update: bool,
@@ -44,6 +48,10 @@ pub(crate) fn admin_data_table_grid(
                     active_value,
                     active_end,
                     admin_page_limit,
+                    #[cfg(target_arch = "wasm32")]
+                    admin_csr_query,
+                    #[cfg(not(target_arch = "wasm32"))]
+                    admin_table_query,
                 )
             });
             leptos::view! {
@@ -155,6 +163,9 @@ pub(crate) fn admin_data_table_grid(
                     }))
                 } else if admin_data_table_view.table()
                     == server_admin_contract::admin_data_table::AdminDataTable::Roles
+                    && value_for_column(constants_str::IS_SYSTEM).is_some_and(|value| {
+                        value.as_ref().as_str() == constants_str::FALSE
+                    })
                 {
                     Some(leptos::prelude::IntoAny::into_any(leptos::view! {
                         <crate::admin_role_update_action::AdminRoleUpdateAction />

@@ -51,7 +51,6 @@ proc_macro_newtype_deref_inner = { workspace = true }
 proc_macro_newtype_deref_mut_target = { workspace = true }
 proc_macro_newtype_deref_target = { workspace = true }
 proc_macro_newtype_display = { workspace = true }
-proc_macro_newtype_default_inner = { workspace = true }
 proc_macro_newtype_debug_display = { workspace = true }
 proc_macro_newtype_from_getter = { workspace = true }
 proc_macro_newtype_into_inner = { workspace = true }

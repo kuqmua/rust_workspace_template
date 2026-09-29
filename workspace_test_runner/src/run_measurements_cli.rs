@@ -191,11 +191,14 @@ pub(crate) fn run_measurements_cli() -> crate::runner_cli_outcome::RunnerCliOutc
                 |output| output.to_string().len(),
             )
             .unwrap_or_else(|error| {
-                std::panic::panic_any(constants_str::PANIC_D6399CBF.replacen(
-                    constants_str::PANIC_PLACEHOLDER_81240055,
-                    error.to_string().as_str(),
-                    1usize,
-                ))
+                macro_helpers::tool_console_stream::ToolConsoleStream::write_or_exit(
+                    macro_helpers::tool_console_stream::ToolConsoleStream::StandardError,
+                    macro_helpers::std_fmt_arguments::StdFmtArguments::from(format_args!(
+                        "{error}{}",
+                        constants_str::NEWLINE
+                    )),
+                );
+                std::process::exit(1)
             });
         macro_helpers::tool_console_stream::ToolConsoleStream::write_or_exit(
             macro_helpers::tool_console_stream::ToolConsoleStream::StandardOutput,
@@ -449,11 +452,14 @@ pub(crate) fn run_measurements_cli() -> crate::runner_cli_outcome::RunnerCliOutc
                 |output| output.to_string().len(),
             )
             .unwrap_or_else(|error| {
-                std::panic::panic_any(constants_str::PANIC_A19C725E.replacen(
-                    constants_str::PANIC_PLACEHOLDER_81240055,
-                    error.to_string().as_str(),
-                    1usize,
-                ))
+                macro_helpers::tool_console_stream::ToolConsoleStream::write_or_exit(
+                    macro_helpers::tool_console_stream::ToolConsoleStream::StandardError,
+                    macro_helpers::std_fmt_arguments::StdFmtArguments::from(format_args!(
+                        "{error}{}",
+                        constants_str::NEWLINE
+                    )),
+                );
+                std::process::exit(1)
             });
         macro_helpers::tool_console_stream::ToolConsoleStream::write_or_exit(
             macro_helpers::tool_console_stream::ToolConsoleStream::StandardOutput,
@@ -530,7 +536,16 @@ pub(crate) fn run_measurements_cli() -> crate::runner_cli_outcome::RunnerCliOutc
                 generate_where_filters_src::emit_generate_where_filters::emit_generate_where_filters,
                 |output| output.to_string().len(),
             )
-                        .unwrap_or_else(|error| std::panic::panic_any(constants_str::PANIC_8F246DC1.replacen(constants_str::PANIC_PLACEHOLDER_81240055, error.to_string().as_str(), 1usize)));
+                        .unwrap_or_else(|error| {
+                            macro_helpers::tool_console_stream::ToolConsoleStream::write_or_exit(
+                                macro_helpers::tool_console_stream::ToolConsoleStream::StandardError,
+                                macro_helpers::std_fmt_arguments::StdFmtArguments::from(format_args!(
+                                    "{error}{}",
+                                    constants_str::NEWLINE
+                                )),
+                            );
+                            std::process::exit(1)
+                        });
         macro_helpers::tool_console_stream::ToolConsoleStream::write_or_exit(
             macro_helpers::tool_console_stream::ToolConsoleStream::StandardOutput,
             macro_helpers::std_fmt_arguments::StdFmtArguments::from(format_args!(

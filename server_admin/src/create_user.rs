@@ -20,11 +20,7 @@ pub(crate) async fn create_user(
         server_admin_contract::admin_create_users_request::AdminCreateUsersRequest::try_from(vec![
             request,
         ])
-        .map_err(
-            |server_admin_contract::admin_collection_error::AdminCollectionError::TooLong| {
-                crate::admin_error::AdminError::Validation
-            },
-        );
+        .map_err(crate::admin_error::AdminError::validation_collection);
     crate::action_result_impl::action_result_impl(
         match requests {
             Ok(requests) => crate::user_mutations_create::user_mutations_create(auth, requests)

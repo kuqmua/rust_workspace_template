@@ -266,6 +266,8 @@ const _: fn(&str) -> Result<(), bounded_types::bounded_string_error::BoundedStri
 
 #[cfg(test)]
 mod test_admin_ssr_html;
+#[cfg(test)]
+mod test_render_document;
 
 #[cfg(target_arch = "wasm32")]
 mod admin_branding_details;

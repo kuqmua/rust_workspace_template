@@ -29,7 +29,9 @@ pub(super) fn measure_memusage_command(
         macro_helpers::tool_env_key_ref::ToolEnvKeyRef::from(constants_str::MEMUSAGE_PROG_NAME),
         macro_helpers::tool_env_value_ref::ToolEnvValueRef::from(memusage_prog_name_ref.get()),
     )
-    .output();
+    .bounded_output(macro_helpers::tool_output_limit::ToolOutputLimit::from(
+        crate::domain_types::COMMAND_CAPTURE_BYTES_PER_STREAM,
+    ));
     match command_output {
         Ok(output) if output.status.success() => {
             {

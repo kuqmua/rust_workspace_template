@@ -19,12 +19,10 @@ where
             p,
             crate::string_file_content_ref::StringFileContentRef::from(string_cnt.as_str()),
         )?;
-    if bool::from(wr_outcome.is_changed())
-        && matches!(
-            format_with_cargofmt,
-            crate::format_with_cargofmt::FormatWithCargofmt::True
-        )
-    {
+    if matches!(
+        format_with_cargofmt,
+        crate::format_with_cargofmt::FormatWithCargofmt::True
+    ) {
         let path = wr_outcome.path();
         let mut command = crate::tool_command::ToolCommand::new(
             crate::tool_program_ref::ToolProgramRef::from(constants_str::RUSTFMT),

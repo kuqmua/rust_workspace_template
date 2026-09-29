@@ -73,6 +73,39 @@ mod tests {
     }
 
     #[test]
+    fn test_same_method_and_path_with_different_operation_ids_is_duplicate() {
+        let descriptor = |route_metadata: crate::route_metadata::RouteMetadata| {
+            crate::route_coverage_descriptor::RouteCoverageDescriptor::new(
+                route_metadata,
+                crate::route_access::RouteAccess::Public,
+                crate::route_mutation::RouteMutation::ReadOnly,
+                crate::route_coverage_evidence::RouteCoverageEvidence::new(
+                    crate::route_coverage_obligation::PUBLIC_READ_ROUTE_COVERAGE_OBLIGATIONS,
+                ),
+            )
+        };
+        let first = descriptor(route_coverage_metadata());
+        let second = descriptor(crate::route_metadata::RouteMetadata::new(
+            crate::route_method::RouteMethod::Post,
+            constants_str::ROUTE.into(),
+            constants_str::ROUTE.into(),
+        ));
+        assert!(matches!(
+            crate::validate_route_coverage::validate_route_coverage(&[first, second]),
+            Err(crate::route_coverage_error::RouteCoverageError::DuplicateRoute { .. })
+        ));
+        let different_method = descriptor(crate::route_metadata::RouteMetadata::new(
+            crate::route_method::RouteMethod::Get,
+            constants_str::ROUTE.into(),
+            constants_str::ROUTE.into(),
+        ));
+        assert_eq!(
+            crate::validate_route_coverage::validate_route_coverage(&[first, different_method]),
+            Ok(())
+        );
+    }
+
+    #[test]
     fn test_capabilities_require_matching_test_categories() {
         let capabilities = crate::route_test_capabilities::RouteTestCapabilities::new(
             crate::route_database_usage::RouteDatabaseUsage::Database,

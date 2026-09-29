@@ -11,7 +11,7 @@
     chars,
     serde,
     utoipa,
-    validator = |value: &String| value.strip_prefix("https://").is_some_and(|remainder| { let authority = remainder.split(['/', '?', '#']).next().unwrap_or_default(); !authority.is_empty() && !authority.contains('@') && !authority.starts_with('.') && !authority.ends_with('.') && authority.contains('.') }),
+    validator = |value: &String| text_policy::validate_https_url_text::validate_https_url_text(text_policy::https_url_text_ref::HttpsUrlTextRef::from(value.as_str())).is_ok(),
     description = "administrator support URL"
 )]
 pub struct AdminSupportUrl(

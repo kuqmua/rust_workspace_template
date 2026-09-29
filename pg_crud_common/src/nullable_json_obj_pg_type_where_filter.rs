@@ -68,8 +68,7 @@ where
                         location: proc_macro_location_bang::location!(),
                     });
                 }
-                Ok(crate::query_part_fragment::QueryPartFragment::try_from(query_part)
-                    .unwrap_or_else(crate::query_part_fragment::QueryPartFragment::from))
+                Ok(crate::query_part_fragment::QueryPartFragment::try_from(query_part)?)
             },
             |v| v.query_part(increment, sql_column_ref, add_operator),
         )

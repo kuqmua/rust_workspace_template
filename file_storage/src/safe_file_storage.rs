@@ -154,9 +154,7 @@ impl SafeFileStorage {
                     Err(cleanup) if cleanup.kind() == std::io::ErrorKind::NotFound => {
                         Err(operation_error)
                     }
-                    Err(cleanup) => Err(crate::file_storage_error::FileStorageError::Io(
-                        cleanup.into(),
-                    )),
+                    Err(cleanup) => Err(operation_error.with_failed_cleanup(cleanup.into())),
                 };
             }
             Ok(())
@@ -231,9 +229,7 @@ impl SafeFileStorage {
                     Err(cleanup) if cleanup.kind() == std::io::ErrorKind::NotFound => {
                         Err(write_error)
                     }
-                    Err(cleanup) => Err(crate::file_storage_error::FileStorageError::Io(
-                        cleanup.into(),
-                    )),
+                    Err(cleanup) => Err(write_error.with_failed_cleanup(cleanup.into())),
                 };
             }
             Ok(())
@@ -309,9 +305,7 @@ impl SafeFileStorage {
                     Err(cleanup) if cleanup.kind() == std::io::ErrorKind::NotFound => {
                         Err(rename_error)
                     }
-                    Err(cleanup) => Err(crate::file_storage_error::FileStorageError::Io(
-                        cleanup.into(),
-                    )),
+                    Err(cleanup) => Err(rename_error.with_failed_cleanup(cleanup.into())),
                 };
             }
             Ok(())

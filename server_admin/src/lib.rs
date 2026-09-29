@@ -212,6 +212,7 @@ pub mod data_role_rules_flt;
 pub mod data_roles_flt;
 pub mod data_rules_flt;
 pub mod data_system_settings_flt;
+pub mod data_table_query_sql;
 pub mod data_tables;
 pub mod data_tables_get;
 pub mod data_tables_list;

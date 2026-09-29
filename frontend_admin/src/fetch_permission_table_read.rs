@@ -26,25 +26,50 @@ pub(crate) async fn fetch_permission_table_read(
     } else {
         crate::admin_table_query::admin_table_query(admin_csr_query)?
     };
-    let where_many = if is_detail {
-        let filter_query =
-            crate::admin_identifier_filter_query::admin_identifier_filter_query(admin_csr_query)?;
-        server_admin_contract::admin_where_many::AdminWhereMany::try_from_identifier_filter(
-            &filter_query,
-        )
-        .map_err(|error| {
-            match server_admin_contract::admin_text::AdminText::try_from(error.to_string()) {
-                Ok(admin_text) => {
-                    crate::admin_table_load_error::AdminTableLoadError::QuerySource(admin_text)
-                }
-                Err(text_error) => {
-                    crate::admin_table_load_error::AdminTableLoadError::ReadText(text_error)
-                }
-            }
-        })?
-    } else {
-        None
+    let filter_query =
+        crate::admin_identifier_filter_query::admin_identifier_filter_query(admin_csr_query)?;
+    let input_kind = match filter_query.field() {
+        None => frontend_contract::input_kind::InputKind::Number,
+        Some(field) if field.as_ref() == constants_str::SQL_NAMES_ID => {
+            frontend_contract::input_kind::InputKind::Number
+        }
+        Some(field)
+            if field.as_ref() == constants_str::PERMISSION_ACTION_KEY
+                && matches!(
+                    admin_data_table,
+                    server_admin_contract::admin_data_table::AdminDataTable::PermissionActions
+                        | server_admin_contract::admin_data_table::AdminDataTable::PermissionResources
+                ) =>
+        {
+            frontend_contract::input_kind::InputKind::Text
+        }
+        Some(field)
+            if matches!(
+                admin_data_table,
+                server_admin_contract::admin_data_table::AdminDataTable::PermissionResourceActions
+            ) && matches!(
+                field.as_ref(),
+                constants_str::PERMISSION_ACTION_ID | constants_str::PERMISSION_RESOURCE_ID
+            ) =>
+        {
+            frontend_contract::input_kind::InputKind::Number
+        }
+        Some(_) => return Err(crate::admin_table_load_error::AdminTableLoadError::Query),
     };
+    let where_many = server_admin_contract::admin_where_many::AdminWhereMany::try_from_filter(
+        &filter_query,
+        input_kind,
+    )
+    .map_err(|error| {
+        match server_admin_contract::admin_text::AdminText::try_from(error.to_string()) {
+            Ok(admin_text) => {
+                crate::admin_table_load_error::AdminTableLoadError::QuerySource(admin_text)
+            }
+            Err(text_error) => {
+                crate::admin_table_load_error::AdminTableLoadError::ReadText(text_error)
+            }
+        }
+    })?;
     match admin_data_table {
         server_admin_contract::admin_data_table::AdminDataTable::PermissionActions => {
             let base_request = server_admin_contract::admin_permission_actions_read_request::AdminPermissionActionsReadRequest::try_from(&query)?;

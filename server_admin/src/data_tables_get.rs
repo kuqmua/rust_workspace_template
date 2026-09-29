@@ -16,47 +16,17 @@ pub(crate) async fn data_tables_get(
     let pool = crate::sqlx_admin_repository_pool_ref::SqlxAdminRepositoryPoolRef::from(
         admin_auth_request.get_state().as_ref().get_pool().as_ref(),
     );
+    let search = axum_admin_query.page().search().as_ref();
+    let search_pattern = server_admin_core::escape_admin_like_pattern::escape_admin_like_pattern(
+        server_admin_core::std_admin_str_ref::StdAdminStrRef::from(search),
+    )
+    .map_err(crate::admin_secret_text_error::AdminSecretTextError::from)
+    .map_err(crate::admin_error::AdminError::secret_text)?;
     let view = async {
-        let spec = admin_data_table.spec();
         let admin_generated_table =
             crate::admin_generated_table::AdminGeneratedTable::for_data_table(admin_data_table);
         let columns =
             crate::admin_data_columns::admin_data_columns(admin_data_table, admin_generated_table)?;
-        let (base_count_sql, base_sql) = (|| {
-            let base_spec = spec;
-            let table_name = admin_data_table.to_string();
-            let mut count = constants_str::SERVER_ADMIN_DATA_COUNT_PREFIX.to_owned();
-            count.push_str(table_name.as_str());
-            let mut data = base_spec.columns().get().split(',').enumerate().fold(
-                constants_str::SERVER_ADMIN_DATA_SELECT_ARRAY_PREFIX.to_owned(),
-                |mut sql, (index, column)| {
-                    if index > constants_usize::ZERO {
-                        sql.push_str(constants_str::TEXT_ALT_7);
-                    }
-                    sql.push_str(constants_str::SERVER_ADMIN_DATA_SELECT_COLUMN_PREFIX);
-                    sql.push_str(column);
-                    sql.push_str(constants_str::SERVER_ADMIN_DATA_SELECT_COLUMN_SUFFIX);
-                    sql
-                },
-            );
-            data.push_str(constants_str::SERVER_ADMIN_DATA_SELECT_FROM);
-            data.push_str(table_name.as_str());
-            data.push_str(constants_str::SERVER_ADMIN_FILTER_ORDER_BY_SEPARATOR);
-            data.push_str(base_spec.order().get());
-            data.push_str(constants_str::SERVER_ADMIN_FILTER_LIMIT_SEPARATOR);
-            Ok::<_, crate::admin_repository_error::AdminRepositoryError>((
-                server_admin_core::std_admin_string::StdAdminString::try_from(count).map_err(
-                    |_error| {
-                        crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue
-                    },
-                )?,
-                server_admin_core::std_admin_string::StdAdminString::try_from(data).map_err(
-                    |_error| {
-                        crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue
-                    },
-                )?,
-            ))
-        })()?;
         let filter = crate::data_filter::data_filter(admin_data_table, axum_admin_query.filter())?;
         let mut increment =
             pg_crud_common::query_part_increment::QueryPartIncrement::from(constants_u64::ZERO);
@@ -67,71 +37,11 @@ pub(crate) async fn data_tables_get(
             .map_err(|_error| {
                 crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue
             })?;
-        let (count_sql, sql) = fragment.as_ref().map_or_else(
-            || {
-                Ok::<_, crate::admin_repository_error::AdminRepositoryError>((
-                    server_admin_core::std_admin_string::StdAdminString::try_from(
-                        base_count_sql.as_ref().to_owned(),
-                    )
-                    .map_err(|_error| {
-                        crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue
-                    })?,
-                    server_admin_core::std_admin_string::StdAdminString::try_from(
-                        base_sql.as_ref().to_owned(),
-                    )
-                    .map_err(|_error| {
-                        crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue
-                    })?,
-                ))
-            },
-            |filter_fragment| {
-                let count_sql = server_admin_core::std_admin_str_ref::StdAdminStrRef::from(
-                    base_count_sql.as_ref().as_str(),
-                );
-                let data_sql = server_admin_core::std_admin_str_ref::StdAdminStrRef::from(
-                    base_sql.as_ref().as_str(),
-                );
-                (|| {
-                    let mut filtered_count = count_sql.get().to_owned();
-                    filtered_count.push(' ');
-                    filtered_count.push_str(filter_fragment.as_ref());
-                    let (data_prefix, ordered_suffix) = data_sql
-                        .get()
-                        .split_once(constants_str::SERVER_ADMIN_FILTER_ORDER_BY_SEPARATOR)
-                        .ok_or(
-                            crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue,
-                        )?;
-                    let order = ordered_suffix
-                        .strip_suffix(constants_str::SERVER_ADMIN_FILTER_LIMIT_SEPARATOR)
-                        .ok_or(
-                            crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue,
-                        )?;
-                    let limit_index = increment.get().saturating_add(1u64);
-                    let offset_index = limit_index.saturating_add(1u64);
-                    let mut filtered_data = data_prefix.to_owned();
-                    filtered_data.push(' ');
-                    filtered_data.push_str(filter_fragment.as_ref());
-                    filtered_data.push_str(constants_str::SERVER_ADMIN_FILTER_ORDER_BY_SEPARATOR);
-                    filtered_data.push_str(order);
-                    filtered_data.push_str(constants_str::SERVER_ADMIN_FILTER_LIMIT_PREFIX);
-                    filtered_data.push_str(limit_index.to_string().as_str());
-                    filtered_data.push_str(constants_str::SERVER_ADMIN_FILTER_OFFSET_PREFIX);
-                    filtered_data.push_str(offset_index.to_string().as_str());
-                    let count = server_admin_core::std_admin_string::StdAdminString::try_from(
-                        filtered_count,
-                    )
-                    .map_err(|_error| {
-                        crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue
-                    })?;
-                    let data = server_admin_core::std_admin_string::StdAdminString::try_from(
-                        filtered_data,
-                    )
-                    .map_err(|_error| {
-                        crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue
-                    })?;
-                    Ok((count, data))
-                })()
-            },
+        let (count_sql, sql) = crate::data_table_query_sql::data_table_query_sql(
+            admin_data_table,
+            axum_admin_query.page(),
+            fragment.as_ref(),
+            increment,
         )?;
         let unbound_count_query = sqlx::query(sqlx::AssertSqlSafe(count_sql.as_ref().as_str()));
         let bound_count_query = filter
@@ -151,6 +61,11 @@ pub(crate) async fn data_tables_get(
                 || sqlx::query(sqlx::AssertSqlSafe(count_sql.as_ref().as_str())),
                 pg_crud_common::sqlx_postgres_query::SqlxPostgresQuery::into_inner,
             );
+        let bound_count_query = if search.is_empty() {
+            bound_count_query
+        } else {
+            bound_count_query.bind(search_pattern.as_ref().as_str())
+        };
         let count_row = bound_count_query
             .fetch_one(*pool)
             .await
@@ -173,7 +88,13 @@ pub(crate) async fn data_tables_get(
             .map_or_else(
                 || sqlx::query(sqlx::AssertSqlSafe(sql.as_ref().as_str())),
                 pg_crud_common::sqlx_postgres_query::SqlxPostgresQuery::into_inner,
-            )
+            );
+        let bound_data_query = if search.is_empty() {
+            bound_data_query
+        } else {
+            bound_data_query.bind(search_pattern.as_ref().as_str())
+        };
+        let bound_data_query = bound_data_query
             .bind(i64::from(u16::from(axum_admin_query.page().limit())))
             .bind(i64::from(u32::from(axum_admin_query.page().offset())));
         let rows = bound_data_query

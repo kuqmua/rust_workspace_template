@@ -37,4 +37,23 @@ mod tests {
         });
         assert!(all_rejected_without_credentials);
     }
+    #[test]
+    fn test_rejects_query_parameters_that_override_checked_database_target() {
+        let base = constants_str::POSTGRES_USER_SECRET_LOCALHOST_TEST;
+        let overrides = [
+            constants_str::DATABASE_QUERY_HOST_OVERRIDE,
+            constants_str::DATABASE_QUERY_HOSTADDR_OVERRIDE,
+            constants_str::DATABASE_QUERY_DBNAME_OVERRIDE,
+            constants_str::DATABASE_QUERY_ENCODED_HOST_OVERRIDE,
+        ];
+        assert!(overrides.into_iter().all(|suffix| {
+            let url = format!("{base}{suffix}");
+            matches!(
+                crate::validate_test_database_url::validate_test_database_url(
+                    crate::url_ref::UrlRef::from(url.as_str()),
+                ),
+                Err(crate::url_error::UrlError::Malformed)
+            )
+        }));
+    }
 }

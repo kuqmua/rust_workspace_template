@@ -9,5 +9,12 @@
     proc_macro_newtype_display::Display,
     proc_macro_newtype_into_inner::IntoInner,
 )]
-#[bounded_string(max = 128, chars, serde, utoipa, description = "administrator rule")]
+#[bounded_string(
+    max = 128,
+    chars,
+    serde,
+    utoipa,
+    error,
+    description = "administrator rule"
+)]
 pub struct AdminRuleValue(bounded_types::bounded_string::BoundedString<0usize, 128, true>);

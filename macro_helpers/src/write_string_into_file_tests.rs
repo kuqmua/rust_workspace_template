@@ -163,6 +163,23 @@ mod tests {
         cleanup(path.as_path());
     }
     #[test]
+    fn test_should_write_string_into_file_accepts_invalid_utf8_of_same_length()
+    -> std::io::Result<()> {
+        let path = txt_path(constants_str::MACRO_HELPERS_SHOULD_WRITE_SAME_LEN_DIFF);
+        std::fs::write(&path, [u8::MAX; 3])?;
+        let should_write =
+            crate::should_write_string_into_file_tests::should_write_string_into_file(
+                path_ref(&path),
+                file_content(constants_str::XYZ),
+            )?;
+        cleanup(path.as_path());
+        if bool::from(should_write) {
+            Ok(())
+        } else {
+            Err(std::io::ErrorKind::InvalidData.into())
+        }
+    }
+    #[test]
     fn test_should_write_string_into_file_returns_true_for_diff_len_content() {
         let path = txt_path(constants_str::MACRO_HELPERS_SHOULD_WRITE_DIFF_LEN);
         std::fs::write(&path, constants_str::ABCD_ALT).expect(constants_str::DIAGNOSTIC_E2D99B73);
@@ -287,6 +304,27 @@ mod tests {
         assert_eq!(outcome.path().as_ref(), path.as_ref());
         assert!(!bool::from(outcome.is_changed()));
         cleanup(path.as_ref());
+    }
+    #[test]
+    fn test_try_write_string_into_file_replaces_invalid_utf8_of_same_length() -> std::io::Result<()>
+    {
+        let base = crate::test_path::test_path(crate::test_path_stem::TestPathStem::new(
+            constants_str::MACRO_HELPERS_WRITE_FILE_OUTCOME_CHANGED,
+        ));
+        let path = crate::rs_file_path_tests::rs_file_path(&base);
+        std::fs::write(&path, [u8::MAX; 3])?;
+        let outcome =
+            crate::try_write_string_into_file_with_outcome::try_write_string_into_file_with_outcome(
+                &base,
+                file_content(constants_str::ABC_ALT_3),
+            )
+            ?;
+        crate::assert_file_content::assert_file_content(
+            crate::std_assert_file_path::StdAssertFilePath::new(path.as_ref()),
+            crate::expected_file_content::ExpectedFileContent::new(constants_str::ABC_ALT_3),
+        );
+        assert_outcome_and_cleanup(path.as_ref(), &outcome, true);
+        Ok(())
     }
     #[test]
     fn test_write_path_outcome_into_path_returns_owned_path() {

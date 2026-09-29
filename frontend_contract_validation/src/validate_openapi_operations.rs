@@ -32,7 +32,7 @@ where
             crate::open_api_security_expectation::OpenApiSecurityExpectation::Required(name) => effective_security
                 .and_then(serde_json::Value::as_array)
                 .is_some_and(|requirements| {
-                    requirements.iter().any(|requirement| {
+                    !requirements.is_empty() && requirements.iter().all(|requirement| {
                         requirement
                             .as_object()
                             .is_some_and(|object| object.contains_key(name.as_ref()))

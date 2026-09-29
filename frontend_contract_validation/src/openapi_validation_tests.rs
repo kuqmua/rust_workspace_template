@@ -364,13 +364,40 @@ mod tests {
     }
 
     #[test]
+    fn test_duplicate_runtime_route_is_rejected() {
+        let document = serde_json::json!({
+            constants_str::PATHS: { constants_str::TEST_OPENAPI_PATH: {
+                constants_str::GET_LOWERCASE: {
+                    constants_str::OPERATION_ID_JSON: constants_str::TEST_OPENAPI_OPERATION_ID
+                }
+            } },
+            constants_str::COMPONENTS: { constants_str::SCHEMAS: {} }
+        });
+        let route = frontend_contract::route_metadata::RouteMetadata::new(
+            frontend_contract::route_method::RouteMethod::Get,
+            constants_str::TEST_OPENAPI_OPERATION_ID.into(),
+            constants_str::TEST_OPENAPI_PATH.into(),
+        );
+        assert!(matches!(
+            crate::validate_openapi_contract::validate_openapi_contract(
+                &document,
+                [route, route].as_slice().into()
+            ),
+            Err(crate::open_api_validation_error::OpenApiValidationError::DuplicateOperation(_, _))
+        ));
+    }
+
+    #[test]
     fn test_non_object_path_item_is_rejected() {
         let document = serde_json::json!({
             constants_str::PATHS: { constants_str::TEST_OPENAPI_PATH: serde_json::Value::Null },
             constants_str::COMPONENTS: { constants_str::SCHEMAS: {} }
         });
         assert!(matches!(
-            crate::validate_openapi_contract::validate_openapi_contract(&document, (&[][..]).into()),
+            crate::validate_openapi_contract::validate_openapi_contract(
+                &document,
+                (&[][..]).into()
+            ),
             Err(crate::open_api_validation_error::OpenApiValidationError::InvalidPathItem(_))
         ));
     }
@@ -510,6 +537,21 @@ mod tests {
                 &[required_expectation]
             ),
             Ok(())
+        ));
+        assert!(document.as_object_mut().is_some_and(|object| {
+            object
+                .insert(
+                    constants_str::SECURITY.to_owned(),
+                    serde_json::json!([{ constants_str::NAME: [] }, {}]),
+                )
+                .is_some()
+        }));
+        assert!(matches!(
+            crate::validate_openapi_operations::validate_openapi_operations(
+                &document,
+                &[required_expectation]
+            ),
+            Err(crate::open_api_operation_validation_error::OpenApiOperationValidationError::SecurityMismatch)
         ));
         assert!(
             document

@@ -8,7 +8,11 @@ pub fn validate_route_coverage(
             if descriptors
                 .iter()
                 .take(index)
-                .any(|previous| previous.get_metadata() == descriptor.get_metadata())
+                .any(|previous| {
+                    previous.get_metadata().route_method()
+                        == descriptor.get_metadata().route_method()
+                        && previous.get_metadata().path() == descriptor.get_metadata().path()
+                })
             {
                 return Err(crate::route_coverage_error::RouteCoverageError::DuplicateRoute {
                     metadata: *descriptor.get_metadata(),

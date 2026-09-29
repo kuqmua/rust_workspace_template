@@ -4,6 +4,7 @@
 enum AdminObservedErrorCode {
     AuthenticationSecretText,
     CsrfSecretText,
+    Collection,
     Database,
     Header,
     PasswordHash,
@@ -27,6 +28,7 @@ impl crate::admin_error::AdminError {
             AdminObservedErrorCode::CsrfSecretText => {
                 constants_str::ADMIN_OBSERVED_ERROR_CSRF_SECRET_TEXT
             }
+            AdminObservedErrorCode::Collection => constants_str::ADMIN_OBSERVED_ERROR_COLLECTION,
             AdminObservedErrorCode::Database => constants_str::ADMIN_OBSERVED_ERROR_DATABASE,
             AdminObservedErrorCode::Header => constants_str::ADMIN_OBSERVED_ERROR_RESPONSE_HEADER,
             AdminObservedErrorCode::PasswordHash => {
@@ -62,7 +64,10 @@ impl crate::admin_error::AdminError {
             Self::RateLimited => {
                 frontend_contract::route_error_status::RouteErrorStatus::RateLimited
             }
-            Self::Validation | Self::PasswordText(_) | Self::SecretText(_) => {
+            Self::Validation
+            | Self::ValidationCollection(_)
+            | Self::PasswordText(_)
+            | Self::SecretText(_) => {
                 frontend_contract::route_error_status::RouteErrorStatus::Validation
             }
             Self::Pg(_) | Self::PasswordHash(_) | Self::Session(_) | Self::Header(_) => {
@@ -89,6 +94,16 @@ impl crate::admin_error::AdminError {
         } else {
             Self::Validation
         }
+    }
+
+    #[track_caller]
+    pub(crate) fn validation_collection(
+        admin_collection_error: server_admin_contract::admin_collection_error::AdminCollectionError,
+    ) -> Self {
+        Self::ValidationCollection(Self::observed(
+            admin_collection_error,
+            AdminObservedErrorCode::Collection,
+        ))
     }
 
     #[track_caller]
@@ -204,6 +219,11 @@ impl axum::response::IntoResponse for crate::admin_error::AdminError {
                 ),
             ),
             Self::PasswordText(source) => Some(
+                server_runtime_http::http_error_diagnostic::HttpErrorDiagnostic::from_observed(
+                    error_type, source,
+                ),
+            ),
+            Self::ValidationCollection(source) => Some(
                 server_runtime_http::http_error_diagnostic::HttpErrorDiagnostic::from_observed(
                     error_type, source,
                 ),

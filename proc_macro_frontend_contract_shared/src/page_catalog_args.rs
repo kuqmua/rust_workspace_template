@@ -10,8 +10,15 @@ impl syn::parse::Parse for PageCatalogArgs {
         let mut inventory = None;
         let mut path_ref = None;
         let mut spec = None;
+        let mut seen = std::collections::HashSet::new();
         while !parse_stream.is_empty() {
             let name = parse_stream.parse::<syn::Ident>()?;
+            if seen.contains(&name) {
+                return Err(syn::Error::new_spanned(
+                    name,
+                    constants_str::DUPLICATE_FRONTEND_CONTRACT_FIELD,
+                ));
+            }
             let _equals = parse_stream.parse::<syn::Token![=]>()?;
             if name == constants_str::PAGE_CATALOG_INVENTORY {
                 inventory = Some(crate::contract_syn_ident::ContractSynIdent::from(
@@ -31,6 +38,7 @@ impl syn::parse::Parse for PageCatalogArgs {
                     constants_str::PAGE_CATALOG_REQUIRES_ATTRIBUTE,
                 ));
             }
+            let _inserted = seen.insert(name);
             if !parse_stream.is_empty() {
                 let _comma = parse_stream.parse::<syn::Token![,]>()?;
             }

@@ -154,6 +154,16 @@ impl<T: utoipa::ToSchema, const MIN: usize, const MAX: usize> utoipa::ToSchema
         name.push_str(MAX.to_string().as_str());
         std::borrow::Cow::Owned(name)
     }
+
+    fn schemas(
+        schemas: &mut Vec<(
+            String,
+            utoipa::openapi::RefOr<utoipa::openapi::schema::Schema>,
+        )>,
+    ) {
+        crate::utoipa_schema_entries_mut::UtoipaSchemaEntriesMut::from(schemas)
+            .register_item_schema::<T>();
+    }
 }
 
 #[cfg(test)]
@@ -172,5 +182,16 @@ mod tests {
     fn test_max_iterator_uses_bounded_size_hint_capacity() {
         let value = super::BoundedVec::from_max_iter([1u8, 2u8, 3u8]);
         assert!(value.allocation_capacity() >= 3usize);
+    }
+
+    #[test]
+    fn test_openapi_schema_registers_bounded_vector_item() {
+        let mut schemas = Vec::new();
+        <crate::bounded_vec::BoundedVec<u8, 0, 1> as utoipa::ToSchema>::schemas(&mut schemas);
+        assert!(
+            schemas
+                .iter()
+                .any(|(name, _schema)| { name == <u8 as utoipa::ToSchema>::name().as_ref() })
+        );
     }
 }

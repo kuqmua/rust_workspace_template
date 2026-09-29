@@ -278,12 +278,17 @@ fn test_generated_admin_table_consumers_use_the_shared_catalog() {
 )]
 fn test_administrator_data_table_queries_come_from_the_typed_spec() {
     super::test_code_style_snapshot::with_codebase_snapshot(|snapshot| {
+        let sql_owner = constants_str::VALUE_8E182ED1.replace(
+            stringify!(data_tables_get),
+            stringify!(data_table_query_sql),
+        );
         let repository = snapshot
             .rs_files()
             .iter()
             .filter(|file| {
                 let path = file.path().as_ref().to_string_lossy();
                 path.ends_with(constants_str::VALUE_8E182ED1)
+                    || path.ends_with(sql_owner.as_str())
                     || crate::code_style::declared_child_matches(
                         path.as_ref(),
                         constants_str::VALUE_8E182ED1,

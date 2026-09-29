@@ -1,6 +1,49 @@
 #[cfg(test)]
 mod tests {
     #[test]
+    fn test_collection_validation_retains_bounded_source_and_validation_status() {
+        let bounded_value_error = bounded_types::bounded_value_error::BoundedValueError::AboveMax {
+            actual: bounded_types::bounded_len::BoundedLen::from(10_001),
+            max: bounded_types::bounded_len::BoundedLen::from(10_000),
+        };
+        let admin_error = crate::admin_error::AdminError::validation_collection(
+            server_admin_contract::admin_collection_error::AdminCollectionError::TooLong(
+                bounded_value_error,
+            ),
+        );
+        assert!(std::error::Error::source(&admin_error).is_some());
+        assert!(matches!(
+            admin_error,
+            crate::admin_error::AdminError::ValidationCollection(_)
+        ));
+        if let crate::admin_error::AdminError::ValidationCollection(observed) = &admin_error {
+            assert!(std::error::Error::source(observed.source_ref()).is_some());
+        }
+        assert_eq!(
+            axum::response::IntoResponse::into_response(admin_error).status(),
+            http::StatusCode::UNPROCESSABLE_ENTITY
+        );
+    }
+
+    #[test]
+    fn test_collection_validation_source_survives_typed_operation_conversion() {
+        let admin_error = crate::admin_error::AdminError::validation_collection(
+            server_admin_contract::admin_collection_error::AdminCollectionError::TooLong(
+                bounded_types::bounded_value_error::BoundedValueError::AboveMax {
+                    actual: bounded_types::bounded_len::BoundedLen::from(10_001),
+                    max: bounded_types::bounded_len::BoundedLen::from(10_000),
+                },
+            ),
+        );
+        let operation_error = crate::application_auth::AdminCreateRolesError::from(admin_error);
+        assert!(std::error::Error::source(&operation_error).is_some());
+        assert_eq!(
+            axum::response::IntoResponse::into_response(operation_error).status(),
+            http::StatusCode::UNPROCESSABLE_ENTITY
+        );
+    }
+
+    #[test]
     fn test_json_response_wraps_serializable_values() {
         let response =
             crate::json_response::json_response(server_admin_contract::admin_no_body::AdminNoBody);

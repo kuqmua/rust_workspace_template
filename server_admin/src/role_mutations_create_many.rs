@@ -44,11 +44,7 @@ pub(crate) async fn role_mutations_create_many(
         },
     ).await?;
     let role_ids = server_admin_contract::admin_role_ids::AdminRoleIds::try_from(identifiers)
-        .map_err(
-            |server_admin_contract::admin_collection_error::AdminCollectionError::TooLong| {
-                crate::admin_error::AdminError::Validation
-            },
-        )?;
+        .map_err(crate::admin_error::AdminError::validation_collection)?;
     sqlx::Transaction::from(completed_transaction)
         .commit()
         .await

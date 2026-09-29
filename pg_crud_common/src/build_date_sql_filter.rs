@@ -74,9 +74,11 @@ pub fn build_date_sql_filter(
                 |_error| crate::date_sql_filter_error::DateSqlFilterError::FragmentTooLong,
             )?;
             values.push(**value.get_inner());
-            bind_index = bind_index
-                .checked_add(1u32)
-                .ok_or(crate::date_sql_filter_error::DateSqlFilterError::BindIndexOverflow)?;
+            if values.len() < active_count {
+                bind_index = bind_index
+                    .checked_add(1u32)
+                    .ok_or(crate::date_sql_filter_error::DateSqlFilterError::BindIndexOverflow)?;
+            }
             Ok(())
         })?;
     let query_fragment = crate::query_part_fragment::QueryPartFragment::try_from(fragment)
@@ -111,5 +113,41 @@ mod tests {
         let (fragment, values) = filter.into_parts();
         assert_eq!(fragment.into_inner(), constants_str::TEST_DATE_SQL_FILTER);
         assert_eq!(values.as_ref(), &[from, to]);
+    }
+
+    #[test]
+    fn test_final_date_bound_accepts_last_representable_bind_index() {
+        let from = chrono::DateTime::<chrono::Utc>::UNIX_EPOCH;
+        assert!(matches!(
+            crate::build_date_sql_filter::build_date_sql_filter(
+                None,
+                crate::date_filter_bounds::DateFilterBounds::new(
+                    Some((&from).into()),
+                    None,
+                    None,
+                    None,
+                ),
+                std::num::NonZeroU32::MAX.into(),
+            ),
+            Ok(filter) if filter.get_values().as_ref() == [from]
+        ));
+    }
+
+    #[test]
+    fn test_additional_date_bound_rejects_bind_index_overflow() {
+        let from = chrono::DateTime::<chrono::Utc>::UNIX_EPOCH;
+        assert_eq!(
+            crate::build_date_sql_filter::build_date_sql_filter(
+                None,
+                crate::date_filter_bounds::DateFilterBounds::new(
+                    Some((&from).into()),
+                    Some((&from).into()),
+                    None,
+                    None,
+                ),
+                std::num::NonZeroU32::MAX.into(),
+            ),
+            Err(crate::date_sql_filter_error::DateSqlFilterError::BindIndexOverflow)
+        );
     }
 }

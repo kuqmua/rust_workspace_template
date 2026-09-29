@@ -251,11 +251,21 @@ pub mod test_domain_types_db_schema_conformance_tests;
 #[cfg(test)]
 pub mod test_domain_types_query_pagination_tests;
 #[cfg(test)]
+pub mod test_explicit_value_openapi_contract;
+#[cfg(test)]
 pub mod test_explicit_value_serializes_with_full_field_name;
+#[cfg(test)]
+pub mod test_generic_utoipa_schema_names;
+#[cfg(test)]
+pub mod test_generic_utoipa_schema_registration;
+#[cfg(test)]
+pub mod test_not_empty_unique_vec_default;
 #[cfg(test)]
 pub mod test_order_serializes_with_full_variant_names;
 #[cfg(test)]
 pub mod test_pg_type_where_serializes_and_deserializes_with_full_field_name;
+#[cfg(test)]
+pub mod test_query_part_fragment_overflow;
 #[cfg(test)]
 pub mod test_tests_domain_types_operator_to_query_part;
 pub mod transaction_failure;

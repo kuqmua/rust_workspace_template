@@ -81,7 +81,7 @@ pub enum AdminPage {
     #[page_catalog_page(
         capability = crate::admin_page_capability::AdminPageCapability::Always,
         metadata = crate::admin_page_metadata::AdminPageMetadata::new(
-            crate::admin_page_client_mode::AdminPageClientMode::Csr,
+            crate::admin_page_client_mode::AdminPageClientMode::CsrTableQuery,
             Some(crate::admin_page_navigation::AdminPageNavigation::Sessions),
         ),
         path = crate::admin_frontend_path::AdminFrontendPath::Sessions,

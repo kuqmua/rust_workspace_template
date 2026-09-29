@@ -24,9 +24,40 @@ pub(crate) fn admin_column_filter(
     active_value: Option<&server_admin_contract::admin_filter_value::AdminFilterValue>,
     active_end: Option<&server_admin_contract::admin_filter_value::AdminFilterValue>,
     admin_page_limit: server_admin_contract::admin_page_limit::AdminPageLimit,
+    #[cfg(target_arch = "wasm32")] admin_csr_query: Option<&crate::admin_csr_query::AdminCsrQuery>,
+    #[cfg(not(target_arch = "wasm32"))] admin_table_query: Option<
+        &server_admin_contract::admin_table_query::AdminTableQuery,
+    >,
 ) -> impl leptos::prelude::IntoView + use<> {
     let action = admin_data_table_frontend_path.to_string();
     let limit = u16::from(admin_page_limit).to_string();
+    let clear_limit = limit.clone();
+    #[cfg(target_arch = "wasm32")]
+    let table_query_inputs = || {
+        admin_csr_query.map(|query| {
+            crate::admin_table_query_hidden_inputs::admin_table_query_hidden_inputs(
+                query.search(),
+                query.sort(),
+                &crate::admin_table_query_direction::AdminTableQueryDirection::Csr(
+                    query.direction().cloned(),
+                ),
+            )
+        })
+    };
+    #[cfg(not(target_arch = "wasm32"))]
+    let table_query_inputs = || {
+        admin_table_query.map(|query| {
+            crate::admin_table_query_hidden_inputs::admin_table_query_hidden_inputs(
+                query.search(),
+                query.sort(),
+                &crate::admin_table_query_direction::AdminTableQueryDirection::Ssr(
+                    query.direction(),
+                ),
+            )
+        })
+    };
+    let apply_query_inputs = table_query_inputs();
+    let clear_query_inputs = table_query_inputs();
     let active_field = active_field.map(ToString::to_string);
     let active_operation = active_operation.map(ToString::to_string);
     let clear_href = admin_data_table_frontend_path.to_string();
@@ -88,6 +119,7 @@ pub(crate) fn admin_column_filter(
                     <div class="table-filter-content">
                         <div class="table-filter-header"><h2>{filter_title}</h2></div>
                         <form class="table-filter-form" method="get" action=action>
+                            {apply_query_inputs}
                             <input type="hidden" name="filter_field" value=filter_field />
                             <input type="hidden" name="limit" value=limit />
                             <input type="hidden" name="offset" value="0" />
@@ -133,7 +165,13 @@ pub(crate) fn admin_column_filter(
                                 <crate::admin_button::AdminButton admin_button_variant=crate::admin_button_variant::AdminButtonVariant::Secondary admin_button_kind=crate::admin_button_kind::AdminButtonKind::Button popover_target=close_filter_id popover_target_action="hide">{constants_str::ADMIN_BUTTON_CLOSE}</crate::admin_button::AdminButton>
                             </div>
                         </form>
-                        {is_active_field.then(|| leptos::view! { <a class="table-filter-clear" href=clear_href>{constants_str::ADMIN_UI_CLEAR}</a> })}
+                        {is_active_field.then(|| leptos::view! {
+                            <form method="get" action=clear_href>
+                                {clear_query_inputs}
+                                <input type="hidden" name="limit" value=clear_limit />
+                                <button class="table-filter-clear" type="submit">{constants_str::ADMIN_UI_CLEAR}</button>
+                            </form>
+                        })}
                     </div>
                 </div>
             </singlestage::Popover>

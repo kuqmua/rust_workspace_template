@@ -12,5 +12,5 @@ pub enum AdminCollectionError {
         "{}",
         constants_str::ADMINISTRATOR_COLLECTION_EXCEEDS_MAXIMUM_ITEM_COUNT
     )]
-    TooLong,
+    TooLong(#[source] bounded_types::bounded_value_error::BoundedValueError),
 }

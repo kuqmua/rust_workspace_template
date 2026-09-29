@@ -94,6 +94,7 @@ pub mod page_transport_tests;
 pub mod parameterized_route;
 pub mod parameterized_route_path;
 pub mod parameterized_route_path_try_from_string_error;
+pub mod parse_timestamp_filter_wire_json;
 pub mod primary_key_kind;
 #[cfg(test)]
 pub mod problem_tests;

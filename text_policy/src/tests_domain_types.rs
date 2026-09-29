@@ -1,6 +1,46 @@
 #[cfg(test)]
 mod tests {
     #[test]
+    fn test_https_url_validator_checks_authority_and_port() {
+        let mut valid_port = constants_str::HTTPS_ADMIN_EXAMPLE_COM.to_owned();
+        valid_port.push(':');
+        valid_port.push_str(u16::MAX.to_string().as_str());
+        let mut invalid_port = constants_str::HTTPS_ADMIN_EXAMPLE_COM.to_owned();
+        invalid_port.push(':');
+        invalid_port.push_str((u32::from(u16::MAX) + 1).to_string().as_str());
+        let mut whitespace = constants_str::HTTPS_ADMIN_EXAMPLE_COM.to_owned();
+        whitespace.push(' ');
+        let values = [
+            (constants_str::HTTPS_ADMIN_EXAMPLE_COM, Ok(())),
+            (constants_str::HTTPS_ADMIN_EXAMPLE_COM_PATH, Ok(())),
+            (
+                constants_str::HTTPS_ADMIN_EXAMPLE_COM_WITH_INVALID_PORT,
+                Err(crate::https_url_text_error::HttpsUrlTextError::Invalid),
+            ),
+            (
+                constants_str::HTTPS_ADMIN_EXAMPLE_COM_WITH_USERINFO,
+                Err(crate::https_url_text_error::HttpsUrlTextError::Invalid),
+            ),
+        ];
+        assert!(values.into_iter().all(|(value, expected)| {
+            crate::validate_https_url_text::validate_https_url_text(
+                crate::https_url_text_ref::HttpsUrlTextRef::from(value),
+            ) == expected
+        }));
+        assert_eq!(
+            crate::validate_https_url_text::validate_https_url_text(
+                crate::https_url_text_ref::HttpsUrlTextRef::from(valid_port.as_str()),
+            ),
+            Ok(())
+        );
+        assert!([invalid_port, whitespace].iter().all(|value| {
+            crate::validate_https_url_text::validate_https_url_text(
+                crate::https_url_text_ref::HttpsUrlTextRef::from(value.as_str()),
+            ) == Err(crate::https_url_text_error::HttpsUrlTextError::Invalid)
+        }));
+    }
+
+    #[test]
     fn test_required_bounded_text_rejects_nul() {
         assert_eq!(
             crate::required_nul_free_bounded_text::RequiredNulFreeBoundedText::try_from(

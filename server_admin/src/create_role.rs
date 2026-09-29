@@ -14,7 +14,7 @@ pub(crate) async fn create_role(
         async {
             let request = server_admin_contract::admin_create_roles_request::AdminCreateRolesRequest::try_from(vec![
                 server_admin_contract::admin_create_role_request::AdminCreateRoleRequest::new(axum_admin_form.get_name().clone()),
-            ]).map_err(|server_admin_contract::admin_collection_error::AdminCollectionError::TooLong| crate::admin_error::AdminError::Validation)?;
+            ]).map_err(crate::admin_error::AdminError::validation_collection)?;
             crate::role_mutations_create_many::role_mutations_create_many(auth, request).await.map(|identifiers| {
                 crate::axum_admin_response::AxumAdminResponse::from(axum::response::IntoResponse::into_response(axum::Json(identifiers)))
             })

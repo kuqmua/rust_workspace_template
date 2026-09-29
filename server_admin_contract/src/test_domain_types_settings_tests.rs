@@ -17,6 +17,30 @@ fn test_empty_settings_update_has_no_fields_and_is_valid() {
 }
 
 #[test]
+fn test_optional_settings_enforce_six_clearable_fields() {
+    let all = crate::admin_optional_setting::AdminOptionalSetting::ALL.to_vec();
+    assert!(
+        crate::admin_optional_settings::AdminOptionalSettings::try_from(all)
+            .is_ok_and(|settings| settings.as_ref().len() == 6usize)
+    );
+    let seven = vec![crate::admin_optional_setting::AdminOptionalSetting::MainLogo; 7usize];
+    assert!(matches!(
+        crate::admin_optional_settings::AdminOptionalSettings::try_from(seven.clone()),
+        Err(crate::admin_collection_error::AdminCollectionError::TooLong(
+            bounded_types::bounded_value_error::BoundedValueError::AboveMax { actual, max }
+        )) if actual.get() == 7usize && max.get() == 6usize
+    ));
+    assert!(
+        serde_json::to_value(seven)
+            .and_then(
+                serde_json::from_value::<crate::admin_optional_settings::AdminOptionalSettings>
+            )
+            .err()
+            .is_some()
+    );
+}
+
+#[test]
 fn test_setting_types_match_database_constraints() {
     let Err(_empty_site_name_error) =
         crate::admin_site_name::AdminSiteName::try_from(String::new())

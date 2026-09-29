@@ -27,10 +27,7 @@ impl<T: utoipa::ToSchema, const MAX: usize> utoipa::ToSchema for AdminOpenApiVec
             utoipa::openapi::RefOr<utoipa::openapi::schema::Schema>,
         )>,
     ) {
-        vec.push((
-            T::name().into_owned(),
-            <T as utoipa::PartialSchema>::schema(),
-        ));
-        T::schemas(vec);
+        bounded_types::utoipa_schema_entries_mut::UtoipaSchemaEntriesMut::from(vec)
+            .register_item_schema::<T>();
     }
 }

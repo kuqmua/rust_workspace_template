@@ -31,12 +31,15 @@ impl AdminPageRange {
         let total_value = u64::from(admin_page_total);
         let previous_offset = offset_value.saturating_sub(u32::from(limit_value));
         let next_offset = offset_value.saturating_add(u32::from(limit_value));
+        let has_items = u64::from(offset_value) < total_value;
         Self {
-            end: server_admin_contract::admin_page_total::AdminPageTotal::from(
+            end: server_admin_contract::admin_page_total::AdminPageTotal::from(if has_items {
                 u64::from(offset_value)
                     .saturating_add(u64::from(limit_value))
-                    .min(total_value),
-            ),
+                    .min(total_value)
+            } else {
+                u64::from(constants_u32::ZERO)
+            }),
             next_disabled: super::admin_page_nav_disabled::AdminPageNavDisabled::from(
                 next_offset <= offset_value || u64::from(next_offset) >= total_value,
             ),
@@ -49,11 +52,11 @@ impl AdminPageRange {
             previous_offset: server_admin_contract::admin_page_offset::AdminPageOffset::from(
                 previous_offset,
             ),
-            start: server_admin_contract::admin_page_total::AdminPageTotal::from(
-                u64::from(offset_value)
-                    .saturating_add(1u64)
-                    .min(total_value),
-            ),
+            start: server_admin_contract::admin_page_total::AdminPageTotal::from(if has_items {
+                u64::from(offset_value).saturating_add(1u64)
+            } else {
+                u64::from(constants_u32::ZERO)
+            }),
         }
     }
 }
@@ -96,8 +99,12 @@ mod tests {
         assert!(bool::from(partial.next_disabled()));
 
         let out_of_range = page_range(80u32, 20u16, 41u64);
-        assert_eq!(u64::from(out_of_range.start()), 41u64);
-        assert_eq!(u64::from(out_of_range.end()), 41u64);
+        assert_eq!(u64::from(out_of_range.start()), constants_u64::ZERO);
+        assert_eq!(u64::from(out_of_range.end()), constants_u64::ZERO);
+
+        let at_end = page_range(40u32, 20u16, 40u64);
+        assert_eq!(u64::from(at_end.start()), constants_u64::ZERO);
+        assert_eq!(u64::from(at_end.end()), constants_u64::ZERO);
 
         let overflow = page_range(u32::MAX, 100u16, u64::MAX);
         assert_eq!(u32::from(overflow.next_offset()), u32::MAX);

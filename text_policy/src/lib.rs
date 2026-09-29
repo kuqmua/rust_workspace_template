@@ -6,6 +6,8 @@
 pub mod bounded_text_policy_error;
 pub mod fixed_length_ascii_hex_text;
 pub mod fixed_length_ascii_hex_text_error;
+pub mod https_url_text_error;
+pub mod https_url_text_ref;
 pub mod non_empty_trimmed_text;
 pub mod password_length;
 pub mod password_length_range;
@@ -19,5 +21,6 @@ pub mod url_safe_token_part_maximum_bytes;
 pub mod url_safe_token_part_ref;
 pub mod url_safe_token_part_text;
 pub mod url_safe_token_part_text_error;
+pub mod validate_https_url_text;
 pub mod validate_password_policy;
 pub mod validate_url_safe_token_part;

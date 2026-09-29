@@ -23,11 +23,8 @@ impl<T: utoipa::PartialSchema> utoipa::__dev::ComposeSchema for ExplicitValue<T>
         vec: Vec<utoipa::openapi::RefOr<utoipa::openapi::schema::Schema>>,
     ) -> utoipa::openapi::RefOr<utoipa::openapi::schema::Schema> {
         utoipa::openapi::ObjectBuilder::new()
-            .property(
-                constants_str::PG_CRUD_VALUES_FIELD,
-                <T as utoipa::PartialSchema>::schema(),
-            )
-            .required(constants_str::PG_CRUD_VALUES_FIELD)
+            .property(stringify!(value), <T as utoipa::PartialSchema>::schema())
+            .required(stringify!(value))
             .build()
             .into()
     }
@@ -35,6 +32,19 @@ impl<T: utoipa::PartialSchema> utoipa::__dev::ComposeSchema for ExplicitValue<T>
 
 impl<T: utoipa::ToSchema> utoipa::ToSchema for ExplicitValue<T> {
     fn name() -> std::borrow::Cow<'static, str> {
-        std::borrow::Cow::Borrowed(constants_str::V)
+        std::borrow::Cow::Owned(
+            bounded_types::utoipa_schema_type_name::UtoipaSchemaTypeName::for_type::<Self>()
+                .into_inner(),
+        )
+    }
+
+    fn schemas(
+        schemas: &mut Vec<(
+            String,
+            utoipa::openapi::RefOr<utoipa::openapi::schema::Schema>,
+        )>,
+    ) {
+        bounded_types::utoipa_schema_entries_mut::UtoipaSchemaEntriesMut::from(schemas)
+            .register_item_schema::<T>();
     }
 }

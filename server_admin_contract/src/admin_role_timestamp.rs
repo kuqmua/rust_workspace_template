@@ -9,7 +9,13 @@
     proc_macro_newtype_bounded_string_wrapper::BoundedStringWrapper,
     proc_macro_newtype_display::Display,
 )]
-#[bounded_string(max = 64, chars, utoipa, description = "administrator role timestamp")]
+#[bounded_string(
+    max = 64,
+    chars,
+    utoipa,
+    error,
+    description = "administrator role timestamp"
+)]
 pub struct AdminRoleTimestamp(bounded_types::bounded_string::BoundedString<0usize, 64, true>);
 
 impl<'de> serde::Deserialize<'de> for AdminRoleTimestamp {

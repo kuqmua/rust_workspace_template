@@ -4,7 +4,7 @@
     proc_macro_newtype_bounded_string_wrapper::BoundedStringWrapper,
     proc_macro_newtype_into_inner_from::IntoInnerFrom,
 )]
-#[bounded_string(max = constants_usize::VALUE_1_048_576)]
+#[bounded_string(max = constants_usize::VALUE_1_048_576, error)]
 pub(crate) struct AdminFixtureString(
     bounded_types::bounded_string::BoundedString<
         0usize,

@@ -28,33 +28,27 @@ pub(crate) fn measure_cargo_command(
         .args(macro_helpers::tool_args_ref::ToolArgsRef::from(
             cargo_args.get(),
         ))
-        .output()
+        .bounded_output(macro_helpers::tool_output_limit::ToolOutputLimit::from(
+            crate::domain_types::COMMAND_CAPTURE_BYTES_PER_STREAM,
+        ))
     };
     let duration = started.elapsed();
     match command_output {
         Ok(output) if output.status.success() => {
             let stderr = String::from_utf8_lossy(output.stderr.as_slice());
-            let peak_rss_kb = stderr
-                .lines()
-                .find_map(|line| {
-                    line.trim()
-                        .strip_prefix(constants_str::WORKSPACE_TEST_RUNNER_PEAK_RSS_PREFIX)
-                })
-                .unwrap_or(constants_str::UNAVAILABLE);
-            let minor_page_faults = stderr
-                .lines()
-                .find_map(|line| {
-                    line.trim()
-                        .strip_prefix(constants_str::WORKSPACE_TEST_RUNNER_MINOR_PAGE_FAULTS_PREFIX)
-                })
-                .unwrap_or(constants_str::UNAVAILABLE);
-            let major_page_faults = stderr
-                .lines()
-                .find_map(|line| {
-                    line.trim()
-                        .strip_prefix(constants_str::WORKSPACE_TEST_RUNNER_MAJOR_PAGE_FAULTS_PREFIX)
-                })
-                .unwrap_or(constants_str::UNAVAILABLE);
+            let maybe_footer =
+                crate::parse_cargo_measurement_footer::parse_cargo_measurement_footer(
+                    crate::stderr_text_ref::StderrTextRef::from(stderr.as_ref()),
+                );
+            let peak_rss_kb = maybe_footer.map_or(constants_str::UNAVAILABLE, |footer| {
+                footer.get_peak_rss_kb().get()
+            });
+            let minor_page_faults = maybe_footer.map_or(constants_str::UNAVAILABLE, |footer| {
+                footer.get_minor_page_faults().get()
+            });
+            let major_page_faults = maybe_footer.map_or(constants_str::UNAVAILABLE, |footer| {
+                footer.get_major_page_faults().get()
+            });
             {
                 let stdout = String::from_utf8_lossy(output.stdout.as_slice());
                 if !stdout.is_empty() {

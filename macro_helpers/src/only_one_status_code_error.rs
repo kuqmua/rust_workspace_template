@@ -8,6 +8,8 @@
     thiserror::Error,
 )]
 pub enum OnlyOneStatusCodeError {
+    #[error("051da593: supported status code attribute must not have arguments")]
+    MalformedAttribute,
     #[error("07286cf0: two or more supported status code attrs")]
     MoreThanOne,
     #[error("19fc6512: supported status code attr not found")]

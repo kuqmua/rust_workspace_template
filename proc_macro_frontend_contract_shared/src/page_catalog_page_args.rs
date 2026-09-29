@@ -15,8 +15,15 @@ impl syn::parse::Parse for PageCatalogPageArgs {
         let mut path = None;
         let mut route = None;
         let mut title = None;
+        let mut seen = std::collections::HashSet::new();
         while !parse_stream.is_empty() {
             let name = parse_stream.parse::<syn::Ident>()?;
+            if seen.contains(&name) {
+                return Err(syn::Error::new_spanned(
+                    name,
+                    constants_str::DUPLICATE_FRONTEND_CONTRACT_FIELD,
+                ));
+            }
             let _equals = parse_stream.parse::<syn::Token![=]>()?;
             let value =
                 crate::contract_syn_expr::ContractSynExpr::from(parse_stream.parse::<syn::Expr>()?);
@@ -36,6 +43,7 @@ impl syn::parse::Parse for PageCatalogPageArgs {
                     constants_str::PAGE_CATALOG_PAGE_REQUIRES_FIELDS,
                 ));
             }
+            let _inserted = seen.insert(name);
             if !parse_stream.is_empty() {
                 let _comma = parse_stream.parse::<syn::Token![,]>()?;
             }

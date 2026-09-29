@@ -11,12 +11,16 @@
     serde::Serialize,
     schemars::JsonSchema,
     proc_macro_optimal_memory_layout::OptimalMemoryLayout,
-    proc_macro_newtype_default_inner::DefaultInner,
     proc_macro_newtype_into_vec::IntoVec,
     proc_macro_newtype_from_inner::FromInner,
     proc_macro_newtype_into_inner_from::IntoInnerFrom,
 )]
 pub struct NotEmptyUniqueVec<T>(Vec<T>);
+impl<T: Default> Default for NotEmptyUniqueVec<T> {
+    fn default() -> Self {
+        Self::from(vec![T::default()])
+    }
+}
 impl<T: utoipa::PartialSchema> utoipa::__dev::ComposeSchema for NotEmptyUniqueVec<T> {
     #[allow(
         unused_variables,
@@ -37,7 +41,20 @@ impl<T: utoipa::PartialSchema> utoipa::__dev::ComposeSchema for NotEmptyUniqueVe
 }
 impl<T: utoipa::ToSchema> utoipa::ToSchema for NotEmptyUniqueVec<T> {
     fn name() -> std::borrow::Cow<'static, str> {
-        std::borrow::Cow::Borrowed(constants_str::PG_CRUD_NOT_EMPTY_UNIQUE_VEC_SCHEMA_NAME)
+        std::borrow::Cow::Owned(
+            bounded_types::utoipa_schema_type_name::UtoipaSchemaTypeName::for_type::<Self>()
+                .into_inner(),
+        )
+    }
+
+    fn schemas(
+        schemas: &mut Vec<(
+            String,
+            utoipa::openapi::RefOr<utoipa::openapi::schema::Schema>,
+        )>,
+    ) {
+        bounded_types::utoipa_schema_entries_mut::UtoipaSchemaEntriesMut::from(schemas)
+            .register_item_schema::<T>();
     }
 }
 impl<T> NotEmptyUniqueVec<T> {

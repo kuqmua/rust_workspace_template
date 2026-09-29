@@ -8,18 +8,20 @@
     proc_macro_newtype_from_inner::FromInner,
 )]
 #[serde(
-    from = "crate::admin_bounded_vec::AdminBoundedVec<crate::admin_data_filter::AdminDataFilter>"
+    from = "bounded_types::bounded_vec::BoundedVec<crate::admin_data_filter::AdminDataFilter, 0, 100>"
 )]
 #[schema(value_type = crate::admin_open_api_vec::AdminOpenApiVec<crate::admin_data_filter::AdminDataFilter, 100>)]
 pub struct AdminDataFilters(
-    crate::admin_bounded_vec::AdminBoundedVec<crate::admin_data_filter::AdminDataFilter>,
+    bounded_types::bounded_vec::BoundedVec<crate::admin_data_filter::AdminDataFilter, 0, 100>,
 );
 impl TryFrom<Vec<crate::admin_data_filter::AdminDataFilter>> for AdminDataFilters {
     type Error = crate::admin_collection_error::AdminCollectionError;
     fn try_from(
         value: Vec<crate::admin_data_filter::AdminDataFilter>,
     ) -> Result<Self, Self::Error> {
-        crate::admin_bounded_vec::AdminBoundedVec::try_from(value).map(Self)
+        bounded_types::bounded_vec::BoundedVec::try_from(value)
+            .map(Self)
+            .map_err(crate::admin_collection_error::AdminCollectionError::TooLong)
     }
 }
 impl AdminDataFilters {

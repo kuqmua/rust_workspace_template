@@ -223,6 +223,7 @@ pub mod admin_users_page;
 pub mod admin_users_read_request;
 pub mod admin_where_many;
 pub mod admin_where_many_try_from_string_error;
+mod visit_checked_unsigned_integer;
 #[cfg(test)]
 mod test_audit_branding_tests {
     #[test]

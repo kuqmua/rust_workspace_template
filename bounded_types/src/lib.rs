@@ -18,6 +18,8 @@ pub mod collection_max_len;
 pub mod deserialize_bounded_map;
 pub mod serde_prealloc_max_items;
 pub mod try_from_bounded_error_text;
+pub mod utoipa_schema_entries_mut;
+pub mod utoipa_schema_type_name;
 pub mod validate_len;
 
 #[cfg(test)]

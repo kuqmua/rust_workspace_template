@@ -130,6 +130,146 @@ fn test_contract_struct_api_rejects_unknown_attributes() {
     );
 }
 
+#[test]
+fn test_contract_struct_api_rejects_duplicate_slice_type() {
+    let output = crate::derive_contract_struct_api(quote::quote! {
+        #[contract_struct_api(new)]
+        struct Request {
+            #[contract_struct_api(slice = u8, slice = u16)]
+            value: Vec<u8>,
+        }
+    });
+    assert!(
+        output
+            .to_string()
+            .contains(constants_str::DUPLICATE_FRONTEND_CONTRACT_FIELD)
+    );
+}
+
+#[test]
+fn test_route_openapi_rejects_duplicate_delegate() {
+    let output = crate::route_openapi(
+        quote::quote! { delegate = first, delegate = second },
+        quote::quote! { async fn endpoint() -> Result<(), Error> {} },
+    );
+    assert!(
+        output
+            .to_string()
+            .contains(constants_str::DUPLICATE_FRONTEND_CONTRACT_FIELD)
+    );
+}
+
+#[test]
+fn test_route_family_rejects_duplicate_attributes() {
+    let outputs = [
+        crate::derive_route_family(quote::quote! {
+            #[route_family(First)]
+            #[route_family(Second)]
+            struct Family;
+        }),
+        crate::derive_route_family(quote::quote! {
+            #[route_family(Route)]
+            #[route_family_body_limit(1)]
+            #[route_family_body_limit(2)]
+            struct Family;
+        }),
+    ];
+    assert!(outputs.into_iter().all(|output| {
+        output
+            .to_string()
+            .contains(constants_str::DUPLICATE_FRONTEND_CONTRACT_FIELD)
+    }));
+}
+
+#[test]
+fn test_contract_derives_reject_duplicate_top_level_attributes() {
+    let outputs = [
+        crate::derive_typed_route(quote::quote! {
+            #[typed_route()]
+            #[typed_route()]
+            struct Route;
+        }),
+        crate::derive_route_catalog(quote::quote! {
+            #[route_catalog()]
+            #[route_catalog()]
+            enum Catalog {}
+        }),
+        crate::derive_page_catalog(quote::quote! {
+            #[page_catalog()]
+            #[page_catalog()]
+            enum Catalog {}
+        }),
+    ];
+    assert!(outputs.into_iter().all(|output| {
+        output
+            .to_string()
+            .contains(constants_str::DUPLICATE_FRONTEND_CONTRACT_FIELD)
+    }));
+}
+
+#[test]
+fn test_contract_catalogs_reject_duplicate_variant_attributes() {
+    let outputs = [
+        crate::derive_route_catalog(quote::quote! {
+            #[route_catalog(family = Family, body_limit = 1)]
+            enum Catalog {
+                #[route_catalog_route()]
+                #[route_catalog_route()]
+                Route,
+            }
+        }),
+        crate::derive_page_catalog(quote::quote! {
+            #[page_catalog(spec = Spec, path_ref = PathRef, inventory = INVENTORY)]
+            enum Catalog {
+                #[page_catalog_page()]
+                #[page_catalog_page()]
+                Page,
+            }
+        }),
+    ];
+    assert!(outputs.into_iter().all(|output| {
+        output
+            .to_string()
+            .contains(constants_str::DUPLICATE_FRONTEND_CONTRACT_FIELD)
+    }));
+}
+
+#[test]
+fn test_route_registry_rejects_duplicate_openapi_attributes() {
+    let output = crate::route_registry(quote::quote! {
+        #[openapi()]
+        #[openapi()]
+        pub;
+        state = State, family = Family;
+        (authenticated, csrf);
+        schemas(Schema);
+        (Route, endpoint)
+    });
+    assert!(
+        output
+            .to_string()
+            .contains(constants_str::DUPLICATE_FRONTEND_CONTRACT_FIELD)
+    );
+}
+
+#[test]
+fn test_route_registry_rejects_unsupported_outer_attribute() {
+    let output = crate::route_registry(quote::quote! {
+        #[openapi()]
+        #[unsupported]
+        pub;
+        state = State, family = Family;
+        (authenticated, csrf);
+        schemas(Schema);
+        (Route, endpoint)
+    });
+    assert!(
+        output
+            .to_string()
+            .contains(constants_str::ROUTE_REGISTRY_UNSUPPORTED_ATTRIBUTE)
+    );
+}
+
 fn typed_route_args(str: &str) -> String {
     format!(
         "authentication = Authentication, {str} method = Method, openapi_operation_id = \"operation\", path = \"/path\", request = Request, response = Response, success_status = Status, transport = Transport"
@@ -169,6 +309,47 @@ fn test_typed_route_args_require_exactly_one_error_source() {
                 std::panic::panic_any(constants_str::PANIC_470BF91C);
             };
         });
+}
+
+#[test]
+fn test_duplicate_contract_attribute_fields_are_rejected() {
+    let results = [
+        syn::parse2::<crate::typed_route_args::TypedRouteArgs>(quote::quote! {
+            authentication = Authentication, error_policy = Policy,
+            method = First, method = Second, openapi_operation_id = Operation,
+            path = Path, request = Request, response = Response,
+            success_status = Status, transport = Transport
+        })
+        .map(|_args| ()),
+        syn::parse2::<crate::page_catalog_args::PageCatalogArgs>(quote::quote! {
+            spec = First, spec = Second, path_ref = Path, inventory = Inventory
+        })
+        .map(|_args| ()),
+        syn::parse2::<crate::page_catalog_page_args::PageCatalogPageArgs>(quote::quote! {
+            capability = First, capability = Second, metadata = Metadata,
+            path = Path, route = Route, title = Title
+        })
+        .map(|_args| ()),
+        syn::parse2::<crate::route_catalog_args::RouteCatalogArgs>(quote::quote! {
+            family = First, family = Second, body_limit = Limit
+        })
+        .map(|_args| ()),
+        syn::parse2::<crate::route_catalog_route_args::RouteCatalogRouteArgs>(quote::quote! {
+            contract = First, contract = Second, path = Path
+        })
+        .map(|_args| ()),
+        syn::parse2::<crate::route_catalog_route_args::RouteCatalogRouteArgs>(quote::quote! {
+            contract = Contract, path = Path, exclude_from_family, exclude_from_family
+        })
+        .map(|_args| ()),
+    ];
+    assert!(results.into_iter().all(|result| {
+        result.is_err_and(|error| {
+            error
+                .to_string()
+                .contains(constants_str::DUPLICATE_FRONTEND_CONTRACT_FIELD)
+        })
+    }));
 }
 
 #[test]

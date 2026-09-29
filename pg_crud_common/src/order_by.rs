@@ -36,6 +36,21 @@ impl<ColumnGeneric: utoipa::PartialSchema> utoipa::__dev::ComposeSchema for Orde
 
 impl<ColumnGeneric: utoipa::ToSchema> utoipa::ToSchema for OrderBy<ColumnGeneric> {
     fn name() -> std::borrow::Cow<'static, str> {
-        std::borrow::Cow::Borrowed(constants_str::ORDERBY)
+        std::borrow::Cow::Owned(
+            bounded_types::utoipa_schema_type_name::UtoipaSchemaTypeName::for_type::<Self>()
+                .into_inner(),
+        )
+    }
+
+    fn schemas(
+        schemas: &mut Vec<(
+            String,
+            utoipa::openapi::RefOr<utoipa::openapi::schema::Schema>,
+        )>,
+    ) {
+        bounded_types::utoipa_schema_entries_mut::UtoipaSchemaEntriesMut::from(&mut *schemas)
+            .register_item_schema::<ColumnGeneric>();
+        bounded_types::utoipa_schema_entries_mut::UtoipaSchemaEntriesMut::from(schemas)
+            .register_item_schema::<crate::order::Order>();
     }
 }

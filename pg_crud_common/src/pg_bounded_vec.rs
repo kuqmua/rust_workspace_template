@@ -100,7 +100,23 @@ impl<T: utoipa::ToSchema, const MIN: usize, const MAX: usize> utoipa::ToSchema
     for PgBoundedVec<T, MIN, MAX>
 {
     fn name() -> std::borrow::Cow<'static, str> {
-        std::borrow::Cow::Borrowed(constants_str::BOUNDEDVEC)
+        let item_type_name =
+            bounded_types::utoipa_schema_type_name::UtoipaSchemaTypeName::for_type::<T>()
+                .into_inner();
+        std::borrow::Cow::Owned(format!(
+            "{}_{MIN}_{MAX}_{item_type_name}",
+            constants_str::BOUNDEDVEC
+        ))
+    }
+
+    fn schemas(
+        schemas: &mut Vec<(
+            String,
+            utoipa::openapi::RefOr<utoipa::openapi::schema::Schema>,
+        )>,
+    ) {
+        bounded_types::utoipa_schema_entries_mut::UtoipaSchemaEntriesMut::from(schemas)
+            .register_item_schema::<T>();
     }
 }
 #[cfg(test)]
@@ -184,5 +200,33 @@ mod tests {
         };
         assert_eq!(array.min_items, Some(constants_usize::ONE));
         assert_eq!(array.max_items, Some(2usize));
+    }
+
+    #[test]
+    fn test_openapi_component_names_distinguish_item_types_and_bounds() {
+        let first = <crate::pg_bounded_vec::PgBoundedVec<u8, 1, 2> as utoipa::ToSchema>::name();
+        let different_bounds =
+            <crate::pg_bounded_vec::PgBoundedVec<u8, 1, 3> as utoipa::ToSchema>::name();
+        let different_item =
+            <crate::pg_bounded_vec::PgBoundedVec<u16, 1, 2> as utoipa::ToSchema>::name();
+        let different_nested_item =
+            <crate::pg_bounded_vec::PgBoundedVec<Vec<u8>, 1, 2> as utoipa::ToSchema>::name();
+        let other_nested_item =
+            <crate::pg_bounded_vec::PgBoundedVec<Vec<u16>, 1, 2> as utoipa::ToSchema>::name();
+        assert_ne!(first, different_bounds);
+        assert_ne!(first, different_item);
+        assert_ne!(first, different_nested_item);
+        assert_ne!(different_nested_item, other_nested_item);
+    }
+
+    #[test]
+    fn test_openapi_schema_registers_custom_item_component() {
+        let mut schemas = Vec::new();
+        <crate::pg_bounded_vec::PgBoundedVec<crate::pagination_base::PaginationBase, 1, 2> as utoipa::ToSchema>::schemas(
+            &mut schemas,
+        );
+        assert!(schemas.iter().any(|(name, _schema)| {
+            name == <crate::pagination_base::PaginationBase as utoipa::ToSchema>::name().as_ref()
+        }));
     }
 }

@@ -27,11 +27,7 @@ pub(crate) async fn assignment_form_action(
                             ),
                         ),
                     ])
-                    .map_err(
-                        |server_admin_contract::admin_collection_error::AdminCollectionError::TooLong| {
-                            crate::admin_error::AdminError::Validation
-                        },
-                    )?;
+                    .map_err(crate::admin_error::AdminError::validation_collection)?;
                     Ok(server_admin_contract::admin_update_roles_request::AdminUpdateRolesRequest::new(updates))
                 },
                 server_admin_contract::admin_frontend_path::AdminFrontendPath::Roles,

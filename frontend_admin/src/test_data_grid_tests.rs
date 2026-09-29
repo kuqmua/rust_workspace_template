@@ -107,7 +107,13 @@ fn test_data_grid() {
             ),
             None,
         ),
-        server_admin_contract::admin_table_query::AdminTableQuery::default(),
+        server_admin_contract::admin_table_query::AdminTableQuery::new(
+            server_admin_contract::admin_table_search::AdminTableSearch::default(),
+            server_admin_contract::admin_table_sort_key::AdminTableSortKey::default(),
+            server_admin_contract::admin_page_offset::AdminPageOffset::default(),
+            server_admin_contract::admin_page_limit::AdminPageLimit::default(),
+            server_admin_contract::admin_sort_direction::AdminSortDirection::Descending,
+        ),
     );
     let filters_html = crate::admin_ssr_view_ext_tests::AdminSsrViewExt::render_admin_ssr(
         crate::data_table_grid::data_table_grid(&filter_view, &query),
@@ -276,7 +282,17 @@ fn test_data_grid() {
             .as_ref()
             .matches(constants_str::VALUE_AC55DE88)
             .count(),
-        constants_usize::ONE
+        constants_usize::TWO
+    );
+    assert_eq!(
+        filters_html
+            .as_ref()
+            .matches(
+                server_admin_contract::admin_sort_direction::AdminSortDirection::Descending
+                    .as_ref()
+            )
+            .count(),
+        constants_usize::TWO
     );
     assert_eq!(
         filters_html
@@ -284,11 +300,6 @@ fn test_data_grid() {
             .matches(constants_str::ADMIN_UI_EXPECT_VALUE_38228244)
             .count(),
         constants_usize::ONE
-    );
-    assert!(
-        filters_html
-            .as_ref()
-            .contains(constants_str::VALUE_FDB71479)
     );
     assert!(
         !filters_html

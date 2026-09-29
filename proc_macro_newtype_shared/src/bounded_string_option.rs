@@ -10,6 +10,7 @@
 )]
 pub(crate) enum BoundedStringOption {
     Chars,
+    Error,
     NulFree,
     Serde,
     Trim,

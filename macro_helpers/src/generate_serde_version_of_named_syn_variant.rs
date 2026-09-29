@@ -33,7 +33,9 @@ pub fn generate_serde_version_of_named_syn_variant(
                     return None;
                 };
                 let last_segment = segments.iter().next_back()?;
-                assert!(last_segment.ident == hash_map_upper_camel_case.to_string(), "5e1bc6b1");
+                if last_segment.ident != hash_map_upper_camel_case.to_string() {
+                    return None;
+                }
                 let syn::PathArguments::AngleBracketed(syn::AngleBracketedGenericArguments {
                     args,
                     ..
@@ -41,7 +43,9 @@ pub fn generate_serde_version_of_named_syn_variant(
                 else {
                     return None;
                 };
-                assert!(args.len() == 2, "47cde1b8");
+                if args.len() != 2 {
+                    return None;
+                }
                 Some((args.iter().next()?, args.iter().nth(1)?))
             };
             let element_type_token_stream = {
@@ -87,17 +91,36 @@ pub fn generate_serde_version_of_named_syn_variant(
                     } else {
                         return crate::macro_compile_error_tokens::macro_compile_error_tokens(crate::compile_error_message::CompileErrorMessage::from(constants_str::COMPILE_ERROR_CE_024));
                     };
-                    assert!(segments.len() == 1, "0c65bbaa");
+                    if segments.len() != 1 {
+                        return crate::macro_compile_error_tokens::macro_compile_error_tokens(
+                            crate::compile_error_message::CompileErrorMessage::from(
+                                constants_str::COMPILE_ERROR_CE_024,
+                            ),
+                        );
+                    }
                     let Some(first_segment) = segments.iter().next() else {
                         return crate::macro_compile_error_tokens::macro_compile_error_tokens(crate::compile_error_message::CompileErrorMessage::from(
                             constants_str::MACRO_DIAGNOSTICS_EXPECTED_FIRST_PATH_SEGMENT_ERROR,
                         ));
                     };
+                    if first_segment.ident != constants_str::VEC {
+                        return crate::macro_compile_error_tokens::macro_compile_error_tokens(
+                            crate::compile_error_message::CompileErrorMessage::from(
+                                constants_str::MACRO_DIAGNOSTICS_EXPECTED_VEC_TYPE_ERROR,
+                            ),
+                        );
+                    }
                     let element_vec_type_with_serde_token_stream = if let syn::PathArguments::AngleBracketed(
                         syn::AngleBracketedGenericArguments { args, .. },
                     ) = &first_segment.arguments
                     {
-                        assert!(args.len() == 1, "572a9da8");
+                        if args.len() != 1 {
+                            return crate::macro_compile_error_tokens::macro_compile_error_tokens(
+                                crate::compile_error_message::CompileErrorMessage::from(
+                                    constants_str::MACRO_DIAGNOSTICS_EXPECTED_ANGLE_BRACKETED_ARGS_ERROR,
+                                ),
+                            );
+                        }
                         match format!(
                             "{}{}",
                             {
@@ -189,4 +212,25 @@ pub fn generate_serde_version_of_named_syn_variant(
             }
         },
     )
+}
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn test_malformed_collection_fields_emit_compile_errors() {
+        let variants: [syn::Variant; 5] = [
+            syn::parse_quote! { Example { #[eo_hashmap_k_string_v_to_err_string] field: Vec<String> } },
+            syn::parse_quote! { Example { #[eo_hashmap_k_string_v_to_err_string] field: HashMap<String> } },
+            syn::parse_quote! { Example { #[eo_vec_location] field: std::vec::Vec<Location> } },
+            syn::parse_quote! { Example { #[eo_vec_location] field: Vec<Location, Other> } },
+            syn::parse_quote! { Example { #[eo_vec_location] field: Option<Location> } },
+        ];
+        assert!(variants.iter().all(|variant| {
+            crate::generate_serde_version_of_named_syn_variant::generate_serde_version_of_named_syn_variant(
+                crate::syn_variant_ref::SynVariantRef::from(variant),
+            )
+            .to_string()
+            .contains(constants_str::SHARED_VALUES_COMPILE_ERROR)
+        }));
+    }
 }

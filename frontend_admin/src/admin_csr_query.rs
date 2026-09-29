@@ -84,8 +84,15 @@ impl AdminCsrQuery {
             }
             .map_err(|_error| crate::admin_table_load_error::AdminTableLoadError::Fetch)?;
         if [
+            constants_str::ADMIN_DIRECTION_QUERY_KEY,
+            constants_str::ADMIN_FILTER_END_QUERY_KEY,
+            constants_str::ADMIN_FILTER_FIELD_QUERY_KEY,
+            constants_str::ADMIN_FILTER_OPERATION_QUERY_KEY,
+            constants_str::ADMIN_FILTER_VALUE_QUERY_KEY,
             constants_str::ADMIN_LIMIT_QUERY_KEY,
             constants_str::ADMIN_OFFSET_QUERY_KEY,
+            constants_str::ADMIN_SEARCH_QUERY_KEY,
+            constants_str::ADMIN_SORT_QUERY_KEY,
         ]
         .into_iter()
         .any(|key| params.get_all(key).length() > 1u32)

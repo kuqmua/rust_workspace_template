@@ -27,3 +27,19 @@ test("test_table_views_use_unprefixed_api_paths", async ({ page }) => {
     await signOutIfAuthenticated(page);
   }
 });
+
+test("test_generic_table_search_treats_wildcards_as_text", async ({ page }) => {
+  await signInInitialAdministrator(page);
+  try {
+    const baseline = await page.request.post("/user_roles/read", { data: {} });
+    expect(baseline.status()).toBe(200);
+    expect((await baseline.json()).total).toBeGreaterThan(0);
+    for (const search of ["%", "_"]) {
+      const response = await page.request.post("/user_roles/read", { data: { search } });
+      expect(response.status()).toBe(200);
+      expect((await response.json()).total).toBe(0);
+    }
+  } finally {
+    await signOutIfAuthenticated(page);
+  }
+});

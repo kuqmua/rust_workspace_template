@@ -136,6 +136,13 @@ pub fn route_openapi(
                 .path()
                 .is_ident(constants_str::ROUTE_OPENAPI_DELEGATE)
             {
+                if delegate.is_some() {
+                    delegate = Some(Err(syn::Error::new_spanned(
+                        metadata,
+                        constants_str::DUPLICATE_FRONTEND_CONTRACT_FIELD,
+                    )));
+                    return None;
+                }
                 let syn::Meta::NameValue(name_value) = metadata else {
                     delegate = Some(Err(syn::Error::new_spanned(
                         metadata,
@@ -394,6 +401,10 @@ pub fn derive_contract_struct_api(
                             .path
                             .is_ident(constants_str::CONTRACT_STRUCT_API_SLICE)
                         {
+                            if field_args.get_slice().is_some() {
+                                return Err(metadata
+                                    .error(constants_str::DUPLICATE_FRONTEND_CONTRACT_FIELD));
+                            }
                             *field_args.get_slice_mut() =
                                 Some(contract_syn_type::ContractSynType::from(
                                     metadata.value()?.parse::<syn::Type>()?,
@@ -558,6 +569,21 @@ pub fn route_registry(token_stream: proc_macro2::TokenStream) -> proc_macro2::To
                 );
             };
             let openapi_attribute = attributes.remove(openapi_attribute_index);
+            if let Some(duplicate_attribute) = attributes
+                .iter()
+                .find(|attribute| attribute.path().is_ident(constants_str::OPENAPI))
+            {
+                return Err(syn::Error::new_spanned(
+                    duplicate_attribute,
+                    constants_str::DUPLICATE_FRONTEND_CONTRACT_FIELD,
+                ));
+            }
+            if let Some(unsupported_attribute) = attributes.first() {
+                return Err(syn::Error::new_spanned(
+                    unsupported_attribute,
+                    constants_str::ROUTE_REGISTRY_UNSUPPORTED_ATTRIBUTE,
+                ));
+            }
             let visibility = parse_stream.parse::<syn::Visibility>()?;
             let _semicolon = parse_stream.parse::<syn::Token![;]>()?;
             let args = parse_stream.parse::<route_registry_args::RouteRegistryArgs>()?;
@@ -719,11 +745,11 @@ pub fn derive_typed_route(token_stream: proc_macro2::TokenStream) -> proc_macro2
         Ok(value) => value,
         Err(error) => return error.to_compile_error().into(),
     };
-    let Some(attribute) = derive_input
+    let mut attributes = derive_input
         .attrs
         .iter()
-        .find(|attribute| attribute.path().is_ident(constants_str::TYPED_ROUTE))
-    else {
+        .filter(|attribute| attribute.path().is_ident(constants_str::TYPED_ROUTE));
+    let Some(attribute) = attributes.next() else {
         return syn::Error::new_spanned(
             derive_input.ident,
             constants_str::TYPED_ROUTE_DERIVE_REQUIRES_ATTRIBUTE,
@@ -731,6 +757,14 @@ pub fn derive_typed_route(token_stream: proc_macro2::TokenStream) -> proc_macro2
         .to_compile_error()
         .into();
     };
+    if let Some(duplicate_attribute) = attributes.next() {
+        return syn::Error::new_spanned(
+            duplicate_attribute,
+            constants_str::DUPLICATE_FRONTEND_CONTRACT_FIELD,
+        )
+        .to_compile_error()
+        .into();
+    }
     let args = match attribute.parse_args::<typed_route_args::TypedRouteArgs>() {
         Ok(value) => value,
         Err(error) => return error.to_compile_error().into(),
@@ -1143,6 +1177,10 @@ pub fn api_operation_error(token_stream: proc_macro2::TokenStream) -> proc_macro
             RateLimited,
             #[error("administrator request validation failed")]
             Validation,
+            #[error("{message}", message = constants_str::ADMIN_DIAGNOSTIC_ADMINISTRATOR_REQUEST_VALIDATION_FAILED)]
+            ValidationCollection(
+                #[source] server_observability::observed_error::ObservedError<server_admin_contract::admin_collection_error::AdminCollectionError>,
+            ),
             #[error("administrator API database operation failed: {0:?}")]
             Pg(#[source] server_observability::observed_error::ObservedError<crate::sqlx_admin_error::SqlxAdminError>),
             #[error("administrator password hashing failed: {0}")]
@@ -1178,6 +1216,7 @@ pub fn api_operation_error(token_stream: proc_macro2::TokenStream) -> proc_macro
                     crate::admin_error::AdminError::CsrfSecretText(source) => Self::CsrfSecretText(source),
                     crate::admin_error::AdminError::RateLimited => Self::RateLimited,
                     crate::admin_error::AdminError::Validation => Self::Validation,
+                    crate::admin_error::AdminError::ValidationCollection(source) => Self::ValidationCollection(source),
                     crate::admin_error::AdminError::Pg(source) => Self::Pg(source),
                     crate::admin_error::AdminError::PasswordHash(source) => Self::PasswordHash(source),
                     crate::admin_error::AdminError::PasswordText(source) => Self::PasswordText(source),
@@ -1206,7 +1245,7 @@ pub fn api_operation_error(token_stream: proc_macro2::TokenStream) -> proc_macro
                         frontend_contract::route_error_status::RouteErrorStatus::PayloadTooLarge
                     }
                     Self::RateLimited => frontend_contract::route_error_status::RouteErrorStatus::RateLimited,
-                    Self::Validation | Self::PasswordText(_) | Self::SecretText(_) => {
+                    Self::Validation | Self::ValidationCollection(_) | Self::PasswordText(_) | Self::SecretText(_) => {
                         frontend_contract::route_error_status::RouteErrorStatus::Validation
                     }
                     Self::Pg(_)
@@ -1235,6 +1274,9 @@ pub fn api_operation_error(token_stream: proc_macro2::TokenStream) -> proc_macro
                         server_runtime_http::http_error_diagnostic::HttpErrorDiagnostic::from_observed(error_type, source),
                     ),
                     Self::PasswordText(source) => Some(
+                        server_runtime_http::http_error_diagnostic::HttpErrorDiagnostic::from_observed(error_type, source),
+                    ),
+                    Self::ValidationCollection(source) => Some(
                         server_runtime_http::http_error_diagnostic::HttpErrorDiagnostic::from_observed(error_type, source),
                     ),
                     Self::Authentication
@@ -1432,11 +1474,11 @@ pub fn derive_route_catalog(token_stream: proc_macro2::TokenStream) -> proc_macr
         Ok(value) => value,
         Err(error) => return error.to_compile_error().into(),
     };
-    let Some(catalog_attribute) = derive_input
+    let mut catalog_attributes = derive_input
         .attrs
         .iter()
-        .find(|attribute| attribute.path().is_ident(constants_str::ROUTE_CATALOG))
-    else {
+        .filter(|attribute| attribute.path().is_ident(constants_str::ROUTE_CATALOG));
+    let Some(catalog_attribute) = catalog_attributes.next() else {
         return syn::Error::new_spanned(
             derive_input.ident,
             constants_str::ROUTE_CATALOG_REQUIRES_ATTRIBUTE,
@@ -1444,6 +1486,14 @@ pub fn derive_route_catalog(token_stream: proc_macro2::TokenStream) -> proc_macr
         .to_compile_error()
         .into();
     };
+    if let Some(attribute) = catalog_attributes.next() {
+        return syn::Error::new_spanned(
+            attribute,
+            constants_str::DUPLICATE_FRONTEND_CONTRACT_FIELD,
+        )
+        .to_compile_error()
+        .into();
+    }
     let args = match catalog_attribute.parse_args::<route_catalog_args::RouteCatalogArgs>() {
         Ok(value) => value,
         Err(error) => return error.to_compile_error().into(),
@@ -1492,11 +1542,12 @@ pub fn derive_route_catalog(token_stream: proc_macro2::TokenStream) -> proc_macr
         let Some(variant) = variants.next() else {
             break;
         };
-        let Some(route_attribute) = variant.attrs.iter().find(|attribute| {
+        let mut route_attributes = variant.attrs.iter().filter(|attribute| {
             attribute
                 .path()
                 .is_ident(constants_str::ROUTE_CATALOG_ROUTE)
-        }) else {
+        });
+        let Some(route_attribute) = route_attributes.next() else {
             return syn::Error::new_spanned(
                 variant.ident,
                 constants_str::ROUTE_CATALOG_VARIANT_REQUIRES_ROUTE,
@@ -1504,6 +1555,14 @@ pub fn derive_route_catalog(token_stream: proc_macro2::TokenStream) -> proc_macr
             .to_compile_error()
             .into();
         };
+        if let Some(attribute) = route_attributes.next() {
+            return syn::Error::new_spanned(
+                attribute,
+                constants_str::DUPLICATE_FRONTEND_CONTRACT_FIELD,
+            )
+            .to_compile_error()
+            .into();
+        }
         let mut route_args =
             match route_attribute.parse_args::<route_catalog_route_args::RouteCatalogRouteArgs>() {
                 Ok(value) => value,
@@ -1766,11 +1825,11 @@ pub fn derive_page_catalog(token_stream: proc_macro2::TokenStream) -> proc_macro
         Ok(value) => value,
         Err(error) => return error.to_compile_error().into(),
     };
-    let Some(attribute) = input
+    let mut attributes = input
         .attrs
         .iter()
-        .find(|attribute| attribute.path().is_ident(constants_str::PAGE_CATALOG))
-    else {
+        .filter(|attribute| attribute.path().is_ident(constants_str::PAGE_CATALOG));
+    let Some(attribute) = attributes.next() else {
         return syn::Error::new_spanned(
             input.ident,
             constants_str::PAGE_CATALOG_REQUIRES_ATTRIBUTE,
@@ -1778,6 +1837,14 @@ pub fn derive_page_catalog(token_stream: proc_macro2::TokenStream) -> proc_macro
         .to_compile_error()
         .into();
     };
+    if let Some(duplicate_attribute) = attributes.next() {
+        return syn::Error::new_spanned(
+            duplicate_attribute,
+            constants_str::DUPLICATE_FRONTEND_CONTRACT_FIELD,
+        )
+        .to_compile_error()
+        .into();
+    }
     let args = match attribute.parse_args::<page_catalog_args::PageCatalogArgs>() {
         Ok(value) => value,
         Err(error) => return error.to_compile_error().into(),
@@ -1800,16 +1867,22 @@ pub fn derive_page_catalog(token_stream: proc_macro2::TokenStream) -> proc_macro
                     constants_str::PAGE_CATALOG_SUPPORTS_UNIT_VARIANTS,
                 ));
             }
-            let page_attribute = variant
+            let mut page_attributes = variant
                 .attrs
                 .iter()
-                .find(|candidate| candidate.path().is_ident(constants_str::PAGE_CATALOG_PAGE))
-                .ok_or_else(|| {
-                    syn::Error::new_spanned(
-                        &variant.ident,
-                        constants_str::PAGE_CATALOG_VARIANT_REQUIRES_PAGE,
-                    )
-                })?;
+                .filter(|candidate| candidate.path().is_ident(constants_str::PAGE_CATALOG_PAGE));
+            let page_attribute = page_attributes.next().ok_or_else(|| {
+                syn::Error::new_spanned(
+                    &variant.ident,
+                    constants_str::PAGE_CATALOG_VARIANT_REQUIRES_PAGE,
+                )
+            })?;
+            if let Some(duplicate_attribute) = page_attributes.next() {
+                return Err(syn::Error::new_spanned(
+                    duplicate_attribute,
+                    constants_str::DUPLICATE_FRONTEND_CONTRACT_FIELD,
+                ));
+            }
             page_attribute
                 .parse_args::<page_catalog_page_args::PageCatalogPageArgs>()
                 .map(|page| (&variant.ident, page))
@@ -1893,11 +1966,11 @@ pub fn derive_route_family(token_stream: proc_macro2::TokenStream) -> proc_macro
         Ok(value) => value,
         Err(error) => return error.to_compile_error().into(),
     };
-    let Some(route_family_attribute) = derive_input
+    let mut route_family_attributes = derive_input
         .attrs
         .iter()
-        .find(|attribute| attribute.path().is_ident(constants_str::ROUTE_FAMILY))
-    else {
+        .filter(|attribute| attribute.path().is_ident(constants_str::ROUTE_FAMILY));
+    let Some(route_family_attribute) = route_family_attributes.next() else {
         return syn::Error::new_spanned(
             derive_input.ident,
             constants_str::ROUTE_FAMILY_DERIVE_REQUIRES_ATTRIBUTE,
@@ -1905,6 +1978,14 @@ pub fn derive_route_family(token_stream: proc_macro2::TokenStream) -> proc_macro
         .to_compile_error()
         .into();
     };
+    if let Some(attribute) = route_family_attributes.next() {
+        return syn::Error::new_spanned(
+            attribute,
+            constants_str::DUPLICATE_FRONTEND_CONTRACT_FIELD,
+        )
+        .to_compile_error()
+        .into();
+    }
     let routes = match route_family_attribute
         .parse_args_with(syn::punctuated::Punctuated::<syn::Type, syn::Token![,]>::parse_terminated)
     {
@@ -1919,14 +2000,21 @@ pub fn derive_route_family(token_stream: proc_macro2::TokenStream) -> proc_macro
         }
         Err(error) => return error.to_compile_error().into(),
     };
-    let body_limit = match derive_input
-        .attrs
-        .iter()
-        .find(|attribute| {
-            attribute
-                .path()
-                .is_ident(constants_str::ROUTE_FAMILY_BODY_LIMIT)
-        })
+    let mut body_limit_attributes = derive_input.attrs.iter().filter(|attribute| {
+        attribute
+            .path()
+            .is_ident(constants_str::ROUTE_FAMILY_BODY_LIMIT)
+    });
+    let body_limit_attribute = body_limit_attributes.next();
+    if let Some(attribute) = body_limit_attributes.next() {
+        return syn::Error::new_spanned(
+            attribute,
+            constants_str::DUPLICATE_FRONTEND_CONTRACT_FIELD,
+        )
+        .to_compile_error()
+        .into();
+    }
+    let body_limit = match body_limit_attribute
         .map(syn::Attribute::parse_args::<syn::Expr>)
         .transpose()
     {

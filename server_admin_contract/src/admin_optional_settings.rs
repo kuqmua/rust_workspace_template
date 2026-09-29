@@ -9,17 +9,23 @@
     proc_macro_newtype_from_inner::FromInner,
 )]
 #[serde(
-    from = "crate::admin_bounded_vec::AdminBoundedVec<crate::admin_optional_setting::AdminOptionalSetting>"
+    from = "bounded_types::bounded_vec::BoundedVec<crate::admin_optional_setting::AdminOptionalSetting, 0, 6>"
 )]
-#[schema(value_type = crate::admin_open_api_vec::AdminOpenApiVec<crate::admin_optional_setting::AdminOptionalSetting, 10_000>)]
+#[schema(value_type = crate::admin_open_api_vec::AdminOpenApiVec<crate::admin_optional_setting::AdminOptionalSetting, 6>)]
 pub struct AdminOptionalSettings(
-    crate::admin_bounded_vec::AdminBoundedVec<crate::admin_optional_setting::AdminOptionalSetting>,
+    bounded_types::bounded_vec::BoundedVec<
+        crate::admin_optional_setting::AdminOptionalSetting,
+        0,
+        6,
+    >,
 );
 impl TryFrom<Vec<crate::admin_optional_setting::AdminOptionalSetting>> for AdminOptionalSettings {
     type Error = crate::admin_collection_error::AdminCollectionError;
     fn try_from(
         value: Vec<crate::admin_optional_setting::AdminOptionalSetting>,
     ) -> Result<Self, Self::Error> {
-        crate::admin_bounded_vec::AdminBoundedVec::try_from(value).map(Self)
+        bounded_types::bounded_vec::BoundedVec::try_from(value)
+            .map(Self)
+            .map_err(crate::admin_collection_error::AdminCollectionError::TooLong)
     }
 }

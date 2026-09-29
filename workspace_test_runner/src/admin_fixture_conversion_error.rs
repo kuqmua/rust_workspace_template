@@ -2,35 +2,40 @@
 pub(crate) enum AdminFixtureConversionError {
     #[error("{0}")]
     AuditTimestamp(
+        #[source]
         server_admin_contract::admin_audit_timestamp::AdminAuditTimestampTryFromStringError,
     ),
     #[error("{0}")]
-    DisplayName(server_admin_contract::admin_display_name::AdminDisplayNameTryFromStringError),
+    DisplayName(
+        #[source] server_admin_contract::admin_display_name::AdminDisplayNameTryFromStringError,
+    ),
     #[error(
         "{}",
         constants_str::WORKSPACE_TEST_RUNNER_ADMIN_FIXTURE_STRING_INVALID
     )]
-    Input(crate::admin_fixture_string::AdminFixtureStringTryFromStringError),
+    Input(#[source] crate::admin_fixture_string::AdminFixtureStringTryFromStringError),
     #[error("{0}")]
-    Login(server_admin_contract::admin_login::AdminLoginTryFromStringError),
+    Login(#[source] server_admin_contract::admin_login::AdminLoginTryFromStringError),
     #[error("{0}")]
-    RoleName(server_admin_contract::admin_role_name::AdminRoleNameTryFromStringError),
+    RoleName(#[source] server_admin_contract::admin_role_name::AdminRoleNameTryFromStringError),
     #[error("{0}")]
     RoleTimestamp(
-        server_admin_contract::admin_role_timestamp::AdminRoleTimestampTryFromStringError,
+        #[source] server_admin_contract::admin_role_timestamp::AdminRoleTimestampTryFromStringError,
     ),
     #[error("{0}")]
-    RuleValue(server_admin_contract::admin_rule_value::AdminRuleValueTryFromStringError),
+    RuleValue(#[source] server_admin_contract::admin_rule_value::AdminRuleValueTryFromStringError),
     #[error("{0}")]
     SessionIdentifier(
+        #[source]
         server_admin_contract::admin_session_identifier::AdminSessionIdentifierTryFromStringError,
     ),
     #[error("{0}")]
     SessionTimestamp(
+        #[source]
         server_admin_contract::admin_session_timestamp::AdminSessionTimestampTryFromStringError,
     ),
     #[error("{0}")]
-    Text(server_admin_contract::admin_text::AdminTextTryFromStringError),
+    Text(#[source] server_admin_contract::admin_text::AdminTextTryFromStringError),
 }
 
 impl From<server_admin_contract::admin_audit_timestamp::AdminAuditTimestampTryFromStringError>

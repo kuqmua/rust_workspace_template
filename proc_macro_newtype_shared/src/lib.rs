@@ -923,6 +923,12 @@ fn generate_bounded_string_token_stream(
                             || meta.error(constants_str::MACRO_DIAGNOSTICS_DUPLICATE_BOUNDED_STRING_OPTION_ERROR),
                         );
                     }
+                    if meta.path.is_ident(constants_str::CODE_STYLE_ERROR_ATTRIBUTE) {
+                        return parsed.get_options_mut().try_insert_with(
+                            bounded_string_option::BoundedStringOption::Error,
+                            || meta.error(constants_str::MACRO_DIAGNOSTICS_DUPLICATE_BOUNDED_STRING_OPTION_ERROR),
+                        );
+                    }
                     if meta.path.is_ident(constants_str::NUL_FREE) {
                         return parsed.get_options_mut().try_insert_with(
                             bounded_string_option::BoundedStringOption::NulFree,
@@ -993,6 +999,9 @@ fn generate_bounded_string_token_stream(
     let validator = attrs.get_validator();
     let chars = options
         .contains(bounded_string_option::BoundedStringOption::Chars)
+        .get();
+    let error_trait = options
+        .contains(bounded_string_option::BoundedStringOption::Error)
         .get();
     let nul_free = options
         .contains(bounded_string_option::BoundedStringOption::NulFree)
@@ -1094,8 +1103,24 @@ fn generate_bounded_string_token_stream(
         },
         |value| quote::quote! {#value},
     );
-    Ok(
-        proc_macro2_generated_token_stream::ProcMacro2GeneratedTokenStream::from(quote::quote! {
+    let error_definition_token_stream = if error_trait {
+        quote::quote! {
+            #[derive(Debug, Clone, Copy, PartialEq, Eq, thiserror::Error)]
+            #vis enum #error_identifier {
+                #[error("{} minimum length {min} exceeds maximum {max}", #description_token_stream)]
+                InvalidBounds { min: usize, max: usize },
+                #[error("{} length {len} is below minimum {min}", #description_token_stream)]
+                TooShort { len: usize, min: usize },
+                #[error("{} length {len} exceeds maximum {max}", #description_token_stream)]
+                TooLong { len: usize, max: usize },
+                #[error("{} contains a NUL character", #description_token_stream)]
+                ContainsNul,
+                #[error("{} has an invalid value", #description_token_stream)]
+                InvalidValue,
+            }
+        }
+    } else {
+        quote::quote! {
             #[derive(Debug, Clone, Copy, PartialEq, Eq)]
             #vis enum #error_identifier {
                 InvalidBounds { min: usize, max: usize },
@@ -1121,6 +1146,11 @@ fn generate_bounded_string_token_stream(
                     }
                 }
             }
+        }
+    };
+    Ok(
+        proc_macro2_generated_token_stream::ProcMacro2GeneratedTokenStream::from(quote::quote! {
+            #error_definition_token_stream
             #error_from_token_stream
             impl TryFrom<String> for #identifier {
                 type Error = #error_identifier;

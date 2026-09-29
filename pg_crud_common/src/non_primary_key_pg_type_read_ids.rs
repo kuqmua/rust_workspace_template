@@ -15,15 +15,11 @@ impl utoipa::PartialSchema for NonPrimaryKeyPgTypeReadIds {
     fn schema() -> utoipa::openapi::RefOr<utoipa::openapi::schema::Schema> {
         utoipa::openapi::ObjectBuilder::new()
             .property(
-                constants_str::PG_CRUD_VALUES_FIELD,
-                utoipa::openapi::schema::OneOfBuilder::new()
-                    .item(
-                        utoipa::openapi::ObjectBuilder::new()
-                            .schema_type(utoipa::openapi::schema::Type::Null),
-                    )
-                    .item(utoipa::openapi::schema::empty()),
+                stringify!(value),
+                utoipa::openapi::ObjectBuilder::new()
+                    .schema_type(utoipa::openapi::schema::Type::Null),
             )
-            .required(constants_str::PG_CRUD_VALUES_FIELD)
+            .required(stringify!(value))
             .build()
             .into()
     }

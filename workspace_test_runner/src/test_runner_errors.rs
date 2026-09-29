@@ -129,20 +129,33 @@ fn test_runner_measurement_spawn_errors_keep_legacy_text_and_source() {
 
 #[test]
 fn test_runner_fixture_conversion_retains_input_and_domain_validation_errors() {
+    let login_result = crate::create_admin_fixture_string::create_admin_fixture_string::<
+        server_admin_contract::admin_login::AdminLogin,
+    >(String::new());
     assert!(matches!(
-        crate::create_admin_fixture_string::create_admin_fixture_string::<
-            server_admin_contract::admin_login::AdminLogin,
-        >(String::new()),
+        login_result.as_ref(),
         Err(crate::admin_fixture_conversion_error::AdminFixtureConversionError::Login(_))
     ));
+    assert!(
+        login_result
+            .as_ref()
+            .err()
+            .is_some_and(|error| std::error::Error::source(error).is_some())
+    );
     let input = constants_str::X.repeat(constants_usize::VALUE_1_048_576 + constants_usize::ONE);
     let result = crate::create_admin_fixture_string::create_admin_fixture_string::<
         server_admin_contract::admin_text::AdminText,
     >(input);
     assert!(matches!(
-        result,
+        result.as_ref(),
         Err(crate::admin_fixture_conversion_error::AdminFixtureConversionError::Input(_))
     ));
+    assert!(
+        result
+            .as_ref()
+            .err()
+            .is_some_and(|error| std::error::Error::source(error).is_some())
+    );
 }
 
 #[test]

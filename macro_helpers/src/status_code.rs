@@ -584,4 +584,22 @@ mod tests {
             Err(crate::only_one_status_code_error::OnlyOneStatusCodeError::MoreThanOne)
         );
     }
+
+    #[test]
+    fn test_status_marker_rejects_arguments() {
+        let list_variant: syn::Variant = syn::parse_quote! {
+            #[not_found_404(unexpected)] Variant
+        };
+        let named_variant: syn::Variant = syn::parse_quote! {
+            #[not_found_404 = "unexpected"] Variant
+        };
+        assert_eq!(
+            crate::only_one::only_one(crate::syn_variant_ref::SynVariantRef::from(&list_variant)),
+            Err(crate::only_one_status_code_error::OnlyOneStatusCodeError::MalformedAttribute)
+        );
+        assert_eq!(
+            crate::only_one::only_one(crate::syn_variant_ref::SynVariantRef::from(&named_variant)),
+            Err(crate::only_one_status_code_error::OnlyOneStatusCodeError::MalformedAttribute)
+        );
+    }
 }

@@ -97,11 +97,7 @@ pub(crate) async fn user_mutations_create(
     )
     .await?;
     let user_ids = server_admin_contract::admin_user_ids::AdminUserIds::try_from(identifiers)
-        .map_err(
-            |server_admin_contract::admin_collection_error::AdminCollectionError::TooLong| {
-                crate::admin_error::AdminError::Validation
-            },
-        )?;
+        .map_err(crate::admin_error::AdminError::validation_collection)?;
     sqlx::Transaction::from(transaction)
         .commit()
         .await

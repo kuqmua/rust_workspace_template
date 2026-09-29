@@ -111,4 +111,31 @@ mod tests {
         );
         crate::cleanup_test_file::cleanup_test_file(path);
     }
+
+    #[test]
+    #[cfg(not(miri))]
+    fn test_try_maybe_write_token_stream_into_file_retries_failed_formatting() {
+        let base = crate::test_path::test_path(crate::test_path_stem::TestPathStem::new(
+            constants_str::MACRO_HELPERS_TRY_RUN_RUSTFMT,
+        ));
+        let path = crate::rs_file_path_tests::rs_file_path(&base);
+        let tokens = quote::quote! { fn };
+        let write = || {
+            crate::try_maybe_write_token_stream_into_file::try_maybe_write_token_stream_into_file(
+                crate::should_write_token_stream_into_file::ShouldWriteTokenStreamIntoFile::True,
+                &base,
+                crate::proc_macro2_token_stream_ref::ProcMacro2TokenStreamRef::from(&tokens),
+                &crate::format_with_cargofmt::FormatWithCargofmt::True,
+            )
+        };
+        assert_eq!(
+            write().err().map(|error| error.kind()),
+            Some(std::io::ErrorKind::Other)
+        );
+        assert_eq!(
+            write().err().map(|error| error.kind()),
+            Some(std::io::ErrorKind::Other)
+        );
+        crate::cleanup_test_file::cleanup_test_file(path);
+    }
 }

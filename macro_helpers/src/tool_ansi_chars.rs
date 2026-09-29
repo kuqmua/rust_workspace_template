@@ -26,19 +26,51 @@ impl Iterator for ToolAnsiChars<'_> {
 
     fn next(&mut self) -> Option<Self::Item> {
         self.std_str_chars.find(
-            |character| match (self.tool_ansi_escape_state, *character) {
-                (crate::tool_ansi_escape_state::ToolAnsiEscapeState::Escaping, 'm') => {
-                    self.tool_ansi_escape_state =
-                        crate::tool_ansi_escape_state::ToolAnsiEscapeState::Text;
-                    false
+            |character| {
+                match (self.tool_ansi_escape_state, *character) {
+                    (crate::tool_ansi_escape_state::ToolAnsiEscapeState::Text, '\u{1b}') => {
+                        self.tool_ansi_escape_state =
+                            crate::tool_ansi_escape_state::ToolAnsiEscapeState::Escape;
+                        false
+                    }
+                    (crate::tool_ansi_escape_state::ToolAnsiEscapeState::Text, _) => true,
+                    (crate::tool_ansi_escape_state::ToolAnsiEscapeState::Escape, '[') => {
+                        self.tool_ansi_escape_state =
+                            crate::tool_ansi_escape_state::ToolAnsiEscapeState::ControlSequence;
+                        false
+                    }
+                    (crate::tool_ansi_escape_state::ToolAnsiEscapeState::Escape, ']') => {
+                        self.tool_ansi_escape_state = crate::tool_ansi_escape_state::ToolAnsiEscapeState::OperatingSystemCommand;
+                        false
+                    }
+                    (crate::tool_ansi_escape_state::ToolAnsiEscapeState::ControlSequence, final_byte)
+                        if ('@'..='~').contains(&final_byte) =>
+                    {
+                        self.tool_ansi_escape_state =
+                            crate::tool_ansi_escape_state::ToolAnsiEscapeState::Text;
+                        false
+                    }
+                    (crate::tool_ansi_escape_state::ToolAnsiEscapeState::OperatingSystemCommand, '\u{1b}') => {
+                        self.tool_ansi_escape_state = crate::tool_ansi_escape_state::ToolAnsiEscapeState::OperatingSystemCommandEscape;
+                        false
+                    }
+                    (crate::tool_ansi_escape_state::ToolAnsiEscapeState::Escape, _)
+                    | (crate::tool_ansi_escape_state::ToolAnsiEscapeState::OperatingSystemCommand, '\u{7}')
+                    | (crate::tool_ansi_escape_state::ToolAnsiEscapeState::OperatingSystemCommandEscape, '\\') => {
+                        self.tool_ansi_escape_state =
+                            crate::tool_ansi_escape_state::ToolAnsiEscapeState::Text;
+                        false
+                    }
+                    (crate::tool_ansi_escape_state::ToolAnsiEscapeState::OperatingSystemCommandEscape, _) => {
+                        self.tool_ansi_escape_state = crate::tool_ansi_escape_state::ToolAnsiEscapeState::OperatingSystemCommand;
+                        false
+                    }
+                    (
+                        crate::tool_ansi_escape_state::ToolAnsiEscapeState::ControlSequence
+                        | crate::tool_ansi_escape_state::ToolAnsiEscapeState::OperatingSystemCommand,
+                        _,
+                    ) => false,
                 }
-                (crate::tool_ansi_escape_state::ToolAnsiEscapeState::Escaping, _) => false,
-                (crate::tool_ansi_escape_state::ToolAnsiEscapeState::Text, '\u{1b}') => {
-                    self.tool_ansi_escape_state =
-                        crate::tool_ansi_escape_state::ToolAnsiEscapeState::Escaping;
-                    false
-                }
-                (crate::tool_ansi_escape_state::ToolAnsiEscapeState::Text, _) => true,
             },
         )
     }
@@ -67,5 +99,28 @@ mod tests {
                 output == expected && output.capacity() >= tool_ansi_text_ref.get().len()
             })
         );
+    }
+
+    #[test]
+    fn test_ansi_filter_preserves_text_after_csi_and_osc_sequences() {
+        let cases = [
+            (
+                constants_str::TOOL_ANSI_CSI_ERASE_INPUT,
+                constants_str::TOOL_ANSI_CSI_ERASE_OUTPUT,
+            ),
+            (
+                constants_str::TOOL_ANSI_OSC_BEL_INPUT,
+                constants_str::TOOL_ANSI_OSC_BEL_OUTPUT,
+            ),
+            (
+                constants_str::TOOL_ANSI_OSC_ST_INPUT,
+                constants_str::TOOL_ANSI_OSC_ST_OUTPUT,
+            ),
+        ];
+        assert!(cases.into_iter().all(|(input, expected)| {
+            String::from(super::ToolAnsiChars::from(
+                crate::tool_ansi_text_ref::ToolAnsiTextRef::from(input),
+            )) == expected
+        }));
     }
 }

@@ -1,6 +1,62 @@
 #[test]
+fn test_generation_stage_measurement_propagates_each_fallible_stage() {
+    let input = crate::measurement_name::MeasurementName::from(constants_str::STATIC);
+    let failed_parse = crate::measure_generation_stages::measure_generation_stages(
+        input,
+        |_| {
+            Err::<
+                crate::measurement_name::MeasurementName,
+                crate::summary_text_append_error::SummaryTextAppendError,
+            >(crate::summary_text_append_error::SummaryTextAppendError::CapacityExceeded)
+        },
+        Ok::<_, crate::summary_text_append_error::SummaryTextAppendError>,
+        Ok::<_, crate::summary_text_append_error::SummaryTextAppendError>,
+        |value| value,
+        |_| constants_usize::ZERO,
+    );
+    let failed_build = crate::measure_generation_stages::measure_generation_stages(
+        input,
+        Ok::<_, crate::summary_text_append_error::SummaryTextAppendError>,
+        |_| {
+            Err::<
+                crate::measurement_name::MeasurementName,
+                crate::summary_text_append_error::SummaryTextAppendError,
+            >(crate::summary_text_append_error::SummaryTextAppendError::CapacityExceeded)
+        },
+        Ok::<_, crate::summary_text_append_error::SummaryTextAppendError>,
+        |value| value,
+        |_| constants_usize::ZERO,
+    );
+    let failed_validate = crate::measure_generation_stages::measure_generation_stages(
+        input,
+        Ok::<_, crate::summary_text_append_error::SummaryTextAppendError>,
+        Ok::<_, crate::summary_text_append_error::SummaryTextAppendError>,
+        |_| {
+            Err::<
+                crate::measurement_name::MeasurementName,
+                crate::summary_text_append_error::SummaryTextAppendError,
+            >(crate::summary_text_append_error::SummaryTextAppendError::CapacityExceeded)
+        },
+        |value| value,
+        |_| constants_usize::ZERO,
+    );
+    assert!(matches!(
+        failed_parse,
+        Err(crate::summary_text_append_error::SummaryTextAppendError::CapacityExceeded)
+    ));
+    assert!(matches!(
+        failed_build,
+        Err(crate::summary_text_append_error::SummaryTextAppendError::CapacityExceeded)
+    ));
+    assert!(matches!(
+        failed_validate,
+        Err(crate::summary_text_append_error::SummaryTextAppendError::CapacityExceeded)
+    ));
+}
+
+#[test]
 fn test_bounded_capture_fits_command_log_after_utf8_replacement() {
-    let stream_limit = constants_usize::VALUE_1_048_576 * constants_usize::TWO;
+    let stream_limit = crate::domain_types::COMMAND_CAPTURE_BYTES_PER_STREAM;
     let invalid_bytes = vec![u8::MAX; stream_limit];
     let text = String::from_utf8_lossy(invalid_bytes.as_slice());
     let log = format!("{text}{text}");
@@ -9,6 +65,17 @@ fn test_bounded_capture_fits_command_log_after_utf8_replacement() {
             command_text.as_ref().len()
                 == stream_limit * constants_usize::TWO * constants_usize::THREE
         })
+    );
+}
+
+#[test]
+fn test_bounded_capture_fits_memusage_clean_text_after_utf8_replacement() {
+    let stream_limit = crate::domain_types::COMMAND_CAPTURE_BYTES_PER_STREAM;
+    let invalid_bytes = vec![u8::MAX; stream_limit];
+    let text = String::from_utf8_lossy(invalid_bytes.as_slice());
+    assert!(
+        crate::clean_ansi_text::CleanAnsiText::try_from(text.into_owned())
+            .is_ok_and(|clean| clean.as_ref().len() == stream_limit * constants_usize::THREE)
     );
 }
 

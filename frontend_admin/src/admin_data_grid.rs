@@ -68,6 +68,7 @@ pub(crate) fn AdminDataGrid(
         admin_csr_query.filter_value(),
         admin_csr_query.filter_end(),
         admin_csr_query.limit(),
+        Some(&admin_csr_query),
         &table_path,
         is_sessions,
         can_update,

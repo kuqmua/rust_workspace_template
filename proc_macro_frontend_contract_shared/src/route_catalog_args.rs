@@ -13,8 +13,15 @@ impl syn::parse::Parse for RouteCatalogArgs {
     fn parse(parse_stream: syn::parse::ParseStream<'_>) -> syn::Result<Self> {
         let mut body_limit = None;
         let mut family = None;
+        let mut seen = std::collections::HashSet::new();
         while !parse_stream.is_empty() {
             let name = parse_stream.parse::<syn::Ident>()?;
+            if seen.contains(&name) {
+                return Err(syn::Error::new_spanned(
+                    name,
+                    constants_str::DUPLICATE_FRONTEND_CONTRACT_FIELD,
+                ));
+            }
             let _equals = parse_stream.parse::<syn::Token![=]>()?;
             if name == constants_str::ROUTE_CATALOG_FAMILY {
                 family = Some(crate::contract_syn_ident::ContractSynIdent::from(
@@ -30,6 +37,7 @@ impl syn::parse::Parse for RouteCatalogArgs {
                     constants_str::UNSUPPORTED_TYPED_ROUTE_FIELD,
                 ));
             }
+            let _inserted = seen.insert(name);
             if !parse_stream.is_empty() {
                 let _comma = parse_stream.parse::<syn::Token![,]>()?;
             }

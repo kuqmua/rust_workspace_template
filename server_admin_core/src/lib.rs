@@ -4,6 +4,7 @@ pub mod admin_resource_text;
 pub mod admin_role_record_id;
 pub mod admin_socket_addr;
 pub mod admin_user_record_id;
+pub mod escape_admin_like_pattern;
 pub mod secrecy_admin_string;
 pub mod std_admin_bool;
 pub mod std_admin_str_ref;

@@ -31,7 +31,7 @@ pub(crate) fn run_commands(
                     )
                     .args(macro_helpers::tool_args_ref::ToolArgsRef::from(*args))
                     .bounded_output(macro_helpers::tool_output_limit::ToolOutputLimit::from(
-                        constants_usize::VALUE_1_048_576 * constants_usize::TWO,
+                        crate::domain_types::COMMAND_CAPTURE_BYTES_PER_STREAM,
                     ));
                     let command_index = crate::command_index::CommandIndex::from(index);
                     let mut command_failures_vec_deque = crate::command_failures_vec_deque::CommandFailuresVecDeque::default();
@@ -86,10 +86,6 @@ pub(crate) fn run_commands(
     });
     let mut command_failures =
         crate::command_failures_vec_deque::CommandFailuresVecDeque::default();
-    command_runs.sort_by_key(|(_, command_run_result)| match command_run_result {
-        Ok(command_run) => usize::from(*command_run.get_command_index()),
-        Err(_panic) => usize::MAX,
-    });
     command_runs.iter_mut().for_each(
         |(command_index, command_run_result)| match command_run_result {
             Ok(command_run) => {
@@ -206,4 +202,31 @@ pub(crate) fn run_commands(
         command_failures,
         write_reports(),
     )
+}
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn test_panicked_command_retains_its_input_position() {
+        let command_runs = [Err(()), Ok(constants_usize::ONE), Ok(constants_usize::TWO)]
+            .into_iter()
+            .enumerate()
+            .map(|(index, result)| (crate::command_index::CommandIndex::from(index), result))
+            .collect::<Vec<_>>();
+        assert!(matches!(
+            command_runs.get(constants_usize::ZERO),
+            Some((_command_index, Err(())))
+        ));
+        assert_eq!(
+            command_runs
+                .iter()
+                .map(|(command_index, _result)| usize::from(*command_index))
+                .collect::<Vec<_>>(),
+            [
+                constants_usize::ZERO,
+                constants_usize::ONE,
+                constants_usize::TWO
+            ]
+        );
+    }
 }

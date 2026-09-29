@@ -21,4 +21,22 @@ impl serde::de::Visitor<'_> for AdminPageOffsetVisitor {
             .map(crate::admin_page_offset::AdminPageOffset::from)
             .map_err(serde::de::Error::custom)
     }
+    fn visit_i64<Error>(self, i64: i64) -> Result<Self::Value, Error>
+    where
+        Error: serde::de::Error,
+    {
+        crate::visit_checked_unsigned_integer::visit_checked_unsigned_integer(self, i64)
+    }
+    fn visit_i128<Error>(self, i128: i128) -> Result<Self::Value, Error>
+    where
+        Error: serde::de::Error,
+    {
+        crate::visit_checked_unsigned_integer::visit_checked_unsigned_integer(self, i128)
+    }
+    fn visit_u128<Error>(self, u128: u128) -> Result<Self::Value, Error>
+    where
+        Error: serde::de::Error,
+    {
+        crate::visit_checked_unsigned_integer::visit_checked_unsigned_integer(self, u128)
+    }
 }

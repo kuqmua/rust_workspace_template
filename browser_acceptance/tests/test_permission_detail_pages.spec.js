@@ -36,3 +36,25 @@ test("test_permission_tables_read_actions_open_matching_detail_pages", async ({ 
     await signOutIfAuthenticated(page);
   }
 });
+
+test("test_permission_table_filters_reach_read_requests", async ({ page }) => {
+  test.setTimeout(45000);
+  await signInAdministratorWithPasswordReset(page);
+  try {
+    await [
+      ["permission_actions", "key", "read"],
+      ["permission_resource_actions", "permission_action_id", "1"],
+      ["permission_resources", "key", "read"],
+    ].reduce(async (previous, [table, field, value]) => {
+      await previous;
+      const request = page.waitForRequest(candidate => new URL(candidate.url()).pathname === `/${table}/read`, { timeout: 10000 });
+      const response = page.waitForResponse(candidate => new URL(candidate.url()).pathname === `/${table}/read`, { timeout: 10000 });
+      await page.goto(`/admin/${table}?filter_field=${field}&filter_operation=eq&filter_value=${value}`);
+      const body = (await request).postDataJSON();
+      expect(body.where_many?.[field], table).toBeTruthy();
+      expect((await response).status(), table).toBe(200);
+    }, Promise.resolve());
+  } finally {
+    await signOutIfAuthenticated(page);
+  }
+});

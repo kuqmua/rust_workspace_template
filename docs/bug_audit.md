@@ -1,8 +1,8 @@
 # Workspace bug audit
 
-Scope: every workspace package and Rust source module. Inventory date: 2026-09-28.
+Scope: every workspace package and Rust source module. Inventory date: 2026-09-29.
 
-Inventory: 191 packages; 3210 Rust source files.
+Inventory: 191 packages; 3227 Rust source files.
 
 ## Status definitions
 
@@ -71,12 +71,12 @@ Passing workspace tests and policy checks does not establish complete semantic c
 | A54 | Fixed and verified | bounded_types/src/bounded_string.rs | Schemars emitted an unconstrained string schema for bounded strings. Regressions failed before the fix for character minimum/maximum and byte minimum/maximum metadata. Character-counted strings now publish standard length bounds; byte-counted strings publish the same byte-bound extensions as the existing OpenAPI schema and omit the maximum extension for unbounded values. All 38 bounded-types tests, full Clippy, all 306 code-style tests and workspace tests pass. |
 | A55 | Fixed and verified | common_routes/src/health_report_response.rs | The health and readiness route contracts declare a HealthReport for HTTP 503, but unavailable database responses emitted an ApiProblem document and discarded the degraded component report. The error now carries the HealthReport and serializes it with status 503. A deterministic response regression checks status and decoded report. Full Clippy, all 306 code-style tests and workspace tests pass. |
 | A56 | Fixed and verified | common_routes/src/health_check_error.rs | The health-check route declares an empty HTTP 503 response, but the error emitted a nonempty ApiProblem document. A deterministic regression failed on the body before the fix and passes after the error returns status only. Full Clippy, all 306 code-style tests and workspace tests pass. Evidence: target/audit_tmp/a56_style.log and a56_workspace.log. |
-| A57 | Candidate | file_storage/src/safe_file_storage.rs | When an operation and its staging cleanup both fail, several branches return only the cleanup I/O error, losing the original operation failure. The existing AtomicReplaceAndCleanup variant is unused. A deterministic dual-failure reproduction and error-contract review are needed before changing behavior. |
+| A57 | Fixed and verified | file_storage/src/safe_file_storage.rs, file_storage/src/file_storage_error.rs | When an operation and staging cleanup both failed, three branches returned only the cleanup I/O error. They now use the existing combined error variant, preserving both failures and exposing the operation as the error source. Deterministic unit tests cover I/O and non-I/O operation errors. Focused file-storage tests, formatting, full Clippy, code-style tests, workspace tests, and `git diff --check` passed (`target/audit_tmp/a57_focused_final.log`, `target/audit_tmp/a57_file_storage.log`, `target/audit_tmp/a57_clippy.log`, `target/audit_tmp/a57_style.log`, `target/audit_tmp/a57_workspace.log`). |
 | A58 | Fixed and verified | config_lib/src/parse_required_env_var.rs | Oversized environment values previously became validation error text that was passed to the parser. The helper now returns a typed length error with the field name, and the generated configuration error carries it. A deterministic regression proves that an oversized value returns the original length error without calling the parser. Focused config tests, full Clippy, all 306 code-style tests, and workspace tests pass. The public helper signature and generated config error enum intentionally add a length-error mapping path. |
 | A59 | Fixed and verified | config_lib/src/domain_types.rs | Any tracing format other than `json` silently became `text`, allowing typos such as `jsno` to pass configuration parsing. The parser now accepts only `json` and `text`, retains case-insensitive matching, and returns a typed error for unknown values. A deterministic test covers both valid values, uppercase JSON, and an invalid value. The generated notification-service descriptor test, full Clippy, all 306 code-style tests, and workspace tests pass; workspace evidence is in `target/audit_tmp/a59_workspace.log`. |
 | A60 | Fixed and verified | location_lib/src/location.rs | An overlong file path supplied to `Location::new` failed bounded conversion, then stored the validation error text as the location file. The constructor now retains a bounded prefix of the original path through `From<LocationFileRef>`. A deterministic regression covers an oversized path and checks its original prefix and bounded length. Full Clippy, all 306 code-style tests, and workspace tests pass; evidence is in `target/audit_tmp/a60_clippy.log`, `a60_style.log`, and `a60_workspace.log`. |
 | A61 | Fixed and verified | init_env_files/src/initialize.rs | The initializer used `filter_map(toml::Value::as_str)` on the workspace members array, silently skipping non-string entries. It now validates each member through a typed TOML wrapper and returns `InvalidMemberType` for a non-string entry. A deterministic conversion regression covers a numeric member. Full Clippy, all 306 code-style tests, and workspace tests pass; evidence is in `target/audit_tmp/a61_clippy.log`, `a61_style.log`, and `a61_workspace.log`. |
-| A62 | Candidate | proc_macro_location_bang/src/lib.rs | The `location!` proc macro drops its input token stream and expands normally, so unexpected arguments are accepted silently. A compile-time rejection regression is needed; the entrypoint crate has no existing compile-fail harness or shared implementation dependency, and adding dependencies is outside the current instructions. |
+| A62 | Fixed and verified | proc_macro_location_bang/src/lib.rs, proc_macro_location_bang/tests | The `location!` proc macro silently accepted unexpected arguments. It now emits a compile error for nonempty input. A dependency-free rustc fixture compiled before the fix and is rejected with the expected diagnostic afterward (`target/audit_tmp/a121_location_before.log`, `a121_location_after.log`); the existing `location_test` package builds valid invocations. Formatting, full Clippy, code-style tests, workspace tests, and `git diff --check` passed (`target/audit_tmp/a121_clippy.log`, `a121_style.log`, `a121_workspace.log`). Run the negative fixture with `bash proc_macro_location_bang/tests/test_invalid_input.sh`. |
 | A63 | Fixed and verified | proc_macro_config_lib_shared/src/lib.rs | The shared nonempty config-text generator emitted raw `String` fields and its direct `TryFrom<String>` accepted arbitrary length, bypassing the workspace configuration text bound. Generated wrappers now store `BoundedString` and return `TooLong` for values above the shared limit. The related `ServerConfig` provider returns the bounded field type. A deterministic regression checks all three generated config text types. Full Clippy, all 306 code-style tests, and workspace tests pass; evidence is in `target/audit_tmp/a63_clippy.log`, `a63_style.log`, and `a63_workspace.log`. |
 | A64 | Fixed and verified | workspace_scaffold/src/template_fs_replace_file.rs | Template replacement treated every bounded read failure as a binary file and returned success, hiding missing files and oversized templates. It now skips only invalid UTF-8 and propagates other read failures. A deterministic missing-file regression covers the I/O error path. Full Clippy, code-style tests, and workspace tests pass; evidence is in `target/audit_tmp/a64_clippy.log`, `a64_style.log`, and `a64_workspace.log`. |
 | A65 | Fixed and verified | workspace_scaffold/src/synchronize_deployment_projections.rs | Deployment synchronization validated catalog path components only after it had begun updating generated files. A regression with a parent-directory component failed before the fix because projection handling ran first. Path validation now runs immediately after catalog parsing and before all projection reads and writes. Full Clippy, code-style tests, and workspace tests pass; evidence is in `target/audit_tmp/a65_clippy.log`, `a65_style.log`, and `a65_workspace.log`. |
@@ -98,6 +98,62 @@ Passing workspace tests and policy checks does not establish complete semantic c
 | A81 | Fixed and verified | workspace_test_runner/src/failed_test_names.rs | Failed-test extraction parsed raw subprocess text, so ANSI color codes before a failure line hid that test name in the summary. A colored-log regression failed before the fix. The parser now removes ANSI sequences with the existing runner helper before extracting names. Full Clippy, code-style tests, and workspace tests pass; evidence is in `target/audit_tmp/a81_clippy.log`, `a81_style.log`, and `a81_workspace.log`. |
 | A82 | Fixed and verified | workspace_test_runner/src/main.rs | An oversized CLI mode was converted into a bounded-string diagnostic, then reported as an unknown mode instead of a length error. The binary regression failed before the fix and now checks the direct length error with a nonzero exit and no unknown-mode fallback. All runner tests, full Clippy, code-style tests, and workspace tests pass; evidence is in `target/audit_tmp/a82_clippy.log`, `a82_style.log`, and `a82_workspace.log`. |
 | A83 | Fixed and verified | workspace_test_runner/src/memusage_summary_text.rs | Memusage parsers scanned all captured stderr, so program text before the tool footer could be reported as heap or allocation measurements. A spoofed-prefix regression failed before the fix. Both parsers now read only after the final `Memory usage summary:` marker, including values on the marker line; missing-footer input returns `unavailable`. The real installed tool's footer format was inspected locally. Full Clippy, code-style tests, and workspace tests pass; evidence is in `target/audit_tmp/a83_clippy.log`, `a83_style.log`, and `a83_workspace.log`. |
+| A84 | Fixed and verified | workspace_test_runner/src/print_without_memusage_footer.rs | The stderr printer stopped at the first `Memory usage summary:` marker while A83's parser uses the final marker, so a program's marker-like line could hide subsequent program stderr. Printing now stops at the final marker and preserves all text when no footer exists. Focused helper tests, formatting, full Clippy, code-style tests, and workspace tests pass; evidence is in `target/audit_tmp/a84_clippy.log`, `a84_style.log`, and `a84_workspace_confirm.log`. |
+| A85 | Fixed and verified | workspace_test_runner/src/measure_cargo_command.rs | The Cargo timing parser took the first resource marker from all stderr, and the companion printer filtered every matching line. Program stderr could spoof measurements and lose matching lines. A shared footer parser now requires the final three numeric `/usr/bin/time` lines, reads their values, and preserves all preceding program stderr, including matching markers and text without a trailing newline. Three deterministic footer regressions pass. Formatting, full Clippy, code-style tests, and workspace tests pass; evidence is in `target/audit_tmp/a85_clippy.log`, `a85_style.log`, and `a85_workspace.log`. |
+| A86 | Fixed and verified | workspace_test_runner/src/domain_types.rs | Three runner subprocess paths still used unbounded `Command::output`: the Cargo subcommand probe, Cargo measurements, and memusage measurements. All now use the shared bounded capture with a single 2 MiB per-stream limit also used by `run_commands`. A deterministic worst-case invalid UTF-8 regression proves the retained memusage text fits its 16 MiB wrapper; the existing command-log boundary and process tests cover the same capture helper. No direct unbounded output call remains in the runner. Formatting, full Clippy, code-style tests, and workspace tests pass; evidence is in `target/audit_tmp/a86_clippy.log`, `a86_style.log`, and `a86_workspace.log`. |
+| A87 | Fixed and verified | workspace_test_runner/src/run_measurements_cli.rs | Three generation-stage failures called `panic_any` in the production measurement CLI. Each now prints the stage error to stderr and exits with failure, matching the runner's other measurement errors. A deterministic regression covers parse, build, and validation error propagation through the shared stage helper. Focused runner test, formatting, full Clippy, code-style tests, and workspace tests pass; evidence is in `target/audit_tmp/a87_focused.log`, `a87_clippy.log`, `a87_style.log`, and `a87_workspace.log`. |
+| A88 | Fixed and verified | workspace_test_runner/src/run_commands.rs | The report sorted successful command results by index but assigned `usize::MAX` to panicked workers, moving an earlier panic summary after later commands. The sort was removed; scoped joins already collect results in input order. A deterministic synthetic panic-result test documents that ordering without scheduling threads. The obsolete sentinel constant and reviewed `usize::MAX` inventory entry were removed. Focused test, formatting, full Clippy, code-style tests, workspace tests, and `git diff --check` pass (`target/audit_tmp/a88_focused.log`, `a88_clippy_final.log`, `a88_style_final.log`, `a88_workspace.log`). The test covers the join-result ordering invariant, while the production report order follows directly from the same unmodified vector. |
+| A89 | Fixed and verified | workspace_test_runner/src/admin_fixture_conversion_error.rs | A regression showed that `Error::source` was absent for wrapped fixture validation errors. The bounded-string generator now has an opt-in `error` mode that derives `thiserror::Error` with the prior messages; the ten affected wrappers in the runner and admin contract enable it, and every fixture conversion variant marks its source. Only crates already depending on `thiserror` use the option. The reviewed public contract snapshot records the nine public attribute changes. The source-chain regression failed before the fix and now passes; formatting, full Clippy, code-style tests, and workspace tests pass. Evidence is in `target/audit_tmp/a88_before.log`, `a89_focused.log`, `a89_clippy.log`, `a89_style_final.log`, and `a89_workspace.log`. |
+| A90 | Fixed and verified | frontend_admin/src/admin_csr_query.rs | Browser query parsing rejected duplicate `limit` and `offset` parameters but accepted the first value of repeated filter, search, sort, and direction parameters. It now rejects duplicates for all nine typed keys read by the parser. Seven Playwright cases join the existing pagination regressions and assert an invalid-query diagnostic with no read request. The current CSR bundle was rebuilt, and all 21 browser cases passed against a disposable PostgreSQL container that was stopped afterward. The WASM build, formatting, full Clippy, code-style tests, and workspace tests also pass. The first browser-server compilation exhausted disk space; a package-scoped Cargo clean freed regenerable output before the successful retry. Evidence is in `target/audit_tmp/a90_playwright_discovery.log`, `a90_wasm_check.log`, `a90_clippy.log`, `a90_style.log`, `a90_workspace.log`, `a90_trunk_build.log`, and `a90_browser_runtime_retry.log`. |
+| A91 | Fixed and verified | frontend_admin/src/admin_page_range.rs | At or beyond the total item count, pagination reported the final item number as both range endpoints even though the page contains no rows. It now displays `0 to 0` for empty ranges while preserving partial pages and the existing navigation offsets. The updated regression failed before the fix and passes afterward for both exactly-at-end and out-of-range offsets. Formatting, full Clippy, code-style tests, and workspace tests pass; evidence is in `target/audit_tmp/a91_before.log`, `a91_focused.log`, `a91_clippy.log`, `a91_style.log`, and `a91_workspace.log`. |
+| A92 | Fixed and verified | frontend_admin/src/admin_column_filter.rs | CSR table filter forms omitted the active search, sort key, and direction, so applying a column filter reset those settings on query-enabled pages. The shared table-query hidden inputs now join the filter form through the grid. A browser regression on the roles page verifies all three submitted values; the initial combined browser run passed that case, and the focused rerun passed after separating the sessions finding below. WASM check, formatting, full Clippy, all 306 code-style tests, and workspace tests pass. Evidence: `target/audit_tmp/a92_browser.log`, `a92_browser_final.log`, `a92_wasm.log`, `a92_clippy.log`, `a92_style.log`, and `a92_workspace.log`. |
+| A93 | Fixed and verified | server_admin_contract/src/admin_page.rs | The sessions page rendered pagination and filter controls, but its `Csr` page mode removed their query parameters before the browser request. Its existing GET endpoint already parses typed table queries and applies filter, limit, and offset. Sessions now uses `CsrTableQuery`; the catalog test and reviewed public API snapshot were updated. A browser regression observed an empty query before the fix and verified all five requested parameters afterward. The complete pagination browser file passes all 23 cases. Formatting, full Clippy, all 306 code-style tests, and workspace tests pass. Evidence: `target/audit_tmp/a93_browser_before.log`, `a93_browser_after.log`, `a93_browser_full.log`, `a93_clippy.log`, `a93_style_final.log`, and `a93_workspace_final.log`. |
+| A94 | Fixed and verified | frontend_admin/src/admin_settings_view.rs | Invalid settings values made the Save handler skip its request silently. The form now shows a validation message while preserving the entered values; the reset path also reports local construction failures. A browser regression with an invalid default route failed before the fix and passes afterward, checking that no PATCH request is sent. The new message is assembled from existing string fragments. WASM check, frontend build, formatting, full Clippy, all 306 code-style tests, and workspace tests pass. Evidence: `target/audit_tmp/a94_browser_before.log`, `a94_browser_after.log`, `a94_wasm.log`, `a94_trunk.log`, `a94_clippy.log`, `a94_style.log`, and `a94_workspace.log`. |
+| A95 | Fixed and verified | frontend_admin/src/admin_column_filter.rs | Clear on a column filter linked to the bare table path, dropping the active search, sort, direction, and page size. It now submits a GET form with the shared table query inputs and limit, omitting only filter fields. The SSR grid supplies its typed table query to the same renderer. A browser regression failed before the fix, then passed with a real Clear submission and the expected URL; all 24 pagination browser cases pass. The native grid regression verifies that both forms carry descending order. WASM check, formatting, full Clippy, all 306 code-style tests, and workspace tests pass. Evidence: `target/audit_tmp/a95_browser_before.log`, `a95_browser_submit.log`, `a95_browser_full.log`, `a95_native_final.log`, `a95_wasm.log`, `a95_clippy_final.log`, `a95_style_final.log`, and `a95_workspace_final.log`. |
+| A96 | Fixed and verified | proc_macro_frontend_contract_shared/src/typed_route_args.rs | Five keyed frontend contract attribute parsers silently replaced earlier values when a field appeared twice. They now reject duplicate identifiers before overwriting any value, including a repeated bare `exclude_from_family` flag. Six deterministic parser cases failed before the fix and pass afterward. The guard moves identifiers into a per-parse set without cloning inside the loop. Formatting, full Clippy, all 306 code-style tests, and workspace tests pass. Evidence: `target/audit_tmp/a96_before.log`, `a96_focused_final.log`, `a96_clippy_final.log`, `a96_style_final.log`, and `a96_workspace.log`. |
+| A97 | Fixed and verified | proc_macro_frontend_contract_shared/src/lib.rs | A repeated `slice` field option silently replaced its earlier type in `ContractStructApi`. The regression failed before the duplicate guard and passes afterward. Formatting, full Clippy, all 306 code-style tests, and workspace tests pass. Evidence: `target/audit_tmp/a97_before.log`, `a97_focused.log`, `a97_clippy.log`, `a97_style.log`, and `a97_workspace.log`. |
+| A98 | Fixed and verified | proc_macro_frontend_contract_shared/src/lib.rs | Repeated `delegate` metadata in `route_openapi` silently selected the later endpoint path. A focused regression failed before the duplicate guard and passes afterward. Formatting, full Clippy, all 306 code-style tests, and workspace tests pass. Evidence: `target/audit_tmp/a98_before.log`, `a98_focused.log`, `a98_clippy.log`, `a98_style.log`, and `a98_workspace.log`. |
+| A99 | Fixed and verified | proc_macro_frontend_contract_shared/src/lib.rs | `RouteFamily` silently ignored a second `route_family` or `route_family_body_limit` attribute. Two deterministic regression cases failed before duplicate detection and pass afterward. Formatting, full Clippy, all 306 code-style tests, and workspace tests pass. Evidence: `target/audit_tmp/a99_before.log`, `a99_focused.log`, `a99_clippy.log`, `a99_style.log`, and `a99_workspace.log`. |
+| A100 | Fixed and verified | proc_macro_frontend_contract_shared/src/lib.rs | The `TypedRoute`, `RouteCatalog`, and `PageCatalog` derives silently ignored repeated top-level attributes, while the two catalogs also ignored repeated variant attributes. Five deterministic regression cases failed before the duplicate guards and pass afterward. Formatting, full Clippy, all 306 code-style tests, and workspace tests pass. Evidence: `target/audit_tmp/a100_before.log`, `a100_focused.log`, `a100_variant_before.log`, `a100_variant_focused.log`, `a100_clippy_final.log`, `a100_style.log`, and `a100_workspace.log`. |
+| A101 | Fixed and verified | proc_macro_frontend_contract_shared/src/lib.rs | The route registry accepted multiple `openapi` attributes but generated its document from only the first. A deterministic regression failed before duplicate detection and passes afterward. Formatting, full Clippy, all 306 code-style tests, and workspace tests pass. Evidence: `target/audit_tmp/a101_before.log`, `a101_focused.log`, `a101_clippy.log`, `a101_style.log`, and `a101_workspace.log`. |
+| A102 | Fixed and verified | proc_macro_frontend_contract_shared/src/lib.rs | The route registry silently discarded any outer attribute besides `openapi`. A deterministic regression failed before rejection and passes afterward. Formatting, full Clippy, all 306 code-style tests, and workspace tests pass. Evidence: `target/audit_tmp/a102_before.log`, `a102_focused.log`, `a102_clippy.log`, `a102_style.log`, and `a102_workspace.log`. |
+| A103 | Fixed and verified | frontend_admin/src/admin_table_actions.rs | Both session table renderers used a shared revoke dialog trigger whose accessible name and tooltip said `Delete`. The component now names that action `Revoke session`. Its existing markup regression failed before the change and passes afterward. Formatting, full Clippy, all 306 code-style tests, and workspace tests pass. Evidence: `target/audit_tmp/a103_before.log`, `a103_focused.log`, `a103_clippy.log`, `a103_style.log`, and `a103_workspace.log`. |
+| A104 | Fixed and verified | frontend_admin/src/fetch_permission_table_read.rs, server_admin_contract/src/admin_where_many.rs | Permission table lists discarded column filters before constructing their read requests. A browser regression failed before the fix because the request omitted `where_many`. The fetch path now validates each table's filter field and forwards typed filters for all three permission tables. The shared converter now accepts numeric relation columns, verified by a direct unit test. The browser regression verifies text and numeric filters and successful read responses across all three tables. Formatting, full Clippy, all 306 code-style tests, and workspace tests pass. Evidence: `target/audit_tmp/a104_browser_before.log`, `a104_unit.log`, `a104_browser_response.log`, `a104_clippy_final.log`, `a104_style.log`, and `a104_workspace.log`. |
+| A105 | Fixed and verified | frontend_contract/src/parse_timestamp_filter_wire_json.rs, server_admin_contract/src/admin_where_many.rs, pg_crud_pg_types_generate_src/src/emit_generate_pg_types.rs | CSR fetch paths selected `InputKind::DateTime` for visible date-time filters, but the shared converter rejected that kind. The browser regression failed before the fix because no read request was sent. Timestamp form parsing now lives in `frontend_contract` and supplies the generated PostgreSQL type converter and CSR filter builder. Scalar, range, and list unit tests and the browser read-response regression pass. The reviewed public API snapshot records the shared parser and two typed timestamp diagnostics. Formatting, full Clippy, all 306 code-style tests, and workspace tests pass; the first workspace run exhausted the incremental-build disk cache, and a cache-only cleanup plus incremental-disabled retry passed. Evidence: `target/audit_tmp/a105_datetime_before.log`, `a105_browser_before_fix.log`, `a105_shared_unit.log`, `a105_timestamp_unit.log`, `a105_generated_unit.log`, `a105_browser_after.log`, `a105_clippy_final3.log`, `a105_style_final.log`, and `a105_workspace_retry.log`. |
+| A106 | Fixed and verified | frontend_admin/src/fetch_rules_read.rs | An unknown rules filter field was treated as numeric and sent to `/rules/read`, which returned HTTP 400. The CSR fetcher now rejects unknown fields as an invalid table query before making a read request. Browser regression failed before and passed after the fix (`target/audit_tmp/a106_browser_before.log`, `target/audit_tmp/a106_browser_after.log`); formatting, Clippy, code style, and workspace tests passed (`target/audit_tmp/a106_clippy.log`, `target/audit_tmp/a106_style.log`, `target/audit_tmp/a106_workspace.log`). |
+| A107 | Fixed and verified | frontend_admin/src/fetch_system_settings_read.rs | An unknown system settings filter field was treated as text and sent to `/system_settings/read`. The CSR reader now checks the field against the system settings column catalog before sending a read request. The browser regression failed before and passed after the fix (`target/audit_tmp/a107_browser_before.log`, `target/audit_tmp/a107_browser_after.log`); formatting, Clippy, code style, and workspace tests passed (`target/audit_tmp/a107_clippy.log`, `target/audit_tmp/a107_style.log`, `target/audit_tmp/a107_workspace.log`). |
+| A108 | Fixed and verified | frontend_admin/src/render_document.rs | The configured tab title was interpolated directly into the HTML document, allowing markup such as a closing title tag and script tag. The title now renders as escaped Leptos text. A deterministic rendering regression failed before the fix and passes afterward (`target/audit_tmp/a108_before.log`, `target/audit_tmp/a108_focused_catalog.log`); formatting, full Clippy, all 306 code-style tests, and workspace tests passed (`target/audit_tmp/a108_clippy_final.log`, `target/audit_tmp/a108_style_final.log`, `target/audit_tmp/a108_workspace.log`). |
+| A110 | Fixed and verified | frontend_admin/src/admin_data_table_grid.rs, frontend_admin/src/render_roles.rs | Both role table renderers offered an Update link for system roles even though the role update operation rejects them. The CSR table now shows Update only when the `is_system` cell is `false`, and the SSR table checks the typed role flag. The browser regression failed before and passed after the fix while retaining a custom-role Update link (`target/audit_tmp/a110_browser_before.log`, `target/audit_tmp/a110_browser_after.log`). The new SSR assertion failed with two Update links before the guard and passed after it (`target/audit_tmp/a110_ssr_before.log`, `target/audit_tmp/a110_ssr_focused.log`). The CSR build, formatting, full Clippy, all 306 code-style tests, and workspace tests passed (`target/audit_tmp/a110_trunk.log`, `target/audit_tmp/a110_clippy_final.log`, `target/audit_tmp/a110_style_final.log`, `target/audit_tmp/a110_workspace_final.log`). |
+| A111 | Fixed and verified | server_admin_contract/src/admin_bounded_vec.rs, server_admin_contract/src/admin_collection_error.rs, server_admin/src, proc_macro_frontend_contract_shared/src/lib.rs | Collection conversion discarded its `BoundedValueError`, and five mutation adapters discarded the collection error. `TooLong` now carries its source; the adapters, server error, and generated typed-operation errors preserve the chain while retaining validation status. Focused tests cover the bounded lengths and both server error layers (`target/audit_tmp/a111_collection.log`, `target/audit_tmp/a111_server.log`). Formatting, full Clippy, code-style tests, and workspace tests passed after updating the reviewed API snapshot and removing the obsolete ignored-error inventory entry (`target/audit_tmp/a111_clippy.log`, `target/audit_tmp/a111_style_final.log`, `target/audit_tmp/a111_workspace.log`). |
+| A112 | Fixed and verified | server_admin_contract/src/admin_user_roles_table_route.rs, server_admin_contract/src/admin_rate_limits_table_route.rs, server_admin_contract/src/admin_login_attempts_table_route.rs, server_admin_contract/src/admin_cleanup_status_table_route.rs, server_admin_contract/src/admin_refresh_tokens_table_route.rs | Five table route contracts advertised `Authenticated` although the shared table handler checks each table's read rule. They now declare their catalog rule. A catalog-wide contract test failed before the fix and passed after (`target/audit_tmp/a112_before.log`, `target/audit_tmp/a112_after.log`). The reviewed public API snapshot was updated, and formatting, full Clippy, the focused snapshot test, and workspace tests passed (`target/audit_tmp/a112_clippy.log`, `target/audit_tmp/a112_snapshot.log`, `target/audit_tmp/a112_workspace.log`). The full code-style suite passed after the snapshot update (`target/audit_tmp/a112_style_final.log`). |
+| A113 | Fixed and verified | server_admin_contract/src/admin_data_filter.rs | Deserialization accepted an operation and incompatible `value_shape`, so frontend input requirements could disagree with the selected operation. The decoder now checks the derived shape and rejects mismatches; the regression failed before and passed after (`target/audit_tmp/a113_before.log`, `target/audit_tmp/a113_after.log`). Formatting, full Clippy, code-style tests, and workspace tests passed after updating the reviewed public API snapshot (`target/audit_tmp/a113_clippy.log`, `target/audit_tmp/a113_style_final.log`, `target/audit_tmp/a113_workspace.log`). |
+| A114 | Fixed and verified | server_admin_contract/src/admin_data_table_query.rs, server_admin/src/data_tables_get.rs, server_admin/src/data_table_query_sql.rs | Generic table queries accepted `search`, `sort`, and `direction`, but the shared handler ignored them. The handler now binds search text, matches sort keys against static catalog columns, applies the selected direction with a stable identifier tie-breaker, and rejects descending direction without a sort key. A pure SQL builder keeps filter, search, limit, and offset placeholders ordered; focused tests cover combined queries, invalid sort, and default and search behavior across all 15 tables (`target/audit_tmp/a114_focused.log`). Formatting, full Clippy, code-style tests, and workspace tests passed after updating the typed-spec source check and obsolete ignored-error inventory (`target/audit_tmp/a114_clippy_final.log`, `target/audit_tmp/a114_style_final.log`, `target/audit_tmp/a114_workspace.log`). Database execution remains covered only by provisioned ignored tests. |
+| A115 | Fixed and verified | server_admin_contract/src/admin_main_logo.rs, server_admin_contract/src/admin_support_url.rs, text_policy/src/validate_https_url_text.rs | Both administrator URL settings accepted malformed authorities such as a nonnumeric port. The shared text validator now checks the HTTPS authority, host labels, and optional numeric port while preserving valid HTTPS paths. The contract regression failed before and passed after (`target/audit_tmp/a115_before.log`, `target/audit_tmp/a115_after.log`); focused shared-validator tests passed (`target/audit_tmp/a115_text_policy.log`). Formatting, full Clippy, code-style tests, and workspace tests passed after the reviewed public API snapshot update (`target/audit_tmp/a115_clippy_final.log`, `target/audit_tmp/a115_style_final.log`, `target/audit_tmp/a115_workspace.log`). |
+| A116 | Fixed and verified | server_admin_contract/src/admin_page_limit_visitor.rs, server_admin_contract/src/admin_page_offset_visitor.rs, server_admin_contract/src/visit_checked_unsigned_integer.rs | Page limit and offset deserialization rejected valid nonnegative signed and 128-bit integer inputs from generic serde deserializers. The visitors now accept representable integers through shared checked conversion while retaining range validation. The regression failed before and passed after (`target/audit_tmp/a116_before.log`, `target/audit_tmp/a116_wide_before.log`, `target/audit_tmp/a116_focused_final.log`). Formatting, full Clippy, code-style tests, and workspace tests passed (`target/audit_tmp/a116_clippy_final.log`, `target/audit_tmp/a116_style_final2.log`, `target/audit_tmp/a116_workspace.log`). |
+| A117 | Fixed; browser execution pending | server_admin/src/data_tables_get.rs, server_admin_core/src/escape_admin_like_pattern.rs, browser_acceptance/tests/test_table_api_paths.spec.js | Generic table search bound user text directly into a PostgreSQL `ILIKE` pattern, so `%`, `_`, and backslash had pattern meaning. Search now escapes those characters in a shared bounded helper before binding the same value to count and data queries. Unit tests cover all three characters and output bounds; a provisioned browser regression checks `%` and `_` against existing user-role rows. A contract test confirms the browser test's empty and search-only JSON payloads deserialize (`target/audit_tmp/a117_payload.log`). Formatting, full Clippy, code-style tests, and workspace tests passed after that test addition (`target/audit_tmp/a117_clippy_payload.log`, `target/audit_tmp/a117_style_payload.log`, `target/audit_tmp/a117_workspace_payload.log`); browser execution still needs a provisioned environment. [PostgreSQL documents backslash as the default `LIKE` escape character](https://www.postgresql.org/docs/current/functions-matching.html). |
+| A118 | Fixed and verified | server_admin_contract/src/admin_data_filters.rs | The advertised maximum of 100 filters per data column was not enforced: the wrapper used the general 10,000-item collection. It now stores a collection bounded to 100; construction and deserialization reject 101 items while 100 remains valid. The regression failed before and passed after (`target/audit_tmp/a118_before.log`, `target/audit_tmp/a118_after_final.log`). Formatting, full Clippy, code-style tests, and workspace tests passed after the reviewed public API snapshot update (`target/audit_tmp/a118_clippy_final.log`, `target/audit_tmp/a118_style_final.log`, `target/audit_tmp/a118_workspace.log`). |
+| A119 | Fixed and verified | server_admin_contract/src/admin_optional_settings.rs | The settings update schema and handler limit the clear list to six fields, but the wrapper accepted up to 10,000. The wrapper and its schema now enforce six, so construction and deserialization reject seven while all six catalog settings remain valid. The regression failed before and passed after (`target/audit_tmp/a119_before.log`, `target/audit_tmp/a119_after.log`). Formatting, full Clippy, code-style tests, and workspace tests passed after the reviewed public API snapshot update (`target/audit_tmp/a119_clippy.log`, `target/audit_tmp/a119_style_final.log`, `target/audit_tmp/a119_workspace.log`). |
+| A120 | Fixed and verified | frontend_contract/src/validate_route_coverage.rs | Duplicate detection compared all metadata, allowing two route descriptors with the same HTTP method and path when their operation IDs differed. It now compares method and path, preserving distinct methods at one path. The regression failed before and passed after (`target/audit_tmp/a122_before.log`, `target/audit_tmp/a122_focused.log`); frontend contract tests, formatting, full Clippy, code-style tests, workspace tests, and `git diff --check` passed (`target/audit_tmp/a122_frontend_contract.log`, `a122_clippy.log`, `a122_style.log`, `a122_workspace.log`). |
+| A121 | Fixed and verified | frontend_contract_validation/src/validate_openapi_contract.rs | The validator rejected duplicate documented methods but accepted repeated runtime routes for one method and path. It now rejects the second runtime entry with the existing typed `DuplicateOperation` error before route matching. The regression failed before and passed after (`target/audit_tmp/a122_runtime_before.log`, `a122_runtime_after.log`); validation crate tests, formatting, full Clippy, code-style tests, workspace tests, and `git diff --check` passed (`target/audit_tmp/a122_validation.log`, `a122_clippy.log`, `a122_style.log`, `a122_workspace.log`). |
+| A122 | Fixed and verified | frontend_contract_validation/src/validate_openapi_operations.rs | Required security passed if any OpenAPI security alternative named the expected scheme, even when another alternative was anonymous. The validator now requires a nonempty list where every alternative names that scheme. The regression failed before and passed after (`target/audit_tmp/a123_before.log`, `a123_after.log`); validation crate tests, formatting, full Clippy, code-style tests, workspace tests, and `git diff --check` passed (`target/audit_tmp/a123_validation.log`, `a123_clippy.log`, `a123_style.log`, `a123_workspace.log`). The [OpenAPI specification](https://spec.openapis.org/oas/v3.1.0.html#security-requirement-object) defines alternatives as OR and an empty requirement as anonymous access. |
+| A123 | Fixed and verified | macro_helpers/src/generate_serde_version_of_named_syn_variant.rs | Malformed HashMap and Vec field types reached assertions and panicked during macro expansion. The generator now emits compile-error tokens for an unexpected collection name, generic count, or path shape. A regression covers four malformed shapes; focused test, formatting, full Clippy, code-style suite, and workspace tests passed (`target/audit_tmp/a123_focused.log`, `a123_clippy.log`, `a123_style.log`, `a123_workspace.log`). |
+| A124 | Fixed and verified | macro_helpers/src/location_field_attr.rs | The location derive's shared attribute parser accepted arguments on marker attributes such as `#[eo_location(unexpected)]` and `#[eo_location = "unexpected"]`. Both now return a specific error; supported bare markers, unrelated attributes, missing markers, and duplicate markers retain their prior outcomes. The malformed-input regression failed before and passed after (`target/audit_tmp/a124_before.log`, `a124_after.log`). Formatting, macro_helpers tests, full Clippy, code-style suite, and workspace tests passed (`target/audit_tmp/a124_macro_helpers.log`, `a124_clippy_final.log`, `a124_style.log`, `a124_workspace.log`). |
+| A125 | Fixed and verified | macro_helpers/src/only_one.rs | The status-code selector treated attributes such as `#[not_found_404(unexpected)]` and `#[not_found_404 = "unexpected"]` as valid bare markers. It now returns a distinct `MalformedAttribute` error while preserving missing and duplicate marker errors. The regression failed before and passed after (`target/audit_tmp/a125_before.log`, `a125_after.log`). Formatting, full Clippy, code-style suite, workspace tests, and `git diff --check` passed (`target/audit_tmp/a125_clippy.log`, `a125_style.log`, `a125_workspace.log`). The new public error variant is an intentional API correction for malformed input. |
+| A126 | Fixed and verified | macro_helpers/src/try_write_string_into_file_with_outcome.rs | A generated `.rs` file with invalid UTF-8 and the same byte length as replacement text could not be regenerated: the changed-content branch validated the old file and returned an error. That validation is removed, so a changed file is replaced with the supplied text regardless of old encoding; unchanged files still avoid a rewrite. The regression failed before and passed after (`target/audit_tmp/a126_before.log`, `a126_after.log`). Former validation helpers are now test-only. Formatting, macro_helpers tests, full Clippy, code-style suite, workspace tests, and `git diff --check` passed (`target/audit_tmp/a126_macro_helpers.log`, `a126_clippy_final.log`, `a126_style.log`, `a126_workspace.log`). |
+| A127 | Fixed and verified | macro_helpers/src/try_maybe_write_token_stream_into_file.rs | If rustfmt failed after writing token text, retrying the same token stream skipped formatting because the file bytes were unchanged and returned success. Formatting now runs whenever requested, so a retry observes the formatter failure again or can complete after the formatter is repaired. The two-call regression failed before and passed after (`target/audit_tmp/a127_before.log`, `a127_after.log`). Formatting, full Clippy, code-style suite, workspace tests, and `git diff --check` passed (`target/audit_tmp/a127_clippy.log`, `a127_style.log`, `a127_workspace.log`). |
+| A128 | Fixed and verified | macro_helpers/src/validate_test_database_url.rs | The test database guard checked the URL authority and path but accepted `host`, `hostaddr`, and `dbname` query parameters that SQLx 0.9.0 applies afterward, allowing a checked loopback test URL to target a different server or database. It now rejects those query keys and conservatively rejects encoded keys; ordinary query parameters remain accepted. The regression failed before and passed after (`target/audit_tmp/a129_before.log`, `a129_after.log`). The pinned SQLx parser was inspected locally, and [SQLx connection option documentation](https://docs.rs/sqlx/latest/sqlx/postgres/struct.PgConnectOptions.html) lists these URL parameters. Formatting, macro_helpers tests with `test-utils`, full Clippy, code-style suite, workspace tests, and `git diff --check` passed (`target/audit_tmp/a129_macro_helpers.log`, `a129_clippy_final.log`, `a129_style.log`, `a129_workspace.log`). |
+| A129 | Fixed and verified | macro_helpers/src/tool_ansi_chars.rs | ANSI stripping consumed characters until `m` for every escape, dropping report text after CSI controls with another final byte or OSC controls. The parser now recognizes CSI final bytes and OSC BEL or ST terminators. A regression covering CSI erase and both OSC forms failed before and passed after (`target/audit_tmp/a130_before.log`, `a130_after.log`). [ECMA-48](https://ecma-international.org/wp-content/uploads/ECMA-48_5th_edition_june_1991.pdf) defines the CSI final-byte range; [xterm control sequences](https://www.x.org/docs/xterm/ctlseqs.pdf) describe OSC terminators. Formatting, macro_helpers tests, full Clippy, code-style suite, workspace tests, and `git diff --check` passed (`target/audit_tmp/a130_macro_helpers.log`, `a130_clippy_final2.log`, `a130_style.log`, `a130_workspace.log`). |
+| A130 | Fixed and verified | macro_helpers/src/generate_serde_version_of_named_syn_variant.rs | `#[eo_vec_location]` on `Option<Location>` was accepted because the generator checked only that the type had one path segment and one generic argument, then emitted a `Vec` serde field. It now requires the `Vec` identifier and emits a specific compile error for another type. The regression failed before and passed after (`target/audit_tmp/a132_before.log`, `a132_after.log`). Formatting, full Clippy, code-style suite, workspace tests, and `git diff --check` passed (`target/audit_tmp/a132_clippy.log`, `a132_style.log`, `a132_workspace.log`). |
+| A131 | Fixed and verified | macro_helpers/src/should_write_string_into_file_tests.rs | A regression test reproduced the test-only predicate rejecting an invalid UTF-8 file with changed content of the same length. Removed its obsolete UTF-8 validation and the two unused test-only modules; the predicate now agrees with the production writer fixed in A126. Focused test and workspace gates passed. |
+| A132 | Fixed and verified | pg_crud_common/src/build_date_sql_filter.rs | The builder incremented its bind index after emitting the final active bound, rejecting a valid single-bound fragment starting at `u32::MAX`. The regression failed before and passed after. It now advances only when another bound remains; a second bound at that start still returns `BindIndexOverflow`. Focused and workspace checks passed. |
+| A133 | Fixed and verified | pg_crud_common/src/cursor_payload.rs, signed_cursor.rs | Oversized cursor values returned the `Empty` error and the false message "must not be empty." Regressions failed before and passed after. Both wrappers now distinguish empty and oversized input with `Empty` and `TooLong` variants, including bounded-storage error mapping. The new public variants are intentional error API corrections. Focused and workspace checks passed. |
+| A134 | Fixed and verified | pg_crud_common/src/pg_bounded_vec.rs | Every `PgBoundedVec<T, MIN, MAX>` Utoipa schema used the same `BoundedVec` component name, allowing references with different bounds or item types to collide. A regression failed before and passed after. Component names now encode bounds and the full item type name; this intentional OpenAPI component API correction prevents collisions for nested generic item types. Focused and workspace checks passed. |
+| A135 | Fixed and verified | pg_crud_common/src/pg_bounded_vec.rs, bounded_types/src/bounded_vec.rs | The manual Utoipa `ToSchema` implementations used the default empty `schemas` method, so custom item components were omitted from recursive schema registration. A regression failed before and passed after. A shared helper in `bounded_types` now registers item schemas and forwards nested schemas for both vectors and the existing `AdminOpenApiVec` adapter. Focused and workspace checks passed. |
+| A136 | Fixed and verified | pg_crud_common/src/single_or_multiple.rs, explicit_value.rs, not_empty_unique_vec.rs, order_by.rs, pg_type_where.rs | Five generic Utoipa wrappers omitted one or more components referenced by their schemas. Each missing item registration was reproduced in focused tests. The wrappers now use the shared schema registration helper and recursively include nested wrapper, `Order`, and `Operator` components where referenced. Focused and workspace checks passed. |
+| A137 | Fixed and verified | pg_crud_common/src/pg_type_where.rs, nullable_json_obj_pg_type_where_filter.rs | Two SQL fragment builders converted a `TooLong` validation error into a successful fragment containing diagnostic text. Regressions failed before and passed after. Both builders now return the existing `QueryPartError::StringWrapperTryFromString` error. Formatting, full Clippy, code-style suite, and workspace tests passed. |
+| A138 | Fixed and verified | pg_crud_common/src/explicit_value.rs, not_empty_unique_vec.rs, order_by.rs, pg_type_where.rs, single_or_multiple.rs | Five generic Utoipa wrappers used one component name for every item type. Five regressions failed before and passed after. A shared hexadecimal type-name encoder now gives each concrete wrapper a distinct component key; `PgBoundedVec` reuses the encoder without changing its existing name format. Formatting, full Clippy, code-style suite, and workspace tests passed. |
+| A139 | Fixed and verified | pg_crud_common/src/not_empty_unique_vec.rs | Derived `Default` created an empty collection that the validated constructor rejects. The regression failed before and passed after. `Default` now creates one default element for `T: Default`; the unused derive dependency was removed from this crate. Formatting, full Clippy, code-style suite, and workspace tests passed. |
+| A140 | Fixed, verification pending | pg_crud_common/src/explicit_value.rs, non_primary_key_pg_type_read_ids.rs | `ExplicitValue<T>` serializes `value`, but both manual OpenAPI schemas declared `values`. The non-primary-key schema also allowed arbitrary non-null values despite using `Option<()>`. Regressions failed before and passed after. Both schemas now use the wire field name; the latter specifies null. |
 
 Candidate rows are not confirmed bugs. Confirmed queued findings have a reproduction and await a fix; resolve each candidate with a reproduction or a documented dismissal.
 
@@ -201,7 +257,7 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 | `bounded_types/src/bounded_string.rs` | Reviewed: validated storage, bounded mutation, truncation and serde behavior delegate to the shared core; OpenAPI and Schemars schemas now distinguish character and byte bounds under A54. |
 | `bounded_types/src/bounded_string_error.rs` | Reviewed: typed errors retain actual and configured lengths without displaying string contents. |
 | `bounded_types/src/bounded_value_error.rs` | Reviewed: typed length errors retain configured bounds and actual lengths without displaying input values. |
-| `bounded_types/src/bounded_vec.rs` | Reviewed: min/max validation, fallible bounded growth, immutable slice dereference, unbounded-only infallible insertion, capped size-hint allocation and schema bounds. Schema composition behavior for externally overridden generic arguments was not established. |
+| `bounded_types/src/bounded_vec.rs` | Reviewed: min/max validation, fallible bounded growth, immutable slice dereference, capped size-hint allocation, schema bounds, and item schema registration; A135. Schema composition behavior for externally overridden generic arguments was not established. |
 | `bounded_types/src/bounded_vec_visitor_phantom_data.rs` | Reviewed: invalid bounds fail before allocation, capped size-hint reservation, incremental maximum enforcement and final minimum validation. |
 | `bounded_types/src/collection_max_len.rs` | Reviewed: fixed 10,000-item collection limit; callers choose this policy explicitly. |
 | `bounded_types/src/deserialize_bounded_map.rs` | Reviewed: bounded entry count including duplicate keys, stop before decoding overflow values, bounded HashMap preallocation and preserved deserialization errors. |
@@ -209,6 +265,8 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 | `bounded_types/src/serde_prealloc_max_items.rs` | Reviewed: fixed 1,024-item reservation cap; it limits initial capacity rather than final collection length. |
 | `bounded_types/src/test_bounded_types.rs` | Reviewed: deterministic tests cover bounded text, vectors, maps, deserialization limits and both schema systems, including A54 regressions. |
 | `bounded_types/src/try_from_bounded_error_text.rs` | Reviewed: A05 forwarding contract propagates Result unchanged; deterministic success and short-target tests. |
+| `bounded_types/src/utoipa_schema_entries_mut.rs` | Reviewed: shared item schema registration and recursive forwarding; A135. |
+| `bounded_types/src/utoipa_schema_type_name.rs` | Reviewed: shared component-safe type-name encoding; A138. |
 | `bounded_types/src/validate_len.rs` | Reviewed: invalid bounds take precedence, then minimum and maximum checks, with typed lengths preserved in each failure. |
 
 ### common_routes
@@ -384,7 +442,7 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 
 | Source | Semantic review |
 | --- | --- |
-| `constants_str/src/lib.rs` | Pending |
+| `constants_str/src/lib.rs` | Focused review; A94, A96, A102 |
 
 ### constants_u128
 
@@ -459,14 +517,14 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 | `file_storage/src/disk_cache_eviction_plan.rs` | Reviewed: eviction plan retains ordered typed paths. |
 | `file_storage/src/disk_cache_modified_at_system_time.rs` | Reviewed: typed modification-time wrapper. |
 | `file_storage/src/domain_types.rs` | Reviewed: file, operation-ID, and path limits are shared by their wrappers. |
-| `file_storage/src/file_storage_error.rs` | Focused review: A57 candidate concerns the unused combined operation and cleanup error. |
+| `file_storage/src/file_storage_error.rs` | Fixed and reviewed; A57 combines operation and cleanup errors and keeps the operation in the source chain. |
 | `file_storage/src/file_storage_io_error.rs` | Reviewed: I/O error wrapper retains its source. |
 | `file_storage/src/file_storage_path_error.rs` | Reviewed: path, ID, and file-size failures have distinct variants. |
 | `file_storage/src/file_storage_root_path_buf.rs` | Reviewed: root path conversion requires an absolute bounded path. |
 | `file_storage/src/file_storage_staging_area.rs` | Reviewed: upload and delete areas map to their dedicated directory names. |
 | `file_storage/src/lib.rs` | Reviewed: root declares storage domain, operations, and tests. |
 | `file_storage/src/plan_disk_cache_eviction.rs` | Reviewed: A50 prevents projected-size overflow; oldest entries are selected until incoming data fits. |
-| `file_storage/src/safe_file_storage.rs` | Focused review: path and staging flows inspected; A57 dual-failure error preservation remains under investigation. |
+| `file_storage/src/safe_file_storage.rs` | Fixed and reviewed; A57 preserves both operation and cleanup failures in three staging paths. |
 | `file_storage/src/stale_before_system_time.rs` | Reviewed: typed stale threshold wrapper. |
 | `file_storage/src/stale_staging_cleanup_configuration.rs` | Reviewed: cleanup configuration carries threshold and bounded scan/removal limits. |
 | `file_storage/src/stale_staging_cleanup_configuration_error.rs` | Reviewed: invalid cleanup limit has a typed error. |
@@ -480,174 +538,175 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 | `file_storage/src/storage_path_ref.rs` | Reviewed: borrowed storage path wrapper. |
 | `file_storage/src/storage_relative_path_buf.rs` | Reviewed: relative paths reject traversal, absolute paths, NUL, and owned staging roots. |
 | `file_storage/src/test_adapters.rs` | Reviewed: test covers creation of both owned staging directories. |
-| `file_storage/src/test_file_storage.rs` | Focused review: lifecycle, path safety, cleanup, and A50 planner tests inspected; A57 needs a dual-failure regression. |
+| `file_storage/src/test_file_storage.rs` | Focused review: lifecycle, path safety, cleanup, and A50 planner tests inspected; A57 has deterministic error-combination tests in the error owner. |
 
 ### frontend_admin
 
 | Source | Semantic review |
 | --- | --- |
-| `frontend_admin/src/admin_alert.rs` | Pending |
-| `frontend_admin/src/admin_alert_dialog.rs` | Pending |
-| `frontend_admin/src/admin_alert_variant.rs` | Pending |
-| `frontend_admin/src/admin_api_url.rs` | Pending |
-| `frontend_admin/src/admin_api_url_with_suffix.rs` | Pending |
-| `frontend_admin/src/admin_app.rs` | Pending |
-| `frontend_admin/src/admin_assets_error.rs` | Pending |
-| `frontend_admin/src/admin_badge.rs` | Pending |
-| `frontend_admin/src/admin_badge_variant.rs` | Pending |
-| `frontend_admin/src/admin_branding_details.rs` | Pending |
-| `frontend_admin/src/admin_button.rs` | Pending |
-| `frontend_admin/src/admin_button_kind.rs` | Pending |
-| `frontend_admin/src/admin_button_link.rs` | Pending |
-| `frontend_admin/src/admin_button_variant.rs` | Pending |
-| `frontend_admin/src/admin_card.rs` | Pending |
-| `frontend_admin/src/admin_card_description.rs` | Pending |
-| `frontend_admin/src/admin_card_header.rs` | Pending |
-| `frontend_admin/src/admin_card_title.rs` | Pending |
-| `frontend_admin/src/admin_card_variant.rs` | Pending |
-| `frontend_admin/src/admin_checkbox.rs` | Pending |
-| `frontend_admin/src/admin_column_filter.rs` | Pending |
-| `frontend_admin/src/admin_csr_api_url.rs` | Pending |
-| `frontend_admin/src/admin_csr_api_url_suffix_ref.rs` | Pending |
-| `frontend_admin/src/admin_csr_query.rs` | Pending |
-| `frontend_admin/src/admin_csrf_token.rs` | Pending |
-| `frontend_admin/src/admin_data_grid.rs` | Pending |
-| `frontend_admin/src/admin_data_grid_input_type.rs` | Pending |
-| `frontend_admin/src/admin_data_table_grid.rs` | Pending |
-| `frontend_admin/src/admin_empty.rs` | Pending |
-| `frontend_admin/src/admin_field.rs` | Pending |
-| `frontend_admin/src/admin_field_label.rs` | Pending |
-| `frontend_admin/src/admin_filter_hidden_inputs.rs` | Pending |
-| `frontend_admin/src/admin_frontend_routes.rs` | Pending |
-| `frontend_admin/src/admin_health_probe.rs` | Pending |
-| `frontend_admin/src/admin_health_view.rs` | Pending |
-| `frontend_admin/src/admin_health_wasm_bindgen_error.rs` | Pending |
-| `frontend_admin/src/admin_http_status.rs` | Pending |
-| `frontend_admin/src/admin_identifier_filter_query.rs` | Pending |
-| `frontend_admin/src/admin_input.rs` | Pending |
-| `frontend_admin/src/admin_input_group.rs` | Pending |
-| `frontend_admin/src/admin_input_kind.rs` | Pending |
-| `frontend_admin/src/admin_input_name.rs` | Pending |
+| `frontend_admin/src/admin_alert.rs` | Reviewed |
+| `frontend_admin/src/admin_alert_dialog.rs` | Reviewed |
+| `frontend_admin/src/admin_alert_variant.rs` | Reviewed |
+| `frontend_admin/src/admin_api_url.rs` | Reviewed |
+| `frontend_admin/src/admin_api_url_with_suffix.rs` | Reviewed |
+| `frontend_admin/src/admin_app.rs` | Focused review: CSR page selection, detail dispatch, identifier filters, fetch branches, and error/loading rendering inspected; no confirmed route mismatch. |
+| `frontend_admin/src/admin_assets_error.rs` | Reviewed |
+| `frontend_admin/src/admin_badge.rs` | Reviewed: variant class and children forward to Badge. |
+| `frontend_admin/src/admin_badge_variant.rs` | Reviewed |
+| `frontend_admin/src/admin_branding_details.rs` | Reviewed |
+| `frontend_admin/src/admin_button.rs` | Reviewed: button kind, state, attributes, children, and optional click callback forward to Button. |
+| `frontend_admin/src/admin_button_kind.rs` | Reviewed |
+| `frontend_admin/src/admin_button_link.rs` | Reviewed |
+| `frontend_admin/src/admin_button_variant.rs` | Reviewed |
+| `frontend_admin/src/admin_card.rs` | Reviewed: variant class and children forward through CardContent. |
+| `frontend_admin/src/admin_card_description.rs` | Reviewed: SSR-only card description forwards children. |
+| `frontend_admin/src/admin_card_header.rs` | Reviewed: card header forwards children. |
+| `frontend_admin/src/admin_card_title.rs` | Reviewed: optional class and children forward to CardTitle. |
+| `frontend_admin/src/admin_card_variant.rs` | Reviewed |
+| `frontend_admin/src/admin_checkbox.rs` | Reviewed |
+| `frontend_admin/src/admin_column_filter.rs` | Focused review; A92, A95 |
+| `frontend_admin/src/admin_csr_api_url.rs` | Reviewed |
+| `frontend_admin/src/admin_csr_api_url_suffix_ref.rs` | Reviewed |
+| `frontend_admin/src/admin_csr_query.rs` | Focused review; A90 |
+| `frontend_admin/src/admin_csrf_token.rs` | Reviewed |
+| `frontend_admin/src/admin_data_grid.rs` | Focused review; A92, A93 |
+| `frontend_admin/src/admin_data_grid_input_type.rs` | Reviewed |
+| `frontend_admin/src/admin_data_table_grid.rs` | Focused review; A92, A95, A110 system-role update action. |
+| `frontend_admin/src/admin_empty.rs` | Reviewed: empty-state title forwards children. |
+| `frontend_admin/src/admin_field.rs` | Reviewed: label and children render under one FieldLabel. |
+| `frontend_admin/src/admin_field_label.rs` | Reviewed: owned labels support the Leptos prop adapter; the code-style analyzer explicitly exempts this framework boundary, and the markup regression covers owned String labels. |
+| `frontend_admin/src/admin_filter_hidden_inputs.rs` | Reviewed |
+| `frontend_admin/src/admin_frontend_routes.rs` | Reviewed |
+| `frontend_admin/src/admin_health_probe.rs` | Reviewed |
+| `frontend_admin/src/admin_health_view.rs` | Reviewed |
+| `frontend_admin/src/admin_health_wasm_bindgen_error.rs` | Reviewed |
+| `frontend_admin/src/admin_http_status.rs` | Reviewed |
+| `frontend_admin/src/admin_identifier_filter_query.rs` | Reviewed |
+| `frontend_admin/src/admin_input.rs` | Reviewed: bound and unbound branches forward name, type, constraints, initial value, and state. |
+| `frontend_admin/src/admin_input_group.rs` | Reviewed: input group forwards children under an owner. |
+| `frontend_admin/src/admin_input_kind.rs` | Reviewed |
+| `frontend_admin/src/admin_input_name.rs` | Reviewed |
 | `frontend_admin/src/admin_joined_text.rs` | Reviewed: inclusive 16 MiB byte limit, checked subtraction and bounded diagnostic conversion; A05. |
-| `frontend_admin/src/admin_joined_text_try_from_string_error.rs` | Pending |
-| `frontend_admin/src/admin_load_state.rs` | Pending |
-| `frontend_admin/src/admin_mutation_method.rs` | Pending |
-| `frontend_admin/src/admin_navigation_link.rs` | Pending |
-| `frontend_admin/src/admin_page_nav_disabled.rs` | Pending |
-| `frontend_admin/src/admin_page_range.rs` | Pending |
-| `frontend_admin/src/admin_password_generation_error.rs` | Pending |
-| `frontend_admin/src/admin_profile_view.rs` | Pending |
-| `frontend_admin/src/admin_read_action.rs` | Pending |
-| `frontend_admin/src/admin_record_read_page.rs` | Pending |
-| `frontend_admin/src/admin_record_view.rs` | Pending |
-| `frontend_admin/src/admin_role_update_action.rs` | Pending |
-| `frontend_admin/src/admin_role_view.rs` | Pending |
-| `frontend_admin/src/admin_roles_table_view.rs` | Pending |
-| `frontend_admin/src/admin_route_path_url.rs` | Pending |
-| `frontend_admin/src/admin_rule_view.rs` | Pending |
-| `frontend_admin/src/admin_rules_view.rs` | Pending |
-| `frontend_admin/src/admin_sessions_table_view.rs` | Pending |
-| `frontend_admin/src/admin_setting_disabled.rs` | Pending |
-| `frontend_admin/src/admin_setting_input_value.rs` | Pending |
-| `frontend_admin/src/admin_setting_inputs.rs` | Pending |
-| `frontend_admin/src/admin_setting_required.rs` | Pending |
-| `frontend_admin/src/admin_settings_form_signals.rs` | Pending |
-| `frontend_admin/src/admin_settings_form_values.rs` | Pending |
-| `frontend_admin/src/admin_settings_view.rs` | Pending |
-| `frontend_admin/src/admin_sidebar.rs` | Pending |
-| `frontend_admin/src/admin_sidebar_item.rs` | Pending |
-| `frontend_admin/src/admin_spinner.rs` | Pending |
-| `frontend_admin/src/admin_ssr_error_message.rs` | Pending |
+| `frontend_admin/src/admin_joined_text_try_from_string_error.rs` | Reviewed |
+| `frontend_admin/src/admin_load_state.rs` | Reviewed |
+| `frontend_admin/src/admin_mutation_method.rs` | Reviewed |
+| `frontend_admin/src/admin_navigation_link.rs` | Reviewed |
+| `frontend_admin/src/admin_page_nav_disabled.rs` | Reviewed |
+| `frontend_admin/src/admin_page_range.rs` | Reviewed; A91 |
+| `frontend_admin/src/admin_password_generation_error.rs` | Reviewed: browser, randomness, and policy failures retain distinct typed variants. |
+| `frontend_admin/src/admin_profile_view.rs` | Reviewed: password validation, browser entropy generation, submit behavior, and account rendering inspected; existing browser coverage checks generation and input visibility. |
+| `frontend_admin/src/admin_read_action.rs` | Reviewed: read trigger targets its matching dialog and forwards row details. |
+| `frontend_admin/src/admin_record_read_page.rs` | Reviewed |
+| `frontend_admin/src/admin_record_view.rs` | Reviewed: missing-record state, first-row field rendering, and caller page selection inspected. |
+| `frontend_admin/src/admin_role_update_action.rs` | Reviewed: action links to the typed role update page. |
+| `frontend_admin/src/admin_role_view.rs` | Reviewed: typed role fields render in fixed label order with an empty fallback. |
+| `frontend_admin/src/admin_roles_table_view.rs` | Reviewed: typed role page maps five columns and row values in matching order. |
+| `frontend_admin/src/admin_route_path_url.rs` | Reviewed |
+| `frontend_admin/src/admin_rule_view.rs` | Reviewed: delegates to the generic record view with the rule page marker. |
+| `frontend_admin/src/admin_rules_view.rs` | Reviewed: delegates rule table state to the shared data grid. |
+| `frontend_admin/src/admin_sessions_table_view.rs` | Reviewed: typed session page maps four columns and row values in matching order. |
+| `frontend_admin/src/admin_setting_disabled.rs` | Reviewed: boolean wrapper forwards the edit permission state. |
+| `frontend_admin/src/admin_setting_input_value.rs` | Reviewed: owned form text bridges settings values and reactive signals. |
+| `frontend_admin/src/admin_setting_inputs.rs` | Reviewed: all catalog settings map to matching text, URL, or text-area controls with required and disabled state. |
+| `frontend_admin/src/admin_setting_required.rs` | Reviewed: boolean wrapper forwards catalog required state. |
+| `frontend_admin/src/admin_settings_form_signals.rs` | Reviewed: one signal per catalog setting with total indexed access. |
+| `frontend_admin/src/admin_settings_form_values.rs` | Reviewed: all catalog settings map from the view; absent optional values become empty form text. |
+| `frontend_admin/src/admin_settings_view.rs` | Focused review; A94 |
+| `frontend_admin/src/admin_sidebar.rs` | Reviewed: the navigation component renders its supplied items in a labelled menu with a checkbox toggle; `target/audit_tmp/a109_navigation_review.log` passes. |
+| `frontend_admin/src/admin_sidebar_item.rs` | Reviewed: wraps one supplied navigation child in a list item. |
+| `frontend_admin/src/admin_spinner.rs` | Reviewed: the loading indicator exposes status and loading text to assistive technology. |
+| `frontend_admin/src/admin_ssr_error_message.rs` | Reviewed: validated error text wrapper preserves bounded conversion. |
 | `frontend_admin/src/admin_ssr_html.rs` | Reviewed: inclusive 16 MiB byte limit, owned transfer and bounded diagnostic conversion; A05. |
-| `frontend_admin/src/admin_ssr_html_try_from_string_error.rs` | Pending |
+| `frontend_admin/src/admin_ssr_html_try_from_string_error.rs` | Reviewed: typed HTML size-limit error. |
 | `frontend_admin/src/admin_ssr_text.rs` | Reviewed: inclusive 16 MiB byte limit and bounded storage; A05 diagnostic conversion. |
-| `frontend_admin/src/admin_ssr_text_try_from_string_error.rs` | Pending |
-| `frontend_admin/src/admin_ssr_view_ext_tests.rs` | Pending |
-| `frontend_admin/src/admin_table_action_trigger.rs` | Pending |
-| `frontend_admin/src/admin_table_actions.rs` | Pending |
-| `frontend_admin/src/admin_table_load_error.rs` | Pending |
-| `frontend_admin/src/admin_table_query.rs` | Pending |
-| `frontend_admin/src/admin_table_query_direction.rs` | Pending |
-| `frontend_admin/src/admin_table_query_hidden_inputs.rs` | Pending |
-| `frontend_admin/src/admin_textarea.rs` | Pending |
-| `frontend_admin/src/admin_user_roles.rs` | Pending |
-| `frontend_admin/src/admin_user_update_action.rs` | Pending |
-| `frontend_admin/src/axum_admin_frontend_router.rs` | Pending |
-| `frontend_admin/src/crud_render_shell.rs` | Pending |
-| `frontend_admin/src/csr_admin_nav.rs` | Pending |
-| `frontend_admin/src/data_table_grid.rs` | Pending |
-| `frontend_admin/src/domain_types_ssr_tests.rs` | Pending |
-| `frontend_admin/src/fetch_access_sessions_read.rs` | Pending |
-| `frontend_admin/src/fetch_account_read.rs` | Pending |
-| `frontend_admin/src/fetch_account_read_request.rs` | Pending |
-| `frontend_admin/src/fetch_audit_log_read.rs` | Pending |
-| `frontend_admin/src/fetch_json.rs` | Pending |
-| `frontend_admin/src/fetch_json_request.rs` | Pending |
-| `frontend_admin/src/fetch_permission_table_read.rs` | Pending |
-| `frontend_admin/src/fetch_role_rules_read.rs` | Pending |
-| `frontend_admin/src/fetch_roles_read.rs` | Pending |
-| `frontend_admin/src/fetch_rules_read.rs` | Pending |
-| `frontend_admin/src/fetch_system_settings_read.rs` | Pending |
-| `frontend_admin/src/fetch_user_roles_read.rs` | Pending |
-| `frontend_admin/src/fetch_users_read.rs` | Pending |
-| `frontend_admin/src/join_text.rs` | Pending |
-| `frontend_admin/src/leptos_admin_filter_operation_signal.rs` | Pending |
-| `frontend_admin/src/leptos_admin_input_signal.rs` | Pending |
-| `frontend_admin/src/lib.rs` | Pending |
-| `frontend_admin/src/page_render_with_access.rs` | Pending |
-| `frontend_admin/src/page_render_with_table_access.rs` | Pending |
-| `frontend_admin/src/reload_after.rs` | Pending |
-| `frontend_admin/src/render_admin_csr.rs` | Pending |
-| `frontend_admin/src/render_admin_page.rs` | Pending |
-| `frontend_admin/src/render_admin_page_with_access.rs` | Pending |
-| `frontend_admin/src/render_admin_page_with_table_access.rs` | Pending |
-| `frontend_admin/src/render_admin_profile_page.rs` | Pending |
-| `frontend_admin/src/render_admin_rules_page.rs` | Pending |
-| `frontend_admin/src/render_admin_sessions_page.rs` | Pending |
-| `frontend_admin/src/render_admin_settings_page.rs` | Pending |
-| `frontend_admin/src/render_data_tables.rs` | Pending |
-| `frontend_admin/src/render_data_tables_csr.rs` | Pending |
-| `frontend_admin/src/render_document.rs` | Pending |
-| `frontend_admin/src/render_role_create.rs` | Pending |
-| `frontend_admin/src/render_role_manage.rs` | Pending |
-| `frontend_admin/src/render_role_update.rs` | Pending |
-| `frontend_admin/src/render_roles.rs` | Pending |
-| `frontend_admin/src/render_sign_in.rs` | Pending |
-| `frontend_admin/src/render_text_page.rs` | Pending |
-| `frontend_admin/src/render_text_page_with_access.rs` | Pending |
-| `frontend_admin/src/render_user_create.rs` | Pending |
-| `frontend_admin/src/render_user_manage.rs` | Pending |
-| `frontend_admin/src/render_user_update.rs` | Pending |
-| `frontend_admin/src/render_users.rs` | Pending |
-| `frontend_admin/src/render_view.rs` | Pending |
-| `frontend_admin/src/send_admin_request.rs` | Pending |
-| `frontend_admin/src/show_mutation_error.rs` | Pending |
-| `frontend_admin/src/start.rs` | Pending |
-| `frontend_admin/src/std_rc_serde_json_error.rs` | Pending |
-| `frontend_admin/src/std_str_utf8_error.rs` | Pending |
-| `frontend_admin/src/table.rs` | Pending |
-| `frontend_admin/src/table_body.rs` | Pending |
-| `frontend_admin/src/table_caption.rs` | Pending |
-| `frontend_admin/src/table_cell.rs` | Pending |
-| `frontend_admin/src/table_footer.rs` | Pending |
-| `frontend_admin/src/table_head.rs` | Pending |
-| `frontend_admin/src/table_header.rs` | Pending |
-| `frontend_admin/src/table_pagination.rs` | Pending |
-| `frontend_admin/src/table_row.rs` | Pending |
-| `frontend_admin/src/table_wrapper.rs` | Pending |
-| `frontend_admin/src/test_admin_ssr_html.rs` | Pending |
-| `frontend_admin/src/test_crud_tests.rs` | Pending |
-| `frontend_admin/src/test_data_grid_tests.rs` | Pending |
-| `frontend_admin/src/test_domain_types_ssr_tests_document.rs` | Pending |
-| `frontend_admin/src/test_domain_types_ssr_tests_navigation.rs` | Pending |
-| `frontend_admin/src/test_domain_types_ssr_tests_settings.rs` | Pending |
-| `frontend_admin/src/test_domain_types_with_owner_tests.rs` | Pending |
-| `frontend_admin/src/test_static_pages_tests.rs` | Pending |
-| `frontend_admin/src/test_table_cell_tests.rs` | Pending |
-| `frontend_admin/src/wasm_bindgen_admin_read_error.rs` | Pending |
-| `frontend_admin/src/wasm_bindgen_password_generation_exception.rs` | Pending |
-| `frontend_admin/src/with_admin_session.rs` | Pending |
-| `frontend_admin/src/with_owner.rs` | Pending |
+| `frontend_admin/src/admin_ssr_text_try_from_string_error.rs` | Reviewed: typed SSR text size-limit error. |
+| `frontend_admin/src/admin_ssr_view_ext_tests.rs` | Reviewed: test-only render adapter inspected. |
+| `frontend_admin/src/admin_table_action_trigger.rs` | Reviewed: read-dialog trigger forwards label, target, and children. |
+| `frontend_admin/src/admin_table_actions.rs` | Fixed and reviewed; A103 session revoke action label. |
+| `frontend_admin/src/admin_table_load_error.rs` | Reviewed: table failures retain typed sources; only missing CSRF and HTTP 401 request session refresh. |
+| `frontend_admin/src/admin_table_query.rs` | Reviewed |
+| `frontend_admin/src/admin_table_query_direction.rs` | Reviewed: target-specific direction variants match CSR and SSR callers. |
+| `frontend_admin/src/admin_table_query_hidden_inputs.rs` | Reviewed: both target variants preserve search, sort, and direction in GET forms. |
+| `frontend_admin/src/admin_textarea.rs` | Reviewed: bound and unbound branches forward name, required, disabled, and signal value; SSR signal rendering has a regression. |
+| `frontend_admin/src/admin_user_roles.rs` | Reviewed: assigned role names render in catalog order; existing focused test covers missing and matching roles. |
+| `frontend_admin/src/admin_user_update_action.rs` | Reviewed: action links to the typed user update page. |
+| `frontend_admin/src/axum_admin_frontend_router.rs` | Reviewed: typed router ownership wrapper only. |
+| `frontend_admin/src/crud_render_shell.rs` | Reviewed: renders CRUD content with authenticated shell and Users/Roles active-table context. |
+| `frontend_admin/src/csr_admin_nav.rs` | Reviewed: permission-gated table and page navigation plus sign-out action. |
+| `frontend_admin/src/data_table_grid.rs` | Focused review; A92, A95 |
+| `frontend_admin/src/domain_types_ssr_tests.rs` | Reviewed: reusable authenticated-admin and branding fixtures inspected. |
+| `frontend_admin/src/fetch_access_sessions_read.rs` | Focused review; A105 shared timestamp filter fix. Detail-path query parameters are ignored by `AdminCsrQuery`; the access-session detail browser regression passed without a source change. |
+| `frontend_admin/src/fetch_account_read.rs` | Reviewed: generic read adapter constructs its typed request from the table query and forwards it. |
+| `frontend_admin/src/fetch_account_read_request.rs` | Reviewed: serializes the typed request and route contract into a transport request. |
+| `frontend_admin/src/fetch_audit_log_read.rs` | Focused review; A105 shared timestamp filter fix. |
+| `frontend_admin/src/fetch_json.rs` | Reviewed: delegates GET JSON reads to the shared request fetcher. |
+| `frontend_admin/src/fetch_json_request.rs` | Reviewed: constructs browser requests, checks HTTP status, decodes JSON, and runs within the session refresh wrapper. |
+| `frontend_admin/src/fetch_permission_table_read.rs` | Fixed and reviewed; A104 permission list filters. |
+| `frontend_admin/src/fetch_role_rules_read.rs` | Focused review; A105 shared timestamp filter fix. |
+| `frontend_admin/src/fetch_roles_read.rs` | Reviewed: detail requests use an identifier filter and default pagination; list requests preserve table query and supported column kinds. |
+| `frontend_admin/src/fetch_rules_read.rs` | Fixed and reviewed; A105 timestamp filter and A106 unknown field rejection. |
+| `frontend_admin/src/fetch_system_settings_read.rs` | Fixed and reviewed; A105 shared timestamp filter and A107 unknown field rejection. |
+| `frontend_admin/src/fetch_user_roles_read.rs` | Reviewed: detail requests use an identifier filter and default pagination; list requests preserve the typed table and filter queries. |
+| `frontend_admin/src/fetch_users_read.rs` | Focused review; A105 shared timestamp filter fix. |
+| `frontend_admin/src/join_text.rs` | Reviewed: joins borrowed role and rule labels in order, handles empty input, and has a deterministic unit test for both cases. The bounded result conversion follows the existing diagnostic fallback policy. |
+| `frontend_admin/src/leptos_admin_filter_operation_signal.rs` | Reviewed: signal wrapper conversion and ownership inspected. |
+| `frontend_admin/src/leptos_admin_input_signal.rs` | Reviewed: copied signal handle exposes reactive value and converts current text for CSR settings validation. |
+| `frontend_admin/src/lib.rs` | Reviewed: module ownership, target gates, and bounded-string signature anchor inspected. |
+| `frontend_admin/src/page_render_with_access.rs` | Reviewed: forwards page rendering to the shared table-aware shell. |
+| `frontend_admin/src/page_render_with_table_access.rs` | Reviewed: composes the document title, branding, permission-gated navigation, and page content. |
+| `frontend_admin/src/reload_after.rs` | Reviewed: sends a mutation under the session wrapper, reloads after success, and displays a failure when the request or reload fails. The browser-only path still needs provisioned browser coverage. |
+| `frontend_admin/src/render_admin_csr.rs` | Reviewed: renders the loading root and CSR boot script with branding and password-change state. |
+| `frontend_admin/src/render_admin_page.rs` | Reviewed: forwards the page and rendered content to the shared shell without access context. |
+| `frontend_admin/src/render_admin_page_with_access.rs` | Reviewed: forwards to the shared page shell with access context. |
+| `frontend_admin/src/render_admin_page_with_table_access.rs` | Reviewed: forwards to the shared page shell with table context. |
+| `frontend_admin/src/render_admin_profile_page.rs` | Reviewed: renders validated administrator profile fields and roles in the shared shell. |
+| `frontend_admin/src/render_admin_rules_page.rs` | Reviewed: displays typed rule rows and table pagination through the shared SSR shell; static page test passes (`target/audit_tmp/a109_static_review.log`). |
+| `frontend_admin/src/render_admin_sessions_page.rs` | Reviewed: session rows use typed detail links and permission-gated revoke controls with per-row dialog and form identifiers; static page test passes (`target/audit_tmp/a109_static_review.log`). |
+| `frontend_admin/src/render_admin_settings_page.rs` | Reviewed: SSR renders edit form only with update permission and uses the shared setting catalog controls. |
+| `frontend_admin/src/render_data_tables.rs` | Reviewed: renders an optional typed table view with its query and pagination in the shared table-aware shell. |
+| `frontend_admin/src/render_data_tables_csr.rs` | Reviewed: forwards the table selection and authenticated context to the CSR loading shell. |
+| `frontend_admin/src/render_document.rs` | Fixed and reviewed; A108 escapes the configured tab title before embedding it in HTML. |
+| `frontend_admin/src/render_role_create.rs` | Reviewed: the role creation form uses the typed HTML action and required role name; CRUD rendering test passes (`target/audit_tmp/a110_crud_review.log`). |
+| `frontend_admin/src/render_role_manage.rs` | Reviewed: populated role forms require confirmation for deletion and disable update and deletion for system roles; CRUD rendering test passes (`target/audit_tmp/a110_crud_review.log`). |
+| `frontend_admin/src/render_role_update.rs` | Reviewed: the SSR role-update form posts to the typed action and requires the role identifier and name. |
+| `frontend_admin/src/render_roles.rs` | Fixed and reviewed; A110 hides the Update action for system roles, with an SSR regression in `test_static_pages_tests.rs`. |
+| `frontend_admin/src/render_sign_in.rs` | Reviewed: the sign-in form uses the typed action, Leptos text rendering, and a validated hex primary color; document and navigation regressions pass (`target/audit_tmp/a109_ssr_review.log`, `target/audit_tmp/a109_navigation_review.log`). |
+| `frontend_admin/src/render_text_page.rs` | Reviewed: renders escaped text through Leptos and the shared page shell; the page catalog supplies the displayed title. |
+| `frontend_admin/src/render_text_page_with_access.rs` | Reviewed: renders the version value or escaped code text through the shared access-aware page shell. |
+| `frontend_admin/src/render_user_create.rs` | Reviewed: the user creation form uses the typed HTML action and required account fields; CRUD rendering test passes (`target/audit_tmp/a110_crud_review.log`). |
+| `frontend_admin/src/render_user_manage.rs` | Reviewed: populated user forms expose update and delete only with the corresponding rules and require deletion confirmation; CRUD rendering test passes (`target/audit_tmp/a110_crud_review.log`). |
+| `frontend_admin/src/render_user_update.rs` | Reviewed: the SSR user-update form posts to the typed action and requires the user identifier, display name, and login. |
+| `frontend_admin/src/render_users.rs` | Reviewed: the SSR user list gates create and update controls by rules, escapes row values through Leptos, and passes its typed query and total to pagination. |
+| `frontend_admin/src/render_view.rs` | Reviewed: renders an owned Leptos view into bounded HTML; A108 regression also exercises escaped text rendering. |
+| `frontend_admin/src/send_admin_request.rs` | Reviewed: serializes a mutation body, sets JSON and CSRF headers, checks the fetch response, and classifies failure through the admin load error. The browser-only path still needs provisioned browser coverage. |
+| `frontend_admin/src/show_mutation_error.rs` | Reviewed: creates a text-only alert and falls back to root text on append failure, avoiding HTML interpretation of errors. The browser-only path still needs provisioned browser coverage. |
+| `frontend_admin/src/start.rs` | Reviewed: browser root lookup, mount, and early returns inspected. |
+| `frontend_admin/src/std_rc_serde_json_error.rs` | Reviewed: error source conversion inspected. |
+| `frontend_admin/src/std_str_utf8_error.rs` | Reviewed: UTF-8 error forwarding wrapper inspected. |
+| `frontend_admin/src/table.rs` | Reviewed: table element and attributes inspected. |
+| `frontend_admin/src/table_body.rs` | Reviewed: table body element and attributes inspected. |
+| `frontend_admin/src/table_caption.rs` | Reviewed: table caption element and attributes inspected. |
+| `frontend_admin/src/table_cell.rs` | Reviewed: value preview, action cell bypass, and browser viewer behavior inspected; existing render and browser tests cover both modes. |
+| `frontend_admin/src/table_footer.rs` | Reviewed: table footer element and attributes inspected. |
+| `frontend_admin/src/table_head.rs` | Reviewed: header data attributes and children inspected. |
+| `frontend_admin/src/table_header.rs` | Reviewed: table header element and attributes inspected. |
+| `frontend_admin/src/table_pagination.rs` | Reviewed; A91 consumer |
+| `frontend_admin/src/table_row.rs` | Reviewed: table row element and attributes inspected. |
+| `frontend_admin/src/table_wrapper.rs` | Reviewed: scroll wrapper element and attributes inspected. |
+| `frontend_admin/src/test_admin_ssr_html.rs` | Reviewed: exact byte bound, overflow, Unicode bytes, and fallback tests inspected. |
+| `frontend_admin/src/test_render_document.rs` | A108 title escaping regression passed. |
+| `frontend_admin/src/test_crud_tests.rs` | Reviewed: user and role CRUD render assertions and fixture setup inspected. |
+| `frontend_admin/src/test_data_grid_tests.rs` | Focused review; A95 |
+| `frontend_admin/src/test_domain_types_ssr_tests_document.rs` | Reviewed: CSR mount, SSR form/script separation, header routes, and restricted shell assertions inspected. |
+| `frontend_admin/src/test_domain_types_ssr_tests_navigation.rs` | Reviewed: pagination, permission navigation, and sign-in branding assertions inspected. |
+| `frontend_admin/src/test_domain_types_ssr_tests_settings.rs` | Reviewed: settings layout and contract input-kind render assertions inspected. |
+| `frontend_admin/src/test_domain_types_with_owner_tests.rs` | Focused review; A103 session revoke action label regression. |
+| `frontend_admin/src/test_static_pages_tests.rs` | Focused review; A110 system-role Update action regression. |
+| `frontend_admin/src/test_table_cell_tests.rs` | Reviewed: preview content and action bypass assertions inspected. |
+| `frontend_admin/src/wasm_bindgen_admin_read_error.rs` | Reviewed: browser error wrapper and redacted message inspected. |
+| `frontend_admin/src/wasm_bindgen_password_generation_exception.rs` | Reviewed: browser randomness exception wrapper inspected. |
+| `frontend_admin/src/with_admin_session.rs` | Focused review: authentication retry, refresh, and error precedence inspected; no confirmed behavior defect. |
+| `frontend_admin/src/with_owner.rs` | Reviewed: Leptos owner creation and view attachment inspected. |
 
 ### frontend_contract
 
@@ -669,11 +728,11 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 | `frontend_contract/src/api_url_component_encode_set.rs` | Reviewed: percent encoding covers controls, spaces, percent, reserved separators and unsafe punctuation; non-ASCII handling delegates to pinned percent-encoding. |
 | `frontend_contract/src/api_url_path_segment_ref.rs` | Reviewed: borrowed segment rejects empty, slash and exact dot traversal names before percent encoding. |
 | `frontend_contract/src/api_url_query_component_ref.rs` | Reviewed: borrowed query text forwarded without allocation; encoding belongs to the URL builder. |
-| `frontend_contract/src/apply_openapi_error_contract.rs` | Pending |
-| `frontend_contract/src/apply_openapi_path_parameter_contract.rs` | Pending |
-| `frontend_contract/src/apply_openapi_request_contract.rs` | Pending |
-| `frontend_contract/src/apply_openapi_security_contract.rs` | Pending |
-| `frontend_contract/src/apply_openapi_success_contract.rs` | Pending |
+| `frontend_contract/src/apply_openapi_error_contract.rs` | Reviewed: generated route registration replaces documented 4xx and 5xx responses with typed route statuses, schemas, and the rate-limit retry header; the typed-route integration test checks declared JSON error content. |
+| `frontend_contract/src/apply_openapi_path_parameter_contract.rs` | Reviewed: generated route registration adds the typed route path parameter when declared. The helper is invoked once for each generated operation. |
+| `frontend_contract/src/apply_openapi_request_contract.rs` | Reviewed: generated route registration sets a required JSON request body only when the typed route declares one and provides a schema; the typed-route integration test checks that content. |
+| `frontend_contract/src/apply_openapi_security_contract.rs` | Reviewed: public routes clear security; authenticated routes require the authentication scheme and mutating routes add the CSRF scheme in the same requirement. |
+| `frontend_contract/src/apply_openapi_success_contract.rs` | Reviewed: generated route registration replaces 2xx responses with the typed success status and includes JSON content only for non-204 responses with a schema. |
 | `frontend_contract/src/auth_session_instant.rs` | Reviewed: external Instant wrapper, generated copy access and explicit current-time Default adapter. |
 | `frontend_contract/src/auth_session_keep_alive.rs` | Reviewed: single-flight begin, finish scheduling and missing-state reset; typed finish errors and explicit overflow suppression/reset under A26; no production consumers found. |
 | `frontend_contract/src/auth_session_keep_alive_decision.rs` | Reviewed: typed refresh/skip decisions, explicit overflow suppression and domain-wrapped deadline representation under A26. |
@@ -738,6 +797,7 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 | `frontend_contract/src/parameterized_route.rs` | Pending |
 | `frontend_contract/src/parameterized_route_path.rs` | Pending |
 | `frontend_contract/src/parameterized_route_path_try_from_string_error.rs` | Pending |
+| `frontend_contract/src/parse_timestamp_filter_wire_json.rs` | Fixed and reviewed; A105 shared timestamp form-value conversion. |
 | `frontend_contract/src/primary_key_kind.rs` | Pending |
 | `frontend_contract/src/problem_tests.rs` | Pending |
 | `frontend_contract/src/public_transport.rs` | Pending |
@@ -754,7 +814,7 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 | `frontend_contract/src/route_coverage_error.rs` | Pending |
 | `frontend_contract/src/route_coverage_evidence.rs` | Pending |
 | `frontend_contract/src/route_coverage_obligation.rs` | Pending |
-| `frontend_contract/src/route_coverage_tests.rs` | Pending |
+| `frontend_contract/src/route_coverage_tests.rs` | Focused review; A120 regression covers duplicate method/path with distinct operation IDs and permits distinct methods. |
 | `frontend_contract/src/route_database_usage.rs` | Reviewed: explicit database/no-database descriptor variants. |
 | `frontend_contract/src/route_error_policy.rs` | Pending |
 | `frontend_contract/src/route_error_status.rs` | Pending |
@@ -803,7 +863,7 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 | `frontend_contract/src/utoipa_open_api_path_parameter.rs` | Pending |
 | `frontend_contract/src/utoipa_open_api_ref_mut.rs` | Pending |
 | `frontend_contract/src/utoipa_open_api_route_schema.rs` | Pending |
-| `frontend_contract/src/validate_route_coverage.rs` | Pending |
+| `frontend_contract/src/validate_route_coverage.rs` | Reviewed: rejects duplicate method/path pairs and checks baseline, authentication, and mutation coverage obligations; A120 fixed metadata-sensitive duplicate detection. |
 | `frontend_contract/src/value_example.rs` | Pending |
 | `frontend_contract/src/value_format.rs` | Pending |
 | `frontend_contract/tests/typed_route.rs` | Pending |
@@ -835,16 +895,16 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 | `frontend_contract_validation/src/open_api_security_expectation.rs` | Reviewed: explicit public or named required security expectation. |
 | `frontend_contract_validation/src/open_api_validation_error.rs` | Reviewed: typed route/reference mismatch data and text conversion errors. |
 | `frontend_contract_validation/src/openapi_schema_references.rs` | Focused review: iterative traversal, bounded reference names and A49 nested or escaped local JSON Pointers; external URI reference semantics remain pending. |
-| `frontend_contract_validation/src/openapi_validation_tests.rs` | Reviewed: deterministic fixtures for references, operations, required fields and additional properties; cycle guards, recursive children and long reference chains are covered; operation security inheritance, explicit overrides, duplicate normalized methods and nested or escaped local references are also covered. |
+| `frontend_contract_validation/src/openapi_validation_tests.rs` | Reviewed: deterministic fixtures for references, operations, required fields and additional properties; cycle guards, recursive children and long reference chains are covered; operation security inheritance, A122 anonymous alternative rejection, explicit overrides, duplicate normalized methods, A121 duplicate runtime routes, and nested or escaped local references are also covered. |
 | `frontend_contract_validation/src/route_contract_mismatch.rs` | Reviewed: exact method, operation identifier and path comparisons; all metadata differences are retained in fixed order and typed-route metadata delegates to the same owner. |
 | `frontend_contract_validation/src/route_contract_mismatches.rs` | Reviewed: exact method, operation identifier and path comparisons; all metadata differences are retained in fixed order and typed-route metadata delegates to the same owner. |
 | `frontend_contract_validation/src/route_contract_validation_tests.rs` | Reviewed: deterministic metadata mismatch order, typed route source and in-memory HTTP fixture assertions. |
 | `frontend_contract_validation/src/run_http_contract_fixture.rs` | Reviewed: one callback invocation, metadata and status checks before body checks, bounded 16 MiB body, three-digit status range and private typed fields. Json means syntactically valid JSON; content-type headers are outside this fixture contract. |
 | `frontend_contract_validation/src/runtime_routes_ref.rs` | Reviewed: borrowed typed route slice with generated forwarding. |
 | `frontend_contract_validation/src/serde_json_open_api_serialization_error.rs` | Reviewed: transparent serialization error wrapper preserving the source. |
-| `frontend_contract_validation/src/validate_openapi_contract.rs` | Focused review: schema use, route matching, operation identifiers, duplicate normalized method rejection, A49 local reference integration and A51 nonobject path-item rejection; external URI reference semantics remain pending. |
+| `frontend_contract_validation/src/validate_openapi_contract.rs` | Focused review: schema use, route matching, operation identifiers, duplicate normalized method and runtime route rejection (A121), A49 local reference integration and A51 nonobject path-item rejection; external URI reference semantics remain pending. |
 | `frontend_contract_validation/src/validate_openapi_json_payload.rs` | Reviewed: A07 borrows JSON without serialization or owned copies; iterative evaluation and equality preserve scoped reference guards and composition results. Deep input and comparison regressions verified. |
-| `frontend_contract_validation/src/validate_openapi_operations.rs` | Reviewed: operation lookup, effective security inheritance, exact response status and content/schema checks; A21 fixes ignored document security. |
+| `frontend_contract_validation/src/validate_openapi_operations.rs` | Reviewed: operation lookup, effective security inheritance, exact response status and content/schema checks; A21 fixes ignored document security and A122 requires every alternative to carry required security. |
 | `frontend_contract_validation/src/validate_openapi_schema_references.rs` | Reviewed: serialization errors propagate and reference discovery and validation delegate to their tracked owners. |
 | `frontend_contract_validation/src/validate_route_contract_metadata.rs` | Reviewed: exact method, operation identifier and path comparisons; all metadata differences are retained in fixed order and typed-route metadata delegates to the same owner. |
 | `frontend_contract_validation/src/validate_typed_route_contract.rs` | Reviewed: exact method, operation identifier and path comparisons; all metadata differences are retained in fixed order and typed-route metadata delegates to the same owner. |
@@ -853,7 +913,7 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 
 | Source | Semantic review |
 | --- | --- |
-| `fuzz/fuzz_targets/domain_boundaries.rs` | Pending |
+| `fuzz/fuzz_targets/domain_boundaries.rs` | Reviewed: all seven parser branches and the signed-cursor branch inspected for panic paths, bounded input, and conversion errors; no defect confirmed. |
 
 ### generate_quotes
 
@@ -1022,139 +1082,137 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 
 | Source | Semantic review |
 | --- | --- |
-| `macro_helpers/src/assert_file_content.rs` | Pending |
-| `macro_helpers/src/assert_file_path_ref.rs` | Pending |
-| `macro_helpers/src/attr_identifier_name.rs` | Pending |
-| `macro_helpers/src/attr_identifier_str.rs` | Pending |
-| `macro_helpers/src/cleanup_test_file.rs` | Pending |
-| `macro_helpers/src/compile_error_message.rs` | Pending |
-| `macro_helpers/src/contract_error.rs` | Pending |
-| `macro_helpers/src/derive_token_stream_builder.rs` | Pending |
-| `macro_helpers/src/ensure_json_contract_round_trip.rs` | Pending |
-| `macro_helpers/src/expected_file_content.rs` | Pending |
-| `macro_helpers/src/expected_file_content_ref.rs` | Pending |
-| `macro_helpers/src/field_location_column.rs` | Pending |
-| `macro_helpers/src/field_location_coordinate_try_from_u32_error.rs` | Pending |
-| `macro_helpers/src/field_location_file.rs` | Pending |
-| `macro_helpers/src/field_location_line.rs` | Pending |
-| `macro_helpers/src/find_macro_attribute.rs` | Pending |
-| `macro_helpers/src/format_with_cargofmt.rs` | Pending |
-| `macro_helpers/src/generate_const_new_token_stream_impl.rs` | Pending |
-| `macro_helpers/src/generate_const_try_new_token_stream_impl.rs` | Pending |
-| `macro_helpers/src/generate_field_location_new_token_stream.rs` | Pending |
-| `macro_helpers/src/generate_if_write_is_error_token_stream.rs` | Pending |
-| `macro_helpers/src/generate_impl_const_new_for_identifier_token_stream_impl.rs` | Pending |
-| `macro_helpers/src/generate_impl_default_token_stream.rs` | Pending |
-| `macro_helpers/src/generate_impl_display_token_stream.rs` | Pending |
-| `macro_helpers/src/generate_impl_from_token_stream.rs` | Pending |
-| `macro_helpers/src/generate_impl_modified_new_for_identifier_token_stream_impl.rs` | Pending |
-| `macro_helpers/src/generate_impl_modified_try_new_for_identifier_token_stream_impl.rs` | Pending |
-| `macro_helpers/src/generate_impl_new_for_identifier_token_stream_impl.rs` | Pending |
-| `macro_helpers/src/generate_impl_pub_const_new_for_identifier_token_stream_impl.rs` | Pending |
-| `macro_helpers/src/generate_impl_pub_const_try_new_for_identifier_token_stream_impl.rs` | Pending |
-| `macro_helpers/src/generate_impl_pub_new_for_identifier_token_stream_impl.rs` | Pending |
-| `macro_helpers/src/generate_impl_pub_try_new_for_identifier_token_stream_impl.rs` | Pending |
-| `macro_helpers/src/generate_impl_to_err_string_token_stream.rs` | Pending |
-| `macro_helpers/src/generate_impl_try_from_token_stream.rs` | Pending |
-| `macro_helpers/src/generate_impl_try_new_for_identifier_token_stream_impl.rs` | Pending |
-| `macro_helpers/src/generate_modified_new_token_stream_impl.rs` | Pending |
-| `macro_helpers/src/generate_modified_try_new_token_stream_impl.rs` | Pending |
-| `macro_helpers/src/generate_new_token_stream_impl.rs` | Pending |
-| `macro_helpers/src/generate_pub_const_new_token_stream_impl.rs` | Pending |
-| `macro_helpers/src/generate_pub_const_try_new_token_stream_impl.rs` | Pending |
-| `macro_helpers/src/generate_pub_new_token_stream_impl.rs` | Pending |
-| `macro_helpers/src/generate_pub_try_new_token_stream_impl.rs` | Pending |
-| `macro_helpers/src/generate_pub_type_alias_token_stream.rs` | Pending |
-| `macro_helpers/src/generate_serde_version_of_named_syn_variant.rs` | Pending |
-| `macro_helpers/src/generate_simple_syn_punct.rs` | Pending |
-| `macro_helpers/src/generate_try_new_token_stream_impl.rs` | Pending |
-| `macro_helpers/src/generate_validated_tokens.rs` | Pending |
-| `macro_helpers/src/generated_file_maximum_bytes.rs` | Pending |
-| `macro_helpers/src/get_macro_attribute_tests.rs` | Pending |
-| `macro_helpers/src/impl_identifier_token_stream_impl.rs` | Pending |
-| `macro_helpers/src/json_contract_tests.rs` | Pending |
-| `macro_helpers/src/json_fixture_ref.rs` | Pending |
-| `macro_helpers/src/lib.rs` | Pending |
-| `macro_helpers/src/location_field_attr.rs` | Pending |
-| `macro_helpers/src/location_syn_field.rs` | Pending |
-| `macro_helpers/src/macro_attr_error.rs` | Pending |
-| `macro_helpers/src/macro_compile_error_tokens.rs` | Pending |
-| `macro_helpers/src/macro_path_ref.rs` | Pending |
-| `macro_helpers/src/macro_serde_json_error.rs` | Pending |
-| `macro_helpers/src/only_one.rs` | Pending |
-| `macro_helpers/src/only_one_status_code_error.rs` | Pending |
-| `macro_helpers/src/os_string_value.rs` | Pending |
-| `macro_helpers/src/pagination_start_end_initialization_token_stream.rs` | Pending |
-| `macro_helpers/src/proc_macro2_derive_tokens_ref.rs` | Pending |
-| `macro_helpers/src/proc_macro2_generated_rust_token_stream.rs` | Pending |
-| `macro_helpers/src/proc_macro2_if_write_is_err_token_stream.rs` | Pending |
-| `macro_helpers/src/proc_macro2_macro_attr_meta_list_token_stream_ref.rs` | Pending |
-| `macro_helpers/src/proc_macro2_token_stream_ref.rs` | Pending |
-| `macro_helpers/src/process_exit_status.rs` | Pending |
-| `macro_helpers/src/process_output.rs` | Pending |
-| `macro_helpers/src/rs_file_path_buf.rs` | Pending |
-| `macro_helpers/src/rs_file_path_tests.rs` | Pending |
-| `macro_helpers/src/sanitized_database_target.rs` | Pending |
-| `macro_helpers/src/should_write_string.rs` | Pending |
-| `macro_helpers/src/should_write_string_into_file_tests.rs` | Pending |
-| `macro_helpers/src/should_write_token_stream_into_file.rs` | Pending |
-| `macro_helpers/src/status_code.rs` | Pending |
-| `macro_helpers/src/std_assert_file_path.rs` | Pending |
-| `macro_helpers/src/std_fmt_arguments.rs` | Pending |
-| `macro_helpers/src/std_io_write_ref.rs` | Pending |
-| `macro_helpers/src/std_str_chars.rs` | Pending |
-| `macro_helpers/src/std_tool_io_error.rs` | Pending |
-| `macro_helpers/src/string_file_content_ref.rs` | Pending |
-| `macro_helpers/src/string_syn_punct.rs` | Pending |
-| `macro_helpers/src/syn_field.rs` | Pending |
-| `macro_helpers/src/syn_field_identifier.rs` | Pending |
-| `macro_helpers/src/syn_field_type.rs` | Pending |
-| `macro_helpers/src/syn_field_vis.rs` | Pending |
-| `macro_helpers/src/syn_location_field.rs` | Pending |
-| `macro_helpers/src/syn_macro_attr_ref.rs` | Pending |
-| `macro_helpers/src/syn_path_segment.rs` | Pending |
-| `macro_helpers/src/syn_path_segments.rs` | Pending |
-| `macro_helpers/src/syn_variant_ref.rs` | Pending |
-| `macro_helpers/src/test_database.rs` | Pending |
-| `macro_helpers/src/test_generate_new_or_try_new_tests.rs` | Pending |
-| `macro_helpers/src/test_generate_validated_tokens.rs` | Pending |
-| `macro_helpers/src/test_path.rs` | Pending |
-| `macro_helpers/src/test_path_stem.rs` | Pending |
-| `macro_helpers/src/tool_ansi_chars.rs` | Pending |
-| `macro_helpers/src/tool_ansi_escape_state.rs` | Pending |
-| `macro_helpers/src/tool_ansi_text_ref.rs` | Pending |
-| `macro_helpers/src/tool_arg_ref.rs` | Pending |
-| `macro_helpers/src/tool_args_ref.rs` | Pending |
-| `macro_helpers/src/tool_command.rs` | Focused review; A80 |
-| `macro_helpers/src/tool_console_stream.rs` | Pending |
-| `macro_helpers/src/tool_console_write_error.rs` | Pending |
-| `macro_helpers/src/tool_env_key_ref.rs` | Pending |
-| `macro_helpers/src/tool_env_value_ref.rs` | Pending |
+| `macro_helpers/src/assert_file_content.rs` | Reviewed: the test assertion reads no more than the expected byte count, validates UTF-8, and compares exact content. |
+| `macro_helpers/src/assert_file_path_ref.rs` | Reviewed: borrowed path wrapper preserves the input lifetime and forwards PathBuf borrowing. |
+| `macro_helpers/src/attr_identifier_name.rs` | Reviewed: borrowed attribute-name wrapper preserves the input lifetime. |
+| `macro_helpers/src/attr_identifier_str.rs` | Reviewed: provider trait returns a borrowed attribute-name wrapper. |
+| `macro_helpers/src/cleanup_test_file.rs` | Reviewed: test cleanup ignores absent files and reports other removal failures. |
+| `macro_helpers/src/compile_error_message.rs` | Reviewed: borrowed diagnostic text wrapper preserves the source lifetime. |
+| `macro_helpers/src/contract_error.rs` | Reviewed: round-trip contract failures remain distinct typed variants. |
+| `macro_helpers/src/derive_token_stream_builder.rs` | Reviewed: derive builder delegates its fixed supported derive catalog to the generator. |
+| `macro_helpers/src/ensure_json_contract_round_trip.rs` | Reviewed: fixture decoding, serialization, second decoding, and value equality have distinct typed errors; existing tests cover failures at each stage. |
+| `macro_helpers/src/expected_file_content.rs` | Reviewed: borrowed text wrapper preserves the lifetime through its input conversion. |
+| `macro_helpers/src/expected_file_content_ref.rs` | Reviewed: conversions retain borrowed text without copying. |
+| `macro_helpers/src/field_location_column.rs` | Reviewed: zero is rejected and positive coordinates retain their value. |
+| `macro_helpers/src/field_location_coordinate_try_from_u32_error.rs` | Reviewed: typed zero-coordinate error. |
+| `macro_helpers/src/field_location_file.rs` | Reviewed: borrowed static file path wrapper. |
+| `macro_helpers/src/field_location_line.rs` | Reviewed: zero is rejected and positive coordinates retain their value. |
+| `macro_helpers/src/find_macro_attribute.rs` | Reviewed: compares complete attribute path segments and intentionally normalizes spaces and empty lookup segments, as its focused tests specify. |
+| `macro_helpers/src/format_with_cargofmt.rs` | Reviewed: explicit formatting-mode discriminator. |
+| `macro_helpers/src/generate_const_new_token_stream_impl.rs` | Reviewed: passes the const modifier to the shared constructor emitter. |
+| `macro_helpers/src/generate_const_try_new_token_stream_impl.rs` | Reviewed: passes const and error type to the shared fallible constructor emitter. |
+| `macro_helpers/src/generate_field_location_new_token_stream.rs` | Reviewed: emits current and stored field locations; coordinate wrappers reject zero and generated-token tests cover both positions. |
+| `macro_helpers/src/generate_if_write_is_error_token_stream.rs` | Reviewed: generated branch executes the supplied tokens only when formatting fails. |
+| `macro_helpers/src/generate_impl_const_new_for_identifier_token_stream_impl.rs` | Reviewed: wraps the const constructor in the supplied impl; token test covers output. |
+| `macro_helpers/src/generate_impl_default_token_stream.rs` | Reviewed: preserves the supplied type and default body; token test covers emitted syntax. |
+| `macro_helpers/src/generate_impl_display_token_stream.rs` | Reviewed: forwards generics and method body into the Display implementation. |
+| `macro_helpers/src/generate_impl_from_token_stream.rs` | Reviewed: binds the From input to the expected generated identifier and emits the supplied body. |
+| `macro_helpers/src/generate_impl_modified_new_for_identifier_token_stream_impl.rs` | Reviewed: composes modifier, constructor, and impl wrapper without dropping inputs. |
+| `macro_helpers/src/generate_impl_modified_try_new_for_identifier_token_stream_impl.rs` | Reviewed: composes modifier, fallible constructor, error type, and impl wrapper. |
+| `macro_helpers/src/generate_impl_new_for_identifier_token_stream_impl.rs` | Reviewed: emits unmodified constructor in the supplied impl; token test covers output. |
+| `macro_helpers/src/generate_impl_pub_const_new_for_identifier_token_stream_impl.rs` | Reviewed: emits public const constructor in the supplied impl; token test covers output. |
+| `macro_helpers/src/generate_impl_pub_const_try_new_for_identifier_token_stream_impl.rs` | Reviewed: emits public const fallible constructor in the supplied impl. |
+| `macro_helpers/src/generate_impl_pub_new_for_identifier_token_stream_impl.rs` | Reviewed: emits public constructor in the supplied impl. |
+| `macro_helpers/src/generate_impl_pub_try_new_for_identifier_token_stream_impl.rs` | Reviewed: emits public fallible constructor in the supplied impl. |
+| `macro_helpers/src/generate_impl_to_err_string_token_stream.rs` | Reviewed: generated conversion validates bounded error text with its existing fallback. |
+| `macro_helpers/src/generate_impl_try_from_token_stream.rs` | Reviewed: generated TryFrom implementation preserves its error type and supplied body. |
+| `macro_helpers/src/generate_impl_try_new_for_identifier_token_stream_impl.rs` | Reviewed: emits unmodified fallible constructor in the supplied impl. |
+| `macro_helpers/src/generate_modified_new_token_stream_impl.rs` | Reviewed: attaches attributes before visibility or const modifiers and preserves the constructor body. |
+| `macro_helpers/src/generate_modified_try_new_token_stream_impl.rs` | Reviewed: attaches attributes before modifiers and preserves the fallible constructor body and error type. |
+| `macro_helpers/src/generate_new_token_stream_impl.rs` | Reviewed: emits an inherent new method with supplied parameters and body. |
+| `macro_helpers/src/generate_pub_const_new_token_stream_impl.rs` | Reviewed: passes public const modifiers to the shared constructor emitter. |
+| `macro_helpers/src/generate_pub_const_try_new_token_stream_impl.rs` | Reviewed: passes public const modifiers and error type to the shared fallible constructor emitter. |
+| `macro_helpers/src/generate_pub_new_token_stream_impl.rs` | Reviewed: passes public visibility to the shared constructor emitter. |
+| `macro_helpers/src/generate_pub_try_new_token_stream_impl.rs` | Reviewed: passes public visibility and error type to the shared fallible constructor emitter. |
+| `macro_helpers/src/generate_pub_type_alias_token_stream.rs` | Reviewed: emits public alias with supplied generic target; token test covers it. |
+| `macro_helpers/src/generate_serde_version_of_named_syn_variant.rs` | Focused review: malformed collection types, panic paths, and Vec shape (A123, A130); remaining generation branches pending. |
+| `macro_helpers/src/generate_simple_syn_punct.rs` | Reviewed: punctuates supplied path segments; tests cover empty, one, and three segments. |
+| `macro_helpers/src/generate_try_new_token_stream_impl.rs` | Reviewed: emits a fallible inherent constructor with supplied error type, parameters, and body. |
+| `macro_helpers/src/generate_validated_tokens.rs` | Reviewed: stops at the first failed stage and emits only validated output; tests cover both paths. |
+| `macro_helpers/src/get_macro_attribute_tests.rs` | Reviewed: exact path matching, normalized lookup separators, missing attributes, and non-list errors. |
+| `macro_helpers/src/impl_identifier_token_stream_impl.rs` | Reviewed: wraps supplied tokens in the named inherent impl. |
+| `macro_helpers/src/json_contract_tests.rs` | Reviewed: typed failures at fixture decode, serialization, and round-trip decode phases. |
+| `macro_helpers/src/json_fixture_ref.rs` | Reviewed: borrowed fixture wrapper retains its source lifetime. |
+| `macro_helpers/src/lib.rs` | Reviewed: module ownership and test-only or feature-gated declarations match the source inventory. |
+| `macro_helpers/src/location_field_attr.rs` | Reviewed: all supported markers, duplicate/missing selection, and marker syntax; A124. |
+| `macro_helpers/src/location_syn_field.rs` | Reviewed: constructs the named location field with the expected three-segment type path. |
+| `macro_helpers/src/macro_attr_error.rs` | Reviewed: distinct missing-attribute and wrong-meta-shape outcomes. |
+| `macro_helpers/src/macro_compile_error_tokens.rs` | Reviewed: emits a compile-error invocation with borrowed diagnostic text. |
+| `macro_helpers/src/macro_path_ref.rs` | Reviewed: borrowed path wrapper retains the input lifetime. |
+| `macro_helpers/src/macro_serde_json_error.rs` | Reviewed: transparent typed wrapper retains the serde JSON source. |
+| `macro_helpers/src/only_one.rs` | Reviewed: selects exactly one bare supported status marker, rejects malformed, duplicate, and missing cases; A125. |
+| `macro_helpers/src/only_one_status_code_error.rs` | Reviewed: distinct typed outcomes for malformed, duplicate, and missing status markers; A125. |
+| `macro_helpers/src/os_string_value.rs` | Reviewed: converts a borrowed program path to owned OsString for command ownership. |
+| `macro_helpers/src/pagination_start_end_initialization_token_stream.rs` | Reviewed: generated start and end bindings preserve the receiver; token test covers output. |
+| `macro_helpers/src/proc_macro2_derive_tokens_ref.rs` | Reviewed: borrowed derive-token slice preserves token lifetimes and order. |
+| `macro_helpers/src/proc_macro2_generated_rust_token_stream.rs` | Reviewed: owned token wrapper forwards display, tokens, and conversions. |
+| `macro_helpers/src/proc_macro2_if_write_is_err_token_stream.rs` | Reviewed: owned formatting-error token wrapper forwards token emission. |
+| `macro_helpers/src/proc_macro2_macro_attr_meta_list_token_stream_ref.rs` | Reviewed: borrowed list-token wrapper forwards token emission. |
+| `macro_helpers/src/proc_macro2_token_stream_ref.rs` | Reviewed: borrowed token wrapper preserves source lifetime. |
+| `macro_helpers/src/process_exit_status.rs` | Reviewed: exit-status wrapper forwards display and status inspection. |
+| `macro_helpers/src/process_output.rs` | Reviewed: owned process output wrapper preserves status and both byte streams. |
+| `macro_helpers/src/rs_file_path_buf.rs` | Reviewed: owned generated `.rs` path wrapper preserves the path. |
+| `macro_helpers/src/rs_file_path_tests.rs` | Reviewed: extension replacement and parent-directory preservation tests. |
+| `macro_helpers/src/sanitized_database_target.rs` | Reviewed: bounded target display excludes credentials and query values. |
+| `macro_helpers/src/should_write_string.rs` | Reviewed: typed change flag for generated-file outcomes. |
+| `macro_helpers/src/should_write_string_into_file_tests.rs` | Reviewed: test-only chunked comparison aligns with production on changed invalid UTF-8 content; A131. |
+| `macro_helpers/src/should_write_token_stream_into_file.rs` | Reviewed: typed write-selection flag. |
+| `macro_helpers/src/status_code.rs` | Reviewed: all 60 numeric mappings match their variants and all 60 HTTP token names match pinned http 1.5.0; token and parsing tests pass. |
+| `macro_helpers/src/std_assert_file_path.rs` | Reviewed: borrowed assertion-path wrapper preserves the source lifetime. |
+| `macro_helpers/src/std_fmt_arguments.rs` | Reviewed: borrowed formatting arguments preserve the formatting lifetime. |
+| `macro_helpers/src/std_io_write_ref.rs` | Reviewed: mutable writer wrapper retains exclusive borrow and Write bound. |
+| `macro_helpers/src/std_str_chars.rs` | Reviewed: character iterator wrapper preserves the source lifetime. |
+| `macro_helpers/src/std_tool_io_error.rs` | Reviewed: transparent I/O source wrapper preserves error chaining. |
+| `macro_helpers/src/string_file_content_ref.rs` | Reviewed: borrowed write-content wrapper preserves text lifetime. |
+| `macro_helpers/src/string_syn_punct.rs` | Reviewed: builds the fixed three-segment string path through the shared helper. |
+| `macro_helpers/src/syn_field.rs` | Reviewed: generated constructor and getters preserve named identifier, type, and visibility fields. |
+| `macro_helpers/src/syn_field_identifier.rs` | Reviewed: identifier wrapper forwards display and token emission. |
+| `macro_helpers/src/syn_field_type.rs` | Reviewed: type wrapper forwards token emission. |
+| `macro_helpers/src/syn_field_vis.rs` | Reviewed: visibility wrapper forwards token emission. |
+| `macro_helpers/src/syn_location_field.rs` | Reviewed: owned field wrapper supports construction and ownership transfer. |
+| `macro_helpers/src/syn_macro_attr_ref.rs` | Reviewed: borrowed attribute wrapper preserves the source lifetime and token emission. |
+| `macro_helpers/src/syn_path_segment.rs` | Reviewed: owned path-segment wrapper preserves the segment. |
+| `macro_helpers/src/syn_path_segments.rs` | Reviewed: punctuated path wrapper preserves segments and token emission. |
+| `macro_helpers/src/syn_variant_ref.rs` | Reviewed: borrowed variant wrapper preserves its source lifetime. |
+| `macro_helpers/src/test_database.rs` | Reviewed: loopback test targets, ambiguous and remote targets, credential redaction, and query overrides; A128. |
+| `macro_helpers/src/test_generate_new_or_try_new_tests.rs` | Reviewed: token checks cover plain, const, and public const inherent constructors. |
+| `macro_helpers/src/test_generate_validated_tokens.rs` | Reviewed: success and first-error short-circuit tests for generation stages. |
+| `macro_helpers/src/test_path.rs` | Reviewed: test-only path generation uses a process-local sequence for unique fixtures. |
+| `macro_helpers/src/test_path_stem.rs` | Reviewed: borrowed test-path stem wrapper preserves its lifetime. |
+| `macro_helpers/src/tool_ansi_chars.rs` | Reviewed: plain Unicode, CSI and OSC control filtering; A129. |
+| `macro_helpers/src/tool_ansi_escape_state.rs` | Reviewed: parser states cover text, ESC, CSI, and OSC termination; A129. |
+| `macro_helpers/src/tool_ansi_text_ref.rs` | Reviewed: borrowed ANSI text wrapper retains its lifetime. |
+| `macro_helpers/src/tool_arg_ref.rs` | Reviewed: borrowed command argument wrapper. |
+| `macro_helpers/src/tool_args_ref.rs` | Reviewed: borrowed command argument slice wrapper. |
+| `macro_helpers/src/tool_command.rs` | Reviewed: command construction, bounded dual-pipe draining, status propagation, and argument-redacted Debug; A80 covers retained output. |
+| `macro_helpers/src/tool_console_stream.rs` | Reviewed: stream selection, write error propagation, and failure exit; deterministic writer tests cover success and broken pipe. |
+| `macro_helpers/src/tool_console_write_error.rs` | Reviewed: distinct stdout and stderr errors retain I/O sources. |
+| `macro_helpers/src/tool_env_key_ref.rs` | Reviewed: borrowed environment-key wrapper. |
+| `macro_helpers/src/tool_env_value_ref.rs` | Reviewed: borrowed environment-value wrapper. |
 | `macro_helpers/src/tool_output_byte.rs` | Reviewed; A80 |
 | `macro_helpers/src/tool_output_byte_vec_deque.rs` | Reviewed; A80 |
 | `macro_helpers/src/tool_output_limit.rs` | Reviewed; A80 |
 | `macro_helpers/src/tool_output_tail.rs` | Reviewed; A80 |
-| `macro_helpers/src/tool_process_command.rs` | Pending |
-| `macro_helpers/src/tool_program_ref.rs` | Pending |
-| `macro_helpers/src/try_get_macro_attr_meta_list_token_stream.rs` | Pending |
-| `macro_helpers/src/try_get_macro_attribute.rs` | Pending |
-| `macro_helpers/src/try_maybe_write_token_stream_into_file.rs` | Pending |
-| `macro_helpers/src/try_write_string_into_file.rs` | Pending |
-| `macro_helpers/src/try_write_string_into_file_with_outcome.rs` | Pending |
-| `macro_helpers/src/try_write_string_into_path_tests.rs` | Pending |
-| `macro_helpers/src/try_write_string_into_path_with_outcome_tests.rs` | Pending |
-| `macro_helpers/src/url_error.rs` | Pending |
-| `macro_helpers/src/url_ref.rs` | Pending |
-| `macro_helpers/src/validate_existing_file_text.rs` | Pending |
-| `macro_helpers/src/validate_test_database_url.rs` | Pending |
-| `macro_helpers/src/with_attr_token_stream_impl.rs` | Pending |
-| `macro_helpers/src/wrap_derive.rs` | Pending |
-| `macro_helpers/src/write_path_outcome.rs` | Pending |
-| `macro_helpers/src/write_string_if_needed_tests.rs` | Pending |
-| `macro_helpers/src/write_string_into_file_tests.rs` | Pending |
-| `macro_helpers/src/write_token_stream_into_file_tests.rs` | Pending |
-| `macro_helpers/src/written_file_path_buf.rs` | Pending |
-| `macro_helpers/src/written_file_path_ref.rs` | Pending |
+| `macro_helpers/src/tool_process_command.rs` | Reviewed: owned process-command wrapper forwards mutable command construction. |
+| `macro_helpers/src/tool_program_ref.rs` | Reviewed: borrowed program path wrapper. |
+| `macro_helpers/src/try_get_macro_attr_meta_list_token_stream.rs` | Reviewed: returns list tokens for a matching attribute and a typed wrong-shape error otherwise. |
+| `macro_helpers/src/try_get_macro_attribute.rs` | Reviewed: forwards exact lookup and returns a typed missing-attribute error. |
+| `macro_helpers/src/try_maybe_write_token_stream_into_file.rs` | Reviewed: write selection, token conversion, formatter invocation, and retry after failure; A127. |
+| `macro_helpers/src/try_write_string_into_file.rs` | Reviewed: forwards the generated-file write outcome to its owned path. |
+| `macro_helpers/src/try_write_string_into_file_with_outcome.rs` | Reviewed: chunked equality, changed-file replacement, atomic commit, and path outcome; A126. |
+| `macro_helpers/src/try_write_string_into_path_tests.rs` | Reviewed: test-only exact-path adapter returns the owned path from the write outcome. |
+| `macro_helpers/src/try_write_string_into_path_with_outcome_tests.rs` | Reviewed: test-only path adapter preserves changed or unchanged outcome. |
+| `macro_helpers/src/url_error.rs` | Reviewed: typed malformed, non-loopback, and ambiguous-database outcomes. |
+| `macro_helpers/src/url_ref.rs` | Reviewed: borrowed URL wrapper preserves the source lifetime. |
+| `macro_helpers/src/validate_test_database_url.rs` | Reviewed: scheme, authority, loopback host, test database name, redaction, and query overrides; A128. |
+| `macro_helpers/src/with_attr_token_stream_impl.rs` | Reviewed: places supplied attributes before the generated item. |
+| `macro_helpers/src/wrap_derive.rs` | Reviewed: preserves derive order; empty input produces `derive()` as its explicit test specifies and has no production caller. |
+| `macro_helpers/src/write_path_outcome.rs` | Reviewed: changed and unchanged outcomes preserve owned path and typed change flag. |
+| `macro_helpers/src/write_string_if_needed_tests.rs` | Focused review: test-only atomic writer uses the predicate aligned in A131. |
+| `macro_helpers/src/write_string_into_file_tests.rs` | Reviewed: exact-path, `.rs` extension, chunked comparison, changed/unchanged outcome, and invalid UTF-8 production regression coverage; A126, A131. |
+| `macro_helpers/src/write_token_stream_into_file_tests.rs` | Reviewed: skip, write, path, successful format, and failed-format retry tests; A127. |
+| `macro_helpers/src/written_file_path_buf.rs` | Reviewed: owned written-file path wrapper preserves the path. |
+| `macro_helpers/src/written_file_path_ref.rs` | Reviewed: borrowed written-file path wrapper preserves its lifetime. |
 
 ### naming
 
@@ -1264,38 +1322,38 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 | `pg_crud_common/src/all_enum_variants.rs` | Pending |
 | `pg_crud_common/src/all_enum_variants_array_default_some_one_element.rs` | Pending |
 | `pg_crud_common/src/all_enum_variants_array_default_some_one_element_max_page_size.rs` | Pending |
-| `pg_crud_common/src/batch_duplicate_policy.rs` | Pending |
-| `pg_crud_common/src/batch_invalid_item_count.rs` | Pending |
-| `pg_crud_common/src/batch_invalid_items.rs` | Pending |
-| `pg_crud_common/src/batch_processed_item_count.rs` | Pending |
-| `pg_crud_common/src/batch_records_b_tree_map.rs` | Pending |
-| `pg_crud_common/src/batch_stopped_early.rs` | Pending |
-| `pg_crud_common/src/batch_validation_report.rs` | Pending |
-| `pg_crud_common/src/batch_validation_tests.rs` | Pending |
+| `pg_crud_common/src/batch_duplicate_policy.rs` | Reviewed: three explicit duplicate policies inspected. |
+| `pg_crud_common/src/batch_invalid_item_count.rs` | Reviewed: count wrapper and conversions inspected. |
+| `pg_crud_common/src/batch_invalid_items.rs` | Reviewed: invalid-item collection wrapper inspected. |
+| `pg_crud_common/src/batch_processed_item_count.rs` | Reviewed: processed-count wrapper inspected. |
+| `pg_crud_common/src/batch_records_b_tree_map.rs` | Reviewed: keyed-record collection wrapper inspected. |
+| `pg_crud_common/src/batch_stopped_early.rs` | Reviewed: early-stop flag wrapper inspected. |
+| `pg_crud_common/src/batch_validation_report.rs` | Reviewed: report fields, invalid count, and ownership transfer inspected. |
+| `pg_crud_common/src/batch_validation_tests.rs` | Reviewed: duplicate, keep-first, keep-last, invalid-limit, and zero-limit assertions inspected. |
 | `pg_crud_common/src/bool_test_cases_vec.rs` | Pending |
 | `pg_crud_common/src/bounded_b_tree_map_error.rs` | Pending |
-| `pg_crud_common/src/bounded_unique_vec.rs` | Pending |
-| `pg_crud_common/src/bounded_unique_vec_visitor_phantom_data.rs` | Pending |
+| `pg_crud_common/src/bounded_unique_vec.rs` | Reviewed: length bounds, duplicate detection, and serialization boundary inspected; existing tests cover errors. |
+| `pg_crud_common/src/bounded_unique_vec_visitor_phantom_data.rs` | Reviewed: bounded preallocation, duplicate detection, and excess-item deserialization behavior inspected. |
 | `pg_crud_common/src/bounded_vec_error.rs` | Pending |
-| `pg_crud_common/src/build_date_sql_filter.rs` | Pending |
+| `pg_crud_common/src/build_date_sql_filter.rs` | Reviewed: bound order, emitted values, final representable bind index, and overflow behavior; A132. |
 | `pg_crud_common/src/build_pg_scoped_foreign_key_clause.rs` | Pending |
 | `pg_crud_common/src/build_sql_like_pattern.rs` | Pending |
 | `pg_crud_common/src/build_stable_read_query_plan.rs` | Pending |
 | `pg_crud_common/src/bulk_mutation_outcome.rs` | Pending |
 | `pg_crud_common/src/chrono_utc_date_time_ref.rs` | Pending |
 | `pg_crud_common/src/chrono_utc_date_times.rs` | Pending |
-| `pg_crud_common/src/classify_pg_code.rs` | Pending |
-| `pg_crud_common/src/classify_pg_error.rs` | Pending |
-| `pg_crud_common/src/classify_slice_ordering.rs` | Pending |
-| `pg_crud_common/src/contains_duplicate_identifier.rs` | Pending |
-| `pg_crud_common/src/cursor_codec.rs` | Pending |
+| `pg_crud_common/src/classify_pg_code.rs` | Reviewed: mapped and unknown SQLSTATE cases inspected. |
+| `pg_crud_common/src/classify_pg_error.rs` | Reviewed: database, pool, connection, and unknown SQLx error paths inspected. |
+| `pg_crud_common/src/classify_slice_ordering.rs` | Reviewed: increasing, duplicate, and descending transitions inspected. |
+| `pg_crud_common/src/contains_duplicate_identifier.rs` | Reviewed: pairwise identifier duplicate detection inspected. |
+| `pg_crud_common/src/cursor_codec.rs` | Reviewed: version, length, signature verification, UTF-8 decode, and round-trip tests inspected. |
 | `pg_crud_common/src/cursor_codec_build_error.rs` | Pending |
 | `pg_crud_common/src/cursor_decode_error.rs` | Pending |
 | `pg_crud_common/src/cursor_encode_error.rs` | Pending |
 | `pg_crud_common/src/cursor_maximum_length.rs` | Pending |
 | `pg_crud_common/src/cursor_pagination_usage.rs` | Pending |
-| `pg_crud_common/src/cursor_payload.rs` | Pending |
-| `pg_crud_common/src/cursor_payload_error.rs` | Pending |
+| `pg_crud_common/src/cursor_payload.rs` | Reviewed: empty, oversized, and bounded-storage conversion paths; A133. |
+| `pg_crud_common/src/cursor_payload_error.rs` | Reviewed: distinct empty and oversized errors; A133. |
 | `pg_crud_common/src/cursor_signing_key.rs` | Pending |
 | `pg_crud_common/src/cursor_signing_key_error.rs` | Pending |
 | `pg_crud_common/src/cursor_signing_key_maximum_length.rs` | Pending |
@@ -1342,7 +1400,7 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 | `pg_crud_common/src/duplicate_index.rs` | Pending |
 | `pg_crud_common/src/eq_operator.rs` | Pending |
 | `pg_crud_common/src/eq_operator_query_str.rs` | Pending |
-| `pg_crud_common/src/explicit_value.rs` | Pending |
+| `pg_crud_common/src/explicit_value.rs` | Reviewed: generic value schema, item registration, distinct component names, and serialized field alignment; A136, A138, A140. |
 | `pg_crud_common/src/f32_test_cases_vec.rs` | Pending |
 | `pg_crud_common/src/f64_test_cases_vec.rs` | Pending |
 | `pg_crud_common/src/filter_bind_plan.rs` | Pending |
@@ -1373,13 +1431,13 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 | `pg_crud_common/src/maximum_resource_count.rs` | Pending |
 | `pg_crud_common/src/maximum_scoped_foreign_key_columns.rs` | Pending |
 | `pg_crud_common/src/minimum_scoped_foreign_key_columns.rs` | Pending |
-| `pg_crud_common/src/non_primary_key_pg_type_read_ids.rs` | Pending |
-| `pg_crud_common/src/not_empty_unique_vec.rs` | Pending |
+| `pg_crud_common/src/non_primary_key_pg_type_read_ids.rs` | Focused review: OpenAPI field and null-value schema match serialization; A140. |
+| `pg_crud_common/src/not_empty_unique_vec.rs` | Focused review: generic array schema, item registration, distinct component names, and nonempty Default; A136, A138-A139. |
 | `pg_crud_common/src/not_empty_unique_vec_max_len.rs` | Pending |
 | `pg_crud_common/src/not_empty_unique_vec_try_new_error.rs` | Pending |
 | `pg_crud_common/src/not_zero_unsigned_part_of_i32.rs` | Pending |
 | `pg_crud_common/src/not_zero_unsigned_part_of_i32_try_from_i32_error.rs` | Pending |
-| `pg_crud_common/src/nullable_json_obj_pg_type_where_filter.rs` | Pending |
+| `pg_crud_common/src/nullable_json_obj_pg_type_where_filter.rs` | Focused review: SQL fragment length error propagation; A137. |
 | `pg_crud_common/src/offset_pagination_presence.rs` | Pending |
 | `pg_crud_common/src/operation_budget.rs` | Pending |
 | `pg_crud_common/src/operation_budget_exceeded.rs` | Pending |
@@ -1389,7 +1447,7 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 | `pg_crud_common/src/operation_count.rs` | Pending |
 | `pg_crud_common/src/operator.rs` | Pending |
 | `pg_crud_common/src/order.rs` | Reviewed: fixed Ascending/Descending display, serde names and case strings; A23 removes dynamic case conversion for these bounded enum values. |
-| `pg_crud_common/src/order_by.rs` | Pending |
+| `pg_crud_common/src/order_by.rs` | Reviewed: column/order schema, dependency registration, and distinct component names; A136, A138. |
 | `pg_crud_common/src/order_preserving_values.rs` | Pending |
 | `pg_crud_common/src/order_snake_case_str.rs` | Pending |
 | `pg_crud_common/src/order_text_string.rs` | Reviewed: bounded storage, byte-limit validation and diagnostic conversion; A05. |
@@ -1406,7 +1464,7 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 | `pg_crud_common/src/pagination_total.rs` | Pending |
 | `pg_crud_common/src/patch_field.rs` | Pending |
 | `pg_crud_common/src/pg_bounded_b_tree_map.rs` | Pending |
-| `pg_crud_common/src/pg_bounded_vec.rs` | Pending |
+| `pg_crud_common/src/pg_bounded_vec.rs` | Reviewed: inclusive bounds, serde validation, JSON/OpenAPI schema bounds, distinct component names, and item schema registration; A134-A135, A138. |
 | `pg_crud_common/src/pg_bounded_vec_len.rs` | Pending |
 | `pg_crud_common/src/pg_column_schema.rs` | Pending |
 | `pg_crud_common/src/pg_counter_reconciliation.rs` | Pending |
@@ -1444,7 +1502,7 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 | `pg_crud_common/src/pg_type_not_primary_key.rs` | Pending |
 | `pg_crud_common/src/pg_type_primary_key.rs` | Pending |
 | `pg_crud_common/src/pg_type_test_cases.rs` | Pending |
-| `pg_crud_common/src/pg_type_where.rs` | Pending |
+| `pg_crud_common/src/pg_type_where.rs` | Focused review: value/operator schema registration, SQL fragment length error propagation, and distinct component names; A136-A138. |
 | `pg_crud_common/src/pg_type_where_filter.rs` | Pending |
 | `pg_crud_common/src/positive_finite_f64.rs` | Pending |
 | `pg_crud_common/src/positive_finite_f64_error.rs` | Pending |
@@ -1465,10 +1523,14 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 | `pg_crud_common/src/schema_text.rs` | Pending |
 | `pg_crud_common/src/schema_texts.rs` | Pending |
 | `pg_crud_common/src/serde_prealloc_max_items.rs` | Pending |
-| `pg_crud_common/src/signed_cursor.rs` | Pending |
-| `pg_crud_common/src/signed_cursor_error.rs` | Pending |
+| `pg_crud_common/src/signed_cursor.rs` | Reviewed: empty, oversized, and bounded-storage conversion paths; A133. |
+| `pg_crud_common/src/signed_cursor_error.rs` | Reviewed: distinct empty and oversized errors; A133. |
 | `pg_crud_common/src/signed_cursor_presence.rs` | Pending |
-| `pg_crud_common/src/single_or_multiple.rs` | Pending |
+| `pg_crud_common/src/single_or_multiple.rs` | Reviewed: two-branch schema, nested component registration, and distinct component names; A136, A138. |
+| `pg_crud_common/src/test_generic_utoipa_schema_registration.rs` | Reviewed: focused regressions for generic Utoipa dependency registration; A136. |
+| `pg_crud_common/src/test_generic_utoipa_schema_names.rs` | Reviewed: five generic component-name collision regressions; A138. |
+| `pg_crud_common/src/test_not_empty_unique_vec_default.rs` | Reviewed: nonempty Default regression; A139. |
+| `pg_crud_common/src/test_query_part_fragment_overflow.rs` | Reviewed: focused regressions for SQL fragment overflow; A137. |
 | `pg_crud_common/src/slice_ordering.rs` | Pending |
 | `pg_crud_common/src/snapshot_mismatch.rs` | Pending |
 | `pg_crud_common/src/sql_column_ref.rs` | Pending |
@@ -1503,6 +1565,7 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 | `pg_crud_common/src/test_domain_types_db_schema_conformance_tests.rs` | Pending |
 | `pg_crud_common/src/test_domain_types_query_pagination_tests.rs` | Pending |
 | `pg_crud_common/src/test_explicit_value_serializes_with_full_field_name.rs` | Pending |
+| `pg_crud_common/src/test_explicit_value_openapi_contract.rs` | Reviewed: OpenAPI field and null-schema regressions; A140. |
 | `pg_crud_common/src/test_order_serializes_with_full_variant_names.rs` | Reviewed: serialization and both fixed case spellings for every Order variant. |
 | `pg_crud_common/src/test_pg_type_where_serializes_and_deserializes_with_full_field_name.rs` | Pending |
 | `pg_crud_common/src/test_tests_domain_types_operator_to_query_part.rs` | Pending |
@@ -1521,7 +1584,7 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 | `pg_crud_common/src/unsigned_part_of_i32_try_from_i32_error.rs` | Pending |
 | `pg_crud_common/src/uuid_uuid_test_cases.rs` | Pending |
 | `pg_crud_common/src/uuid_uuid_test_cases_vec.rs` | Pending |
-| `pg_crud_common/src/validate_batch_by_key.rs` | Pending |
+| `pg_crud_common/src/validate_batch_by_key.rs` | Reviewed: duplicate policies, invalid limits, processed count, and early-stop behavior inspected with existing deterministic tests. |
 | `pg_crud_common/src/validate_bulk_atomicity.rs` | Pending |
 | `pg_crud_common/src/validate_generated_postgres_table.rs` | Pending |
 | `pg_crud_common/src/validate_migration_idempotency.rs` | Pending |
@@ -1721,7 +1784,7 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 
 | Source | Semantic review |
 | --- | --- |
-| `pg_crud_pg_table_generate_test/src/lib.rs` | Pending |
+| `pg_crud_pg_table_generate_test/src/lib.rs` | Reviewed: generated table fixture, option-rejection checks, metrics labels, deterministic output, and compile gate inspected; no defect confirmed. |
 
 ### pg_crud_pg_types_chrono_net
 
@@ -1750,7 +1813,7 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 | `pg_crud_pg_types_generate_src/src/can_be_nullable.rs` | Reviewed: generated-type configuration or typed metadata helper. |
 | `pg_crud_pg_types_generate_src/src/can_be_primary_key.rs` | Reviewed: generated-type configuration or typed metadata helper. |
 | `pg_crud_pg_types_generate_src/src/contract_tests.rs` | Reviewed: generated-type configuration or typed metadata helper. |
-| `pg_crud_pg_types_generate_src/src/emit_generate_pg_types.rs` | Focused review: A35, A44 and A45 range-specific length-type selection. |
+| `pg_crud_pg_types_generate_src/src/emit_generate_pg_types.rs` | Focused review: A35, A44, A45 range-specific length-type selection, and A105 shared timestamp conversion. |
 | `pg_crud_pg_types_generate_src/src/filter_kind.rs` | Reviewed: generated-type configuration or typed metadata helper. |
 | `pg_crud_pg_types_generate_src/src/generate_pg_type_records.rs` | Reviewed: bounded input list and typed length rejection. |
 | `pg_crud_pg_types_generate_src/src/generate_pg_types.rs` | Reviewed: bounded input list and typed length rejection. |
@@ -2035,35 +2098,35 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 
 | Source | Semantic review |
 | --- | --- |
-| `proc_macro_frontend_contract_shared/src/contract_struct_api_args.rs` | Pending |
-| `proc_macro_frontend_contract_shared/src/contract_struct_api_field_args.rs` | Pending |
-| `proc_macro_frontend_contract_shared/src/contract_syn_expr.rs` | Pending |
-| `proc_macro_frontend_contract_shared/src/contract_syn_ident.rs` | Pending |
-| `proc_macro_frontend_contract_shared/src/contract_syn_type.rs` | Pending |
-| `proc_macro_frontend_contract_shared/src/endpoint_registry_args.rs` | Pending |
-| `proc_macro_frontend_contract_shared/src/endpoint_registry_binding.rs` | Pending |
-| `proc_macro_frontend_contract_shared/src/lib.rs` | Pending |
-| `proc_macro_frontend_contract_shared/src/page_catalog_args.rs` | Pending |
-| `proc_macro_frontend_contract_shared/src/page_catalog_page_args.rs` | Pending |
-| `proc_macro_frontend_contract_shared/src/route_catalog_args.rs` | Pending |
-| `proc_macro_frontend_contract_shared/src/route_catalog_route_args.rs` | Pending |
-| `proc_macro_frontend_contract_shared/src/route_registry_args.rs` | Pending |
-| `proc_macro_frontend_contract_shared/src/route_registry_binding.rs` | Pending |
-| `proc_macro_frontend_contract_shared/src/std_bool.rs` | Pending |
-| `proc_macro_frontend_contract_shared/src/syn_attributes_ref.rs` | Pending |
-| `proc_macro_frontend_contract_shared/src/syn_endpoint_registry_bindings.rs` | Pending |
-| `proc_macro_frontend_contract_shared/src/syn_endpoint_registry_contract.rs` | Pending |
-| `proc_macro_frontend_contract_shared/src/syn_endpoint_registry_endpoint.rs` | Pending |
-| `proc_macro_frontend_contract_shared/src/syn_endpoint_registry_state.rs` | Pending |
-| `proc_macro_frontend_contract_shared/src/syn_route_registry_bindings.rs` | Pending |
-| `proc_macro_frontend_contract_shared/src/syn_route_registry_endpoint.rs` | Pending |
-| `proc_macro_frontend_contract_shared/src/syn_route_registry_family.rs` | Pending |
-| `proc_macro_frontend_contract_shared/src/syn_route_registry_route.rs` | Pending |
-| `proc_macro_frontend_contract_shared/src/syn_route_registry_schemas.rs` | Pending |
-| `proc_macro_frontend_contract_shared/src/syn_route_registry_state.rs` | Pending |
-| `proc_macro_frontend_contract_shared/src/syn_typed_route_errors.rs` | Pending |
-| `proc_macro_frontend_contract_shared/src/test_proc_macro_frontend_contract_shared.rs` | Pending |
-| `proc_macro_frontend_contract_shared/src/typed_route_args.rs` | Pending |
+| `proc_macro_frontend_contract_shared/src/contract_struct_api_args.rs` | Focused review; A97 derive options. |
+| `proc_macro_frontend_contract_shared/src/contract_struct_api_field_args.rs` | Focused review; A97 repeated slice type. |
+| `proc_macro_frontend_contract_shared/src/contract_syn_expr.rs` | Reviewed; generated conversion and borrowed access match parser use. |
+| `proc_macro_frontend_contract_shared/src/contract_syn_ident.rs` | Reviewed; generated conversion and ownership transfer match parser use. |
+| `proc_macro_frontend_contract_shared/src/contract_syn_type.rs` | Reviewed; generated conversion and ownership transfer match parser use. |
+| `proc_macro_frontend_contract_shared/src/endpoint_registry_args.rs` | Reviewed; required state and nonempty bindings parse through `syn`. |
+| `proc_macro_frontend_contract_shared/src/endpoint_registry_binding.rs` | Reviewed; parenthesized parser rejects trailing input through `syn`. |
+| `proc_macro_frontend_contract_shared/src/lib.rs` | Focused review; A97 through A102 attribute validation. |
+| `proc_macro_frontend_contract_shared/src/page_catalog_args.rs` | Fixed and reviewed; A96 duplicate field rejection. |
+| `proc_macro_frontend_contract_shared/src/page_catalog_page_args.rs` | Fixed and reviewed; A96 duplicate field rejection. |
+| `proc_macro_frontend_contract_shared/src/route_catalog_args.rs` | Fixed and reviewed; A96 duplicate field rejection. |
+| `proc_macro_frontend_contract_shared/src/route_catalog_route_args.rs` | Fixed and reviewed; A96 duplicate field and bare flag rejection. |
+| `proc_macro_frontend_contract_shared/src/route_registry_args.rs` | Reviewed; required sections and parenthesized security expressions reject extra input through `syn`. |
+| `proc_macro_frontend_contract_shared/src/route_registry_binding.rs` | Reviewed; parenthesized parser rejects trailing input through `syn`. |
+| `proc_macro_frontend_contract_shared/src/std_bool.rs` | Reviewed; generated boolean conversion and copy access match flag use. |
+| `proc_macro_frontend_contract_shared/src/syn_attributes_ref.rs` | Reviewed; test-only borrowed attribute slice wrapper. |
+| `proc_macro_frontend_contract_shared/src/syn_endpoint_registry_bindings.rs` | Reviewed; wrapper forwards the parsed bindings. |
+| `proc_macro_frontend_contract_shared/src/syn_endpoint_registry_contract.rs` | Reviewed; parsed expression wrapper forwards to registry generation. |
+| `proc_macro_frontend_contract_shared/src/syn_endpoint_registry_endpoint.rs` | Reviewed; parsed path wrapper forwards to registry generation. |
+| `proc_macro_frontend_contract_shared/src/syn_endpoint_registry_state.rs` | Reviewed; parsed state type wrapper forwards to registry generation. |
+| `proc_macro_frontend_contract_shared/src/syn_route_registry_bindings.rs` | Reviewed; wrapper forwards the parsed bindings. |
+| `proc_macro_frontend_contract_shared/src/syn_route_registry_endpoint.rs` | Reviewed; parsed path wrapper forwards to registry generation. |
+| `proc_macro_frontend_contract_shared/src/syn_route_registry_family.rs` | Reviewed; parsed family type wrapper forwards to registry generation. |
+| `proc_macro_frontend_contract_shared/src/syn_route_registry_route.rs` | Reviewed; parsed route type wrapper forwards to registry generation. |
+| `proc_macro_frontend_contract_shared/src/syn_route_registry_schemas.rs` | Reviewed; parsed schema type collection forwards to registry generation. |
+| `proc_macro_frontend_contract_shared/src/syn_route_registry_state.rs` | Reviewed; parsed state type wrapper forwards to registry generation. |
+| `proc_macro_frontend_contract_shared/src/syn_typed_route_errors.rs` | Reviewed; policy/status variant selection is exhaustive at parser and generator use. |
+| `proc_macro_frontend_contract_shared/src/test_proc_macro_frontend_contract_shared.rs` | Focused review; A96 through A102 regression cases. |
+| `proc_macro_frontend_contract_shared/src/typed_route_args.rs` | Fixed and reviewed; A96 duplicate field rejection. |
 
 ### proc_macro_generate_accessor_traits_for_struct_fields_generate_accessor_trait
 
@@ -2156,7 +2219,7 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 
 | Source | Semantic review |
 | --- | --- |
-| `proc_macro_generate_pg_table_shared/src/lib.rs` | Pending |
+| `proc_macro_generate_pg_table_shared/src/lib.rs` | Reviewed: all attribute passthrough entries and the derive delegation inspected against their facade callers and generator tests; no defect confirmed. |
 
 ### proc_macro_generate_pg_table_um_error_variants
 
@@ -2199,7 +2262,8 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 
 | Source | Semantic review |
 | --- | --- |
-| `proc_macro_location_bang/src/lib.rs` | Focused review: A62 unexpected token input is currently ignored. |
+| `proc_macro_location_bang/src/lib.rs` | Reviewed: A62 rejects unexpected input at compile time; valid empty-input expansion retains location construction. |
+| `proc_macro_location_bang/tests/ui/invalid_input.rs` | A62 compile-fail fixture: unexpected macro tokens must produce the declared diagnostic. |
 
 ### proc_macro_location_derive_location
 
@@ -2539,8 +2603,8 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 | Source | Semantic review |
 | --- | --- |
 | `proc_macro_newtype_shared/src/bounded_string_attrs.rs` | Reviewed: default optional metadata and unique option storage; behavior is implemented in the separately tracked generator. |
-| `proc_macro_newtype_shared/src/bounded_string_option.rs` | Reviewed: unique ordered enum discriminants for bounded-string generator switches. |
-| `proc_macro_newtype_shared/src/lib.rs` | Reviewed: derive parsing, bounded-string validation and emitted forwarding/enum implementations inspected; fixes A15 and A16 verified. Confirmed generic adapter failures A17 and A18 are fixed and verified. |
+| `proc_macro_newtype_shared/src/bounded_string_option.rs` | Reviewed: unique ordered enum discriminants for bounded-string generator switches; A89 opt-in error mode. |
+| `proc_macro_newtype_shared/src/lib.rs` | Reviewed: derive parsing, bounded-string validation and emitted forwarding/enum implementations inspected; fixes A15 and A16 verified. Confirmed generic adapter failures A17 and A18 are fixed and verified; A89 opt-in error generation verified. |
 | `proc_macro_newtype_shared/src/newtype_attrs.rs` | Reviewed: default unique option storage and forwarding membership; duplicate rejection belongs to the shared option collection. |
 | `proc_macro_newtype_shared/src/newtype_bool.rs` | Reviewed: typed boolean with derived conversion and borrowed copy accessor. |
 | `proc_macro_newtype_shared/src/newtype_option.rs` | Reviewed: unique ordered enum discriminants for newtype generator switches. |
@@ -2919,7 +2983,7 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 | `server_admin/src/admin_users_database_read_page_error.rs` | Pending |
 | `server_admin/src/api_branding.rs` | Pending |
 | `server_admin/src/api_change_own_password.rs` | Pending |
-| `server_admin/src/api_cleanup_status_table.rs` | Pending |
+| `server_admin/src/api_cleanup_status_table.rs` | Reviewed: typed cleanup-status read delegates to the shared generic table handler. |
 | `server_admin/src/api_create_roles.rs` | Pending |
 | `server_admin/src/api_create_roles_payload_example.rs` | Pending |
 | `server_admin/src/api_create_user.rs` | Pending |
@@ -2930,11 +2994,11 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 | `server_admin/src/api_delete_roles_payload_example.rs` | Pending |
 | `server_admin/src/api_delete_users.rs` | Pending |
 | `server_admin/src/api_delete_users_payload_example.rs` | Pending |
-| `server_admin/src/api_login_attempts_table.rs` | Pending |
+| `server_admin/src/api_login_attempts_table.rs` | Reviewed: typed login-attempt read delegates to the shared generic table handler. |
 | `server_admin/src/api_me.rs` | Pending |
-| `server_admin/src/api_rate_limits_table.rs` | Pending |
+| `server_admin/src/api_rate_limits_table.rs` | Reviewed: typed rate-limit read delegates to the shared generic table handler. |
 | `server_admin/src/api_refresh.rs` | Pending |
-| `server_admin/src/api_refresh_tokens_table.rs` | Pending |
+| `server_admin/src/api_refresh_tokens_table.rs` | Reviewed: typed refresh-token read delegates to the shared generic table handler. |
 | `server_admin/src/api_revoke_all_sessions.rs` | Pending |
 | `server_admin/src/api_revoke_session.rs` | Pending |
 | `server_admin/src/api_sessions.rs` | Pending |
@@ -2946,7 +3010,7 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 | `server_admin/src/api_update_settings.rs` | Pending |
 | `server_admin/src/api_update_users.rs` | Pending |
 | `server_admin/src/api_update_users_payload_example.rs` | Pending |
-| `server_admin/src/api_user_roles_table.rs` | Pending |
+| `server_admin/src/api_user_roles_table.rs` | Reviewed: typed user-role POST read adapts its JSON query to the shared generic table handler. |
 | `server_admin/src/append_cleared_session_cookies.rs` | Pending |
 | `server_admin/src/append_session_cookies.rs` | Pending |
 | `server_admin/src/application_auth.rs` | Pending |
@@ -3000,7 +3064,7 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 | `server_admin/src/data_access_sessions_flt.rs` | Pending |
 | `server_admin/src/data_audit_log_flt.rs` | Pending |
 | `server_admin/src/data_cleanup_status_flt.rs` | Pending |
-| `server_admin/src/data_filter.rs` | Pending |
+| `server_admin/src/data_filter.rs` | Reviewed: incomplete, unknown, and mismatched filter shapes are rejected before typed predicate construction; focused tests cover table and operation variants. |
 | `server_admin/src/data_flt.rs` | Pending |
 | `server_admin/src/data_login_attempts_flt.rs` | Pending |
 | `server_admin/src/data_permission_actions_flt.rs` | Pending |
@@ -3012,9 +3076,10 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 | `server_admin/src/data_roles_flt.rs` | Pending |
 | `server_admin/src/data_rules_flt.rs` | Pending |
 | `server_admin/src/data_system_settings_flt.rs` | Pending |
+| `server_admin/src/data_table_query_sql.rs` | Fixed and reviewed; A114 pure SQL builder and catalog sort validation. |
 | `server_admin/src/data_tables.rs` | Pending |
-| `server_admin/src/data_tables_get.rs` | Pending |
-| `server_admin/src/data_tables_list.rs` | Pending |
+| `server_admin/src/data_tables_get.rs` | Fixed and reviewed; A114 honors search, sort, and direction, and A117 binds literal search patterns in generic table queries. |
+| `server_admin/src/data_tables_list.rs` | Reviewed: authenticated catalog listing filters each table by the actor's read rule. |
 | `server_admin/src/data_user_roles_flt.rs` | Pending |
 | `server_admin/src/data_users_flt.rs` | Pending |
 | `server_admin/src/decode_access_token.rs` | Pending |
@@ -3149,7 +3214,7 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 | `server_admin/src/std_admin_session_limit.rs` | Pending |
 | `server_admin/src/success_redirect_impl.rs` | Pending |
 | `server_admin/src/system_setting_read_page.rs` | Pending |
-| `server_admin/src/test_adapters_repository_data_tables_tests.rs` | Pending |
+| `server_admin/src/test_adapters_repository_data_tables_tests.rs` | Focused review; A114 generic table SQL regressions. |
 | `server_admin/src/test_adapters_repository_roles_tests.rs` | Pending |
 | `server_admin/src/test_admin_service_tests.rs` | Pending |
 | `server_admin/src/test_application_html_tests.rs` | Pending |
@@ -3201,32 +3266,32 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 
 | Source | Semantic review |
 | --- | --- |
-| `server_admin_contract/src/admin_access_session_filter.rs` | Pending |
-| `server_admin_contract/src/admin_access_session_id.rs` | Pending |
-| `server_admin_contract/src/admin_access_sessions_read_request.rs` | Pending |
+| `server_admin_contract/src/admin_access_session_filter.rs` | Reviewed: typed optional session and user identifiers, with unknown fields denied. |
+| `server_admin_contract/src/admin_access_session_id.rs` | Reviewed: fixed-length hex identifier and exact detail-path parsing; contract tests pass (`target/audit_tmp/a111_contract_review.log`). |
+| `server_admin_contract/src/admin_access_sessions_read_request.rs` | Reviewed: rejects unsupported sort keys and builds the default created-at order with typed pagination. |
 | `server_admin_contract/src/admin_access_sessions_table_route.rs` | Pending |
-| `server_admin_contract/src/admin_api_body_max_bytes.rs` | Pending |
+| `server_admin_contract/src/admin_api_body_max_bytes.rs` | Reviewed: typed size wrapper and fixed body-size limit. |
 | `server_admin_contract/src/admin_api_route_path.rs` | Pending |
-| `server_admin_contract/src/admin_audit_cursor.rs` | Pending |
-| `server_admin_contract/src/admin_audit_details_bytes.rs` | Pending |
-| `server_admin_contract/src/admin_audit_details_max_bytes.rs` | Pending |
-| `server_admin_contract/src/admin_audit_details_too_large.rs` | Pending |
-| `server_admin_contract/src/admin_audit_log_id.rs` | Pending |
-| `server_admin_contract/src/admin_audit_log_read_request.rs` | Pending |
-| `server_admin_contract/src/admin_audit_page.rs` | Pending |
-| `server_admin_contract/src/admin_audit_timestamp.rs` | Pending |
-| `server_admin_contract/src/admin_audit_view.rs` | Pending |
-| `server_admin_contract/src/admin_audit_views.rs` | Pending |
-| `server_admin_contract/src/admin_bool.rs` | Pending |
-| `server_admin_contract/src/admin_bounded_vec.rs` | Pending |
+| `server_admin_contract/src/admin_audit_cursor.rs` | Reviewed: typed timestamp and identifier cursor fields. |
+| `server_admin_contract/src/admin_audit_details_bytes.rs` | Reviewed: typed byte count wrapper. |
+| `server_admin_contract/src/admin_audit_details_max_bytes.rs` | Reviewed: fixed audit detail limit. |
+| `server_admin_contract/src/admin_audit_details_too_large.rs` | Reviewed: reports actual and maximum bytes through typed accessors. |
+| `server_admin_contract/src/admin_audit_log_id.rs` | Reviewed: positive identifier conversion and exact detail-path parsing; contract tests pass (`target/audit_tmp/a111_contract_review.log`). |
+| `server_admin_contract/src/admin_audit_log_read_request.rs` | Reviewed: maps supported audit sort keys, default ordering, search, and typed pagination. |
+| `server_admin_contract/src/admin_audit_page.rs` | Reviewed: bounded audit views, optional cursor, and typed total. |
+| `server_admin_contract/src/admin_audit_timestamp.rs` | Focused review: bounded response text; timestamp format validation remains unreviewed at its API boundaries. |
+| `server_admin_contract/src/admin_audit_view.rs` | Reviewed: typed audit row fields and optional details. |
+| `server_admin_contract/src/admin_audit_views.rs` | Reviewed: delegates collection construction and deserialization to the bounded collection wrapper. |
+| `server_admin_contract/src/admin_bool.rs` | Reviewed: typed bool conversion and validated serde representation. |
+| `server_admin_contract/src/admin_bounded_vec.rs` | Fixed and reviewed; A111 preserves the bounded error source. |
 | `server_admin_contract/src/admin_branding_route.rs` | Pending |
 | `server_admin_contract/src/admin_branding_view.rs` | Pending |
 | `server_admin_contract/src/admin_change_own_password_request.rs` | Pending |
 | `server_admin_contract/src/admin_change_own_password_route.rs` | Pending |
-| `server_admin_contract/src/admin_cleanup_status_id.rs` | Pending |
-| `server_admin_contract/src/admin_cleanup_status_table_route.rs` | Pending |
-| `server_admin_contract/src/admin_collection_error.rs` | Pending |
-| `server_admin_contract/src/admin_collection_max_items.rs` | Pending |
+| `server_admin_contract/src/admin_cleanup_status_id.rs` | Reviewed: positive identifier conversion and exact detail-path parsing; contract tests pass (`target/audit_tmp/a111_contract_review.log`). |
+| `server_admin_contract/src/admin_cleanup_status_table_route.rs` | Fixed and reviewed; A112 table read rule metadata. |
+| `server_admin_contract/src/admin_collection_error.rs` | Fixed and reviewed; A111 preserves the typed bounded error source. |
+| `server_admin_contract/src/admin_collection_max_items.rs` | Reviewed: fixed shared collection item limit. |
 | `server_admin_contract/src/admin_create_role_request.rs` | Pending |
 | `server_admin_contract/src/admin_create_roles_payload_example_route.rs` | Pending |
 | `server_admin_contract/src/admin_create_roles_request.rs` | Pending |
@@ -3236,26 +3301,26 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 | `server_admin_contract/src/admin_create_user_response.rs` | Pending |
 | `server_admin_contract/src/admin_create_user_route.rs` | Pending |
 | `server_admin_contract/src/admin_create_users_request.rs` | Pending |
-| `server_admin_contract/src/admin_data_column.rs` | Pending |
-| `server_admin_contract/src/admin_data_columns.rs` | Pending |
-| `server_admin_contract/src/admin_data_columns_csv_ref.rs` | Pending |
-| `server_admin_contract/src/admin_data_filter.rs` | Pending |
-| `server_admin_contract/src/admin_data_filters.rs` | Pending |
-| `server_admin_contract/src/admin_data_order_ref.rs` | Pending |
-| `server_admin_contract/src/admin_data_row.rs` | Pending |
-| `server_admin_contract/src/admin_data_rows.rs` | Pending |
-| `server_admin_contract/src/admin_data_table.rs` | Pending |
-| `server_admin_contract/src/admin_data_table_catalog.rs` | Pending |
-| `server_admin_contract/src/admin_data_table_filter_query.rs` | Pending |
-| `server_admin_contract/src/admin_data_table_frontend_path.rs` | Pending |
-| `server_admin_contract/src/admin_data_table_query.rs` | Pending |
-| `server_admin_contract/src/admin_data_table_spec.rs` | Pending |
-| `server_admin_contract/src/admin_data_table_str_ref.rs` | Pending |
-| `server_admin_contract/src/admin_data_table_view.rs` | Pending |
-| `server_admin_contract/src/admin_data_tables.rs` | Pending |
-| `server_admin_contract/src/admin_data_tables_route.rs` | Pending |
-| `server_admin_contract/src/admin_default_page_limit.rs` | Pending |
-| `server_admin_contract/src/admin_default_route.rs` | Pending |
+| `server_admin_contract/src/admin_data_column.rs` | Focused review: typed column metadata and bounded filter collection. |
+| `server_admin_contract/src/admin_data_columns.rs` | Focused review: bounded column collection and schema limit. |
+| `server_admin_contract/src/admin_data_columns_csv_ref.rs` | Focused review: borrowed catalog column specification. |
+| `server_admin_contract/src/admin_data_filter.rs` | Fixed and reviewed; A113 validates operation and value shape. |
+| `server_admin_contract/src/admin_data_filters.rs` | Fixed and reviewed; A118 enforces the declared 100-filter limit. |
+| `server_admin_contract/src/admin_data_order_ref.rs` | Focused review: borrowed catalog ordering specification. |
+| `server_admin_contract/src/admin_data_row.rs` | Focused review: bounded row value ownership. |
+| `server_admin_contract/src/admin_data_rows.rs` | Focused review: bounded row collection and schema limit. |
+| `server_admin_contract/src/admin_data_table.rs` | Focused review: catalog route and rule mappings, table specifications, and frontend path conversion. |
+| `server_admin_contract/src/admin_data_table_catalog.rs` | Focused review: bounded table catalog representation. |
+| `server_admin_contract/src/admin_data_table_filter_query.rs` | Focused review: typed optional filter query fields. |
+| `server_admin_contract/src/admin_data_table_frontend_path.rs` | Focused review: table frontend path construction. |
+| `server_admin_contract/src/admin_data_table_query.rs` | Fixed and reviewed; A114 search and sort fields now drive the generic table handler. |
+| `server_admin_contract/src/admin_data_table_spec.rs` | Focused review: typed catalog specification fields. |
+| `server_admin_contract/src/admin_data_table_str_ref.rs` | Focused review: borrowed table wire name. |
+| `server_admin_contract/src/admin_data_table_view.rs` | Focused review: typed columns, rows, table and total. |
+| `server_admin_contract/src/admin_data_tables.rs` | Reviewed: catalog table list enforces its declared 10,000-item collection bound. |
+| `server_admin_contract/src/admin_data_tables_route.rs` | Reviewed: read-only table catalog route requires the TablesRead rule and matches its handler. |
+| `server_admin_contract/src/admin_default_page_limit.rs` | Reviewed: marker initializes the validated default page limit. |
+| `server_admin_contract/src/admin_default_route.rs` | Reviewed: default route validator accepts cataloged page and data-table paths. |
 | `server_admin_contract/src/admin_delete_access_sessions_request.rs` | Pending |
 | `server_admin_contract/src/admin_delete_access_sessions_route.rs` | Pending |
 | `server_admin_contract/src/admin_delete_roles_payload_example_route.rs` | Pending |
@@ -3266,56 +3331,56 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 | `server_admin_contract/src/admin_delete_users_route.rs` | Pending |
 | `server_admin_contract/src/admin_display_name.rs` | Pending |
 | `server_admin_contract/src/admin_empty_collection.rs` | Pending |
-| `server_admin_contract/src/admin_filter_field.rs` | Pending |
-| `server_admin_contract/src/admin_filter_operation_key.rs` | Pending |
-| `server_admin_contract/src/admin_filter_value.rs` | Pending |
-| `server_admin_contract/src/admin_frontend_path.rs` | Pending |
+| `server_admin_contract/src/admin_filter_field.rs` | Focused review: bounded filter field text. |
+| `server_admin_contract/src/admin_filter_operation_key.rs` | Focused review: operation key conversion from filter enum names. |
+| `server_admin_contract/src/admin_filter_value.rs` | Focused review: bounded filter value text. |
+| `server_admin_contract/src/admin_frontend_path.rs` | Reviewed: page path enum and route registration share path values. |
 | `server_admin_contract/src/admin_html_action.rs` | Pending |
 | `server_admin_contract/src/admin_id_try_from_i64_error.rs` | Pending |
-| `server_admin_contract/src/admin_identifier_filter_error.rs` | Pending |
+| `server_admin_contract/src/admin_identifier_filter_error.rs` | Fixed and reviewed; A105 timestamp filter diagnostics. |
 | `server_admin_contract/src/admin_login.rs` | Pending |
 | `server_admin_contract/src/admin_login_attempt_id.rs` | Pending |
-| `server_admin_contract/src/admin_login_attempts_table_route.rs` | Pending |
-| `server_admin_contract/src/admin_main_logo.rs` | Pending |
+| `server_admin_contract/src/admin_login_attempts_table_route.rs` | Fixed and reviewed; A112 table read rule metadata. |
+| `server_admin_contract/src/admin_main_logo.rs` | Fixed and reviewed; A115 HTTPS URL authority validation. |
 | `server_admin_contract/src/admin_me_route.rs` | Pending |
 | `server_admin_contract/src/admin_new_password.rs` | Pending |
 | `server_admin_contract/src/admin_no_body.rs` | Pending |
-| `server_admin_contract/src/admin_open_api_vec.rs` | Pending |
+| `server_admin_contract/src/admin_open_api_vec.rs` | Reviewed: typed array schema and shared item schema registration; A135. |
 | `server_admin_contract/src/admin_open_api_vec_phantom_data.rs` | Pending |
-| `server_admin_contract/src/admin_optional_setting.rs` | Pending |
-| `server_admin_contract/src/admin_optional_settings.rs` | Pending |
-| `server_admin_contract/src/admin_organization_contacts.rs` | Pending |
-| `server_admin_contract/src/admin_organization_name.rs` | Pending |
-| `server_admin_contract/src/admin_page.rs` | Pending |
-| `server_admin_contract/src/admin_page_capability.rs` | Pending |
-| `server_admin_contract/src/admin_page_client_mode.rs` | Pending |
-| `server_admin_contract/src/admin_page_limit.rs` | Pending |
-| `server_admin_contract/src/admin_page_limit_error.rs` | Pending |
-| `server_admin_contract/src/admin_page_limit_visitor.rs` | Pending |
-| `server_admin_contract/src/admin_page_metadata.rs` | Pending |
-| `server_admin_contract/src/admin_page_navigation.rs` | Pending |
-| `server_admin_contract/src/admin_page_offset.rs` | Pending |
-| `server_admin_contract/src/admin_page_offset_visitor.rs` | Pending |
-| `server_admin_contract/src/admin_page_path_ref.rs` | Pending |
-| `server_admin_contract/src/admin_page_spec.rs` | Pending |
-| `server_admin_contract/src/admin_page_title.rs` | Pending |
-| `server_admin_contract/src/admin_page_total.rs` | Pending |
-| `server_admin_contract/src/admin_parameterized_route_path.rs` | Pending |
+| `server_admin_contract/src/admin_optional_setting.rs` | Reviewed: clearable settings are explicit catalog variants. |
+| `server_admin_contract/src/admin_optional_settings.rs` | Fixed and reviewed; A119 enforces the six-field clear list bound. |
+| `server_admin_contract/src/admin_organization_contacts.rs` | Reviewed: optional contact text uses bounded validated storage. |
+| `server_admin_contract/src/admin_organization_name.rs` | Reviewed: optional organization text uses bounded validated storage. |
+| `server_admin_contract/src/admin_page.rs` | Focused review; A93 |
+| `server_admin_contract/src/admin_page_capability.rs` | Reviewed: page availability is expressed by explicit variants. |
+| `server_admin_contract/src/admin_page_client_mode.rs` | Reviewed: CSR and table-query predicates match the three page modes. |
+| `server_admin_contract/src/admin_page_limit.rs` | Focused review; A116 pagination validation. |
+| `server_admin_contract/src/admin_page_limit_error.rs` | Reviewed: out-of-range limit error reports the validated minimum and maximum. |
+| `server_admin_contract/src/admin_page_limit_visitor.rs` | Fixed and reviewed; A116 signed and wide integer deserialization. |
+| `server_admin_contract/src/admin_page_metadata.rs` | Reviewed: page metadata stores mode and optional navigation order. |
+| `server_admin_contract/src/admin_page_navigation.rs` | Reviewed: navigation order uses explicit ordered variants. |
+| `server_admin_contract/src/admin_page_offset.rs` | Focused review; A116 pagination validation. |
+| `server_admin_contract/src/admin_page_offset_visitor.rs` | Fixed and reviewed; A116 signed and wide integer deserialization. |
+| `server_admin_contract/src/admin_page_path_ref.rs` | Reviewed: record extraction requires a table path, separator, parseable positive identifier. |
+| `server_admin_contract/src/admin_page_spec.rs` | Reviewed: page route, path, title, client mode, and navigation derive from one spec. |
+| `server_admin_contract/src/admin_page_title.rs` | Reviewed: title variants are mapped by the page spec. |
+| `server_admin_contract/src/admin_page_total.rs` | Reviewed: page totals are represented as nonnegative u64 values. |
+| `server_admin_contract/src/admin_parameterized_route_path.rs` | Reviewed: parameterized paths delegate to the typed route path helper and API path wrapper. |
 | `server_admin_contract/src/admin_password.rs` | Pending |
 | `server_admin_contract/src/admin_password_entropy.rs` | Pending |
-| `server_admin_contract/src/admin_path_route_name.rs` | Pending |
+| `server_admin_contract/src/admin_path_route_name.rs` | Reviewed: route names derive from the final static path segment. |
 | `server_admin_contract/src/admin_permission_action_id.rs` | Pending |
-| `server_admin_contract/src/admin_permission_actions_read_request.rs` | Pending |
+| `server_admin_contract/src/admin_permission_actions_read_request.rs` | Reviewed: permission-action sort keys map to typed ID or key columns and retain pagination. |
 | `server_admin_contract/src/admin_permission_actions_table_route.rs` | Pending |
 | `server_admin_contract/src/admin_permission_resource_action_id.rs` | Pending |
-| `server_admin_contract/src/admin_permission_resource_actions_read_request.rs` | Pending |
+| `server_admin_contract/src/admin_permission_resource_actions_read_request.rs` | Reviewed: resource-action sort keys map to typed identifier columns and retain pagination. |
 | `server_admin_contract/src/admin_permission_resource_actions_table_route.rs` | Pending |
 | `server_admin_contract/src/admin_permission_resource_id.rs` | Pending |
-| `server_admin_contract/src/admin_permission_resources_read_request.rs` | Pending |
+| `server_admin_contract/src/admin_permission_resources_read_request.rs` | Reviewed: permission-resource sort keys map to typed ID or key columns and retain pagination. |
 | `server_admin_contract/src/admin_permission_resources_table_route.rs` | Pending |
-| `server_admin_contract/src/admin_primary_color.rs` | Pending |
+| `server_admin_contract/src/admin_primary_color.rs` | Reviewed: exact seven-byte ASCII hexadecimal color validation. |
 | `server_admin_contract/src/admin_rate_limit_id.rs` | Pending |
-| `server_admin_contract/src/admin_rate_limits_table_route.rs` | Pending |
+| `server_admin_contract/src/admin_rate_limits_table_route.rs` | Fixed and reviewed; A112 table read rule metadata. |
 | `server_admin_contract/src/admin_read_access_session_column.rs` | Pending |
 | `server_admin_contract/src/admin_read_access_session_order.rs` | Pending |
 | `server_admin_contract/src/admin_read_access_session_selection.rs` | Pending |
@@ -3324,16 +3389,16 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 | `server_admin_contract/src/admin_read_audit_log_route.rs` | Pending |
 | `server_admin_contract/src/admin_read_audit_log_selection.rs` | Pending |
 | `server_admin_contract/src/admin_read_field.rs` | Pending |
-| `server_admin_contract/src/admin_read_page.rs` | Pending |
+| `server_admin_contract/src/admin_read_page.rs` | Reviewed: request pagination stores the validated offset and limit wrappers. |
 | `server_admin_contract/src/admin_read_permission_action_column.rs` | Pending |
-| `server_admin_contract/src/admin_read_permission_action_order.rs` | Pending |
-| `server_admin_contract/src/admin_read_permission_action_selection.rs` | Pending |
+| `server_admin_contract/src/admin_read_permission_action_order.rs` | Reviewed: typed action column and sort direction are serialized together. |
+| `server_admin_contract/src/admin_read_permission_action_selection.rs` | Reviewed: default selection includes both action ID and key. |
 | `server_admin_contract/src/admin_read_permission_resource_action_column.rs` | Pending |
-| `server_admin_contract/src/admin_read_permission_resource_action_order.rs` | Pending |
-| `server_admin_contract/src/admin_read_permission_resource_action_selection.rs` | Pending |
+| `server_admin_contract/src/admin_read_permission_resource_action_order.rs` | Reviewed: typed resource-action column and sort direction are serialized together. |
+| `server_admin_contract/src/admin_read_permission_resource_action_selection.rs` | Reviewed: default selection includes association ID and both referenced IDs. |
 | `server_admin_contract/src/admin_read_permission_resource_column.rs` | Pending |
-| `server_admin_contract/src/admin_read_permission_resource_order.rs` | Pending |
-| `server_admin_contract/src/admin_read_permission_resource_selection.rs` | Pending |
+| `server_admin_contract/src/admin_read_permission_resource_order.rs` | Reviewed: typed resource column and sort direction are serialized together. |
+| `server_admin_contract/src/admin_read_permission_resource_selection.rs` | Reviewed: default selection includes both resource ID and key. |
 | `server_admin_contract/src/admin_read_role_column.rs` | Pending |
 | `server_admin_contract/src/admin_read_role_order.rs` | Pending |
 | `server_admin_contract/src/admin_read_role_rule_column.rs` | Pending |
@@ -3355,7 +3420,7 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 | `server_admin_contract/src/admin_read_users_route.rs` | Pending |
 | `server_admin_contract/src/admin_refresh_route.rs` | Pending |
 | `server_admin_contract/src/admin_refresh_token_id.rs` | Pending |
-| `server_admin_contract/src/admin_refresh_tokens_table_route.rs` | Pending |
+| `server_admin_contract/src/admin_refresh_tokens_table_route.rs` | Fixed and reviewed; A112 table read rule metadata. |
 | `server_admin_contract/src/admin_revoke_all_sessions_route.rs` | Pending |
 | `server_admin_contract/src/admin_revoke_session_route.rs` | Pending |
 | `server_admin_contract/src/admin_role_filter.rs` | Pending |
@@ -3364,7 +3429,7 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 | `server_admin_contract/src/admin_role_name.rs` | Pending |
 | `server_admin_contract/src/admin_role_names.rs` | Pending |
 | `server_admin_contract/src/admin_role_rule_id.rs` | Pending |
-| `server_admin_contract/src/admin_role_rules_read_request.rs` | Pending |
+| `server_admin_contract/src/admin_role_rules_read_request.rs` | Reviewed: unsupported sort is rejected and the default created-at ordering uses typed pagination. |
 | `server_admin_contract/src/admin_role_rules_table_route.rs` | Pending |
 | `server_admin_contract/src/admin_role_summaries.rs` | Pending |
 | `server_admin_contract/src/admin_role_summary.rs` | Pending |
@@ -3372,7 +3437,7 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 | `server_admin_contract/src/admin_role_update.rs` | Pending |
 | `server_admin_contract/src/admin_role_updates.rs` | Pending |
 | `server_admin_contract/src/admin_roles_page.rs` | Pending |
-| `server_admin_contract/src/admin_roles_read_request.rs` | Pending |
+| `server_admin_contract/src/admin_roles_read_request.rs` | Reviewed: role sort keys, default ordering, search, and typed pagination map to the read request. |
 | `server_admin_contract/src/admin_route.rs` | Pending |
 | `server_admin_contract/src/admin_route_path.rs` | Pending |
 | `server_admin_contract/src/admin_route_path_error.rs` | Pending |
@@ -3387,7 +3452,7 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 | `server_admin_contract/src/admin_rule_value.rs` | Pending |
 | `server_admin_contract/src/admin_rule_values.rs` | Pending |
 | `server_admin_contract/src/admin_rules_page.rs` | Pending |
-| `server_admin_contract/src/admin_rules_read_request.rs` | Pending |
+| `server_admin_contract/src/admin_rules_read_request.rs` | Reviewed: rule sort keys map to typed rule columns and retain pagination. |
 | `server_admin_contract/src/admin_selected_value.rs` | Pending |
 | `server_admin_contract/src/admin_session_identifier.rs` | Pending |
 | `server_admin_contract/src/admin_session_timestamp.rs` | Pending |
@@ -3408,27 +3473,27 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 | `server_admin_contract/src/admin_sign_in_response.rs` | Pending |
 | `server_admin_contract/src/admin_sign_in_route.rs` | Pending |
 | `server_admin_contract/src/admin_sign_out_route.rs` | Pending |
-| `server_admin_contract/src/admin_site_name.rs` | Pending |
+| `server_admin_contract/src/admin_site_name.rs` | Reviewed: required site name rejects whitespace-only text. |
 | `server_admin_contract/src/admin_sort_direction.rs` | Pending |
-| `server_admin_contract/src/admin_support_url.rs` | Pending |
+| `server_admin_contract/src/admin_support_url.rs` | Fixed and reviewed; A115 HTTPS URL authority validation. |
 | `server_admin_contract/src/admin_system_setting_id.rs` | Pending |
-| `server_admin_contract/src/admin_system_settings_read_request.rs` | Pending |
-| `server_admin_contract/src/admin_tab_title.rs` | Pending |
-| `server_admin_contract/src/admin_table_query.rs` | Pending |
-| `server_admin_contract/src/admin_table_search.rs` | Pending |
-| `server_admin_contract/src/admin_table_sort_field.rs` | Pending |
+| `server_admin_contract/src/admin_system_settings_read_request.rs` | Reviewed: unsupported sort is rejected and settings search and pagination are retained. |
+| `server_admin_contract/src/admin_tab_title.rs` | Reviewed: optional title value rejects whitespace-only text. |
+| `server_admin_contract/src/admin_table_query.rs` | Reviewed: default pagination and bounded search and sort fields match query parameter metadata. |
+| `server_admin_contract/src/admin_table_search.rs` | Reviewed: search text has the declared 128-character bound. |
+| `server_admin_contract/src/admin_table_sort_field.rs` | Reviewed: per-table option arrays restrict duplicate wire keys to the intended typed sort fields. |
 | `server_admin_contract/src/admin_table_sort_field_try_from_key_error.rs` | Pending |
-| `server_admin_contract/src/admin_table_sort_key.rs` | Pending |
+| `server_admin_contract/src/admin_table_sort_key.rs` | Reviewed: sort text has the declared 32-character bound; callers validate catalog keys. |
 | `server_admin_contract/src/admin_table_sort_key_ref.rs` | Pending |
 | `server_admin_contract/src/admin_table_sort_values.rs` | Pending |
 | `server_admin_contract/src/admin_text.rs` | Pending |
 | `server_admin_contract/src/admin_texts.rs` | Pending |
-| `server_admin_contract/src/admin_unsearchable_read_query.rs` | Pending |
+| `server_admin_contract/src/admin_unsearchable_read_query.rs` | Reviewed: unsupported sort is rejected and pagination is retained for fixed-order reads. |
 | `server_admin_contract/src/admin_update_role_request.rs` | Pending |
 | `server_admin_contract/src/admin_update_roles_payload_example_route.rs` | Pending |
 | `server_admin_contract/src/admin_update_roles_request.rs` | Pending |
 | `server_admin_contract/src/admin_update_roles_route.rs` | Pending |
-| `server_admin_contract/src/admin_update_settings_request.rs` | Pending |
+| `server_admin_contract/src/admin_update_settings_request.rs` | Reviewed: empty updates, duplicate clears, six-item clear limit, and clear/set conflicts are validated before mutation. |
 | `server_admin_contract/src/admin_update_settings_route.rs` | Pending |
 | `server_admin_contract/src/admin_update_user_request.rs` | Pending |
 | `server_admin_contract/src/admin_update_users_payload_example_route.rs` | Pending |
@@ -3438,19 +3503,19 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 | `server_admin_contract/src/admin_user_id.rs` | Pending |
 | `server_admin_contract/src/admin_user_ids.rs` | Pending |
 | `server_admin_contract/src/admin_user_role_id.rs` | Pending |
-| `server_admin_contract/src/admin_user_roles_table_route.rs` | Pending |
+| `server_admin_contract/src/admin_user_roles_table_route.rs` | Fixed and reviewed; A112 table read rule metadata. |
 | `server_admin_contract/src/admin_user_summaries.rs` | Pending |
 | `server_admin_contract/src/admin_user_summary.rs` | Pending |
 | `server_admin_contract/src/admin_user_update.rs` | Pending |
 | `server_admin_contract/src/admin_user_updates.rs` | Pending |
 | `server_admin_contract/src/admin_users_page.rs` | Pending |
-| `server_admin_contract/src/admin_users_read_request.rs` | Pending |
-| `server_admin_contract/src/admin_where_many.rs` | Pending |
+| `server_admin_contract/src/admin_users_read_request.rs` | Reviewed: user sort keys, default ordering, search, and typed pagination map to the read request. |
+| `server_admin_contract/src/admin_where_many.rs` | Fixed and reviewed; A104 numeric relation and A105 timestamp filter conversion. |
 | `server_admin_contract/src/admin_where_many_try_from_string_error.rs` | Pending |
 | `server_admin_contract/src/authenticated_admin.rs` | Pending |
 | `server_admin_contract/src/default_admin_api_body_max_bytes.rs` | Pending |
 | `server_admin_contract/src/identity.rs` | Pending |
-| `server_admin_contract/src/lib.rs` | Pending |
+| `server_admin_contract/src/lib.rs` | Focused review; A116 checked integer visitor helper module. |
 | `server_admin_contract/src/positive_non_zero_i64.rs` | Pending |
 | `server_admin_contract/src/serde_json_admin_audit_details.rs` | Pending |
 | `server_admin_contract/src/test_delete_access_sessions_contract.rs` | Pending |
@@ -3460,9 +3525,10 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 | `server_admin_contract/src/test_domain_types_query_tests.rs` | Pending |
 | `server_admin_contract/src/test_domain_types_routes_tests.rs` | Pending |
 | `server_admin_contract/src/test_domain_types_sessions_tests.rs` | Pending |
-| `server_admin_contract/src/test_domain_types_settings_tests.rs` | Pending |
-| `server_admin_contract/src/test_tests_domain_types.rs` | Pending |
+| `server_admin_contract/src/test_domain_types_settings_tests.rs` | Focused review; A119 six-field clear list regression. |
+| `server_admin_contract/src/test_tests_domain_types.rs` | Focused review; A93, A111, A112, A113, A115, A116, A117, and A118 regressions. |
 | `server_admin_contract/src/test_update_users_contract.rs` | Pending |
+| `server_admin_contract/src/visit_checked_unsigned_integer.rs` | Fixed and reviewed; A116 shared checked integer conversion for pagination visitors. |
 
 ### server_admin_core
 
@@ -3474,7 +3540,8 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 | `server_admin_core/src/admin_role_record_id.rs` | Reviewed: validated ID wrapper deserializes through positive nonzero conversion. |
 | `server_admin_core/src/admin_socket_addr.rs` | Reviewed: typed socket-address wrapper forwards owned and borrowed access. |
 | `server_admin_core/src/admin_user_record_id.rs` | Reviewed: validated user ID deserializes through positive nonzero conversion. |
-| `server_admin_core/src/lib.rs` | Reviewed: root declarations and bounded-string validator reference are consistent. |
+| `server_admin_core/src/escape_admin_like_pattern.rs` | Fixed and reviewed; A117 escapes PostgreSQL LIKE pattern characters with bounded output. |
+| `server_admin_core/src/lib.rs` | Reviewed: root declarations, bounded-string validator reference, and A117 pattern helper module are consistent. |
 | `server_admin_core/src/secrecy_admin_string.rs` | Reviewed: secret stores bounded text, redacts Debug, and exposes through secrecy's trait. |
 | `server_admin_core/src/std_admin_bool.rs` | Reviewed: boolean wrapper deserializes through its typed conversion. |
 | `server_admin_core/src/std_admin_str_ref.rs` | Reviewed: borrowed string wrapper preserves its lifetime. |
@@ -4119,7 +4186,9 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 | `text_policy/src/bounded_text_policy_error.rs` | Reviewed: empty, NUL and byte-limit failures have distinct variants; no source is discarded by this enum. |
 | `text_policy/src/fixed_length_ascii_hex_text.rs` | Reviewed: construction requires exactly 40 bytes and lowercase ASCII hexadecimal symbols before bounded storage. |
 | `text_policy/src/fixed_length_ascii_hex_text_error.rs` | Reviewed: separate length and symbol errors match the fixed-hex constructor. |
-| `text_policy/src/lib.rs` | Reviewed: all 18 source modules are declared from the crate root; tests are compiled only for test builds. |
+| `text_policy/src/https_url_text_error.rs` | Focused review; A115 shared HTTPS URL validation. |
+| `text_policy/src/https_url_text_ref.rs` | Focused review; A115 shared HTTPS URL validation. |
+| `text_policy/src/lib.rs` | Reviewed: all production modules are declared from the crate root; tests are compiled only for test builds. |
 | `text_policy/src/non_empty_trimmed_text.rs` | Reviewed: input byte length is bounded before trimming; the trimmed value must be nonempty and NUL-free. No repository consumer currently uses this public wrapper. |
 | `text_policy/src/password_length.rs` | Reviewed: typed length forwards its private usize value through generated conversion derives. |
 | `text_policy/src/password_length_range.rs` | Reviewed: TryFrom rejects inverted bounds; the explicitly named prevalidated constructor is used with ordered administrator constants. |
@@ -4127,11 +4196,12 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 | `text_policy/src/password_policy_violation.rs` | Reviewed: typed password policy outcomes include a general whitespace violation; A52 aligns detection with that meaning. |
 | `text_policy/src/password_text_ref.rs` | Reviewed: borrowed password text has redacted Debug and private storage. |
 | `text_policy/src/required_nul_free_bounded_text.rs` | Reviewed: rejects oversized, empty and NUL-bearing input before validated bounded storage. |
-| `text_policy/src/tests_domain_types.rs` | Reviewed: deterministic fixtures cover fixed hex, URL-safe tokens, required NUL-free text and password policy including A52 and A53. |
+| `text_policy/src/tests_domain_types.rs` | Reviewed: deterministic fixtures cover fixed hex, URL-safe tokens, required NUL-free text and password policy including A52, A53, and A115. |
 | `text_policy/src/url_safe_token_part_maximum_bytes.rs` | Reviewed: private catalog maximum is 4096 bytes; the public wrapper carries caller-selected limits for the reusable validator. |
 | `text_policy/src/url_safe_token_part_ref.rs` | Reviewed: borrowed token text uses private storage and generated conversion. |
 | `text_policy/src/url_safe_token_part_text.rs` | Reviewed: construction applies the 4096-byte limit and URL-safe validator before bounded storage. |
 | `text_policy/src/url_safe_token_part_text_error.rs` | Reviewed: empty, invalid symbol and excessive length are distinguished. |
+| `text_policy/src/validate_https_url_text.rs` | Focused review; A115 shared HTTPS URL validation. |
 | `text_policy/src/validate_password_policy.rs` | Reviewed: A53 counts characters for password length and A52 rejects Unicode whitespace before checking required digit, letter and punctuation classes. |
 | `text_policy/src/validate_url_safe_token_part.rs` | Reviewed: nonempty input must fit the caller's byte limit and contain only ASCII alphanumeric, hyphen or underscore bytes. |
 
@@ -4246,75 +4316,78 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 
 | Source | Semantic review |
 | --- | --- |
-| `workspace_test_runner/src/admin_fixture.rs` | Pending |
-| `workspace_test_runner/src/admin_fixture_conversion_error.rs` | Pending |
-| `workspace_test_runner/src/admin_fixture_string.rs` | Pending |
-| `workspace_test_runner/src/allocation_tool.rs` | Pending |
-| `workspace_test_runner/src/allocation_tools.rs` | Pending |
-| `workspace_test_runner/src/cargo_args.rs` | Pending |
-| `workspace_test_runner/src/cargo_measurement_error.rs` | Pending |
-| `workspace_test_runner/src/cargo_subcommand_available.rs` | Pending |
+| `workspace_test_runner/src/admin_fixture.rs` | Reviewed |
+| `workspace_test_runner/src/admin_fixture_conversion_error.rs` | Reviewed; A89 |
+| `workspace_test_runner/src/admin_fixture_string.rs` | Reviewed |
+| `workspace_test_runner/src/allocation_tool.rs` | Reviewed |
+| `workspace_test_runner/src/allocation_tools.rs` | Reviewed |
+| `workspace_test_runner/src/cargo_args.rs` | Reviewed |
+| `workspace_test_runner/src/cargo_measurement_error.rs` | Reviewed |
+| `workspace_test_runner/src/cargo_measurement_footer.rs` | Reviewed; A85 |
+| `workspace_test_runner/src/cargo_subcommand_available.rs` | Reviewed; A86 |
 | `workspace_test_runner/src/check_tool_available.rs` | Reviewed; A79 |
-| `workspace_test_runner/src/clean_ansi_text.rs` | Pending |
-| `workspace_test_runner/src/command_duration.rs` | Pending |
-| `workspace_test_runner/src/command_duration_millis.rs` | Pending |
+| `workspace_test_runner/src/clean_ansi_text.rs` | Reviewed; A23 fallback consumer, A86 bound |
+| `workspace_test_runner/src/command_duration.rs` | Reviewed |
+| `workspace_test_runner/src/command_duration_millis.rs` | Reviewed |
 | `workspace_test_runner/src/command_failure.rs` | Reviewed |
 | `workspace_test_runner/src/command_failures_vec_deque.rs` | Reviewed |
-| `workspace_test_runner/src/command_index.rs` | Pending |
-| `workspace_test_runner/src/command_run.rs` | Pending |
-| `workspace_test_runner/src/command_started_at_instant.rs` | Pending |
-| `workspace_test_runner/src/command_text.rs` | Pending |
+| `workspace_test_runner/src/command_index.rs` | Reviewed |
+| `workspace_test_runner/src/command_run.rs` | Reviewed |
+| `workspace_test_runner/src/command_started_at_instant.rs` | Reviewed |
+| `workspace_test_runner/src/command_text.rs` | Reviewed; A23 fallback consumer, A80 bound |
 | `workspace_test_runner/src/command_texts.rs` | Reviewed |
-| `workspace_test_runner/src/commands_ref.rs` | Pending |
-| `workspace_test_runner/src/create_admin_fixture_string.rs` | Pending |
+| `workspace_test_runner/src/commands_ref.rs` | Reviewed |
+| `workspace_test_runner/src/create_admin_fixture_string.rs` | Reviewed |
 | `workspace_test_runner/src/direct_generation_measurement.rs` | Reviewed |
 | `workspace_test_runner/src/direct_generation_output_measurement.rs` | Reviewed |
-| `workspace_test_runner/src/domain_types.rs` | Pending |
+| `workspace_test_runner/src/domain_types.rs` | Reviewed; A86 |
 | `workspace_test_runner/src/execution_tests.rs` | Reviewed; A81 |
 | `workspace_test_runner/src/failed_test_names.rs` | Reviewed; A81 |
-| `workspace_test_runner/src/generate_pg_table_measure_input_token_stream.rs` | Pending |
+| `workspace_test_runner/src/generate_pg_table_measure_input_token_stream.rs` | Reviewed |
 | `workspace_test_runner/src/generation_stage_measurement.rs` | Reviewed |
 | `workspace_test_runner/src/macro_generation_measurements.rs` | Reviewed |
 | `workspace_test_runner/src/main.rs` | Focused review; A82 |
-| `workspace_test_runner/src/measure_cargo_command.rs` | Pending |
+| `workspace_test_runner/src/measure_cargo_command.rs` | Focused review; A85, A86 |
 | `workspace_test_runner/src/measure_direct_generation.rs` | Reviewed |
 | `workspace_test_runner/src/measure_generation_stages.rs` | Reviewed |
-| `workspace_test_runner/src/measure_memusage_command.rs` | Focused review; A79 |
-| `workspace_test_runner/src/measurement_name.rs` | Pending |
-| `workspace_test_runner/src/memory_usage_column_index.rs` | Pending |
+| `workspace_test_runner/src/measure_memusage_command.rs` | Focused review; A79, A86 |
+| `workspace_test_runner/src/measurement_name.rs` | Reviewed |
+| `workspace_test_runner/src/memory_usage_column_index.rs` | Reviewed |
 | `workspace_test_runner/src/memusage_heap_value.rs` | Reviewed; A83 |
-| `workspace_test_runner/src/memusage_key.rs` | Pending |
-| `workspace_test_runner/src/memusage_measurement_error.rs` | Pending |
-| `workspace_test_runner/src/memusage_prog_name_ref.rs` | Pending |
-| `workspace_test_runner/src/memusage_row_name.rs` | Pending |
+| `workspace_test_runner/src/memusage_key.rs` | Reviewed |
+| `workspace_test_runner/src/memusage_measurement_error.rs` | Reviewed |
+| `workspace_test_runner/src/memusage_prog_name_ref.rs` | Reviewed |
+| `workspace_test_runner/src/memusage_program_text.rs` | Reviewed; A84 |
+| `workspace_test_runner/src/memusage_row_name.rs` | Reviewed |
 | `workspace_test_runner/src/memusage_summary_text.rs` | Reviewed; A83 |
 | `workspace_test_runner/src/memusage_table_value.rs` | Reviewed; A83 |
-| `workspace_test_runner/src/memusage_value_ref.rs` | Pending |
-| `workspace_test_runner/src/print_without_measurement_footer.rs` | Reviewed |
-| `workspace_test_runner/src/print_without_memusage_footer.rs` | Reviewed |
-| `workspace_test_runner/src/program_args_ref.rs` | Pending |
-| `workspace_test_runner/src/program_path_ref.rs` | Pending |
-| `workspace_test_runner/src/quote_token_stream_generate_pg_table_measure_input_token_stream.rs` | Pending |
+| `workspace_test_runner/src/memusage_value_ref.rs` | Reviewed |
+| `workspace_test_runner/src/parse_cargo_measurement_footer.rs` | Reviewed; A85 |
+| `workspace_test_runner/src/print_without_measurement_footer.rs` | Reviewed; A85 |
+| `workspace_test_runner/src/print_without_memusage_footer.rs` | Reviewed; A84 |
+| `workspace_test_runner/src/program_args_ref.rs` | Reviewed |
+| `workspace_test_runner/src/program_path_ref.rs` | Reviewed |
+| `workspace_test_runner/src/quote_token_stream_generate_pg_table_measure_input_token_stream.rs` | Reviewed |
 | `workspace_test_runner/src/run_admin_fixture_cli.rs` | Pending |
-| `workspace_test_runner/src/run_commands.rs` | Focused review; A80 |
+| `workspace_test_runner/src/run_commands.rs` | Focused review; A80, A86, and A88 fixed; A88 removes the sort that displaced panicked worker summaries. |
 | `workspace_test_runner/src/run_commands_error.rs` | Reviewed |
-| `workspace_test_runner/src/run_counter.rs` | Pending |
-| `workspace_test_runner/src/run_measurements_cli.rs` | Focused review; A79 |
+| `workspace_test_runner/src/run_counter.rs` | Reviewed: atomic counter is used only to distinguish runner output directories within one process; no leak or defect confirmed. |
+| `workspace_test_runner/src/run_measurements_cli.rs` | Focused review; A79, A87 |
 | `workspace_test_runner/src/run_report_error.rs` | Reviewed |
 | `workspace_test_runner/src/run_workspace_tests.rs` | Reviewed |
-| `workspace_test_runner/src/runner_cli_outcome.rs` | Pending |
+| `workspace_test_runner/src/runner_cli_outcome.rs` | Reviewed |
 | `workspace_test_runner/src/runner_mode.rs` | Reviewed; A82 |
-| `workspace_test_runner/src/stderr_text_ref.rs` | Pending |
+| `workspace_test_runner/src/stderr_text_ref.rs` | Reviewed |
 | `workspace_test_runner/src/strip_ansi.rs` | Focused review; A81 |
-| `workspace_test_runner/src/strip_ansi_codes.rs` | Pending |
+| `workspace_test_runner/src/strip_ansi_codes.rs` | Reviewed; A23 fallback consumer |
 | `workspace_test_runner/src/summary_text.rs` | Reviewed |
-| `workspace_test_runner/src/summary_text_append_error.rs` | Pending |
-| `workspace_test_runner/src/test_runner_errors.rs` | Pending |
-| `workspace_test_runner/src/test_workspace_test_runner.rs` | Focused review; A79, A80, A83 |
-| `workspace_test_runner/src/text_ref.rs` | Pending |
-| `workspace_test_runner/src/tool_available.rs` | Pending |
-| `workspace_test_runner/src/tool_name.rs` | Pending |
-| `workspace_test_runner/src/tool_path.rs` | Pending |
+| `workspace_test_runner/src/summary_text_append_error.rs` | Reviewed |
+| `workspace_test_runner/src/test_runner_errors.rs` | Reviewed; A89 |
+| `workspace_test_runner/src/test_workspace_test_runner.rs` | Focused review; A79, A80, A83, A84, A86 |
+| `workspace_test_runner/src/text_ref.rs` | Reviewed |
+| `workspace_test_runner/src/tool_available.rs` | Reviewed |
+| `workspace_test_runner/src/tool_name.rs` | Reviewed |
+| `workspace_test_runner/src/tool_path.rs` | Reviewed |
 | `workspace_test_runner/tests/test_runner_cli.rs` | Reviewed; A82 |
 
 A07 iterative traversal verification: final full Clippy passes, all workspace tests excluding the style crate pass, including 13 frontend_contract_validation tests and generated-client checks. The code-style suite passed once (306 tests) through the workspace runner before the subsequent Clippy-driven private-helper removal, binding cleanup and formatting changes. The public validation owner now contains the same reviewed workflow directly. The scoped work/reference vectors grow amortized with active traversal depth; reference-tree insertion replaces the former repeated active-set cloning, and no child lists or whole documents are allocated per descent. No lint allowance, dependency, crate, process-static state or lifetime exception was added. Cargo formatting/check and whitespace checks pass. Logs: target/audit_tmp/deep_composition_static.log, deep_composition_clippy.log and deep_composition_workspace.log. Initial generic serde serialization remains a confirmed open part of A07, rather than being hidden by the green traversal tests.

@@ -14,6 +14,7 @@
     chars,
     serde,
     utoipa,
+    error,
     description = "administrator API text"
 )]
 pub struct AdminText(bounded_types::bounded_string::BoundedString<0usize, 8192, true>);

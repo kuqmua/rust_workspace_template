@@ -100,6 +100,55 @@ fn test_static_pages() {
             .contains(constants_str::ADMIN_FIXTURE_SESSION_CREATED_AT)
     );
 
+    let custom_role = roles
+        .items()
+        .first()
+        .expect(constants_str::DIAGNOSTIC_E4AA599B)
+        .clone();
+    let system_role = server_admin_contract::admin_role_summary::AdminRoleSummary::new(
+        custom_role.id(),
+        server_admin_contract::admin_bool::AdminBool::from(true),
+        custom_role.name().clone(),
+        custom_role.created_at().clone(),
+        custom_role.updated_at().clone(),
+    );
+    let mixed_roles = server_admin_contract::admin_roles_page::AdminRolesPage::new(
+        server_admin_contract::admin_role_summaries::AdminRoleSummaries::try_from(vec![
+            custom_role,
+            system_role,
+        ])
+        .expect(constants_str::DIAGNOSTIC_36A5B161),
+        server_admin_contract::admin_page_total::AdminPageTotal::from(2u64),
+    );
+    let update_admin = server_admin_contract::authenticated_admin::AuthenticatedAdmin::new(
+        admin.display_name().clone(),
+        *admin.id(),
+        admin.login().clone(),
+        server_admin_contract::admin_rule_values::AdminRuleValues::try_from(vec![
+            server_admin_contract::admin_rule_value::AdminRuleValue::try_from(
+                server_admin_contract::admin_rule::AdminRule::RolesUpdate
+                    .as_str()
+                    .get()
+                    .to_owned(),
+            )
+            .expect(constants_str::DIAGNOSTIC_4A51AAB0),
+        ])
+        .expect(constants_str::DIAGNOSTIC_29910666),
+        server_admin_contract::admin_role_names::AdminRoleNames::try_from(admin.roles().to_vec())
+            .expect(constants_str::DIAGNOSTIC_A6ACFFA1),
+    );
+    let mixed_roles_html =
+        crate::render_roles::render_roles(&mixed_roles, &query, &update_admin, &branding);
+    assert_eq!(
+        mixed_roles_html
+            .as_ref()
+            .matches(
+                server_admin_contract::admin_frontend_path::AdminFrontendPath::RolesUpdate.get()
+            )
+            .count(),
+        1usize
+    );
+
     let sessions = server_admin_contract::admin_sessions_page::AdminSessionsPage::new(
         server_admin_contract::admin_session_views::AdminSessionViews::try_from(vec![
             server_admin_contract::admin_session_view::AdminSessionView::new(

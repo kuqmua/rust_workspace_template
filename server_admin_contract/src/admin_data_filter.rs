@@ -7,7 +7,6 @@
     Debug,
     Eq,
     PartialEq,
-    serde::Deserialize,
     serde::Serialize,
     utoipa::ToSchema,
 )]
@@ -23,6 +22,25 @@ impl From<frontend_contract::filter_operation::FilterOperation> for AdminDataFil
             operation: value,
             value_shape: value.value_shape(),
         }
+    }
+}
+impl<'de> serde::Deserialize<'de> for AdminDataFilter {
+    fn deserialize<Deserializer>(deserializer: Deserializer) -> Result<Self, Deserializer::Error>
+    where
+        Deserializer: serde::Deserializer<'de>,
+    {
+        #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, serde::Deserialize)]
+        struct AdminDataFilterWire {
+            operation: frontend_contract::filter_operation::FilterOperation,
+            value_shape: frontend_contract::filter_value_shape::FilterValueShape,
+        }
+        let wire = <AdminDataFilterWire as serde::Deserialize>::deserialize(deserializer)?;
+        if wire.operation.value_shape() != wire.value_shape {
+            return Err(serde::de::Error::custom(
+                constants_str::INVALID_FILTER_SPECIFICATION,
+            ));
+        }
+        Ok(Self::from(wire.operation))
     }
 }
 impl AdminDataFilter {

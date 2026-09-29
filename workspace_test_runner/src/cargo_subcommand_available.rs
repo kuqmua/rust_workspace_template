@@ -10,7 +10,9 @@ pub(crate) fn cargo_subcommand_available(
     .args(macro_helpers::tool_args_ref::ToolArgsRef::from(
         args.as_slice(),
     ))
-    .output()
+    .bounded_output(macro_helpers::tool_output_limit::ToolOutputLimit::from(
+        crate::domain_types::COMMAND_CAPTURE_BYTES_PER_STREAM,
+    ))
     .is_ok_and(|output| output.status.success())
     .into()
 }

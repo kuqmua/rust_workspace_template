@@ -27,11 +27,32 @@ pub fn validate_test_database_url(
             .split_once(':')
             .map_or(host_port, |(value, _)| value)
     };
-    let database = path_and_suffix
-        .split(['?', '#'])
-        .next()
-        .filter(|value| !value.is_empty())
-        .ok_or(crate::url_error::UrlError::Malformed)?;
+    let path_and_query = path_and_suffix
+        .split_once('#')
+        .map_or(path_and_suffix, |(value, _)| value);
+    let (database, optional_query) = path_and_query
+        .split_once('?')
+        .map_or((path_and_query, None), |(value, query)| {
+            (value, Some(query))
+        });
+    if optional_query.is_some_and(|query_text| {
+        query_text.split('&').any(|parameter| {
+            let key = parameter.split_once('=').map_or(parameter, |(key, _)| key);
+            key.contains('%')
+                || [
+                    constants_str::DATABASE_QUERY_HOST_KEY,
+                    constants_str::DATABASE_QUERY_HOSTADDR_KEY,
+                    constants_str::DATABASE_QUERY_DBNAME_KEY,
+                ]
+                .into_iter()
+                .any(|override_key| key.eq_ignore_ascii_case(override_key))
+        })
+    }) {
+        return Err(crate::url_error::UrlError::Malformed);
+    }
+    if database.is_empty() {
+        return Err(crate::url_error::UrlError::Malformed);
+    }
     let target = crate::sanitized_database_target::SanitizedDatabaseTarget::try_from(format!(
         "{scheme}://{host}/{database}"
     ))
