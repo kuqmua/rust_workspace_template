@@ -28,6 +28,8 @@ pub(crate) enum AdminTableLoadError {
     ),
     #[error("{}", constants_str::ADMIN_UI_THE_TABLE_QUERY_IS_INVALID)]
     ReadPath(frontend_contract::transport_path::TransportPathTryFromStringError),
+    #[error("{}", constants_str::ADMIN_UI_THE_TABLE_QUERY_IS_INVALID)]
+    RoutePath(#[from] server_admin_contract::admin_route_path_error::AdminRoutePathError),
     #[error("{}", constants_str::ADMIN_UI_AUTHENTICATION_REQUIRED)]
     MissingCsrf,
     #[error("{message}", message = constants_str::ADMIN_UI_THE_TABLE_REQUEST_FAILED)]
@@ -66,7 +68,8 @@ impl AdminTableLoadError {
             | Self::ReadText(_)
             | Self::ReadFilterField(_)
             | Self::ReadFilterValue(_)
-            | Self::ReadPath(_) => false,
+            | Self::ReadPath(_)
+            | Self::RoutePath(_) => false,
         })
     }
 }

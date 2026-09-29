@@ -79,7 +79,7 @@ impl ReqwestClient {
     pub fn try_new(
         reqwest_client_policy: super::reqwest_client_policy::ReqwestClientPolicy,
     ) -> Result<Self, super::reqwest_client_build_error::ReqwestClientBuildError> {
-        reqwest::Client::builder()
+        let mut builder = reqwest::Client::builder()
             .connect_timeout(*reqwest_client_policy.connect_timeout())
             .timeout(*reqwest_client_policy.request_timeout())
             .dns_resolver(crate::outbound_dns_resolver::OutboundDnsResolver::new(
@@ -90,7 +90,13 @@ impl ReqwestClient {
                 env!("CARGO_PKG_NAME"),
                 "/",
                 env!("CARGO_PKG_VERSION")
-            ))
+            ));
+        if reqwest_client_policy.host_policy()
+            == crate::outbound_host_policy::OutboundHostPolicy::RejectPrivate
+        {
+            builder = builder.no_proxy();
+        }
+        builder
             .build()
             .map(Self)
             .map_err(super::reqwest_client_build_error::ReqwestClientBuildError::from)

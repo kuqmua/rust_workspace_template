@@ -145,14 +145,12 @@ impl<T: utoipa::ToSchema, const MIN: usize, const MAX: usize> utoipa::ToSchema
     for BoundedVec<T, MIN, MAX>
 {
     fn name() -> std::borrow::Cow<'static, str> {
-        let mut name = T::name().into_owned();
-        name.push('_');
-        name.push_str(constants_str::BOUNDEDVEC);
-        name.push('_');
-        name.push_str(MIN.to_string().as_str());
-        name.push('_');
-        name.push_str(MAX.to_string().as_str());
-        std::borrow::Cow::Owned(name)
+        let item_type_name =
+            crate::utoipa_schema_type_name::UtoipaSchemaTypeName::for_type::<T>().into_inner();
+        std::borrow::Cow::Owned(format!(
+            "{}_{MIN}_{MAX}_{item_type_name}",
+            constants_str::BOUNDEDVEC
+        ))
     }
 
     fn schemas(

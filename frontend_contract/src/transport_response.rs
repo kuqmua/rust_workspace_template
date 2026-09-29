@@ -41,15 +41,15 @@ impl TransportResponse {
         if self.status == transport_status {
             Ok(&self.body)
         } else {
-            Err(
-                crate::decode_api_problem::decode_api_problem(&self.body).map_or(
+            Err(crate::decode_api_problem::decode_api_problem(&self.body)
+                .filter(|api_problem| u16::from(api_problem.status()) == u16::from(self.status))
+                .map_or(
                     crate::client_error::ClientError::Status {
                         actual: self.status,
                         expected: transport_status,
                     },
                     crate::client_error::ClientError::Problem,
-                ),
-            )
+                ))
         }
     }
 }

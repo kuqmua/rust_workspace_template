@@ -206,17 +206,13 @@ mod tests {
         type Parameter = u64;
         fn path(
             parameter: &Self::Parameter,
-        ) -> crate::parameterized_route_path::ParameterizedRoutePath {
-            match crate::parameterized_route_path::ParameterizedRoutePath::try_from(format!(
+        ) -> Result<
+            crate::parameterized_route_path::ParameterizedRoutePath,
+            crate::parameterized_route_path_try_from_string_error::ParameterizedRoutePathTryFromStringError,
+        >{
+            crate::parameterized_route_path::ParameterizedRoutePath::try_from(format!(
                 "/values/{parameter}"
-            )) {
-                Ok(value) => value,
-                Err(error) => std::panic::panic_any(constants_str::PANIC_F7BD0A29.replacen(
-                    constants_str::PANIC_PLACEHOLDER_04CEF635,
-                    format!("{error:?}").as_str(),
-                    1usize,
-                )),
-            }
+            ))
         }
     }
     #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone)]
@@ -432,6 +428,30 @@ mod tests {
         assert_static_path(constants_str::V1_SLASH, constants_str::VALUE_5B762F37);
     }
     #[test]
+    fn test_root_route_keeps_trailing_separator_after_prefix() {
+        let transport = TestTransport {
+            expected: ExpectedRequest::Empty(transport_path(constants_str::V1_SLASH)),
+            response: Ok(response(
+                Vec::new(),
+                crate::success_status::SuccessStatus::Code200.transport_status(),
+            )),
+        };
+        let client =
+            crate::typed_client::TypedClient::new(transport, transport_path(constants_str::V1));
+        let route_contract = crate::route_contract::RouteContract::new(
+            crate::authentication_requirement::AuthenticationRequirement::Public,
+            crate::route_method::RouteMethod::Get,
+            crate::mutation_kind::MutationKind::ReadOnly,
+            crate::contract_str::ContractStr::from(constants_str::SLASH),
+            crate::success_status::SuccessStatus::Code200,
+        );
+        let result = futures::executor::block_on(client.send_contract(
+            route_contract,
+            crate::contract_str::ContractStr::from(constants_str::SLASH),
+        ));
+        assert!(matches!(result, Ok(body) if body.as_ref().is_empty()));
+    }
+    #[test]
     fn test_created_status_decodes_json_response() {
         let transport = TestTransport {
             expected: ExpectedRequest::Json(
@@ -627,6 +647,28 @@ mod tests {
             Err(crate::client_error::ClientError::Problem(value))
                 if value.kind() == crate::api_problem_kind::ApiProblemKind::Authentication
         ));
+    }
+    #[test]
+    fn test_mismatched_problem_status_reports_transport_status() {
+        let problem = crate::api_problem::ApiProblem::from_error(
+            crate::api_problem_error::ApiProblemError::Authentication,
+        );
+        let serialized = serde_json::to_vec(&problem);
+        assert!(serialized.is_ok());
+        if let Ok(body) = serialized {
+            let actual = crate::transport_status::TransportStatus::from(
+                crate::known_http_status::KnownHttpStatus::InternalServerError,
+            );
+            let expected = crate::success_status::SuccessStatus::Code200.transport_status();
+            let transport_response = response(body, actual);
+            assert!(matches!(
+                transport_response.success_body(expected),
+                Err(crate::client_error::ClientError::Status {
+                    actual: actual_status,
+                    expected: expected_status,
+                }) if actual_status == actual && expected_status == expected
+            ));
+        }
     }
     #[test]
     fn test_transport_failure_is_preserved() {

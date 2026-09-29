@@ -1,15 +1,17 @@
 #[derive(
-    proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, PartialEq, Eq,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+    Clone,
+    Copy,
+    Debug,
+    PartialEq,
+    Eq,
+    thiserror::Error,
 )]
 pub enum AdminRoutePathError {
+    #[error("{}", constants_str::ADMINISTRATOR_ROUTE_PATH_IS_TOO_LONG)]
     TooLong,
-}
-impl std::fmt::Display for AdminRoutePathError {
-    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::TooLong => {
-                formatter.write_str(constants_str::ADMINISTRATOR_ROUTE_PATH_IS_TOO_LONG)
-            }
-        }
-    }
+    #[error("{}", constants_str::ADMINISTRATOR_ROUTE_PATH_IS_TOO_LONG)]
+    ParameterizedPath(
+        #[from] frontend_contract::parameterized_route_path_try_from_string_error::ParameterizedRoutePathTryFromStringError,
+    ),
 }

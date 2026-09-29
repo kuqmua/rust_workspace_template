@@ -61,12 +61,23 @@ impl<'de> serde::Deserialize<'de> for AdminRoleTimestamp {
             let minute = field(constants_str::MIN)?;
             let second = field(constants_str::SEC)?;
             let microsecond = field(constants_str::MICRO)?;
+            if microsecond > 999_999u64 {
+                return Err(<Deserializer::Error as serde::de::Error>::custom(
+                    constants_str::ADMIN_UI_THE_TABLE_RESPONSE_WAS_INVALID,
+                ));
+            }
             let fraction = format!("{microsecond:06}").trim_end_matches('0').to_owned();
-            if fraction.is_empty() {
+            let timestamp = if fraction.is_empty() {
                 format!("{date}T{hour:02}:{minute:02}:{second:02}")
             } else {
                 format!("{date}T{hour:02}:{minute:02}:{second:02}.{fraction}")
-            }
+            };
+            frontend_contract::parse_timestamp_filter_wire_json::parse_timestamp_filter_wire_json(
+                frontend_contract::form_value_ref::FormValueRef::from(timestamp.as_str()),
+                frontend_contract::value_format::ValueFormat::TimestampTz,
+            )
+            .map(|_| timestamp)
+            .map_err(|error| <Deserializer::Error as serde::de::Error>::custom(error.to_string()))?
         };
         Self::try_from(timestamp)
             .map_err(|error| <Deserializer::Error as serde::de::Error>::custom(error.to_string()))

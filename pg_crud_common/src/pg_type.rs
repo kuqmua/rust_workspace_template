@@ -8,7 +8,10 @@ pub trait PgType {
     fn create_table_column_query_part(
         sql_column_ref: crate::sql_column_ref::SqlColumnRef<'_>,
         pg_is_primary_key: crate::pg_is_primary_key::PgIsPrimaryKey,
-    ) -> crate::query_part_fragment::QueryPartFragment;
+    ) -> Result<
+        crate::query_part_fragment::QueryPartFragment,
+        crate::query_part_error::QueryPartError,
+    >;
 
     type Create: crate::domain_types::CreateAlias;
 

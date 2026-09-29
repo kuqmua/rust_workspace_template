@@ -48,6 +48,26 @@ mod tests {
     }
 
     #[test]
+    fn test_origin_matches_configured_default_ports() {
+        let cases = [
+            (constants_str::HTTP_LOCALHOST, 80u16),
+            (constants_str::HTTPS_ADMIN_EXAMPLE_COM, 443u16),
+        ];
+        assert!(cases.into_iter().all(|(origin, port)| {
+            let configured = format!("{origin}:{port}");
+            let allowed = crate::allowed_origins::AllowedOrigins::try_from(vec![configured]);
+            let mut headers = http::HeaderMap::new();
+            let _previous = headers.insert(http::header::ORIGIN, http::HeaderValue::from_static(origin));
+            allowed.map(|allowed| bool::from(
+                crate::resolve_request_origin_allowed::resolve_request_origin_allowed(
+                    crate::http_origin_headers_ref::HttpOriginHeadersRef::from(&headers),
+                    &allowed,
+                )
+            )) == Ok(true)
+        }));
+    }
+
+    #[test]
     fn test_referer_accepts_path_and_compares_case_insensitively() {
         let mut headers = http::HeaderMap::new();
         let _previous = headers.insert(

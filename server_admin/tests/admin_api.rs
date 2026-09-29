@@ -6,6 +6,7 @@
     clippy::tests_outside_test_module,
     reason = "admin api requires this localized allowance for generated or framework-constrained code verified by focused tests"
 )]
+
 mod test_data_tables {
     #[tokio::test]
     #[ignore = "requires PostgreSQL; run through workspace_test_runner database"]
@@ -620,9 +621,10 @@ mod test_data_tables {
                 crate::request_with_peer(
                     crate::HttpAdminApiTestMethod::from(http::Method::PATCH),
                     crate::StdAdminApiTestStrRef::from(
-                        server_admin_contract::admin_route::AdminRoute::UpdateUsers
-                            .path()
-                            .as_ref(),
+                        crate::admin_api_integration_route_path_or_panic(
+                            server_admin_contract::admin_route::AdminRoute::UpdateUsers,
+                        )
+                        .as_ref(),
                     ),
                     crate::StdAdminApiTestStrRef::from(admin_html_test_body.0.as_ref()),
                     Some(crate::StdAdminApiTestStrRef::from(
@@ -645,9 +647,10 @@ mod test_data_tables {
             crate::request_with_peer(
                 crate::HttpAdminApiTestMethod::from(http::Method::POST),
                 crate::StdAdminApiTestStrRef::from(
-                    server_admin_contract::admin_route::AdminRoute::SignIn
-                        .path()
-                        .as_ref(),
+                    crate::admin_api_integration_route_path_or_panic(
+                        server_admin_contract::admin_route::AdminRoute::SignIn,
+                    )
+                    .as_ref(),
                 ),
                 crate::StdAdminApiTestStrRef::from(sign_in.as_str()),
                 None,
@@ -848,7 +851,7 @@ mod test_data_tables {
                 crate::router_with_pool(&fixture.pool).0,
                 crate::request_with_peer(
                     crate::HttpAdminApiTestMethod::from(http::Method::POST),
-                    crate::StdAdminApiTestStrRef::from(server_admin_contract::admin_route::AdminRoute::SignIn.path().as_ref()),
+                    crate::StdAdminApiTestStrRef::from(crate::admin_api_integration_route_path_or_panic(server_admin_contract::admin_route::AdminRoute::SignIn).as_ref()),
                     crate::StdAdminApiTestStrRef::from(body.as_str()), None, None,
                 ).0,
             ).await.expect(constants_str::DIAGNOSTIC_86CBE2D9);
@@ -1024,9 +1027,10 @@ mod test_data_tables {
                     crate::request_with_peer(
                         crate::HttpAdminApiTestMethod::from(http::Method::POST),
                         crate::StdAdminApiTestStrRef::from(
-                            server_admin_contract::admin_route::AdminRoute::CreateUser
-                                .path()
-                                .as_ref(),
+                            crate::admin_api_integration_route_path_or_panic(
+                                server_admin_contract::admin_route::AdminRoute::CreateUser,
+                            )
+                            .as_ref(),
                         ),
                         crate::StdAdminApiTestStrRef::from(creation_body.as_str()),
                         Some(crate::StdAdminApiTestStrRef::from(
@@ -1198,9 +1202,10 @@ mod test_data_tables {
                 crate::request_with_peer(
                     crate::HttpAdminApiTestMethod::from(http::Method::DELETE),
                     crate::StdAdminApiTestStrRef::from(
-                        server_admin_contract::admin_route::AdminRoute::DeleteUsers
-                            .path()
-                            .as_ref(),
+                        crate::admin_api_integration_route_path_or_panic(
+                            server_admin_contract::admin_route::AdminRoute::DeleteUsers,
+                        )
+                        .as_ref(),
                     ),
                     crate::StdAdminApiTestStrRef::from(admin_html_test_body.0.as_ref()),
                     Some(crate::StdAdminApiTestStrRef::from(
@@ -1279,9 +1284,10 @@ mod test_data_tables {
             crate::request_with_peer(
                 crate::HttpAdminApiTestMethod::from(http::Method::POST),
                 crate::StdAdminApiTestStrRef::from(
-                    server_admin_contract::admin_route::AdminRoute::SignIn
-                        .path()
-                        .as_ref(),
+                    crate::admin_api_integration_route_path_or_panic(
+                        server_admin_contract::admin_route::AdminRoute::SignIn,
+                    )
+                    .as_ref(),
                 ),
                 crate::StdAdminApiTestStrRef::from(sign_in.as_str()),
                 None,
@@ -1625,8 +1631,8 @@ mod test_data_tables {
                     | server_admin_contract::admin_data_table::AdminDataTable::RefreshTokens => None,
                 };
                 let (method, uri, request_body) = match typed_request_body {
-                    Some(body) => (http::Method::POST, table.api_route().path().as_ref().to_owned(), body.0.as_ref().to_owned()),
-                    None => (http::Method::GET, format!("{}?limit=100&offset=0", table.api_route().path().as_ref()), constants_str::PG_CRUD_EMPTY_SQL_SUFFIX.to_owned()),
+                    Some(body) => (http::Method::POST, crate::admin_api_integration_route_path_or_panic(table.api_route()).as_ref().to_owned(), body.0.as_ref().to_owned()),
+                    None => (http::Method::GET, format!("{}?limit=100&offset=0", crate::admin_api_integration_route_path_or_panic(table.api_route()).as_ref()), constants_str::PG_CRUD_EMPTY_SQL_SUFFIX.to_owned()),
                 };
                 let response = tower::ServiceExt::oneshot(
                     crate::router_with_pool(&fixture.pool).0,
@@ -2733,7 +2739,7 @@ mod test_flow {
             crate::router_with_pool(&pool).0,
             crate::request_with_peer(
                 super::HttpAdminApiTestMethod::from(http::Method::PATCH),
-                super::StdAdminApiTestStrRef::from(server_admin_contract::admin_route::AdminRoute::UpdateUsers.path().as_ref()),
+                super::StdAdminApiTestStrRef::from(crate::admin_api_integration_route_path_or_panic(server_admin_contract::admin_route::AdminRoute::UpdateUsers).as_ref()),
                 super::StdAdminApiTestStrRef::from(serde_json::json!({(stringify!(updates)): [{(stringify!(filter)): {(stringify!(user_id)): limited_id}, (stringify!(changes)): {(stringify!(display_name)): constants_str::ADMIN_UPDATED_USER_NAME}}]}).to_string().as_str()),
                 Some(super::StdAdminApiTestStrRef::from(active_cookie.as_str())),
                 Some(super::StdAdminApiTestStrRef::from(
@@ -2749,7 +2755,7 @@ mod test_flow {
             crate::router_with_pool(&pool).0,
             crate::request_with_peer(
                 super::HttpAdminApiTestMethod::from(http::Method::PATCH),
-                super::StdAdminApiTestStrRef::from(server_admin_contract::admin_route::AdminRoute::UpdateUsers.path().as_ref()),
+                super::StdAdminApiTestStrRef::from(crate::admin_api_integration_route_path_or_panic(server_admin_contract::admin_route::AdminRoute::UpdateUsers).as_ref()),
                 super::StdAdminApiTestStrRef::from(serde_json::json!({(stringify!(updates)): [{(stringify!(filter)): {(stringify!(user_id)): limited_id}, (stringify!(changes)): {(stringify!(is_banned)): true}}]}).to_string().as_str()),
                 Some(super::StdAdminApiTestStrRef::from(active_cookie.as_str())),
                 Some(super::StdAdminApiTestStrRef::from(
@@ -3003,9 +3009,10 @@ mod test_flow {
             crate::request_with_peer(
                 super::HttpAdminApiTestMethod::from(http::Method::DELETE),
                 super::StdAdminApiTestStrRef::from(
-                    server_admin_contract::admin_route::AdminRoute::DeleteUsers
-                        .path()
-                        .as_ref(),
+                    crate::admin_api_integration_route_path_or_panic(
+                        server_admin_contract::admin_route::AdminRoute::DeleteUsers,
+                    )
+                    .as_ref(),
                 ),
                 super::StdAdminApiTestStrRef::from(
                     serde_json::json!({(stringify!(filter)): {(stringify!(user_id)): limited_id}})
@@ -3058,9 +3065,10 @@ mod test_flow {
             crate::request_with_peer(
                 super::HttpAdminApiTestMethod::from(http::Method::DELETE),
                 super::StdAdminApiTestStrRef::from(
-                    server_admin_contract::admin_route::AdminRoute::DeleteUsers
-                        .path()
-                        .as_ref(),
+                    crate::admin_api_integration_route_path_or_panic(
+                        server_admin_contract::admin_route::AdminRoute::DeleteUsers,
+                    )
+                    .as_ref(),
                 ),
                 super::StdAdminApiTestStrRef::from(
                     serde_json::json!({(stringify!(filter)): {(stringify!(user_id)): admin_id}})
@@ -4126,9 +4134,10 @@ mod test_html {
             crate::request_with_peer(
                 crate::HttpAdminApiTestMethod::from(http::Method::DELETE),
                 crate::StdAdminApiTestStrRef::from(
-                    server_admin_contract::admin_route::AdminRoute::DeleteAccessSessions
-                        .path()
-                        .as_ref(),
+                    crate::admin_api_integration_route_path_or_panic(
+                        server_admin_contract::admin_route::AdminRoute::DeleteAccessSessions,
+                    )
+                    .as_ref(),
                 ),
                 crate::StdAdminApiTestStrRef::from(body.as_str()),
                 Some(crate::StdAdminApiTestStrRef::from(
@@ -5482,6 +5491,14 @@ impl AdminHtmlSettingsTestValues<'_> {
     }
 }
 
+fn admin_api_integration_route_path_or_panic(
+    admin_route: server_admin_contract::admin_route::AdminRoute,
+) -> server_admin_contract::admin_route_path::AdminRoutePath {
+    match admin_route.path() {
+        Ok(admin_route_path) => admin_route_path,
+        Err(error) => std::panic::panic_any(error),
+    }
+}
 fn admin_users_read_test_payload() -> AdminHtmlTestBody {
     let request = server_admin_contract::admin_users_read_request::AdminUsersReadRequest::try_from(
         &server_admin_contract::admin_table_query::AdminTableQuery::default(),

@@ -81,6 +81,40 @@ mod tests {
 
     #[derive(
         proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+        proc_macro_newtype_bounded_string_wrapper::BoundedStringWrapper,
+        proc_macro_newtype_display::Display,
+        utoipa::ToSchema,
+    )]
+    #[bounded_string(max = 8192usize)]
+    struct TestLongRouteParameter(
+        bounded_types::bounded_string::BoundedString<0usize, 8192usize, false>,
+    );
+
+    #[derive(
+        proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+        proc_macro_frontend_contract_derive_typed_route::TypedRoute,
+    )]
+    #[typed_route(
+        authentication = frontend_contract::authentication_requirement::AuthenticationRequirement::Public,
+        error_response = TestErrorResponse,
+        error_policy = frontend_contract::route_error_policy::RouteErrorPolicy::Authentication,
+        method = frontend_contract::route_method::RouteMethod::Get,
+        mutation = frontend_contract::route_mutation::RouteMutation::ReadOnly,
+        obligations = &[
+            frontend_contract::route_coverage_obligation::RouteCoverageObligation::IntegrationFixture,
+        ],
+        openapi_operation_id = constants_str::ROUTE_READ,
+        path = "/items/{item_id}",
+        path_parameter = TestLongRouteParameter,
+        request = TestRequest,
+        response = TestResponse,
+        success_status = frontend_contract::success_status::SuccessStatus::Code200,
+        transport = frontend_contract::public_transport::PublicTransport,
+    )]
+    struct TestLongParameterizedRoute;
+
+    #[derive(
+        proc_macro_optimal_memory_layout::OptimalMemoryLayout,
         proc_macro_frontend_contract_derive_route_family::RouteFamily,
     )]
     #[route_family(TestRoute)]
@@ -113,6 +147,16 @@ mod tests {
         Read,
     }
 
+    #[derive(
+        proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+        proc_macro_frontend_contract_derive_route_catalog::RouteCatalog,
+    )]
+    #[route_catalog(family = TestParameterizedCatalogFamily, body_limit = 1024usize)]
+    enum TestParameterizedCatalog {
+        #[route_catalog_route(TestLongParameterizedRoute)]
+        Long(TestLongRouteParameter),
+    }
+
     #[test]
     fn test_derive_uses_one_declaration_for_types_and_metadata() {
         let metadata =
@@ -134,6 +178,53 @@ mod tests {
             size_of_val(&test_client::<TestTransport>),
             constants_usize::ZERO
         );
+    }
+
+    #[test]
+    fn test_oversized_generated_parameterized_path_returns_client_encode_error() {
+        let parameter_result = TestLongRouteParameter::try_from(constants_str::X.repeat(8192usize));
+        assert!(parameter_result.is_ok());
+        if let Ok(parameter) = parameter_result {
+            assert!(test_long_parameterized_route(&parameter).is_err_and(|error| {
+                error
+                    == frontend_contract::parameterized_route_path_try_from_string_error::ParameterizedRoutePathTryFromStringError::TooLong
+            }));
+            let client = frontend_contract::typed_client::TypedClient::new(
+                TestTransport,
+                frontend_contract::transport_path::TransportPath::default(),
+            );
+            let result = futures::executor::block_on(
+                client.send_parameterized::<TestLongParameterizedRoute>(&parameter, TestRequest),
+            );
+            assert!(matches!(
+                result,
+                Err(frontend_contract::client_error::ClientError::Encode(_))
+            ));
+        }
+    }
+    #[test]
+    fn test_generated_parameterized_path_keeps_valid_parameter() {
+        let parameter_result = TestLongRouteParameter::try_from(constants_str::X.to_owned());
+        assert!(parameter_result.is_ok());
+        if let Ok(parameter) = parameter_result {
+            assert!(
+                test_long_parameterized_route(&parameter)
+                    .is_ok_and(|route_path| String::from(route_path).ends_with(constants_str::X))
+            );
+        }
+    }
+    #[test]
+    fn test_catalog_does_not_replace_oversized_parameterized_path_with_empty_path() {
+        let parameter_result = TestLongRouteParameter::try_from(constants_str::X.repeat(8192usize));
+        assert!(parameter_result.is_ok());
+        if let Ok(parameter) = parameter_result {
+            assert!(TestParameterizedCatalog::Long(parameter)
+                .catalog_path()
+                .is_err_and(|error| {
+                    error
+                        == frontend_contract::parameterized_route_path_try_from_string_error::ParameterizedRoutePathTryFromStringError::TooLong
+                }));
+        }
     }
 
     #[test]
@@ -236,9 +327,10 @@ mod tests {
             frontend_contract::client_route_metadata::client_route_metadata::<TestRoute>()
                 .contract()
         );
-        assert_eq!(
-            String::from(TestCatalog::Custom.catalog_path()),
-            constants_str::ROUTE
+        assert!(
+            TestCatalog::Custom
+                .catalog_path()
+                .is_ok_and(|path| String::from(path) == constants_str::ROUTE)
         );
         assert_eq!(
             <TestCatalogFamily as frontend_contract::route_family::RouteFamily>::coverage_descriptors()

@@ -33,9 +33,13 @@ pub fn resolve_fallback_response_mode(
                     segments.next().is_some_and(|media_type| {
                         media_type.eq_ignore_ascii_case(constants_str::APPLICATION_JSON)
                     }) && !segments.any(|parameter| {
-                        parameter
-                            .split_once('=')
-                            .is_some_and(|(name, quality_value)| {
+                        parameter.split_once('=').map_or_else(
+                            || {
+                                parameter.eq_ignore_ascii_case(
+                                    constants_str::HTTP_ACCEPT_QUALITY_PARAMETER,
+                                )
+                            },
+                            |(name, quality_value)| {
                                 if !name.trim().eq_ignore_ascii_case(
                                     constants_str::HTTP_ACCEPT_QUALITY_PARAMETER,
                                 ) {
@@ -48,7 +52,8 @@ pub fn resolve_fallback_response_mode(
                                         |(integer, fraction)| (integer, Some(fraction)),
                                     );
                                 let valid_fraction = fraction.is_none_or(|digits| {
-                                    digits.len() <= constants_usize::THREE
+                                    !digits.is_empty()
+                                        && digits.len() <= constants_usize::THREE
                                         && digits.bytes().all(|byte| byte.is_ascii_digit())
                                 });
                                 let positive_quality = if integer == constants_str::VALUE_1 {
@@ -63,7 +68,8 @@ pub fn resolve_fallback_response_mode(
                                     false
                                 };
                                 !valid_fraction || !positive_quality
-                            })
+                            },
+                        )
                     })
                 })
         });

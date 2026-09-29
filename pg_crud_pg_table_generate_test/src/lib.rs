@@ -139,6 +139,66 @@ mod tests {
     #[test]
     #[cfg_attr(
         miri,
+        ignore = "full table source generation is covered by native generator tests and is prohibitively slow under interpretation"
+    )]
+    fn test_generated_query_fragments_propagate_conversion_errors() {
+        let input = table_input(&quote::quote! {
+            column_0: pg_types_numeric::generate_pg_types_mod::I16AsNonNullInt2,
+        });
+        let generated = generate_pg_table_src::generate_pg_table::generate_pg_table(
+            macro_helpers::proc_macro2_token_stream_ref::ProcMacro2TokenStreamRef::from(&input),
+        )
+        .to_string();
+        assert_eq!(
+            generated
+                .matches(
+                    &quote::quote! {
+                        pg_crud_common::query_part_fragment::QueryPartFragment::try_from(accumulator)
+                            .map_err(pg_crud_common::query_part_error::QueryPartError::from)
+                    }
+                    .to_string()
+                )
+                .count(),
+            3usize
+        );
+        assert!(
+            generated.contains(
+                &quote::quote! {
+                    .map_err(pg_crud_common::query_part_error::QueryPartError::from)
+                }
+                .to_string()
+            )
+        );
+        assert!(!generated.contains(&quote::quote! {QueryPartFragment::from}.to_string()));
+    }
+    #[test]
+    #[cfg_attr(
+        miri,
+        ignore = "full table source generation is covered by native generator tests and is prohibitively slow under interpretation"
+    )]
+    fn test_generated_table_setup_propagates_column_fragment_errors() {
+        let input = table_input(&quote::quote! {
+            column_0: pg_types_numeric::generate_pg_types_mod::I16AsNonNullInt2,
+        });
+        let generated = generate_pg_table_src::generate_pg_table::generate_pg_table(
+            macro_helpers::proc_macro2_token_stream_ref::ProcMacro2TokenStreamRef::from(&input),
+        )
+        .to_string();
+        assert!(
+            generated.contains(
+                &quote::quote! {
+                    .map_err(|error| TableExamplePrepPgError::CreateTableColumnQueryPart {
+                        error,
+                        location: proc_macro_location_bang::location!(),
+                    })?
+                }
+                .to_string()
+            )
+        );
+    }
+    #[test]
+    #[cfg_attr(
+        miri,
         ignore = "compiler subprocess validation is covered by the native Clippy gate"
     )]
     fn test_pg_table_generate_clippy() {

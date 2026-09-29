@@ -95,10 +95,24 @@ impl<const MIN: usize, const MAX: usize> utoipa::PartialSchema for BoundedCharsS
     }
 }
 
-impl<const MIN: usize, const MAX: usize> utoipa::ToSchema for BoundedCharsString<MIN, MAX> {}
+impl<const MIN: usize, const MAX: usize> utoipa::ToSchema for BoundedCharsString<MIN, MAX> {
+    fn name() -> std::borrow::Cow<'static, str> {
+        std::borrow::Cow::Owned(
+            crate::utoipa_schema_type_name::UtoipaSchemaTypeName::for_type::<Self>().into_inner(),
+        )
+    }
+}
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn test_bounded_chars_string_schema_names_distinguish_bounds() {
+        assert_ne!(
+            <super::BoundedCharsString<1, 2> as utoipa::ToSchema>::name(),
+            <super::BoundedCharsString<2, 3> as utoipa::ToSchema>::name()
+        );
+    }
+
     #[test]
     fn test_unicode_is_measured_in_chars() {
         let value = crate::bounded_chars_string::BoundedCharsString::<2, 2>::try_from(

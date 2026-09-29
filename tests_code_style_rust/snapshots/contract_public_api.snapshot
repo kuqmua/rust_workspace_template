@@ -50,7 +50,6 @@ pub trait CommonRoutesParameters: git_info::git_commit_link_provider::GitCommitL
 #[derive( proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, )] pub enum RouteTestCategory { DatabaseFixture, FixtureHook, JsonRoundTrip, Metadata, StreamingResponse, }
 #[derive( proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, )] pub struct AuthSessionKeepAlive { interval: crate::auth_session_refresh_interval_duration::AuthSessionRefreshIntervalDuration, next: Option<crate::auth_session_instant::AuthSessionInstant>, state: crate::auth_session_refresh_state::AuthSessionRefreshState, }
 #[derive( proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, )] pub struct AuthenticatedTransport;
-#[derive( proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, )] pub struct ParameterizedRoutePathTryFromStringError;
 #[derive( proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, )] pub struct PublicTransport;
 #[derive( proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, proc_macro_getters::Getters, proc_macro_new::New, )] pub struct RouteCoverageDescriptor { #[constructor(order = 3)] evidence: crate::route_coverage_evidence::RouteCoverageEvidence, #[constructor(order = 0)] metadata: crate::route_metadata::RouteMetadata, #[constructor(order = 1)] access: crate::route_access::RouteAccess, #[constructor(order = 2)] mutation: crate::route_mutation::RouteMutation, }
 #[derive( proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, proc_macro_getters::Getters, proc_macro_new::New, )] pub struct RouteCoverageEvidence { obligations: &'static [crate::route_coverage_obligation::RouteCoverageObligation], }
@@ -67,6 +66,7 @@ pub trait CommonRoutesParameters: git_info::git_commit_link_provider::GitCommitL
 #[derive( proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error, )] pub enum AuthSessionKeepAliveError { #[error("authentication session refresh interval must not be zero")] ZeroInterval, #[error("{}", constants_str::AUTH_SESSION_REFRESH_OVERFLOW)] IntervalOverflow, }
 #[derive( proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error, )] pub enum FrontendContractBodyError { #[error("frontend contract body exceeds its maximum byte length")] TooLarge, }
 #[derive( proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error, )] pub enum HttpStatusTryFromU16Error { #[error("{self:?}")] OutOfRange, }
+#[derive( proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Eq, PartialEq, thiserror::Error, )] pub enum ParameterizedRoutePathTryFromStringError { #[error("{}", constants_str::PARAMETERIZED_ROUTE_PATH_TOO_LONG)] TooLong, }
 #[derive( proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, PartialEq, Eq, )] pub enum AuthenticationRequirement { Authenticated, Rule(crate::contract_str::ContractStr), Public, }
 #[derive( proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, PartialEq, Eq, )] pub enum CapabilitySupport { Supported, Unsupported, }
 #[derive( proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, PartialEq, Eq, )] pub enum ConfirmationRequirement { NotRequired, Required, }
@@ -206,7 +206,6 @@ pub trait CommonRoutesParameters: git_info::git_commit_link_provider::GitCommitL
 #[must_use] pub fn status(self) -> crate::api_problem_status::ApiProblemStatus
 #[must_use] pub fn transport_status(self) -> crate::transport_status::TransportStatus
 #[must_use] pub fn transport_status(self) -> crate::transport_status::TransportStatus
-#[must_use] pub fn typed_parameterized_route_path<Route>( parameter: &Route::Parameter, ) -> crate::parameterized_route_path::ParameterizedRoutePath where Route: crate::parameterized_route::ParameterizedRoute,
 #[must_use] pub fn typed_route_path<Route>() -> crate::contract_str::ContractStr where Route: crate::typed_route::TypedRoute,
 #[must_use] pub fn with_idempotency_key( mut self, transport_idempotency_key: crate::transport_idempotency_key::TransportIdempotencyKey, ) -> Self
 #[must_use] pub fn with_if_match( mut self, transport_if_match: crate::transport_if_match::TransportIfMatch, ) -> Self
@@ -238,13 +237,14 @@ pub fn push_path_segment( &mut self, api_url_path_segment_ref: crate::api_url_pa
 pub fn push_query_pair( &mut self, name: crate::api_url_query_component_ref::ApiUrlQueryComponentRef<'_>, value: crate::api_url_query_component_ref::ApiUrlQueryComponentRef<'_>, ) -> Result<(), ApiUrlTryFromStringError>
 pub fn register_openapi_route_schemas<Route>( utoipa_open_api_ref_mut: &mut crate::utoipa_open_api_ref_mut::UtoipaOpenApiRefMut<'_>, ) where Route: crate::typed_route::TypedRoute,
 pub fn success_body( &self, transport_status: crate::transport_status::TransportStatus, ) -> Result<&crate::transport_body::TransportBody, crate::client_error::ClientError>
+pub fn typed_parameterized_route_path<Route>( parameter: &Route::Parameter, ) -> Result< crate::parameterized_route_path::ParameterizedRoutePath, crate::parameterized_route_path_try_from_string_error::ParameterizedRoutePathTryFromStringError, > where Route: crate::parameterized_route::ParameterizedRoute,
 pub fn validate_route_coverage( descriptors: &[crate::route_coverage_descriptor::RouteCoverageDescriptor], ) -> Result<(), crate::route_coverage_error::RouteCoverageError>
 pub trait CoveredRoute: crate::typed_route::TypedRoute { fn coverage_descriptor() -> crate::route_coverage_descriptor::RouteCoverageDescriptor; }
 pub trait FilterFormValueContract { fn parse_filter_form_value( form_value_ref: crate::form_value_ref::FormValueRef<'_>, ) -> Result<crate::filter_wire_json::FilterWireJson, crate::form_value_error::FormValueError>; }
 pub trait FormValueContract: Sized { fn format_form_value( &self, ) -> Result<crate::form_value::FormValue, crate::form_value_error::FormValueError>; fn parse_form_value( form_value_ref: crate::form_value_ref::FormValueRef<'_>, ) -> Result<Self, crate::form_value_error::FormValueError>; }
 pub trait HasFilterContracts { const FILTER_CONTRACTS: &'static [crate::filter_operation::FilterOperation]; #[must_use] fn filter_contracts() -> crate::filter_contracts::FilterContracts { crate::filter_contracts::FilterContracts::from(Self::FILTER_CONTRACTS) } }
 pub trait HasTypeContract { fn type_contract() -> crate::type_contract::TypeContract; }
-pub trait ParameterizedRoute: crate::typed_route::TypedRoute { type Parameter; fn path(parameter: &Self::Parameter) -> crate::parameterized_route_path::ParameterizedRoutePath; }
+pub trait ParameterizedRoute: crate::typed_route::TypedRoute { type Parameter; fn path( parameter: &Self::Parameter, ) -> Result< crate::parameterized_route_path::ParameterizedRoutePath, crate::parameterized_route_path_try_from_string_error::ParameterizedRoutePathTryFromStringError, >; }
 pub trait RouteFamily { const ROUTE_COUNT: usize = constants_usize::ZERO; #[must_use] fn body_limit() -> Option<crate::route_body_limit::RouteBodyLimit> { None } fn coverage_descriptors() -> crate::route_coverage_descriptors::RouteCoverageDescriptors; #[must_use] fn schema_contracts() -> crate::route_schema_contracts::RouteSchemaContracts { crate::route_schema_contracts::RouteSchemaContracts::default() } #[must_use] fn route_metadata() -> crate::route_metadata_list::RouteMetadataList { crate::route_metadata_list::RouteMetadataList::from( bounded_types::bounded_vec::BoundedVec::from_max_iter( bounded_types::bounded_vec::BoundedVec::from(Self::coverage_descriptors()) .into_iter() .map(|descriptor| *descriptor.get_metadata()), ), ) } }
 pub trait RouteInFamily<Family> where Family: crate::route_family::RouteFamily, { }
 pub trait RouteRegistrationContract: Copy { fn registration_method(self) -> crate::route_method::RouteMethod; fn registration_path(self) -> crate::contract_str::ContractStr; }
@@ -277,7 +277,6 @@ pub trait TypedRoute: Sized { type Request: serde::Serialize + serde::de::Deseri
 #[derive( proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Hash, PartialEq, Eq, serde::Serialize, serde::Deserialize, utoipa::ToSchema, proc_macro_newtype_display::Display, proc_macro_newtype_from_inner::FromInner, )] #[serde(try_from = "i64")] #[schema(value_type = i64)] pub struct AdminSystemSettingId(crate::positive_non_zero_i64::PositiveNonZeroI64);
 #[derive( proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Hash, PartialEq, Eq, serde::Serialize, serde::Deserialize, utoipa::ToSchema, proc_macro_newtype_display::Display, proc_macro_newtype_from_inner::FromInner, )] #[serde(try_from = "i64")] #[schema(value_type = i64)] pub struct AdminUserId(crate::positive_non_zero_i64::PositiveNonZeroI64);
 #[derive( proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, Hash, PartialEq, Eq, serde::Serialize, serde::Deserialize, utoipa::ToSchema, proc_macro_newtype_display::Display, proc_macro_newtype_from_inner::FromInner, )] #[serde(try_from = "i64")] #[schema(value_type = i64)] pub struct AdminUserRoleId(crate::positive_non_zero_i64::PositiveNonZeroI64);
-#[derive( proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, PartialEq, Eq, )] pub enum AdminRoutePathError { TooLong, }
 #[derive( proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, PartialEq, Eq, )] pub enum AdminSettingInputKind { Text, TextArea, Url, }
 #[derive( proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, PartialEq, Eq, )] pub enum AdminSettingOptionality { Clearable(crate::admin_optional_setting::AdminOptionalSetting), Required, }
 #[derive( proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, PartialEq, Eq, )] pub enum AdminTableSortField { AuditAction, AuditCreatedAt, AuditResource, AuditSucceeded, AuditUserId, RuleCreatedAt, RuleId, RuleName, RoleId, RoleName, RoleSystem, UserDisplayName, UserId, UserLogin, UserStatus, }
@@ -290,6 +289,7 @@ pub trait TypedRoute: Sized { type Request: serde::Serialize + serde::de::Deseri
 #[derive( proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, PartialEq, Eq, proc_macro_newtype_from_inner::FromInner, proc_macro_newtype_get_inner::GetInner, )] pub struct AdminTableSortKeyRef<'value_lt>(&'value_lt str);
 #[derive( proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, PartialEq, Eq, proc_macro_newtype_into_inner_from::IntoInnerFrom, serde::Serialize, utoipa::ToSchema, )] pub struct AdminPageLimit(u16);
 #[derive( proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, PartialEq, Eq, thiserror::Error, )] pub enum AdminPageLimitError { #[error( "administrator page limit must be between {min} and {max}", min = crate::admin_page_limit::AdminPageLimit::MIN, max = crate::admin_page_limit::AdminPageLimit::MAX )] OutOfRange, }
+#[derive( proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, PartialEq, Eq, thiserror::Error, )] pub enum AdminRoutePathError { #[error("{}", constants_str::ADMINISTRATOR_ROUTE_PATH_IS_TOO_LONG)] TooLong, #[error("{}", constants_str::ADMINISTRATOR_ROUTE_PATH_IS_TOO_LONG)] ParameterizedPath( #[from] frontend_contract::parameterized_route_path_try_from_string_error::ParameterizedRoutePathTryFromStringError, ), }
 #[derive( proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, PartialEq, Eq, thiserror::Error, )] pub enum AdminTableSortFieldTryFromKeyError { #[error("{}", constants_str::UNKNOWN_ADMIN_TABLE_SORT_FIELD)] Unknown, }
 #[derive( proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, proc_macro_frontend_contract_derive_contract_struct_api::ContractStructApi, serde::Serialize, serde::Deserialize, utoipa::ToSchema, )] #[contract_struct_api(new)] pub struct AdminCreateUserResponse { id: crate::admin_user_id::AdminUserId, }
 #[derive( proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug, proc_macro_frontend_contract_derive_typed_route::TypedRoute, )] #[typed_route( authentication = frontend_contract::authentication_requirement::AuthenticationRequirement::Authenticated, method = frontend_contract::route_method::RouteMethod::Get, mutation = frontend_contract::route_mutation::RouteMutation::ReadOnly, obligations = frontend_contract::route_coverage_obligation::AUTHENTICATED_READ_ROUTE_COVERAGE_OBLIGATIONS, error_policy = frontend_contract::route_error_policy::RouteErrorPolicy::Default, openapi_operation_id = "me", path = "/auth/me/read", request = crate::admin_no_body::AdminNoBody, response = crate::authenticated_admin::AuthenticatedAdmin, success_status = frontend_contract::success_status::SuccessStatus::Code200, transport = frontend_contract::authenticated_transport::AuthenticatedTransport, )] pub struct AdminMeRoute;
@@ -574,7 +574,6 @@ pub trait TypedRoute: Sized { type Request: serde::Serialize + serde::de::Deseri
 #[must_use] pub const fn value(self) -> crate::positive_non_zero_i64::PositiveNonZeroI64
 #[must_use] pub const fn value(self) -> crate::positive_non_zero_i64::PositiveNonZeroI64
 #[must_use] pub const fn values(&self) -> &[crate::admin_text::AdminText]
-#[must_use] pub fn admin_parameterized_route_path<Route>( parameter: &Route::Parameter, ) -> crate::admin_route_path::AdminRoutePath where Route: frontend_contract::parameterized_route::ParameterizedRoute,
 #[must_use] pub fn authentication( self, ) -> frontend_contract::authentication_requirement::AuthenticationRequirement
 #[must_use] pub fn can_access( &self, admin_page: crate::admin_page::AdminPage, ) -> crate::admin_bool::AdminBool
 #[must_use] pub fn default_admin_api_body_max_bytes() -> crate::admin_api_body_max_bytes::AdminApiBodyMaxBytes
@@ -616,7 +615,6 @@ pub trait TypedRoute: Sized { type Request: serde::Serialize + serde::de::Deseri
 #[must_use] pub fn label(self) -> frontend_contract::contract_str::ContractStr
 #[must_use] pub fn maximum_bytes(self) -> crate::admin_audit_details_bytes::AdminAuditDetailsBytes
 #[must_use] pub fn pagination( admin_page_limit: crate::admin_page_limit::AdminPageLimit, admin_page_offset: crate::admin_page_offset::AdminPageOffset, ) -> Self
-#[must_use] pub fn path(self) -> crate::admin_route_path::AdminRoutePath
 #[must_use] pub fn path(self) -> frontend_contract::contract_str::ContractStr
 #[must_use] pub fn path(self) -> frontend_contract::contract_str::ContractStr
 #[must_use] pub fn required(self) -> crate::admin_bool::AdminBool
@@ -644,7 +642,9 @@ pub const ADMIN_PASSWORD_MIN_CHARS: usize = 1usize;
 pub const ADMIN_ROLE_NAME_MAX_CHARS: usize = 128usize;
 pub const ADMIN_ROLE_NAME_MIN_CHARS: usize = 1usize;
 pub const COUNT: usize = 8usize;
+pub fn admin_parameterized_route_path<Route>( parameter: &Route::Parameter, ) -> Result< crate::admin_route_path::AdminRoutePath, crate::admin_route_path_error::AdminRoutePathError, > where Route: frontend_contract::parameterized_route::ParameterizedRoute,
 pub fn all_pages() -> impl Iterator<Item = Self>
 pub fn navigation() -> impl Iterator<Item = Self>
+pub fn path( self, ) -> Result< crate::admin_route_path::AdminRoutePath, crate::admin_route_path_error::AdminRoutePathError, >
 pub fn try_from_identifier_filter( admin_data_table_filter_query: &crate::admin_data_table_filter_query::AdminDataTableFilterQuery, ) -> Result<Option<Self>, crate::admin_identifier_filter_error::AdminIdentifierFilterError>
 pub fn try_from_key( options: &[Self], admin_table_sort_key_ref: crate::admin_table_sort_key_ref::AdminTableSortKeyRef<'_>, ) -> Result< Self, crate::admin_table_sort_field_try_from_key_error::AdminTableSortFieldTryFromKeyError, >

@@ -4,5 +4,5 @@ pub(crate) fn admin_api_url(
     crate::admin_csr_api_url::AdminCsrApiUrl,
     crate::admin_table_load_error::AdminTableLoadError,
 > {
-    crate::admin_route_path_url::admin_route_path_url(&admin_route.path())
+    crate::admin_route_path_url::admin_route_path_url(&admin_route.path()?)
 }

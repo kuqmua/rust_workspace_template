@@ -19,6 +19,39 @@ mod tests {
         );
     }
     #[test]
+    fn test_parser_normalizes_origin_scheme_and_host_case() {
+        let uppercase = constants_str::HTTPS_ADMIN_EXAMPLE_COM.to_ascii_uppercase();
+        let parsed = crate::parse_cors_allow_origin::parse_cors_allow_origin(
+            crate::http_cors_allow_origin_text_ref::HttpCorsAllowOriginTextRef::from(
+                uppercase.as_str(),
+            ),
+        )
+        .map(Vec::<http::HeaderValue>::from);
+        assert_eq!(
+            parsed,
+            Ok(vec![http::HeaderValue::from_static(
+                constants_str::HTTPS_ADMIN_EXAMPLE_COM
+            )])
+        );
+    }
+    #[test]
+    fn test_parser_omits_default_origin_ports() {
+        let cases = [
+            (constants_str::HTTP_LOCALHOST, 80u16),
+            (constants_str::HTTPS_ADMIN_EXAMPLE_COM, 443u16),
+        ];
+        assert!(cases.into_iter().all(|(origin, port)| {
+            let configured = format!("{origin}:{port}");
+            let parsed = crate::parse_cors_allow_origin::parse_cors_allow_origin(
+                crate::http_cors_allow_origin_text_ref::HttpCorsAllowOriginTextRef::from(
+                    configured.as_str(),
+                ),
+            )
+            .map(Vec::<http::HeaderValue>::from);
+            parsed == Ok(vec![http::HeaderValue::from_static(origin)])
+        }));
+    }
+    #[test]
     fn test_parser_preserves_empty_configuration_behavior() {
         let parsed = Vec::<http::HeaderValue>::from(
             crate::parse_cors_allow_origin::parse_cors_allow_origin(

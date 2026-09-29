@@ -12,6 +12,10 @@ fn test_validates_string_and_header_boundaries() {
         crate::request_id::RequestId::try_from(constants_str::A_ALT.repeat(129usize)),
         Err(crate::request_id_try_from_string_error::RequestIdTryFromStringError::Invalid)
     );
+    assert!([0u8, 9u8, 10u8, 13u8, 127u8].into_iter().all(|byte| {
+        crate::request_id::RequestId::try_from(char::from(byte).to_string())
+            == Err(crate::request_id_try_from_string_error::RequestIdTryFromStringError::Invalid)
+    }));
     assert_eq!(
         crate::request_id::RequestId::try_from(
             String::from_utf8(vec![0xc3u8, 0xa9u8]).expect(constants_str::DIAGNOSTIC_F246E4F8)

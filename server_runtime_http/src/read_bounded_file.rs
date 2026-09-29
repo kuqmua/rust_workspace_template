@@ -21,7 +21,8 @@ pub fn read_bounded_file(
     }
     let initial_capacity = usize::try_from(metadata.len())
         .unwrap_or_else(|_error| bounded_read_maximum_bytes.get())
-        .min(bounded_read_maximum_bytes.get());
+        .min(bounded_read_maximum_bytes.get())
+        .min(constants_usize::VALUE_4_096);
     let read_limit = u64::try_from(bounded_read_maximum_bytes.get())
         .unwrap_or(u64::MAX)
         .saturating_add(constants_u64::ONE);

@@ -17,7 +17,11 @@ pub fn resolve_unique_cookie<'value_lt>(
     let Ok(text) = header.to_str() else {
         return crate::cookie_resolution::CookieResolution::Invalid;
     };
-    if text.len() > constants_usize::VALUE_4_096 {
+    if text.len()
+        > constants_usize::VALUE_8_192
+            .saturating_add(constants_usize::VALUE_8_192)
+            .saturating_add(constants_usize::ONE)
+    {
         return crate::cookie_resolution::CookieResolution::Invalid;
     }
     match text.split(';').try_fold(

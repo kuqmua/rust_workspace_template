@@ -61,6 +61,23 @@ mod tests {
                 ))
                 .get()
         );
+        assert!(
+            range(mapped_network_text.as_str())
+                .contains(crate::parsed_ip_addr::ParsedIpAddr::from(
+                    std::net::IpAddr::V4(std::net::Ipv4Addr::LOCALHOST),
+                ))
+                .get()
+        );
+        let mut all_ipv6_text = std::net::Ipv6Addr::UNSPECIFIED.to_string();
+        all_ipv6_text.push('/');
+        all_ipv6_text.push_str(constants_str::VALUE_0);
+        assert!(
+            !range(all_ipv6_text.as_str())
+                .contains(crate::parsed_ip_addr::ParsedIpAddr::from(
+                    std::net::IpAddr::V4(std::net::Ipv4Addr::LOCALHOST),
+                ))
+                .get()
+        );
     }
 
     #[test]
@@ -93,6 +110,26 @@ mod tests {
                 std::net::IpAddr::V6(untrusted_peer),
             )
         }));
+    }
+
+    #[test]
+    fn test_ipv4_peer_is_trusted_by_mapped_ipv6_proxy_range() {
+        let mut mapped_network_text = std::net::Ipv4Addr::LOCALHOST.to_ipv6_mapped().to_string();
+        mapped_network_text.push('/');
+        mapped_network_text.push_str(constants_str::VALUE_128);
+        let mut headers = http::HeaderMap::new();
+        let _previous = headers.insert(
+            constants_str::RUNTIME_FORWARDED_FOR_HEADER_NAME,
+            http::HeaderValue::from_static(constants_str::VALUE_203_0_113_1),
+        );
+        assert_eq!(
+            resolved(
+                &headers,
+                constants_str::VALUE_127_0_0_1_8080,
+                vec![range(mapped_network_text.as_str())],
+            ),
+            constants_str::VALUE_203_0_113_1
+        );
     }
 
     #[test]
@@ -270,6 +307,48 @@ mod tests {
                 vec![range(constants_str::VALUE_A34D80F7)]
             ),
             constants_str::VALUE_EBB856CA
+        );
+    }
+
+    #[test]
+    fn test_invalid_forwarded_header_does_not_fall_back_to_real_ip() {
+        let mut headers = http::HeaderMap::new();
+        let _forwarded = headers.insert(
+            constants_str::RUNTIME_FORWARDED_FOR_HEADER_NAME,
+            http::HeaderValue::from_static(constants_str::NOT_AN_IP),
+        );
+        let _real_ip = headers.insert(
+            constants_str::RUNTIME_REAL_IP_HEADER_NAME,
+            http::HeaderValue::from_static(constants_str::VALUE_203_0_113_1),
+        );
+        assert_eq!(
+            resolved(
+                &headers,
+                constants_str::VALUE_52553922,
+                vec![range(constants_str::VALUE_A34D80F7)]
+            ),
+            constants_str::VALUE_EBB856CA
+        );
+        let _duplicate_forwarded = headers.append(
+            constants_str::RUNTIME_FORWARDED_FOR_HEADER_NAME,
+            http::HeaderValue::from_static(constants_str::VALUE_203_0_113_1),
+        );
+        assert_eq!(
+            resolved(
+                &headers,
+                constants_str::VALUE_52553922,
+                vec![range(constants_str::VALUE_A34D80F7)]
+            ),
+            constants_str::VALUE_EBB856CA
+        );
+        let _removed = headers.remove(constants_str::RUNTIME_FORWARDED_FOR_HEADER_NAME);
+        assert_eq!(
+            resolved(
+                &headers,
+                constants_str::VALUE_52553922,
+                vec![range(constants_str::VALUE_A34D80F7)]
+            ),
+            constants_str::VALUE_203_0_113_1
         );
     }
     #[test]

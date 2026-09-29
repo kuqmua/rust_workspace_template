@@ -3,6 +3,15 @@
     reason = "test trait fixtures preserve repository type-based parameter names"
 )]
 
+fn admin_contract_route_path_or_panic(
+    admin_route: crate::admin_route::AdminRoute,
+) -> crate::admin_route_path::AdminRoutePath {
+    match admin_route.path() {
+        Ok(admin_route_path) => admin_route_path,
+        Err(error) => std::panic::panic_any(error),
+    }
+}
+
 #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Copy)]
 struct ClientTransport;
 impl frontend_contract::transport::Transport for ClientTransport {
@@ -248,7 +257,7 @@ fn test_request_payloads_reject_unknown_fields() {
 fn test_route_contract_keeps_custom_action_policy_and_path_together() {
     let route = crate::admin_route::AdminRoute::UpdateUsers;
     assert_eq!(
-        route.path().as_ref(),
+        admin_contract_route_path_or_panic(route).as_ref(),
         constants_str::ADMIN_USERS_UPDATE_PATH
     );
     assert_eq!(
@@ -428,15 +437,15 @@ fn test_parameterized_admin_route_path_uses_typed_route_metadata() {
         String::from(constants_str::VALUE_4943E43B),
     )
     .expect(constants_str::DIAGNOSTIC_84D51132);
-    let path = crate::admin_parameterized_route_path::admin_parameterized_route_path::<
+    let admin_path_result = crate::admin_parameterized_route_path::admin_parameterized_route_path::<
         crate::admin_revoke_session_route::AdminRevokeSessionRoute,
     >(&session_id);
-    assert_eq!(path.as_ref(), constants_str::VALUE_C0FE54AF);
-    assert_eq!(
-        String::from(crate::admin_revoke_session_route::revoke_session_route(
-            &session_id
-        )),
-        constants_str::VALUE_FEF7B989
+    assert!(
+        matches!(admin_path_result, Ok(admin_path) if admin_path.as_ref() == constants_str::VALUE_C0FE54AF)
+    );
+    assert!(
+        crate::admin_revoke_session_route::revoke_session_route(&session_id)
+            .is_ok_and(|typed_path| String::from(typed_path) == constants_str::VALUE_FEF7B989)
     );
     assert_eq!(
         String::from(crate::admin_update_users_route::update_users_route()),
@@ -447,7 +456,7 @@ fn test_parameterized_admin_route_path_uses_typed_route_metadata() {
 fn test_create_user_payload_example_route_matches_create_request() {
     let route = crate::admin_route::AdminRoute::CreateUserPayloadExample;
     assert_eq!(
-        route.path().as_ref(),
+        admin_contract_route_path_or_panic(route).as_ref(),
         constants_str::ADMIN_USERS_CREATE_PAYLOAD_EXAMPLE_READ
     );
     assert_eq!(
@@ -463,7 +472,7 @@ fn test_create_user_payload_example_route_matches_create_request() {
 fn test_delete_users_payload_example_route_matches_delete_request() {
     let route = crate::admin_route::AdminRoute::DeleteUsersPayloadExample;
     assert_eq!(
-        route.path().as_ref(),
+        admin_contract_route_path_or_panic(route).as_ref(),
         constants_str::ADMIN_USERS_DELETE_PAYLOAD_EXAMPLE_READ
     );
     assert_eq!(
@@ -497,7 +506,7 @@ fn test_role_payload_example_routes_match_role_mutation_requests() {
     ]
     .into_iter()
     .for_each(|(route, path)| {
-        assert_eq!(route.path().as_ref(), path);
+        assert_eq!(admin_contract_route_path_or_panic(route).as_ref(), path);
         assert_eq!(
             route.contract().method(),
             frontend_contract::route_method::RouteMethod::Get
@@ -512,7 +521,7 @@ fn test_role_payload_example_routes_match_role_mutation_requests() {
 fn test_update_users_payload_example_route_matches_update_request() {
     let route = crate::admin_route::AdminRoute::UpdateUsersPayloadExample;
     assert_eq!(
-        route.path().as_ref(),
+        admin_contract_route_path_or_panic(route).as_ref(),
         constants_str::ADMIN_USERS_UPDATE_PAYLOAD_EXAMPLE_READ
     );
     assert_eq!(
@@ -531,7 +540,10 @@ fn test_user_roles_read_route_uses_post_json_contract() {
         route.contract().method(),
         frontend_contract::route_method::RouteMethod::Post
     );
-    assert_eq!(route.path().as_ref(), constants_str::ADMIN_USER_ROLES_READ);
+    assert_eq!(
+        admin_contract_route_path_or_panic(route).as_ref(),
+        constants_str::ADMIN_USER_ROLES_READ
+    );
     assert_eq!(
         <crate::admin_user_roles_table_route::AdminUserRolesTableRoute as frontend_contract::typed_route::TypedRoute>::request_body(),
         frontend_contract::route_request_body::RouteRequestBody::Json
@@ -551,7 +563,10 @@ fn test_html_action_inventory_has_unique_paths() {
 #[test]
 fn test_open_api_page_uses_the_typed_authenticated_api_route() {
     let route = crate::admin_route::AdminRoute::OpenApi;
-    assert_eq!(route.path().as_ref(), constants_str::VALUE_72ACA5B8);
+    assert_eq!(
+        admin_contract_route_path_or_panic(route).as_ref(),
+        constants_str::VALUE_72ACA5B8
+    );
     assert_eq!(
         route.contract().authentication(),
         frontend_contract::authentication_requirement::AuthenticationRequirement::Rule(
@@ -614,7 +629,9 @@ fn test_administrator_routes_use_snake_case_segments() {
             crate::admin_route::AdminRoute::SignOut,
         ]
         .iter()
-        .all(|route| !route.path().as_ref().contains('-'))
+        .all(|route| !admin_contract_route_path_or_panic(*route)
+            .as_ref()
+            .contains('-'))
     );
     assert!(frontend_paths.iter().all(|path| !path.contains('-')));
     assert!(
@@ -628,7 +645,7 @@ fn test_administrator_routes_use_snake_case_segments() {
 fn test_system_settings_read_route_uses_read_path() {
     let route = crate::admin_route::AdminRoute::Settings;
     assert_eq!(
-        route.path().as_ref(),
+        admin_contract_route_path_or_panic(route).as_ref(),
         constants_str::ADMIN_SYSTEM_SETTINGS_READ
     );
     assert_eq!(
@@ -995,7 +1012,10 @@ fn test_health_api_paths_preserve_service_root() {
     ]
     .into_iter()
     .for_each(|route| {
-        assert_eq!(route.path().as_ref(), route.contract().path().as_ref());
+        assert_eq!(
+            admin_contract_route_path_or_panic(route).as_ref(),
+            route.contract().path().as_ref()
+        );
     });
 }
 
@@ -1016,7 +1036,7 @@ fn test_data_table_api_routes_use_dedicated_resources() {
                         frontend_contract::route_method::RouteMethod::Post
                     );
                     assert_eq!(
-                        route.path().as_ref(),
+                        admin_contract_route_path_or_panic(route).as_ref(),
                         frontend_contract::typed_route_path::typed_route_path::<
                             crate::admin_read_system_settings_route::AdminReadSystemSettingsRoute,
                         >()
@@ -1029,7 +1049,7 @@ fn test_data_table_api_routes_use_dedicated_resources() {
                         frontend_contract::route_method::RouteMethod::Post
                     );
                     assert_eq!(
-                        route.path().as_ref(),
+                        admin_contract_route_path_or_panic(route).as_ref(),
                         frontend_contract::typed_route_path::typed_route_path::<
                             crate::admin_read_audit_log_route::AdminReadAuditLogRoute,
                         >()
@@ -1038,13 +1058,16 @@ fn test_data_table_api_routes_use_dedicated_resources() {
                 }
                 crate::admin_data_table::AdminDataTable::Users => {
                     assert_eq!(
-                        route.path().as_ref(),
+                        admin_contract_route_path_or_panic(route).as_ref(),
                         frontend_contract::typed_route_path::typed_route_path::<
                             crate::admin_read_users_route::AdminReadUsersRoute,
                         >()
                         .as_ref()
                     );
-                    assert_eq!(route.path().as_ref(), route.contract().path().as_ref());
+                    assert_eq!(
+                        admin_contract_route_path_or_panic(route).as_ref(),
+                        route.contract().path().as_ref()
+                    );
                 }
                 crate::admin_data_table::AdminDataTable::Roles
                 | crate::admin_data_table::AdminDataTable::Rules
@@ -1059,10 +1082,15 @@ fn test_data_table_api_routes_use_dedicated_resources() {
                 | crate::admin_data_table::AdminDataTable::RateLimits
                 | crate::admin_data_table::AdminDataTable::CleanupStatus => {
                     assert_eq!(
-                        route.path().as_ref().strip_prefix(constants_str::SLASH),
+                        admin_contract_route_path_or_panic(route)
+                            .as_ref()
+                            .strip_prefix(constants_str::SLASH),
                         Some(format!("{table}{}", constants_str::READ_ROUTE_SUFFIX).as_str())
                     );
-                    assert_eq!(route.path().as_ref(), route.contract().path().as_ref());
+                    assert_eq!(
+                        admin_contract_route_path_or_panic(route).as_ref(),
+                        route.contract().path().as_ref()
+                    );
                 }
             }
         });
@@ -1339,6 +1367,43 @@ fn test_role_read_response_accepts_generated_timestamp_wire_values() {
         role.updated_at().to_string(),
         constants_str::VALUE_2026_07_13T12_30_00
     );
+}
+
+#[test]
+fn test_role_timestamp_rejects_invalid_generated_wire_values() {
+    let invalid_values = [
+        serde_json::json!({
+            (constants_str::DATE_NAIVE): constants_str::VALUE_2026_02_30T12_30_00.split_once('T').map_or(constants_str::EMPTY, |(date, _)| date),
+            (constants_str::PG_CRUD_PG_TIME): {
+                (constants_str::HOUR): 12u64,
+                (constants_str::MIN): 30u64,
+                (constants_str::SEC): 0u64,
+                (constants_str::MICRO): 0u64,
+            },
+        }),
+        serde_json::json!({
+            (constants_str::DATE_NAIVE): constants_str::VALUE_2026_07_13T12_30_00.split_once('T').map_or(constants_str::EMPTY, |(date, _)| date),
+            (constants_str::PG_CRUD_PG_TIME): {
+                (constants_str::HOUR): 24u64,
+                (constants_str::MIN): 30u64,
+                (constants_str::SEC): 0u64,
+                (constants_str::MICRO): 0u64,
+            },
+        }),
+        serde_json::json!({
+            (constants_str::DATE_NAIVE): constants_str::VALUE_2026_07_13T12_30_00.split_once('T').map_or(constants_str::EMPTY, |(date, _)| date),
+            (constants_str::PG_CRUD_PG_TIME): {
+                (constants_str::HOUR): 12u64,
+                (constants_str::MIN): 30u64,
+                (constants_str::SEC): 0u64,
+                (constants_str::MICRO): 1_000_000u64,
+            },
+        }),
+    ];
+    assert!(invalid_values.into_iter().all(|value| {
+        serde_json::from_value::<crate::admin_role_timestamp::AdminRoleTimestamp>(value)
+            .is_err_and(|error| !error.to_string().is_empty())
+    }));
 }
 
 #[test]

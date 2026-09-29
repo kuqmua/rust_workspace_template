@@ -3154,7 +3154,7 @@ pub(super) enum IsConst {
                                 {
                                     return Err(#import::query_part_error::QueryPartError::WriteIntoBuffer { location: proc_macro_location_bang::location!() });
                                 }
-                                Ok(#import::query_part_fragment::QueryPartFragment::try_from(query_part_94ddf524).unwrap_or_else(#import::query_part_fragment::QueryPartFragment::from))
+                                Ok(#import::query_part_fragment::QueryPartFragment::try_from(query_part_94ddf524)?)
                             },
                             Err(error) => Err(error)
                         }
@@ -3328,7 +3328,7 @@ pub(super) enum IsConst {
                     if std::fmt::Write::write_fmt(&mut query_part_98c19394, format_args!(#format_token_stream)).is_err() {
                         return Err(#import::query_part_error::QueryPartError::WriteIntoBuffer { location: proc_macro_location_bang::location!() });
                     }
-                    Ok(#import::query_part_fragment::QueryPartFragment::try_from(query_part_98c19394).unwrap_or_else(#import::query_part_fragment::QueryPartFragment::from))
+                    Ok(#import::query_part_fragment::QueryPartFragment::try_from(query_part_98c19394)?)
                 }
             };
             pg_crud_macro_common::generate_impl_pg_type_token_stream::generate_impl_pg_type_token_stream(
@@ -3377,9 +3377,9 @@ pub(super) enum IsConst {
                             quote::quote! {
                                 let mut query_part_f8ad7c79 = String::with_capacity(32);
                                 if std::fmt::Write::write_fmt(&mut query_part_f8ad7c79, format_args!(#format_token_stream)).is_err() {
-                                    return #import::query_part_fragment::QueryPartFragment::try_from(String::default()).unwrap_or_else(#import::query_part_fragment::QueryPartFragment::from);
+                                    return Err(#import::query_part_error::QueryPartError::WriteIntoBuffer { location: proc_macro_location_bang::location!() });
                                 }
-                                #import::query_part_fragment::QueryPartFragment::try_from(query_part_f8ad7c79).unwrap_or_else(#import::query_part_fragment::QueryPartFragment::from)
+                                #import::query_part_fragment::QueryPartFragment::try_from(query_part_f8ad7c79).map_err(#import::query_part_error::QueryPartError::from)
                             }
                         }
                         (pg_crud_macro_common::is_nullable::IsNullable::False, crate::can_be_primary_key::CanBePrimaryKey::True) => {
@@ -3392,9 +3392,9 @@ pub(super) enum IsConst {
                                 )
                                 .is_err()
                                 {
-                                    return #import::query_part_fragment::QueryPartFragment::try_from(String::default()).unwrap_or_else(#import::query_part_fragment::QueryPartFragment::from);
+                                    return Err(#import::query_part_error::QueryPartError::WriteIntoBuffer { location: proc_macro_location_bang::location!() });
                                 }
-                                #import::query_part_fragment::QueryPartFragment::try_from(query_part_06cdb263).unwrap_or_else(#import::query_part_fragment::QueryPartFragment::from)
+                                #import::query_part_fragment::QueryPartFragment::try_from(query_part_06cdb263).map_err(#import::query_part_error::QueryPartError::from)
                             }
                         }
                         (pg_crud_macro_common::is_nullable::IsNullable::True, crate::can_be_primary_key::CanBePrimaryKey::False) => {
@@ -3402,9 +3402,9 @@ pub(super) enum IsConst {
                             quote::quote! {
                                 let mut query_part_277407be = String::with_capacity(32);
                                 if std::fmt::Write::write_fmt(&mut query_part_277407be, format_args!(#format_token_stream)).is_err() {
-                                    return #import::query_part_fragment::QueryPartFragment::try_from(String::default()).unwrap_or_else(#import::query_part_fragment::QueryPartFragment::from);
+                                    return Err(#import::query_part_error::QueryPartError::WriteIntoBuffer { location: proc_macro_location_bang::location!() });
                                 }
-                                #import::query_part_fragment::QueryPartFragment::try_from(query_part_277407be).unwrap_or_else(#import::query_part_fragment::QueryPartFragment::from)
+                                #import::query_part_fragment::QueryPartFragment::try_from(query_part_277407be).map_err(#import::query_part_error::QueryPartError::from)
                             }
                         }
                         (pg_crud_macro_common::is_nullable::IsNullable::True, crate::can_be_primary_key::CanBePrimaryKey::True) => {
@@ -3417,9 +3417,9 @@ pub(super) enum IsConst {
                                 )
                                 .is_err()
                                 {
-                                    return #import::query_part_fragment::QueryPartFragment::try_from(String::default()).unwrap_or_else(#import::query_part_fragment::QueryPartFragment::from);
+                                    return Err(#import::query_part_error::QueryPartError::WriteIntoBuffer { location: proc_macro_location_bang::location!() });
                                 }
-                                #import::query_part_fragment::QueryPartFragment::try_from(query_part_3265d12f).unwrap_or_else(#import::query_part_fragment::QueryPartFragment::from)
+                                #import::query_part_fragment::QueryPartFragment::try_from(query_part_3265d12f).map_err(#import::query_part_error::QueryPartError::from)
                             }
                         }
                     }
@@ -3443,7 +3443,7 @@ pub(super) enum IsConst {
                 &identifier_select_upper_camel_case,
                 &pg_crud_macro_common::emission_types::SelectQueryPartValueUndrscr::True,
                 &{
-                    let ts = quote::quote! {#import::query_part_fragment::QueryPartFragment::try_from(#column_snake_case.to_string()).unwrap_or_else(#import::query_part_fragment::QueryPartFragment::from)};
+                    let ts = quote::quote! {#import::query_part_fragment::QueryPartFragment::try_from(#column_snake_case.to_string())?};
                     quote::quote! {Ok(#ts)}
                 },
                 &identifier_where_upper_camel_case,

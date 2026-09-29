@@ -14,7 +14,7 @@ impl TryFrom<String> for ParameterizedRoutePath {
     type Error = crate::parameterized_route_path_try_from_string_error::ParameterizedRoutePathTryFromStringError;
     fn try_from(value: String) -> Result<Self, Self::Error> {
         if value.len() > constants_usize::VALUE_8_192 {
-            return Err(crate::parameterized_route_path_try_from_string_error::ParameterizedRoutePathTryFromStringError);
+            return Err(crate::parameterized_route_path_try_from_string_error::ParameterizedRoutePathTryFromStringError::TooLong);
         }
         bounded_types::bounded_string::BoundedString::try_from(value)
             .map(Self)
@@ -24,7 +24,7 @@ impl TryFrom<String> for ParameterizedRoutePath {
                 }
                 | bounded_types::bounded_string_error::BoundedStringError::BelowMinimum {
                     ..
-                } => crate::parameterized_route_path_try_from_string_error::ParameterizedRoutePathTryFromStringError,
+                } => crate::parameterized_route_path_try_from_string_error::ParameterizedRoutePathTryFromStringError::TooLong,
             })
     }
 }

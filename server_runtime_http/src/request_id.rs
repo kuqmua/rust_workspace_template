@@ -12,7 +12,11 @@ impl TryFrom<String> for RequestId {
     type Error = crate::request_id_try_from_string_error::RequestIdTryFromStringError;
 
     fn try_from(value: String) -> Result<Self, Self::Error> {
-        if value.is_empty() || value.len() > constants_usize::VALUE_128 || !value.is_ascii() {
+        if value.is_empty()
+            || value.len() > constants_usize::VALUE_128
+            || !value.is_ascii()
+            || value.bytes().any(|byte| byte.is_ascii_control())
+        {
             Err(crate::request_id_try_from_string_error::RequestIdTryFromStringError::Invalid)
         } else {
             bounded_types::bounded_string::BoundedString::try_from(value)

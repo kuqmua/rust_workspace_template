@@ -59,9 +59,13 @@ pub fn resolve_client_ip(
         }
         value.to_str().ok()?.trim().parse::<std::net::IpAddr>().ok()
     };
-    crate::resolved_client_ip_addr::ResolvedClientIpAddr::from(
+    let parsed_ip = if http_header_map_ref
+        .get()
+        .contains_key(constants_str::RUNTIME_FORWARDED_FOR_HEADER_NAME)
+    {
         parsed_forwarded_ip()
-            .or_else(parsed_real_ip)
-            .unwrap_or(peer_ip),
-    )
+    } else {
+        parsed_real_ip()
+    };
+    crate::resolved_client_ip_addr::ResolvedClientIpAddr::from(parsed_ip.unwrap_or(peer_ip))
 }

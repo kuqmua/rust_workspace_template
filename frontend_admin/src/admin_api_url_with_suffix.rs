@@ -5,9 +5,10 @@ pub(crate) fn admin_api_url_with_suffix(
     crate::admin_csr_api_url::AdminCsrApiUrl,
     crate::admin_table_load_error::AdminTableLoadError,
 > {
+    let admin_route_path = admin_route.path()?;
     crate::admin_csr_api_url::AdminCsrApiUrl::try_from(format!(
         "{}{}",
-        admin_route.path(),
+        admin_route_path,
         admin_csr_api_url_suffix_ref.as_ref()
     ))
     .map_err(|_error| crate::admin_table_load_error::AdminTableLoadError::Query)

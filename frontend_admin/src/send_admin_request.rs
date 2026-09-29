@@ -43,11 +43,8 @@ where
             constants_str::HTTP_APPLICATION_JSON,
         )
         .map_err(|_error| crate::admin_table_load_error::AdminTableLoadError::Fetch)?;
-    if admin_csr_api_url.as_ref()
-        != server_admin_contract::admin_route::AdminRoute::Refresh
-            .path()
-            .as_ref()
-    {
+    let refresh_route_path = server_admin_contract::admin_route::AdminRoute::Refresh.path()?;
+    if admin_csr_api_url.as_ref() != refresh_route_path.as_ref() {
         request
             .headers()
             .set(constants_str::X_CSRF_TOKEN, csrf_token()?.as_ref())

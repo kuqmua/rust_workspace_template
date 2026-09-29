@@ -27,15 +27,16 @@ pub(crate) fn AdminHealthProbe(
         #[wasm_bindgen::prelude::wasm_bindgen(catch, js_name = fetchHealthText)]
         async fn fetch_health_text(url: &str) -> Result<String, wasm_bindgen::JsValue>;
     }
+    let health_path = admin_route.contract().path();
     let state = leptos::prelude::RwSignal::new(None);
     wasm_bindgen_futures::spawn_local(async move {
-        let result = fetch_health_text(admin_route.path().as_ref())
+        let result = fetch_health_text(health_path.as_ref())
             .await
             .map_err(crate::admin_health_wasm_bindgen_error::AdminHealthWasmBindgenError::from);
         leptos::prelude::Set::set(&state, Some(result));
     });
     leptos::view! {
-        <div class="health-label">{admin_route.path().to_string()}</div>
+        <div class="health-label">{health_path.to_string()}</div>
         <div class="health-result">{move || match leptos::prelude::Get::get(&state) {
             None => constants_str::ADMIN_UI_LOADING.to_owned(),
             Some(Ok(text)) => text,

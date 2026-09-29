@@ -201,8 +201,10 @@ pub(crate) fn admin_data_table_grid(
                         leptos::prelude::IntoAny::into_any(leptos::view! {
                             <crate::admin_table_actions::AdminTableActions read_action=read_action command_for=dialog_id.clone()>
                                 <crate::admin_alert_dialog::AdminAlertDialog string=dialog_id title=constants_str::ADMIN_UI_REVOKE_SESSION description=constants_str::ADMIN_UI_THIS_ADMINISTRATOR_SESSION_WILL_BE_SIGNED_OUT_IMMEDIATELY trigger=constants_str::ADMIN_BUTTON_REVOKE_SESSION confirm=constants_str::ADMIN_BUTTON_REVOKE dialog_only=true callback=leptos::prelude::Callback::new(move |()| {
-                                    if let Ok(path) = crate::admin_route_path_url::admin_route_path_url(&server_admin_contract::admin_parameterized_route_path::admin_parameterized_route_path::<server_admin_contract::admin_revoke_session_route::AdminRevokeSessionRoute>(&revoke_session_id)) {
-                                        crate::reload_after::reload_after(crate::admin_mutation_method::AdminMutationMethod::Delete, path, server_admin_contract::admin_no_body::AdminNoBody);
+                                    if let Ok(route_path) = server_admin_contract::admin_parameterized_route_path::admin_parameterized_route_path::<server_admin_contract::admin_revoke_session_route::AdminRevokeSessionRoute>(&revoke_session_id) {
+                                        if let Ok(path) = crate::admin_route_path_url::admin_route_path_url(&route_path) {
+                                            crate::reload_after::reload_after(crate::admin_mutation_method::AdminMutationMethod::Delete, path, server_admin_contract::admin_no_body::AdminNoBody);
+                                        }
                                     }
                                 }) />
                             </crate::admin_table_actions::AdminTableActions>

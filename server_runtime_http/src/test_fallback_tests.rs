@@ -41,6 +41,8 @@ mod tests {
                 )
         };
         let invalid_accepts = [
+            constants_str::TEST_ACCEPT_JSON_BARE_QUALITY,
+            constants_str::TEST_ACCEPT_JSON_EMPTY_ONE_FRACTION_QUALITY,
             constants_str::TEST_ACCEPT_JSON_OUT_OF_RANGE_QUALITY,
             constants_str::TEST_ACCEPT_JSON_NONZERO_ONE_FRACTION_QUALITY,
             constants_str::TEST_ACCEPT_JSON_EXCESS_PRECISION_QUALITY,

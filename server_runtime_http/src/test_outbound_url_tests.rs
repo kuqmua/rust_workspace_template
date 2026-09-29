@@ -221,4 +221,52 @@ mod tests {
             Err(crate::outbound_url_error::OutboundUrlError::UserInfo)
         ));
     }
+    #[test]
+    fn test_allowlist_rejects_host_with_port() {
+        let host_with_port = format!("{}:{}", constants_str::TEST_PUBLIC_HOST, 443u16);
+        assert_eq!(
+            crate::outbound_allowed_host::OutboundAllowedHost::try_from(host_with_port),
+            Err(crate::outbound_host_allowlist_error::OutboundHostAllowlistError::InvalidHost)
+        );
+        let ipv6_host = format!("[{}]", std::net::Ipv6Addr::LOCALHOST);
+        assert_eq!(
+            crate::outbound_allowed_host::OutboundAllowedHost::try_from(ipv6_host.clone())
+                .map(|_host| ()),
+            Ok(())
+        );
+        assert_eq!(
+            crate::outbound_allowed_host::OutboundAllowedHost::try_from(format!(
+                "{ipv6_host}:{}",
+                443u16
+            )),
+            Err(crate::outbound_host_allowlist_error::OutboundHostAllowlistError::InvalidHost)
+        );
+        let mut expanded = std::net::Ipv6Addr::LOCALHOST.segments().into_iter().fold(
+            String::from('['),
+            |mut text, segment| {
+                if text.len() > constants_usize::ONE {
+                    text.push(':');
+                }
+                text.push_str(segment.to_string().as_str());
+                text
+            },
+        );
+        expanded.push(']');
+        assert_eq!(
+            crate::outbound_allowed_host::OutboundAllowedHost::try_from(expanded)
+                .map(|host| host.as_str().to_owned()),
+            Ok(ipv6_host)
+        );
+    }
+    #[test]
+    fn test_allowlist_rejects_numeric_host_alias() {
+        let address = std::net::Ipv4Addr::new(8u8, 8u8, 8u8, 8u8);
+        let mut alias = String::from('0');
+        alias.push('x');
+        alias.push_str(format!("{:x}", u32::from(address)).as_str());
+        assert_eq!(
+            crate::outbound_allowed_host::OutboundAllowedHost::try_from(alias),
+            Err(crate::outbound_host_allowlist_error::OutboundHostAllowlistError::InvalidHost)
+        );
+    }
 }

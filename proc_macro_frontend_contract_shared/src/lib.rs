@@ -984,10 +984,9 @@ pub fn derive_typed_route(token_stream: proc_macro2::TokenStream) -> proc_macro2
             let parameter_name = syn::LitStr::new(placeholder, path_literal.span());
             let parameter_path = parameter_type.as_ref();
             named_route_and_client = quote::quote! {
-                #[must_use]
                 #visibility fn #route_function_identifier(
                     parameter: &#parameter_path,
-                ) -> frontend_contract::parameterized_route_path::ParameterizedRoutePath {
+                ) -> Result<frontend_contract::parameterized_route_path::ParameterizedRoutePath, frontend_contract::parameterized_route_path_try_from_string_error::ParameterizedRoutePathTryFromStringError> {
                     frontend_contract::typed_parameterized_route_path::typed_parameterized_route_path::<#identifier>(parameter)
                 }
                 #[allow(clippy::future_not_send, reason = "lib futures remain task-local and are never transferred across threads")]
@@ -1018,8 +1017,8 @@ pub fn derive_typed_route(token_stream: proc_macro2::TokenStream) -> proc_macro2
             quote::quote! {
                 impl frontend_contract::parameterized_route::ParameterizedRoute for #identifier {
                     type Parameter = #parameter_path;
-                    fn path(parameter: &Self::Parameter) -> frontend_contract::parameterized_route_path::ParameterizedRoutePath {
-                        frontend_contract::parameterized_route_path::ParameterizedRoutePath::try_from(format!("{}{}{}", #prefix, parameter, #suffix)).unwrap_or_default()
+                    fn path(parameter: &Self::Parameter) -> Result<frontend_contract::parameterized_route_path::ParameterizedRoutePath, frontend_contract::parameterized_route_path_try_from_string_error::ParameterizedRoutePathTryFromStringError> {
+                        frontend_contract::parameterized_route_path::ParameterizedRoutePath::try_from(format!("{}{}{}", #prefix, parameter, #suffix))
                     }
                 }
             }
@@ -1578,7 +1577,7 @@ pub fn derive_route_catalog(token_stream: proc_macro2::TokenStream) -> proc_macr
                 path_arms.push(quote::quote! {
                     Self::#variant_identifier => frontend_contract::parameterized_route_path::ParameterizedRoutePath::try_from(
                         String::from(frontend_contract::typed_route_path::typed_route_path::<#route_type>())
-                    ).unwrap_or_default()
+                    )
                 });
                 family_routes.push(route_type);
             }
@@ -1654,7 +1653,7 @@ pub fn derive_route_catalog(token_stream: proc_macro2::TokenStream) -> proc_macr
                 path_arms.push(quote::quote! {
                     Self::#custom_identifier => frontend_contract::parameterized_route_path::ParameterizedRoutePath::try_from(
                         String::from(#path_expression)
-                    ).unwrap_or_default()
+                    )
                 });
                 if !route_args.get_exclude_from_family().get() {
                     return syn::Error::new_spanned(
@@ -1700,7 +1699,7 @@ pub fn derive_route_catalog(token_stream: proc_macro2::TokenStream) -> proc_macr
                     #(#contract_arms),*
                 }
             }
-            fn catalog_path(self) -> frontend_contract::parameterized_route_path::ParameterizedRoutePath {
+            fn catalog_path(self) -> Result<frontend_contract::parameterized_route_path::ParameterizedRoutePath, frontend_contract::parameterized_route_path_try_from_string_error::ParameterizedRoutePathTryFromStringError> {
                 match self {
                     #(#path_arms),*
                 }

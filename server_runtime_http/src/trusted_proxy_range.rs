@@ -48,7 +48,15 @@ impl TrustedProxyRange {
                             network.contains(&std::net::IpAddr::V4(ipv4_address))
                         })
                     }
-                    std::net::IpAddr::V4(_) => false,
+                    std::net::IpAddr::V4(ipv4_address) => match network {
+                        ipnet::IpNet::V6(ipv6_network)
+                            if ipv6_network.prefix_len() >= 96u8
+                                && ipv6_network.addr().to_ipv4_mapped().is_some() =>
+                        {
+                            ipv6_network.contains(&ipv4_address.to_ipv6_mapped())
+                        }
+                        ipnet::IpNet::V4(_) | ipnet::IpNet::V6(_) => false,
+                    },
                 },
         )
     }

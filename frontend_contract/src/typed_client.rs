@@ -44,8 +44,13 @@ where
     where
         Route: crate::parameterized_route::ParameterizedRoute,
     {
+        let parameterized_route_path = Route::path(parameter).map_err(|error| {
+            crate::client_error::ClientError::Encode(
+                crate::create_form_value_error::create_form_value_error(format!("{error:?}")),
+            )
+        })?;
         let route_path =
-            crate::transport_path::TransportPath::try_from(String::from(Route::path(parameter)))
+            crate::transport_path::TransportPath::try_from(String::from(parameterized_route_path))
                 .map_err(|error| {
                     crate::client_error::ClientError::Encode(
                         crate::create_form_value_error::create_form_value_error(error),
@@ -145,7 +150,11 @@ where
         let path_string = if prefix_ref.is_empty() {
             format!("/{route_path_ref}")
         } else if route_path_ref.is_empty() {
-            prefix_ref.to_owned()
+            if transport_path.as_ref().ends_with('/') {
+                format!("{prefix_ref}/")
+            } else {
+                prefix_ref.to_owned()
+            }
         } else {
             format!("{prefix_ref}/{route_path_ref}")
         };

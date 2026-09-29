@@ -18,9 +18,9 @@ impl frontend_contract::typed_route::TypedRoute for ParameterizedTestRoute {
 impl frontend_contract::parameterized_route::ParameterizedRoute for ParameterizedTestRoute {
     type Parameter = u64;
 
-    fn path(parameter: &Self::Parameter) -> frontend_contract::parameterized_route_path::ParameterizedRoutePath {
+    fn path(parameter: &Self::Parameter) -> Result<frontend_contract::parameterized_route_path::ParameterizedRoutePath, frontend_contract::parameterized_route_path_try_from_string_error::ParameterizedRoutePathTryFromStringError> {
         let _value = parameter;
-        frontend_contract::parameterized_route_path::ParameterizedRoutePath::default()
+        Ok(frontend_contract::parameterized_route_path::ParameterizedRoutePath::default())
     }
 }
 

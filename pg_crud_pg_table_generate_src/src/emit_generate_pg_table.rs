@@ -2042,7 +2042,7 @@ pub fn emit_generate_pg_table(
             let ts0 = generate_accumulator_string_pop_token_stream(accumulator_token_stream, ts);
             quote::quote! {
                 #ts0
-                Ok(#import_token_stream query_part_fragment::QueryPartFragment::try_from(#accumulator_token_stream).unwrap_or_else(#import_token_stream query_part_fragment::QueryPartFragment::from))
+                #import_token_stream query_part_fragment::QueryPartFragment::try_from(#accumulator_token_stream).map_err(#import_token_stream query_part_error::QueryPartError::from)
             }
         };
     let operation_count = 8usize;
@@ -2068,6 +2068,8 @@ pub fn emit_generate_pg_table(
             .d_utoipa_to_schema();
     let identifier_prep_pg_error_upper_camel_case =
         naming::parameter::SelfPrepPgErrorUpperCamelCase::from_tokens(&identifier);
+    let create_table_column_query_part_upper_camel_case =
+        quote::format_ident!("CreateTableColumnQueryPart");
     let prep_idempotency_upper_camel_case = quote::format_ident!("PrepIdempotency");
     let identifier_prep_pg_error_token_stream =
         pg_crud_macro_common::error_enum_d_token_stream_builder::error_enum_d_token_stream_builder()
@@ -2087,6 +2089,11 @@ pub fn emit_generate_pg_table(
                         },
                         #PrepPgUpperCamelCase {
                             #ts
+                        },
+                        #create_table_column_query_part_upper_camel_case {
+                            #[eo_to_err_string_serde]
+                            error: #import_token_stream query_part_error::QueryPartError,
+                            location: location_lib::location::Location,
                         },
                         #prep_idempotency_upper_camel_case {
                             #[eo_to_err_string]
@@ -2201,6 +2208,10 @@ pub fn emit_generate_pg_table(
                 let field_type_pg_type_token_stream = generate_as_pg_type_path_token_stream(&field_type);
                 quote::quote! {
                     #field_type_pg_type_token_stream #CreateTableColumnQueryPartSnakeCase(#import_token_stream sql_column_ref::SqlColumnRef::from(&#field_double_quoted_token_stream), #import_token_stream pg_is_primary_key::PgIsPrimaryKey::from(#is_primary_key_token_stream))
+                        .map_err(|error| #identifier_prep_pg_error_upper_camel_case::#create_table_column_query_part_upper_camel_case {
+                            error,
+                            location: proc_macro_location_bang::location!(),
+                        })?
                 }
             };
             let serde_json_to_string_schemars_schema_for_generic_unwrap_token_stream = std::iter::once(
@@ -3020,7 +3031,7 @@ pub fn emit_generate_pg_table(
                     )
                 });
                     quote::quote! {
-                        Ok(#import_token_stream query_part_fragment::QueryPartFragment::try_from(match self.as_ref() {
+                        #import_token_stream query_part_fragment::QueryPartFragment::try_from(match self.as_ref() {
                             Some(#VSnakeCase) => {
                                 let mut #ExtraParametersSnakeCase = #StringTokenStream::from("where");
                                 let mut is_first_push_to_extra_parameters_already_happend = false;
@@ -3028,7 +3039,7 @@ pub fn emit_generate_pg_table(
                                 #ExtraParametersSnakeCase
                             },
                             None => #StringTokenStream::default()
-                        }).unwrap_or_else(#import_token_stream query_part_fragment::QueryPartFragment::from))
+                        }).map_err(#import_token_stream query_part_error::QueryPartError::from)
                     }
                 },
                 &pg_crud_macro_common::emission_types::IsQueryBindMut::True,

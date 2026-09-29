@@ -14,4 +14,6 @@ pub mod regex_regex_try_from_string_error;
 pub mod variant;
 
 #[cfg(test)]
+pub mod test_generic_utoipa_schema_components;
+#[cfg(test)]
 pub mod test_pg_crud_where_filters;

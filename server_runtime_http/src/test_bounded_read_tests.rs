@@ -28,6 +28,27 @@ mod tests {
         std::fs::remove_file(path).expect(constants_str::DIAGNOSTIC_30B575C6);
     }
     #[test]
+    fn test_synchronous_file_read_grows_past_initial_reservation() {
+        let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join(constants_str::SRC_LIB_RS);
+        let expected_length = match std::fs::metadata(path.as_path()) {
+            Ok(metadata) => metadata.len(),
+            Err(error) => std::panic::panic_any(error),
+        };
+        assert!(expected_length > 4_096u64);
+        let maximum_bytes = match usize::try_from(expected_length) {
+            Ok(length) => crate::bounded_read_maximum_bytes::BoundedReadMaximumBytes::from(length),
+            Err(error) => std::panic::panic_any(error),
+        };
+        let bytes = match crate::read_bounded_file::read_bounded_file(
+            crate::runtime_path_ref::RuntimePathRef::from(path.as_path()),
+            maximum_bytes,
+        ) {
+            Ok(bytes) => bytes,
+            Err(error) => std::panic::panic_any(error),
+        };
+        assert_eq!(u64::try_from(bytes.into_inner().len()), Ok(expected_length));
+    }
+    #[test]
     fn test_file_growth_after_metadata_is_rechecked() {
         let path = unique_path(constants_str::GROWTH);
         std::fs::write(&path, b"a").expect(constants_str::DIAGNOSTIC_C0745B58);
@@ -138,6 +159,29 @@ mod tests {
         tokio::fs::remove_file(path)
             .await
             .expect(constants_str::DIAGNOSTIC_9D5A2DB0);
+    }
+    #[tokio::test]
+    async fn test_asynchronous_file_read_grows_past_initial_reservation() {
+        let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join(constants_str::SRC_LIB_RS);
+        let expected_length = match tokio::fs::metadata(path.as_path()).await {
+            Ok(metadata) => metadata.len(),
+            Err(error) => std::panic::panic_any(error),
+        };
+        assert!(expected_length > 4_096u64);
+        let maximum_bytes = match usize::try_from(expected_length) {
+            Ok(length) => crate::bounded_read_maximum_bytes::BoundedReadMaximumBytes::from(length),
+            Err(error) => std::panic::panic_any(error),
+        };
+        let bytes = match crate::read_bounded_file_async::read_bounded_file_async(
+            crate::runtime_path_ref::RuntimePathRef::from(path.as_path()),
+            maximum_bytes,
+        )
+        .await
+        {
+            Ok(bytes) => bytes,
+            Err(error) => std::panic::panic_any(error),
+        };
+        assert_eq!(u64::try_from(bytes.into_inner().len()), Ok(expected_length));
     }
     #[tokio::test]
     async fn test_http_response_stream_obeys_limit_without_external_network() {

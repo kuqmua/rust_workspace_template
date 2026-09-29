@@ -232,15 +232,20 @@ pub enum AdminRoute {
     Version,
 }
 impl AdminRoute {
-    #[must_use]
-    pub fn path(self) -> crate::admin_route_path::AdminRoutePath {
-        let suffix = self.catalog_path();
+    pub fn path(
+        self,
+    ) -> Result<
+        crate::admin_route_path::AdminRoutePath,
+        crate::admin_route_path_error::AdminRoutePathError,
+    > {
+        let suffix = self
+            .catalog_path()
+            .map_err(crate::admin_route_path_error::AdminRoutePathError::from)?;
         if matches!(
             self,
             Self::Version | Self::Health | Self::HealthCheck | Self::HealthLive | Self::HealthReady
         ) {
             crate::admin_route_path::AdminRoutePath::try_from(String::from(suffix))
-                .unwrap_or_default()
         } else {
             crate::admin_api_route_path::admin_api_route_path(suffix)
         }

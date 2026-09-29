@@ -84,3 +84,12 @@ fn test_nullable_json_obj_filter_rejects_fragment_overflow() {
         Err(crate::query_part_error::QueryPartError::StringWrapperTryFromString { .. })
     ));
 }
+
+#[test]
+fn test_query_part_error_formats_as_error_text() {
+    let error = crate::query_part_error::QueryPartError::CheckedAdd {
+        location: proc_macro_location_bang::location!(),
+    };
+    let error_text = to_err_string::to_err_string::ToErrString::to_err_string(&error);
+    assert_eq!(error_text.as_ref(), error.to_string());
+}

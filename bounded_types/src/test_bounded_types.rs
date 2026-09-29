@@ -647,3 +647,45 @@ fn test_vector_schema_names_include_item_type_and_bounds() {
     assert!(first.contains(constants_str::BOUNDEDVEC));
     assert!(second.contains(constants_str::BOUNDEDVEC));
 }
+
+#[derive(Debug, proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
+struct TestBoundedVecSchemaCollisionFirst;
+
+impl utoipa::PartialSchema for TestBoundedVecSchemaCollisionFirst {
+    fn schema() -> utoipa::openapi::RefOr<utoipa::openapi::schema::Schema> {
+        utoipa::openapi::ObjectBuilder::new()
+            .schema_type(utoipa::openapi::schema::Type::Integer)
+            .into()
+    }
+}
+
+impl utoipa::ToSchema for TestBoundedVecSchemaCollisionFirst {
+    fn name() -> std::borrow::Cow<'static, str> {
+        std::borrow::Cow::Borrowed(constants_str::BOUNDEDVEC)
+    }
+}
+
+#[derive(Debug, proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
+struct TestBoundedVecSchemaCollisionSecond;
+
+impl utoipa::PartialSchema for TestBoundedVecSchemaCollisionSecond {
+    fn schema() -> utoipa::openapi::RefOr<utoipa::openapi::schema::Schema> {
+        utoipa::openapi::ObjectBuilder::new()
+            .schema_type(utoipa::openapi::schema::Type::String)
+            .into()
+    }
+}
+
+impl utoipa::ToSchema for TestBoundedVecSchemaCollisionSecond {
+    fn name() -> std::borrow::Cow<'static, str> {
+        std::borrow::Cow::Borrowed(constants_str::BOUNDEDVEC)
+    }
+}
+
+#[test]
+fn test_vector_schema_names_distinguish_equal_named_item_types() {
+    assert_ne!(
+        <crate::bounded_vec::BoundedVec<TestBoundedVecSchemaCollisionFirst, 0, 2> as utoipa::ToSchema>::name(),
+        <crate::bounded_vec::BoundedVec<TestBoundedVecSchemaCollisionSecond, 0, 2> as utoipa::ToSchema>::name()
+    );
+}

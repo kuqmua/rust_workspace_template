@@ -21,6 +21,13 @@ impl<T: utoipa::PartialSchema, const MAX: usize> utoipa::__dev::ComposeSchema
     }
 }
 impl<T: utoipa::ToSchema, const MAX: usize> utoipa::ToSchema for AdminOpenApiVec<T, MAX> {
+    fn name() -> std::borrow::Cow<'static, str> {
+        std::borrow::Cow::Owned(
+            bounded_types::utoipa_schema_type_name::UtoipaSchemaTypeName::for_type::<Self>()
+                .into_inner(),
+        )
+    }
+
     fn schemas(
         vec: &mut Vec<(
             String,
@@ -29,5 +36,24 @@ impl<T: utoipa::ToSchema, const MAX: usize> utoipa::ToSchema for AdminOpenApiVec
     ) {
         bounded_types::utoipa_schema_entries_mut::UtoipaSchemaEntriesMut::from(vec)
             .register_item_schema::<T>();
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn test_admin_open_api_vec_schema_names_distinguish_bounds() {
+        assert_ne!(
+            <super::AdminOpenApiVec<u8, 2> as utoipa::ToSchema>::name(),
+            <super::AdminOpenApiVec<u8, 3> as utoipa::ToSchema>::name()
+        );
+    }
+
+    #[test]
+    fn test_admin_open_api_vec_schema_names_distinguish_item_types() {
+        assert_ne!(
+            <super::AdminOpenApiVec<u8, 2> as utoipa::ToSchema>::name(),
+            <super::AdminOpenApiVec<u16, 2> as utoipa::ToSchema>::name()
+        );
     }
 }

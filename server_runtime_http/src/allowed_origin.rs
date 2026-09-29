@@ -29,8 +29,20 @@ impl TryFrom<String> for AllowedOrigin {
             )
         };
         drop(value.drain(..authority_start));
+        let authority = crate::http_origin_authority_text::HttpOriginAuthorityText::try_from(value)?;
+        let default_port = if scheme.eq_ignore_ascii_case(constants_str::HTTP) {
+            80u16
+        } else {
+            443u16
+        };
+        let authority = match authority.get().rsplit_once(':') {
+            Some((host, port)) if port.parse::<u16>() == Ok(default_port) => {
+                crate::http_origin_authority_text::HttpOriginAuthorityText::try_from(host.to_owned())?
+            }
+            _ => authority,
+        };
         Ok(Self {
-            authority: crate::http_origin_authority_text::HttpOriginAuthorityText::try_from(value)?,
+            authority,
             scheme: crate::http_origin_scheme_text::HttpOriginSchemeText::try_from(scheme)?,
         })
     }

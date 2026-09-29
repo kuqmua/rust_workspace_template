@@ -69,4 +69,60 @@ mod tests {
                 .contains(u64::MAX.to_string().as_str())
         );
     }
+
+    #[test]
+    fn test_maximum_cookie_name_and_value_round_trip_through_resolver() {
+        let name = crate::http_cookie_name::HttpCookieName::try_from(
+            constants_str::A_ALT.repeat(constants_usize::VALUE_8_192),
+        )
+        .expect(constants_str::DIAGNOSTIC_9AD2B231);
+        let value = crate::http_cookie_value::HttpCookieValue::try_from(
+            constants_str::A_ALT.repeat(constants_usize::VALUE_8_192),
+        )
+        .expect(constants_str::DIAGNOSTIC_B6D60E61);
+        let _set_cookie = crate::build_secure_strict_cookie::build_secure_strict_cookie(
+            &name,
+            &value,
+            60u64.into(),
+            crate::http_cookie_access::HttpCookieAccess::HttpOnly,
+            crate::http_cookie_secure::HttpCookieSecure::Enabled,
+        )
+        .expect(constants_str::DIAGNOSTIC_FFFC783E);
+        let mut cookie_text = String::with_capacity(
+            name.as_str()
+                .len()
+                .saturating_add(constants_usize::ONE)
+                .saturating_add(value.as_str().len()),
+        );
+        cookie_text.push_str(name.as_str());
+        cookie_text.push('=');
+        cookie_text.push_str(value.as_str());
+        let mut headers = http::HeaderMap::new();
+        let _previous_cookie_header = headers.insert(
+            http::header::COOKIE,
+            http::HeaderValue::try_from(cookie_text.as_str())
+                .expect(constants_str::DIAGNOSTIC_42E776DD),
+        );
+        assert_eq!(
+            crate::resolve_unique_cookie::resolve_unique_cookie(
+                crate::http_cookie_headers_ref::HttpCookieHeadersRef::from(&headers),
+                crate::http_cookie_name_ref::HttpCookieNameRef::from(name.as_str()),
+            ),
+            crate::cookie_resolution::CookieResolution::Resolved(
+                crate::http_cookie_value_ref::HttpCookieValueRef::from(value.as_str())
+            )
+        );
+        cookie_text.push('a');
+        let _replaced_cookie_header = headers.insert(
+            http::header::COOKIE,
+            http::HeaderValue::try_from(cookie_text).expect(constants_str::DIAGNOSTIC_84F82554),
+        );
+        assert_eq!(
+            crate::resolve_unique_cookie::resolve_unique_cookie(
+                crate::http_cookie_headers_ref::HttpCookieHeadersRef::from(&headers),
+                crate::http_cookie_name_ref::HttpCookieNameRef::from(name.as_str()),
+            ),
+            crate::cookie_resolution::CookieResolution::Invalid
+        );
+    }
 }

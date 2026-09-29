@@ -3,6 +3,15 @@
     reason = "test trait fixtures preserve repository type-based parameter names"
 )]
 
+fn admin_server_route_path_or_panic(
+    admin_route: server_admin_contract::admin_route::AdminRoute,
+) -> server_admin_contract::admin_route_path::AdminRoutePath {
+    match admin_route.path() {
+        Ok(admin_route_path) => admin_route_path,
+        Err(error) => std::panic::panic_any(error),
+    }
+}
+
 #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Copy)]
 struct ClientTransport;
 impl frontend_contract::transport::Transport for ClientTransport {
@@ -1041,7 +1050,7 @@ fn test_audit_log_page_uses_generated_post_read_contract() {
         frontend_contract::route_method::RouteMethod::Post
     );
     assert_eq!(
-        route.path().as_ref(),
+        admin_server_route_path_or_panic(route).as_ref(),
         crate::admin_audit_log::AdminAuditLog::read_route().as_ref()
     );
 }
@@ -1065,7 +1074,7 @@ fn test_access_sessions_page_uses_generated_post_read_contract() {
         frontend_contract::route_method::RouteMethod::Post
     );
     assert_eq!(
-        route.path().as_ref(),
+        admin_server_route_path_or_panic(route).as_ref(),
         crate::admin_access_sessions::AdminAccessSessions::read_route().as_ref()
     );
 }
@@ -1088,7 +1097,7 @@ fn test_role_rules_page_uses_generated_post_read_contract() {
         frontend_contract::route_method::RouteMethod::Post
     );
     assert_eq!(
-        route.path().as_ref(),
+        admin_server_route_path_or_panic(route).as_ref(),
         crate::admin_role_rules::AdminRoleRules::read_route().as_ref()
     );
 }
@@ -1111,7 +1120,7 @@ fn test_system_settings_page_has_generated_post_read_contract() {
         frontend_contract::route_method::RouteMethod::Post
     );
     assert_eq!(
-        route.path().as_ref(),
+        admin_server_route_path_or_panic(route).as_ref(),
         crate::admin_system_settings::AdminSystemSettings::read_route().as_ref()
     );
 }
@@ -1382,8 +1391,7 @@ fn test_legacy_users_get_is_absent_from_openapi() {
             .is_none()
     );
     assert_eq!(
-        server_admin_contract::admin_route::AdminRoute::Users
-            .path()
+        admin_server_route_path_or_panic(server_admin_contract::admin_route::AdminRoute::Users)
             .as_ref(),
         frontend_contract::typed_route_path::typed_route_path::<
             server_admin_contract::admin_read_users_route::AdminReadUsersRoute,
@@ -1403,8 +1411,7 @@ fn test_roles_read_client_request_matches_generated_payload() {
         }))
     );
     assert_eq!(
-        server_admin_contract::admin_route::AdminRoute::Roles
-            .path()
+        admin_server_route_path_or_panic(server_admin_contract::admin_route::AdminRoute::Roles)
             .as_ref(),
         constants_str::ADMIN_ROLES_READ,
     );
