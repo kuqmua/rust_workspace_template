@@ -88,7 +88,6 @@ CREATE TABLE rules (
     feature_id BIGINT,
     value_item_id BIGINT,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     CONSTRAINT rules_at_most_one_scope CHECK (
         num_nonnulls(
             basemap_id,
@@ -134,7 +133,6 @@ SELECT
     rules.feature_id,
     rules.value_item_id,
     rules.created_at,
-    rules.updated_at,
     permission_resources.key::TEXT || ':' || permission_actions.key::TEXT AS name,
     num_nonnulls(
         rules.basemap_id,
@@ -182,13 +180,17 @@ CREATE TABLE refresh_tokens (
     expires_at TIMESTAMPTZ NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     revoked_at TIMESTAMPTZ,
+    session_id UUID,
     CONSTRAINT refresh_tokens_hash_not_empty CHECK (char_length(token_hash) > 0),
     CONSTRAINT refresh_tokens_expires_after_created CHECK (expires_at > created_at),
-    CONSTRAINT refresh_tokens_revoked_after_created CHECK (revoked_at IS NULL OR revoked_at >= created_at)
+    CONSTRAINT refresh_tokens_revoked_after_created CHECK (revoked_at IS NULL OR revoked_at >= created_at),
+    CONSTRAINT refresh_tokens_active_session_required CHECK (revoked_at IS NOT NULL OR session_id IS NOT NULL)
 );
 CREATE INDEX refresh_tokens_user_expiry_idx ON refresh_tokens (user_id, expires_at);
+CREATE INDEX refresh_tokens_active_session_idx ON refresh_tokens (session_id)
+    WHERE revoked_at IS NULL;
 CREATE TABLE access_sessions (
-    id UUID PRIMARY KEY,
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     token_identifier_hash TEXT NOT NULL UNIQUE,
     csrf_token_hash TEXT NOT NULL,

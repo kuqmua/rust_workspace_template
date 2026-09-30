@@ -74,14 +74,19 @@ the workspace root:
 cargo run -p init_env_files
 docker compose up -d --wait database
 cd server
-SVC_MODE=migrate cargo run
+cargo run -p administrator_account_initialization_and_password_reset -- admin Admin /path/to/admin-password-file
 cargo run
 ```
+
+The password file must contain only the initial administrator password. Keep it outside the
+repository and remove it after the command succeeds. The administrator command applies pending
+migrations, creates the first account, and assigns the system administrator role. Run it once for
+a fresh database; subsequent server starts use the normal `cargo run` command.
 
 `cargo run` prepares the browser assets before starting the server. It requires
 Node.js 22 or newer and Trunk; see [frontend setup](frontend_admin/README.md). Rust startup code uses
 incremental build caches, refreshes npm dependencies when needed, and stops if frontend
-compilation fails. Migration mode skips the frontend build.
+compilation fails.
 Development WebAssembly builds use the incremental `frontend-dev` profile without LTO;
 `cargo run --release` keeps the optimized release profile. The first build primes the new
 cache. See the frontend setup for rebuilding only the client while the server remains available.

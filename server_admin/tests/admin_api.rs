@@ -4836,7 +4836,7 @@ mod test_maintenance {
     }
     #[tokio::test]
     #[ignore = "requires PostgreSQL; run through workspace_test_runner database"]
-    async fn test_postgresql_migration_creates_complete_schema() {
+    async fn test_postgresql_migration_and_initial_administrator_on_fresh_schema() {
         let database_url = std::env::var(constants_str::ENV_NAMES_DATABASE_URL)
             .expect(constants_str::DIAGNOSTIC_B65D1786);
         let base_pool = sqlx::postgres::PgPoolOptions::new()
@@ -4948,7 +4948,7 @@ mod test_maintenance {
         .fetch_one(&base_pool)
         .await
         .expect(constants_str::DIAGNOSTIC_5C10C931);
-        assert_eq!(version, 5i64);
+        assert_eq!(version, 2i64);
         let expected_tables = server_admin_contract::admin_data_table::AdminDataTable::PG_ORDER
             .map(|table| table.to_string())
             .into_iter()
@@ -5048,6 +5048,85 @@ mod test_maintenance {
                 .execute(&base_pool)
                 .await
                 .expect(constants_str::DIAGNOSTIC_88DD90B8);
+
+        let _created_schema_for_initial_administrator =
+            sqlx::raw_sql(constants_str::CREATE_SCHEMA_ADMIN_MIGRATION_FRESH_TEST)
+                .execute(&base_pool)
+                .await
+                .expect(constants_str::DIAGNOSTIC_42205D10);
+        let initialization_pool = connect(super::StdAdminApiTestStrRef::from(
+            constants_str::ADMIN_MIGRATION_FRESH_TEST,
+        ));
+        server_admin::prepare_postgresql::prepare_postgresql(
+            app_state::sqlx_pg_pool_ref::SqlxPgPoolRef::from(&initialization_pool),
+        )
+        .await
+        .expect(constants_str::DIAGNOSTIC_F4209401);
+        let password_hasher = server_admin::admin_password_hasher::AdminPasswordHasher::new(
+            server_admin::runtime_admin_password_hash_concurrency::RuntimeAdminPasswordHashConcurrency::from(
+                std::num::NonZeroUsize::MIN,
+            ),
+        );
+        let admin_id = server_admin::create_initial_administrator::create_initial_administrator(
+            app_state::sqlx_pg_pool_ref::SqlxPgPoolRef::from(&initialization_pool),
+            server_admin_contract::admin_login::AdminLogin::try_from(
+                constants_str::ADMIN_ALT.to_owned(),
+            )
+            .expect(constants_str::DIAGNOSTIC_F200E745),
+            server_admin_contract::admin_display_name::AdminDisplayName::try_from(
+                constants_str::ADMIN.to_owned(),
+            )
+            .expect(constants_str::DIAGNOSTIC_7310E564),
+            server_admin_contract::admin_new_password::AdminNewPassword::try_from(
+                constants_str::TEST_STRONG_PASSWORD.to_owned(),
+            )
+            .expect(constants_str::DIAGNOSTIC_A5D73909),
+            &password_hasher,
+        )
+        .await
+        .expect(constants_str::DIAGNOSTIC_5E9575CC);
+        let initialized_version = sqlx::query_scalar::<_, i64>(
+            constants_str::SELECT_MAX_VERSION_FROM_ADMIN_MIGRATION_FRESH_TEST_SQLX_MIGRATIONS_WHERE,
+        )
+        .fetch_one(&base_pool)
+        .await
+        .expect(constants_str::DIAGNOSTIC_C474E819);
+        assert_eq!(initialized_version, 2i64);
+        let (stored_id, stored_password_hash, is_banned) =
+            sqlx::query_as::<_, (i64, String, bool)>(constants_str::SERVER_ADMIN_SIGN_IN_USER_SQL)
+                .bind(constants_str::ADMIN_ALT)
+                .fetch_one(&initialization_pool)
+                .await
+                .expect(constants_str::DIAGNOSTIC_08058400);
+        assert_eq!(stored_id, admin_id.get());
+        assert!(!is_banned);
+        let is_admin = sqlx::query_scalar::<_, bool>(constants_str::SERVER_ADMIN_USER_IS_ADMIN_SQL)
+            .bind(admin_id.get())
+            .fetch_one(&initialization_pool)
+            .await
+            .expect(constants_str::DIAGNOSTIC_09F7FC94);
+        assert!(is_admin);
+        let password_hash = server_admin::admin_password_hash::AdminPasswordHash::new(
+            pg_types_text_misc::generate_pg_types_mod::StringAsNonNullTextSecret::try_from(
+                stored_password_hash,
+            )
+            .expect(constants_str::DIAGNOSTIC_001D65B2),
+        );
+        let password = server_admin::runtime_admin_password::RuntimeAdminPassword::try_from(
+            constants_str::TEST_STRONG_PASSWORD.to_owned(),
+        )
+        .expect(constants_str::DIAGNOSTIC_6F5F0DED);
+        let verified = password_hasher
+            .verify(password, password_hash)
+            .await
+            .expect(constants_str::DIAGNOSTIC_7A524616);
+        assert!(verified.get());
+        initialization_pool.close().await;
+        let _dropped_initialized_schema =
+            sqlx::raw_sql(constants_str::DROP_SCHEMA_ADMIN_MIGRATION_FRESH_TEST_CASCADE)
+                .execute(&base_pool)
+                .await
+                .expect(constants_str::DIAGNOSTIC_2BFC1394);
     }
 }
 mod test_policy {
