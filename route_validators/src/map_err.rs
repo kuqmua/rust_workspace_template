@@ -1,12 +1,12 @@
 #[track_caller]
 pub(super) fn map_err<T, E, R>(
     result: Result<T, E>,
-    exp_id: impl Into<crate::test_exp_id::TestExpId>,
+    expectation_id: impl Into<crate::test_expectation_id::TestExpectationId>,
     check: impl FnOnce(&E),
     map: impl FnOnce(E, &'static str) -> R,
 ) -> R {
-    let exp_id = exp_id.into();
-    let error = crate::expect_error::expect_error(result, exp_id.get());
+    let expectation_id = expectation_id.into();
+    let error = crate::expect_error::expect_error(result, expectation_id.get());
     check(&error);
-    map(error, exp_id.get())
+    map(error, expectation_id.get())
 }

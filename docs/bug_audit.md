@@ -137,13 +137,13 @@ Passing workspace tests and policy checks does not establish complete semantic c
 | A121 | Fixed and verified | frontend_contract_validation/src/validate_openapi_contract.rs | The validator rejected duplicate documented methods but accepted repeated runtime routes for one method and path. It now rejects the second runtime entry with the existing typed `DuplicateOperation` error before route matching. The regression failed before and passed after (`target/audit_tmp/a122_runtime_before.log`, `a122_runtime_after.log`); validation crate tests, formatting, full Clippy, code-style tests, workspace tests, and `git diff --check` passed (`target/audit_tmp/a122_validation.log`, `a122_clippy.log`, `a122_style.log`, `a122_workspace.log`). |
 | A122 | Fixed and verified | frontend_contract_validation/src/validate_openapi_operations.rs | Required security passed if any OpenAPI security alternative named the expected scheme, even when another alternative was anonymous. The validator now requires a nonempty list where every alternative names that scheme. The regression failed before and passed after (`target/audit_tmp/a123_before.log`, `a123_after.log`); validation crate tests, formatting, full Clippy, code-style tests, workspace tests, and `git diff --check` passed (`target/audit_tmp/a123_validation.log`, `a123_clippy.log`, `a123_style.log`, `a123_workspace.log`). The [OpenAPI specification](https://spec.openapis.org/oas/v3.1.0.html#security-requirement-object) defines alternatives as OR and an empty requirement as anonymous access. |
 | A123 | Fixed and verified | macro_helpers/src/generate_serde_version_of_named_syn_variant.rs | Malformed HashMap and Vec field types reached assertions and panicked during macro expansion. The generator now emits compile-error tokens for an unexpected collection name, generic count, or path shape. A regression covers four malformed shapes; focused test, formatting, full Clippy, code-style suite, and workspace tests passed (`target/audit_tmp/a123_focused.log`, `a123_clippy.log`, `a123_style.log`, `a123_workspace.log`). |
-| A124 | Fixed and verified | macro_helpers/src/location_field_attr.rs | The location derive's shared attribute parser accepted arguments on marker attributes such as `#[eo_location(unexpected)]` and `#[eo_location = "unexpected"]`. Both now return a specific error; supported bare markers, unrelated attributes, missing markers, and duplicate markers retain their prior outcomes. The malformed-input regression failed before and passed after (`target/audit_tmp/a124_before.log`, `a124_after.log`). Formatting, macro_helpers tests, full Clippy, code-style suite, and workspace tests passed (`target/audit_tmp/a124_macro_helpers.log`, `a124_clippy_final.log`, `a124_style.log`, `a124_workspace.log`). |
+| A124 | Fixed and verified | macro_helpers/src/location_field_attr.rs | The location derive's shared attribute parser accepted arguments on marker attributes such as `#[error_field_location(unexpected)]` and `#[error_field_location = "unexpected"]`. Both now return a specific error; supported bare markers, unrelated attributes, missing markers, and duplicate markers retain their prior outcomes. The malformed-input regression failed before and passed after (`target/audit_tmp/a124_before.log`, `a124_after.log`). Formatting, macro_helpers tests, full Clippy, code-style suite, and workspace tests passed (`target/audit_tmp/a124_macro_helpers.log`, `a124_clippy_final.log`, `a124_style.log`, `a124_workspace.log`). |
 | A125 | Fixed and verified | macro_helpers/src/only_one.rs | The status-code selector treated attributes such as `#[not_found_404(unexpected)]` and `#[not_found_404 = "unexpected"]` as valid bare markers. It now returns a distinct `MalformedAttribute` error while preserving missing and duplicate marker errors. The regression failed before and passed after (`target/audit_tmp/a125_before.log`, `a125_after.log`). Formatting, full Clippy, code-style suite, workspace tests, and `git diff --check` passed (`target/audit_tmp/a125_clippy.log`, `a125_style.log`, `a125_workspace.log`). The new public error variant is an intentional API correction for malformed input. |
 | A126 | Fixed and verified | macro_helpers/src/try_write_string_into_file_with_outcome.rs | A generated `.rs` file with invalid UTF-8 and the same byte length as replacement text could not be regenerated: the changed-content branch validated the old file and returned an error. That validation is removed, so a changed file is replaced with the supplied text regardless of old encoding; unchanged files still avoid a rewrite. The regression failed before and passed after (`target/audit_tmp/a126_before.log`, `a126_after.log`). Former validation helpers are now test-only. Formatting, macro_helpers tests, full Clippy, code-style suite, workspace tests, and `git diff --check` passed (`target/audit_tmp/a126_macro_helpers.log`, `a126_clippy_final.log`, `a126_style.log`, `a126_workspace.log`). |
 | A127 | Fixed and verified | macro_helpers/src/try_maybe_write_token_stream_into_file.rs | If rustfmt failed after writing token text, retrying the same token stream skipped formatting because the file bytes were unchanged and returned success. Formatting now runs whenever requested, so a retry observes the formatter failure again or can complete after the formatter is repaired. The two-call regression failed before and passed after (`target/audit_tmp/a127_before.log`, `a127_after.log`). Formatting, full Clippy, code-style suite, workspace tests, and `git diff --check` passed (`target/audit_tmp/a127_clippy.log`, `a127_style.log`, `a127_workspace.log`). |
 | A128 | Fixed and verified | macro_helpers/src/validate_test_database_url.rs | The test database guard checked the URL authority and path but accepted `host`, `hostaddr`, and `dbname` query parameters that SQLx 0.9.0 applies afterward, allowing a checked loopback test URL to target a different server or database. It now rejects those query keys and conservatively rejects encoded keys; ordinary query parameters remain accepted. The regression failed before and passed after (`target/audit_tmp/a129_before.log`, `a129_after.log`). The pinned SQLx parser was inspected locally, and [SQLx connection option documentation](https://docs.rs/sqlx/latest/sqlx/postgres/struct.PgConnectOptions.html) lists these URL parameters. Formatting, macro_helpers tests with `test-utils`, full Clippy, code-style suite, workspace tests, and `git diff --check` passed (`target/audit_tmp/a129_macro_helpers.log`, `a129_clippy_final.log`, `a129_style.log`, `a129_workspace.log`). |
 | A129 | Fixed and verified | macro_helpers/src/tool_ansi_chars.rs | ANSI stripping consumed characters until `m` for every escape, dropping report text after CSI controls with another final byte or OSC controls. The parser now recognizes CSI final bytes and OSC BEL or ST terminators. A regression covering CSI erase and both OSC forms failed before and passed after (`target/audit_tmp/a130_before.log`, `a130_after.log`). [ECMA-48](https://ecma-international.org/wp-content/uploads/ECMA-48_5th_edition_june_1991.pdf) defines the CSI final-byte range; [xterm control sequences](https://www.x.org/docs/xterm/ctlseqs.pdf) describe OSC terminators. Formatting, macro_helpers tests, full Clippy, code-style suite, workspace tests, and `git diff --check` passed (`target/audit_tmp/a130_macro_helpers.log`, `a130_clippy_final2.log`, `a130_style.log`, `a130_workspace.log`). |
-| A130 | Fixed and verified | macro_helpers/src/generate_serde_version_of_named_syn_variant.rs | `#[eo_vec_location]` on `Option<Location>` was accepted because the generator checked only that the type had one path segment and one generic argument, then emitted a `Vec` serde field. It now requires the `Vec` identifier and emits a specific compile error for another type. The regression failed before and passed after (`target/audit_tmp/a132_before.log`, `a132_after.log`). Formatting, full Clippy, code-style suite, workspace tests, and `git diff --check` passed (`target/audit_tmp/a132_clippy.log`, `a132_style.log`, `a132_workspace.log`). |
+| A130 | Fixed and verified | macro_helpers/src/generate_serde_version_of_named_syn_variant.rs | `#[error_field_vec_location]` on `Option<Location>` was accepted because the generator checked only that the type had one path segment and one generic argument, then emitted a `Vec` serde field. It now requires the `Vec` identifier and emits a specific compile error for another type. The regression failed before and passed after (`target/audit_tmp/a132_before.log`, `a132_after.log`). Formatting, full Clippy, code-style suite, workspace tests, and `git diff --check` passed (`target/audit_tmp/a132_clippy.log`, `a132_style.log`, `a132_workspace.log`). |
 | A131 | Fixed and verified | macro_helpers/src/should_write_string_into_file_tests.rs | A regression test reproduced the test-only predicate rejecting an invalid UTF-8 file with changed content of the same length. Removed its obsolete UTF-8 validation and the two unused test-only modules; the predicate now agrees with the production writer fixed in A126. Focused test and workspace gates passed. |
 | A132 | Fixed and verified | pg_crud_common/src/build_date_sql_filter.rs | The builder incremented its bind index after emitting the final active bound, rejecting a valid single-bound fragment starting at `u32::MAX`. The regression failed before and passed after. It now advances only when another bound remains; a second bound at that start still returns `BindIndexOverflow`. Focused and workspace checks passed. |
 | A133 | Fixed and verified | pg_crud_common/src/cursor_payload.rs, signed_cursor.rs | Oversized cursor values returned the `Empty` error and the false message "must not be empty." Regressions failed before and passed after. Both wrappers now distinguish empty and oversized input with `Empty` and `TooLong` variants, including bounded-storage error mapping. The new public variants are intentional error API corrections. Focused and workspace checks passed. |
@@ -201,7 +201,7 @@ A11 verification: the exact-boundary regression failed before the fix and all 13
 
 A22 verification: all 14 shared helper tests and all 5 naming_common tests pass. The compiled move/raw-parameter fixture preserves both generated methods, and the former panic probe now emits the ordinary expected-closure diagnostic. Full Clippy and all 306 code-style tests pass through the workspace runner; full workspace tests excluding code-style pass. No dependency or inventory changes were required. Evidence: target/audit_tmp/case_trait_closure_before.log, target/audit_tmp/case_trait_closure_after.log, target/audit_tmp/case_trait_final_tests.log, target/audit_tmp/case_trait_static.log and target/audit_tmp/case_trait_workspace.log.
 
-A10 verification: the mutation probe accepted 10,001 parts before the fix and now fails compilation with E0596. Final shared helper tests (15) and token_patterns consumer tests (5) pass, including ordered tp_parts output. All 306 code-style tests pass through the workspace runner. Test result-state and iterator-shadowing Clippy findings were corrected; final full Clippy and full workspace tests excluding code-style pass. Formatting and whitespace checks pass. Evidence: target/audit_tmp/comma_parts_before.log, target/audit_tmp/comma_parts_after.log, target/audit_tmp/comma_parts_tests_final.log, target/audit_tmp/comma_parts_static.log, target/audit_tmp/comma_parts_clippy_retry.log and target/audit_tmp/comma_parts_workspace.log.
+A10 verification: the mutation probe accepted 10,001 parts before the fix and now fails compilation with E0596. Final shared helper tests (15) and token_patterns consumer tests (5) pass, including ordered token_pattern_parts output. All 306 code-style tests pass through the workspace runner. Test result-state and iterator-shadowing Clippy findings were corrected; final full Clippy and full workspace tests excluding code-style pass. Formatting and whitespace checks pass. Evidence: target/audit_tmp/comma_parts_before.log, target/audit_tmp/comma_parts_after.log, target/audit_tmp/comma_parts_tests_final.log, target/audit_tmp/comma_parts_static.log, target/audit_tmp/comma_parts_clippy_retry.log and target/audit_tmp/comma_parts_workspace.log.
 
 ## Previously fixed findings
 
@@ -442,7 +442,7 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 | `config_lib/src/std_config_secret_string.rs` | Reviewed: configuration bounds, conversions, error propagation, or test coverage inspected; no additional defect confirmed. |
 | `config_lib/src/std_env_var_ok.rs` | Reviewed: bounded storage, owned transfer, byte-limit validation and source classification; A05. |
 | `config_lib/src/std_env_var_ok_ref.rs` | Reviewed: configuration bounds, conversions, error propagation, or test coverage inspected; no additional defect confirmed. |
-| `config_lib/src/svc_mode.rs` | Reviewed: configuration bounds, conversions, error propagation, or test coverage inspected; no additional defect confirmed. |
+| `config_lib/src/service_mode.rs` | Reviewed: configuration bounds, conversions, error propagation, or test coverage inspected; no additional defect confirmed. |
 | `config_lib/src/test_config_lib.rs` | Reviewed: domain parser, bounds, timezone, and A58 regression cases inspected. |
 | `config_lib/src/timezone_seconds.rs` | Reviewed: conversion, bounds, and error propagation inspected; no additional defect confirmed. |
 | `config_lib/src/tracing_format.rs` | Fixed: A59 rejects unknown tracing formats while preserving case-insensitive valid values. |
@@ -455,7 +455,7 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 | `config_lib/src/try_from_std_env_var_ok_admin_token_text_error.rs` | Reviewed: configuration bounds, conversions, error propagation, or test coverage inspected; no additional defect confirmed. |
 | `config_lib/src/try_from_std_env_var_ok_maximum_size_of_http_body_in_bytes_error.rs` | Reviewed: configuration bounds, conversions, error propagation, or test coverage inspected; no additional defect confirmed. |
 | `config_lib/src/try_from_std_env_var_ok_pg_pool_max_connections_error.rs` | Reviewed: configuration bounds, conversions, error propagation, or test coverage inspected; no additional defect confirmed. |
-| `config_lib/src/try_from_std_env_var_ok_svc_mode_error.rs` | Reviewed: configuration bounds, conversions, error propagation, or test coverage inspected; no additional defect confirmed. |
+| `config_lib/src/try_from_std_env_var_ok_service_mode_error.rs` | Reviewed: configuration bounds, conversions, error propagation, or test coverage inspected; no additional defect confirmed. |
 | `config_lib/src/try_from_std_env_var_ok_timezone_error.rs` | Reviewed: configuration bounds, conversions, error propagation, or test coverage inspected; no additional defect confirmed. |
 | `config_lib/src/try_from_std_env_var_ok_tracing_format_error.rs` | Fixed: A59 gives unknown tracing formats a typed error. |
 | `config_lib/src/types_tests.rs` | Focused review: environment wrappers, enum conversions, and A59 regression inspected. |
@@ -964,7 +964,7 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 | `generate_quotes/src/build_quote_style.rs` | Reviewed: styles, wrappers, forwarding and existing deterministic literal tests inspected. |
 | `generate_quotes/src/double_quote_style.rs` | Reviewed: styles, wrappers, forwarding and existing deterministic literal tests inspected. |
 | `generate_quotes/src/double_quoted_string.rs` | Reviewed: styles, wrappers, forwarding and existing deterministic literal tests inspected. |
-| `generate_quotes/src/dq_token_stream.rs` | Reviewed: styles, wrappers, forwarding and existing deterministic literal tests inspected. |
+| `generate_quotes/src/double_quoted_token_stream.rs` | Reviewed: styles, wrappers, forwarding and existing deterministic literal tests inspected. |
 | `generate_quotes/src/lib.rs` | Reviewed: styles, wrappers, forwarding and existing deterministic literal tests inspected. |
 | `generate_quotes/src/proc_macro2_quoted_literal_token_stream.rs` | Reviewed: styles, wrappers, forwarding and existing deterministic literal tests inspected. |
 | `generate_quotes/src/quote_char.rs` | Reviewed: styles, wrappers, forwarding and existing deterministic literal tests inspected. |
@@ -1638,8 +1638,8 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 
 | Source | Semantic review |
 | --- | --- |
-| `pg_crud_macro_common/src/common_d_token_stream_builder.rs` | Pending |
-| `pg_crud_macro_common/src/de_len.rs` | Pending |
+| `pg_crud_macro_common/src/common_derive_token_stream_builder.rs` | Pending |
+| `pg_crud_macro_common/src/deserialize_length.rs` | Pending |
 | `pg_crud_macro_common/src/default_some_one_or_default_some_one_with_max_page_size.rs` | Pending |
 | `pg_crud_macro_common/src/derive_or_impl.rs` | Pending |
 | `pg_crud_macro_common/src/dimension.rs` | Pending |
@@ -1648,8 +1648,8 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 | `pg_crud_macro_common/src/emission_types.rs` | Reviewed: boolean token enums choose existing typed naming values or quote fragments; compiled A13 regression covers nested delimiters and both branch emissions. |
 | `pg_crud_macro_common/src/eq_operator_variant.rs` | Pending |
 | `pg_crud_macro_common/src/eq_or_eq_using_fields.rs` | Pending |
-| `pg_crud_macro_common/src/error_enum_d_token_stream_builder.rs` | Pending |
-| `pg_crud_macro_common/src/generate_de_double_quoted_token_stream.rs` | Pending |
+| `pg_crud_macro_common/src/error_enum_derive_token_stream_builder.rs` | Pending |
+| `pg_crud_macro_common/src/generate_deserialize_double_quoted_token_stream.rs` | Pending |
 | `pg_crud_macro_common/src/generate_dimension_number_pagination_token_stream.rs` | Pending |
 | `pg_crud_macro_common/src/generate_explicit_value_declaration_token_stream.rs` | Pending |
 | `pg_crud_macro_common/src/generate_explicit_value_initialization_token_stream.rs` | Pending |
@@ -1657,8 +1657,8 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 | `pg_crud_macro_common/src/generate_impl_all_variants_default_some_one_element_max_page_size_token_stream.rs` | Pending |
 | `pg_crud_macro_common/src/generate_impl_all_variants_default_some_one_element_token_stream.rs` | Pending |
 | `pg_crud_macro_common/src/generate_impl_crate_is_string_empty_for_identifier_token_stream.rs` | Pending |
-| `pg_crud_macro_common/src/generate_impl_de_for_struct_by_fields_token_stream.rs` | Pending |
-| `pg_crud_macro_common/src/generate_impl_de_for_struct_token_stream.rs` | Pending |
+| `pg_crud_macro_common/src/generate_impl_deserialize_for_struct_by_fields_token_stream.rs` | Pending |
+| `pg_crud_macro_common/src/generate_impl_deserialize_for_struct_token_stream.rs` | Pending |
 | `pg_crud_macro_common/src/generate_impl_default_some_one_element_max_page_size_token_stream.rs` | Pending |
 | `pg_crud_macro_common/src/generate_impl_default_some_one_element_token_stream.rs` | Pending |
 | `pg_crud_macro_common/src/generate_impl_display_and_to_err_string_debug_token_stream.rs` | Pending |
@@ -1680,7 +1680,7 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 | `pg_crud_macro_common/src/generate_match_not_empty_unique_vec_try_new_some_or_none_token_stream.rs` | Pending |
 | `pg_crud_macro_common/src/generate_match_ok_assign_or_return_err_token_stream.rs` | Pending |
 | `pg_crud_macro_common/src/generate_match_ok_or_return_err_token_stream.rs` | Pending |
-| `pg_crud_macro_common/src/generate_match_try_new_in_de_token_stream.rs` | Pending |
+| `pg_crud_macro_common/src/generate_match_try_new_in_deserialize_token_stream.rs` | Pending |
 | `pg_crud_macro_common/src/generate_mod_with_pub_use_token_stream.rs` | Pending |
 | `pg_crud_macro_common/src/generate_optional_type_declaration_token_stream.rs` | Pending |
 | `pg_crud_macro_common/src/generate_pg_type_where_token_stream.rs` | Pending |
@@ -1708,7 +1708,7 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 | `pg_crud_macro_common/src/non_null_or_nullable_str.rs` | Pending |
 | `pg_crud_macro_common/src/panic_uuid_ref.rs` | Pending |
 | `pg_crud_macro_common/src/parse_error_id_ref.rs` | Pending |
-| `pg_crud_macro_common/src/parse_strs_to_ts2_vec.rs` | Pending |
+| `pg_crud_macro_common/src/parse_token_stream_strings_into_generated_vec.rs` | Pending |
 | `pg_crud_macro_common/src/parse_token_stream_strings.rs` | Pending |
 | `pg_crud_macro_common/src/pg_crud_common_query_part_error_checked_add_initialization_token_stream.rs` | Pending |
 | `pg_crud_macro_common/src/pg_crud_common_query_part_error_token_stream.rs` | Pending |
@@ -1716,7 +1716,7 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 | `pg_crud_macro_common/src/pg_type_filter.rs` | Focused review: A44 carries the range-specific length type through the filter descriptor. |
 | `pg_crud_macro_common/src/proc_macro2_generated_rust_token_stream_vec.rs` | Pending |
 | `pg_crud_macro_common/src/read_or_update.rs` | Pending |
-| `pg_crud_macro_common/src/serde_error_enum_d_token_stream_builder.rs` | Pending |
+| `pg_crud_macro_common/src/serde_error_enum_derive_token_stream_builder.rs` | Pending |
 | `pg_crud_macro_common/src/struct_elements_length.rs` | Pending |
 | `pg_crud_macro_common/src/syn_field_refs.rs` | Pending |
 | `pg_crud_macro_common/src/syn_identifier_type_refs.rs` | Pending |
@@ -1737,12 +1737,12 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 | `pg_crud_pg_table/src/complete_pg_table_idempotency.rs` | Reviewed: A32 now rejects completion when SQL updates no pending reservation. |
 | `pg_crud_pg_table/src/complete_pg_table_idempotency_in_connection.rs` | Reviewed: transactional completion already requires exactly one updated reservation. |
 | `pg_crud_pg_table/src/ensure_pg_table_idempotency_schema.rs` | Focused review: advisory lock and schema statements execute within one transaction; database behavior remains under integration review. |
-| `pg_crud_pg_table/src/generate_cm_query_string.rs` | Reviewed: SQL assembly returns typed length errors; A14. |
-| `pg_crud_pg_table/src/generate_column_eqs_case_accumulator_else_column_end_comma_um_query_part.rs` | Reviewed: update fragment returns typed length errors; A14. |
-| `pg_crud_pg_table/src/generate_dm_query_string.rs` | Reviewed: SQL assembly returns typed length errors; A14. |
-| `pg_crud_pg_table/src/generate_rm_query_string.rs` | Reviewed: SQL assembly returns typed length errors; A14. |
-| `pg_crud_pg_table/src/generate_um_query_string.rs` | Reviewed: SQL assembly returns typed length errors; A14. |
-| `pg_crud_pg_table/src/generate_when_column_id_then_v_um_query_part.rs` | Reviewed: update fragment returns typed length errors; A14. |
+| `pg_crud_pg_table/src/generate_create_many_query_string.rs` | Reviewed: SQL assembly returns typed length errors; A14. |
+| `pg_crud_pg_table/src/generate_column_equals_case_accumulator_else_column_end_comma_update_many_query_part.rs` | Reviewed: update fragment returns typed length errors; A14. |
+| `pg_crud_pg_table/src/generate_delete_many_query_string.rs` | Reviewed: SQL assembly returns typed length errors; A14. |
+| `pg_crud_pg_table/src/generate_read_many_query_string.rs` | Reviewed: SQL assembly returns typed length errors; A14. |
+| `pg_crud_pg_table/src/generate_update_many_query_string.rs` | Reviewed: SQL assembly returns typed length errors; A14. |
+| `pg_crud_pg_table/src/generate_when_column_id_then_value_update_many_query_part.rs` | Reviewed: update fragment returns typed length errors; A14. |
 | `pg_crud_pg_table/src/lib.rs` | Reviewed: flat module declarations match present source owners; no root logic. |
 | `pg_crud_pg_table/src/new_pg_table_idempotency_key.rs` | Reviewed: UUID generation delegates validated conversion and propagates its typed Result; both generated clients updated for A05. |
 | `pg_crud_pg_table/src/pg_table_idempotency_actor.rs` | Reviewed: validates nonempty bounded actor text through the shared validator. |
@@ -1774,9 +1774,9 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 | `pg_crud_pg_table/src/pg_table_revision_try_from_string_error.rs` | Reviewed: distinguishes invalid text from negative revision. |
 | `pg_crud_pg_table/src/pg_table_sql_fragment_ref.rs` | Focused review: SQL assembly and length-error handling; see A14 and generated consumers. |
 | `pg_crud_pg_table/src/pg_table_string_wrapper_try_from_string_error.rs` | Reviewed: typed length error now derives thiserror and implements generated route diagnostic conversion; A14. |
-| `pg_crud_pg_table/src/pg_tbl_idempotency_route_max_bytes.rs` | Reviewed: matches route wrapper's 1024-byte bound. |
-| `pg_crud_pg_table/src/pg_tbl_idempotency_text_max_bytes.rs` | Reviewed: matches actor and key text's 255-byte bound. |
-| `pg_crud_pg_table/src/pg_tbl_string_wrapper_max_len.rs` | Reviewed: matches the query and fragment 1 MiB storage limit. |
+| `pg_crud_pg_table/src/pg_table_idempotency_route_max_bytes.rs` | Reviewed: matches route wrapper's 1024-byte bound. |
+| `pg_crud_pg_table/src/pg_table_idempotency_text_max_bytes.rs` | Reviewed: matches actor and key text's 255-byte bound. |
+| `pg_crud_pg_table/src/pg_table_string_wrapper_max_len.rs` | Reviewed: matches the query and fragment 1 MiB storage limit. |
 | `pg_crud_pg_table/src/release_pg_table_idempotency.rs` | Focused review: releases matching pending reservation by request hash; zero affected rows remain valid for idempotent release. |
 | `pg_crud_pg_table/src/sqlx_pg_table_idempotency_error.rs` | Reviewed: retains SQLx source and exposes a bounded diagnostic conversion. |
 | `pg_crud_pg_table/src/sqlx_pg_table_pg_connection_ref.rs` | Reviewed: mutable borrowed PostgreSQL connection adapter. |
@@ -1869,8 +1869,8 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 | `pg_crud_pg_types_generate_src/src/pg_type_can_be_nullable.rs` | Reviewed: generated-type configuration or typed metadata helper. |
 | `pg_crud_pg_types_generate_src/src/pg_type_catalog_kind.rs` | Reviewed: catalog to SQL, Rust and wire classification dispatch. |
 | `pg_crud_pg_types_generate_src/src/pg_type_deserialize.rs` | Reviewed: catalog to SQL, Rust and wire classification dispatch. |
-| `pg_crud_pg_types_generate_src/src/pg_type_impl_new_for_deserialize_or_try_new_for_de.rs` | Reviewed: generated-type configuration or typed metadata helper. |
-| `pg_crud_pg_types_generate_src/src/pg_type_impl_try_new_for_de.rs` | Reviewed: generated-type configuration or typed metadata helper. |
+| `pg_crud_pg_types_generate_src/src/pg_type_impl_new_for_deserialize_or_try_new_for_deserialize.rs` | Reviewed: generated-type configuration or typed metadata helper. |
+| `pg_crud_pg_types_generate_src/src/pg_type_impl_try_new_for_deserialize.rs` | Reviewed: generated-type configuration or typed metadata helper. |
 | `pg_crud_pg_types_generate_src/src/pg_type_initialization_try_new.rs` | Reviewed: finite float4 and float8 initialization dispatch; A35. |
 | `pg_crud_pg_types_generate_src/src/pg_type_name.rs` | Reviewed: catalog to SQL, Rust and wire classification dispatch. |
 | `pg_crud_pg_types_generate_src/src/pg_type_pattern.rs` | Reviewed: generated-type configuration or typed metadata helper. |
@@ -2194,17 +2194,17 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 | `proc_macro_generate_derive_token_stream_builder/src/snake_case_string.rs` | Reviewed: bounded storage for normalized snake-case names with a 1 MiB limit. |
 | `proc_macro_generate_derive_token_stream_builder/src/to_snake_case_input.rs` | Reviewed: borrowed input wrapper with generated immutable access. |
 
-### proc_macro_generate_pg_table_cm_error_variants
+### proc_macro_generate_pg_table_create_many_error_variants
 
 | Source | Semantic review |
 | --- | --- |
-| `proc_macro_generate_pg_table_cm_error_variants/src/lib.rs` | Reviewed: compiler entrypoint attributes and token forwarding inspected; shared implementation review remains independent. |
+| `proc_macro_generate_pg_table_create_many_error_variants/src/lib.rs` | Reviewed: compiler entrypoint attributes and token forwarding inspected; shared implementation review remains independent. |
 
-### proc_macro_generate_pg_table_cm_logic
+### proc_macro_generate_pg_table_create_many_logic
 
 | Source | Semantic review |
 | --- | --- |
-| `proc_macro_generate_pg_table_cm_logic/src/lib.rs` | Reviewed: compiler entrypoint attributes and token forwarding inspected; shared implementation review remains independent. |
+| `proc_macro_generate_pg_table_create_many_logic/src/lib.rs` | Reviewed: compiler entrypoint attributes and token forwarding inspected; shared implementation review remains independent. |
 
 ### proc_macro_generate_pg_table_common_error_variants
 
@@ -2224,17 +2224,17 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 | --- | --- |
 | `proc_macro_generate_pg_table_derive_generate_pg_table/src/lib.rs` | Reviewed: compiler entrypoint attributes and token forwarding inspected; shared implementation review remains independent. |
 
-### proc_macro_generate_pg_table_dm_error_variants
+### proc_macro_generate_pg_table_delete_many_error_variants
 
 | Source | Semantic review |
 | --- | --- |
-| `proc_macro_generate_pg_table_dm_error_variants/src/lib.rs` | Reviewed: compiler entrypoint attributes and token forwarding inspected; shared implementation review remains independent. |
+| `proc_macro_generate_pg_table_delete_many_error_variants/src/lib.rs` | Reviewed: compiler entrypoint attributes and token forwarding inspected; shared implementation review remains independent. |
 
-### proc_macro_generate_pg_table_dm_logic
+### proc_macro_generate_pg_table_delete_many_logic
 
 | Source | Semantic review |
 | --- | --- |
-| `proc_macro_generate_pg_table_dm_logic/src/lib.rs` | Reviewed: compiler entrypoint attributes and token forwarding inspected; shared implementation review remains independent. |
+| `proc_macro_generate_pg_table_delete_many_logic/src/lib.rs` | Reviewed: compiler entrypoint attributes and token forwarding inspected; shared implementation review remains independent. |
 
 ### proc_macro_generate_pg_table_generate_pg_table_config
 
@@ -2242,17 +2242,17 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 | --- | --- |
 | `proc_macro_generate_pg_table_generate_pg_table_config/src/lib.rs` | Reviewed: compiler entrypoint attributes and token forwarding inspected; shared implementation review remains independent. |
 
-### proc_macro_generate_pg_table_rm_error_variants
+### proc_macro_generate_pg_table_read_many_error_variants
 
 | Source | Semantic review |
 | --- | --- |
-| `proc_macro_generate_pg_table_rm_error_variants/src/lib.rs` | Reviewed: compiler entrypoint attributes and token forwarding inspected; shared implementation review remains independent. |
+| `proc_macro_generate_pg_table_read_many_error_variants/src/lib.rs` | Reviewed: compiler entrypoint attributes and token forwarding inspected; shared implementation review remains independent. |
 
-### proc_macro_generate_pg_table_rm_logic
+### proc_macro_generate_pg_table_read_many_logic
 
 | Source | Semantic review |
 | --- | --- |
-| `proc_macro_generate_pg_table_rm_logic/src/lib.rs` | Reviewed: compiler entrypoint attributes and token forwarding inspected; shared implementation review remains independent. |
+| `proc_macro_generate_pg_table_read_many_logic/src/lib.rs` | Reviewed: compiler entrypoint attributes and token forwarding inspected; shared implementation review remains independent. |
 
 ### proc_macro_generate_pg_table_shared
 
@@ -2260,17 +2260,17 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 | --- | --- |
 | `proc_macro_generate_pg_table_shared/src/lib.rs` | Reviewed: all attribute passthrough entries and the derive delegation inspected against their facade callers and generator tests; no defect confirmed. |
 
-### proc_macro_generate_pg_table_um_error_variants
+### proc_macro_generate_pg_table_update_many_error_variants
 
 | Source | Semantic review |
 | --- | --- |
-| `proc_macro_generate_pg_table_um_error_variants/src/lib.rs` | Reviewed: compiler entrypoint attributes and token forwarding inspected; shared implementation review remains independent. |
+| `proc_macro_generate_pg_table_update_many_error_variants/src/lib.rs` | Reviewed: compiler entrypoint attributes and token forwarding inspected; shared implementation review remains independent. |
 
-### proc_macro_generate_pg_table_um_logic
+### proc_macro_generate_pg_table_update_many_logic
 
 | Source | Semantic review |
 | --- | --- |
-| `proc_macro_generate_pg_table_um_logic/src/lib.rs` | Reviewed: compiler entrypoint attributes and token forwarding inspected; shared implementation review remains independent. |
+| `proc_macro_generate_pg_table_update_many_logic/src/lib.rs` | Reviewed: compiler entrypoint attributes and token forwarding inspected; shared implementation review remains independent. |
 
 ### proc_macro_generate_pg_types
 
@@ -2740,32 +2740,32 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 | Source | Semantic review |
 | --- | --- |
 | `proc_macro_token_patterns_shared/src/lib.rs` | Reviewed: identifier/comma guards, ordered owned part emission, function emission and parenthesized batch filtering; A10 preserves part order without mutable wrapper access. |
-| `proc_macro_token_patterns_shared/src/proc_macro2_generate_tp_input.rs` | Reviewed: private compiler token input wrapper with generated ownership conversion. |
-| `proc_macro_token_patterns_shared/src/proc_macro2_generate_tp_output.rs` | Reviewed: private compiler token output wrapper with generated ownership conversion. |
+| `proc_macro_token_patterns_shared/src/proc_macro2_generate_token_pattern_input.rs` | Reviewed: private compiler token input wrapper with generated ownership conversion. |
+| `proc_macro_token_patterns_shared/src/proc_macro2_generate_token_pattern_output.rs` | Reviewed: private compiler token output wrapper with generated ownership conversion. |
 
-### proc_macro_token_patterns_tp
-
-| Source | Semantic review |
-| --- | --- |
-| `proc_macro_token_patterns_tp/src/lib.rs` | Reviewed: single compiler adapter delegates complete token generation to the shared owner. |
-
-### proc_macro_token_patterns_tp_batch
+### proc_macro_token_patterns_token_pattern
 
 | Source | Semantic review |
 | --- | --- |
-| `proc_macro_token_patterns_tp_batch/src/lib.rs` | Reviewed: single compiler adapter delegates parenthesized batch generation to the shared owner. |
+| `proc_macro_token_patterns_token_pattern/src/lib.rs` | Reviewed: single compiler adapter delegates complete token generation to the shared owner. |
 
-### proc_macro_token_patterns_tp_parts
-
-| Source | Semantic review |
-| --- | --- |
-| `proc_macro_token_patterns_tp_parts/src/lib.rs` | Reviewed: single compiler adapter delegates ordered part generation to the shared owner. |
-
-### proc_macro_token_patterns_ts_path_fn
+### proc_macro_token_patterns_token_pattern_batch
 
 | Source | Semantic review |
 | --- | --- |
-| `proc_macro_token_patterns_ts_path_fn/src/lib.rs` | Reviewed: single compiler adapter delegates function generation to the shared owner. |
+| `proc_macro_token_patterns_token_pattern_batch/src/lib.rs` | Reviewed: single compiler adapter delegates parenthesized batch generation to the shared owner. |
+
+### proc_macro_token_patterns_token_pattern_parts
+
+| Source | Semantic review |
+| --- | --- |
+| `proc_macro_token_patterns_token_pattern_parts/src/lib.rs` | Reviewed: single compiler adapter delegates ordered part generation to the shared owner. |
+
+### proc_macro_token_patterns_token_stream_path_function
+
+| Source | Semantic review |
+| --- | --- |
+| `proc_macro_token_patterns_token_stream_path_function/src/lib.rs` | Reviewed: single compiler adapter delegates function generation to the shared owner. |
 
 ### proc_macro_trait_alias
 
@@ -2837,7 +2837,7 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 | `route_validators/src/required_header_str.rs` | Reviewed: reader delegates missing and decoding errors through callbacks. |
 | `route_validators/src/required_header_str_parsed.rs` | Reviewed: parsed reader preserves borrowed header lifetime and parse failures. |
 | `route_validators/src/required_header_value.rs` | Reviewed: header lookup maps absence to caller-owned error. |
-| `route_validators/src/test_exp_id.rs` | Reviewed: typed wrapper or test utility preserves its stated conversion, assertion, or panic behavior. |
+| `route_validators/src/test_expectation_id.rs` | Reviewed: typed wrapper or test utility preserves its stated conversion, assertion, or panic behavior. |
 | `route_validators/src/test_helper.rs` | Reviewed: deterministic header and test-helper cases cover success and error paths. |
 | `route_validators/src/test_panic_text.rs` | Reviewed: typed wrapper or test utility preserves its stated conversion, assertion, or panic behavior. |
 | `route_validators/src/test_poll_count.rs` | Reviewed: typed wrapper or test utility preserves its stated conversion, assertion, or panic behavior. |
@@ -2922,8 +2922,8 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 | `server_admin/src/admin_auth_route_registry.rs` | Pending |
 | `server_admin/src/admin_auth_routes.rs` | Pending |
 | `server_admin/src/admin_auth_rules.rs` | Pending |
-| `server_admin/src/admin_auth_svc_state.rs` | Pending |
-| `server_admin/src/admin_auth_svc_state_build_error.rs` | Reviewed: invalid origin, absent JWT secret, concurrency, and positive-value failures are distinct. |
+| `server_admin/src/admin_auth_service_state.rs` | Pending |
+| `server_admin/src/admin_auth_service_state_build_error.rs` | Reviewed: invalid origin, absent JWT secret, concurrency, and positive-value failures are distinct. |
 | `server_admin/src/admin_branding_page.rs` | Pending |
 | `server_admin/src/admin_cleanup_batch_size.rs` | Pending |
 | `server_admin/src/admin_cleanup_configuration.rs` | Pending |
@@ -3100,27 +3100,27 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 | `server_admin/src/crud_resource_page.rs` | Pending |
 | `server_admin/src/csr_page.rs` | Pending |
 | `server_admin/src/csr_table_page.rs` | Pending |
-| `server_admin/src/data_access_sessions_flt.rs` | Pending |
-| `server_admin/src/data_audit_log_flt.rs` | Pending |
-| `server_admin/src/data_cleanup_status_flt.rs` | Pending |
+| `server_admin/src/data_access_sessions_filter.rs` | Pending |
+| `server_admin/src/data_audit_log_filter.rs` | Pending |
+| `server_admin/src/data_cleanup_status_filter.rs` | Pending |
 | `server_admin/src/data_filter.rs` | Reviewed: incomplete, unknown, and mismatched filter shapes are rejected before typed predicate construction; focused tests cover table and operation variants. |
-| `server_admin/src/data_flt.rs` | Pending |
-| `server_admin/src/data_login_attempts_flt.rs` | Pending |
-| `server_admin/src/data_permission_actions_flt.rs` | Pending |
-| `server_admin/src/data_permission_resource_actions_flt.rs` | Pending |
-| `server_admin/src/data_permission_resources_flt.rs` | Pending |
-| `server_admin/src/data_rate_limits_flt.rs` | Pending |
-| `server_admin/src/data_refresh_tokens_flt.rs` | Pending |
-| `server_admin/src/data_role_rules_flt.rs` | Pending |
-| `server_admin/src/data_roles_flt.rs` | Pending |
-| `server_admin/src/data_rules_flt.rs` | Pending |
-| `server_admin/src/data_system_settings_flt.rs` | Pending |
+| `server_admin/src/data_table_filter.rs` | Pending |
+| `server_admin/src/data_login_attempts_filter.rs` | Pending |
+| `server_admin/src/data_permission_actions_filter.rs` | Pending |
+| `server_admin/src/data_permission_resource_actions_filter.rs` | Pending |
+| `server_admin/src/data_permission_resources_filter.rs` | Pending |
+| `server_admin/src/data_rate_limits_filter.rs` | Pending |
+| `server_admin/src/data_refresh_tokens_filter.rs` | Pending |
+| `server_admin/src/data_role_rules_filter.rs` | Pending |
+| `server_admin/src/data_roles_filter.rs` | Pending |
+| `server_admin/src/data_rules_filter.rs` | Pending |
+| `server_admin/src/data_system_settings_filter.rs` | Pending |
 | `server_admin/src/data_table_query_sql.rs` | Fixed and reviewed; A114 pure SQL builder and catalog sort validation. |
 | `server_admin/src/data_tables.rs` | Pending |
 | `server_admin/src/data_tables_get.rs` | Fixed and reviewed; A114 honors search, sort, and direction, and A117 binds literal search patterns in generic table queries. |
 | `server_admin/src/data_tables_list.rs` | Reviewed: authenticated catalog listing filters each table by the actor's read rule. |
-| `server_admin/src/data_user_roles_flt.rs` | Pending |
-| `server_admin/src/data_users_flt.rs` | Pending |
+| `server_admin/src/data_user_roles_filter.rs` | Pending |
+| `server_admin/src/data_users_filter.rs` | Pending |
 | `server_admin/src/decode_access_token.rs` | Reviewed: validates HS256 signature and delegates claim checks to the typed validator. |
 | `server_admin/src/delete_confirmed_entity.rs` | Pending |
 | `server_admin/src/delete_role.rs` | Pending |
@@ -3227,7 +3227,7 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 | `server_admin/src/settings_form.rs` | Pending |
 | `server_admin/src/settings_get.rs` | Pending |
 | `server_admin/src/settings_update.rs` | Pending |
-| `server_admin/src/shared_admin_auth_svc_state_arc.rs` | Pending |
+| `server_admin/src/shared_admin_auth_service_state_arc.rs` | Pending |
 | `server_admin/src/shared_admin_generated_table_state_arc.rs` | Pending |
 | `server_admin/src/sign_in.rs` | Focused review: HTML error status now follows the typed error mapping; A168. |
 | `server_admin/src/sign_in_error_response.rs` | Focused review: generic sign-in page preserves typed error status; A168. |
@@ -3806,7 +3806,7 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 | `server_runtime_http/src/cookie_resolution.rs` | Reviewed: explicit invalid, missing and borrowed resolved-value outcomes preserve parser decisions. |
 | `server_runtime_http/src/cors_allow_origin_max_bytes.rs` | Reviewed: explicit 65,536-byte configuration input bound. |
 | `server_runtime_http/src/cors_allow_origin_max_items.rs` | Reviewed: explicit 128-origin list bound. |
-| `server_runtime_http/src/cors_allow_origin_split_ch.rs` | Reviewed: comma delimiter for configured origins. |
+| `server_runtime_http/src/cors_allow_origin_split_character.rs` | Reviewed: comma delimiter for configured origins. |
 | `server_runtime_http/src/enforce_pg_rate_limit.rs` | Reviewed: parameterized PostgreSQL query preserves database errors and maps Boolean results to typed decisions; no defect confirmed. |
 | `server_runtime_http/src/ensure_size_within_limit.rs` | Pending |
 | `server_runtime_http/src/extract_remote_trace_context.rs` | Pending |

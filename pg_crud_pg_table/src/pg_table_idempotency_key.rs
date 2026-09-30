@@ -9,7 +9,7 @@
 pub struct PgTableIdempotencyKey(
     bounded_types::bounded_string::BoundedString<
         1usize,
-        { crate::pg_tbl_idempotency_text_max_bytes::PG_TBL_IDEMPOTENCY_TEXT_MAX_BYTES },
+        { crate::pg_table_idempotency_text_max_bytes::PG_TABLE_IDEMPOTENCY_TEXT_MAX_BYTES },
         false,
     >,
 );

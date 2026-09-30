@@ -92,18 +92,19 @@ pub fn derive_location(token_stream: proc_macro2::TokenStream) -> proc_macro2::T
         Unnamed,
     }
     panic_location::panic_location();
-    let di: syn::DeriveInput = syn::parse2(token_stream).expect(constants_str::DIAGNOSTIC_D94F091A);
-    let utoipa_to_schema_token_stream = di
+    let derive_input: syn::DeriveInput =
+        syn::parse2(token_stream).expect(constants_str::DIAGNOSTIC_D94F091A);
+    let utoipa_to_schema_token_stream = derive_input
         .attrs
         .iter()
         .any(|attr| attr.path().is_ident(constants_str::LOCATION_TO_SCHEMA))
         .then(|| quote::quote! {utoipa::ToSchema,});
-    let identifier = &di.ident;
+    let identifier = &derive_input.ident;
     let string_token_stream = token_patterns::StringTokenStream;
     let location_snake_case = naming::domain_types::LocationSnakeCase;
     let v_snake_case = naming::domain_types::VSnakeCase;
     let into_serde_version_snake_case = naming::domain_types::IntoSerdeVersionSnakeCase;
-    let generic_parameters = &di
+    let generic_parameters = &derive_input
         .generics
         .params
         .iter()
@@ -116,7 +117,7 @@ pub fn derive_location(token_stream: proc_macro2::TokenStream) -> proc_macro2::T
         .collect::<Vec<&syn::Ident>>();
     let identifier_with_serde_upper_camel_case =
         naming::parameter::SelfWithSerdeUpperCamelCase::from_tokens(&identifier);
-    let syn::Data::Enum(data_enum) = di.data else {
+    let syn::Data::Enum(data_enum) = derive_input.data else {
         std::panic::panic_any(constants_str::PANIC_D98214F7);
     };
     let supported_enum_variant = {
@@ -166,33 +167,35 @@ pub fn derive_location(token_stream: proc_macro2::TokenStream) -> proc_macro2::T
                 .map(|element| quote::quote! {#element: to_err_string::to_err_string::ToErrString});
             quote::quote! {<#(#v),*>}
         };
-    let generate_enum_identifier_with_serde_token_stream = |ts: &dyn quote::ToTokens| {
-        quote::quote! {
-            #[derive(Debug, thiserror::Error, serde::Serialize, serde::Deserialize, #utoipa_to_schema_token_stream proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
-            pub enum #identifier_with_serde_upper_camel_case #maybe_generic_parameters_token_stream {
-                #ts
+    let generate_enum_identifier_with_serde_token_stream =
+        |generated_tokens: &dyn quote::ToTokens| {
+            quote::quote! {
+                #[derive(Debug, thiserror::Error, serde::Serialize, serde::Deserialize, #utoipa_to_schema_token_stream proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
+                pub enum #identifier_with_serde_upper_camel_case #maybe_generic_parameters_token_stream {
+                    #generated_tokens
+                }
             }
-        }
-    };
-    let generate_impl_identifier_into_serde_version_token_stream = |ts: &dyn quote::ToTokens| {
-        quote::quote! {
-            impl #maybe_generic_parameters_token_stream #identifier #maybe_generic_parameters_token_stream {
-                pub fn #into_serde_version_snake_case(self) -> #identifier_with_serde_upper_camel_case #maybe_generic_parameters_token_stream {
+        };
+    let generate_impl_identifier_into_serde_version_token_stream =
+        |generated_tokens: &dyn quote::ToTokens| {
+            quote::quote! {
+                impl #maybe_generic_parameters_token_stream #identifier #maybe_generic_parameters_token_stream {
+                    pub fn #into_serde_version_snake_case(self) -> #identifier_with_serde_upper_camel_case #maybe_generic_parameters_token_stream {
 
-                    #[allow(clippy::redundant_closure_for_method_calls, reason = "lib requires this localized allowance for generated or framework-constrained code verified by focused tests")]
-                    match self {
-                        #ts
+                        #[allow(clippy::redundant_closure_for_method_calls, reason = "lib requires this localized allowance for generated or framework-constrained code verified by focused tests")]
+                        match self {
+                            #generated_tokens
+                        }
                     }
                 }
             }
-        }
-    };
+        };
     let tokens = match supported_enum_variant {
         SuportedEnumVariant::Named => {
             let location_snake_case_str = naming::domain_types::LocationSnakeCase.to_string();
 
             let impl_display_token_stream = {
-                let vrts_token_stream = data_enum.variants.iter().map(|element| {
+                let variant_token_streams = data_enum.variants.iter().map(|element| {
                     let element_identifier = &element.ident;
                     let fields = if let syn::Fields::Named(fields) = &element.fields {
                         &fields.named
@@ -211,7 +214,7 @@ pub fn derive_location(token_stream: proc_macro2::TokenStream) -> proc_macro2::T
                             quote::quote! {#(#accumulator_token_stream),*,}
                         }
                     };
-                    let fields_format_excluding_location_token_stream = generate_quotes::dq_token_stream::dq_token_stream(
+                    let fields_format_excluding_location_token_stream = generate_quotes::double_quoted_token_stream::double_quoted_token_stream(
                         &fields.iter()
                         .filter(|el0| *el0.ident.as_ref().expect(constants_str::DIAGNOSTIC_3D70A4F4) != *location_snake_case_str)
                         .fold(
@@ -234,12 +237,12 @@ pub fn derive_location(token_stream: proc_macro2::TokenStream) -> proc_macro2::T
                     .map(|el0| {
                         let el0_identifier = &el0.ident.as_ref().expect(constants_str::DIAGNOSTIC_E97B25B9);
                         match macro_helpers::location_field_attr::LocationFieldAttr::try_from(el0).expect(constants_str::DIAGNOSTIC_8FF56AEB) {
-                            macro_helpers::location_field_attr::LocationFieldAttr::EoToErrString | macro_helpers::location_field_attr::LocationFieldAttr::EoToErrStringSerde => {
+                            macro_helpers::location_field_attr::LocationFieldAttr::ErrorFieldToErrString | macro_helpers::location_field_attr::LocationFieldAttr::ErrorFieldToErrStringSerde => {
                                 quote::quote! {
                                     to_err_string::to_err_string::ToErrString::to_err_string(#el0_identifier)
                                 }
                             }
-                            macro_helpers::location_field_attr::LocationFieldAttr::EoLocation => {
+                            macro_helpers::location_field_attr::LocationFieldAttr::ErrorFieldLocation => {
                                 let if_write_is_err_token_stream = macro_helpers::generate_if_write_is_error_token_stream::generate_if_write_is_error_token_stream(&quote::quote! {accumulator_52e70d22, "\n {element}"}, &quote::quote! {panic!("c751d54a");});
                                 quote::quote! {
                                     #el0_identifier.to_string().lines().fold(
@@ -251,7 +254,7 @@ pub fn derive_location(token_stream: proc_macro2::TokenStream) -> proc_macro2::T
                                     )
                                 }
                             }
-                            macro_helpers::location_field_attr::LocationFieldAttr::EoVecToErrString | macro_helpers::location_field_attr::LocationFieldAttr::EoVecToErrStringSerde => {
+                            macro_helpers::location_field_attr::LocationFieldAttr::ErrorFieldVecToErrString | macro_helpers::location_field_attr::LocationFieldAttr::ErrorFieldVecToErrStringSerde => {
                                 let if_write_is_err_token_stream = macro_helpers::generate_if_write_is_error_token_stream::generate_if_write_is_error_token_stream(&quote::quote! {accumulator_a9ba7521, "\n {element_6e4f53ad}"}, &quote::quote! {panic!("b35ed9f5");});
                                 quote::quote! {
                                     #el0_identifier.iter().fold(
@@ -273,7 +276,7 @@ pub fn derive_location(token_stream: proc_macro2::TokenStream) -> proc_macro2::T
                                     )
                                 }
                             }
-                            macro_helpers::location_field_attr::LocationFieldAttr::EoVecLocation => {
+                            macro_helpers::location_field_attr::LocationFieldAttr::ErrorFieldVecLocation => {
                                 let if_write_is_err_token_stream = macro_helpers::generate_if_write_is_error_token_stream::generate_if_write_is_error_token_stream(&quote::quote! {accumulator_1bbd5ef3, "\n {element_3f2fe01d}"}, &quote::quote! {panic!("4dfdd18d");});
                                 quote::quote! {
                                     #el0_identifier.iter().fold(
@@ -291,7 +294,7 @@ pub fn derive_location(token_stream: proc_macro2::TokenStream) -> proc_macro2::T
                                     )
                                 }
                             }
-                            macro_helpers::location_field_attr::LocationFieldAttr::EoHashMapKStringVToErrString | macro_helpers::location_field_attr::LocationFieldAttr::EoHashMapKStringVToErrStringSerde => {
+                            macro_helpers::location_field_attr::LocationFieldAttr::ErrorFieldHashMapKeyStringValueToErrString | macro_helpers::location_field_attr::LocationFieldAttr::ErrorFieldHashMapKeyStringValueToErrStringSerde => {
                                 let if_write_is_err_token_stream = macro_helpers::generate_if_write_is_error_token_stream::generate_if_write_is_error_token_stream(&quote::quote! {accumulator_06473093, "\n {}: {}", &to_err_string::to_err_string::ToErrString::to_err_string(k), &to_err_string::to_err_string::ToErrString::to_err_string(#v_snake_case)}, &quote::quote! {panic!("d030580a");});
                                 quote::quote! {
                                     #el0_identifier.iter().fold(
@@ -303,7 +306,7 @@ pub fn derive_location(token_stream: proc_macro2::TokenStream) -> proc_macro2::T
                                     )
                                 }
                             }
-                            macro_helpers::location_field_attr::LocationFieldAttr::EoHashMapKStringVLocation => {
+                            macro_helpers::location_field_attr::LocationFieldAttr::ErrorFieldHashMapKeyStringValueLocation => {
                                 let if_write_is_err_token_stream = macro_helpers::generate_if_write_is_error_token_stream::generate_if_write_is_error_token_stream(
                                     &{
                                         let if_write_is_err_token_stream = macro_helpers::generate_if_write_is_error_token_stream::generate_if_write_is_error_token_stream(&quote::quote! {accumulator_addfc699, "\n  {element_8b8f577e}"}, &quote::quote! {panic!("d0492fbf");});
@@ -370,7 +373,7 @@ pub fn derive_location(token_stream: proc_macro2::TokenStream) -> proc_macro2::T
                         f,
                         "{}{}",
                         match self {
-                            #(#vrts_token_stream),*
+                            #(#variant_token_streams),*
                         },
                         match self {
                             #(#location_variants_token_stream)*
@@ -387,7 +390,7 @@ pub fn derive_location(token_stream: proc_macro2::TokenStream) -> proc_macro2::T
                     &impl_display_token_stream,
                 );
             let impl_identifier_into_serde_version_token_stream = {
-                let vrts_token_stream = data_enum.variants.iter().map(|element| {
+                let variant_token_streams = data_enum.variants.iter().map(|element| {
                     let element_identifier = &element.ident;
                     let fields = if let syn::Fields::Named(fields) = &element.fields {
                         &fields.named
@@ -402,34 +405,34 @@ pub fn derive_location(token_stream: proc_macro2::TokenStream) -> proc_macro2::T
                             quote::quote! {#el0_identifier}
                         }
                         else {
-                            let generate_field_token_stream = |ts: &dyn quote::ToTokens|quote::quote! {#el0_identifier: {#ts}};
+                            let generate_field_token_stream = |generated_tokens: &dyn quote::ToTokens|quote::quote! {#el0_identifier: {#generated_tokens}};
                             match macro_helpers::location_field_attr::LocationFieldAttr::try_from(el0).expect(constants_str::DIAGNOSTIC_449C3781) {
-                                macro_helpers::location_field_attr::LocationFieldAttr::EoToErrString => generate_field_token_stream(&quote::quote! {
+                                macro_helpers::location_field_attr::LocationFieldAttr::ErrorFieldToErrString => generate_field_token_stream(&quote::quote! {
                                     to_err_string::to_err_string::ToErrString::to_err_string(&#el0_identifier).into_inner()
                                 }),
-                                macro_helpers::location_field_attr::LocationFieldAttr::EoToErrStringSerde | macro_helpers::location_field_attr::LocationFieldAttr::EoVecToErrStringSerde => {
+                                macro_helpers::location_field_attr::LocationFieldAttr::ErrorFieldToErrStringSerde | macro_helpers::location_field_attr::LocationFieldAttr::ErrorFieldVecToErrStringSerde => {
                                     quote::quote! {#el0_identifier}
                                 }
-                                macro_helpers::location_field_attr::LocationFieldAttr::EoLocation => generate_field_token_stream(&quote::quote! {
+                                macro_helpers::location_field_attr::LocationFieldAttr::ErrorFieldLocation => generate_field_token_stream(&quote::quote! {
                                     #el0_identifier.into_serde_version()
                                 }),
-                                macro_helpers::location_field_attr::LocationFieldAttr::EoVecToErrString => generate_field_token_stream(&quote::quote! {
+                                macro_helpers::location_field_attr::LocationFieldAttr::ErrorFieldVecToErrString => generate_field_token_stream(&quote::quote! {
                                     #el0_identifier.into_iter().map(|element|to_err_string::to_err_string::ToErrString::to_err_string(&element).into_inner()).collect()
                                 }),
-                                macro_helpers::location_field_attr::LocationFieldAttr::EoVecLocation => generate_field_token_stream(&quote::quote! {
+                                macro_helpers::location_field_attr::LocationFieldAttr::ErrorFieldVecLocation => generate_field_token_stream(&quote::quote! {
                                     #el0_identifier.into_iter().map(|element|element.into_serde_version()).collect()
                                 }),
-                                macro_helpers::location_field_attr::LocationFieldAttr::EoHashMapKStringVToErrString => generate_field_token_stream(&quote::quote! {
+                                macro_helpers::location_field_attr::LocationFieldAttr::ErrorFieldHashMapKeyStringValueToErrString => generate_field_token_stream(&quote::quote! {
                                     #el0_identifier.into_iter().map(
                                         |(k, v)|(to_err_string::to_err_string::ToErrString::to_err_string(&k).into_inner(), to_err_string::to_err_string::ToErrString::to_err_string(&v).into_inner())
                                     ).collect()
                                 }),
-                                macro_helpers::location_field_attr::LocationFieldAttr::EoHashMapKStringVToErrStringSerde => generate_field_token_stream(&quote::quote! {
+                                macro_helpers::location_field_attr::LocationFieldAttr::ErrorFieldHashMapKeyStringValueToErrStringSerde => generate_field_token_stream(&quote::quote! {
                                     #el0_identifier.into_iter().map(
                                         |(k, v)|(to_err_string::to_err_string::ToErrString::to_err_string(&k).into_inner(), v)
                                     ).collect()
                                 }),
-                                macro_helpers::location_field_attr::LocationFieldAttr::EoHashMapKStringVLocation => generate_field_token_stream(&quote::quote! {
+                                macro_helpers::location_field_attr::LocationFieldAttr::ErrorFieldHashMapKeyStringValueLocation => generate_field_token_stream(&quote::quote! {
                                     #el0_identifier.into_iter().map(
                                         |(k, v)|(to_err_string::to_err_string::ToErrString::to_err_string(&k).into_inner(), v.into_serde_version())
                                     ).collect()
@@ -446,17 +449,17 @@ pub fn derive_location(token_stream: proc_macro2::TokenStream) -> proc_macro2::T
                     }
                 });
                 generate_impl_identifier_into_serde_version_token_stream(
-                    &quote::quote! {#(#vrts_token_stream),*},
+                    &quote::quote! {#(#variant_token_streams),*},
                 )
             };
             let enum_identifier_with_serde_token_stream = {
-                let vrts_token_stream = data_enum.variants.iter().map(|variant| {
+                let variant_token_streams = data_enum.variants.iter().map(|variant| {
                     macro_helpers::generate_serde_version_of_named_syn_variant::generate_serde_version_of_named_syn_variant(
                         macro_helpers::syn_variant_ref::SynVariantRef::from(variant),
                     )
                 });
                 generate_enum_identifier_with_serde_token_stream(
-                    &quote::quote! {#(#vrts_token_stream),*},
+                    &quote::quote! {#(#variant_token_streams),*},
                 )
             };
             let impl_display_for_identifier_with_serde_token_stream =
@@ -483,11 +486,11 @@ pub fn derive_location(token_stream: proc_macro2::TokenStream) -> proc_macro2::T
         }
         SuportedEnumVariant::Unnamed => {
             let display_formatter_unnamed_token_stream = {
-                let vrts_token_stream = data_enum.variants.iter().map(|element| {
+                let variant_token_streams = data_enum.variants.iter().map(|element| {
                     let element_identifier = &element.ident;
                     quote::quote! {Self::#element_identifier(v) => v}
                 });
-                quote::quote! {match self { #(#vrts_token_stream),* }}
+                quote::quote! {match self { #(#variant_token_streams),* }}
             };
             let impl_display_for_identifier_token_stream =
                 macro_helpers::generate_impl_display_token_stream::generate_impl_display_token_stream(
@@ -503,7 +506,7 @@ pub fn derive_location(token_stream: proc_macro2::TokenStream) -> proc_macro2::T
                     },
                 );
             let impl_identifier_into_serde_version_token_stream = {
-                let vrts_token_stream = data_enum.variants.iter().map(|element| {
+                let variant_token_streams = data_enum.variants.iter().map(|element| {
                     let element_identifier = &element.ident;
                     quote::quote! {
                         Self::#element_identifier(v) => #identifier_with_serde_upper_camel_case::#element_identifier(
@@ -512,11 +515,11 @@ pub fn derive_location(token_stream: proc_macro2::TokenStream) -> proc_macro2::T
                     }
                 });
                 generate_impl_identifier_into_serde_version_token_stream(
-                    &quote::quote! {#(#vrts_token_stream),*},
+                    &quote::quote! {#(#variant_token_streams),*},
                 )
             };
             let enum_identifier_with_serde_token_stream = {
-                let vrts_token_stream = data_enum.variants.iter().map(|element| {
+                let variant_token_streams = data_enum.variants.iter().map(|element| {
                     let element_identifier = &element.ident;
                     let fields = if let syn::Fields::Unnamed(fields) = &element.fields {
                         &fields.unnamed
@@ -543,7 +546,7 @@ pub fn derive_location(token_stream: proc_macro2::TokenStream) -> proc_macro2::T
                     quote::quote! {#element_identifier(#inner_type_with_serde_token_stream)}
                 });
                 generate_enum_identifier_with_serde_token_stream(
-                    &quote::quote! {#(#vrts_token_stream),*},
+                    &quote::quote! {#(#variant_token_streams),*},
                 )
             };
             let impl_display_for_identifier_with_serde_token_stream =

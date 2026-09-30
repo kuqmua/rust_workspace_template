@@ -119,7 +119,7 @@ mod tests {
         );
     }
     #[test]
-    fn test_ts_case_conversions_are_expected() {
+    fn test_token_stream_case_conversions_are_expected() {
         assert_case_triplet(
             super::AsRefStrToUpperCamelCaseTokenStream::case_or_panic(
                 &constants_str::HELLO_WORLD_ALT,

@@ -11,10 +11,11 @@ pub fn generate_accessor_traits_for_struct_fields(
     token_stream: proc_macro2::TokenStream,
 ) -> proc_macro2::TokenStream {
     panic_location::panic_location();
-    let di: syn::DeriveInput = syn::parse2(token_stream).expect(constants_str::DIAGNOSTIC_49780295);
-    let identifier = &di.ident;
-    let (impl_generics, type_generics, where_clause) = di.generics.split_for_impl();
-    let datastruct = match di.data {
+    let derive_input: syn::DeriveInput =
+        syn::parse2(token_stream).expect(constants_str::DIAGNOSTIC_49780295);
+    let identifier = &derive_input.ident;
+    let (impl_generics, type_generics, where_clause) = derive_input.generics.split_for_impl();
+    let datastruct = match derive_input.data {
         syn::Data::Struct(v) => v,
         syn::Data::Enum(_) | syn::Data::Union(_) => {
             std::panic::panic_any(constants_str::PANIC_15CD72A2)
@@ -55,8 +56,9 @@ pub fn generate_accessor_traits_for_struct_fields(
 }
 pub fn generate_accessor_trait(token_stream: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
     panic_location::panic_location();
-    let di: syn::DeriveInput = syn::parse2(token_stream).expect(constants_str::DIAGNOSTIC_195B48F5);
-    let mut pending_tokens = quote::ToTokens::to_token_stream(&di)
+    let derive_input: syn::DeriveInput =
+        syn::parse2(token_stream).expect(constants_str::DIAGNOSTIC_195B48F5);
+    let mut pending_tokens = quote::ToTokens::to_token_stream(&derive_input)
         .into_iter()
         .collect::<Vec<_>>();
     let mut input_identifiers = Vec::new();
@@ -69,8 +71,8 @@ pub fn generate_accessor_trait(token_stream: proc_macro2::TokenStream) -> proc_m
             proc_macro2::TokenTree::Punct(_) | proc_macro2::TokenTree::Literal(_) => {}
         }
     }
-    let identifier = &di.ident;
-    let data_struct = match di.data {
+    let identifier = &derive_input.ident;
+    let data_struct = match derive_input.data {
         syn::Data::Struct(v) => v,
         syn::Data::Enum(_) | syn::Data::Union(_) => {
             std::panic::panic_any(constants_str::PANIC_CD6BBC4E)
@@ -95,16 +97,16 @@ pub fn generate_accessor_trait(token_stream: proc_macro2::TokenStream) -> proc_m
         Ok(case_string) => quote::format_ident!("{}", case_string),
         Err(error) => return syn::Error::new_spanned(identifier, error).into_compile_error(),
     };
-    let (_, type_generics, input_where_clause) = di.generics.split_for_impl();
-    let trait_generics = &di.generics;
+    let (_, type_generics, input_where_clause) = derive_input.generics.split_for_impl();
+    let trait_generics = &derive_input.generics;
     let Some(forwarded_identifier) = (0usize..=input_identifiers.len())
         .map(|index| quote::format_ident!("{identifier}{index}"))
         .find(|candidate| !input_identifiers.contains(candidate))
     else {
-        return syn::Error::new_spanned(&di.generics, constants_str::DUPLICATE)
+        return syn::Error::new_spanned(&derive_input.generics, constants_str::DUPLICATE)
             .into_compile_error();
     };
-    let mut forwarding_generics = di.generics.clone();
+    let mut forwarding_generics = derive_input.generics.clone();
     forwarding_generics
         .params
         .push(syn::parse_quote!(#forwarded_identifier: ?Sized));

@@ -1,6 +1,6 @@
 pub(crate) fn append_session_cookies(
     axum_admin_response: &mut crate::axum_admin_response::AxumAdminResponse,
-    admin_auth_svc_state: &crate::admin_auth_svc_state::AdminAuthSvcState,
+    admin_auth_service_state: &crate::admin_auth_service_state::AdminAuthServiceState,
     admin_session_bundle: &crate::admin_session_bundle::AdminSessionBundle,
 ) -> Result<(), crate::admin_error::AdminError> {
     let access = crate::build_admin_cookie::build_admin_cookie(
@@ -9,9 +9,9 @@ pub(crate) fn append_session_cookies(
             admin_session_bundle.access_token().as_ref().as_str(),
         ),
         crate::admin_cookie_max_age_seconds::AdminCookieMaxAgeSeconds::from(
-            admin_auth_svc_state.get_access_ttl().get(),
+            admin_auth_service_state.get_access_ttl().get(),
         ),
-        *admin_auth_svc_state.get_cookie_secure(),
+        *admin_auth_service_state.get_cookie_secure(),
     )
     .map_err(crate::admin_session_error::AdminSessionError::SecretText)
     .map_err(crate::admin_error::AdminError::session)?;
@@ -21,9 +21,9 @@ pub(crate) fn append_session_cookies(
             admin_session_bundle.csrf_token().expose().as_ref(),
         ),
         crate::admin_cookie_max_age_seconds::AdminCookieMaxAgeSeconds::from(
-            admin_auth_svc_state.get_access_ttl().get(),
+            admin_auth_service_state.get_access_ttl().get(),
         ),
-        *admin_auth_svc_state.get_cookie_secure(),
+        *admin_auth_service_state.get_cookie_secure(),
     )
     .map_err(crate::admin_session_error::AdminSessionError::SecretText)
     .map_err(crate::admin_error::AdminError::session)?;
@@ -46,9 +46,9 @@ pub(crate) fn append_session_cookies(
         crate::admin_cookie_kind::AdminCookieKind::Refresh,
         admin_session_bundle.refresh_token().expose(),
         crate::admin_cookie_max_age_seconds::AdminCookieMaxAgeSeconds::from(
-            admin_auth_svc_state.get_refresh_ttl().get(),
+            admin_auth_service_state.get_refresh_ttl().get(),
         ),
-        *admin_auth_svc_state.get_cookie_secure(),
+        *admin_auth_service_state.get_cookie_secure(),
     )
     .map_err(crate::admin_session_error::AdminSessionError::SecretText)
     .map_err(crate::admin_error::AdminError::session)?;

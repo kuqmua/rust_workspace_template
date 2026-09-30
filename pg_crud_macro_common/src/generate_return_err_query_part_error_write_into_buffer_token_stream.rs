@@ -7,6 +7,6 @@
 pub fn generate_return_err_query_part_error_write_into_buffer_token_stream(
     import: crate::import::Import,
 ) -> macro_helpers::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream {
-    let ts = crate::generate_query_part_error_write_into_buffer_token_stream::generate_query_part_error_write_into_buffer_token_stream(import);
-    quote::quote! {return Err(#ts);}.into()
+    let tokens = crate::generate_query_part_error_write_into_buffer_token_stream::generate_query_part_error_write_into_buffer_token_stream(import);
+    quote::quote! {return Err(#tokens);}.into()
 }

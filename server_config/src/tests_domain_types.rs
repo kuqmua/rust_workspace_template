@@ -52,7 +52,7 @@ mod tests {
             server_config_test_env(constants_str::TRUE),
             server_config_test_env(constants_str::TRUE),
             server_config_test_env(constants_str::FALSE),
-            config_lib::svc_mode::SvcMode::Serve,
+            config_lib::service_mode::ServiceMode::Serve,
         );
         assert_eq!(
             config_lib::domain_types::CorsAllowOriginProvider::cors_allow_origin(&cfg),

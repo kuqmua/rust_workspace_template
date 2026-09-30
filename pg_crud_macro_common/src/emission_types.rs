@@ -1,6 +1,6 @@
-proc_macro_bool_enum_to_tokens::bool_enum_to_tokens!(AddOperatorUndrscr, false => naming::domain_types::AddOperatorSnakeCase, true => quote::quote! {_});
-proc_macro_bool_enum_to_tokens::bool_enum_to_tokens!(ColumnParameterUndrscr, false => naming::domain_types::ColumnSnakeCase, true => quote::quote! {_});
-proc_macro_bool_enum_to_tokens::bool_enum_to_tokens!(IncrementParameterUndrscr, false => naming::domain_types::IncrementSnakeCase, true => quote::quote! {_});
+proc_macro_bool_enum_to_tokens::bool_enum_to_tokens!(AddOperatorUnderscore, false => naming::domain_types::AddOperatorSnakeCase, true => quote::quote! {_});
+proc_macro_bool_enum_to_tokens::bool_enum_to_tokens!(ColumnParameterUnderscore, false => naming::domain_types::ColumnSnakeCase, true => quote::quote! {_});
+proc_macro_bool_enum_to_tokens::bool_enum_to_tokens!(IncrementParameterUnderscore, false => naming::domain_types::IncrementSnakeCase, true => quote::quote! {_});
 proc_macro_bool_enum_to_tokens::bool_enum_to_tokens!(IsCreateQueryBindMut, false => proc_macro2::TokenStream::new(), true => naming::domain_types::MutSnakeCase);
 proc_macro_bool_enum_to_tokens::bool_enum_to_tokens!(IsQueryBindMut, false => proc_macro2::TokenStream::new(), true => naming::domain_types::MutSnakeCase);
 proc_macro_bool_enum_to_tokens::bool_enum_to_tokens!(IsSelectOnlyCreatedIdsQueryBindMut, false => proc_macro2::TokenStream::new(), true => naming::domain_types::MutSnakeCase);
@@ -12,15 +12,15 @@ proc_macro_bool_enum_to_tokens::bool_enum_to_tokens!(IsUpdateQueryBindMut, false
 proc_macro_bool_enum_to_tokens::bool_enum_to_tokens!(IsUpdateQueryPartSelfUpdateUsed, false => quote::quote! {_}, true => naming::domain_types::VSnakeCase);
 proc_macro_bool_enum_to_tokens::bool_enum_to_tokens!(ShouldDSchemarsJsonSchema, false => proc_macro2::TokenStream::new(), true => quote::quote! {, schemars::JsonSchema});
 proc_macro_bool_enum_to_tokens::bool_enum_to_tokens!(ShouldDeriveUtoipaToSchema, false => proc_macro2::TokenStream::new(), true => quote::quote! {, utoipa::ToSchema});
-proc_macro_bool_enum_to_tokens::bool_enum_to_tokens!(IsPrimaryKeyUndrscr, false => naming::domain_types::IsPrimaryKeySnakeCase, true => quote::quote! {_});
-proc_macro_bool_enum_to_tokens::bool_enum_to_tokens!(CreateQueryBindValueUndrscr, false => naming::domain_types::VSnakeCase, true => quote::quote! {_});
-proc_macro_bool_enum_to_tokens::bool_enum_to_tokens!(CreateQueryPartIncrementUndrscr, false => naming::domain_types::IncrementSnakeCase, true => quote::quote! {_});
-proc_macro_bool_enum_to_tokens::bool_enum_to_tokens!(CreateQueryPartValueUndrscr, false => naming::domain_types::VSnakeCase, true => quote::quote! {_});
-proc_macro_bool_enum_to_tokens::bool_enum_to_tokens!(SelectQueryPartValueUndrscr, false => naming::domain_types::VSnakeCase, true => quote::quote! {_});
-proc_macro_bool_enum_to_tokens::bool_enum_to_tokens!(UpdateQueryPartAccumulatorUndrscr, false => quote::quote! {update_accumulator}, true => quote::quote! {_});
-proc_macro_bool_enum_to_tokens::bool_enum_to_tokens!(UpdateQueryPartPathUndrscr, false => quote::quote! {update_path}, true => quote::quote! {_});
-proc_macro_bool_enum_to_tokens::bool_enum_to_tokens!(UpdateQueryPartTargetUndrscr, false => quote::quote! {update_target}, true => quote::quote! {_});
-proc_macro_bool_enum_to_tokens::bool_enum_to_tokens!(UpdateQueryPartValueUndrscr, false => naming::domain_types::VSnakeCase, true => quote::quote! {_});
+proc_macro_bool_enum_to_tokens::bool_enum_to_tokens!(IsPrimaryKeyUnderscore, false => naming::domain_types::IsPrimaryKeySnakeCase, true => quote::quote! {_});
+proc_macro_bool_enum_to_tokens::bool_enum_to_tokens!(CreateQueryBindValueUnderscore, false => naming::domain_types::VSnakeCase, true => quote::quote! {_});
+proc_macro_bool_enum_to_tokens::bool_enum_to_tokens!(CreateQueryPartIncrementUnderscore, false => naming::domain_types::IncrementSnakeCase, true => quote::quote! {_});
+proc_macro_bool_enum_to_tokens::bool_enum_to_tokens!(CreateQueryPartValueUnderscore, false => naming::domain_types::VSnakeCase, true => quote::quote! {_});
+proc_macro_bool_enum_to_tokens::bool_enum_to_tokens!(SelectQueryPartValueUnderscore, false => naming::domain_types::VSnakeCase, true => quote::quote! {_});
+proc_macro_bool_enum_to_tokens::bool_enum_to_tokens!(UpdateQueryPartAccumulatorUnderscore, false => quote::quote! {update_accumulator}, true => quote::quote! {_});
+proc_macro_bool_enum_to_tokens::bool_enum_to_tokens!(UpdateQueryPartPathUnderscore, false => quote::quote! {update_path}, true => quote::quote! {_});
+proc_macro_bool_enum_to_tokens::bool_enum_to_tokens!(UpdateQueryPartTargetUnderscore, false => quote::quote! {update_target}, true => quote::quote! {_});
+proc_macro_bool_enum_to_tokens::bool_enum_to_tokens!(UpdateQueryPartValueUnderscore, false => naming::domain_types::VSnakeCase, true => quote::quote! {_});
 
 #[cfg(test)]
 mod tests {

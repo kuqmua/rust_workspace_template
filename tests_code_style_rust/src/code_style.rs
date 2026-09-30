@@ -311,7 +311,7 @@ pub(crate) fn scan_generated_diagnostic_tokens(
 
 pub(crate) fn assert_workspace_lints_match(
     rust_or_clippy: RustOrClippy<'_>,
-    exp_id: crate::static_str::StaticStr,
+    expectation_id: crate::static_str::StaticStr,
 ) {
     let (tool, analyzer_bool, reviewed_exceptions) = match rust_or_clippy {
         RustOrClippy::Clippy => (
@@ -354,7 +354,7 @@ pub(crate) fn assert_workspace_lints_match(
         [constants_str::W, constants_str::HELP].as_slice(),
     ))
     .output()
-    .unwrap_or_else(|_| std::panic::panic_any(exp_id.get().to_owned()));
+    .unwrap_or_else(|_| std::panic::panic_any(expectation_id.get().to_owned()));
     assert!(output.status.success(), "95d4595a");
     let stderr = String::from_utf8_lossy(&output.stderr);
     assert!(stderr.trim().is_empty(), "cc4670a2");

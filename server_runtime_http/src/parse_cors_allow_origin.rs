@@ -11,7 +11,8 @@ pub fn parse_cors_allow_origin(
     let capacity = value_text
         .chars()
         .filter(|character| {
-            *character == crate::cors_allow_origin_split_ch::CORS_ALLOW_ORIGIN_SPLIT_CH
+            *character
+                == crate::cors_allow_origin_split_character::CORS_ALLOW_ORIGIN_SPLIT_CHARACTER
         })
         .count()
         .saturating_add(constants_usize::ONE);
@@ -26,7 +27,7 @@ pub fn parse_cors_allow_origin(
         );
     }
     let parsed = value_text
-        .split(crate::cors_allow_origin_split_ch::CORS_ALLOW_ORIGIN_SPLIT_CH)
+        .split(crate::cors_allow_origin_split_character::CORS_ALLOW_ORIGIN_SPLIT_CHARACTER)
         .map(str::trim)
         .map(|origin| {
             let allowed_origin = crate::allowed_origin::AllowedOrigin::try_from(origin.to_owned())

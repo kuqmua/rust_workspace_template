@@ -15,13 +15,16 @@ fn test_generate_impl_new_for_identifier_token_stream_generates_non_const_new() 
     let body: proc_macro2::TokenStream = constants_str::SELF_V
         .parse()
         .expect(constants_str::DIAGNOSTIC_7AD6DD07);
-    let ts = crate::generate_impl_new_for_identifier_token_stream_impl::generate_impl_new_for_identifier_token_stream_impl(
+    let tokens = crate::generate_impl_new_for_identifier_token_stream_impl::generate_impl_new_for_identifier_token_stream_impl(
         &identifier,
         &empty_token_stream(),
         &parameters,
         &body,
     );
-    assert_eq!(cmpct(&ts.to_string()), cmpct(constants_str::VALUE_87685B6B));
+    assert_eq!(
+        cmpct(&tokens.to_string()),
+        cmpct(constants_str::VALUE_87685B6B)
+    );
 }
 #[test]
 fn test_generate_impl_const_new_for_identifier_token_stream_generates_const_new() {
@@ -34,13 +37,16 @@ fn test_generate_impl_const_new_for_identifier_token_stream_generates_const_new(
     let body: proc_macro2::TokenStream = constants_str::SELF_V
         .parse()
         .expect(constants_str::DIAGNOSTIC_46FB1C80);
-    let ts = crate::generate_impl_const_new_for_identifier_token_stream_impl::generate_impl_const_new_for_identifier_token_stream_impl(
+    let tokens = crate::generate_impl_const_new_for_identifier_token_stream_impl::generate_impl_const_new_for_identifier_token_stream_impl(
         &identifier,
         &empty_token_stream(),
         &parameters,
         &body,
     );
-    assert_eq!(cmpct(&ts.to_string()), cmpct(constants_str::VALUE_C3851857));
+    assert_eq!(
+        cmpct(&tokens.to_string()),
+        cmpct(constants_str::VALUE_C3851857)
+    );
 }
 #[test]
 fn test_generate_impl_pub_const_new_for_identifier_token_stream_generates_pub_const_new() {
@@ -56,11 +62,14 @@ fn test_generate_impl_pub_const_new_for_identifier_token_stream_generates_pub_co
     let body: proc_macro2::TokenStream = constants_str::SELF_V
         .parse()
         .expect(constants_str::DIAGNOSTIC_29AC89D5);
-    let ts = crate::generate_impl_pub_const_new_for_identifier_token_stream_impl::generate_impl_pub_const_new_for_identifier_token_stream_impl(
+    let tokens = crate::generate_impl_pub_const_new_for_identifier_token_stream_impl::generate_impl_pub_const_new_for_identifier_token_stream_impl(
         &identifier,
         &attr,
         &parameters,
         &body,
     );
-    assert_eq!(cmpct(&ts.to_string()), cmpct(constants_str::VALUE_BA9AA4C0));
+    assert_eq!(
+        cmpct(&tokens.to_string()),
+        cmpct(constants_str::VALUE_BA9AA4C0)
+    );
 }

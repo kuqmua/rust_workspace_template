@@ -10,7 +10,7 @@
 pub enum NotEmptyUniqueVecTryNewError<T> {
     IsEmpty {},
     NotUnique {
-        #[eo_to_err_string_serde]
+        #[error_field_to_err_string_serde]
         v: T,
     },
     TooLong {},

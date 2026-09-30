@@ -6,4 +6,4 @@
     proc_macro_newtype_as_ref_inner::AsRefInner,
     proc_macro_newtype_from_inner::FromInner,
 )]
-pub struct StringFileContentRef<'cnt_lt>(&'cnt_lt str);
+pub struct StringFileContentRef<'content_lt>(&'content_lt str);

@@ -16,26 +16,27 @@ pub mod serde_struct;
 
 fn main() {
     let error = error_one::ErrorOne::Variant {
-        eo_display_field: display_struct::DisplayStruct::new(
+        error_field_display_field: display_struct::DisplayStruct::new(
             create_location_test_text::create_location_test_text(String::from(
                 constants_str::PG_CRUD_VALUES_FIELD,
             )),
             location_test_flag::LocationTestFlag::from(true),
         ),
-        eo_serde: serde_struct::SerdeStruct::new(
+        error_field_serde: serde_struct::SerdeStruct::new(
             create_location_test_text::create_location_test_text(String::from(
                 constants_str::PG_CRUD_VALUES_FIELD,
             )),
             location_test_count::LocationTestCount::from(42),
             location_test_flag::LocationTestFlag::from(true),
         ),
-        eo_location_field: error_two::ErrorTwo::Variant {
-            eo_display_with_serde_field: create_location_test_text::create_location_test_text(
-                String::from(constants_str::PG_CRUD_VALUES_FIELD),
-            ),
+        error_field_location_field: error_two::ErrorTwo::Variant {
+            error_field_display_with_serde_field:
+                create_location_test_text::create_location_test_text(String::from(
+                    constants_str::PG_CRUD_VALUES_FIELD,
+                )),
             location: proc_macro_location_bang::location!(),
         },
-        eo_vec_display_field: vec![
+        error_field_vec_display_field: vec![
             display_struct::DisplayStruct::new(
                 location_test_text::LocationTestText::from(constants_str::VALUE_08708789),
                 location_test_flag::LocationTestFlag::from(true),
@@ -45,7 +46,7 @@ fn main() {
                 location_test_flag::LocationTestFlag::from(true),
             ),
         ],
-        eo_vec_serde: vec![
+        error_field_vec_serde: vec![
             serde_struct::SerdeStruct::new(
                 location_test_text::LocationTestText::from(constants_str::PG_CRUD_VALUES_FIELD),
                 location_test_count::LocationTestCount::from(42),
@@ -57,15 +58,15 @@ fn main() {
                 location_test_flag::LocationTestFlag::from(false),
             ),
         ],
-        eo_vec_location_field: vec![
+        error_field_vec_location_field: vec![
             error_unnamed_one::ErrorUnnamedOne::Something(error_two::ErrorTwo::Variant {
-                eo_display_with_serde_field: location_test_text::LocationTestText::from(
+                error_field_display_with_serde_field: location_test_text::LocationTestText::from(
                     constants_str::PG_CRUD_VALUES_FIELD,
                 ),
                 location: proc_macro_location_bang::location!(),
             }),
             error_unnamed_one::ErrorUnnamedOne::Something(error_two::ErrorTwo::Variant {
-                eo_display_with_serde_field: location_test_text::LocationTestText::from(
+                error_field_display_with_serde_field: location_test_text::LocationTestText::from(
                     constants_str::VALUE_123,
                 ),
                 location: proc_macro_location_bang::location!(),
@@ -127,7 +128,7 @@ fn main() {
                     constants_str::KSDFGADSFGSDFGDFGEY,
                 )),
                 error_unnamed_one::ErrorUnnamedOne::Something(error_two::ErrorTwo::Variant {
-                    eo_display_with_serde_field:
+                    error_field_display_with_serde_field:
                         create_location_test_text::create_location_test_text(String::from(
                             constants_str::VASDFGDGDFGLUE,
                         )),
@@ -139,7 +140,7 @@ fn main() {
                     constants_str::KESDFGSDGFDFGY,
                 )),
                 error_unnamed_one::ErrorUnnamedOne::Something(error_two::ErrorTwo::Variant {
-                    eo_display_with_serde_field:
+                    error_field_display_with_serde_field:
                         create_location_test_text::create_location_test_text(String::from(
                             constants_str::VALSDFGDSAFGDSGUE,
                         )),

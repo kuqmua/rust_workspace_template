@@ -1,6 +1,6 @@
 proc_macro_frontend_contract_route_registry::route_registry! {
     pub(crate);
-    state = crate::shared_admin_auth_svc_state_arc::SharedAdminAuthSvcStateArc;
+    state = crate::shared_admin_auth_service_state_arc::SharedAdminAuthServiceStateArc;
     (server_admin_contract::admin_frontend_path::AdminFrontendPath::Health, crate::admin_health_page::admin_health_page),
     (server_admin_contract::admin_frontend_path::AdminFrontendPath::Branding, crate::admin_branding_page::admin_branding_page),
     (server_admin_contract::admin_frontend_path::AdminFrontendPath::CleanupStatusRead, crate::cleanup_status_read_page::cleanup_status_read_page),

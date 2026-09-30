@@ -28,8 +28,8 @@ pub struct NotificationServiceConfig {
     #[config(example = "text")]
     tracing_format: config_lib::tracing_format::TracingFormat,
     #[config(accessor)]
-    #[config(example = "serve")]
-    svc_mode: config_lib::svc_mode::SvcMode,
+    #[config(example = "serve", env_name = "SVC_MODE")]
+    service_mode: config_lib::service_mode::ServiceMode,
 }
 
 #[cfg(test)]

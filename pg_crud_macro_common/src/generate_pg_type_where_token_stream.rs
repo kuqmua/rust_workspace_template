@@ -37,7 +37,7 @@ where
     );
     let identifier = naming::parameter::SelfWhereUpperCamelCase::from_tokens(&prefix);
     let pg_type_tokens_where_token_stream = {
-        let vrts_token_stream = variants.iter().map(|element| {
+        let variant_token_streams = variants.iter().map(|element| {
             let element_upper_camel_case = element.ucc();
             let prefix_where_self_upper_camel_case = element.prefix_where_self_upper_camel_case();
             let optional_type_token_stream: Option<macro_helpers::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream> =
@@ -95,7 +95,7 @@ where
             #attrs_token_stream
             #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize #should_d_schemars_json_schema, proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
             pub enum #identifier {
-                #(#vrts_token_stream),*
+                #(#variant_token_streams),*
             }
             #utoipa_schema_token_stream
         }
@@ -105,11 +105,11 @@ where
             &quote::quote! {<'lt>},
             &identifier,
             &proc_macro2::TokenStream::new(),
-            &crate::emission_types::IncrementParameterUndrscr::False,
-            &crate::emission_types::ColumnParameterUndrscr::False,
-            &crate::emission_types::AddOperatorUndrscr::False,
+            &crate::emission_types::IncrementParameterUnderscore::False,
+            &crate::emission_types::ColumnParameterUnderscore::False,
+            &crate::emission_types::AddOperatorUnderscore::False,
             &{
-                let vrts_token_stream = variants.iter().map(|element| {
+                let variant_token_streams = variants.iter().map(|element| {
                 let element_upper_camel_case = element.ucc();
                 quote::quote! {
                     Self::#element_upper_camel_case(#VSnakeCase) => pg_crud_common::pg_type_where_filter::PgTypeWhereFilter::query_part(
@@ -122,13 +122,13 @@ where
             });
                 quote::quote! {
                     match &self {
-                        #(#vrts_token_stream),*
+                        #(#variant_token_streams),*
                     }
                 }
             },
             is_query_bind_mut,
             &{
-                let vrts_token_stream = variants.iter().map(|element| {
+                let variant_token_streams = variants.iter().map(|element| {
                 let element_upper_camel_case = element.ucc();
                 quote::quote! {
                     Self::#element_upper_camel_case(#VSnakeCase) => pg_crud_common::pg_type_where_filter::PgTypeWhereFilter::query_bind(
@@ -139,7 +139,7 @@ where
             });
                 quote::quote! {
                     match self {
-                        #(#vrts_token_stream),*
+                        #(#variant_token_streams),*
                     }
                 }
             },
@@ -154,11 +154,11 @@ where
         crate::generate_impl_pg_crud_common_all_variants_default_some_one_element_token_stream::generate_impl_pg_crud_common_all_variants_default_some_one_element_token_stream(
             &identifier,
             &{
-                let vrts_token_stream = variants.iter().map(|element| {
+                let variant_token_streams = variants.iter().map(|element| {
                 let element_upper_camel_case = element.ucc();
                 quote::quote! {Self::#element_upper_camel_case(#PgCrudCommonDefaultSomeOneElementCall)}
             });
-                quote::quote! {vec![#(#vrts_token_stream),*]}
+                quote::quote! {vec![#(#variant_token_streams),*]}
             },
         );
     quote::quote! {

@@ -7,17 +7,17 @@ pub fn generate_impl_pg_type_token_stream(
     import: &crate::import::Import,
     identifier: &dyn quote::ToTokens,
     identifier_table_type_upper_camel_case: &dyn quote::ToTokens,
-    is_primary_key_undrscr: &crate::emission_types::IsPrimaryKeyUndrscr,
+    is_primary_key_underscore: &crate::emission_types::IsPrimaryKeyUnderscore,
     create_table_column_query_part_token_stream: &dyn quote::ToTokens,
     identifier_create_upper_camel_case: &dyn quote::ToTokens,
-    create_query_part_value_undrscr: &crate::emission_types::CreateQueryPartValueUndrscr,
-    create_query_part_increment_undrscr: &crate::emission_types::CreateQueryPartIncrementUndrscr,
+    create_query_part_value_underscore: &crate::emission_types::CreateQueryPartValueUnderscore,
+    create_query_part_increment_underscore: &crate::emission_types::CreateQueryPartIncrementUnderscore,
     create_query_part_token_stream: &dyn quote::ToTokens,
-    create_query_bind_value_undrscr: &crate::emission_types::CreateQueryBindValueUndrscr,
+    create_query_bind_value_underscore: &crate::emission_types::CreateQueryBindValueUnderscore,
     is_create_query_bind_mut: &crate::emission_types::IsCreateQueryBindMut,
     create_query_bind_token_stream: &dyn quote::ToTokens,
     identifier_select_upper_camel_case: &dyn quote::ToTokens,
-    select_query_part_value_undrscr: &crate::emission_types::SelectQueryPartValueUndrscr,
+    select_query_part_value_underscore: &crate::emission_types::SelectQueryPartValueUnderscore,
     select_query_part_token_stream: &dyn quote::ToTokens,
     identifier_where_upper_camel_case: &dyn quote::ToTokens,
     identifier_read_upper_camel_case: &dyn quote::ToTokens,
@@ -28,10 +28,10 @@ pub fn generate_impl_pg_type_token_stream(
     into_inner_token_stream: &dyn quote::ToTokens,
     identifier_update_upper_camel_case: &dyn quote::ToTokens,
     identifier_update_for_query_upper_camel_case: &dyn quote::ToTokens,
-    update_query_part_value_undrscr: &crate::emission_types::UpdateQueryPartValueUndrscr,
-    update_query_part_accumulator_undrscr: &crate::emission_types::UpdateQueryPartAccumulatorUndrscr,
-    update_query_part_target_undrscr: &crate::emission_types::UpdateQueryPartTargetUndrscr,
-    update_query_part_path_undrscr: &crate::emission_types::UpdateQueryPartPathUndrscr,
+    update_query_part_value_underscore: &crate::emission_types::UpdateQueryPartValueUnderscore,
+    update_query_part_accumulator_underscore: &crate::emission_types::UpdateQueryPartAccumulatorUnderscore,
+    update_query_part_target_underscore: &crate::emission_types::UpdateQueryPartTargetUnderscore,
+    update_query_part_path_underscore: &crate::emission_types::UpdateQueryPartPathUnderscore,
     update_query_part_token_stream: &dyn quote::ToTokens,
     is_update_query_bind_mut: &crate::emission_types::IsUpdateQueryBindMut,
     update_query_bind_token_stream: &dyn quote::ToTokens,
@@ -104,25 +104,25 @@ pub fn generate_impl_pg_type_token_stream(
         #AllowClippyArbitrarySrcItemOrdering
         impl #import::pg_type::#PgTypeUpperCamelCase for #identifier {
             type #TableTypeUpperCamelCase = #identifier_table_type_upper_camel_case;
-            fn #CreateTableColumnQueryPartSnakeCase(#ColumnSnakeCase: #import::sql_column_ref::SqlColumnRef<'_>, #is_primary_key_undrscr: #import::pg_is_primary_key::PgIsPrimaryKey) -> Result<#import::query_part_fragment::QueryPartFragment, #import::query_part_error::#QueryPartErrorUpperCamelCase> {
+            fn #CreateTableColumnQueryPartSnakeCase(#ColumnSnakeCase: #import::sql_column_ref::SqlColumnRef<'_>, #is_primary_key_underscore: #import::pg_is_primary_key::PgIsPrimaryKey) -> Result<#import::query_part_fragment::QueryPartFragment, #import::query_part_error::#QueryPartErrorUpperCamelCase> {
                 #create_table_column_query_part_token_stream
             }
             type #CreateUpperCamelCase = #identifier_create_upper_camel_case;
             fn #CreateQueryPartSnakeCase(
-                #create_query_part_value_undrscr: &Self::#CreateUpperCamelCase,
-                #create_query_part_increment_undrscr: &mut dyn #import::query_part_increment_mut::QueryPartIncrementMut
+                #create_query_part_value_underscore: &Self::#CreateUpperCamelCase,
+                #create_query_part_increment_underscore: &mut dyn #import::query_part_increment_mut::QueryPartIncrementMut
             ) -> Result<#import::query_part_fragment::QueryPartFragment, #import::query_part_error::#QueryPartErrorUpperCamelCase> {
                 #create_query_part_token_stream
             }
             fn #CreateQueryBindSnakeCase(
-                #create_query_bind_value_undrscr: Self::#CreateUpperCamelCase,
+                #create_query_bind_value_underscore: Self::#CreateUpperCamelCase,
                 #is_create_query_bind_mut #QuerySnakeCase: #import::sqlx_postgres_query::SqlxPostgresQuery<'_>
             ) -> Result<#import::sqlx_postgres_query::SqlxPostgresQuery<'_>, #import::sqlx_postgres_query_bind_error::SqlxPostgresQueryBindError> {
                 #create_query_bind_token_stream
             }
             type #SelectUpperCamelCase = #identifier_select_upper_camel_case;
             fn #SelectQueryPartSnakeCase(
-                #select_query_part_value_undrscr: &Self::#SelectUpperCamelCase,
+                #select_query_part_value_underscore: &Self::#SelectUpperCamelCase,
                 #ColumnSnakeCase: #import::sql_column_ref::SqlColumnRef<'_>,
             ) -> Result<#import::query_part_fragment::QueryPartFragment, #import::query_part_error::#QueryPartErrorUpperCamelCase> {
                 #select_query_part_token_stream
@@ -147,10 +147,10 @@ pub fn generate_impl_pg_type_token_stream(
 
             #[allow(unused_variables, reason = "generate impl pg type token stream emits configuration-dependent bindings that are unused in some generated variants")]
             fn #UpdateQueryPartSnakeCase(
-                #update_query_part_value_undrscr: &Self::#UpdateForQueryUpperCamelCase,
-                #update_query_part_accumulator_undrscr: #import::sql_column_ref::SqlColumnRef<'_>,
-                #update_query_part_target_undrscr: #import::sql_column_ref::SqlColumnRef<'_>,
-                #update_query_part_path_undrscr: #import::sql_column_ref::SqlColumnRef<'_>,
+                #update_query_part_value_underscore: &Self::#UpdateForQueryUpperCamelCase,
+                #update_query_part_accumulator_underscore: #import::sql_column_ref::SqlColumnRef<'_>,
+                #update_query_part_target_underscore: #import::sql_column_ref::SqlColumnRef<'_>,
+                #update_query_part_path_underscore: #import::sql_column_ref::SqlColumnRef<'_>,
                 #IncrementSnakeCase: &mut dyn #import::query_part_increment_mut::QueryPartIncrementMut
             ) -> Result<#import::query_part_fragment::QueryPartFragment, #import::query_part_error::#QueryPartErrorUpperCamelCase> {
                 #update_query_part_token_stream

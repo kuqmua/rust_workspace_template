@@ -5,8 +5,8 @@
 )]
 pub(crate) struct DockerComposeServerEnvironment {
     database_url: crate::configuration_field::ConfigurationField,
+    service_mode: crate::configuration_field::ConfigurationField,
     service_socket_address: crate::configuration_field::ConfigurationField,
-    svc_mode: crate::configuration_field::ConfigurationField,
 }
 
 impl DockerComposeServerEnvironment {
@@ -20,10 +20,10 @@ impl DockerComposeServerEnvironment {
             crate::docker_compose_server_environment_order::DockerComposeServerEnvironmentOrder::Migrate => {
                 self.get_service_socket_address()
                     .append_to(&mut std_byte_vector);
-                self.get_svc_mode().append_to(&mut std_byte_vector);
+                self.get_service_mode().append_to(&mut std_byte_vector);
             }
             crate::docker_compose_server_environment_order::DockerComposeServerEnvironmentOrder::Serve => {
-                self.get_svc_mode().append_to(&mut std_byte_vector);
+                self.get_service_mode().append_to(&mut std_byte_vector);
                 self.get_service_socket_address()
                     .append_to(&mut std_byte_vector);
             }

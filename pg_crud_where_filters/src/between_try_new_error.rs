@@ -10,9 +10,9 @@
 )]
 pub enum BetweenTryNewError<T> {
     StartNotLessThanOrEqualToEnd {
-        #[eo_to_err_string_serde]
+        #[error_field_to_err_string_serde]
         start: T,
-        #[eo_to_err_string_serde]
+        #[error_field_to_err_string_serde]
         end: T,
     },
 }

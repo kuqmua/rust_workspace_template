@@ -6,7 +6,7 @@
 pub fn generate_impl_all_variants_default_some_one_element_max_page_size_token_stream(
     import: &crate::import::Import,
     identifier: &dyn quote::ToTokens,
-    ts: &dyn quote::ToTokens,
+    tokens: &dyn quote::ToTokens,
 ) -> macro_helpers::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream {
     let names = crate::names_context::NamesContext::new();
 
@@ -23,7 +23,7 @@ pub fn generate_impl_all_variants_default_some_one_element_max_page_size_token_s
     quote::quote! {
         impl #path_trait_token_stream for #identifier {
             fn #all_variants_default_some_one_element_max_page_size_snake_case() -> #all_enum_variants<Self> {
-                (#ts).into()
+                (#tokens).into()
             }
         }
     }

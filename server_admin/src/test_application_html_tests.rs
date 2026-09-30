@@ -12,7 +12,7 @@ async fn test_html_form_auth_rejects_cookie_without_trusted_origin() {
         .expect(constants_str::DIAGNOSTIC_ADF9C06E);
     let request = crate::admin_auth_request::AdminAuthRequest::new(
         crate::http_admin_header_map::HttpAdminHeaderMap::from(headers),
-        crate::shared_admin_auth_svc_state_arc::SharedAdminAuthSvcStateArc::from(
+        crate::shared_admin_auth_service_state_arc::SharedAdminAuthServiceStateArc::from(
             std::sync::Arc::new(state),
         ),
         crate::admin_peer_addr::AdminPeerAddr::from(

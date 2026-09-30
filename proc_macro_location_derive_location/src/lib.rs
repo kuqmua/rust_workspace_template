@@ -1,15 +1,15 @@
 #[proc_macro_derive(
     Location,
     attributes(
-        eo_to_err_string,
-        eo_to_err_string_serde,
-        eo_location,
-        eo_vec_to_err_string,
-        eo_vec_to_err_string_serde,
-        eo_vec_location,
-        eo_hashmap_k_string_v_to_err_string,
-        eo_hashmap_k_string_v_to_err_string_serde,
-        eo_hashmap_k_string_v_location,
+        error_field_to_err_string,
+        error_field_to_err_string_serde,
+        error_field_location,
+        error_field_vec_to_err_string,
+        error_field_vec_to_err_string_serde,
+        error_field_vec_location,
+        error_field_hashmap_key_string_value_to_err_string,
+        error_field_hashmap_key_string_value_to_err_string_serde,
+        error_field_hashmap_key_string_value_location,
         location_to_schema,
     )
 )]

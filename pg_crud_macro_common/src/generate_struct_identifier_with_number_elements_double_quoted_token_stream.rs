@@ -7,7 +7,7 @@ pub fn generate_struct_identifier_with_number_elements_double_quoted_token_strea
     identifier: &dyn naming::display_plus_to_tokens::DisplayPlusToTokens,
     struct_elements_length: crate::struct_elements_length::StructElementsLength,
 ) -> generate_quotes::proc_macro2_quoted_literal_token_stream::ProcMacro2QuotedLiteralTokenStream {
-    generate_quotes::dq_token_stream::dq_token_stream(&format!(
+    generate_quotes::double_quoted_token_stream::double_quoted_token_stream(&format!(
         "struct {identifier} with {} elements",
         struct_elements_length.get()
     ))

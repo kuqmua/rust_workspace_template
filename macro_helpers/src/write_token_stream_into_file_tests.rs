@@ -6,13 +6,13 @@ mod tests {
             constants_str::MACRO_HELPERS_SKIP,
         ));
         let path = crate::rs_file_path_tests::rs_file_path(&base);
-        let ts: proc_macro2::TokenStream = constants_str::STRUCT_SKIPWRITE
+        let tokens: proc_macro2::TokenStream = constants_str::STRUCT_SKIPWRITE
             .parse()
             .expect(constants_str::DIAGNOSTIC_5994E7E2);
         crate::try_maybe_write_token_stream_into_file::try_maybe_write_token_stream_into_file(
             crate::should_write_token_stream_into_file::ShouldWriteTokenStreamIntoFile::False,
             &base,
-            crate::proc_macro2_token_stream_ref::ProcMacro2TokenStreamRef::from(&ts),
+            crate::proc_macro2_token_stream_ref::ProcMacro2TokenStreamRef::from(&tokens),
             &crate::format_with_cargofmt::FormatWithCargofmt::False,
         )
         .expect(constants_str::DIAGNOSTIC_5ECC3880);
@@ -24,14 +24,14 @@ mod tests {
             constants_str::MACRO_HELPERS_WRITE,
         ));
         let path = crate::rs_file_path_tests::rs_file_path(&base);
-        let ts: proc_macro2::TokenStream = constants_str::STRUCT_DIDWRITE
+        let tokens: proc_macro2::TokenStream = constants_str::STRUCT_DIDWRITE
             .parse()
             .expect(constants_str::DIAGNOSTIC_6C20F49A);
-        let expected = ts.to_string();
+        let expected = tokens.to_string();
         crate::try_maybe_write_token_stream_into_file::try_maybe_write_token_stream_into_file(
             crate::should_write_token_stream_into_file::ShouldWriteTokenStreamIntoFile::True,
             &base,
-            crate::proc_macro2_token_stream_ref::ProcMacro2TokenStreamRef::from(&ts),
+            crate::proc_macro2_token_stream_ref::ProcMacro2TokenStreamRef::from(&tokens),
             &crate::format_with_cargofmt::FormatWithCargofmt::False,
         )
         .expect(constants_str::DIAGNOSTIC_04F83DC1);
@@ -47,14 +47,14 @@ mod tests {
             constants_str::MACRO_HELPERS_TRY_WRITE,
         ));
         let path = crate::rs_file_path_tests::rs_file_path(&base);
-        let ts: proc_macro2::TokenStream = constants_str::STRUCT_TRYDIDWRITE
+        let tokens: proc_macro2::TokenStream = constants_str::STRUCT_TRYDIDWRITE
             .parse()
             .expect(constants_str::DIAGNOSTIC_F771AC2D);
-        let expected = ts.to_string();
+        let expected = tokens.to_string();
         crate::try_maybe_write_token_stream_into_file::try_maybe_write_token_stream_into_file(
             crate::should_write_token_stream_into_file::ShouldWriteTokenStreamIntoFile::True,
             &base,
-            crate::proc_macro2_token_stream_ref::ProcMacro2TokenStreamRef::from(&ts),
+            crate::proc_macro2_token_stream_ref::ProcMacro2TokenStreamRef::from(&tokens),
             &crate::format_with_cargofmt::FormatWithCargofmt::False,
         )
         .expect(constants_str::DIAGNOSTIC_6FEE9F6F);
@@ -70,14 +70,14 @@ mod tests {
             constants_str::MACRO_HELPERS_TRY_WRITE_PATH,
         ));
         let path = crate::rs_file_path_tests::rs_file_path(&base);
-        let ts: proc_macro2::TokenStream = constants_str::STRUCT_PATHINPUT
+        let tokens: proc_macro2::TokenStream = constants_str::STRUCT_PATHINPUT
             .parse()
             .expect(constants_str::DIAGNOSTIC_F9B0CD83);
-        let expected = ts.to_string();
+        let expected = tokens.to_string();
         crate::try_maybe_write_token_stream_into_file::try_maybe_write_token_stream_into_file(
             crate::should_write_token_stream_into_file::ShouldWriteTokenStreamIntoFile::True,
             &base,
-            crate::proc_macro2_token_stream_ref::ProcMacro2TokenStreamRef::from(&ts),
+            crate::proc_macro2_token_stream_ref::ProcMacro2TokenStreamRef::from(&tokens),
             &crate::format_with_cargofmt::FormatWithCargofmt::False,
         )
         .expect(constants_str::DIAGNOSTIC_F341CDE7);
@@ -95,13 +95,13 @@ mod tests {
         ));
         let path = crate::rs_file_path_tests::rs_file_path(&base);
         std::fs::write(&path, constants_str::STRUCT_B).expect(constants_str::DIAGNOSTIC_7091840D);
-        let ts: proc_macro2::TokenStream = constants_str::STRUCT_A
+        let tokens: proc_macro2::TokenStream = constants_str::STRUCT_A
             .parse()
             .expect(constants_str::DIAGNOSTIC_0F30CA53);
         crate::try_maybe_write_token_stream_into_file::try_maybe_write_token_stream_into_file(
             crate::should_write_token_stream_into_file::ShouldWriteTokenStreamIntoFile::True,
             &base,
-            crate::proc_macro2_token_stream_ref::ProcMacro2TokenStreamRef::from(&ts),
+            crate::proc_macro2_token_stream_ref::ProcMacro2TokenStreamRef::from(&tokens),
             &crate::format_with_cargofmt::FormatWithCargofmt::True,
         )
         .expect(constants_str::DIAGNOSTIC_00A995A4);

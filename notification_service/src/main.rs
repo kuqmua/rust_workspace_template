@@ -73,8 +73,8 @@ async fn main() -> notification_exit_code::NotificationExitCode {
                 );
             }
         };
-    let run_result = match config.svc_mode() {
-        config_lib::svc_mode::SvcMode::Migrate => {
+    let run_result = match config.service_mode() {
+        config_lib::service_mode::ServiceMode::Migrate => {
             (async {
             let pool = sqlx::postgres::PgPoolOptions::new()
                 .max_connections(**config.pg_pool_max_connections())
@@ -98,7 +98,7 @@ async fn main() -> notification_exit_code::NotificationExitCode {
             })
             .await
         }
-        config_lib::svc_mode::SvcMode::Serve => {
+        config_lib::service_mode::ServiceMode::Serve => {
             (async {
             let metrics = metrics_exporter_prometheus::PrometheusBuilder::new()
                 .install_recorder()

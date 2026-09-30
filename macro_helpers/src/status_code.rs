@@ -89,7 +89,7 @@ impl StatusCode {
     pub fn to_http_status_code_token_stream(
         &self,
     ) -> crate::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream {
-        let ts = match *self {
+        let tokens = match *self {
             Self::Continue100 => quote::quote! {CONTINUE},
             Self::SwitchingProtocols101 => quote::quote! {SWITCHING_PROTOCOLS},
             Self::Processing102 => quote::quote! {PROCESSING},
@@ -154,7 +154,7 @@ impl StatusCode {
             }
         };
         crate::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream::from(
-            quote::quote! {http::StatusCode::#ts},
+            quote::quote! {http::StatusCode::#tokens},
         )
     }
     #[must_use]
@@ -341,11 +341,11 @@ impl TryFrom<&String> for StatusCode {
             Ok(Self::Accepted202)
         } else if value == constants_str::NON_AUTHORITATIVE_INFORMATION_203 {
             Ok(Self::NonAuthoritativeInformation203)
-        } else if value == constants_str::NO_CNT_204 {
+        } else if value == constants_str::NO_CONTENT_204 {
             Ok(Self::NoContent204)
-        } else if value == constants_str::RESET_CNT_205 {
+        } else if value == constants_str::RESET_CONTENT_205 {
             Ok(Self::ResetContent205)
-        } else if value == constants_str::PARTIAL_CNT_206 {
+        } else if value == constants_str::PARTIAL_CONTENT_206 {
             Ok(Self::PartialContent206)
         } else if value == constants_str::MULTI_STATUS_207 {
             Ok(Self::MultiStatus207)
@@ -385,7 +385,7 @@ impl TryFrom<&String> for StatusCode {
             Ok(Self::NotAcceptable406)
         } else if value == constants_str::PROXY_AUTHENTICATION_REQUIRED_407 {
             Ok(Self::ProxyAuthenticationRequired407)
-        } else if value == constants_str::REQ_TIMEOUT_408 {
+        } else if value == constants_str::REQUEST_TIMEOUT_408 {
             Ok(Self::RequestTimeout408)
         } else if value == constants_str::CONFLICT_409 {
             Ok(Self::Conflict409)
@@ -421,7 +421,7 @@ impl TryFrom<&String> for StatusCode {
             Ok(Self::PreconditionRequired428)
         } else if value == constants_str::TOO_MANY_REQS_429 {
             Ok(Self::TooManyRequests429)
-        } else if value == constants_str::REQ_HEADER_FIELDS_TOO_LARGE_431 {
+        } else if value == constants_str::REQUEST_HEADER_FIELDS_TOO_LARGE_431 {
             Ok(Self::RequestHeaderFieldsTooLarge431)
         } else if value == constants_str::UNAVAILABLE_FOR_LEGAL_REASONS_451 {
             Ok(Self::UnavailableForLegalReasons451)

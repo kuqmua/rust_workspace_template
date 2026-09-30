@@ -6,7 +6,7 @@
 pub fn impl_pg_type_eq_operator_for_identifier_token_stream(
     import: &crate::import::Import,
     identifier: &dyn quote::ToTokens,
-    ts: &dyn quote::ToTokens,
+    tokens: &dyn quote::ToTokens,
 ) -> macro_helpers::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream {
     let names = crate::names_context::NamesContext::new();
 
@@ -21,7 +21,7 @@ pub fn impl_pg_type_eq_operator_for_identifier_token_stream(
     quote::quote! {
         impl #import::pg_type_eq_operator::#PgTypeEqOperatorUpperCamelCase for #identifier {
             fn operator(&self) -> #import::eq_operator::#EqOperatorUpperCamelCase {
-                #ts
+                #tokens
             }
         }
     }

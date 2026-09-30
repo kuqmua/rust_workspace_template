@@ -5,5 +5,5 @@
     proc_macro_getters::Getters,
 )]
 pub(crate) struct AxumAdminStateRouter(
-    axum::Router<crate::shared_admin_auth_svc_state_arc::SharedAdminAuthSvcStateArc>,
+    axum::Router<crate::shared_admin_auth_service_state_arc::SharedAdminAuthServiceStateArc>,
 );

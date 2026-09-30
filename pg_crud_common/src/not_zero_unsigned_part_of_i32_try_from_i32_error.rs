@@ -15,7 +15,7 @@ pub enum NotZeroUnsignedPartOfI32TryFromI32Error {
         location: location_lib::location::Location,
     },
     UnsignedPartOfI32TryFromI32Error {
-        #[eo_location]
+        #[error_field_location]
         v: crate::unsigned_part_of_i32_try_from_i32_error::UnsignedPartOfI32TryFromI32Error,
         location: location_lib::location::Location,
     },

@@ -1,5 +1,5 @@
 pub(crate) fn html_routes(
-    shared_admin_auth_svc_state_arc: crate::shared_admin_auth_svc_state_arc::SharedAdminAuthSvcStateArc,
+    shared_admin_auth_service_state_arc: crate::shared_admin_auth_service_state_arc::SharedAdminAuthServiceStateArc,
     admin_html_swagger_enabled: crate::admin_html_swagger_enabled::AdminHtmlSwaggerEnabled,
 ) -> crate::axum_admin_auth_router::AxumAdminAuthRouter {
     let router = crate::admin_html_page_route_registry::router().merge(
@@ -16,6 +16,6 @@ pub(crate) fn html_routes(
         router
     };
     crate::axum_admin_auth_router::AxumAdminAuthRouter::from(
-        router.with_state(shared_admin_auth_svc_state_arc),
+        router.with_state(shared_admin_auth_service_state_arc),
     )
 }

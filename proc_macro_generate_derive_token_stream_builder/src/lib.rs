@@ -7,9 +7,9 @@ pub fn generate_derive_token_stream_builder(
 ) -> proc_macro::TokenStream {
     #[derive(Clone, proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
     struct Element {
-        d_trait_name_if_snake_case: proc_macro2::TokenStream,
-        d_trait_name_snake_case: proc_macro2::TokenStream,
-        d_trait_name_upper_camel_case: proc_macro2::TokenStream,
+        derive_trait_name_if_snake_case: proc_macro2::TokenStream,
+        derive_trait_name_snake_case: proc_macro2::TokenStream,
+        derive_trait_name_upper_camel_case: proc_macro2::TokenStream,
         trait_type: proc_macro2::TokenStream,
     }
     let make_pub_snake_case_token_stream = quote::quote! {make_pub};
@@ -22,12 +22,12 @@ pub fn generate_derive_token_stream_builder(
             let input = to_snake_case_input::ToSnakeCaseInput::from(element.as_str());
             let (normalized, _) = input.as_ref().chars().fold(
                 (String::with_capacity(input.as_ref().len()), false),
-                |(mut normalized, separator_pending), ch| {
-                    if char::is_alphanumeric(ch) {
+                |(mut normalized, separator_pending), character| {
+                    if char::is_alphanumeric(character) {
                         if separator_pending && !normalized.is_empty() {
                             normalized.push(' ');
                         }
-                        normalized.push(ch);
+                        normalized.push(character);
                         (normalized, false)
                     } else {
                         let next_separator_pending = !normalized.is_empty();
@@ -51,16 +51,16 @@ pub fn generate_derive_token_stream_builder(
                 }
             };
             Ok(Element {
-                d_trait_name_upper_camel_case: {
-                    let v = naming::parameter::DSelfUpperCamelCase::from_display(&sc.as_ref());
+                derive_trait_name_upper_camel_case: {
+                    let v = naming::parameter::DeriveSelfUpperCamelCase::from_display(&sc.as_ref());
                     quote::quote! {#v}
                 },
-                d_trait_name_snake_case: {
-                    let v = naming::parameter::DSelfSnakeCase::from_display(&sc.as_ref());
+                derive_trait_name_snake_case: {
+                    let v = naming::parameter::DeriveSelfSnakeCase::from_display(&sc.as_ref());
                     quote::quote! {#v}
                 },
-                d_trait_name_if_snake_case: {
-                    let v = naming::parameter::DSelfIfSnakeCase::from_display(&sc.as_ref());
+                derive_trait_name_if_snake_case: {
+                    let v = naming::parameter::DeriveSelfIfSnakeCase::from_display(&sc.as_ref());
                     quote::quote! {#v}
                 },
                 trait_type: element
@@ -87,7 +87,7 @@ pub fn generate_derive_token_stream_builder(
             enum_token_stream(&make_pub_upper_camel_case_token_stream),
             element_vec
                 .iter()
-                .map(|element| enum_token_stream(&element.d_trait_name_upper_camel_case)),
+                .map(|element| enum_token_stream(&element.derive_trait_name_upper_camel_case)),
         )
     };
     let (make_pub_derive_trait_name_bool_token_stream, field_vec_token_stream) = {
@@ -98,7 +98,7 @@ pub fn generate_derive_token_stream_builder(
             field_token_stream(&make_pub_snake_case_token_stream),
             element_vec
                 .iter()
-                .map(|element| field_token_stream(&element.d_trait_name_snake_case)),
+                .map(|element| field_token_stream(&element.derive_trait_name_snake_case)),
         )
     };
     let (make_pub_derive_and_derive_if_token_stream, derive_and_derive_if_vec_token_stream) = {
@@ -126,30 +126,30 @@ pub fn generate_derive_token_stream_builder(
                 &make_pub_upper_camel_case_token_stream,
             ),
             {
-                let ts = element_vec.iter().map(|element| {
+                let generated_tokens = element_vec.iter().map(|element| {
                     generate_token_stream(
-                        &element.d_trait_name_snake_case,
-                        &element.d_trait_name_if_snake_case,
-                        &element.d_trait_name_upper_camel_case,
+                        &element.derive_trait_name_snake_case,
+                        &element.derive_trait_name_if_snake_case,
+                        &element.derive_trait_name_upper_camel_case,
                     )
                 });
-                quote::quote! {#(#ts)*}
+                quote::quote! {#(#generated_tokens)*}
             },
         )
     };
     let if_self_derive_accumulator_push_vec_token_stream = element_vec.iter().map(|element| {
-        let d_trait_name_snake_case = &element.d_trait_name_snake_case;
+        let derive_trait_name_snake_case = &element.derive_trait_name_snake_case;
         let trait_type = &element.trait_type;
         quote::quote! {
-            if self.#d_trait_name_snake_case {
+            if self.#derive_trait_name_snake_case {
                 accumulator_2a71375c.push(quote::quote!{#trait_type});
             }
         }
     });
-    let derive_token_stream_builder_upper_camel_case = quote::quote! {DTokenStreamBuilder};
+    let derive_token_stream_builder_upper_camel_case = quote::quote! {DeriveTokenStreamBuilder};
     let struct_or_enum_upper_camel_case = quote::quote! {StructOrEnum};
     let quote_to_tokens_token_stream = quote::quote! {quote::ToTokens};
-    let ts2_token_stream = quote::quote! {proc_macro2::TokenStream};
+    let proc_macro2_token_stream_type_token_stream = quote::quote! {proc_macro2::TokenStream};
     let element_count = element_vec.len();
     let generated: proc_macro2::TokenStream = quote::quote! {
         #make_pub_pub_enum_token_stream
@@ -176,8 +176,8 @@ pub fn generate_derive_token_stream_builder(
                 ann: &dyn #quote_to_tokens_token_stream,
                 ident_d8cbb733: &dyn #quote_to_tokens_token_stream,
                 generics_7d48c97a: &dyn #quote_to_tokens_token_stream,
-                ts: &dyn #quote_to_tokens_token_stream,
-            ) -> #ts2_token_stream {
+                generated_tokens: &dyn #quote_to_tokens_token_stream,
+            ) -> #proc_macro2_token_stream_type_token_stream {
                 let maybe_pub_token_stream = self.#make_pub_snake_case_token_stream.then(|| quote::quote!{pub});
                 let derive_token_stream = {
                     let mut accumulator_2a71375c = Vec::with_capacity(#element_count);
@@ -237,7 +237,7 @@ pub fn generate_derive_token_stream_builder(
                     ::#quote_to_tokens_token_stream::to_tokens(&struct_or_enum_token_stream, &mut _s);
                     ::#quote_to_tokens_token_stream::to_tokens(&ident_d8cbb733, &mut _s);
                     ::#quote_to_tokens_token_stream::to_tokens(&generics_7d48c97a, &mut _s);
-                    ::#quote_to_tokens_token_stream::to_tokens(&ts, &mut _s);
+                    ::#quote_to_tokens_token_stream::to_tokens(&generated_tokens, &mut _s);
                     _s
                 }
             }
@@ -246,14 +246,14 @@ pub fn generate_derive_token_stream_builder(
                 ann: &dyn #quote_to_tokens_token_stream,
                 ident_d87c6809: &dyn #quote_to_tokens_token_stream,
                 generics_c33a0ef2: &dyn #quote_to_tokens_token_stream,
-                ts: &dyn #quote_to_tokens_token_stream,
-            ) -> #ts2_token_stream {
+                generated_tokens: &dyn #quote_to_tokens_token_stream,
+            ) -> #proc_macro2_token_stream_type_token_stream {
                 self.build_declaration(
                     #struct_or_enum_upper_camel_case::Struct,
                     ann,
                     ident_d87c6809,
                     generics_c33a0ef2,
-                    ts
+                    generated_tokens
                 )
             }
             pub fn build_enum(
@@ -261,14 +261,14 @@ pub fn generate_derive_token_stream_builder(
                 ann: &dyn #quote_to_tokens_token_stream,
                 ident_273dd063: &dyn #quote_to_tokens_token_stream,
                 generics_84bc3f7f: &dyn #quote_to_tokens_token_stream,
-                ts: &dyn #quote_to_tokens_token_stream,
-            ) -> #ts2_token_stream {
+                generated_tokens: &dyn #quote_to_tokens_token_stream,
+            ) -> #proc_macro2_token_stream_type_token_stream {
                 self.build_declaration(
                     #struct_or_enum_upper_camel_case::Enum,
                     ann,
                     ident_273dd063,
                     generics_84bc3f7f,
-                    ts
+                    generated_tokens
                 )
             }
         }

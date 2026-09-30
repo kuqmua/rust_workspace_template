@@ -94,7 +94,7 @@ pub mod required_header_str_parsed;
 #[cfg(test)]
 pub mod required_header_value;
 #[cfg(test)]
-pub mod test_exp_id;
+pub mod test_expectation_id;
 #[cfg(test)]
 pub(crate) mod test_helper;
 #[cfg(test)]

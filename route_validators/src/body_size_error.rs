@@ -8,11 +8,11 @@
 #[location_to_schema]
 pub enum BodySizeError {
     ReachedMaximumSizeOfBody {
-        #[eo_to_err_string]
+        #[error_field_to_err_string]
         error: crate::axum_body_size_error::AxumBodySizeError,
-        #[eo_to_err_string_serde]
+        #[error_field_to_err_string_serde]
         maximum_size_of_body_limit_in_bytes: crate::body_size_limit_bytes::BodySizeLimitBytes,
-        #[eo_to_err_string]
+        #[error_field_to_err_string]
         size_hint: crate::http_body_size_hint::HttpBodySizeHint,
     },
 }

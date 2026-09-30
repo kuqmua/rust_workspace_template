@@ -10,25 +10,25 @@ pub fn generate_pg_table_config(
 ) -> proc_macro2::TokenStream {
     item
 }
-pub fn cm_error_variants(
+pub fn create_many_error_variants(
     _attr: proc_macro2::TokenStream,
     item: proc_macro2::TokenStream,
 ) -> proc_macro2::TokenStream {
     item
 }
-pub fn rm_error_variants(
+pub fn read_many_error_variants(
     _attr: proc_macro2::TokenStream,
     item: proc_macro2::TokenStream,
 ) -> proc_macro2::TokenStream {
     item
 }
-pub fn um_error_variants(
+pub fn update_many_error_variants(
     _attr: proc_macro2::TokenStream,
     item: proc_macro2::TokenStream,
 ) -> proc_macro2::TokenStream {
     item
 }
-pub fn dm_error_variants(
+pub fn delete_many_error_variants(
     _attr: proc_macro2::TokenStream,
     item: proc_macro2::TokenStream,
 ) -> proc_macro2::TokenStream {
@@ -40,25 +40,25 @@ pub fn common_error_variants(
 ) -> proc_macro2::TokenStream {
     item
 }
-pub fn cm_logic(
+pub fn create_many_logic(
     _attr: proc_macro2::TokenStream,
     item: proc_macro2::TokenStream,
 ) -> proc_macro2::TokenStream {
     item
 }
-pub fn rm_logic(
+pub fn read_many_logic(
     _attr: proc_macro2::TokenStream,
     item: proc_macro2::TokenStream,
 ) -> proc_macro2::TokenStream {
     item
 }
-pub fn um_logic(
+pub fn update_many_logic(
     _attr: proc_macro2::TokenStream,
     item: proc_macro2::TokenStream,
 ) -> proc_macro2::TokenStream {
     item
 }
-pub fn dm_logic(
+pub fn delete_many_logic(
     _attr: proc_macro2::TokenStream,
     item: proc_macro2::TokenStream,
 ) -> proc_macro2::TokenStream {

@@ -105,8 +105,8 @@ impl<
                         return Err(error);
                     }
                 };
-            let write_res = std::fmt::Write::write_fmt(&mut accumulator, format_args!("[${v}]"));
-            if write_res.is_err() {
+            let write_result = std::fmt::Write::write_fmt(&mut accumulator, format_args!("[${v}]"));
+            if write_result.is_err() {
                 return Err(
                     pg_crud_common::query_part_error::QueryPartError::WriteIntoBuffer {
                         location: proc_macro_location_bang::location!(),

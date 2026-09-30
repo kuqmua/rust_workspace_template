@@ -29,7 +29,12 @@ fn remove_dir_all_if_exists(path: &std::path::Path, str: &str) {
     }
 }
 #[cfg(feature = "test-utils")]
-pub fn clippy_check(crate_name: &str, _cmd_path: &str, extra_cnt: &str, content_to_generate: &str) {
+pub fn clippy_check(
+    crate_name: &str,
+    _cmd_path: &str,
+    extra_content: &str,
+    content_to_generate: &str,
+) {
     let root = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .parent()
         .map_or_else(
@@ -82,8 +87,8 @@ categories = ["category"]
         ))
     });
     let root_path = root.display().to_string();
-    let cargo_toml_extra = extra_cnt.lines().fold(
-        String::with_capacity(extra_cnt.len()),
+    let cargo_toml_extra = extra_content.lines().fold(
+        String::with_capacity(extra_content.len()),
         |mut output, line| {
             let transform_line = || -> std::borrow::Cow<'_, str> {
                 if !line.contains(constants_str::WORKSPACE_TRUE) {
@@ -94,9 +99,9 @@ categories = ["category"]
                 };
                 let prefix = format!("{dep_name} = ");
                 let braces_balance = |value: &str| -> i32 {
-                    value
-                        .chars()
-                        .fold(constants_i32::ZERO, |accumulator, ch| match ch {
+                    value.chars().fold(
+                        constants_i32::ZERO,
+                        |accumulator, character| match character {
                             '{' | '[' => accumulator.checked_add(1i32).unwrap_or_else(|| {
                                 std::panic::panic_any(constants_str::PANIC_0A8DF093)
                             }),
@@ -104,7 +109,8 @@ categories = ["category"]
                                 std::panic::panic_any(constants_str::PANIC_4E404FC9)
                             }),
                             _ => accumulator,
-                        })
+                        },
+                    )
                 };
                 let mut in_workspace_deps = false;
                 let mut workspace_lines = workspace_cargo_toml.as_ref().lines();
@@ -121,33 +127,33 @@ categories = ["category"]
                         "1bb3996c"
                     );
                     if in_workspace_deps && workspace_line.starts_with(&prefix) {
-                        let mut out = String::from(workspace_line);
+                        let mut workspace_entry_text = String::from(workspace_line);
                         let mut balance = braces_balance(workspace_line);
                         while balance > constants_i32::ZERO {
                             let next_line = workspace_lines.next().unwrap_or_else(|| {
                                 std::panic::panic_any(constants_str::PANIC_7BB3CD14)
                             });
-                            out.push('\n');
-                            out.push_str(next_line);
+                            workspace_entry_text.push('\n');
+                            workspace_entry_text.push_str(next_line);
                             balance = balance
                                 .checked_add(braces_balance(next_line))
                                 .unwrap_or_else(|| {
                                     std::panic::panic_any(constants_str::PANIC_F1E71CD6)
                                 });
                         }
-                        break out;
+                        break workspace_entry_text;
                     }
                 };
                 let feature_list = line.split_once(constants_str::FEATURES).map(|(_, tail)| {
                     tail.chars()
-                        .scan(false, |done, ch| {
+                        .scan(false, |done, character| {
                             if *done {
                                 None
                             } else {
-                                if ch == ']' {
+                                if character == ']' {
                                     *done = true;
                                 }
-                                Some(ch)
+                                Some(character)
                             }
                         })
                         .collect::<String>()

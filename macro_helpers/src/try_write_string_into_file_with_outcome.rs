@@ -8,10 +8,10 @@ where
     let path =
         crate::rs_file_path_buf::RsFilePathBuf::from(p.as_ref().with_extension(constants_str::RS));
     let path_ref = path.as_ref();
-    let string_cnt_ref = string_file_content_ref.as_ref();
+    let string_content_ref = string_file_content_ref.as_ref();
     let should_write = match std::fs::metadata(path_ref) {
         Ok(metadata) => {
-            let new_len_u64 = u64::try_from(string_cnt_ref.len()).map_err(|_error| {
+            let new_len_u64 = u64::try_from(string_content_ref.len()).map_err(|_error| {
                 std::io::Error::other(constants_str::VALUE_2F4D7A8C_FAILED_CONVERTING_STRING_LENGTH)
             })?;
             if metadata.len() == new_len_u64 {
@@ -21,7 +21,7 @@ where
                 loop {
                     let read_len = std::io::Read::read(&mut old_file, &mut old_chunk)?;
                     if read_len == constants_usize::ZERO {
-                        if offset == string_cnt_ref.len() {
+                        if offset == string_content_ref.len() {
                             break crate::should_write_string::ShouldWriteString::from(false);
                         }
                         break crate::should_write_string::ShouldWriteString::from(true);
@@ -31,7 +31,7 @@ where
                             constants_str::VALUE_5F28D14C_GENERATED_FILE_COMPARISON_OFFSET_OVERFLOW,
                         )
                     })?;
-                    let Some(new_chunk) = string_cnt_ref.as_bytes().get(offset..end) else {
+                    let Some(new_chunk) = string_content_ref.as_bytes().get(offset..end) else {
                         break crate::should_write_string::ShouldWriteString::from(true);
                     };
                     let Some(old_chunk_read) = old_chunk.get(..read_len) else {
@@ -53,7 +53,7 @@ where
     };
     if bool::from(should_write) {
         let mut file = atomic_write_file::AtomicWriteFile::open(path_ref)?;
-        std::io::Write::write_all(&mut file, string_cnt_ref.as_bytes())?;
+        std::io::Write::write_all(&mut file, string_content_ref.as_bytes())?;
         file.commit()?;
     }
     let path_buf = crate::written_file_path_buf::WrittenFilePathBuf::from(path_ref.to_path_buf());

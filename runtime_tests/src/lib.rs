@@ -83,7 +83,7 @@ pub fn run(
     ));
     require_status(test, &response, expected)?;
     let _created = response
-        .into_notification_res()
+        .into_notification_response()
         .map_err(|source| runtime_test_error::RuntimeTestError::Response { test, source })?;
     passed.push(runtime_test_kind::RuntimeTestKind::NotificationCreation);
 

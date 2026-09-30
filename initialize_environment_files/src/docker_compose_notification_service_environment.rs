@@ -8,7 +8,7 @@ pub(crate) struct DockerComposeNotificationServiceEnvironment {
     notification_service_socket_address: crate::configuration_field::ConfigurationField,
     pg_pool_max_connections: crate::configuration_field::ConfigurationField,
     request_timeout_seconds: crate::configuration_field::ConfigurationField,
-    svc_mode: crate::configuration_field::ConfigurationField,
+    service_mode: crate::configuration_field::ConfigurationField,
     tracing_format: crate::configuration_field::ConfigurationField,
 }
 
@@ -23,7 +23,7 @@ impl DockerComposeNotificationServiceEnvironment {
             .append_to(&mut std_byte_vector);
         self.get_request_timeout_seconds()
             .append_to(&mut std_byte_vector);
-        self.get_svc_mode().append_to(&mut std_byte_vector);
+        self.get_service_mode().append_to(&mut std_byte_vector);
         self.get_tracing_format().append_to(&mut std_byte_vector);
         std_byte_vector
     }

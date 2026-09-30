@@ -41,7 +41,9 @@ mod tests {
             constants_str::A,
         );
         assert_quote_token_stream(
-            &crate::dq_token_stream::dq_token_stream(&constants_str::ABC_ALT_3),
+            &crate::double_quoted_token_stream::double_quoted_token_stream(
+                &constants_str::ABC_ALT_3,
+            ),
             constants_str::ABC_ALT,
         );
         assert_quote_token_stream(
@@ -68,7 +70,7 @@ mod tests {
             constants_str::B_42,
         );
         assert_quote_token_stream(
-            &crate::dq_token_stream::dq_token_stream(&42i32),
+            &crate::double_quoted_token_stream::double_quoted_token_stream(&42i32),
             constants_str::VALUE_42_ALT,
         );
         assert_quote_token_stream(
@@ -106,7 +108,9 @@ mod tests {
                 .contains(constants_str::VALUE_2EDAC0BF)
         );
         assert_quote_token_stream(
-            &crate::dq_token_stream::dq_token_stream(&constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
+            &crate::double_quoted_token_stream::double_quoted_token_stream(
+                &constants_str::PG_CRUD_EMPTY_SQL_SUFFIX,
+            ),
             constants_str::TEXT_ALT_12,
         );
         assert!(
@@ -172,7 +176,7 @@ mod tests {
         assert!(
             [
                 (
-                    crate::dq_token_stream::dq_token_stream(&input),
+                    crate::double_quoted_token_stream::double_quoted_token_stream(&input),
                     input.len() + 2usize
                 ),
                 (

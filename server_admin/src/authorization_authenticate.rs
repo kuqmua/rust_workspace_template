@@ -1,5 +1,5 @@
 pub(crate) async fn authorization_authenticate(
-    admin_auth_svc_state: &crate::admin_auth_svc_state::AdminAuthSvcState,
+    admin_auth_service_state: &crate::admin_auth_service_state::AdminAuthServiceState,
     http_admin_header_map_ref: crate::http_admin_header_map_ref::HttpAdminHeaderMapRef<'_>,
     admin_peer_addr: crate::admin_peer_addr::AdminPeerAddr,
 ) -> Result<
@@ -12,7 +12,7 @@ pub(crate) async fn authorization_authenticate(
     )
     .ok_or(crate::admin_error::AdminError::Authentication)?;
     let validation = crate::admin_access_token_validation::admin_access_token_validation();
-    let claims = admin_auth_svc_state
+    let claims = admin_auth_service_state
         .get_decoding_keys()
         .as_ref()
         .iter()
@@ -25,8 +25,8 @@ pub(crate) async fn authorization_authenticate(
             .ok()?;
             match crate::validate_admin_access_claims::validate_admin_access_claims(
                 &data.claims,
-                admin_auth_svc_state.get_issuer(),
-                admin_auth_svc_state.get_audience(),
+                admin_auth_service_state.get_issuer(),
+                admin_auth_service_state.get_audience(),
             ) {
                 Ok(()) => Some(data.claims),
                 Err(error) => {
@@ -47,7 +47,7 @@ pub(crate) async fn authorization_authenticate(
             .bind(claims.session_id().get().get())
             .bind(claims.user_id().get())
             .bind(context_hash.expose().as_ref())
-            .fetch_one(admin_auth_svc_state.get_pool().as_ref())
+            .fetch_one(admin_auth_service_state.get_pool().as_ref())
             .await
             .map_err(crate::sqlx_admin_error::SqlxAdminError::from)
             .map(server_admin_core::std_admin_bool::StdAdminBool::from)
@@ -58,7 +58,7 @@ pub(crate) async fn authorization_authenticate(
     crate::load_authenticated_admin_from_db::load_authenticated_admin_from_db(
         &mut crate::admin_db_ref::AdminDbRef::Pool(
             crate::sqlx_admin_repository_pool_ref::SqlxAdminRepositoryPoolRef::from(
-                admin_auth_svc_state.get_pool().as_ref(),
+                admin_auth_service_state.get_pool().as_ref(),
             ),
         ),
         claims.user_id(),

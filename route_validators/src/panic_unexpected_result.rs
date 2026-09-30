@@ -3,12 +3,12 @@ pub(super) fn panic_unexpected_result(
     error_id: impl Into<crate::test_panic_text::TestPanicText>,
     fn_name: impl Into<crate::test_panic_text::TestPanicText>,
     expected: impl Into<crate::test_panic_text::TestPanicText>,
-    exp_id: impl Into<crate::test_exp_id::TestExpId>,
+    expectation_id: impl Into<crate::test_expectation_id::TestExpectationId>,
 ) -> ! {
     let error_id = error_id.into();
     let fn_name = fn_name.into();
     let expected = expected.into();
-    let exp_id = exp_id.into();
+    let expectation_id = expectation_id.into();
     std::panic::panic_any(
         constants_str::PANIC_C8FE4BAC
             .replacen(
@@ -28,7 +28,7 @@ pub(super) fn panic_unexpected_result(
             )
             .replacen(
                 constants_str::PANIC_PLACEHOLDER_D8C45567,
-                exp_id.to_string().as_str(),
+                expectation_id.to_string().as_str(),
                 1usize,
             ),
     );

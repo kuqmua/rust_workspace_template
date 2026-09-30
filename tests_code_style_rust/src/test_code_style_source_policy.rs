@@ -766,17 +766,19 @@ fn test_all_files_are_english_only() {
                         .flat_map(|(line_index, line)| {
                             let line_number = line_index.saturating_add(1usize);
                             line.chars()
-                                .filter(|ch| {
-                                    !matches!(ch, '\n' | '\r' | '\t' | '\u{2014}' | '\u{2194}')
-                                        && !ch.is_ascii()
+                                .filter(|character| {
+                                    !matches!(
+                                        character,
+                                        '\n' | '\r' | '\t' | '\u{2014}' | '\u{2194}'
+                                    ) && !character.is_ascii()
                                 })
-                                .map(move |ch| {
+                                .map(move |character| {
                                     format!(
                                         "{}:{} non-english symbol `{}` (U+{:04X})",
                                         source_file.path().as_ref().display(),
                                         line_number,
-                                        ch,
-                                        u32::from(ch)
+                                        character,
+                                        u32::from(character)
                                     )
                                 })
                         })

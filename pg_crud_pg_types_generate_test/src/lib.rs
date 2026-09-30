@@ -129,7 +129,7 @@ mod tests {
                 constants_str::NEWTYPE_SPLIT_WORKSPACE_DEPENDENCIES,
             );
         macro_clippy_check_test_common::clippy_check(
-            constants_str::GENERATE_PG_TYPES_TEST_CNT,
+            constants_str::GENERATE_PG_TYPES_TEST_CONTENT,
             constants_str::PG_CRUD_PG_TYPES,
             fixture_dependencies.as_str(),
             &generate_pg_types_src::generate_pg_types_tokens::generate_pg_types_tokens(

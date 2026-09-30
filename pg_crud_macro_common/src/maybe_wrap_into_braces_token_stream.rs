@@ -4,12 +4,12 @@
 )]
 
 pub fn maybe_wrap_into_braces_token_stream(
-    ts: &dyn quote::ToTokens,
+    tokens: &dyn quote::ToTokens,
     wrap_into_braces: crate::wrap_into_braces::WrapIntoBraces,
 ) -> macro_helpers::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream {
     if bool::from(wrap_into_braces) {
-        crate::wrap_into_scopes_token_stream::wrap_into_scopes_token_stream(&ts)
+        crate::wrap_into_scopes_token_stream::wrap_into_scopes_token_stream(&tokens)
     } else {
-        quote::quote! {#ts}.into()
+        quote::quote! {#tokens}.into()
     }
 }

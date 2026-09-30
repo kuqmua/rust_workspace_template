@@ -4,15 +4,15 @@
 )]
 #[derive(Debug, Clone, Copy, proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
 pub enum LocationFieldAttr {
-    EoToErrString,
-    EoToErrStringSerde,
-    EoLocation,
-    EoVecToErrString,
-    EoVecToErrStringSerde,
-    EoVecLocation,
-    EoHashMapKStringVToErrString,
-    EoHashMapKStringVToErrStringSerde,
-    EoHashMapKStringVLocation,
+    ErrorFieldToErrString,
+    ErrorFieldToErrStringSerde,
+    ErrorFieldLocation,
+    ErrorFieldVecToErrString,
+    ErrorFieldVecToErrStringSerde,
+    ErrorFieldVecLocation,
+    ErrorFieldHashMapKeyStringValueToErrString,
+    ErrorFieldHashMapKeyStringValueToErrStringSerde,
+    ErrorFieldHashMapKeyStringValueLocation,
 }
 
 impl std::str::FromStr for LocationFieldAttr {
@@ -72,34 +72,38 @@ impl TryFrom<&syn::Field> for LocationFieldAttr {
 impl crate::attr_identifier_str::AttrIdentifierStr for LocationFieldAttr {
     fn attribute_identifier_string(&self) -> crate::attr_identifier_name::AttrIdentifierName<'_> {
         crate::attr_identifier_name::AttrIdentifierName::from(match *self {
-            Self::EoToErrString => constants_str::EO_TO_ERR_STRING,
-            Self::EoToErrStringSerde => constants_str::EO_TO_ERR_STRING_SERDE,
-            Self::EoLocation => constants_str::EO_LOCATION,
-            Self::EoVecToErrString => constants_str::EO_VEC_TO_ERR_STRING,
-            Self::EoVecToErrStringSerde => constants_str::EO_VEC_TO_ERR_STRING_SERDE,
-            Self::EoVecLocation => constants_str::EO_VEC_LOCATION,
-            Self::EoHashMapKStringVToErrString => {
-                constants_str::EO_HASHMAP_K_STRING_V_TO_ERR_STRING
+            Self::ErrorFieldToErrString => constants_str::ERROR_FIELD_TO_ERR_STRING,
+            Self::ErrorFieldToErrStringSerde => constants_str::ERROR_FIELD_TO_ERR_STRING_SERDE,
+            Self::ErrorFieldLocation => constants_str::ERROR_FIELD_LOCATION,
+            Self::ErrorFieldVecToErrString => constants_str::ERROR_FIELD_VEC_TO_ERR_STRING,
+            Self::ErrorFieldVecToErrStringSerde => {
+                constants_str::ERROR_FIELD_VEC_TO_ERR_STRING_SERDE
             }
-            Self::EoHashMapKStringVToErrStringSerde => {
-                constants_str::EO_HASHMAP_K_STRING_V_TO_ERR_STRING_SERDE
+            Self::ErrorFieldVecLocation => constants_str::ERROR_FIELD_VEC_LOCATION,
+            Self::ErrorFieldHashMapKeyStringValueToErrString => {
+                constants_str::ERROR_FIELD_HASHMAP_KEY_STRING_VALUE_TO_ERR_STRING
             }
-            Self::EoHashMapKStringVLocation => constants_str::EO_HASHMAP_K_STRING_V_LOCATION,
+            Self::ErrorFieldHashMapKeyStringValueToErrStringSerde => {
+                constants_str::ERROR_FIELD_HASHMAP_KEY_STRING_VALUE_TO_ERR_STRING_SERDE
+            }
+            Self::ErrorFieldHashMapKeyStringValueLocation => {
+                constants_str::ERROR_FIELD_HASHMAP_KEY_STRING_VALUE_LOCATION
+            }
         })
     }
 }
 
 impl LocationFieldAttr {
     const ALL: [Self; 9] = [
-        Self::EoToErrString,
-        Self::EoToErrStringSerde,
-        Self::EoLocation,
-        Self::EoVecToErrString,
-        Self::EoVecToErrStringSerde,
-        Self::EoVecLocation,
-        Self::EoHashMapKStringVToErrString,
-        Self::EoHashMapKStringVToErrStringSerde,
-        Self::EoHashMapKStringVLocation,
+        Self::ErrorFieldToErrString,
+        Self::ErrorFieldToErrStringSerde,
+        Self::ErrorFieldLocation,
+        Self::ErrorFieldVecToErrString,
+        Self::ErrorFieldVecToErrStringSerde,
+        Self::ErrorFieldVecLocation,
+        Self::ErrorFieldHashMapKeyStringValueToErrString,
+        Self::ErrorFieldHashMapKeyStringValueToErrStringSerde,
+        Self::ErrorFieldHashMapKeyStringValueLocation,
     ];
 
     #[must_use]
@@ -126,10 +130,10 @@ mod tests {
     #[test]
     fn test_supported_location_field_attributes_reject_arguments() {
         let list_field: syn::Field = syn::parse_quote! {
-            #[eo_location(unexpected)] value: Location
+            #[error_field_location(unexpected)] value: Location
         };
         let named_field: syn::Field = syn::parse_quote! {
-            #[eo_location = "unexpected"] value: Location
+            #[error_field_location = "unexpected"] value: Location
         };
         assert_eq!(
             super::LocationFieldAttr::try_from(&list_field)
@@ -148,17 +152,17 @@ mod tests {
     #[test]
     fn test_supported_location_field_attributes_require_exactly_one_marker() {
         let valid_field: syn::Field = syn::parse_quote! {
-            #[serde(skip)] #[eo_location] value: Location
+            #[serde(skip)] #[error_field_location] value: Location
         };
         let duplicated_field: syn::Field = syn::parse_quote! {
-            #[eo_location] #[eo_vec_location] value: Location
+            #[error_field_location] #[error_field_vec_location] value: Location
         };
         let missing_field: syn::Field = syn::parse_quote! {
             #[serde(skip)] value: Location
         };
         assert!(matches!(
             super::LocationFieldAttr::try_from(&valid_field),
-            Ok(super::LocationFieldAttr::EoLocation)
+            Ok(super::LocationFieldAttr::ErrorFieldLocation)
         ));
         assert_eq!(
             super::LocationFieldAttr::try_from(&duplicated_field)

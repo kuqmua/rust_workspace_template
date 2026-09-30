@@ -1,6 +1,6 @@
 pub(crate) fn append_cleared_session_cookies(
     axum_admin_response: &mut crate::axum_admin_response::AxumAdminResponse,
-    admin_auth_svc_state: &crate::admin_auth_svc_state::AdminAuthSvcState,
+    admin_auth_service_state: &crate::admin_auth_service_state::AdminAuthServiceState,
 ) -> Result<(), crate::admin_error::AdminError> {
     [
         crate::admin_cookie_kind::AdminCookieKind::Access,
@@ -11,7 +11,7 @@ pub(crate) fn append_cleared_session_cookies(
     .try_for_each(|kind| {
         let cookie = crate::clear_admin_cookie::clear_admin_cookie(
             kind,
-            *admin_auth_svc_state.get_cookie_secure(),
+            *admin_auth_service_state.get_cookie_secure(),
         )
         .map_err(crate::admin_session_error::AdminSessionError::SecretText)
         .map_err(crate::admin_error::AdminError::session)?;

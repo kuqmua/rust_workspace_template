@@ -24,9 +24,9 @@ fn assert_query_result(
     assert!(matches!(actual, Ok(query) if query.to_string() == expected));
 }
 #[test]
-fn test_generate_cm_query_string_is_expected() {
+fn test_generate_create_many_query_string_is_expected() {
     assert_query_result(
-        crate::generate_cm_query_string::generate_cm_query_string(
+        crate::generate_create_many_query_string::generate_create_many_query_string(
             table(constants_str::USERS_ALT),
             sql(constants_str::ID_NAME),
             sql(constants_str::DOLLAR_1_DOLLAR_2_DOLLAR_3_DOLLAR_4),
@@ -36,9 +36,9 @@ fn test_generate_cm_query_string_is_expected() {
     );
 }
 #[test]
-fn test_generate_rm_query_string_is_expected() {
+fn test_generate_read_many_query_string_is_expected() {
     assert_query_result(
-        crate::generate_rm_query_string::generate_rm_query_string(
+        crate::generate_read_many_query_string::generate_read_many_query_string(
             table(constants_str::USERS_ALT),
             sql(constants_str::ID_NAME),
             sql(constants_str::ORDER_BY_ID),
@@ -47,9 +47,9 @@ fn test_generate_rm_query_string_is_expected() {
     );
 }
 #[test]
-fn test_generate_when_column_id_then_v_um_query_part_is_expected() {
+fn test_generate_when_column_id_then_value_update_many_query_part_is_expected() {
     assert_fragment_result(
-        crate::generate_when_column_id_then_v_um_query_part::generate_when_column_id_then_v_um_query_part(
+        crate::generate_when_column_id_then_value_update_many_query_part::generate_when_column_id_then_value_update_many_query_part(
             sql(constants_str::SQL_NAMES_ID),
             sql(constants_str::DOLLAR_1_ALT),
             sql(constants_str::DOLLAR_2),
@@ -58,9 +58,10 @@ fn test_generate_when_column_id_then_v_um_query_part_is_expected() {
     );
 }
 #[test]
-fn test_generate_column_eqs_case_accumulator_else_column_end_comma_um_query_part_is_expected() {
+fn test_generate_column_equals_case_accumulator_else_column_end_comma_update_many_query_part_is_expected()
+ {
     assert_fragment_result(
-        crate::generate_column_eqs_case_accumulator_else_column_end_comma_um_query_part::generate_column_eqs_case_accumulator_else_column_end_comma_um_query_part(
+        crate::generate_column_equals_case_accumulator_else_column_end_comma_update_many_query_part::generate_column_equals_case_accumulator_else_column_end_comma_update_many_query_part(
             sql(constants_str::NAME),
             sql(constants_str::WHEN_ID_DOLLAR_1_THEN_DOLLAR_2),
         ),
@@ -68,9 +69,9 @@ fn test_generate_column_eqs_case_accumulator_else_column_end_comma_um_query_part
     );
 }
 #[test]
-fn test_generate_um_query_string_is_expected() {
+fn test_generate_update_many_query_string_is_expected() {
     assert_query_result(
-        crate::generate_um_query_string::generate_um_query_string(
+        crate::generate_update_many_query_string::generate_update_many_query_string(
             table(constants_str::USERS_ALT),
             sql(constants_str::NAME_CASE_END),
             sql(constants_str::SQL_NAMES_ID),
@@ -82,7 +83,7 @@ fn test_generate_um_query_string_is_expected() {
 }
 #[test]
 fn test_optimistic_bulk_update_query_requires_matching_revision() {
-    let base_query = crate::generate_um_query_string::generate_um_query_string(
+    let base_query = crate::generate_update_many_query_string::generate_update_many_query_string(
         table(constants_str::USERS_ALT),
         sql(constants_str::NAME_DOLLAR_1_REVISION_REVISION_PLUS_1),
         sql(constants_str::SQL_NAMES_ID),
@@ -121,9 +122,9 @@ fn test_revision_rejects_invalid_and_negative_values() {
     );
 }
 #[test]
-fn test_generate_dm_query_string_is_expected() {
+fn test_generate_delete_many_query_string_is_expected() {
     assert_query_result(
-        crate::generate_dm_query_string::generate_dm_query_string(
+        crate::generate_delete_many_query_string::generate_delete_many_query_string(
             table(constants_str::USERS_ALT),
             sql(constants_str::WHERE_ID_IN_DOLLAR_1_DOLLAR_2),
             sql(constants_str::SQL_NAMES_ID),
@@ -132,8 +133,8 @@ fn test_generate_dm_query_string_is_expected() {
     );
 }
 #[test]
-fn test_generate_um_query_string_wraps_primary_key_selector_for_in_clause() {
-    let v = crate::generate_um_query_string::generate_um_query_string(
+fn test_generate_update_many_query_string_wraps_primary_key_selector_for_in_clause() {
+    let v = crate::generate_update_many_query_string::generate_update_many_query_string(
         table(constants_str::USERS_ALT),
         sql(constants_str::NAME_CASE_END),
         sql(constants_str::SQL_NAMES_ID),
@@ -145,11 +146,11 @@ fn test_generate_um_query_string_wraps_primary_key_selector_for_in_clause() {
     );
 }
 #[test]
-fn test_generate_dm_query_string_preserves_filtered_batch_selector() {
+fn test_generate_delete_many_query_string_preserves_filtered_batch_selector() {
     let table = table(constants_str::USERS_ALT);
     let primary_key = sql(constants_str::SQL_NAMES_ID);
     assert_query_result(
-        crate::generate_dm_query_string::generate_dm_query_string(
+        crate::generate_delete_many_query_string::generate_delete_many_query_string(
             table,
             sql(constants_str::WHERE_ID_IN_DOLLAR_1_DOLLAR_2_AND_ACTIVE_TRUE),
             primary_key,
@@ -160,11 +161,11 @@ fn test_generate_dm_query_string_preserves_filtered_batch_selector() {
 #[test]
 fn test_query_builders_reject_oversized_sql() {
     let huge = constants_str::X
-        .repeat(crate::pg_tbl_string_wrapper_max_len::PG_TBL_STRING_WRAPPER_MAX_LEN);
+        .repeat(crate::pg_table_string_wrapper_max_len::PG_TABLE_STRING_WRAPPER_MAX_LEN);
     let fragment = crate::pg_table_sql_fragment_ref::PgTableSqlFragmentRef::from(huge.as_str());
     let table = table(constants_str::USERS_ALT);
     let small = sql(constants_str::SQL_NAMES_ID);
-    let optimistic = crate::generate_um_query_string::generate_um_query_string(
+    let optimistic = crate::generate_update_many_query_string::generate_update_many_query_string(
         table, small, small, small, small,
     )
     .and_then(|query| {
@@ -174,14 +175,14 @@ fn test_query_builders_reject_oversized_sql() {
     });
     assert!(
         [
-            crate::generate_cm_query_string::generate_cm_query_string(
+            crate::generate_create_many_query_string::generate_create_many_query_string(
                 table, fragment, small, small,
             ),
-            crate::generate_rm_query_string::generate_rm_query_string(table, fragment, small),
-            crate::generate_um_query_string::generate_um_query_string(
+            crate::generate_read_many_query_string::generate_read_many_query_string(table, fragment, small),
+            crate::generate_update_many_query_string::generate_update_many_query_string(
                 table, fragment, small, small, small,
             ),
-            crate::generate_dm_query_string::generate_dm_query_string(table, fragment, small),
+            crate::generate_delete_many_query_string::generate_delete_many_query_string(table, fragment, small),
             optimistic,
         ]
         .into_iter()
@@ -189,10 +190,10 @@ fn test_query_builders_reject_oversized_sql() {
     );
     assert!(
         [
-            crate::generate_when_column_id_then_v_um_query_part::generate_when_column_id_then_v_um_query_part(
+            crate::generate_when_column_id_then_value_update_many_query_part::generate_when_column_id_then_value_update_many_query_part(
                 fragment, small, small,
             ),
-            crate::generate_column_eqs_case_accumulator_else_column_end_comma_um_query_part::generate_column_eqs_case_accumulator_else_column_end_comma_um_query_part(
+            crate::generate_column_equals_case_accumulator_else_column_end_comma_update_many_query_part::generate_column_equals_case_accumulator_else_column_end_comma_update_many_query_part(
                 fragment, small,
             ),
         ]

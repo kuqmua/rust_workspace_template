@@ -6,7 +6,9 @@ pub fn generate_match_not_empty_unique_vec_try_new_some_or_none_token_stream(
     panic_uuid_ref: crate::panic_uuid_ref::PanicUuidRef<'_>,
 ) -> macro_helpers::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream {
     let panic_uuid_token_stream =
-        generate_quotes::dq_token_stream::dq_token_stream(panic_uuid_ref.as_ref());
+        generate_quotes::double_quoted_token_stream::double_quoted_token_stream(
+            panic_uuid_ref.as_ref(),
+        );
     quote::quote! {
         match #expr_token_stream {
             Ok(#ok_v_token_stream) => Some(#ok_v_token_stream),

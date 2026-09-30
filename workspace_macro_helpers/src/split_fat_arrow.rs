@@ -18,10 +18,10 @@ where
             && next_punct.as_char() == '>'
         {
             let arrow = {
-                let mut ts = proc_macro2::TokenStream::new();
-                ts.extend([token]);
-                ts.extend(iter.next());
-                ts
+                let mut generated_tokens = proc_macro2::TokenStream::new();
+                generated_tokens.extend([token]);
+                generated_tokens.extend(iter.next());
+                generated_tokens
             };
             let _: syn::Token![=>] = syn::parse2(arrow).ok()?;
             after.extend(iter);

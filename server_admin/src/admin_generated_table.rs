@@ -118,63 +118,66 @@ impl AdminGeneratedTable {
     pub(crate) fn parse_filter(
         self,
         std_admin_str_ref: server_admin_core::std_admin_str_ref::StdAdminStrRef<'_>,
-    ) -> Result<crate::data_flt::DataFlt, crate::admin_repository_error::AdminRepositoryError> {
+    ) -> Result<
+        crate::data_table_filter::DataTableFilter,
+        crate::admin_repository_error::AdminRepositoryError,
+    > {
         let parsed = match self {
             Self::AccessSessions => serde_json::from_str::<
                 crate::admin_access_sessions::StdOptionalOptionalAdminAccessSessionsWhereMany,
             >(std_admin_str_ref.get())
-            .map(crate::data_access_sessions_flt::DataAccessSessionsFlt::from)
-            .map(crate::data_flt::DataFlt::AccessSessions),
+            .map(crate::data_access_sessions_filter::DataAccessSessionsFilter::from)
+            .map(crate::data_table_filter::DataTableFilter::AccessSessions),
             Self::AuditLog => serde_json::from_str::<
                 crate::admin_audit_log::StdOptionalOptionalAdminAuditLogWhereMany,
             >(std_admin_str_ref.get())
-            .map(crate::data_audit_log_flt::DataAuditLogFlt::from)
-            .map(crate::data_flt::DataFlt::AuditLog),
+            .map(crate::data_audit_log_filter::DataAuditLogFilter::from)
+            .map(crate::data_table_filter::DataTableFilter::AuditLog),
             Self::PermissionActions => serde_json::from_str::<
                 crate::admin_permission_actions::StdOptionalOptionalAdminPermissionActionsWhereMany,
             >(std_admin_str_ref.get())
-            .map(crate::data_permission_actions_flt::DataPermissionActionsFlt::from)
-            .map(crate::data_flt::DataFlt::PermissionActions),
+            .map(crate::data_permission_actions_filter::DataPermissionActionsFilter::from)
+            .map(crate::data_table_filter::DataTableFilter::PermissionActions),
             Self::PermissionResourceActions => serde_json::from_str::<
                 crate::admin_permission_resource_actions::StdOptionalOptionalAdminPermissionResourceActionsWhereMany,
             >(std_admin_str_ref.get())
-            .map(crate::data_permission_resource_actions_flt::DataPermissionResourceActionsFlt::from)
-            .map(crate::data_flt::DataFlt::PermissionResourceActions),
+            .map(crate::data_permission_resource_actions_filter::DataPermissionResourceActionsFilter::from)
+            .map(crate::data_table_filter::DataTableFilter::PermissionResourceActions),
             Self::PermissionResources => serde_json::from_str::<
                 crate::admin_permission_resources::StdOptionalOptionalAdminPermissionResourcesWhereMany,
             >(std_admin_str_ref.get())
-            .map(crate::data_permission_resources_flt::DataPermissionResourcesFlt::from)
-            .map(crate::data_flt::DataFlt::PermissionResources),
+            .map(crate::data_permission_resources_filter::DataPermissionResourcesFilter::from)
+            .map(crate::data_table_filter::DataTableFilter::PermissionResources),
             Self::Rules => serde_json::from_str::<
                 crate::admin_rules::StdOptionalOptionalAdminRulesWhereMany,
             >(std_admin_str_ref.get())
-            .map(crate::data_rules_flt::DataRulesFlt::from)
-            .map(crate::data_flt::DataFlt::Rules),
+            .map(crate::data_rules_filter::DataRulesFilter::from)
+            .map(crate::data_table_filter::DataTableFilter::Rules),
             Self::RoleRules => serde_json::from_str::<
                 crate::admin_role_rules::StdOptionalOptionalAdminRoleRulesWhereMany,
             >(std_admin_str_ref.get())
-            .map(crate::data_role_rules_flt::DataRoleRulesFlt::from)
-            .map(crate::data_flt::DataFlt::RoleRules),
+            .map(crate::data_role_rules_filter::DataRoleRulesFilter::from)
+            .map(crate::data_table_filter::DataTableFilter::RoleRules),
             Self::Roles => serde_json::from_str::<
                 crate::admin_roles::StdOptionalOptionalAdminRolesWhereMany,
             >(std_admin_str_ref.get())
-            .map(crate::data_roles_flt::DataRolesFlt::from)
-            .map(crate::data_flt::DataFlt::Roles),
+            .map(crate::data_roles_filter::DataRolesFilter::from)
+            .map(crate::data_table_filter::DataTableFilter::Roles),
             Self::SystemSettings => serde_json::from_str::<
                 crate::admin_system_settings::StdOptionalOptionalAdminSystemSettingsWhereMany,
             >(std_admin_str_ref.get())
-            .map(crate::data_system_settings_flt::DataSystemSettingsFlt::from)
-            .map(crate::data_flt::DataFlt::SystemSettings),
+            .map(crate::data_system_settings_filter::DataSystemSettingsFilter::from)
+            .map(crate::data_table_filter::DataTableFilter::SystemSettings),
             Self::UserRoles => serde_json::from_str::<
                 crate::admin_user_roles::StdOptionalOptionalAdminUserRolesWhereMany,
             >(std_admin_str_ref.get())
-            .map(crate::data_user_roles_flt::DataUserRolesFlt::from)
-            .map(crate::data_flt::DataFlt::UserRoles),
+            .map(crate::data_user_roles_filter::DataUserRolesFilter::from)
+            .map(crate::data_table_filter::DataTableFilter::UserRoles),
             Self::UsersDatabaseRead => serde_json::from_str::<
                 crate::admin_users_database_read::StdOptionalOptionalAdminUsersDatabaseReadWhereMany,
             >(std_admin_str_ref.get())
-            .map(crate::data_users_flt::DataUsersFlt::from)
-            .map(crate::data_flt::DataFlt::Users),
+            .map(crate::data_users_filter::DataUsersFilter::from)
+            .map(crate::data_table_filter::DataTableFilter::Users),
         };
         parsed.map_err(|_error| {
             crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue

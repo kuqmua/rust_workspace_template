@@ -7,9 +7,9 @@ pub fn impl_pg_type_where_filter_for_identifier_token_stream(
     impl_generic_token_stream: &dyn quote::ToTokens,
     identifier_token_stream: &dyn quote::ToTokens,
     identifier_generic_token_stream: &dyn quote::ToTokens,
-    increment_parameter_undrscr: &crate::emission_types::IncrementParameterUndrscr,
-    column_parameter_undrscr: &crate::emission_types::ColumnParameterUndrscr,
-    add_operator_undrscr: &crate::emission_types::AddOperatorUndrscr,
+    increment_parameter_underscore: &crate::emission_types::IncrementParameterUnderscore,
+    column_parameter_underscore: &crate::emission_types::ColumnParameterUnderscore,
+    add_operator_underscore: &crate::emission_types::AddOperatorUnderscore,
     query_part_token_stream: &dyn quote::ToTokens,
     is_query_bind_mut: &crate::emission_types::IsQueryBindMut,
     query_bind_token_stream: &dyn quote::ToTokens,
@@ -39,9 +39,9 @@ pub fn impl_pg_type_where_filter_for_identifier_token_stream(
         impl #impl_generic_token_stream #import::pg_type_where_filter::#PgTypeWhereFilterUpperCamelCase<'lt> for #identifier_token_stream #identifier_generic_token_stream {
             fn #QueryPartSnakeCase(
                 &self,
-                #increment_parameter_undrscr: &mut dyn #import::query_part_increment_mut::QueryPartIncrementMut,
-                #column_parameter_undrscr: #import::sql_column_ref::SqlColumnRef<'_>,
-                #add_operator_undrscr: #import::add_operator::AddOperator
+                #increment_parameter_underscore: &mut dyn #import::query_part_increment_mut::QueryPartIncrementMut,
+                #column_parameter_underscore: #import::sql_column_ref::SqlColumnRef<'_>,
+                #add_operator_underscore: #import::add_operator::AddOperator
             ) -> Result<#import::query_part_fragment::QueryPartFragment, #import::query_part_error::#QueryPartErrorUpperCamelCase> {
                 #query_part_token_stream
             }

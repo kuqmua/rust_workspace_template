@@ -17,12 +17,13 @@ impl TryFrom<String> for PgTableIdempotencyMethod {
         if value.is_empty() {
             return Err(crate::pg_table_idempotency_text_error::PgTableIdempotencyTextError::Empty);
         }
-        if value.len() > crate::pg_tbl_idempotency_text_max_bytes::PG_TBL_IDEMPOTENCY_TEXT_MAX_BYTES
+        if value.len()
+            > crate::pg_table_idempotency_text_max_bytes::PG_TABLE_IDEMPOTENCY_TEXT_MAX_BYTES
         {
             return Err(crate::pg_table_idempotency_text_error::PgTableIdempotencyTextError::TooLong {
                 actual_bytes: crate::pg_table_idempotency_text_bytes::PgTableIdempotencyTextBytes::from(value.len()),
                 maximum_bytes: crate::pg_table_idempotency_text_bytes::PgTableIdempotencyTextBytes::from(
-                    crate::pg_tbl_idempotency_text_max_bytes::PG_TBL_IDEMPOTENCY_TEXT_MAX_BYTES,
+                    crate::pg_table_idempotency_text_max_bytes::PG_TABLE_IDEMPOTENCY_TEXT_MAX_BYTES,
                 ),
             });
         }

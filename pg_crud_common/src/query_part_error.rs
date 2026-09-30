@@ -16,7 +16,7 @@ pub enum QueryPartError {
     },
     StringWrapperTryFromString {
         location: location_lib::location::Location,
-        #[eo_to_err_string_serde]
+        #[error_field_to_err_string_serde]
         error: crate::pg_crud_string_wrapper_try_from_string_error::PgCrudStringWrapperTryFromStringError,
     },
     WriteIntoBuffer {

@@ -17,10 +17,10 @@ impl EqOperatorVariant {
             reason = "eq operator variant requires this localized allowance for generated or framework-constrained code verified by focused tests"
         )]
         let (EqOperatorUpperCamelCase,) = (names.get_eq_operator_upper_camel_case(),);
-        let ts = match &self {
+        let tokens = match &self {
             Self::Eq => quote::quote! {Eq},
             Self::IsNull => quote::quote! {IsNull},
         };
-        quote::quote! {#import::eq_operator::#EqOperatorUpperCamelCase::#ts}.into()
+        quote::quote! {#import::eq_operator::#EqOperatorUpperCamelCase::#tokens}.into()
     }
 }

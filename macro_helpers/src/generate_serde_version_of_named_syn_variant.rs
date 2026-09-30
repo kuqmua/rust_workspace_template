@@ -23,7 +23,7 @@ pub fn generate_serde_version_of_named_syn_variant(
                 constants_str::MACRO_DIAGNOSTICS_EXPECTED_NAMED_FIELD_ERROR,
             ));
         };
-        let ts = if *element_c25b655e_identifier == *location_snake_case.to_string() {
+        let tokens = if *element_c25b655e_identifier == *location_snake_case.to_string() {
             quote::quote! {#location_snake_case: location_lib::location::Location}
         } else {
             let get_hashmap_args = || {
@@ -62,11 +62,11 @@ pub fn generate_serde_version_of_named_syn_variant(
                 )),
             };
             let element_type_with_serde_token_stream = match location_field_attr {
-                crate::location_field_attr::LocationFieldAttr::EoToErrString => quote::quote! {#string_token_stream},
-                crate::location_field_attr::LocationFieldAttr::EoToErrStringSerde | crate::location_field_attr::LocationFieldAttr::EoVecToErrStringSerde => {
+                crate::location_field_attr::LocationFieldAttr::ErrorFieldToErrString => quote::quote! {#string_token_stream},
+                crate::location_field_attr::LocationFieldAttr::ErrorFieldToErrStringSerde | crate::location_field_attr::LocationFieldAttr::ErrorFieldVecToErrStringSerde => {
                     element_type_token_stream
                 }
-                crate::location_field_attr::LocationFieldAttr::EoLocation => match format!("{element_type_token_stream}{with_serde_upper_camel_case}")
+                crate::location_field_attr::LocationFieldAttr::ErrorFieldLocation => match format!("{element_type_token_stream}{with_serde_upper_camel_case}")
                     .parse::<proc_macro2::TokenStream>()
                 {
                     Ok(parsed_token_stream) => parsed_token_stream,
@@ -80,12 +80,12 @@ pub fn generate_serde_version_of_named_syn_variant(
                         ));
                     }
                 },
-                crate::location_field_attr::LocationFieldAttr::EoVecToErrString => {
+                crate::location_field_attr::LocationFieldAttr::ErrorFieldVecToErrString => {
                     quote::quote! {
                         Vec<#string_token_stream>
                     }
                 }
-                crate::location_field_attr::LocationFieldAttr::EoVecLocation => {
+                crate::location_field_attr::LocationFieldAttr::ErrorFieldVecLocation => {
                     let segments = if let syn::Type::Path(v0) = &element.ty {
                         &v0.path.segments
                     } else {
@@ -155,7 +155,7 @@ pub fn generate_serde_version_of_named_syn_variant(
                         Vec<#element_vec_type_with_serde_token_stream>
                     }
                 }
-                crate::location_field_attr::LocationFieldAttr::EoHashMapKStringVToErrString => {
+                crate::location_field_attr::LocationFieldAttr::ErrorFieldHashMapKeyStringValueToErrString => {
                     if get_hashmap_args().is_none() {
                         return crate::macro_compile_error_tokens::macro_compile_error_tokens(crate::compile_error_message::CompileErrorMessage::from(
                             constants_str::MACRO_DIAGNOSTICS_EXPECTED_HASH_MAP_C1_ERROR,
@@ -165,7 +165,7 @@ pub fn generate_serde_version_of_named_syn_variant(
                         std::collections::HashMap<#string_token_stream, #string_token_stream>
                     }
                 }
-                crate::location_field_attr::LocationFieldAttr::EoHashMapKStringVToErrStringSerde => {
+                crate::location_field_attr::LocationFieldAttr::ErrorFieldHashMapKeyStringValueToErrStringSerde => {
                     let Some((_, second_argument)) = get_hashmap_args() else {
                         return crate::macro_compile_error_tokens::macro_compile_error_tokens(crate::compile_error_message::CompileErrorMessage::from(
                             constants_str::MACRO_DIAGNOSTICS_EXPECTED_HASH_MAP_E9_ERROR,
@@ -175,7 +175,7 @@ pub fn generate_serde_version_of_named_syn_variant(
                         std::collections::HashMap<#string_token_stream, #second_argument>
                     }
                 }
-                crate::location_field_attr::LocationFieldAttr::EoHashMapKStringVLocation => {
+                crate::location_field_attr::LocationFieldAttr::ErrorFieldHashMapKeyStringValueLocation => {
                     let Some((_, second_argument)) = get_hashmap_args() else {
                         return crate::macro_compile_error_tokens::macro_compile_error_tokens(crate::compile_error_message::CompileErrorMessage::from(
                             constants_str::MACRO_DIAGNOSTICS_EXPECTED_HASH_MAP_C8_ERROR,
@@ -203,7 +203,7 @@ pub fn generate_serde_version_of_named_syn_variant(
             };
             quote::quote! {#element_c25b655e_identifier: #element_type_with_serde_token_stream}
         };
-        crate::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream::from(quote::quote! {#ts,})
+        crate::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream::from(quote::quote! {#tokens,})
     });
     crate::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream::from(
         quote::quote! {
@@ -219,11 +219,11 @@ mod tests {
     #[test]
     fn test_malformed_collection_fields_emit_compile_errors() {
         let variants: [syn::Variant; 5] = [
-            syn::parse_quote! { Example { #[eo_hashmap_k_string_v_to_err_string] field: Vec<String> } },
-            syn::parse_quote! { Example { #[eo_hashmap_k_string_v_to_err_string] field: HashMap<String> } },
-            syn::parse_quote! { Example { #[eo_vec_location] field: std::vec::Vec<Location> } },
-            syn::parse_quote! { Example { #[eo_vec_location] field: Vec<Location, Other> } },
-            syn::parse_quote! { Example { #[eo_vec_location] field: Option<Location> } },
+            syn::parse_quote! { Example { #[error_field_hashmap_key_string_value_to_err_string] field: Vec<String> } },
+            syn::parse_quote! { Example { #[error_field_hashmap_key_string_value_to_err_string] field: HashMap<String> } },
+            syn::parse_quote! { Example { #[error_field_vec_location] field: std::vec::Vec<Location> } },
+            syn::parse_quote! { Example { #[error_field_vec_location] field: Vec<Location, Other> } },
+            syn::parse_quote! { Example { #[error_field_vec_location] field: Option<Location> } },
         ];
         assert!(variants.iter().all(|variant| {
             crate::generate_serde_version_of_named_syn_variant::generate_serde_version_of_named_syn_variant(

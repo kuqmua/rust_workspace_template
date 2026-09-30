@@ -17,7 +17,7 @@ impl ReqwestRuntimeTestResponse {
             .map_err(server_runtime_http::reqwest_error::ReqwestError::from)
     }
 
-    pub(crate) fn into_notification_res(
+    pub(crate) fn into_notification_response(
         self,
     ) -> Result<
         notification_service_contract::create_notification_response::CreateNotificationResponse,

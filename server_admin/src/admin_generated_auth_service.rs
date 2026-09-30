@@ -7,7 +7,7 @@
 )]
 pub struct AdminGeneratedAuthService<Service> {
     inner: Service,
-    state: crate::shared_admin_auth_svc_state_arc::SharedAdminAuthSvcStateArc,
+    state: crate::shared_admin_auth_service_state_arc::SharedAdminAuthServiceStateArc,
 }
 impl<Service> tower::Service<axum::extract::Request> for AdminGeneratedAuthService<Service>
 where

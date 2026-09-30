@@ -67,7 +67,7 @@ pub mod content_disposition_percent_encode_set;
 pub mod cookie_resolution;
 pub mod cors_allow_origin_max_bytes;
 pub mod cors_allow_origin_max_items;
-pub mod cors_allow_origin_split_ch;
+pub mod cors_allow_origin_split_character;
 pub mod enforce_pg_rate_limit;
 pub mod ensure_size_within_limit;
 pub mod extract_remote_trace_context;

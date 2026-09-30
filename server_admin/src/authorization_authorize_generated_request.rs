@@ -1,5 +1,5 @@
 pub(crate) async fn authorization_authorize_generated_request(
-    admin_auth_svc_state: &crate::admin_auth_svc_state::AdminAuthSvcState,
+    admin_auth_service_state: &crate::admin_auth_service_state::AdminAuthServiceState,
     http_admin_header_map_ref: crate::http_admin_header_map_ref::HttpAdminHeaderMapRef<'_>,
     admin_peer_addr: crate::admin_peer_addr::AdminPeerAddr,
     admin_rule_str_ref: server_admin_contract::admin_rule_str_ref::AdminRuleStrRef<'_>,
@@ -9,7 +9,7 @@ pub(crate) async fn authorization_authorize_generated_request(
     crate::admin_error::AdminError,
 > {
     let authenticated = crate::authorization_authenticate::authorization_authenticate(
-        admin_auth_svc_state,
+        admin_auth_service_state,
         http_admin_header_map_ref,
         admin_peer_addr,
     )
@@ -29,15 +29,15 @@ pub(crate) async fn authorization_authorize_generated_request(
         )
         .map_err(|_error| crate::admin_error::AdminError::Validation)?;
         crate::enforce_rate_limit::enforce_rate_limit(
-            admin_auth_svc_state,
+            admin_auth_service_state,
             crate::admin_rate_limit_scope::AdminRateLimitScope::Mutation,
             &subject,
-            admin_auth_svc_state.get_policy().get_mutation_limit(),
-            admin_auth_svc_state.get_policy().get_mutation_window(),
+            admin_auth_service_state.get_policy().get_mutation_limit(),
+            admin_auth_service_state.get_policy().get_mutation_window(),
         )
         .await?;
         crate::authorization_validate_csrf::authorization_validate_csrf(
-            admin_auth_svc_state,
+            admin_auth_service_state,
             http_admin_header_map_ref,
             &authenticated,
         )

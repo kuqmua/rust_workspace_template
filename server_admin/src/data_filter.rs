@@ -5,7 +5,10 @@
 pub(crate) fn data_filter(
     admin_data_table: server_admin_contract::admin_data_table::AdminDataTable,
     admin_data_table_filter_query: &server_admin_contract::admin_data_table_filter_query::AdminDataTableFilterQuery,
-) -> Result<Option<crate::data_flt::DataFlt>, crate::admin_repository_error::AdminRepositoryError> {
+) -> Result<
+    Option<crate::data_table_filter::DataTableFilter>,
+    crate::admin_repository_error::AdminRepositoryError,
+> {
     let payload = (|| {
         let (Some(field), Some(operation)) = (
             admin_data_table_filter_query.field(),
@@ -291,16 +294,16 @@ pub(crate) fn data_filter(
         serde_json::from_str::<
             crate::admin_access_sessions::StdOptionalOptionalAdminAccessSessionsWhereMany,
         >(payload_ref.get())
-        .map(crate::data_access_sessions_flt::DataAccessSessionsFlt::from)
-        .map(crate::data_flt::DataFlt::AccessSessions)
+        .map(crate::data_access_sessions_filter::DataAccessSessionsFilter::from)
+        .map(crate::data_table_filter::DataTableFilter::AccessSessions)
         .map_err(|_error| crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue)
     } else if admin_data_table == server_admin_contract::admin_data_table::AdminDataTable::AuditLog
     {
         serde_json::from_str::<crate::admin_audit_log::StdOptionalOptionalAdminAuditLogWhereMany>(
             payload_ref.get(),
         )
-        .map(crate::data_audit_log_flt::DataAuditLogFlt::from)
-        .map(crate::data_flt::DataFlt::AuditLog)
+        .map(crate::data_audit_log_filter::DataAuditLogFilter::from)
+        .map(crate::data_table_filter::DataTableFilter::AuditLog)
         .map_err(|_error| crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue)
     } else if admin_data_table
         == server_admin_contract::admin_data_table::AdminDataTable::CleanupStatus
@@ -308,8 +311,8 @@ pub(crate) fn data_filter(
         serde_json::from_str::<
             crate::admin_cleanup_status::StdOptionalOptionalAdminCleanupStatusWhereMany,
         >(payload_ref.get())
-        .map(crate::data_cleanup_status_flt::DataCleanupStatusFlt::from)
-        .map(crate::data_flt::DataFlt::CleanupStatus)
+        .map(crate::data_cleanup_status_filter::DataCleanupStatusFilter::from)
+        .map(crate::data_table_filter::DataTableFilter::CleanupStatus)
         .map_err(|_error| crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue)
     } else if admin_data_table
         == server_admin_contract::admin_data_table::AdminDataTable::LoginAttempts
@@ -317,8 +320,8 @@ pub(crate) fn data_filter(
         serde_json::from_str::<
             crate::admin_login_attempts::StdOptionalOptionalAdminLoginAttemptsWhereMany,
         >(payload_ref.get())
-        .map(crate::data_login_attempts_flt::DataLoginAttemptsFlt::from)
-        .map(crate::data_flt::DataFlt::LoginAttempts)
+        .map(crate::data_login_attempts_filter::DataLoginAttemptsFilter::from)
+        .map(crate::data_table_filter::DataTableFilter::LoginAttempts)
         .map_err(|_error| crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue)
     } else if admin_data_table
         == server_admin_contract::admin_data_table::AdminDataTable::RefreshTokens
@@ -326,8 +329,8 @@ pub(crate) fn data_filter(
         serde_json::from_str::<
             crate::admin_refresh_tokens::StdOptionalOptionalAdminRefreshTokensWhereMany,
         >(payload_ref.get())
-        .map(crate::data_refresh_tokens_flt::DataRefreshTokensFlt::from)
-        .map(crate::data_flt::DataFlt::RefreshTokens)
+        .map(crate::data_refresh_tokens_filter::DataRefreshTokensFilter::from)
+        .map(crate::data_table_filter::DataTableFilter::RefreshTokens)
         .map_err(|_error| crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue)
     } else if admin_data_table
         == server_admin_contract::admin_data_table::AdminDataTable::RateLimits
@@ -335,8 +338,8 @@ pub(crate) fn data_filter(
         serde_json::from_str::<
             crate::admin_rate_limits::StdOptionalOptionalAdminRateLimitsWhereMany,
         >(payload_ref.get())
-        .map(crate::data_rate_limits_flt::DataRateLimitsFlt::from)
-        .map(crate::data_flt::DataFlt::RateLimits)
+        .map(crate::data_rate_limits_filter::DataRateLimitsFilter::from)
+        .map(crate::data_table_filter::DataTableFilter::RateLimits)
         .map_err(|_error| crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue)
     } else {
         crate::admin_generated_table::AdminGeneratedTable::for_data_table(admin_data_table)

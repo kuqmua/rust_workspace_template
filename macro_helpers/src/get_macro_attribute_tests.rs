@@ -23,9 +23,9 @@ mod tests {
     #[test]
     fn test_macro_attr_meta_list_token_stream_returns_list_tokens() {
         let attrs = attrs();
-        let ts = crate::try_get_macro_attr_meta_list_token_stream::try_get_macro_attr_meta_list_token_stream(&attrs, constants_str::SERDE)
+        let tokens = crate::try_get_macro_attr_meta_list_token_stream::try_get_macro_attr_meta_list_token_stream(&attrs, constants_str::SERDE)
             .expect(constants_str::DIAGNOSTIC_647B0C3E);
-        assert_eq!(ts.to_string(), constants_str::VALUE_37A8EEC1);
+        assert_eq!(tokens.to_string(), constants_str::VALUE_37A8EEC1);
     }
     #[test]
     fn test_find_macro_attr_returns_none_when_path_not_present() {

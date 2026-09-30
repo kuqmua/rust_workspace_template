@@ -357,7 +357,7 @@ mod tests {
                 constants_str::NEWTYPE_SPLIT_WORKSPACE_DEPENDENCIES,
             );
         macro_clippy_check_test_common::clippy_check(
-            constants_str::GENERATE_WHERE_FLTS_TEST_CNT,
+            constants_str::GENERATE_WHERE_FILTERS_TEST_CONTENT,
             constants_str::PG_CRUD_WHERE_FILTERS,
             fixture_dependencies.as_str(),
             &format!(

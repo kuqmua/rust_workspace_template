@@ -6,13 +6,13 @@
 pub fn generate_impl_pg_crud_default_some_one_element_token_stream(
     identifier: &dyn quote::ToTokens,
     lt_token_stream: &dyn quote::ToTokens,
-    ts: &dyn quote::ToTokens,
+    tokens: &dyn quote::ToTokens,
 ) -> macro_helpers::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream {
     crate::generate_impl_default_some_one_element_token_stream::generate_impl_default_some_one_element_token_stream(
         &proc_macro2::TokenStream::new(),
         &crate::import::Import::PgCrudCommon,
         identifier,
         lt_token_stream,
-        ts,
+        tokens,
     )
 }

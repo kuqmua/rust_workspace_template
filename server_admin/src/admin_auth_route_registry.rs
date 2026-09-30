@@ -3,7 +3,7 @@ proc_macro_frontend_contract_route_registry::route_registry! {
         tags((name = "admin_auth", description = "Administrator authentication and sessions"), (name = "admin_users", description = "Administrator user security operations"), (name = "admin_roles", description = "Administrator role security operations"), (name = "admin_audit", description = "Administrator audit log"), (name = "admin_settings", description = "Administrator system settings"), (name = "admin_tables", description = "Read-only administrator database views"))
     )]
     pub(crate);
-    state = crate::shared_admin_auth_svc_state_arc::SharedAdminAuthSvcStateArc,
+    state = crate::shared_admin_auth_service_state_arc::SharedAdminAuthServiceStateArc,
     family = server_admin_contract::admin_route::AdminAuthenticationRouteFamily;
     (constants_str::ADMIN_COOKIE, constants_str::ADMIN_CSRF);
     schemas(

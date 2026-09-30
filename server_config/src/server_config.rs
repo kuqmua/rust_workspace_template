@@ -85,8 +85,8 @@ pub struct ServerConfig {
     http_gzip_enabled: config_lib::http_gzip_enabled::HttpGzipEnabled,
     #[config(example = "false")]
     production_mode: config_lib::production_mode::ProductionMode,
-    #[config(example = "serve")]
-    svc_mode: config_lib::svc_mode::SvcMode,
+    #[config(example = "serve", env_name = "SVC_MODE")]
+    service_mode: config_lib::service_mode::ServiceMode,
 }
 impl ServerConfig {
     pub fn validate_for_startup(

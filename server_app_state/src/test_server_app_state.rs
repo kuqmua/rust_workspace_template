@@ -61,7 +61,7 @@ fn make_structure(
             app_state_test_env(constants_str::TRUE),
             app_state_test_env(constants_str::TRUE),
             config_lib::production_mode::ProductionMode::from(false),
-            config_lib::svc_mode::SvcMode::Serve,
+            config_lib::service_mode::ServiceMode::Serve,
         ),
         server_runtime_core::resource_budget::ResourceBudget::new(
             server_runtime_core::resource_budget_maximum::ResourceBudgetMaximum::try_from(

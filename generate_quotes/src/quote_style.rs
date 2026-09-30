@@ -8,7 +8,7 @@ pub(super) struct QuoteStyle {
     #[getters(copy)]
     prefix: crate::quote_prefix::QuotePrefix,
     #[getters(copy)]
-    quote_ch: crate::quote_char::QuoteChar,
+    quote_character: crate::quote_char::QuoteChar,
 }
 
 impl
@@ -28,7 +28,7 @@ impl
         Self {
             panic_id: value.0,
             prefix: value.1,
-            quote_ch: value.2,
+            quote_character: value.2,
         }
     }
 }

@@ -21,17 +21,17 @@ pub fn case_trait_pair(token_stream: proc_macro::TokenStream) -> proc_macro::Tok
         .into_inner()
         .into();
     };
-    let Some(ts_trait) =
+    let Some(token_stream_trait) =
         workspace_macro_helpers::first_identifier_at::first_identifier_at(&parts, 1)
     else {
         return workspace_macro_helpers::compile_error_token_stream::compile_error_token_stream(
-            constants_str::MACRO_DIAGNOSTICS_CASE_TRAIT_PAIR_EXPECTED_TS_TRAIT_ERROR,
+            constants_str::MACRO_DIAGNOSTICS_CASE_TRAIT_PAIR_EXPECTED_TOKEN_TRAIT_ERROR,
         )
         .into_inner()
         .into();
     };
     let str_trait_identifier = quote::format_ident!("{str_trait}");
-    let ts_trait_identifier = quote::format_ident!("{ts_trait}");
+    let token_stream_trait_identifier = quote::format_ident!("{token_stream_trait}");
     let Some(bound_token_stream) = workspace_macro_helpers::part_at::part_at(&parts, 2) else {
         return workspace_macro_helpers::compile_error_token_stream::compile_error_token_stream(
             constants_str::MACRO_DIAGNOSTICS_CASE_TRAIT_PAIR_EXPECTED_BOUND_ERROR,
@@ -87,10 +87,10 @@ pub fn case_trait_pair(token_stream: proc_macro::TokenStream) -> proc_macro::Tok
                 #body_token_stream
             }
         }
-        pub trait #ts_trait_identifier {
+        pub trait #token_stream_trait_identifier {
             fn case_or_panic(&self) -> proc_macro2::TokenStream;
         }
-        impl<T> #ts_trait_identifier for T
+        impl<T> #token_stream_trait_identifier for T
         where
             T: #str_trait_identifier,
         {

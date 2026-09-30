@@ -77,8 +77,8 @@ fn main() -> server_exit_code::ServerExitCode {
         .map_err(|error| {
             run_server_error::RunServerError::BuildRuntime(server_io_error::ServerIoError::from(error))
         })
-        .and_then(|runtime| match config.get_svc_mode() {
-            config_lib::svc_mode::SvcMode::Migrate => {
+        .and_then(|runtime| match config.get_service_mode() {
+            config_lib::service_mode::ServiceMode::Migrate => {
                 tokio::runtime::Runtime::from(runtime).block_on(async {
                     let pg_pool = make_postgresql_pool::make_postgresql_pool(&config).await?;
                     server_admin::prepare_postgresql::prepare_postgresql(app_state::sqlx_pg_pool_ref::SqlxPgPoolRef::from(
@@ -88,7 +88,7 @@ fn main() -> server_exit_code::ServerExitCode {
                     .map_err(run_server_error::RunServerError::PrepAdminPg)
                 })
             }
-            config_lib::svc_mode::SvcMode::Serve => {
+            config_lib::service_mode::ServiceMode::Serve => {
                 tokio::runtime::Runtime::from(runtime).block_on(async move {
                         if option_env!("ADMIN_FRONTEND_STATIC_DIR").is_none() {
                             server_runtime_http::frontend_build_environment::FrontendBuildEnvironment::discover()
@@ -176,8 +176,8 @@ fn main() -> server_exit_code::ServerExitCode {
                             .map_err(run_server_error::RunServerError::CorsAllowOrigin)?,
                         );
                         let admin_auth_state =
-                            server_admin::shared_admin_auth_svc_state_arc::SharedAdminAuthSvcStateArc::from_state(
-                                server_admin::admin_auth_svc_state::AdminAuthSvcState::try_new(
+                            server_admin::shared_admin_auth_service_state_arc::SharedAdminAuthServiceStateArc::from_state(
+                                server_admin::admin_auth_service_state::AdminAuthServiceState::try_new(
                                     pg_pool.clone(),
                                     config.get_admin_jwt_secret(),
                                     config.get_admin_access_token_ttl_seconds(),

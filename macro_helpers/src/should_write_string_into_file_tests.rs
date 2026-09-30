@@ -4,10 +4,10 @@ pub(super) fn should_write_string_into_file(
     string_file_content_ref: crate::string_file_content_ref::StringFileContentRef<'_>,
 ) -> std::io::Result<crate::should_write_string::ShouldWriteString> {
     let path_ref = written_file_path_ref.as_ref();
-    let string_cnt_ref = string_file_content_ref.as_ref();
+    let string_content_ref = string_file_content_ref.as_ref();
     match std::fs::metadata(path_ref) {
         Ok(v) => {
-            let new_len_u64 = u64::try_from(string_cnt_ref.len()).map_err(|_error| {
+            let new_len_u64 = u64::try_from(string_content_ref.len()).map_err(|_error| {
                 std::io::Error::other(constants_str::VALUE_2F4D7A8C_FAILED_CONVERTING_STRING_LENGTH)
             })?;
             if v.len() != new_len_u64 {
@@ -19,7 +19,7 @@ pub(super) fn should_write_string_into_file(
             loop {
                 let read_len = std::io::Read::read(&mut old_file, &mut old_chunk)?;
                 if read_len == constants_usize::ZERO {
-                    if offset == string_cnt_ref.len() {
+                    if offset == string_content_ref.len() {
                         return Ok(crate::should_write_string::ShouldWriteString::from(false));
                     }
                     return Ok(crate::should_write_string::ShouldWriteString::from(true));
@@ -29,7 +29,7 @@ pub(super) fn should_write_string_into_file(
                         constants_str::VALUE_5F28D14C_GENERATED_FILE_COMPARISON_OFFSET_OVERFLOW,
                     )
                 })?;
-                let Some(new_chunk) = string_cnt_ref.as_bytes().get(offset..end) else {
+                let Some(new_chunk) = string_content_ref.as_bytes().get(offset..end) else {
                     return Ok(crate::should_write_string::ShouldWriteString::from(true));
                 };
                 let Some(old_chunk_read) = old_chunk.get(..read_len) else {

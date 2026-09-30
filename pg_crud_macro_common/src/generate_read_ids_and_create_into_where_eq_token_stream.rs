@@ -2,7 +2,7 @@ pub fn generate_read_ids_and_create_into_where_eq_token_stream(
     read_ids_token_stream: &dyn quote::ToTokens,
     create_token_stream: &dyn quote::ToTokens,
     where_token_stream: &dyn quote::ToTokens,
-    ts: &dyn quote::ToTokens,
+    tokens: &dyn quote::ToTokens,
 ) -> macro_helpers::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream {
     let names = crate::names_context::NamesContext::new();
     #[allow(
@@ -19,7 +19,7 @@ pub fn generate_read_ids_and_create_into_where_eq_token_stream(
             #ReadIdsSnakeCase: #read_ids_token_stream,
             #CreateSnakeCase: #create_token_stream
         ) -> #where_token_stream {
-            #ts
+            #tokens
         }
     }
     .into()

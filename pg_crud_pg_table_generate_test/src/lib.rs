@@ -23,10 +23,10 @@ mod tests {
                 "common_write_into_file": "False",
                 "whole_write_into_file": "False"
             }}]
-            #[proc_macro_generate_pg_table_cm_logic::cm_logic{}]
-            #[proc_macro_generate_pg_table_rm_logic::rm_logic{}]
-            #[proc_macro_generate_pg_table_um_logic::um_logic{}]
-            #[proc_macro_generate_pg_table_dm_logic::dm_logic{}]
+            #[proc_macro_generate_pg_table_create_many_logic::create_many_logic{}]
+            #[proc_macro_generate_pg_table_read_many_logic::read_many_logic{}]
+            #[proc_macro_generate_pg_table_update_many_logic::update_many_logic{}]
+            #[proc_macro_generate_pg_table_delete_many_logic::delete_many_logic{}]
             #[proc_macro_generate_pg_table_common_logic::common_logic{}]
             pub struct TableExample {
                 #[generate_pg_table_primary_key]
@@ -40,7 +40,7 @@ mod tests {
         macro_helpers::ensure_json_contract_round_trip::ensure_json_contract_round_trip::<
             JsonContractValue,
         >(macro_helpers::json_fixture_ref::JsonFixtureRef::from(
-            constants_str::OPERATION_RM,
+            constants_str::OPERATION_READ_MANY_ABBREVIATION,
         ))
         .expect(constants_str::DIAGNOSTIC_F9F9AF71);
     }
@@ -212,7 +212,7 @@ mod tests {
                 constants_str::LOCATION_DERIVE_WORKSPACE_DEPENDENCY,
             );
         macro_clippy_check_test_common::clippy_check(
-            constants_str::GENERATE_PG_TABLE_TEST_CNT,
+            constants_str::GENERATE_PG_TABLE_TEST_CONTENT,
             constants_str::PG_CRUD_PG_TABLE,
             fixture_dependencies.as_str(),
             &{
@@ -252,10 +252,10 @@ mod tests {
                         #[derive(Debug, Clone, Copy, proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
                         #[proc_macro_generate_pg_table_generate_pg_table_config::generate_pg_table_config{{
                             #revision_config
-                            "cm_write_into_file": "False",
-                            "rm_write_into_file": "False",
-                            "um_write_into_file": "False",
-                            "dm_write_into_file": "False",
+                            "create_many_write_into_file": "False",
+                            "read_many_write_into_file": "False",
+                            "update_many_write_into_file": "False",
+                            "delete_many_write_into_file": "False",
                             "tests_write_into_file": "False",
                             "common_write_into_file": "False",
                             "whole_write_into_file": "False"
@@ -263,16 +263,16 @@ mod tests {
                         #[proc_macro_generate_pg_table_common_error_variants::common_error_variants{
                             enum CommonErrorVariants {
                                 CheckCommit {
-                                    #[eo_location]
+                                    #[error_field_location]
                                     check_commit: route_validators::commit_error::CommitError,
                                     location: location_lib::location::Location,
                                 },
                             }
                         }]
-                        #[proc_macro_generate_pg_table_cm_logic::cm_logic{}]
-                        #[proc_macro_generate_pg_table_rm_logic::rm_logic{}]
-                        #[proc_macro_generate_pg_table_um_logic::um_logic{}]
-                        #[proc_macro_generate_pg_table_dm_logic::dm_logic{}]
+                        #[proc_macro_generate_pg_table_create_many_logic::create_many_logic{}]
+                        #[proc_macro_generate_pg_table_read_many_logic::read_many_logic{}]
+                        #[proc_macro_generate_pg_table_update_many_logic::update_many_logic{}]
+                        #[proc_macro_generate_pg_table_delete_many_logic::delete_many_logic{}]
                         #[proc_macro_generate_pg_table_common_logic::common_logic{}]
                         pub struct #identifier {
                             #maybe_generate_pg_table_primary_key_token_stream

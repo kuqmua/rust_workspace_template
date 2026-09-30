@@ -78,8 +78,8 @@ pub(crate) fn generate_environment_files(workspace_root: &std::path::Path) -> st
             field(b"    env_file:\n      - server/.env\n".as_slice()),
             crate::docker_compose_server_environment::DockerComposeServerEnvironment::new(
                 field(b"    environment:\n      DATABASE_URL: \"postgres://postgres:Dev-admin-2026-Ready!@database:5432/rust_workspace_template\"\n".as_slice()),
-                field(b"      # BEGIN GENERATED COMPOSE SOCKET server\n      SERVICE_SOCKET_ADDRESS: \"0.0.0.0:8080\"\n      # END GENERATED COMPOSE SOCKET server\n".as_slice()),
                 field(b"      SVC_MODE: serve\n".as_slice()),
+                field(b"      # BEGIN GENERATED COMPOSE SOCKET server\n      SERVICE_SOCKET_ADDRESS: \"0.0.0.0:8080\"\n      # END GENERATED COMPOSE SOCKET server\n".as_slice()),
             ),
             field(b"    healthcheck:\n      # BEGIN GENERATED COMPOSE HEALTH server\n      test: [\"CMD\", \"curl\", \"--fail\", \"--silent\", \"http://127.0.0.1:8080/health/ready/read\"]\n      # END GENERATED COMPOSE HEALTH server\n      interval: 10s\n      timeout: 5s\n      retries: 12\n      start_period: 20s\n".as_slice()),
             field(b"    image: rust-workspace-template-application:local\n".as_slice()),
@@ -95,8 +95,8 @@ pub(crate) fn generate_environment_files(workspace_root: &std::path::Path) -> st
             field(b"    env_file:\n      - server/.env\n".as_slice()),
             crate::docker_compose_server_environment::DockerComposeServerEnvironment::new(
                 field(b"    environment:\n      DATABASE_URL: \"postgres://postgres:Dev-admin-2026-Ready!@database:5432/rust_workspace_template\"\n".as_slice()),
-                field(b"      SERVICE_SOCKET_ADDRESS: \"0.0.0.0:8080\"\n".as_slice()),
                 field(b"      SVC_MODE: migrate\n".as_slice()),
+                field(b"      SERVICE_SOCKET_ADDRESS: \"0.0.0.0:8080\"\n".as_slice()),
             ),
             field(b"    image: rust-workspace-template-application:local\n".as_slice()),
             field(b"    networks:\n      - application\n".as_slice()),

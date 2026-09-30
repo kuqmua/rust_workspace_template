@@ -10,12 +10,12 @@ pub fn optimal_memory_layout(token_stream: proc_macro::TokenStream) -> proc_macr
             proc_macro2::Span::call_site(),
         )
     };
-    let di: syn::DeriveInput = match syn::parse(token_stream) {
+    let derive_input: syn::DeriveInput = match syn::parse(token_stream) {
         Ok(derive_input) => derive_input,
         Err(error) => return error.to_compile_error().into(),
     };
     let mut skip = false;
-    let attribute_result = di
+    let attribute_result = derive_input
         .attrs
         .iter()
         .filter(|attr| attr.path().is_ident(stringify!(optimal_memory_layout)))
@@ -37,7 +37,7 @@ pub fn optimal_memory_layout(token_stream: proc_macro::TokenStream) -> proc_macr
     if skip {
         return proc_macro::TokenStream::new();
     }
-    let identifier = &di.ident;
+    let identifier = &derive_input.ident;
     let generate_field = |i: usize| syn::Ident::new(&format!("field_{i}"), identifier.span());
     let generate_assertions_token_stream = |fields: &syn::punctuated::Punctuated<
         syn::Field,
@@ -87,7 +87,7 @@ pub fn optimal_memory_layout(token_stream: proc_macro::TokenStream) -> proc_macr
             #(#assertions_token_stream)*
         })
     };
-    let ts = match &di.data {
+    let generated_tokens = match &derive_input.data {
         syn::Data::Struct(data) => {
             let fields = match &data.fields {
                 syn::Fields::Named(fields) => &fields.named,
@@ -142,7 +142,7 @@ pub fn optimal_memory_layout(token_stream: proc_macro::TokenStream) -> proc_macr
             return proc_macro::TokenStream::new();
         }
     };
-    let generics = &di.generics;
+    let generics = &derive_input.generics;
     if !generics.params.is_empty() {
         return proc_macro::TokenStream::new();
     }
@@ -154,7 +154,7 @@ pub fn optimal_memory_layout(token_stream: proc_macro::TokenStream) -> proc_macr
         #[allow(unused_qualifications, reason = "lib keeps explicit generated paths stable across expansion contexts")]
         impl #impl_generics #identifier #ty_generics #where_clause {
             const #const_name_token_stream: () = {
-                #ts
+                #generated_tokens
             };
         }
     };

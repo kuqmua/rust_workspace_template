@@ -1894,7 +1894,7 @@ mod test_data_tables {
             };
         let first_request = make_request(
             super::StdAdminApiTestStrRef::from(constants_str::ACTOR_A),
-            super::StdAdminApiTestStrRef::from(constants_str::ITEMS_CM),
+            super::StdAdminApiTestStrRef::from(constants_str::ITEMS_CREATE_MANY_ABBREVIATION),
             super::StdAdminApiTestStrRef::from(constants_str::KEY_A),
             pg_table::pg_table_idempotency_body_ref::PgTableIdempotencyBodyRef::from(
                 br#"{"value":1}"#.as_slice(),
@@ -1922,7 +1922,7 @@ mod test_data_tables {
         );
         let conflicting_request = make_request(
             super::StdAdminApiTestStrRef::from(constants_str::ACTOR_A),
-            super::StdAdminApiTestStrRef::from(constants_str::ITEMS_CM),
+            super::StdAdminApiTestStrRef::from(constants_str::ITEMS_CREATE_MANY_ABBREVIATION),
             super::StdAdminApiTestStrRef::from(constants_str::KEY_A),
             pg_table::pg_table_idempotency_body_ref::PgTableIdempotencyBodyRef::from(
                 br#"{"value":2}"#.as_slice(),
@@ -1984,7 +1984,7 @@ mod test_data_tables {
     );
         let other_actor = make_request(
             super::StdAdminApiTestStrRef::from(constants_str::ACTOR_B),
-            super::StdAdminApiTestStrRef::from(constants_str::ITEMS_CM),
+            super::StdAdminApiTestStrRef::from(constants_str::ITEMS_CREATE_MANY_ABBREVIATION),
             super::StdAdminApiTestStrRef::from(constants_str::KEY_A),
             pg_table::pg_table_idempotency_body_ref::PgTableIdempotencyBodyRef::from(
                 br#"{"value":1}"#.as_slice(),
@@ -2016,7 +2016,7 @@ mod test_data_tables {
         );
         let concurrent = make_request(
             super::StdAdminApiTestStrRef::from(constants_str::ACTOR_CONCURRENT),
-            super::StdAdminApiTestStrRef::from(constants_str::ITEMS_CM),
+            super::StdAdminApiTestStrRef::from(constants_str::ITEMS_CREATE_MANY_ABBREVIATION),
             super::StdAdminApiTestStrRef::from(constants_str::KEY_CONCURRENT),
             pg_table::pg_table_idempotency_body_ref::PgTableIdempotencyBodyRef::from(
                 br#"{"value":3}"#.as_slice(),
@@ -2064,7 +2064,7 @@ mod test_data_tables {
             .expect(constants_str::DIAGNOSTIC_3130E593);
         let atomic = make_request(
             super::StdAdminApiTestStrRef::from(constants_str::ACTOR_ATOMIC),
-            super::StdAdminApiTestStrRef::from(constants_str::ITEMS_CO),
+            super::StdAdminApiTestStrRef::from(constants_str::ITEMS_CREATE_ONE_ABBREVIATION),
             super::StdAdminApiTestStrRef::from(constants_str::KEY_ATOMIC),
             pg_table::pg_table_idempotency_body_ref::PgTableIdempotencyBodyRef::from(
                 br#"{"id":1}"#.as_slice(),
@@ -5782,7 +5782,7 @@ fn admin_api_test_router() -> AxumAdminApiTestRouter {
     router_with_pool(&SqlxAdminApiTestPool::from(pool))
 }
 fn router_with_pool(sqlx_admin_api_test_pool: &SqlxAdminApiTestPool) -> AxumAdminApiTestRouter {
-    let state = server_admin::admin_auth_svc_state::AdminAuthSvcState::try_new(
+    let state = server_admin::admin_auth_service_state::AdminAuthServiceState::try_new(
         app_state::sqlx_pg_pool::SqlxPgPool::from(sqlx_admin_api_test_pool.0.clone()),
         &env::<config_lib::admin_jwt_secret::AdminJwtSecret>(StdAdminApiTestStrRef::from(
             constants_str::INTEGRATION_TEST_JWT_SECRET_AT_LEAST_32_BYTES,
@@ -5821,7 +5821,7 @@ fn router_with_pool(sqlx_admin_api_test_pool: &SqlxAdminApiTestPool) -> AxumAdmi
     )
     .expect(constants_str::DIAGNOSTIC_A59D73C1);
     let shared_auth_state =
-        server_admin::shared_admin_auth_svc_state_arc::SharedAdminAuthSvcStateArc::from(
+        server_admin::shared_admin_auth_service_state_arc::SharedAdminAuthServiceStateArc::from(
             std::sync::Arc::new(state),
         );
     let generated_state: std::sync::Arc<
@@ -6085,7 +6085,7 @@ async fn admin_html_test_fixture_with_password_change(
                 .await
                 .expect(constants_str::DIAGNOSTIC_A37042F1);
     }
-    let state = server_admin::admin_auth_svc_state::AdminAuthSvcState::try_new(
+    let state = server_admin::admin_auth_service_state::AdminAuthServiceState::try_new(
         app_state::sqlx_pg_pool::SqlxPgPool::from(pool.0.clone()),
         &env::<config_lib::admin_jwt_secret::AdminJwtSecret>(StdAdminApiTestStrRef::from(
             constants_str::INTEGRATION_TEST_JWT_SECRET_AT_LEAST_32_BYTES,
@@ -6125,7 +6125,7 @@ async fn admin_html_test_fixture_with_password_change(
     .expect(constants_str::DIAGNOSTIC_EC39B61D);
     let router = AxumAdminApiTestRouter::from(axum::Router::from(
         server_admin::html_routes_with_swagger::html_routes_with_swagger(
-            server_admin::shared_admin_auth_svc_state_arc::SharedAdminAuthSvcStateArc::from(
+            server_admin::shared_admin_auth_service_state_arc::SharedAdminAuthServiceStateArc::from(
                 std::sync::Arc::new(state),
             ),
             server_admin::admin_html_swagger_enabled::AdminHtmlSwaggerEnabled::from(true),

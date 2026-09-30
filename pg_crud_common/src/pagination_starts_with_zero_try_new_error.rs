@@ -9,17 +9,17 @@
 )]
 pub enum PaginationStartsWithZeroTryNewError {
     LimitIsLessThanOrEqToZero {
-        #[eo_to_err_string_serde]
+        #[error_field_to_err_string_serde]
         limit: crate::pagination_limit::PaginationLimit,
     },
     OffsetIsLessThanZero {
-        #[eo_to_err_string_serde]
+        #[error_field_to_err_string_serde]
         offset: crate::pagination_offset::PaginationOffset,
     },
     OffsetPlusLimitIsIntOverflow {
-        #[eo_to_err_string_serde]
+        #[error_field_to_err_string_serde]
         limit: crate::pagination_limit::PaginationLimit,
-        #[eo_to_err_string_serde]
+        #[error_field_to_err_string_serde]
         offset: crate::pagination_offset::PaginationOffset,
     },
 }

@@ -227,7 +227,7 @@ mod tests {
         );
     }
     #[test]
-    fn test_try_write_string_into_file_skips_rewrite_when_cnt_is_unchanged() {
+    fn test_try_write_string_into_file_skips_rewrite_when_content_is_unchanged() {
         let base = crate::test_path::test_path(crate::test_path_stem::TestPathStem::new(
             constants_str::MACRO_HELPERS_WRITE_IF_CHANGED,
         ));
@@ -244,7 +244,7 @@ mod tests {
         assert_content_and_cleanup(path.as_ref(), constants_str::SAME);
     }
     #[test]
-    fn test_try_write_string_into_file_writes_when_cnt_differs() {
+    fn test_try_write_string_into_file_writes_when_content_differs() {
         let base = crate::test_path::test_path(crate::test_path_stem::TestPathStem::new(
             constants_str::MACRO_HELPERS_WRITE_IF_CHANGED_DIFF,
         ));

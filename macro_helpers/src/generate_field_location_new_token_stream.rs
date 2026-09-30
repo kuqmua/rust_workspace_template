@@ -7,7 +7,9 @@ pub fn generate_field_location_new_token_stream(
     let location_snake_case = naming::domain_types::LocationSnakeCase;
     let location_new_token_stream = {
         let file_token_stream =
-            generate_quotes::dq_token_stream::dq_token_stream(field_location_file.as_str());
+            generate_quotes::double_quoted_token_stream::double_quoted_token_stream(
+                field_location_file.as_str(),
+            );
         let line_token_stream = {
             let literal = proc_macro2::Literal::u32_unsuffixed(field_location_line.value());
             quote::quote! {#literal}

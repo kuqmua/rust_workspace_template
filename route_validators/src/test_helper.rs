@@ -52,11 +52,11 @@ mod tests {
         assert_eq!(v, 9);
     }
     #[test]
-    fn test_expect_error_mapped_passes_error_and_exp_id_to_mapper() {
+    fn test_expect_error_mapped_passes_error_and_expectation_id_to_mapper() {
         let v = crate::expect_error_mapped::expect_error_mapped::<u8, u16, (u16, &'static str)>(
             Err(9),
             constants_str::VALUE_8CE7A316,
-            |error, exp_id| (error, exp_id),
+            |error, expectation_id| (error, expectation_id),
         );
         assert_eq!(v, (9, constants_str::VALUE_8CE7A316));
     }
@@ -102,13 +102,13 @@ mod tests {
         let v = crate::expect_error_mapped::expect_error_mapped::<(), TestError, u8>(
             Err(TestError::A(3)),
             constants_str::VALUE_9BF4CE17,
-            |error, mapped_exp_id| {
+            |error, mapped_expectation_id| {
                 crate::expect_variant::expect_variant(
                     error,
                     |error| match error {
                         TestError::A(v) => Some(v),
                     },
-                    mapped_exp_id,
+                    mapped_expectation_id,
                 )
             },
         );
@@ -145,13 +145,13 @@ mod tests {
                 Err(TestError::A),
                 constants_str::C1D74A8E,
                 crate::axum_http_status_code::AxumHttpStatusCode::bad_request(),
-                |error, mapped_exp_id| {
+                |error, mapped_expectation_id| {
                     crate::expect_variant::expect_variant(
                         error,
                         |error| match error {
                             TestError::A => Some(()),
                         },
-                        mapped_exp_id,
+                        mapped_expectation_id,
                     );
                 },
             );

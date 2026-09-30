@@ -76,11 +76,11 @@ pub mod pg_pool_tests;
 pub mod production_mode;
 pub mod request_timeout_seconds;
 pub mod secrecy_secret_box_string;
+pub mod service_mode;
 pub mod source_place_type;
 pub mod std_config_secret_string;
 pub mod std_env_var_ok;
 pub mod std_env_var_ok_ref;
-pub mod svc_mode;
 #[cfg(test)]
 pub mod test_config_lib;
 pub mod timezone_seconds;
@@ -94,7 +94,7 @@ pub mod try_from_std_env_var_ok_admin_positive_u64_error;
 pub mod try_from_std_env_var_ok_admin_token_text_error;
 pub mod try_from_std_env_var_ok_maximum_size_of_http_body_in_bytes_error;
 pub mod try_from_std_env_var_ok_pg_pool_max_connections_error;
-pub mod try_from_std_env_var_ok_svc_mode_error;
+pub mod try_from_std_env_var_ok_service_mode_error;
 pub mod try_from_std_env_var_ok_timezone_error;
 pub mod try_from_std_env_var_ok_tracing_format_error;
 #[cfg(test)]

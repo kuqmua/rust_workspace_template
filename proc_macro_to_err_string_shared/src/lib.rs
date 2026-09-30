@@ -42,24 +42,25 @@ pub fn impl_to_err_string_with(token_stream: proc_macro2::TokenStream) -> proc_m
 pub fn impl_to_err_string_const(
     token_stream: proc_macro2::TokenStream,
 ) -> proc_macro2::TokenStream {
-    let parsed_pairs_res = workspace_macro_helpers::split_top_level_commas::split_top_level_commas(
-        workspace_macro_helpers::proc_macro2_macro_tokens::ProcMacro2MacroTokens::from_into(
-            token_stream,
-        ),
-    )
-    .into_iter()
-    .filter(|part| !part.is_empty())
-    .map(|part| {
-        workspace_macro_helpers::split_fat_arrow::split_fat_arrow(part)
-            .map(|(ty, message)| (ty.into_inner(), message.into_inner()))
-            .ok_or_else(|| {
-                workspace_macro_helpers::compile_error_token_stream::compile_error_token_stream(
-                    constants_str::COMPILE_ERROR_CE_060,
-                )
-            })
-    })
-    .collect::<Result<Vec<(proc_macro2::TokenStream, proc_macro2::TokenStream)>, _>>();
-    let pairs = match parsed_pairs_res {
+    let parsed_pairs_result =
+        workspace_macro_helpers::split_top_level_commas::split_top_level_commas(
+            workspace_macro_helpers::proc_macro2_macro_tokens::ProcMacro2MacroTokens::from_into(
+                token_stream,
+            ),
+        )
+        .into_iter()
+        .filter(|part| !part.is_empty())
+        .map(|part| {
+            workspace_macro_helpers::split_fat_arrow::split_fat_arrow(part)
+                .map(|(ty, message)| (ty.into_inner(), message.into_inner()))
+                .ok_or_else(|| {
+                    workspace_macro_helpers::compile_error_token_stream::compile_error_token_stream(
+                        constants_str::COMPILE_ERROR_CE_060,
+                    )
+                })
+        })
+        .collect::<Result<Vec<(proc_macro2::TokenStream, proc_macro2::TokenStream)>, _>>();
+    let pairs = match parsed_pairs_result {
         Ok(v) => v,
         Err(error) => return error.into_inner().into(),
     };

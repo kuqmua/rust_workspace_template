@@ -1,9 +1,9 @@
-pub(super) fn quote_token_stream<Dsp>(
+pub(super) fn quote_token_stream<DisplayValue>(
     quote_style: crate::quote_style::QuoteStyle,
-    dsp: &Dsp,
+    display_value: &DisplayValue,
 ) -> crate::proc_macro2_quoted_literal_token_stream::ProcMacro2QuotedLiteralTokenStream
 where
-    Dsp: std::fmt::Display + ?Sized,
+    DisplayValue: std::fmt::Display + ?Sized,
 {
     let compile_error = |error| {
         let message = format!("{}: {error}", <&str>::from(quote_style.panic_id()));
@@ -11,8 +11,8 @@ where
     };
     let tokens = match crate::quote_literal::quote_literal(
         quote_style.prefix(),
-        quote_style.quote_ch(),
-        dsp,
+        quote_style.quote_character(),
+        display_value,
     ) {
         Ok(quoted_literal) => quoted_literal
             .as_ref()

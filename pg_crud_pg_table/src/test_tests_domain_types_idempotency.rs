@@ -38,7 +38,7 @@ fn test_idempotency_text_types_enforce_boundaries_and_protocol_shape() {
         idempotency_text_error.to_string(),
     );
     let oversized = constants_str::A_ALT.repeat(
-        crate::pg_tbl_idempotency_text_max_bytes::PG_TBL_IDEMPOTENCY_TEXT_MAX_BYTES
+        crate::pg_table_idempotency_text_max_bytes::PG_TABLE_IDEMPOTENCY_TEXT_MAX_BYTES
             .saturating_add(constants_usize::ONE),
     );
     assert_eq!(
@@ -51,7 +51,7 @@ fn test_idempotency_text_types_enforce_boundaries_and_protocol_shape() {
                     ),
                 maximum_bytes:
                     crate::pg_table_idempotency_text_bytes::PgTableIdempotencyTextBytes::from(
-                        crate::pg_tbl_idempotency_text_max_bytes::PG_TBL_IDEMPOTENCY_TEXT_MAX_BYTES,
+                        crate::pg_table_idempotency_text_max_bytes::PG_TABLE_IDEMPOTENCY_TEXT_MAX_BYTES,
                     ),
             }
         )
@@ -68,7 +68,7 @@ fn test_generated_idempotency_keys_are_valid_and_distinct() {
     assert!(!first.as_ref().is_empty());
     assert!(
         first.as_ref().len()
-            <= crate::pg_tbl_idempotency_text_max_bytes::PG_TBL_IDEMPOTENCY_TEXT_MAX_BYTES
+            <= crate::pg_table_idempotency_text_max_bytes::PG_TABLE_IDEMPOTENCY_TEXT_MAX_BYTES
     );
 }
 

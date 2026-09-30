@@ -72,7 +72,7 @@ pub fn generate_impl_pg_type_test_cases_for_identifier_token_stream(
         naming::parameter::SelfSelectUpperCamelCase::from_tokens(&identifier);
     let optional_vec_create_token_stream_gnrtd: Option<
         macro_helpers::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream,
-    > = optional_vec_create_token_stream.map(|ts| {
+    > = optional_vec_create_token_stream.map(|tokens| {
         {
     let snippet_names_1 = crate::names_context::NamesContext::new();
         #[allow(non_snake_case, reason = "generated Rust identifiers intentionally mirror emitted naming tokens")]
@@ -82,7 +82,7 @@ pub fn generate_impl_pg_type_test_cases_for_identifier_token_stream(
         );
         quote::quote! {
             fn #OptionalVecCreateSnakeCaseSnippet1() -> Option<Vec<#self_pg_type_as_pg_type_token_stream::#CreateUpperCamelCaseSnippet1>> {
-                #ts
+                #tokens
             }
         }
         .into()
@@ -296,7 +296,7 @@ pub fn generate_impl_pg_type_test_cases_for_identifier_token_stream(
     let read_ids_and_create_into_optional_vec_where_eq_to_field_token_stream_gnrtd: Option<
         macro_helpers::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream,
     > =
-        read_ids_and_create_into_optional_vec_where_eq_to_field_token_stream.map(|ts| {
+        read_ids_and_create_into_optional_vec_where_eq_to_field_token_stream.map(|tokens| {
             {
     let snippet_names_9 = crate::names_context::NamesContext::new();
         #[allow(non_snake_case, reason = "generated Rust identifiers intentionally mirror emitted naming tokens")]
@@ -314,14 +314,14 @@ pub fn generate_impl_pg_type_test_cases_for_identifier_token_stream(
                 #ReadIdsSnakeCaseSnippet9: #self_pg_type_as_pg_type_read_ids_token_stream,
                 #CreateSnakeCaseSnippet9: #self_pg_type_as_pg_type_create_token_stream
             ) -> #return_type_token_stream {
-                #ts
+                #tokens
             }
         }
         .into()
 }
         });
     let pg_type_optional_vec_where_greater_than_test_token_stream_gnrtd =
-        pg_type_optional_vec_where_greater_than_test_token_stream.map(|ts| {
+        pg_type_optional_vec_where_greater_than_test_token_stream.map(|tokens| {
             quote::quote! {
                 fn #PgTypeOptionalVecWhereGreaterThanTestSnakeCase() -> Option<
                     #import::not_empty_unique_vec::NotEmptyUniqueVec<
@@ -330,12 +330,12 @@ pub fn generate_impl_pg_type_test_cases_for_identifier_token_stream(
                         >
                     >
                 > {
-                    #ts
+                    #tokens
                 }
             }
         });
     let read_ids_and_table_type_into_pg_type_optional_where_greater_than_token_stream_gnrtd =
-        read_ids_and_table_type_into_pg_type_optional_where_greater_than_token_stream.map(|ts| {
+        read_ids_and_table_type_into_pg_type_optional_where_greater_than_token_stream.map(|tokens| {
             let read_ids_and_table_type_into_pg_type_optional_where_greater_than_snake_case =
                 ReadIdsAndTableTypeIntoPgTypeOptionalWhereGreaterThanSnakeCase;
             quote::quote! {
@@ -344,7 +344,7 @@ pub fn generate_impl_pg_type_test_cases_for_identifier_token_stream(
                     #ReadIdsSnakeCase: #self_pg_type_as_pg_type_token_stream::#ReadIdsUpperCamelCase,
                     #TableTypeSnakeCase: #self_pg_type_as_pg_type_token_stream::#TableTypeUpperCamelCase,
                 ) -> Option<#self_pg_type_as_pg_type_token_stream::#WhereUpperCamelCase> {
-                    #ts
+                    #tokens
                 }
             }
         });

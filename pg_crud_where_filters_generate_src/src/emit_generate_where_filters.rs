@@ -63,19 +63,19 @@ pub fn emit_generate_where_filters(
          generic: &Generic,
          identifier: &dyn quote::ToTokens,
          struct_extra_fields_token_stream: &dyn quote::ToTokens| {
-            macro_helpers::derive_token_stream_builder::DTokenStreamBuilder::new()
+            macro_helpers::derive_token_stream_builder::DeriveTokenStreamBuilder::new()
                 .make_pub()
-                .d_debug()
-                .d_clone()
-                .d_partial_eq()
-                .d_serde_serialize()
-                .d_serde_deserialize_if(if filter_initialization_with_try_new_result_is_ok {
-                    macro_helpers::derive_token_stream_builder::DSerdeDeserialize::False
+                .derive_debug()
+                .derive_clone()
+                .derive_partial_eq()
+                .derive_serde_serialize()
+                .derive_serde_deserialize_if(if filter_initialization_with_try_new_result_is_ok {
+                    macro_helpers::derive_token_stream_builder::DeriveSerdeDeserialize::False
                 } else {
-                    macro_helpers::derive_token_stream_builder::DSerdeDeserialize::True
+                    macro_helpers::derive_token_stream_builder::DeriveSerdeDeserialize::True
                 })
-                .d_schemars_json_schema()
-                .d_utoipa_to_schema()
+                .derive_schemars_json_schema()
+                .derive_utoipa_to_schema()
                 .build_struct(
                     &quote::quote! {#[derive(proc_macro_getters::Getters, proc_macro_new::New)]},
                     &identifier,
@@ -95,7 +95,9 @@ pub fn emit_generate_where_filters(
                 )
         };
     let generate_impl_default_some_one_element_token_stream =
-        |generic: &Generic, identifier: &dyn quote::ToTokens, ts: &dyn quote::ToTokens| {
+        |generic: &Generic,
+         identifier: &dyn quote::ToTokens,
+         tokens_to_emit: &dyn quote::ToTokens| {
             pg_crud_macro_common::generate_impl_default_some_one_element_token_stream::generate_impl_default_some_one_element_token_stream(
                 &match &generic {
                     Generic::False => proc_macro2::TokenStream::new(),
@@ -115,7 +117,7 @@ pub fn emit_generate_where_filters(
                 &quote::quote! {
                     Self {
                         operator: #pg_crud_common_default_some_one_element_call,
-                        #ts
+                        #tokens_to_emit
                     }
                 },
             )
@@ -123,8 +125,8 @@ pub fn emit_generate_where_filters(
     let generate_impl_pg_type_where_filter_token_stream =
         |generic: &Generic,
          identifier: &dyn quote::ToTokens,
-         increment_parameter_undrscr: &pg_crud_macro_common::emission_types::IncrementParameterUndrscr,
-         add_operator_undrscr: &pg_crud_macro_common::emission_types::AddOperatorUndrscr,
+         increment_parameter_underscore: &pg_crud_macro_common::emission_types::IncrementParameterUnderscore,
+         add_operator_underscore: &pg_crud_macro_common::emission_types::AddOperatorUnderscore,
          query_part_token_stream: &dyn quote::ToTokens,
          is_query_bind_mut: &pg_crud_macro_common::emission_types::IsQueryBindMut,
          query_bind_token_stream: &dyn quote::ToTokens| {
@@ -135,11 +137,11 @@ pub fn emit_generate_where_filters(
                             Generic::False => &proc_macro2_token_stream_new,
                             Generic::True { maybe_extra_traits_token_stream } => {
                                 let send_and_lt_token_stream = quote::quote! {Send + 'lt};
-                                let ts = maybe_extra_traits_token_stream.as_ref().map_or_else(
+                                let tokens_to_emit = maybe_extra_traits_token_stream.as_ref().map_or_else(
                                     || quote::quote! {Send + 'lt},
                                     |v| quote::quote! {#v + #send_and_lt_token_stream},
                                 );
-                                &quote::quote! {, T: #ts}
+                                &quote::quote! {, T: #tokens_to_emit}
                             }
                         };
                     quote::quote! {<'lt #maybe_t_extra_traits_for_pg_type_where_filter_token_stream>}
@@ -149,38 +151,39 @@ pub fn emit_generate_where_filters(
                     Generic::False => &proc_macro2_token_stream_new,
                     Generic::True { .. } => &t_ann_generic_token_stream,
                 },
-                increment_parameter_undrscr,
-                &pg_crud_macro_common::emission_types::ColumnParameterUndrscr::False,
-                add_operator_undrscr,
+                increment_parameter_underscore,
+                &pg_crud_macro_common::emission_types::ColumnParameterUnderscore::False,
+                add_operator_underscore,
                 &query_part_token_stream,
                 is_query_bind_mut,
                 &query_bind_token_stream,
                 &pg_crud_macro_common::import::Import::PgCrudCommon,
             )
         };
-    let add_regex_case_and_v_declaration_token_stream = |ts: &dyn quote::ToTokens| {
+    let add_regex_case_and_v_declaration_token_stream = |tokens_to_emit: &dyn quote::ToTokens| {
         quote::quote! {
-            #ts
+            #tokens_to_emit
             regex_case: crate::regex_case::RegexCase,
             #values_snake_case: crate::regex_regex::RegexRegex
         }
     };
-    let add_regex_case_and_v_default_initialization_token_stream = |ts: &dyn quote::ToTokens| {
-        quote::quote! {
-            #ts
-            regex_case: #pg_crud_common_default_some_one_element_call,
-            #v_default_some_one_element_token_stream
-        }
-    };
+    let add_regex_case_and_v_default_initialization_token_stream =
+        |tokens_to_emit: &dyn quote::ToTokens| {
+            quote::quote! {
+                #tokens_to_emit
+                regex_case: #pg_crud_common_default_some_one_element_call,
+                #v_default_some_one_element_token_stream
+            }
+        };
     let generate_match_increment_checked_add_one_initialization_token_stream =
-        |ts: &dyn quote::ToTokens| {
+        |tokens_to_emit: &dyn quote::ToTokens| {
             let match_token_stream =
                 pg_crud_macro_common::generate_match_ok_or_return_err_token_stream::generate_match_ok_or_return_err_token_stream(
                     &quote::quote! {#import::increment_checked_add_one_returning_increment::increment_checked_add_one_returning_increment(#increment_snake_case)},
                     &quote::quote! {v_25d59e01},
                 );
             quote::quote! {
-                let #ts = #match_token_stream;
+                let #tokens_to_emit = #match_token_stream;
             }
         };
     let v_match_increment_checked_add_one_initialization_token_stream =
@@ -191,7 +194,8 @@ pub fn emit_generate_where_filters(
         |v: &dyn std::fmt::Display,
          maybe_dimensions_ies_initialization_token_stream: &dyn quote::ToTokens,
          maybe_extra_parameters_token_stream: &dyn quote::ToTokens| {
-            let format_token_stream = generate_quotes::dq_token_stream::dq_token_stream(&v);
+            let format_token_stream =
+                generate_quotes::double_quoted_token_stream::double_quoted_token_stream(&v);
             quote::quote! {
                 #maybe_dimensions_ies_initialization_token_stream
                 #v_match_increment_checked_add_one_initialization_token_stream
@@ -252,11 +256,11 @@ pub fn emit_generate_where_filters(
         )
     };
     let query_self_v_query_bind_token_stream = {
-        let ts = generate_match_query_bind_token_stream(
+        let tokens_to_emit = generate_match_query_bind_token_stream(
             &quote::quote! {#self_snake_case.#values_snake_case},
         );
         quote::quote! {
-            #ts
+            #tokens_to_emit
             Ok(#query_snake_case)
         }
     };
@@ -280,16 +284,17 @@ pub fn emit_generate_where_filters(
             &values_snake_case,
             &quote::quote! {query_part},
         );
-    let generate_maybe_dimensions_declaration_pub_v_t_token_stream = |ts: &dyn quote::ToTokens| {
-        quote::quote! {
-            #ts
-            #pub_v_t_token_stream
-        }
-    };
-    let generate_maybe_dimensions_default_initialization_v_default_token_stream =
-        |ts: &dyn quote::ToTokens| {
+    let generate_maybe_dimensions_declaration_pub_v_t_token_stream =
+        |tokens_to_emit: &dyn quote::ToTokens| {
             quote::quote! {
-                #ts
+                #tokens_to_emit
+                #pub_v_t_token_stream
+            }
+        };
+    let generate_maybe_dimensions_default_initialization_v_default_token_stream =
+        |tokens_to_emit: &dyn quote::ToTokens| {
+            quote::quote! {
+                #tokens_to_emit
                 #v_default_some_one_element_token_stream
             }
         };
@@ -349,7 +354,7 @@ pub fn emit_generate_where_filters(
                     generic,
                     struct_extra_fields_token_stream,
                     impl_default_some_one_element_extra_fields_token_stream,
-                    increment_parameter_undrscr,
+                    increment_parameter_underscore,
                     query_part_token_stream,
                     is_query_bind_mut,
                     query_bind_token_stream,
@@ -364,18 +369,20 @@ pub fn emit_generate_where_filters(
                         |pg_type_ptrn: &PgTypePtrn| {
                             generate_pg_type_dimensions_helpers(pg_type_ptrn)
                         };
-                    let generate_cmp_filter_token_stream =
-                        |pg_type_ptrn: &PgTypePtrn,
-                         format_value: &dyn Fn(&PgTypeKind) -> String| {
-                            let (
-                                maybe_dimensions_declaration_token_stream,
-                                maybe_dimensions_default_initialization_token_stream,
-                                maybe_dimensions_ies_initialization_token_stream,
-                                pg_type_kind,
-                                maybe_extra_parameters_token_stream,
-                                maybe_dimensions_query_bind_token_stream,
-                            ) = generate_pg_type_dimensions_helpers_pg_type(pg_type_ptrn);
-                            (
+                    let generate_cmp_filter_token_stream = |pg_type_ptrn: &PgTypePtrn,
+                                                            format_value: &dyn Fn(
+                        &PgTypeKind,
+                    )
+                        -> String| {
+                        let (
+                            maybe_dimensions_declaration_token_stream,
+                            maybe_dimensions_default_initialization_token_stream,
+                            maybe_dimensions_ies_initialization_token_stream,
+                            pg_type_kind,
+                            maybe_extra_parameters_token_stream,
+                            maybe_dimensions_query_bind_token_stream,
+                        ) = generate_pg_type_dimensions_helpers_pg_type(pg_type_ptrn);
+                        (
                             generate_generic_true_type_encode(),
                             generate_maybe_dimensions_declaration_pub_v_t_token_stream(
                                 &maybe_dimensions_declaration_token_stream,
@@ -383,10 +390,10 @@ pub fn emit_generate_where_filters(
                             generate_maybe_dimensions_default_initialization_v_default_token_stream(
                                 &maybe_dimensions_default_initialization_token_stream,
                             ),
-                            pg_crud_macro_common::emission_types::IncrementParameterUndrscr::False,
+                            pg_crud_macro_common::emission_types::IncrementParameterUnderscore::False,
                             generate_query_part_format_with_v_token_stream(
                                 &maybe_dimensions_ies_initialization_token_stream,
-                                &generate_quotes::dq_token_stream::dq_token_stream(&format_value(
+                                &generate_quotes::double_quoted_token_stream::double_quoted_token_stream(&format_value(
                                     &pg_type_kind,
                                 )),
                                 &maybe_extra_parameters_token_stream,
@@ -397,7 +404,7 @@ pub fn emit_generate_where_filters(
                                 &query_bind_one_v_token_stream,
                             ),
                         )
-                        };
+                    };
                     let generate_operator_cmp_filter_token_stream =
                         |pg_type_ptrn: &PgTypePtrn, operator: &dyn std::fmt::Display| {
                             generate_cmp_filter_token_stream(
@@ -434,10 +441,10 @@ pub fn emit_generate_where_filters(
                             generate_maybe_dimensions_default_initialization_v_default_token_stream(
                                 &maybe_dimensions_default_initialization_token_stream,
                             ),
-                            pg_crud_macro_common::emission_types::IncrementParameterUndrscr::False,
+                            pg_crud_macro_common::emission_types::IncrementParameterUnderscore::False,
                             {
                                 let format_token_stream =
-                                    generate_quotes::dq_token_stream::dq_token_stream(&format!(
+                                    generate_quotes::double_quoted_token_stream::double_quoted_token_stream(&format!(
                                         "{{}}({{}}{} {{}})",
                                         pg_type_kind.format_argument()
                                     ));
@@ -493,10 +500,10 @@ pub fn emit_generate_where_filters(
                             generate_maybe_dimensions_default_initialization_v_default_token_stream(
                                 &maybe_dimensions_default_initialization_token_stream,
                             ),
-                            pg_crud_macro_common::emission_types::IncrementParameterUndrscr::False,
+                            pg_crud_macro_common::emission_types::IncrementParameterUnderscore::False,
                             {
                                 let format_token_stream =
-                                    generate_quotes::dq_token_stream::dq_token_stream(&format!(
+                                    generate_quotes::double_quoted_token_stream::double_quoted_token_stream(&format!(
                                         "{{}}({{}}{} in (",
                                         pg_type_kind.format_argument()
                                     ));
@@ -566,7 +573,7 @@ pub fn emit_generate_where_filters(
                             add_regex_case_and_v_default_initialization_token_stream(
                                 &maybe_dimensions_default_initialization_token_stream,
                             ),
-                            pg_crud_macro_common::emission_types::IncrementParameterUndrscr::False,
+                            pg_crud_macro_common::emission_types::IncrementParameterUnderscore::False,
                             generate_regex_query_part_format_token_stream(
                                 &format!("{{}}({{}}{} {{}} ${{}})", pg_type_kind.format_argument()),
                                 &maybe_dimensions_ies_initialization_token_stream,
@@ -593,10 +600,10 @@ pub fn emit_generate_where_filters(
                                 Generic::False,
                                 maybe_dimensions_declaration_token_stream,
                                 maybe_dimensions_default_initialization_token_stream,
-                                pg_crud_macro_common::emission_types::IncrementParameterUndrscr::True,
+                                pg_crud_macro_common::emission_types::IncrementParameterUnderscore::True,
                                 {
                                     let format_token_stream =
-                                        generate_quotes::dq_token_stream::dq_token_stream(
+                                        generate_quotes::double_quoted_token_stream::double_quoted_token_stream(
                                             &format!(
                                                 "{{}}({{}}{} {pg_syntax})",
                                                 pg_type_kind.format_argument()
@@ -650,10 +657,10 @@ pub fn emit_generate_where_filters(
                                     encode_format: #pg_crud_common_default_some_one_element_call,
                                     encoded_string_representation: String::default()
                                 },
-                                pg_crud_macro_common::emission_types::IncrementParameterUndrscr::False,
+                                pg_crud_macro_common::emission_types::IncrementParameterUnderscore::False,
                                 {
                                     let format_token_stream =
-                                        generate_quotes::dq_token_stream::dq_token_stream(&format!(
+                                        generate_quotes::double_quoted_token_stream::double_quoted_token_stream(&format!(
                                             "{{}}(encode({{}}{}, '{{}}') = ${{}})",
                                             pg_type_kind.format_argument()
                                         ));
@@ -712,7 +719,7 @@ pub fn emit_generate_where_filters(
                         let empty = proc_macro2::TokenStream::new();
                         let numeric_query_part = generate_query_part_format_with_v_token_stream(
                             &empty,
-                            &generate_quotes::dq_token_stream::dq_token_stream(
+                            &generate_quotes::double_quoted_token_stream::double_quoted_token_stream(
                                 constants_str::PG_CRUD_RANGE_LEN_NUMERIC_SQL_FORMAT,
                             ),
                             &empty,
@@ -768,9 +775,9 @@ pub fn emit_generate_where_filters(
                             }
                         };
                     let generate_eq_operator_query_bind_token_stream =
-                        |ts: &dyn quote::ToTokens| {
+                        |tokens_to_emit: &dyn quote::ToTokens| {
                             quote::quote! {
-                                #ts
+                                #tokens_to_emit
                                 if matches!(&<T as #import::pg_type_eq_operator::PgTypeEqOperator>::operator(&#self_snake_case.#values_snake_case), #import::eq_operator::EqOperator::Eq)
                                     && let Err(#error_snake_case) = #query_snake_case.as_mut().try_bind(#self_snake_case.#values_snake_case)
                                 {
@@ -798,7 +805,7 @@ pub fn emit_generate_where_filters(
                             },
                             generate_maybe_dimensions_declaration_pub_v_t_token_stream(&maybe_dimensions_declaration_token_stream),
                             generate_maybe_dimensions_default_initialization_v_default_token_stream(&maybe_dimensions_default_initialization_token_stream),
-                            pg_crud_macro_common::emission_types::IncrementParameterUndrscr::False,
+                            pg_crud_macro_common::emission_types::IncrementParameterUnderscore::False,
                             generate_eq_operator_query_part_token_stream(&maybe_dimensions_ies_initialization_token_stream),
                             is_query_bind_mut_true,
                             generate_eq_operator_query_bind_token_stream(&maybe_dimensions_query_bind_token_stream),
@@ -906,8 +913,8 @@ pub fn emit_generate_where_filters(
                     generate_impl_pg_type_where_filter_token_stream(
                         &generic,
                         &identifier,
-                        &increment_parameter_undrscr,
-                        &pg_crud_macro_common::emission_types::AddOperatorUndrscr::False,
+                        &increment_parameter_underscore,
+                        &pg_crud_macro_common::emission_types::AddOperatorUnderscore::False,
                         &query_part_token_stream,
                         &is_query_bind_mut,
                         &query_bind_token_stream,

@@ -1940,23 +1940,25 @@ fn type_path_ends_with_bounded_string_identifier(
 fn identifier_to_snake(
     syn_identifier_ref: syn_identifier_ref::SynIdentifierRef<'_>,
 ) -> snake_identifier::SnakeIdentifier {
-    let (out, _) = syn_identifier_ref.as_ref().to_string().chars().fold(
+    let (output, _) = syn_identifier_ref.as_ref().to_string().chars().fold(
         (String::new(), false),
-        |(mut out, mut prev_lowercase), ch| {
-            if ch.is_uppercase() {
-                if prev_lowercase && !out.is_empty() {
-                    out.push('_');
+        |(mut output, mut previous_lowercase), character| {
+            if character.is_uppercase() {
+                if previous_lowercase && !output.is_empty() {
+                    output.push('_');
                 }
-                ch.to_lowercase().for_each(|lower| out.push(lower));
-                prev_lowercase = false;
+                character
+                    .to_lowercase()
+                    .for_each(|lower| output.push(lower));
+                previous_lowercase = false;
             } else {
-                out.push(ch);
-                prev_lowercase = true;
+                output.push(character);
+                previous_lowercase = true;
             }
-            (out, prev_lowercase)
+            (output, previous_lowercase)
         },
     );
-    snake_identifier::SnakeIdentifier::try_from(out).expect(constants_str::DIAGNOSTIC_2E7A9C4F)
+    snake_identifier::SnakeIdentifier::try_from(output).expect(constants_str::DIAGNOSTIC_2E7A9C4F)
 }
 #[cfg(test)]
 mod test_proc_macro_newtype_shared;

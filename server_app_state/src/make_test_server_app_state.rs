@@ -161,7 +161,7 @@ pub fn make_test_server_app_state() -> crate::server_app_state::ServerAppState<'
                     .expect(constants_str::DIAGNOSTIC_7C36108E),
             ),
             config_lib::production_mode::ProductionMode::from(false),
-            config_lib::svc_mode::SvcMode::Serve,
+            config_lib::service_mode::ServiceMode::Serve,
         ),
         server_runtime_core::resource_budget::ResourceBudget::new(
             server_runtime_core::resource_budget_maximum::ResourceBudgetMaximum::try_from(

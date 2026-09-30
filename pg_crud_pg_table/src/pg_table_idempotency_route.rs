@@ -18,12 +18,12 @@ impl TryFrom<String> for PgTableIdempotencyRoute {
             return Err(crate::pg_table_idempotency_text_error::PgTableIdempotencyTextError::Empty);
         }
         if value.len()
-            > crate::pg_tbl_idempotency_route_max_bytes::PG_TBL_IDEMPOTENCY_ROUTE_MAX_BYTES
+            > crate::pg_table_idempotency_route_max_bytes::PG_TABLE_IDEMPOTENCY_ROUTE_MAX_BYTES
         {
             return Err(crate::pg_table_idempotency_text_error::PgTableIdempotencyTextError::TooLong {
                 actual_bytes: crate::pg_table_idempotency_text_bytes::PgTableIdempotencyTextBytes::from(value.len()),
                 maximum_bytes: crate::pg_table_idempotency_text_bytes::PgTableIdempotencyTextBytes::from(
-                    crate::pg_tbl_idempotency_route_max_bytes::PG_TBL_IDEMPOTENCY_ROUTE_MAX_BYTES,
+                    crate::pg_table_idempotency_route_max_bytes::PG_TABLE_IDEMPOTENCY_ROUTE_MAX_BYTES,
                 ),
             });
         }

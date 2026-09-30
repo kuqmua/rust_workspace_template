@@ -7,7 +7,7 @@ pub mod binary_single_quotes_token_stream;
 pub mod build_quote_style;
 pub mod double_quote_style;
 pub mod double_quoted_string;
-pub mod dq_token_stream;
+pub mod double_quoted_token_stream;
 pub mod proc_macro2_quoted_literal_token_stream;
 pub mod quote_char;
 pub mod quote_literal;

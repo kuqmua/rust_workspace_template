@@ -32,7 +32,7 @@ mod tests {
             constants_str::PATCH,
             crate::idempotency_capability::IdempotencyCapability::from(true),
             constants_str::ERROR,
-            constants_str::UO,
+            constants_str::UPDATE_ONE_ABBREVIATION,
             crate::optimistic_concurrency_capability::OptimisticConcurrencyCapability::from(true),
             constants_str::PG_CRUD_UPDATE_RULE_ACTION,
             200u16,
@@ -45,7 +45,10 @@ mod tests {
         let optimistic_concurrency_capability: &crate::optimistic_concurrency_capability::OptimisticConcurrencyCapability =
             spec.get_optimistic_concurrency_capable();
         assert!(bool::from(*idempotency_capability));
-        assert_eq!(*spec.get_operation(), constants_str::UO);
+        assert_eq!(
+            *spec.get_operation(),
+            constants_str::UPDATE_ONE_ABBREVIATION
+        );
         assert!(bool::from(*optimistic_concurrency_capability));
         assert_eq!(
             *spec.get_rule_action(),

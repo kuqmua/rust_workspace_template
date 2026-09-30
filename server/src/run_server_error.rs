@@ -1,7 +1,7 @@
 #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
 pub(crate) enum RunServerError {
     #[error("failed to build administrator authentication state: {0}")]
-    AdminAuthState(server_admin::admin_auth_svc_state_build_error::AdminAuthSvcStateBuildError),
+    AdminAuthState(server_admin::admin_auth_service_state_build_error::AdminAuthServiceStateBuildError),
     #[error("invalid administrator cleanup configuration: {0}")]
     AdminCleanupConfig(server_admin::admin_cleanup_configuration_error::AdminCleanupConfigurationError),
     #[error("administrator cleanup task shutdown failed: {0}")]

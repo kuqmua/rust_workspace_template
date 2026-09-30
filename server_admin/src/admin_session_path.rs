@@ -9,17 +9,17 @@
 pub(crate) struct AdminSessionPath(crate::admin_session_id::AdminSessionId);
 impl
     axum::extract::FromRequestParts<
-        crate::shared_admin_auth_svc_state_arc::SharedAdminAuthSvcStateArc,
+        crate::shared_admin_auth_service_state_arc::SharedAdminAuthServiceStateArc,
     > for AdminSessionPath
 {
     type Rejection = crate::admin_error::AdminError;
     async fn from_request_parts(
         parts: &mut http::request::Parts,
-        shared_admin_auth_svc_state_arc: &crate::shared_admin_auth_svc_state_arc::SharedAdminAuthSvcStateArc,
+        shared_admin_auth_service_state_arc: &crate::shared_admin_auth_service_state_arc::SharedAdminAuthServiceStateArc,
     ) -> Result<Self, Self::Rejection> {
         axum::extract::Path::<uuid::Uuid>::from_request_parts(
             parts,
-            shared_admin_auth_svc_state_arc,
+            shared_admin_auth_service_state_arc,
         )
         .await
         .map(|axum::extract::Path(value)| {

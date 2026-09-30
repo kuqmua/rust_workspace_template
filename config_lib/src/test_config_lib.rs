@@ -1,25 +1,25 @@
 #[test]
-fn test_svc_mode_accepts_only_documented_values() {
+fn test_service_mode_accepts_only_documented_values() {
     assert_eq!(
-        <crate::svc_mode::SvcMode as crate::try_from_std_env_var_ok::TryFromStdEnvVarOk>::try_from_std_env_var_ok(
+        <crate::service_mode::ServiceMode as crate::try_from_std_env_var_ok::TryFromStdEnvVarOk>::try_from_std_env_var_ok(
             crate::std_env_var_ok::StdEnvVarOk::try_from(constants_str::SERVICE_MODE_MIGRATE.to_owned())
                 .expect(constants_str::DIAGNOSTIC_39A8E94F),
         ),
-        Ok(crate::svc_mode::SvcMode::Migrate)
+        Ok(crate::service_mode::ServiceMode::Migrate)
     );
     assert_eq!(
-        <crate::svc_mode::SvcMode as crate::try_from_std_env_var_ok::TryFromStdEnvVarOk>::try_from_std_env_var_ok(
+        <crate::service_mode::ServiceMode as crate::try_from_std_env_var_ok::TryFromStdEnvVarOk>::try_from_std_env_var_ok(
             crate::std_env_var_ok::StdEnvVarOk::try_from(constants_str::SERVICE_MODE_SERVE.to_owned())
                 .expect(constants_str::DIAGNOSTIC_045CA5A1),
         ),
-        Ok(crate::svc_mode::SvcMode::Serve)
+        Ok(crate::service_mode::ServiceMode::Serve)
     );
     assert_eq!(
-        <crate::svc_mode::SvcMode as crate::try_from_std_env_var_ok::TryFromStdEnvVarOk>::try_from_std_env_var_ok(
+        <crate::service_mode::ServiceMode as crate::try_from_std_env_var_ok::TryFromStdEnvVarOk>::try_from_std_env_var_ok(
             crate::std_env_var_ok::StdEnvVarOk::try_from(constants_str::INVALID_REQUEST.to_owned())
                 .expect(constants_str::DIAGNOSTIC_156CC47B),
         ),
-        Err(crate::try_from_std_env_var_ok_svc_mode_error::TryFromStdEnvVarOkSvcModeError::Unknown)
+        Err(crate::try_from_std_env_var_ok_service_mode_error::TryFromStdEnvVarOkServiceModeError::Unknown)
     );
 }
 #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Debug, PartialEq, Eq)]

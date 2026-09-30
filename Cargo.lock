@@ -1686,13 +1686,13 @@ dependencies = [
  "macro_clippy_check_test_common",
  "macro_helpers",
  "proc-macro2",
- "proc_macro_generate_pg_table_cm_logic",
  "proc_macro_generate_pg_table_common_error_variants",
  "proc_macro_generate_pg_table_common_logic",
- "proc_macro_generate_pg_table_dm_logic",
+ "proc_macro_generate_pg_table_create_many_logic",
+ "proc_macro_generate_pg_table_delete_many_logic",
  "proc_macro_generate_pg_table_generate_pg_table_config",
- "proc_macro_generate_pg_table_rm_logic",
- "proc_macro_generate_pg_table_um_logic",
+ "proc_macro_generate_pg_table_read_many_logic",
+ "proc_macro_generate_pg_table_update_many_logic",
  "proc_macro_optimal_memory_layout",
  "quote",
  "serde",
@@ -4093,20 +4093,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "proc_macro_generate_pg_table_cm_error_variants"
-version = "0.1.0"
-dependencies = [
- "proc_macro_generate_pg_table_shared",
-]
-
-[[package]]
-name = "proc_macro_generate_pg_table_cm_logic"
-version = "0.1.0"
-dependencies = [
- "proc_macro_generate_pg_table_shared",
-]
-
-[[package]]
 name = "proc_macro_generate_pg_table_common_error_variants"
 version = "0.1.0"
 dependencies = [
@@ -4121,21 +4107,35 @@ dependencies = [
 ]
 
 [[package]]
+name = "proc_macro_generate_pg_table_create_many_error_variants"
+version = "0.1.0"
+dependencies = [
+ "proc_macro_generate_pg_table_shared",
+]
+
+[[package]]
+name = "proc_macro_generate_pg_table_create_many_logic"
+version = "0.1.0"
+dependencies = [
+ "proc_macro_generate_pg_table_shared",
+]
+
+[[package]]
+name = "proc_macro_generate_pg_table_delete_many_error_variants"
+version = "0.1.0"
+dependencies = [
+ "proc_macro_generate_pg_table_shared",
+]
+
+[[package]]
+name = "proc_macro_generate_pg_table_delete_many_logic"
+version = "0.1.0"
+dependencies = [
+ "proc_macro_generate_pg_table_shared",
+]
+
+[[package]]
 name = "proc_macro_generate_pg_table_derive_generate_pg_table"
-version = "0.1.0"
-dependencies = [
- "proc_macro_generate_pg_table_shared",
-]
-
-[[package]]
-name = "proc_macro_generate_pg_table_dm_error_variants"
-version = "0.1.0"
-dependencies = [
- "proc_macro_generate_pg_table_shared",
-]
-
-[[package]]
-name = "proc_macro_generate_pg_table_dm_logic"
 version = "0.1.0"
 dependencies = [
  "proc_macro_generate_pg_table_shared",
@@ -4149,14 +4149,14 @@ dependencies = [
 ]
 
 [[package]]
-name = "proc_macro_generate_pg_table_rm_error_variants"
+name = "proc_macro_generate_pg_table_read_many_error_variants"
 version = "0.1.0"
 dependencies = [
  "proc_macro_generate_pg_table_shared",
 ]
 
 [[package]]
-name = "proc_macro_generate_pg_table_rm_logic"
+name = "proc_macro_generate_pg_table_read_many_logic"
 version = "0.1.0"
 dependencies = [
  "proc_macro_generate_pg_table_shared",
@@ -4173,14 +4173,14 @@ dependencies = [
 ]
 
 [[package]]
-name = "proc_macro_generate_pg_table_um_error_variants"
+name = "proc_macro_generate_pg_table_update_many_error_variants"
 version = "0.1.0"
 dependencies = [
  "proc_macro_generate_pg_table_shared",
 ]
 
 [[package]]
-name = "proc_macro_generate_pg_table_um_logic"
+name = "proc_macro_generate_pg_table_update_many_logic"
 version = "0.1.0"
 dependencies = [
  "proc_macro_generate_pg_table_shared",
@@ -4828,28 +4828,28 @@ dependencies = [
 ]
 
 [[package]]
-name = "proc_macro_token_patterns_tp"
+name = "proc_macro_token_patterns_token_pattern"
 version = "0.1.0"
 dependencies = [
  "proc_macro_token_patterns_shared",
 ]
 
 [[package]]
-name = "proc_macro_token_patterns_tp_batch"
+name = "proc_macro_token_patterns_token_pattern_batch"
 version = "0.1.0"
 dependencies = [
  "proc_macro_token_patterns_shared",
 ]
 
 [[package]]
-name = "proc_macro_token_patterns_tp_parts"
+name = "proc_macro_token_patterns_token_pattern_parts"
 version = "0.1.0"
 dependencies = [
  "proc_macro_token_patterns_shared",
 ]
 
 [[package]]
-name = "proc_macro_token_patterns_ts_path_fn"
+name = "proc_macro_token_patterns_token_stream_path_function"
 version = "0.1.0"
 dependencies = [
  "proc_macro_token_patterns_shared",
@@ -6919,10 +6919,10 @@ dependencies = [
  "proc-macro2",
  "proc_macro_newtype_from_inner",
  "proc_macro_optimal_memory_layout",
- "proc_macro_token_patterns_tp",
- "proc_macro_token_patterns_tp_batch",
- "proc_macro_token_patterns_tp_parts",
- "proc_macro_token_patterns_ts_path_fn",
+ "proc_macro_token_patterns_token_pattern",
+ "proc_macro_token_patterns_token_pattern_batch",
+ "proc_macro_token_patterns_token_pattern_parts",
+ "proc_macro_token_patterns_token_stream_path_function",
  "quote",
 ]
 

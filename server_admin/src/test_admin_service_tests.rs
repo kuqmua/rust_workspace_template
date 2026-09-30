@@ -8,6 +8,6 @@ async fn test_admin_service_tests() {
             pool,
             constants_str::TEST_CORS_ORIGINS_WITH_EMPTY_ENTRY,
         ),
-        Err(crate::admin_auth_svc_state_build_error::AdminAuthSvcStateBuildError::AllowedOrigin)
+        Err(crate::admin_auth_service_state_build_error::AdminAuthServiceStateBuildError::AllowedOrigin)
     ));
 }

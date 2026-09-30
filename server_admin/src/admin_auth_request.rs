@@ -8,18 +8,18 @@
 #[getters(get_mut)]
 pub(crate) struct AdminAuthRequest {
     headers: crate::http_admin_header_map::HttpAdminHeaderMap,
-    state: crate::shared_admin_auth_svc_state_arc::SharedAdminAuthSvcStateArc,
+    state: crate::shared_admin_auth_service_state_arc::SharedAdminAuthServiceStateArc,
     peer: crate::admin_peer_addr::AdminPeerAddr,
 }
 impl
     axum::extract::FromRequestParts<
-        crate::shared_admin_auth_svc_state_arc::SharedAdminAuthSvcStateArc,
+        crate::shared_admin_auth_service_state_arc::SharedAdminAuthServiceStateArc,
     > for AdminAuthRequest
 {
     type Rejection = crate::admin_error::AdminError;
     fn from_request_parts(
         parts: &mut http::request::Parts,
-        shared_admin_auth_svc_state_arc: &crate::shared_admin_auth_svc_state_arc::SharedAdminAuthSvcStateArc,
+        shared_admin_auth_service_state_arc: &crate::shared_admin_auth_service_state_arc::SharedAdminAuthServiceStateArc,
     ) -> impl Future<Output = Result<Self, Self::Rejection>> {
         std::future::ready(
             parts
@@ -30,7 +30,7 @@ impl
                         crate::http_admin_header_map::HttpAdminHeaderMap::from(
                             parts.headers.clone(),
                         ),
-                        shared_admin_auth_svc_state_arc.clone(),
+                        shared_admin_auth_service_state_arc.clone(),
                         crate::admin_peer_addr::AdminPeerAddr::from(
                             server_admin_core::admin_socket_addr::AdminSocketAddr::from(peer.0),
                         ),

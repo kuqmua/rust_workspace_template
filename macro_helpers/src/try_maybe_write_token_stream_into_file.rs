@@ -13,11 +13,11 @@ where
     ) {
         return Ok(());
     }
-    let string_cnt = proc_macro2_token_stream_ref.as_ref().to_string();
+    let string_content = proc_macro2_token_stream_ref.as_ref().to_string();
     let wr_outcome =
         crate::try_write_string_into_file_with_outcome::try_write_string_into_file_with_outcome(
             p,
-            crate::string_file_content_ref::StringFileContentRef::from(string_cnt.as_str()),
+            crate::string_file_content_ref::StringFileContentRef::from(string_content.as_str()),
         )?;
     if matches!(
         format_with_cargofmt,
