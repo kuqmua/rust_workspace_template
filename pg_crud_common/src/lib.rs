@@ -62,6 +62,7 @@ pub mod db_column_specs;
 pub mod db_default_spec;
 pub mod db_default_specs;
 pub mod db_extended_table_schema;
+pub mod db_foreign_key_delete_action;
 pub mod db_key_contract_snapshot;
 pub mod db_key_contract_snapshots;
 pub mod db_key_spec;

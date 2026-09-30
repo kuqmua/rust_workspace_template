@@ -109,11 +109,13 @@ where
         .map(|key| match key {
             crate::db_key_spec::DbKeySpec::ForeignKey {
                 columns,
+                on_delete,
                 referenced_columns,
                 referenced_table,
             } => Ok(
                 crate::db_key_contract_snapshot::DbKeyContractSnapshot::ForeignKey {
                     columns: crate::static_schema_texts::static_schema_texts(columns)?,
+                    on_delete,
                     referenced_columns: crate::static_schema_texts::static_schema_texts(
                         referenced_columns,
                     )?,
@@ -163,6 +165,23 @@ where
             )?;
             match kind.as_str() {
                 constants_str::DB_CONSTRAINT_FOREIGN_KEY_SHORT => {
+                    let on_delete_code = sqlx::Row::try_get::<String, _>(
+                        &row,
+                        constants_str::DB_FOREIGN_KEY_ON_DELETE_COLUMN,
+                    )
+                    .map_err(|error| {
+                        crate::db_schema_conformance_error::DbSchemaConformanceError::Inspection(
+                            crate::sqlx_db_schema_inspection_error::SqlxDbSchemaInspectionError::from(error),
+                        )
+                    })?;
+                    let on_delete = match on_delete_code.as_bytes() {
+                        [b'a'] => crate::db_foreign_key_delete_action::DbForeignKeyDeleteAction::NoAction,
+                        [b'r'] => crate::db_foreign_key_delete_action::DbForeignKeyDeleteAction::Restrict,
+                        [b'c'] => crate::db_foreign_key_delete_action::DbForeignKeyDeleteAction::Cascade,
+                        [b'n'] => crate::db_foreign_key_delete_action::DbForeignKeyDeleteAction::SetNull,
+                        [b'd'] => crate::db_foreign_key_delete_action::DbForeignKeyDeleteAction::SetDefault,
+                        _ => return Err(crate::db_schema_conformance_error::DbSchemaConformanceError::UnknownForeignKeyDeleteAction),
+                    };
                     let referenced_columns = crate::schema_texts::schema_texts(
                         sqlx::Row::try_get::<Vec<String>, _>(
                             &row,
@@ -184,6 +203,7 @@ where
                     )?;
                     Ok(crate::db_key_contract_snapshot::DbKeyContractSnapshot::ForeignKey {
                         columns: columns.into(),
+                        on_delete,
                         referenced_columns: referenced_columns.into(),
                         referenced_table,
                     })

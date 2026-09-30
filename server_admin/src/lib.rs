@@ -319,6 +319,7 @@ pub mod settings_update;
 pub mod shared_admin_auth_svc_state_arc;
 pub mod shared_admin_generated_table_state_arc;
 pub mod sign_in;
+mod sign_in_error_response;
 pub mod sign_in_form;
 pub mod sign_in_page;
 pub mod sign_out;

@@ -16,7 +16,7 @@
     "create_exclude_fields": ["created_at"],
     "read_exclude_fields": ["token_identifier_hash", "csrf_token_hash", "token_context_hash"],
     "db_foreign_keys": [
-        {"columns": ["user_id"], "referenced_columns": ["id"], "referenced_table": "users"}
+        {"columns": ["user_id"], "on_delete": "Cascade", "referenced_columns": ["id"], "referenced_table": "users"}
     ],
     "db_unique_keys": [["token_identifier_hash"]],
     "rule_prefix": "access_sessions",

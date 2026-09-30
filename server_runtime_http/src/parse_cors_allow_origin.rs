@@ -31,25 +31,16 @@ pub fn parse_cors_allow_origin(
         .map(|origin| {
             let allowed_origin = crate::allowed_origin::AllowedOrigin::try_from(origin.to_owned())
                 .map_err(crate::http_cors_allow_origin_header_values_error::HttpCorsAllowOriginHeaderValuesError::from)?;
-            let default_port = if allowed_origin.scheme().get().eq_ignore_ascii_case(constants_str::HTTP) {
-                80u16
-            } else {
-                443u16
-            };
-            let configured_port = allowed_origin
-                .authority()
-                .get()
-                .rsplit_once(':')
-                .and_then(|(_host, port)| port.parse::<u16>().ok());
-            let normalized = origin.to_ascii_lowercase();
-            let normalized_origin = if configured_port == Some(default_port) {
-                normalized
-                    .rsplit_once(':')
-                    .map_or(normalized.as_str(), |(without_port, _port)| without_port)
-            } else {
-                normalized.as_str()
-            };
-            http::HeaderValue::try_from(normalized_origin)
+            let mut normalized = allowed_origin.scheme().get().to_ascii_lowercase();
+            normalized.push_str(constants_str::TEXT_ALT_10);
+            normalized.push_str(
+                allowed_origin
+                    .authority()
+                    .get()
+                    .to_ascii_lowercase()
+                    .as_str(),
+            );
+            http::HeaderValue::try_from(normalized)
                 .map_err(crate::http_cors_allow_origin_header_values_error::HttpCorsAllowOriginHeaderValuesError::from)
         })
         .collect::<Result<Vec<http::HeaderValue>, crate::http_cors_allow_origin_header_values_error::HttpCorsAllowOriginHeaderValuesError>>()?;

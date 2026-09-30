@@ -36,6 +36,8 @@ pub enum DbSchemaConformanceError {
     },
     #[error("PostgreSQL schema text exceeds the supported limit")]
     SchemaTextTooLong(crate::db_schema_text::DbSchemaTextTryFromStringError),
+    #[error("PostgreSQL returned an unsupported foreign-key delete action")]
+    UnknownForeignKeyDeleteAction,
     #[error("PostgreSQL returned an unsupported catalog object kind")]
     UnknownObjectKind,
 }

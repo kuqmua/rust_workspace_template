@@ -12,7 +12,9 @@ pub(crate) fn append_session_cookies(
             admin_auth_svc_state.get_access_ttl().get(),
         ),
         *admin_auth_svc_state.get_cookie_secure(),
-    );
+    )
+    .map_err(crate::admin_session_error::AdminSessionError::SecretText)
+    .map_err(crate::admin_error::AdminError::session)?;
     let csrf = crate::build_admin_cookie::build_admin_cookie(
         crate::admin_cookie_kind::AdminCookieKind::Csrf,
         server_admin_core::std_admin_str_ref::StdAdminStrRef::from(
@@ -22,7 +24,9 @@ pub(crate) fn append_session_cookies(
             admin_auth_svc_state.get_access_ttl().get(),
         ),
         *admin_auth_svc_state.get_cookie_secure(),
-    );
+    )
+    .map_err(crate::admin_session_error::AdminSessionError::SecretText)
+    .map_err(crate::admin_error::AdminError::session)?;
     [access, csrf].into_iter().try_for_each(|cookie| {
         http::HeaderValue::from_str(cookie.as_ref())
             .map(|header| {
@@ -45,7 +49,9 @@ pub(crate) fn append_session_cookies(
             admin_auth_svc_state.get_refresh_ttl().get(),
         ),
         *admin_auth_svc_state.get_cookie_secure(),
-    );
+    )
+    .map_err(crate::admin_session_error::AdminSessionError::SecretText)
+    .map_err(crate::admin_error::AdminError::session)?;
     http::HeaderValue::from_str(refresh.as_ref())
         .map(|header| {
             axum_admin_response

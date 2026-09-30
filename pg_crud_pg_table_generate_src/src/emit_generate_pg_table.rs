@@ -330,6 +330,7 @@ pub fn emit_generate_pg_table(
         columns: UsizeGeneratePgTableDbColumns,
         referenced_columns: UsizeGeneratePgTableDbColumns,
         referenced_table: String,
+        on_delete: pg_crud_common::db_foreign_key_delete_action::DbForeignKeyDeleteAction,
     }
     #[derive(Debug, serde::Deserialize, proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
     struct GeneratePgTableReadPageConfig {
@@ -10161,11 +10162,29 @@ enum WrapIntoOptional {
                 .map(generate_quotes::dq_token_stream::dq_token_stream);
             let referenced_table_token_stream =
                 generate_quotes::dq_token_stream::dq_token_stream(&foreign_key.referenced_table);
+            let on_delete_token_stream = match foreign_key.on_delete {
+                pg_crud_common::db_foreign_key_delete_action::DbForeignKeyDeleteAction::Cascade => {
+                    quote::quote! {pg_crud_common::db_foreign_key_delete_action::DbForeignKeyDeleteAction::Cascade}
+                }
+                pg_crud_common::db_foreign_key_delete_action::DbForeignKeyDeleteAction::NoAction => {
+                    quote::quote! {pg_crud_common::db_foreign_key_delete_action::DbForeignKeyDeleteAction::NoAction}
+                }
+                pg_crud_common::db_foreign_key_delete_action::DbForeignKeyDeleteAction::Restrict => {
+                    quote::quote! {pg_crud_common::db_foreign_key_delete_action::DbForeignKeyDeleteAction::Restrict}
+                }
+                pg_crud_common::db_foreign_key_delete_action::DbForeignKeyDeleteAction::SetDefault => {
+                    quote::quote! {pg_crud_common::db_foreign_key_delete_action::DbForeignKeyDeleteAction::SetDefault}
+                }
+                pg_crud_common::db_foreign_key_delete_action::DbForeignKeyDeleteAction::SetNull => {
+                    quote::quote! {pg_crud_common::db_foreign_key_delete_action::DbForeignKeyDeleteAction::SetNull}
+                }
+            };
             quote::quote! {
                 pg_crud_common::db_key_spec::DbKeySpec::ForeignKey {
                     columns: vec![
                         #(pg_crud_common::db_static_schema_text::DbStaticSchemaText::from(#column_token_stream)),*
                     ].into(),
+                    on_delete: #on_delete_token_stream,
                     referenced_columns: vec![
                         #(pg_crud_common::db_static_schema_text::DbStaticSchemaText::from(#referenced_column_token_stream)),*
                     ].into(),

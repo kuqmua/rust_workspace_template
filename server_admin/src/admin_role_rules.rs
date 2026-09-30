@@ -15,8 +15,8 @@
     "db_table_name": "role_rules",
     "create_exclude_fields": ["created_at"],
     "db_foreign_keys": [
-        {"columns": ["role_id"], "referenced_columns": ["id"], "referenced_table": "roles"},
-        {"columns": ["rule_id"], "referenced_columns": ["id"], "referenced_table": "rules"}
+        {"columns": ["role_id"], "on_delete": "Cascade", "referenced_columns": ["id"], "referenced_table": "roles"},
+        {"columns": ["rule_id"], "on_delete": "Cascade", "referenced_columns": ["id"], "referenced_table": "rules"}
     ],
     "db_unique_keys": [["role_id", "rule_id"]],
     "rule_prefix": "role_rules",

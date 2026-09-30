@@ -55,15 +55,19 @@ mod tests {
         ];
         assert!(cases.into_iter().all(|(origin, port)| {
             let configured = format!("{origin}:{port}");
-            let allowed = crate::allowed_origins::AllowedOrigins::try_from(vec![configured]);
+            let parsed_allowed_origins =
+                crate::allowed_origins::AllowedOrigins::try_from(vec![configured]);
             let mut headers = http::HeaderMap::new();
-            let _previous = headers.insert(http::header::ORIGIN, http::HeaderValue::from_static(origin));
-            allowed.map(|allowed| bool::from(
-                crate::resolve_request_origin_allowed::resolve_request_origin_allowed(
-                    crate::http_origin_headers_ref::HttpOriginHeadersRef::from(&headers),
-                    &allowed,
+            let _previous =
+                headers.insert(http::header::ORIGIN, http::HeaderValue::from_static(origin));
+            parsed_allowed_origins.is_ok_and(|allowed_origins| {
+                bool::from(
+                    crate::resolve_request_origin_allowed::resolve_request_origin_allowed(
+                        crate::http_origin_headers_ref::HttpOriginHeadersRef::from(&headers),
+                        &allowed_origins,
+                    ),
                 )
-            )) == Ok(true)
+            })
         }));
     }
 

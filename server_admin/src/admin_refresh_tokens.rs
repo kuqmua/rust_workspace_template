@@ -14,9 +14,9 @@
     "api_mode": "ReadOnly",
     "db_table_name": "refresh_tokens",
     "create_exclude_fields": ["created_at"],
-    "read_exclude_fields": ["token_hash"],
+    "read_exclude_fields": ["token_hash", "session_id"],
     "db_foreign_keys": [
-        {"columns": ["user_id"], "referenced_columns": ["id"], "referenced_table": "users"}
+        {"columns": ["user_id"], "on_delete": "Cascade", "referenced_columns": ["id"], "referenced_table": "users"}
     ],
     "db_unique_keys": [["token_hash"]],
     "rule_prefix": "refresh_tokens",
@@ -29,6 +29,8 @@ pub struct AdminRefreshTokens {
     #[generate_pg_table_primary_key]
     id: pg_types_text_misc::generate_pg_types_mod::SqlxTypesUuidUuidAsNonNullUuidV4InitializationByPg,
     user_id: pg_types_numeric::generate_pg_types_mod::I64AsNonNullInt8,
+    session_id:
+        pg_types_text_misc::generate_pg_types_mod::OptionalSqlxTypesUuidUuidAsNullableUuidInitializationByClient,
     token_hash: pg_types_text_misc::generate_pg_types_mod::StringAsNonNullText,
     expires_at:
         pg_types_chrono_net::generate_pg_types_mod::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsNonNullTimestampTz,

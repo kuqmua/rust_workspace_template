@@ -2,7 +2,7 @@
 
 Scope: every workspace package and Rust source module. Inventory date: 2026-09-29.
 
-Inventory: 191 packages; 3229 Rust source files.
+Inventory: 191 packages; 3231 Rust source files.
 
 ## Status definitions
 
@@ -180,6 +180,16 @@ Passing workspace tests and policy checks does not establish complete semantic c
 | A164 | Fixed and verified | server_runtime_http/src/request_id.rs, server_runtime_http/src/test_tests_domain_types_request_id.rs | RequestId accepted ASCII control bytes, including tab and line breaks. Client supplied IDs can flow into response headers and tracing fields. The deterministic control-byte regression failed before the change and passes now; conversion rejects all ASCII control bytes. |
 | A165 | Fixed and verified | server_runtime_http/src/outbound_allowed_host.rs, server_runtime_http/src/test_outbound_url_tests.rs | Allowlist parsing accepted host:port entries even though validation compares the entry with the URL host alone, so a configured port could never match. It also retained expanded bracketed IPv6 spelling while URL parsing compresses the same address. Both regressions failed before their fixes and pass now. The parser rejects ports and canonicalizes bracketed IPv6 hosts. |
 | A166 | Fixed and verified | server_runtime_http/src/outbound_allowed_host.rs, server_runtime_http/src/test_outbound_url_tests.rs | Numeric host aliases such as a hexadecimal IPv4 address were accepted as allowlist entries even though URL parsing rewrites them to a different host string, so exact matching could never succeed. The deterministic alias regression failed before the fix and passes now. Non-IPv6 allowlist entries must retain their host spelling through URL parsing. |
+| A167 | Fixed and verified | server_runtime_http/src/allowed_origin.rs, server_runtime_http/src/parse_cors_allow_origin.rs, server_runtime_http/src/test_origin_tests.rs | CSRF Origin matching compared raw authority text, so a configured origin with HTTP port 80 or HTTPS port 443 did not match the equivalent browser Origin value without a port. The deterministic two-scheme regression failed before the fix and passes now. Configured authorities are validated before their default ports are removed, and CORS uses that same normalized authority. |
+| A168 | Fixed and verified | server_admin/src/sign_in.rs, server_admin/src/sign_in_error_response.rs | HTML sign-in rendered every authentication failure with HTTP 401, including rate limiting and internal failures. The handler now preserves the status from the existing typed AdminError response while rendering its generic sign-in page. Deterministic unit regressions cover rate limiting and bad credentials. Full Clippy, all 306 code-style tests, and workspace tests pass; logs: `/tmp/a168_clippy.log`, `/tmp/a168_code_style.log`, `/tmp/a168_workspace.log`. |
+| A169 | Fixed and verified | server_admin/src/build_admin_cookie.rs, server_admin/src/clear_admin_cookie.rs, server_admin/src/append_session_cookies.rs, server_admin/src/append_cleared_session_cookies.rs, server_admin/src/admin_secret_text_error.rs, server_admin/src/test_tests_domain_types.rs | An oversized value made the cookie builder return a validation diagnostic as a cookie string. The regression failed before the fix. Cookie construction now returns a typed error, and response callers propagate failures as internal session errors. The public builder and clear-cookie return types intentionally change to Result. Full Clippy, all 306 code-style tests, and workspace tests pass; logs: `/tmp/a169_clippy.log`, `/tmp/a169_code_style.log`, `/tmp/a169_workspace.log`. |
+| A170 | Fixed and verified | server_admin_migrations/0005_refresh_token_sessions.sql, server_admin/schema/current_schema.snapshot, server_admin/src/create_session_in_connection.rs, server_admin/src/revoke_access_session.rs, server_admin/src/api_delete_access_sessions.rs, server_admin/src/admin_refresh_tokens.rs, server_admin/tests/admin_api.rs, constants_str/src/lib.rs | Refresh tokens lacked an access-session link, so revoking an individual session or deleting a filtered access session left its refresh token usable. An ignored PostgreSQL regression failed before the fix (`/tmp/a170_before.log`) and passes after (`/tmp/a170_after.log`). Migration 0005 adds the session ID, revokes existing unlinked tokens, and requires every active token to have a session ID. New refresh tokens store their session ID; individual and filtered revocation update matching refresh tokens in the same transaction. Provisioned tests cover individual revocation, filtered deletion, sign-out without a refresh cookie, migration snapshot, and the full 26-test admin PostgreSQL suite (`/tmp/a170_filtered_after.log`, `/tmp/a170_signout_after.log`, `/tmp/a170_schema_final.log`, `/tmp/a170_admin_db_final.log`). Formatting, full Clippy, all 306 code-style tests, and workspace tests pass (`/tmp/a170_clippy_final.log`, `/tmp/a170_style_final.log`, `/tmp/a170_workspace_verified.log`). |
+| A171 | Fixed and verified | server_admin/src/account_change_own_password.rs, server_admin/tests/admin_api.rs, constants_str/src/lib.rs | Own-password changes verified the current hash before opening a transaction, then updated by user ID without checking that the verified hash was still current. A deterministic PostgreSQL stale-hash update regression failed with the unconditional behavior (`/tmp/a171_before.log`) and passes with a conditional update (`/tmp/a171_after.log`). The update now returns Conflict if the hash changed after verification, preventing an older request from overwriting a concurrent password change or reset. All 26 provisioned admin PostgreSQL tests pass (`/tmp/a171_admin_db.log`). Formatting, full Clippy, all 306 code-style tests, and workspace tests pass (`/tmp/a171_clippy.log`, `/tmp/a171_style.log`, `/tmp/a171_workspace.log`). |
+| A172 | Fixed and verified | pg_crud_common/src/cursor_signing_key.rs, constants_str/src/lib.rs | CursorSigningKey accepted a one-byte HMAC key, leaving only 256 possible keys. A deterministic 31-byte rejection regression failed before the fix and passes after it. Key construction now requires 32 through 4096 bytes, and the error message matches the bound. Formatting, full Clippy, code-style tests, workspace tests, and diff check pass (`/tmp/a172_clippy.log`, `/tmp/a172_style.log`, `/tmp/a172_workspace.log`). |
+| A173 | Fixed and verified | pg_crud_common/src/unsigned_part_of_i32.rs, pg_crud_common/src/not_zero_unsigned_part_of_i32.rs | Generated infallible `From<NonZeroI32>` conversions accepted negative values into both unsigned wrappers, bypassing their validated `TryFrom<i32>` paths. Both conversions now use `TryFrom<NonZeroI32>` and reuse the existing validation errors. The positive `NonZeroU16` conversion remains infallible, and internal conversions use the validated nonzero wrapper. Unit tests cover negative and positive nonzero inputs. This intentionally corrects the public conversion API. Formatting, full Clippy, all 306 code-style tests, workspace tests, and diff check pass (`/tmp/a173_clippy_final.log`, `/tmp/a173_style_final.log`, `/tmp/a173_workspace_final.log`). |
+| A174 | Fixed and verified | pg_crud_common/src/validate_generated_postgres_table.rs, pg_crud_common/src/db_key_spec.rs, pg_crud_common/src/db_key_contract_snapshot.rs, pg_crud_common/src/db_foreign_key_delete_action.rs, pg_crud_pg_table_generate_src/src/emit_generate_pg_table.rs, server_admin/src/admin_* table descriptors, server_admin/tests/admin_api.rs, constants_str/src/lib.rs | The generated foreign-key descriptor and observed key snapshot compared columns and referenced table but omitted the delete action. The descriptor now requires a typed expected action, and the catalog query reads `confdeltype`; all five PostgreSQL actions map to typed variants, with unknown codes rejected. The five admin table descriptors declare their migration's `CASCADE` action. A provisioned regression changes an `access_sessions` foreign key to `RESTRICT` and verifies `KeyContractMismatch` (`/tmp/a174_db.log`). All 26 admin PostgreSQL tests pass in a fresh test database (`/tmp/a174_admin_db_fresh.log`). Formatting, full Clippy, all 306 code-style tests, workspace tests, and diff check pass (`/tmp/a174_clippy_final.log`, `/tmp/a174_style_final.log`, `/tmp/a174_workspace_final.log`). |
+| A175 | Fixed and verified | server_admin/src/validate_catalog_schema.rs, server_admin/tests/admin_api.rs, constants_str/src/lib.rs | The administrator catalog validator skipped `permission_resource_actions` even though it has a complete generated table descriptor. It now validates that table. A provisioned regression removes `NOT NULL` from `permission_action_id` and verifies `ColumnContractMismatch`, then restores the constraint before the next schema test (`/tmp/a175_focused.log`). All 26 admin PostgreSQL tests pass (`/tmp/a175_admin_db.log`). Formatting, full Clippy, all 306 code-style tests, workspace tests, and diff check pass (`/tmp/a175_clippy.log`, `/tmp/a175_style.log`, `/tmp/a175_workspace.log`). The remaining skips refer to two views and the `rules` descriptor, which does not currently represent the complete table. |
+| A176 | Fixed and verified | pg_crud_common/src/inspect_postgres_table.rs, constants_str/src/lib.rs, server_admin/tests/admin_api.rs | The constraint query joined PostgreSQL constraints by name and schema without joining their owning table. Two tables may use the same CHECK name: an isolated PostgreSQL reproduction returned two rows for one table. The migration regression adds a CHECK with the same name to `roles`; the `rules` snapshot changed before the fix (`/tmp/a176_before.log`) and remains stable after the join includes `pg_class` and the inspected table name (`/tmp/a176_after.log`). All 26 admin PostgreSQL tests pass (`/tmp/a176_admin_db.log`). Formatting, full Clippy, all 306 code-style tests, workspace tests, and diff check pass (`/tmp/a176_clippy.log`, `/tmp/a176_style.log`, `/tmp/a176_workspace.log`). |
 
 Candidate rows are not confirmed bugs. Confirmed queued findings have a reproduction and await a fix; resolve each candidate with a reproduction or a documented dismissal.
 
@@ -1362,9 +1372,9 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 | `pg_crud_common/src/bounded_unique_vec_visitor_phantom_data.rs` | Reviewed: bounded preallocation, duplicate detection, and excess-item deserialization behavior inspected. |
 | `pg_crud_common/src/bounded_vec_error.rs` | Pending |
 | `pg_crud_common/src/build_date_sql_filter.rs` | Reviewed: bound order, emitted values, final representable bind index, and overflow behavior; A132. |
-| `pg_crud_common/src/build_pg_scoped_foreign_key_clause.rs` | Pending |
-| `pg_crud_common/src/build_sql_like_pattern.rs` | Pending |
-| `pg_crud_common/src/build_stable_read_query_plan.rs` | Pending |
+| `pg_crud_common/src/build_pg_scoped_foreign_key_clause.rs` | Reviewed: bounded clause construction, column lists, and delete actions inspected. |
+| `pg_crud_common/src/build_sql_like_pattern.rs` | Reviewed: match-mode wildcards, reserved character escaping, and bounded result inspected. |
+| `pg_crud_common/src/build_stable_read_query_plan.rs` | Reviewed: stable sort, bind index formatting, and bounded fragment propagation inspected. |
 | `pg_crud_common/src/bulk_mutation_outcome.rs` | Pending |
 | `pg_crud_common/src/chrono_utc_date_time_ref.rs` | Pending |
 | `pg_crud_common/src/chrono_utc_date_times.rs` | Pending |
@@ -1373,52 +1383,53 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 | `pg_crud_common/src/classify_slice_ordering.rs` | Reviewed: increasing, duplicate, and descending transitions inspected. |
 | `pg_crud_common/src/contains_duplicate_identifier.rs` | Reviewed: pairwise identifier duplicate detection inspected. |
 | `pg_crud_common/src/cursor_codec.rs` | Reviewed: version, length, signature verification, UTF-8 decode, and round-trip tests inspected. |
-| `pg_crud_common/src/cursor_codec_build_error.rs` | Pending |
-| `pg_crud_common/src/cursor_decode_error.rs` | Pending |
-| `pg_crud_common/src/cursor_encode_error.rs` | Pending |
-| `pg_crud_common/src/cursor_maximum_length.rs` | Pending |
-| `pg_crud_common/src/cursor_pagination_usage.rs` | Pending |
+| `pg_crud_common/src/cursor_codec_build_error.rs` | Reviewed: zero maximum-length diagnostic inspected. |
+| `pg_crud_common/src/cursor_decode_error.rs` | Reviewed: decode failure variants and diagnostics inspected. |
+| `pg_crud_common/src/cursor_encode_error.rs` | Reviewed: encode failure variants and diagnostics inspected. |
+| `pg_crud_common/src/cursor_maximum_length.rs` | Reviewed: nonzero conversion and zero rejection inspected. |
+| `pg_crud_common/src/cursor_pagination_usage.rs` | Reviewed: all offset/cursor presence combinations inspected. |
 | `pg_crud_common/src/cursor_payload.rs` | Reviewed: empty, oversized, and bounded-storage conversion paths; A133. |
 | `pg_crud_common/src/cursor_payload_error.rs` | Reviewed: distinct empty and oversized errors; A133. |
-| `pg_crud_common/src/cursor_signing_key.rs` | Pending |
-| `pg_crud_common/src/cursor_signing_key_error.rs` | Pending |
-| `pg_crud_common/src/cursor_signing_key_maximum_length.rs` | Pending |
-| `pg_crud_common/src/data_invariant_violation.rs` | Pending |
-| `pg_crud_common/src/date_filter_bounds.rs` | Pending |
+| `pg_crud_common/src/cursor_signing_key.rs` | Reviewed: key length validation, redacted Debug, and rejection tests inspected; A172. |
+| `pg_crud_common/src/cursor_signing_key_error.rs` | Reviewed: bounded key-length diagnostic inspected; A172. |
+| `pg_crud_common/src/cursor_signing_key_maximum_length.rs` | Reviewed: key-length upper bound inspected; A172. |
+| `pg_crud_common/src/data_invariant_violation.rs` | Reviewed: pagination and bulk invariant variants inspected. |
+| `pg_crud_common/src/date_filter_bounds.rs` | Reviewed: optional date-bound storage and generated getters inspected. |
 | `pg_crud_common/src/date_sql_bind_start_non_zero_u32.rs` | Pending |
-| `pg_crud_common/src/date_sql_filter.rs` | Pending |
+| `pg_crud_common/src/date_sql_filter.rs` | Reviewed: owned filter fragment, bind values, and into_parts transfer inspected. |
 | `pg_crud_common/src/date_sql_filter_error.rs` | Pending |
-| `pg_crud_common/src/db_catalog_snapshot.rs` | Pending |
-| `pg_crud_common/src/db_column_contract_snapshot.rs` | Pending |
-| `pg_crud_common/src/db_column_contract_snapshots.rs` | Pending |
-| `pg_crud_common/src/db_column_has_server_default.rs` | Pending |
-| `pg_crud_common/src/db_column_nullable.rs` | Pending |
-| `pg_crud_common/src/db_column_snapshot.rs` | Pending |
-| `pg_crud_common/src/db_column_snapshots.rs` | Pending |
-| `pg_crud_common/src/db_column_spec.rs` | Pending |
-| `pg_crud_common/src/db_column_specs.rs` | Pending |
-| `pg_crud_common/src/db_default_spec.rs` | Pending |
-| `pg_crud_common/src/db_default_specs.rs` | Pending |
-| `pg_crud_common/src/db_extended_table_schema.rs` | Pending |
-| `pg_crud_common/src/db_key_contract_snapshot.rs` | Pending |
-| `pg_crud_common/src/db_key_contract_snapshots.rs` | Pending |
-| `pg_crud_common/src/db_key_spec.rs` | Pending |
-| `pg_crud_common/src/db_key_specs.rs` | Pending |
-| `pg_crud_common/src/db_object_kind.rs` | Pending |
-| `pg_crud_common/src/db_object_snapshot.rs` | Pending |
-| `pg_crud_common/src/db_object_snapshots.rs` | Pending |
-| `pg_crud_common/src/db_object_spec.rs` | Pending |
-| `pg_crud_common/src/db_object_specs.rs` | Pending |
-| `pg_crud_common/src/db_schema_conformance_error.rs` | Pending |
-| `pg_crud_common/src/db_schema_name_ref.rs` | Pending |
-| `pg_crud_common/src/db_schema_text.rs` | Pending |
-| `pg_crud_common/src/db_schema_texts.rs` | Pending |
-| `pg_crud_common/src/db_static_schema_text.rs` | Pending |
-| `pg_crud_common/src/db_static_schema_texts.rs` | Pending |
-| `pg_crud_common/src/db_table_name_ref.rs` | Pending |
-| `pg_crud_common/src/db_table_schema.rs` | Pending |
-| `pg_crud_common/src/db_table_snapshot.rs` | Pending |
-| `pg_crud_common/src/deduplicate_preserving_order_by_key.rs` | Pending |
+| `pg_crud_common/src/db_catalog_snapshot.rs` | Reviewed: object ordering and mismatch construction inspected. |
+| `pg_crud_common/src/db_column_contract_snapshot.rs` | Reviewed: typed column contract fields and comparison traits inspected. |
+| `pg_crud_common/src/db_column_contract_snapshots.rs` | Reviewed: ordered column contract collection inspected. |
+| `pg_crud_common/src/db_column_has_server_default.rs` | Reviewed: server-default flag wrapper inspected. |
+| `pg_crud_common/src/db_column_nullable.rs` | Reviewed: nullable flag wrapper inspected. |
+| `pg_crud_common/src/db_column_snapshot.rs` | Reviewed: typed name, type, nullability, and default fields inspected. |
+| `pg_crud_common/src/db_column_snapshots.rs` | Reviewed: ordered column snapshot collection inspected. |
+| `pg_crud_common/src/db_column_spec.rs` | Reviewed: typed column descriptor fields inspected. |
+| `pg_crud_common/src/db_column_specs.rs` | Reviewed: column descriptor collection inspected. |
+| `pg_crud_common/src/db_default_spec.rs` | Reviewed: default expression descriptor fields inspected. |
+| `pg_crud_common/src/db_default_specs.rs` | Reviewed: exact-default descriptor collection inspected. |
+| `pg_crud_common/src/db_extended_table_schema.rs` | Reviewed: default, check, and index descriptor interface inspected. |
+| `pg_crud_common/src/db_foreign_key_delete_action.rs` | Reviewed: typed PostgreSQL foreign-key delete actions; A174. |
+| `pg_crud_common/src/db_key_contract_snapshot.rs` | Reviewed: key contract variants and typed foreign-key delete action; A174. |
+| `pg_crud_common/src/db_key_contract_snapshots.rs` | Reviewed: ordered key contract collection inspected. |
+| `pg_crud_common/src/db_key_spec.rs` | Reviewed: key descriptor variants and typed foreign-key delete action; A174. |
+| `pg_crud_common/src/db_key_specs.rs` | Reviewed: key descriptor collection inspected. |
+| `pg_crud_common/src/db_object_kind.rs` | Reviewed: catalog object categories inspected. |
+| `pg_crud_common/src/db_object_snapshot.rs` | Reviewed: typed object fields and comparison traits inspected. |
+| `pg_crud_common/src/db_object_snapshots.rs` | Reviewed: ordered catalog object collection inspected. |
+| `pg_crud_common/src/db_object_spec.rs` | Reviewed: name, kind, and definition descriptor fields inspected. |
+| `pg_crud_common/src/db_object_specs.rs` | Reviewed: object descriptor collection inspected. |
+| `pg_crud_common/src/db_schema_conformance_error.rs` | Reviewed: typed mismatch, inspection, and size errors inspected. |
+| `pg_crud_common/src/db_schema_name_ref.rs` | Reviewed: borrowed schema name parameter inspected. |
+| `pg_crud_common/src/db_schema_text.rs` | Reviewed: bounded schema text conversion inspected. |
+| `pg_crud_common/src/db_schema_texts.rs` | Reviewed: owned schema text collection inspected. |
+| `pg_crud_common/src/db_static_schema_text.rs` | Reviewed: static schema text wrapper inspected. |
+| `pg_crud_common/src/db_static_schema_texts.rs` | Reviewed: static schema text collection inspected. |
+| `pg_crud_common/src/db_table_name_ref.rs` | Reviewed: borrowed table name parameter inspected. |
+| `pg_crud_common/src/db_table_schema.rs` | Reviewed: column, key, and exclusion descriptor interface inspected. |
+| `pg_crud_common/src/db_table_snapshot.rs` | Reviewed: column and object ordering plus typed mismatch inspected. |
+| `pg_crud_common/src/deduplicate_preserving_order_by_key.rs` | Reviewed: first-key retention and order preservation inspected. |
 | `pg_crud_common/src/default_some_one_element.rs` | Pending |
 | `pg_crud_common/src/default_some_one_element_max_page_size.rs` | Pending |
 | `pg_crud_common/src/domain_types.rs` | Pending |
@@ -1429,7 +1440,7 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 | `pg_crud_common/src/explicit_value.rs` | Reviewed: generic value schema, item registration, distinct component names, and serialized field alignment; A136, A138, A140. |
 | `pg_crud_common/src/f32_test_cases_vec.rs` | Pending |
 | `pg_crud_common/src/f64_test_cases_vec.rs` | Pending |
-| `pg_crud_common/src/filter_bind_plan.rs` | Pending |
+| `pg_crud_common/src/filter_bind_plan.rs` | Reviewed: typed bind order and push methods inspected. |
 | `pg_crud_common/src/finite_f64.rs` | Pending |
 | `pg_crud_common/src/finite_f64_error.rs` | Pending |
 | `pg_crud_common/src/first_duplicate_index.rs` | Pending |
@@ -1439,8 +1450,8 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 | `pg_crud_common/src/i64_test_cases_vec.rs` | Pending |
 | `pg_crud_common/src/i8_test_cases_vec.rs` | Pending |
 | `pg_crud_common/src/increment_checked_add_one_returning_increment.rs` | Pending |
-| `pg_crud_common/src/inspect_postgres_catalog.rs` | Pending |
-| `pg_crud_common/src/inspect_postgres_table.rs` | Pending |
+| `pg_crud_common/src/inspect_postgres_catalog.rs` | Reviewed: typed catalog row conversion, object-kind classification, and bounded snapshots inspected. |
+| `pg_crud_common/src/inspect_postgres_table.rs` | Reviewed: typed column, constraint, and index snapshots inspected; duplicate constraint-name join fixed in A176. |
 | `pg_crud_common/src/is_string_empty.rs` | Pending |
 | `pg_crud_common/src/is_string_empty_result.rs` | Pending |
 | `pg_crud_common/src/lib.rs` | Pending |
@@ -1461,7 +1472,7 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 | `pg_crud_common/src/not_empty_unique_vec.rs` | Focused review: generic array schema, item registration, distinct component names, and nonempty Default; A136, A138-A139. |
 | `pg_crud_common/src/not_empty_unique_vec_max_len.rs` | Pending |
 | `pg_crud_common/src/not_empty_unique_vec_try_new_error.rs` | Pending |
-| `pg_crud_common/src/not_zero_unsigned_part_of_i32.rs` | Pending |
+| `pg_crud_common/src/not_zero_unsigned_part_of_i32.rs` | Reviewed: validated nonzero conversions, database encoding, and default value inspected; A173. |
 | `pg_crud_common/src/not_zero_unsigned_part_of_i32_try_from_i32_error.rs` | Pending |
 | `pg_crud_common/src/nullable_json_obj_pg_type_where_filter.rs` | Focused review: SQL fragment length error propagation; A137. |
 | `pg_crud_common/src/offset_pagination_presence.rs` | Pending |
@@ -1481,7 +1492,7 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 | `pg_crud_common/src/pagination_base.rs` | Pending |
 | `pg_crud_common/src/pagination_end.rs` | Pending |
 | `pg_crud_common/src/pagination_limit.rs` | Pending |
-| `pg_crud_common/src/pagination_offset.rs` | Pending |
+| `pg_crud_common/src/pagination_offset.rs` | Reviewed: signed offset wrapper inspected with validating PaginationStartsWithZero conversion. |
 | `pg_crud_common/src/pagination_policy.rs` | Pending |
 | `pg_crud_common/src/pagination_start.rs` | Pending |
 | `pg_crud_common/src/pagination_starts_with_zero.rs` | Pending |
@@ -1491,35 +1502,35 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 | `pg_crud_common/src/patch_field.rs` | Pending |
 | `pg_crud_common/src/pg_bounded_b_tree_map.rs` | Pending |
 | `pg_crud_common/src/pg_bounded_vec.rs` | Reviewed: inclusive bounds, serde validation, JSON/OpenAPI schema bounds, distinct component names, and item schema registration; A134-A135, A138. |
-| `pg_crud_common/src/pg_bounded_vec_len.rs` | Pending |
+| `pg_crud_common/src/pg_bounded_vec_len.rs` | Reviewed: usize length wrapper and conversions inspected. |
 | `pg_crud_common/src/pg_column_schema.rs` | Pending |
-| `pg_crud_common/src/pg_counter_reconciliation.rs` | Pending |
-| `pg_crud_common/src/pg_counter_value.rs` | Pending |
+| `pg_crud_common/src/pg_counter_reconciliation.rs` | Reviewed: reconciliation variants inspected. |
+| `pg_crud_common/src/pg_counter_value.rs` | Reviewed: counter value wrapper inspected. |
 | `pg_crud_common/src/pg_crud_string_wrapper_max_len.rs` | Pending |
 | `pg_crud_common/src/pg_crud_string_wrapper_try_from_string_error.rs` | Pending |
 | `pg_crud_common/src/pg_duplicate_identifier_presence.rs` | Pending |
 | `pg_crud_common/src/pg_error_kind.rs` | Pending |
-| `pg_crud_common/src/pg_filter_bind_value.rs` | Pending |
-| `pg_crud_common/src/pg_filter_bool.rs` | Pending |
-| `pg_crud_common/src/pg_filter_i64.rs` | Pending |
-| `pg_crud_common/src/pg_filter_text.rs` | Pending |
-| `pg_crud_common/src/pg_filter_text_error.rs` | Pending |
+| `pg_crud_common/src/pg_filter_bind_value.rs` | Reviewed: typed filter bind variants inspected. |
+| `pg_crud_common/src/pg_filter_bool.rs` | Reviewed: boolean filter wrapper inspected. |
+| `pg_crud_common/src/pg_filter_i64.rs` | Reviewed: integer filter wrapper inspected. |
+| `pg_crud_common/src/pg_filter_text.rs` | Reviewed: bounded filter text conversion inspected. |
+| `pg_crud_common/src/pg_filter_text_error.rs` | Reviewed: bounded text error source inspected. |
 | `pg_crud_common/src/pg_is_primary_key.rs` | Pending |
-| `pg_crud_common/src/pg_operational_limit.rs` | Pending |
-| `pg_crud_common/src/pg_operational_limit_error.rs` | Pending |
-| `pg_crud_common/src/pg_operational_limit_update_authority.rs` | Pending |
-| `pg_crud_common/src/pg_relation_capacity_error.rs` | Pending |
-| `pg_crud_common/src/pg_relation_capacity_maximum.rs` | Pending |
+| `pg_crud_common/src/pg_operational_limit.rs` | Reviewed: nonzero limit validation inspected. |
+| `pg_crud_common/src/pg_operational_limit_error.rs` | Reviewed: limit errors inspected. |
+| `pg_crud_common/src/pg_operational_limit_update_authority.rs` | Reviewed: update authority cases inspected. |
+| `pg_crud_common/src/pg_relation_capacity_error.rs` | Reviewed: capacity errors inspected. |
+| `pg_crud_common/src/pg_relation_capacity_maximum.rs` | Reviewed: nonzero maximum validation inspected. |
 | `pg_crud_common/src/pg_relation_lock_error.rs` | Pending |
-| `pg_crud_common/src/pg_relation_lock_namespace.rs` | Pending |
-| `pg_crud_common/src/pg_relation_resource_id.rs` | Pending |
-| `pg_crud_common/src/pg_relation_resource_ids.rs` | Pending |
-| `pg_crud_common/src/pg_relation_row_count.rs` | Pending |
-| `pg_crud_common/src/pg_scoped_foreign_key.rs` | Pending |
-| `pg_crud_common/src/pg_scoped_foreign_key_clause_text.rs` | Pending |
-| `pg_crud_common/src/pg_scoped_foreign_key_error.rs` | Pending |
-| `pg_crud_common/src/pg_scoped_foreign_key_on_delete.rs` | Pending |
-| `pg_crud_common/src/pg_sql_identifiers.rs` | Pending |
+| `pg_crud_common/src/pg_relation_lock_namespace.rs` | Reviewed: URL-safe namespace validation inspected. |
+| `pg_crud_common/src/pg_relation_resource_id.rs` | Reviewed: resource identifier wrapper inspected. |
+| `pg_crud_common/src/pg_relation_resource_ids.rs` | Reviewed: sorting and deduplication before locking inspected. |
+| `pg_crud_common/src/pg_relation_row_count.rs` | Reviewed: row-count wrapper inspected. |
+| `pg_crud_common/src/pg_scoped_foreign_key.rs` | Reviewed: column counts, duplicate checks, and referenced target inspected. |
+| `pg_crud_common/src/pg_scoped_foreign_key_clause_text.rs` | Reviewed: bounded clause storage inspected. |
+| `pg_crud_common/src/pg_scoped_foreign_key_error.rs` | Reviewed: foreign-key errors inspected. |
+| `pg_crud_common/src/pg_scoped_foreign_key_on_delete.rs` | Reviewed: delete actions inspected. |
+| `pg_crud_common/src/pg_sql_identifiers.rs` | Reviewed: identifier collection wrapper inspected. |
 | `pg_crud_common/src/pg_type.rs` | Focused review: A147 makes table-column SQL generation fallible. Other trait contracts remain pending. |
 | `pg_crud_common/src/pg_type_eq_operator.rs` | Pending |
 | `pg_crud_common/src/pg_type_greater_than_test.rs` | Pending |
@@ -1530,25 +1541,25 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 | `pg_crud_common/src/pg_type_test_cases.rs` | Pending |
 | `pg_crud_common/src/pg_type_where.rs` | Focused review: value/operator schema registration, SQL fragment length error propagation, and distinct component names; A136-A138. |
 | `pg_crud_common/src/pg_type_where_filter.rs` | Pending |
-| `pg_crud_common/src/positive_finite_f64.rs` | Pending |
-| `pg_crud_common/src/positive_finite_f64_error.rs` | Pending |
-| `pg_crud_common/src/push_identifier_list.rs` | Pending |
+| `pg_crud_common/src/positive_finite_f64.rs` | Reviewed: finite positive validation inspected. |
+| `pg_crud_common/src/positive_finite_f64_error.rs` | Reviewed: positive finite errors inspected. |
+| `pg_crud_common/src/push_identifier_list.rs` | Reviewed: bounded identifier list append inspected. |
 | `pg_crud_common/src/query_part_error.rs` | Focused review: A147 adds error-text conversion for generated table setup errors. Other variants remain pending. |
 | `pg_crud_common/src/query_part_fragment.rs` | Reviewed: bounded writes reject overflow before mutation; allocation-free bind-index digit emission checks arithmetic and bounds; A05 diagnostic conversion. |
-| `pg_crud_common/src/query_part_increment.rs` | Pending |
-| `pg_crud_common/src/query_part_increment_mut.rs` | Pending |
-| `pg_crud_common/src/query_sort_order.rs` | Pending |
-| `pg_crud_common/src/read_query_bind_index_non_zero_u32.rs` | Pending |
-| `pg_crud_common/src/read_query_plan.rs` | Pending |
-| `pg_crud_common/src/read_query_plan_error.rs` | Pending |
-| `pg_crud_common/src/read_search.rs` | Pending |
-| `pg_crud_common/src/reconcile_pg_counter.rs` | Pending |
-| `pg_crud_common/src/resolve_list_total_source.rs` | Pending |
-| `pg_crud_common/src/resolve_pg_operational_limit_update.rs` | Pending |
-| `pg_crud_common/src/run_list_with_total.rs` | Pending |
+| `pg_crud_common/src/query_part_increment.rs` | Reviewed: checked counter mutation inspected. |
+| `pg_crud_common/src/query_part_increment_mut.rs` | Reviewed: legacy and wrapped counter overflow behavior inspected. |
+| `pg_crud_common/src/query_sort_order.rs` | Reviewed: SQL sort keywords inspected. |
+| `pg_crud_common/src/read_query_bind_index_non_zero_u32.rs` | Reviewed: nonzero bind index wrapper inspected. |
+| `pg_crud_common/src/read_query_plan.rs` | Reviewed: plan fragment wrapper inspected. |
+| `pg_crud_common/src/read_query_plan_error.rs` | Reviewed: plan length error inspected. |
+| `pg_crud_common/src/read_search.rs` | Reviewed: bounded search construction inspected. |
+| `pg_crud_common/src/reconcile_pg_counter.rs` | Reviewed: counter difference direction and magnitude inspected. |
+| `pg_crud_common/src/resolve_list_total_source.rs` | Reviewed: window, empty first page, and later page count selection inspected. |
+| `pg_crud_common/src/resolve_pg_operational_limit_update.rs` | Reviewed: migration and operator limit updates inspected. |
+| `pg_crud_common/src/run_list_with_total.rs` | Reviewed: list/count error propagation and total selection inspected. |
 | `pg_crud_common/src/schema_text.rs` | Pending |
 | `pg_crud_common/src/schema_texts.rs` | Pending |
-| `pg_crud_common/src/serde_prealloc_max_items.rs` | Pending |
+| `pg_crud_common/src/serde_prealloc_max_items.rs` | Reviewed: deserialization allocation cap inspected. |
 | `pg_crud_common/src/signed_cursor.rs` | Reviewed: empty, oversized, and bounded-storage conversion paths; A133. |
 | `pg_crud_common/src/signed_cursor_error.rs` | Reviewed: distinct empty and oversized errors; A133. |
 | `pg_crud_common/src/signed_cursor_presence.rs` | Pending |
@@ -1558,7 +1569,7 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 | `pg_crud_common/src/test_not_empty_unique_vec_default.rs` | Reviewed: nonempty Default regression; A139. |
 | `pg_crud_common/src/test_query_part_fragment_overflow.rs` | Reviewed: focused regressions for SQL fragment overflow and error-text conversion; A137, A147. |
 | `pg_crud_common/src/slice_ordering.rs` | Pending |
-| `pg_crud_common/src/snapshot_mismatch.rs` | Pending |
+| `pg_crud_common/src/snapshot_mismatch.rs` | Reviewed: typed mismatch interface inspected. |
 | `pg_crud_common/src/sql_column_ref.rs` | Pending |
 | `pg_crud_common/src/sql_identifier.rs` | Focused review: length validation, conversions, and boundary behavior; see issue queue. |
 | `pg_crud_common/src/sql_identifier_error.rs` | Pending |
@@ -1570,7 +1581,7 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 | `pg_crud_common/src/sql_like_pattern_error.rs` | Pending |
 | `pg_crud_common/src/sql_qualified_identifier.rs` | Focused review: length validation, conversions, and boundary behavior; see issue queue. |
 | `pg_crud_common/src/sql_select_builder.rs` | Focused review: length validation, conversions, and boundary behavior; see issue queue. |
-| `pg_crud_common/src/sql_sort_order_text.rs` | Pending |
+| `pg_crud_common/src/sql_sort_order_text.rs` | Reviewed: fixed sort text wrapper inspected. |
 | `pg_crud_common/src/sqlx_box_dyn_error.rs` | Pending |
 | `pg_crud_common/src/sqlx_db_schema_inspection_error.rs` | Pending |
 | `pg_crud_common/src/sqlx_pg_catalog_pool_ref.rs` | Pending |
@@ -1581,14 +1592,14 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 | `pg_crud_common/src/sqlx_postgres_query_bind_error.rs` | Pending |
 | `pg_crud_common/src/static_schema_text.rs` | Pending |
 | `pg_crud_common/src/static_schema_texts.rs` | Pending |
-| `pg_crud_common/src/std_bounded_b_tree_map_len.rs` | Pending |
+| `pg_crud_common/src/std_bounded_b_tree_map_len.rs` | Reviewed: usize length wrapper inspected. |
 | `pg_crud_common/src/std_duration_range_length.rs` | Reviewed: A44 validates microsecond precision and PostgreSQL interval day capacity; binary encoding is tested without a client. |
 | `pg_crud_common/src/std_duration_range_length_error.rs` | Reviewed: typed duration validation error. |
 | `pg_crud_common/src/string_test_cases_vec.rs` | Pending |
-| `pg_crud_common/src/take_first_duplicate.rs` | Pending |
-| `pg_crud_common/src/take_first_duplicate_by.rs` | Pending |
-| `pg_crud_common/src/take_first_duplicate_by_hash.rs` | Pending |
-| `pg_crud_common/src/test_domain_types_db_schema_conformance_tests.rs` | Pending |
+| `pg_crud_common/src/take_first_duplicate.rs` | Reviewed: equality-based duplicate selection inspected. |
+| `pg_crud_common/src/take_first_duplicate_by.rs` | Reviewed: duplicate index removal and ownership transfer inspected. |
+| `pg_crud_common/src/take_first_duplicate_by_hash.rs` | Reviewed: hash-based duplicate selection inspected. |
+| `pg_crud_common/src/test_domain_types_db_schema_conformance_tests.rs` | Reviewed: snapshot equality and difference regressions inspected. |
 | `pg_crud_common/src/test_domain_types_query_pagination_tests.rs` | Pending |
 | `pg_crud_common/src/test_explicit_value_serializes_with_full_field_name.rs` | Pending |
 | `pg_crud_common/src/test_explicit_value_openapi_contract.rs` | Reviewed: OpenAPI field and null-schema regressions; A140. |
@@ -1596,31 +1607,31 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 | `pg_crud_common/src/test_pg_type_where_serializes_and_deserializes_with_full_field_name.rs` | Pending |
 | `pg_crud_common/src/test_tests_domain_types_operator_to_query_part.rs` | Pending |
 | `pg_crud_common/src/transaction_failure.rs` | Pending |
-| `pg_crud_common/src/try_new_unique_vec.rs` | Pending |
+| `pg_crud_common/src/try_new_unique_vec.rs` | Reviewed: empty, excessive length, and duplicate rejection inspected. |
 | `pg_crud_common/src/u16_test_cases_vec.rs` | Pending |
 | `pg_crud_common/src/u32_test_cases_vec.rs` | Pending |
 | `pg_crud_common/src/u64_test_cases_vec.rs` | Pending |
 | `pg_crud_common/src/u8_test_cases_vec.rs` | Pending |
 | `pg_crud_common/src/unique_vec_error.rs` | Pending |
-| `pg_crud_common/src/unique_vec_len.rs` | Pending |
-| `pg_crud_common/src/unit_interval_f64.rs` | Pending |
+| `pg_crud_common/src/unique_vec_len.rs` | Reviewed: usize length wrapper inspected. |
+| `pg_crud_common/src/unit_interval_f64.rs` | Reviewed: finite check and inclusive range boundaries inspected. |
 | `pg_crud_common/src/unit_interval_f64_error.rs` | Pending |
-| `pg_crud_common/src/unsigned_part_of_i32.rs` | Pending |
+| `pg_crud_common/src/unsigned_part_of_i32.rs` | Reviewed: signed conversion validation, SQL encoding, and nonzero conversion inspected; A173. |
 | `pg_crud_common/src/unsigned_part_of_i32_raw.rs` | Pending |
 | `pg_crud_common/src/unsigned_part_of_i32_try_from_i32_error.rs` | Pending |
 | `pg_crud_common/src/uuid_uuid_test_cases.rs` | Pending |
 | `pg_crud_common/src/uuid_uuid_test_cases_vec.rs` | Pending |
 | `pg_crud_common/src/validate_batch_by_key.rs` | Reviewed: duplicate policies, invalid limits, processed count, and early-stop behavior inspected with existing deterministic tests. |
-| `pg_crud_common/src/validate_bulk_atomicity.rs` | Pending |
-| `pg_crud_common/src/validate_generated_postgres_table.rs` | Pending |
-| `pg_crud_common/src/validate_migration_idempotency.rs` | Pending |
-| `pg_crud_common/src/validate_operation_budget.rs` | Pending |
-| `pg_crud_common/src/validate_pagination_invariants.rs` | Pending |
-| `pg_crud_common/src/validate_pg_relation_capacity.rs` | Pending |
-| `pg_crud_common/src/validate_postgres_catalog.rs` | Pending |
-| `pg_crud_common/src/validate_postgres_table_extensions.rs` | Pending |
-| `pg_crud_common/src/validate_postgres_table_schema.rs` | Pending |
-| `pg_crud_common/src/validate_snapshot.rs` | Pending |
+| `pg_crud_common/src/validate_bulk_atomicity.rs` | Reviewed: failed outcome and state equality checks inspected. |
+| `pg_crud_common/src/validate_generated_postgres_table.rs` | Reviewed: column and key comparisons, including foreign-key delete action; A174. |
+| `pg_crud_common/src/validate_migration_idempotency.rs` | Reviewed: snapshot equality check inspected. |
+| `pg_crud_common/src/validate_operation_budget.rs` | Reviewed: inclusive budget boundary inspected. |
+| `pg_crud_common/src/validate_pagination_invariants.rs` | Reviewed: cross-page overlap and total consistency checks inspected. |
+| `pg_crud_common/src/validate_pg_relation_capacity.rs` | Reviewed: checked addition, exact capacity, and overflow rejection inspected. |
+| `pg_crud_common/src/validate_postgres_catalog.rs` | Reviewed: catalog snapshot comparison inspected. |
+| `pg_crud_common/src/validate_postgres_table_extensions.rs` | Focused review: default, check, and index comparisons inspected; schema qualification behavior requires further verification. |
+| `pg_crud_common/src/validate_postgres_table_schema.rs` | Reviewed: table snapshot comparison inspected. |
+| `pg_crud_common/src/validate_snapshot.rs` | Reviewed: expected/observed equality and typed mismatch creation inspected. |
 | `pg_crud_common/src/window_total_presence.rs` | Pending |
 
 ### pg_crud_macro_common
@@ -2884,16 +2895,16 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 
 | Source | Semantic review |
 | --- | --- |
-| `server_admin/src/access_session_read_page.rs` | Pending |
-| `server_admin/src/account_change_own_password.rs` | Pending |
+| `server_admin/src/access_session_read_page.rs` | Reviewed: typed read-page path forwards to the AccessSessions CSR catalog page. |
+| `server_admin/src/account_change_own_password.rs` | Focused review: verified-hash compare-and-update prevents stale password changes; A171. |
 | `server_admin/src/account_me.rs` | Pending |
 | `server_admin/src/account_me_context_view_ref.rs` | Pending |
 | `server_admin/src/action_result_impl.rs` | Pending |
-| `server_admin/src/admin_access_claims.rs` | Pending |
+| `server_admin/src/admin_access_claims.rs` | Reviewed: JWT claim fields and generated construction/getters preserve typed user and session IDs. |
 | `server_admin/src/admin_access_sessions.rs` | Pending |
 | `server_admin/src/admin_access_sessions_read_page_error.rs` | Pending |
-| `server_admin/src/admin_access_token_error.rs` | Pending |
-| `server_admin/src/admin_access_token_validation.rs` | Pending |
+| `server_admin/src/admin_access_token_error.rs` | Reviewed: token and bounds failures retain distinct typed variants. |
+| `server_admin/src/admin_access_token_validation.rs` | Reviewed: algorithm is pinned and issuer, audience, and expiry are checked by the repository validator. |
 | `server_admin/src/admin_active_administrator_count.rs` | Pending |
 | `server_admin/src/admin_api_open_api.rs` | Pending |
 | `server_admin/src/admin_audit_action.rs` | Pending |
@@ -2902,17 +2913,17 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 | `server_admin/src/admin_audit_resource.rs` | Pending |
 | `server_admin/src/admin_audit_resource_id.rs` | Pending |
 | `server_admin/src/admin_audit_success_ref.rs` | Pending |
-| `server_admin/src/admin_auth_collection_error.rs` | Pending |
-| `server_admin/src/admin_auth_collection_max_len.rs` | Pending |
+| `server_admin/src/admin_auth_collection_error.rs` | Reviewed: bounded collection failures map to the size-specific error. |
+| `server_admin/src/admin_auth_collection_max_len.rs` | Reviewed: authorization collection length cap is a single fixed constant. |
 | `server_admin/src/admin_auth_html_routes.rs` | Pending |
-| `server_admin/src/admin_auth_policy.rs` | Pending |
-| `server_admin/src/admin_auth_positive_value_error.rs` | Pending |
-| `server_admin/src/admin_auth_request.rs` | Pending |
+| `server_admin/src/admin_auth_policy.rs` | Reviewed: typed policy fields and generated constructor preserve rate and failure settings. |
+| `server_admin/src/admin_auth_positive_value_error.rs` | Reviewed: zero-value conversions preserve the positive-value domain meaning. |
+| `server_admin/src/admin_auth_request.rs` | Reviewed: extractor requires peer connection info and captures typed headers and shared state. |
 | `server_admin/src/admin_auth_route_registry.rs` | Pending |
 | `server_admin/src/admin_auth_routes.rs` | Pending |
 | `server_admin/src/admin_auth_rules.rs` | Pending |
 | `server_admin/src/admin_auth_svc_state.rs` | Pending |
-| `server_admin/src/admin_auth_svc_state_build_error.rs` | Pending |
+| `server_admin/src/admin_auth_svc_state_build_error.rs` | Reviewed: invalid origin, absent JWT secret, concurrency, and positive-value failures are distinct. |
 | `server_admin/src/admin_branding_page.rs` | Pending |
 | `server_admin/src/admin_cleanup_batch_size.rs` | Pending |
 | `server_admin/src/admin_cleanup_configuration.rs` | Pending |
@@ -2922,8 +2933,8 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 | `server_admin/src/admin_cleanup_retention_seconds.rs` | Pending |
 | `server_admin/src/admin_cleanup_rows.rs` | Pending |
 | `server_admin/src/admin_cleanup_status.rs` | Pending |
-| `server_admin/src/admin_cookie_kind.rs` | Pending |
-| `server_admin/src/admin_cookie_max_age_seconds.rs` | Pending |
+| `server_admin/src/admin_cookie_kind.rs` | Reviewed: each cookie variant resolves to its registered name. |
+| `server_admin/src/admin_cookie_max_age_seconds.rs` | Reviewed: typed cookie lifetime wrapper preserves the passed seconds. |
 | `server_admin/src/admin_create_roles_payload_example_error.rs` | Pending |
 | `server_admin/src/admin_create_user_payload_example_error.rs` | Pending |
 | `server_admin/src/admin_crud_page.rs` | Pending |
@@ -2937,7 +2948,7 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 | `server_admin/src/admin_generated_auth_service.rs` | Pending |
 | `server_admin/src/admin_generated_route_contract.rs` | Pending |
 | `server_admin/src/admin_generated_table.rs` | Pending |
-| `server_admin/src/admin_generated_token.rs` | Pending |
+| `server_admin/src/admin_generated_token.rs` | Reviewed: generation uses two UUIDs and hashes the bounded opaque token; existing accessor test passes. |
 | `server_admin/src/admin_health_page.rs` | Pending |
 | `server_admin/src/admin_html_action_route_registry.rs` | Pending |
 | `server_admin/src/admin_html_auth_action_route_registry.rs` | Pending |
@@ -2950,7 +2961,7 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 | `server_admin/src/admin_html_page_route_registry.rs` | Pending |
 | `server_admin/src/admin_html_role_action_route_registry.rs` | Pending |
 | `server_admin/src/admin_html_session_action_route_registry.rs` | Pending |
-| `server_admin/src/admin_html_sessions_page.rs` | Pending |
+| `server_admin/src/admin_html_sessions_page.rs` | Reviewed: sessions page uses the registered page catalog. |
 | `server_admin/src/admin_html_settings_action_route_registry.rs` | Pending |
 | `server_admin/src/admin_html_swagger_enabled.rs` | Pending |
 | `server_admin/src/admin_html_swagger_route_registry.rs` | Pending |
@@ -2958,30 +2969,30 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 | `server_admin/src/admin_login_attempts.rs` | Pending |
 | `server_admin/src/admin_migrate_error.rs` | Pending |
 | `server_admin/src/admin_migrator.rs` | Pending |
-| `server_admin/src/admin_new_password_from_contract.rs` | Pending |
+| `server_admin/src/admin_new_password_from_contract.rs` | Reviewed: delegates new-password text validation to the runtime wrapper. |
 | `server_admin/src/admin_observed_error_code.rs` | Pending |
 | `server_admin/src/admin_observed_internal_error_response.rs` | Pending |
-| `server_admin/src/admin_opaque_token.rs` | Pending |
+| `server_admin/src/admin_opaque_token.rs` | Reviewed: secret wrapper redacts debug and exposes text only through borrowed access. |
 | `server_admin/src/admin_page_total_count.rs` | Pending |
-| `server_admin/src/admin_password_change_required.rs` | Pending |
-| `server_admin/src/admin_password_from_contract.rs` | Pending |
-| `server_admin/src/admin_password_hash.rs` | Pending |
-| `server_admin/src/admin_password_hash_error.rs` | Pending |
-| `server_admin/src/admin_password_hasher.rs` | Pending |
-| `server_admin/src/admin_password_reset_error.rs` | Pending |
-| `server_admin/src/admin_password_try_from_string_error.rs` | Pending |
+| `server_admin/src/admin_password_change_required.rs` | Reviewed: transparent typed flag preserves serialization and inner conversion. |
+| `server_admin/src/admin_password_from_contract.rs` | Reviewed: delegates password text validation to the runtime wrapper. |
+| `server_admin/src/admin_password_hash.rs` | Reviewed: secret hash wrapper redacts debug and exposes a borrowed value for verification and SQL. |
+| `server_admin/src/admin_password_hash_error.rs` | Reviewed: hashing, bounds, task, and semaphore failures remain distinct. |
+| `server_admin/src/admin_password_hasher.rs` | Focused review: blocking Argon2 work is semaphore-bounded and reports join and hash errors. |
+| `server_admin/src/admin_password_reset_error.rs` | Reviewed: reset failures distinguish validation, missing login, hashing, audit, and database paths. |
+| `server_admin/src/admin_password_try_from_string_error.rs` | Reviewed: runtime password length failure uses a typed variant. |
 | `server_admin/src/admin_peer_addr.rs` | Pending |
 | `server_admin/src/admin_permission_actions.rs` | Pending |
 | `server_admin/src/admin_permission_actions_read_page_error.rs` | Pending |
-| `server_admin/src/admin_permission_resource_actions.rs` | Pending |
+| `server_admin/src/admin_permission_resource_actions.rs` | Reviewed: column, foreign-key delete action, and unique-key descriptor inspected; A175. |
 | `server_admin/src/admin_permission_resource_actions_read_page_error.rs` | Pending |
 | `server_admin/src/admin_permission_resources.rs` | Pending |
 | `server_admin/src/admin_permission_resources_read_page_error.rs` | Pending |
 | `server_admin/src/admin_rate_limit_scope.rs` | Pending |
 | `server_admin/src/admin_rate_limits.rs` | Pending |
 | `server_admin/src/admin_recent_login_failure_count.rs` | Pending |
-| `server_admin/src/admin_refresh_token.rs` | Pending |
-| `server_admin/src/admin_refresh_tokens.rs` | Pending |
+| `server_admin/src/admin_refresh_token.rs` | Reviewed: refresh token wrapper redacts debug and exposes only an explicit borrowed value. |
+| `server_admin/src/admin_refresh_tokens.rs` | Focused review: nullable migration-era session ID is stored but excluded from the public table view; A170. |
 | `server_admin/src/admin_repository_error.rs` | Pending |
 | `server_admin/src/admin_role_rules.rs` | Pending |
 | `server_admin/src/admin_role_rules_read_page_error.rs` | Pending |
@@ -2991,18 +3002,18 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 | `server_admin/src/admin_roles_read_page_error.rs` | Pending |
 | `server_admin/src/admin_rules.rs` | Pending |
 | `server_admin/src/admin_rules_read_page_error.rs` | Pending |
-| `server_admin/src/admin_secret_text_error.rs` | Pending |
-| `server_admin/src/admin_session_bundle.rs` | Pending |
-| `server_admin/src/admin_session_error.rs` | Pending |
-| `server_admin/src/admin_session_id.rs` | Pending |
-| `server_admin/src/admin_session_path.rs` | Pending |
+| `server_admin/src/admin_secret_text_error.rs` | Focused review: classifies bounded cookie text failures into typed validated-text errors; A169. |
+| `server_admin/src/admin_session_bundle.rs` | Reviewed: generated accessors preserve typed access, CSRF, refresh, and session ID fields. |
+| `server_admin/src/admin_session_error.rs` | Reviewed: session creation errors distinguish token, database, secret-text, and clock failures. |
+| `server_admin/src/admin_session_id.rs` | Reviewed: UUID session ID wrapper preserves conversion and typed serialization. |
+| `server_admin/src/admin_session_path.rs` | Reviewed: path extractor validates a UUID before constructing the session wrapper. |
 | `server_admin/src/admin_shared_semaphore_arc.rs` | Pending |
-| `server_admin/src/admin_sign_in_json.rs` | Pending |
-| `server_admin/src/admin_sign_in_user.rs` | Pending |
+| `server_admin/src/admin_sign_in_json.rs` | Reviewed: JSON extractor maps oversized bodies separately from validation failures. |
+| `server_admin/src/admin_sign_in_user.rs` | Reviewed: converts SQL user row to typed ID, secret hash, and ban flag. |
 | `server_admin/src/admin_system_settings.rs` | Pending |
 | `server_admin/src/admin_system_settings_read_page_error.rs` | Pending |
-| `server_admin/src/admin_token_hash.rs` | Pending |
-| `server_admin/src/admin_unix_token_stream.rs` | Pending |
+| `server_admin/src/admin_token_hash.rs` | Reviewed: secret hash wrapper redacts debug and exposes borrowed text only explicitly. |
+| `server_admin/src/admin_unix_token_stream.rs` | Reviewed: typed Unix timestamp wrapper preserves serialization and conversion. |
 | `server_admin/src/admin_update_roles_payload_example_error.rs` | Pending |
 | `server_admin/src/admin_update_users_payload_example_error.rs` | Pending |
 | `server_admin/src/admin_user_roles.rs` | Pending |
@@ -3017,7 +3028,7 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 | `server_admin/src/api_create_user.rs` | Pending |
 | `server_admin/src/api_create_user_payload_example.rs` | Pending |
 | `server_admin/src/api_data_tables.rs` | Pending |
-| `server_admin/src/api_delete_access_sessions.rs` | Pending |
+| `server_admin/src/api_delete_access_sessions.rs` | Focused review: filtered deletion revokes selected access rows but leaves refresh tokens live; A170. |
 | `server_admin/src/api_delete_roles.rs` | Pending |
 | `server_admin/src/api_delete_roles_payload_example.rs` | Pending |
 | `server_admin/src/api_delete_users.rs` | Pending |
@@ -3027,20 +3038,20 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 | `server_admin/src/api_rate_limits_table.rs` | Reviewed: typed rate-limit read delegates to the shared generic table handler. |
 | `server_admin/src/api_refresh.rs` | Pending |
 | `server_admin/src/api_refresh_tokens_table.rs` | Reviewed: typed refresh-token read delegates to the shared generic table handler. |
-| `server_admin/src/api_revoke_all_sessions.rs` | Pending |
-| `server_admin/src/api_revoke_session.rs` | Pending |
-| `server_admin/src/api_sessions.rs` | Pending |
+| `server_admin/src/api_revoke_all_sessions.rs` | Reviewed: typed revocation route delegates and maps its distinct error. |
+| `server_admin/src/api_revoke_session.rs` | Reviewed: typed individual revocation route delegates and maps its distinct error. |
+| `server_admin/src/api_sessions.rs` | Reviewed: typed sessions route forwards the query and maps route-specific errors. |
 | `server_admin/src/api_settings.rs` | Pending |
-| `server_admin/src/api_sign_in.rs` | Pending |
-| `server_admin/src/api_sign_out.rs` | Pending |
+| `server_admin/src/api_sign_in.rs` | Reviewed: typed route delegates sign-in and preserves the route-specific error. |
+| `server_admin/src/api_sign_out.rs` | Reviewed: typed route delegates sign-out and preserves the route-specific error. |
 | `server_admin/src/api_update_roles.rs` | Pending |
 | `server_admin/src/api_update_roles_payload_example.rs` | Pending |
 | `server_admin/src/api_update_settings.rs` | Pending |
 | `server_admin/src/api_update_users.rs` | Pending |
 | `server_admin/src/api_update_users_payload_example.rs` | Pending |
 | `server_admin/src/api_user_roles_table.rs` | Reviewed: typed user-role POST read adapts its JSON query to the shared generic table handler. |
-| `server_admin/src/append_cleared_session_cookies.rs` | Pending |
-| `server_admin/src/append_session_cookies.rs` | Pending |
+| `server_admin/src/append_cleared_session_cookies.rs` | Focused review: propagates clear-cookie construction failures; A169. |
+| `server_admin/src/append_session_cookies.rs` | Focused review: propagates session-cookie construction failures; A169. |
 | `server_admin/src/application_auth.rs` | Pending |
 | `server_admin/src/application_tests_helper.rs` | Pending |
 | `server_admin/src/argon2_admin_password_hash_error.rs` | Pending |
@@ -3051,16 +3062,16 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 | `server_admin/src/audit_log_read_page.rs` | Pending |
 | `server_admin/src/authenticated_action_impl.rs` | Pending |
 | `server_admin/src/authenticated_admin_contract.rs` | Pending |
-| `server_admin/src/authn_apply_refresh_failure_delay.rs` | Pending |
-| `server_admin/src/authn_refresh.rs` | Pending |
-| `server_admin/src/authn_sign_in.rs` | Pending |
-| `server_admin/src/authn_sign_out.rs` | Pending |
-| `server_admin/src/authorization_authenticate.rs` | Pending |
+| `server_admin/src/authn_apply_refresh_failure_delay.rs` | Reviewed: applies the configured bounded delay on refresh failures. |
+| `server_admin/src/authn_refresh.rs` | Focused review: refresh token lookup does not bind to access-session revocation; A170. |
+| `server_admin/src/authn_sign_in.rs` | Focused review: origin, rate limits, failure count, password verification, and session transaction traced. |
+| `server_admin/src/authn_sign_out.rs` | Focused review: revokes current access session and only the refresh token present in the request; A170. |
+| `server_admin/src/authorization_authenticate.rs` | Reviewed: validates token signature and claims, binds session to peer context, and checks active session. |
 | `server_admin/src/authorization_authorize_generated_request.rs` | Pending |
-| `server_admin/src/authorization_hash_refresh_token_with_context.rs` | Pending |
+| `server_admin/src/authorization_hash_refresh_token_with_context.rs` | Reviewed: fixed-length context digest is appended to the opaque token before SHA-256 hashing. |
 | `server_admin/src/authorization_origin_is_present_and_allowed.rs` | Pending |
-| `server_admin/src/authorization_session_context_hash.rs` | Pending |
-| `server_admin/src/authorization_validate_csrf.rs` | Pending |
+| `server_admin/src/authorization_session_context_hash.rs` | Reviewed: context uses peer IP and bounded user-agent prefix; existing unit tests cover peer and user-agent changes. |
+| `server_admin/src/authorization_validate_csrf.rs` | Reviewed: trusted origin, supplied header, stored hash, and constant-time comparison checked. |
 | `server_admin/src/authorize_custom.rs` | Pending |
 | `server_admin/src/axum_admin_auth_router.rs` | Pending |
 | `server_admin/src/axum_admin_form.rs` | Pending |
@@ -3070,18 +3081,18 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 | `server_admin/src/axum_admin_response.rs` | Pending |
 | `server_admin/src/axum_admin_state_router.rs` | Pending |
 | `server_admin/src/base_sql.rs` | Pending |
-| `server_admin/src/build_admin_cookie.rs` | Pending |
+| `server_admin/src/build_admin_cookie.rs` | Focused review: returns a typed error instead of a diagnostic cookie; A169. |
 | `server_admin/src/change_password.rs` | Pending |
 | `server_admin/src/change_password_form.rs` | Pending |
 | `server_admin/src/cleanup_admin_tables.rs` | Pending |
 | `server_admin/src/cleanup_status_read_page.rs` | Pending |
-| `server_admin/src/clear_admin_cookie.rs` | Pending |
+| `server_admin/src/clear_admin_cookie.rs` | Focused review: propagates bounded cookie construction; A169. |
 | `server_admin/src/confirmed_authenticated_action_impl.rs` | Pending |
 | `server_admin/src/confirmed_delete_target.rs` | Pending |
 | `server_admin/src/create_initial_administrator.rs` | Pending |
 | `server_admin/src/create_role.rs` | Pending |
 | `server_admin/src/create_role_form.rs` | Pending |
-| `server_admin/src/create_session_in_connection.rs` | Pending |
+| `server_admin/src/create_session_in_connection.rs` | Focused review: creates independent access-session and refresh-token rows; A170. |
 | `server_admin/src/create_user.rs` | Pending |
 | `server_admin/src/create_user_form.rs` | Pending |
 | `server_admin/src/created_json_response.rs` | Pending |
@@ -3110,14 +3121,14 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 | `server_admin/src/data_tables_list.rs` | Reviewed: authenticated catalog listing filters each table by the actor's read rule. |
 | `server_admin/src/data_user_roles_flt.rs` | Pending |
 | `server_admin/src/data_users_flt.rs` | Pending |
-| `server_admin/src/decode_access_token.rs` | Pending |
+| `server_admin/src/decode_access_token.rs` | Reviewed: validates HS256 signature and delegates claim checks to the typed validator. |
 | `server_admin/src/delete_confirmed_entity.rs` | Pending |
 | `server_admin/src/delete_role.rs` | Pending |
 | `server_admin/src/delete_user.rs` | Pending |
 | `server_admin/src/dispatch_filtered_update.rs` | Pending |
-| `server_admin/src/encode_access_token.rs` | Pending |
+| `server_admin/src/encode_access_token.rs` | Reviewed: signs HS256 claims and validates bounded token text. |
 | `server_admin/src/enforce_rate_limit.rs` | Pending |
-| `server_admin/src/enrich_access_sessions_read_page.rs` | Pending |
+| `server_admin/src/enrich_access_sessions_read_page.rs` | Reviewed: adapter passes generated read rows and total into the shared table view. |
 | `server_admin/src/enrich_audit_log_read_page.rs` | Pending |
 | `server_admin/src/enrich_permission_actions_read_page.rs` | Pending |
 | `server_admin/src/enrich_permission_resource_actions_read_page.rs` | Pending |
@@ -3128,12 +3139,12 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 | `server_admin/src/enrich_system_settings_read_page.rs` | Pending |
 | `server_admin/src/enrich_users_database_read_page.rs` | Pending |
 | `server_admin/src/finalize_audited_transaction.rs` | Pending |
-| `server_admin/src/find_admin_cookie.rs` | Pending |
+| `server_admin/src/find_admin_cookie.rs` | Reviewed: resolves one cookie by registered name and rejects invalid or duplicate values. |
 | `server_admin/src/form_auth_impl.rs` | Pending |
 | `server_admin/src/generated_data_table_view.rs` | Pending |
 | `server_admin/src/generated_open_api.rs` | Pending |
 | `server_admin/src/generated_routes.rs` | Pending |
-| `server_admin/src/hash_opaque_token.rs` | Pending |
+| `server_admin/src/hash_opaque_token.rs` | Reviewed: hashes secret bytes with SHA-256 and returns a bounded secret digest. |
 | `server_admin/src/html_page_error_impl.rs` | Pending |
 | `server_admin/src/html_response_impl.rs` | Pending |
 | `server_admin/src/html_routes.rs` | Pending |
@@ -3172,15 +3183,15 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 | `server_admin/src/read_settings.rs` | Pending |
 | `server_admin/src/record_audit_success_in_connection.rs` | Pending |
 | `server_admin/src/record_login_attempt.rs` | Pending |
-| `server_admin/src/refresh_token_read_page.rs` | Pending |
+| `server_admin/src/refresh_token_read_page.rs` | Reviewed: typed read-page path forwards to the RefreshTokens CSR catalog page. |
 | `server_admin/src/replace_user_roles_in_connection.rs` | Pending |
 | `server_admin/src/repository_page_total.rs` | Pending |
-| `server_admin/src/reset_admin_password.rs` | Pending |
-| `server_admin/src/revoke_access_session.rs` | Pending |
-| `server_admin/src/revoke_refresh_token.rs` | Pending |
-| `server_admin/src/revoke_session.rs` | Pending |
-| `server_admin/src/revoke_session_form.rs` | Pending |
-| `server_admin/src/revoke_user_sessions.rs` | Pending |
+| `server_admin/src/reset_admin_password.rs` | Focused review: locks user changes, validates login, updates password, revokes sessions, and commits audit. |
+| `server_admin/src/revoke_access_session.rs` | Reviewed: updates the specified user-owned access-session row; refresh-token gap tracked in A170. |
+| `server_admin/src/revoke_refresh_token.rs` | Reviewed: revokes a token by hash and user ID inside the caller transaction. |
+| `server_admin/src/revoke_session.rs` | Focused review: confirmation and UUID parse precede authenticated revocation and redirect. |
+| `server_admin/src/revoke_session_form.rs` | Reviewed: form requires a typed session identifier and confirmation flag. |
+| `server_admin/src/revoke_user_sessions.rs` | Reviewed: revokes both access sessions and refresh tokens for one user. |
 | `server_admin/src/role_id_form.rs` | Pending |
 | `server_admin/src/role_ids_impl.rs` | Pending |
 | `server_admin/src/role_mutations_create_many.rs` | Pending |
@@ -3198,17 +3209,17 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 | `server_admin/src/rule_ids_impl.rs` | Pending |
 | `server_admin/src/rule_read_page.rs` | Pending |
 | `server_admin/src/rules.rs` | Pending |
-| `server_admin/src/runtime_admin_cookie_secure.rs` | Pending |
-| `server_admin/src/runtime_admin_jwt_secret.rs` | Pending |
-| `server_admin/src/runtime_admin_password.rs` | Pending |
-| `server_admin/src/runtime_admin_password_hash_concurrency.rs` | Pending |
+| `server_admin/src/runtime_admin_cookie_secure.rs` | Reviewed: typed secure-cookie setting preserves the configuration flag. |
+| `server_admin/src/runtime_admin_jwt_secret.rs` | Reviewed: JWT secret wrapper uses redacted debug and validated secret storage. |
+| `server_admin/src/runtime_admin_password.rs` | Reviewed: validates character length and bounded secret storage before construction through TryFrom. |
+| `server_admin/src/runtime_admin_password_hash_concurrency.rs` | Reviewed: nonzero hashing concurrency wrapper cannot contain zero. |
 | `server_admin/src/runtime_admin_role_names.rs` | Pending |
 | `server_admin/src/runtime_authenticated_admin.rs` | Pending |
 | `server_admin/src/select_filtered_role_ids.rs` | Pending |
 | `server_admin/src/select_filtered_user_ids.rs` | Pending |
-| `server_admin/src/sessions.rs` | Pending |
-| `server_admin/src/sessions_revoke_all_sessions.rs` | Pending |
-| `server_admin/src/sessions_revoke_session.rs` | Pending |
+| `server_admin/src/sessions.rs` | Focused review: active-session pagination and current-session filtering SQL were traced; no defect confirmed. |
+| `server_admin/src/sessions_revoke_all_sessions.rs` | Reviewed: authenticates, checks CSRF, and transactionally revokes both token classes for the user. |
+| `server_admin/src/sessions_revoke_session.rs` | Focused review: individual revocation updates only the access-session row; A170. |
 | `server_admin/src/settings.rs` | Pending |
 | `server_admin/src/settings_branding.rs` | Pending |
 | `server_admin/src/settings_branding_view.rs` | Pending |
@@ -3218,18 +3229,19 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 | `server_admin/src/settings_update.rs` | Pending |
 | `server_admin/src/shared_admin_auth_svc_state_arc.rs` | Pending |
 | `server_admin/src/shared_admin_generated_table_state_arc.rs` | Pending |
-| `server_admin/src/sign_in.rs` | Pending |
-| `server_admin/src/sign_in_form.rs` | Pending |
-| `server_admin/src/sign_in_page.rs` | Pending |
-| `server_admin/src/sign_out.rs` | Pending |
+| `server_admin/src/sign_in.rs` | Focused review: HTML error status now follows the typed error mapping; A168. |
+| `server_admin/src/sign_in_error_response.rs` | Focused review: generic sign-in page preserves typed error status; A168. |
+| `server_admin/src/sign_in_form.rs` | Reviewed: form fields use validated login and password contracts. |
+| `server_admin/src/sign_in_page.rs` | Reviewed: sign-in page renders branding through the page catalog and shared error response. |
+| `server_admin/src/sign_out.rs` | Reviewed: HTML sign-out forwards cleared cookie headers on successful redirect. |
 | `server_admin/src/sqlx_admin_error.rs` | Pending |
 | `server_admin/src/sqlx_admin_migrate_error.rs` | Pending |
 | `server_admin/src/sqlx_admin_migrator_ref.rs` | Pending |
 | `server_admin/src/sqlx_admin_repository_connection_mut_ref.rs` | Pending |
 | `server_admin/src/sqlx_admin_repository_pool_ref.rs` | Pending |
 | `server_admin/src/sqlx_admin_transaction.rs` | Pending |
-| `server_admin/src/std_admin_access_token.rs` | Pending |
-| `server_admin/src/std_admin_access_ttl_seconds.rs` | Pending |
+| `server_admin/src/std_admin_access_token.rs` | Reviewed: bounded access-token text has redacted debug output. |
+| `server_admin/src/std_admin_access_ttl_seconds.rs` | Reviewed: access TTL conversion rejects zero and preserves nonzero seconds. |
 | `server_admin/src/std_admin_auth_ttl_seconds.rs` | Pending |
 | `server_admin/src/std_admin_cookie.rs` | Pending |
 | `server_admin/src/std_admin_failure_delay_millis.rs` | Pending |
@@ -3238,8 +3250,8 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 | `server_admin/src/std_admin_html_selected_error.rs` | Pending |
 | `server_admin/src/std_admin_rate_limit_count.rs` | Pending |
 | `server_admin/src/std_admin_rate_limit_window_seconds.rs` | Pending |
-| `server_admin/src/std_admin_refresh_ttl_seconds.rs` | Pending |
-| `server_admin/src/std_admin_session_limit.rs` | Pending |
+| `server_admin/src/std_admin_refresh_ttl_seconds.rs` | Reviewed: refresh TTL conversion rejects zero and preserves nonzero seconds. |
+| `server_admin/src/std_admin_session_limit.rs` | Reviewed: session limit conversion rejects zero. |
 | `server_admin/src/success_redirect_impl.rs` | Pending |
 | `server_admin/src/system_setting_read_page.rs` | Pending |
 | `server_admin/src/test_adapters_repository_data_tables_tests.rs` | Focused review; A114 generic table SQL regressions. |
@@ -3251,8 +3263,8 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 | `server_admin/src/test_generated_data_table_view.rs` | Pending |
 | `server_admin/src/test_maintenance_tests.rs` | Pending |
 | `server_admin/src/test_shared_tests.rs` | Pending |
-| `server_admin/src/test_tests_domain_types.rs` | Pending |
-| `server_admin/src/token.rs` | Pending |
+| `server_admin/src/test_tests_domain_types.rs` | Focused review: cookie builder regression covers oversized value, and migration inventory tracks the fifth migration; A169, A170. |
+| `server_admin/src/token.rs` | Reviewed: forwards opaque-token hashing to the shared owner. |
 | `server_admin/src/tokio_admin_acquire_error.rs` | Pending |
 | `server_admin/src/tokio_admin_join_error.rs` | Pending |
 | `server_admin/src/tokio_admin_owned_semaphore_permit.rs` | Pending |
@@ -3261,7 +3273,7 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 | `server_admin/src/update_settings.rs` | Pending |
 | `server_admin/src/update_user.rs` | Pending |
 | `server_admin/src/update_user_form.rs` | Pending |
-| `server_admin/src/update_user_password.rs` | Pending |
+| `server_admin/src/update_user_password.rs` | Reviewed: shared user-password update reports whether a row matched; own-password CAS uses its dedicated SQL. |
 | `server_admin/src/user_ban.rs` | Pending |
 | `server_admin/src/user_ban_form.rs` | Pending |
 | `server_admin/src/user_id_form.rs` | Pending |
@@ -3284,8 +3296,8 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 | `server_admin/src/users_update_page.rs` | Pending |
 | `server_admin/src/utoipa_admin_auth_open_api.rs` | Pending |
 | `server_admin/src/utoipa_admin_open_api.rs` | Pending |
-| `server_admin/src/validate_admin_access_claims.rs` | Pending |
-| `server_admin/src/validate_catalog_schema.rs` | Pending |
+| `server_admin/src/validate_admin_access_claims.rs` | Reviewed: verifies issuer, audience, and expiry against the configured values. |
+| `server_admin/src/validate_catalog_schema.rs` | Focused review: generated table dispatch and permission-resource-action coverage inspected; A175. The two view descriptors and incomplete rules descriptor remain outside this validator. |
 | `server_admin/src/validate_table_sort.rs` | Pending |
 | `server_admin/src/version.rs` | Pending |
 | `server_admin/tests/admin_api.rs` | Focused review: A32 adds a compiled provisioned PostgreSQL regression for duplicate idempotency completion; broader API integration coverage remains under review. |
@@ -3733,19 +3745,19 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 
 | Source | Semantic review |
 | --- | --- |
-| `server_runtime_http/src/abort_and_wait_task.rs` | Pending |
+| `server_runtime_http/src/abort_and_wait_task.rs` | Reviewed: aborts and awaits retained task, preserving cancellation as a typed join error; no defect confirmed. |
 | `server_runtime_http/src/acquire_permit.rs` | Reviewed: timeout wraps cancellation-safe owned semaphore acquisition; available, timeout and closed outcomes have a paused-free focused test. |
 | `server_runtime_http/src/acquire_permit_error.rs` | Reviewed: distinct closed source and retry-after timeout variants preserve the operation outcome. |
 | `server_runtime_http/src/allow_origin_suffix.rs` | Reviewed: boolean policy wrapper selects whether a Referer may contain a path suffix; Origin uses the strict branch. |
-| `server_runtime_http/src/allowed_origin.rs` | Reviewed: accepts only HTTP(S) authorities without path or userinfo; origin tests cover invalid ports and userinfo. |
+| `server_runtime_http/src/allowed_origin.rs` | Focused review: accepts only HTTP(S) authorities without path or userinfo and normalizes configured default ports; A167. |
 | `server_runtime_http/src/allowed_origin_error.rs` | Reviewed: one domain error for invalid configured origin; no source is available to preserve at this boundary. |
 | `server_runtime_http/src/allowed_origins.rs` | Reviewed: validates each configured origin and bounds the list to 128 entries; origin tests pass. |
 | `server_runtime_http/src/allowed_origins_error.rs` | Reviewed: list-level Invalid error maps a bounded-list failure and invalid member; no sensitive input is exposed. |
 | `server_runtime_http/src/arc_tokio_semaphore.rs` | Reviewed: owned permits require shared semaphore ownership; try_acquire returns None when no permit is available and the focused test covers release. |
-| `server_runtime_http/src/attach_http_error_diagnostic.rs` | Pending |
-| `server_runtime_http/src/attach_http_error_telemetry.rs` | Pending |
-| `server_runtime_http/src/axum_notification_router.rs` | Pending |
-| `server_runtime_http/src/axum_router.rs` | Pending |
+| `server_runtime_http/src/attach_http_error_diagnostic.rs` | Reviewed: attaches diagnostic extension with a direct unit test; no defect confirmed. |
+| `server_runtime_http/src/attach_http_error_telemetry.rs` | Reviewed: attaches telemetry extension with a direct unit test; no defect confirmed. |
+| `server_runtime_http/src/axum_notification_router.rs` | Reviewed: typed notification router wrapper; no defect confirmed. |
+| `server_runtime_http/src/axum_router.rs` | Reviewed: typed router wrapper; no defect confirmed. |
 | `server_runtime_http/src/background_task.rs` | Reviewed: retained ownership through cancelled joins, shutdown notification, timeout then abort and join, and drop cancellation. Abort remains cooperative under Tokio task scheduling. |
 | `server_runtime_http/src/background_task_outcome.rs` | Reviewed: explicit completed/shutdown/interval-overflow task completion states; A04. |
 | `server_runtime_http/src/background_task_shutdown_error.rs` | Reviewed: typed join-source, shutdown-timeout and interval-overflow errors; A04. |
@@ -3761,9 +3773,9 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 | `server_runtime_http/src/bounded_read_maximum_bytes.rs` | Pending |
 | `server_runtime_http/src/bounded_read_observed_bytes.rs` | Pending |
 | `server_runtime_http/src/bounded_text.rs` | Pending |
-| `server_runtime_http/src/build_attachment_content_disposition.rs` | Pending |
+| `server_runtime_http/src/build_attachment_content_disposition.rs` | Reviewed: bounded file name, quoted fallback sanitization and RFC 5987 encoding; no defect confirmed. |
 | `server_runtime_http/src/build_secure_strict_cookie.rs` | Reviewed: validates name/value through wrappers, emits secure strict attributes and supports the full unsigned age range; A159 round-trip boundary passes. |
-| `server_runtime_http/src/build_service_runtime.rs` | Pending |
+| `server_runtime_http/src/build_service_runtime.rs` | Reviewed: enables all Tokio facilities and preserves build errors; no defect confirmed. |
 | `server_runtime_http/src/child_diagnostic.rs` | Reviewed: typed diagnostic and process result wrappers, nonzero capture limit, exit-success projection, private report fields and error forwarding. |
 | `server_runtime_http/src/child_diagnostic_maximum_non_zero_usize.rs` | Reviewed: typed diagnostic and process result wrappers, nonzero capture limit, exit-success projection, private report fields and error forwarding. |
 | `server_runtime_http/src/child_exit_status.rs` | Reviewed: typed diagnostic and process result wrappers, nonzero capture limit, exit-success projection, private report fields and error forwarding. |
@@ -3790,7 +3802,7 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 | `server_runtime_http/src/cleanup_rows.rs` | Reviewed: Copy row-count wrapper with generated conversions. |
 | `server_runtime_http/src/client_addr_parse_error.rs` | Pending |
 | `server_runtime_http/src/client_socket_addr.rs` | Pending |
-| `server_runtime_http/src/content_disposition_percent_encode_set.rs` | Pending |
+| `server_runtime_http/src/content_disposition_percent_encode_set.rs` | Reviewed: conservative filename-star percent encoding set; no defect confirmed. |
 | `server_runtime_http/src/cookie_resolution.rs` | Reviewed: explicit invalid, missing and borrowed resolved-value outcomes preserve parser decisions. |
 | `server_runtime_http/src/cors_allow_origin_max_bytes.rs` | Reviewed: explicit 65,536-byte configuration input bound. |
 | `server_runtime_http/src/cors_allow_origin_max_items.rs` | Reviewed: explicit 128-origin list bound. |
@@ -3804,8 +3816,8 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 | `server_runtime_http/src/forwarded_proto_trust.rs` | Pending |
 | `server_runtime_http/src/frontend_build_environment.rs` | Reviewed: bounded dependency inputs, sequential build steps, and stamped dependency install; no defect confirmed. |
 | `server_runtime_http/src/frontend_build_step.rs` | Reviewed: exit status mapped to the selected build step; no defect confirmed. |
-| `server_runtime_http/src/frontend_dependency_fingerprint.rs` | Pending |
-| `server_runtime_http/src/frontend_dependency_inputs.rs` | Pending |
+| `server_runtime_http/src/frontend_dependency_fingerprint.rs` | Reviewed: fixed-width local dependency stamp wrapper; no defect confirmed. |
+| `server_runtime_http/src/frontend_dependency_inputs.rs` | Reviewed: fingerprint covers manifest, lockfile and Node version with an input-by-input unit test; no defect confirmed. |
 | `server_runtime_http/src/frontend_preparation_error.rs` | Reviewed: command, file, read, and Node version errors retain operation context; no defect confirmed. |
 | `server_runtime_http/src/geo_json_document_text.rs` | Pending |
 | `server_runtime_http/src/geo_json_validation.rs` | Pending |
@@ -3817,15 +3829,15 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 | `server_runtime_http/src/health_snapshot.rs` | Pending |
 | `server_runtime_http/src/http_accept_header_maximum_bytes.rs` | Pending |
 | `server_runtime_http/src/http_allowed_path_prefix_ref.rs` | Reviewed: borrowed prefix adapter; the matching helper compares full path segments. |
-| `server_runtime_http/src/http_attachment_file_name_ref.rs` | Pending |
+| `server_runtime_http/src/http_attachment_file_name_ref.rs` | Reviewed: borrowed attachment file name wrapper; no defect confirmed. |
 | `server_runtime_http/src/http_authorization_header_text_ref.rs` | Pending |
 | `server_runtime_http/src/http_bearer_token_ref.rs` | Pending |
-| `server_runtime_http/src/http_content_disposition.rs` | Pending |
-| `server_runtime_http/src/http_content_disposition_error.rs` | Pending |
-| `server_runtime_http/src/http_content_length.rs` | Pending |
-| `server_runtime_http/src/http_content_length_error.rs` | Pending |
-| `server_runtime_http/src/http_content_security_policy.rs` | Pending |
-| `server_runtime_http/src/http_content_security_policy_error.rs` | Pending |
+| `server_runtime_http/src/http_content_disposition.rs` | Reviewed: typed header value wrapper; no defect confirmed. |
+| `server_runtime_http/src/http_content_disposition_error.rs` | Reviewed: typed attachment header failures; no defect confirmed. |
+| `server_runtime_http/src/http_content_length.rs` | Reviewed: decimal-only u64 Content-Length with 20-digit bound; no defect confirmed. |
+| `server_runtime_http/src/http_content_length_error.rs` | Reviewed: typed Content-Length failures; no defect confirmed. |
+| `server_runtime_http/src/http_content_security_policy.rs` | Reviewed: bounded HTTP header value validation; no defect confirmed. |
+| `server_runtime_http/src/http_content_security_policy_error.rs` | Reviewed: typed CSP header failure; no defect confirmed. |
 | `server_runtime_http/src/http_content_type_text_ref.rs` | Reviewed: borrowed optional Content-Type text adapter without transformation. |
 | `server_runtime_http/src/http_cookie_access.rs` | Pending |
 | `server_runtime_http/src/http_cookie_headers_ref.rs` | Reviewed: borrowed Cookie header-map adapter without transformation. |
@@ -3837,12 +3849,12 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 | `server_runtime_http/src/http_cors_allow_origin_header_values.rs` | Reviewed: typed collection of validated CORS HeaderValue entries. |
 | `server_runtime_http/src/http_cors_allow_origin_header_values_error.rs` | Pending |
 | `server_runtime_http/src/http_cors_allow_origin_text_ref.rs` | Reviewed: borrowed CORS configuration text adapter. |
-| `server_runtime_http/src/http_csp_builder.rs` | Pending |
-| `server_runtime_http/src/http_csp_directive_name.rs` | Pending |
-| `server_runtime_http/src/http_csp_directive_value.rs` | Pending |
+| `server_runtime_http/src/http_csp_builder.rs` | Reviewed: precomputed bounded directive appends and final header validation; no defect confirmed. |
+| `server_runtime_http/src/http_csp_directive_name.rs` | Reviewed: bounded lowercase directive name token; no defect confirmed. |
+| `server_runtime_http/src/http_csp_directive_value.rs` | Reviewed: bounded directive value without ASCII whitespace or semicolons; no defect confirmed. |
 | `server_runtime_http/src/http_csp_maximum_bytes_error.rs` | Pending |
 | `server_runtime_http/src/http_csp_token_error.rs` | Pending |
-| `server_runtime_http/src/http_csp_token_text.rs` | Pending |
+| `server_runtime_http/src/http_csp_token_text.rs` | Reviewed: shared bounded nonempty CSP token text; no defect confirmed. |
 | `server_runtime_http/src/http_error_class.rs` | Pending |
 | `server_runtime_http/src/http_error_code.rs` | Pending |
 | `server_runtime_http/src/http_error_diagnostic.rs` | Pending |
@@ -3865,16 +3877,16 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 | `server_runtime_http/src/http_header_to_str_error.rs` | Pending |
 | `server_runtime_http/src/http_host_ref.rs` | Pending |
 | `server_runtime_http/src/http_method_ref.rs` | Pending |
-| `server_runtime_http/src/http_metrics_layer.rs` | Pending |
-| `server_runtime_http/src/http_metrics_path_cache.rs` | Pending |
-| `server_runtime_http/src/http_metrics_path_cache_maximum.rs` | Pending |
-| `server_runtime_http/src/http_metrics_path_cache_maximum_try_from_usize_error.rs` | Pending |
-| `server_runtime_http/src/http_metrics_path_entries_rw_lock.rs` | Pending |
-| `server_runtime_http/src/http_metrics_path_text.rs` | Pending |
-| `server_runtime_http/src/http_metrics_path_text_error.rs` | Pending |
-| `server_runtime_http/src/http_metrics_path_text_ref.rs` | Pending |
-| `server_runtime_http/src/http_metrics_service.rs` | Focused review: uses a matched route or bounded identifier normalization for labels; unmatched paths use a capped cache fallback. |
-| `server_runtime_http/src/http_metrics_tower_layer.rs` | Pending |
+| `server_runtime_http/src/http_metrics_layer.rs` | Reviewed: shared bounded path cache is applied to the router; no defect confirmed. |
+| `server_runtime_http/src/http_metrics_path_cache.rs` | Reviewed: bounded label insertion, double-checked locking and unmatched fallback; no defect confirmed. |
+| `server_runtime_http/src/http_metrics_path_cache_maximum.rs` | Reviewed: nonzero cache bound; no defect confirmed. |
+| `server_runtime_http/src/http_metrics_path_cache_maximum_try_from_usize_error.rs` | Reviewed: typed zero-bound error; no defect confirmed. |
+| `server_runtime_http/src/http_metrics_path_entries_rw_lock.rs` | Reviewed: typed cache lock wrapper; no defect confirmed. |
+| `server_runtime_http/src/http_metrics_path_text.rs` | Reviewed: bounded nonempty path label; no defect confirmed. |
+| `server_runtime_http/src/http_metrics_path_text_error.rs` | Reviewed: typed path validation error; no defect confirmed. |
+| `server_runtime_http/src/http_metrics_path_text_ref.rs` | Reviewed: borrowed path text wrapper; no defect confirmed. |
+| `server_runtime_http/src/http_metrics_service.rs` | Focused review: uses a matched route or bounded identifier normalization for labels; unmatched paths use a capped cache fallback. No further defect confirmed. |
+| `server_runtime_http/src/http_metrics_tower_layer.rs` | Reviewed: shared cache forwarding to the metrics service; no defect confirmed. |
 | `server_runtime_http/src/http_normalized_path.rs` | Reviewed: bounded 8,192-byte normalized path wrapper; overlong output is rejected. |
 | `server_runtime_http/src/http_normalized_path_error.rs` | Pending |
 | `server_runtime_http/src/http_opentelemetry_header_map_mut.rs` | Pending |
@@ -3946,7 +3958,7 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 | `server_runtime_http/src/outbound_url_text_ref.rs` | Reviewed: borrowed URL text wrapper; no defect confirmed. |
 | `server_runtime_http/src/parse_bounded_json.rs` | Reviewed: borrowed bytes adapter to validated JSON; no defect confirmed. |
 | `server_runtime_http/src/parse_bounded_json_owned.rs` | Reviewed: UTF-8 conversion and JSON validation; no defect confirmed. |
-| `server_runtime_http/src/parse_cors_allow_origin.rs` | Focused review: bounds bytes/items, validates HTTP(S) authorities, trims entries and canonicalizes ASCII case and default ports for tower-http exact allowlist matching; A162, A163. |
+| `server_runtime_http/src/parse_cors_allow_origin.rs` | Focused review: bounds bytes/items, validates HTTP(S) authorities, trims entries and builds exact-match headers from normalized origin components; A162, A163, A167. |
 | `server_runtime_http/src/parse_int_error.rs` | Pending |
 | `server_runtime_http/src/parse_trusted_proxy_ranges.rs` | Focused review: trims comma-separated ranges and bounds parsing to 129 items; focused tests cover 128 accepted, excess and empty entries. |
 | `server_runtime_http/src/parsed_http_origin_ref.rs` | Reviewed: borrowed parsed authority/scheme pair; construction is confined to the validated request-origin comparison path. |
@@ -4062,10 +4074,10 @@ A07 partial guard verification: all 12 frontend_contract_validation tests pass, 
 | `server_runtime_http/src/test_http_policy_tests.rs` | Reviewed: bearer parsing, cookies and optional JSON content type tests; no defect confirmed. |
 | `server_runtime_http/src/test_http_status_error_tests.rs` | Pending |
 | `server_runtime_http/src/test_lifecycle_tests.rs` | Pending |
-| `server_runtime_http/src/test_metrics_layer_tests.rs` | Pending |
+| `server_runtime_http/src/test_metrics_layer_tests.rs` | Reviewed: cache bounds, fallback and metrics layer behavior tests; no defect confirmed. |
 | `server_runtime_http/src/test_multipart_tests.rs` | Reviewed: multipart boundaries, part count, payload and path tests; no defect confirmed. |
 | `server_runtime_http/src/test_notification_tests.rs` | Reviewed: secret redaction and message validation tests; no defect confirmed. |
-| `server_runtime_http/src/test_origin_tests.rs` | Reviewed: all six focused origin tests pass. |
+| `server_runtime_http/src/test_origin_tests.rs` | Focused review: origin and Referer authority tests plus A167 default-port regression. |
 | `server_runtime_http/src/test_outbound_url_tests.rs` | Reviewed: URL and address policy tests pass; local proxy transport regression under A158 and allowlist host regressions under A165 and A166. |
 | `server_runtime_http/src/test_path_policy_tests.rs` | Focused review: three tests cover segment-prefix match, encoded traversal rejection and numeric/UUID path normalization. |
 | `server_runtime_http/src/test_pg_rate_limit_tests.rs` | Reviewed: positive numeric and key length boundary tests; no defect confirmed. |

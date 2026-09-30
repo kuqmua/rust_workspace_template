@@ -101,6 +101,7 @@ pub(crate) async fn create_session_in_connection(
     sqlx::query(constants_str::SERVER_ADMIN_INSERT_REFRESH_TOKEN_SQL)
         .bind(server_admin_core::uuid_admin_value::UuidAdminValue::from(uuid::Uuid::new_v4()).get())
         .bind(admin_user_record_id.get())
+        .bind(session_id.get().get())
         .bind(refresh_hash.expose().as_ref())
         .bind(i64::try_from(admin_auth_svc_state.get_refresh_ttl().get()).unwrap_or(i64::MAX))
         .execute(sqlx_admin_repository_connection_mut_ref.as_mut())

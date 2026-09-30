@@ -9,5 +9,11 @@ pub(crate) async fn revoke_access_session(
         .execute(&mut **sqlx_admin_repository_connection_mut_ref)
         .await
         .map_err(crate::sqlx_admin_error::SqlxAdminError::from)
+        .map(drop)?;
+    sqlx::query(constants_str::SERVER_ADMIN_REVOKE_SESSION_REFRESH_TOKENS_SQL)
+        .bind(admin_session_id.get().get())
+        .execute(&mut **sqlx_admin_repository_connection_mut_ref)
+        .await
+        .map_err(crate::sqlx_admin_error::SqlxAdminError::from)
         .map(drop)
 }

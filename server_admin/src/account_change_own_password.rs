@@ -62,6 +62,7 @@ pub(crate) async fn account_change_own_password(
             })
             .transpose()?
             .ok_or(crate::admin_error::AdminError::Authentication)?;
+    let expected_hash_text = expected_hash.expose().as_ref().to_owned();
     if !admin_auth_request
         .get_state()
         .as_ref()
@@ -95,19 +96,18 @@ pub(crate) async fn account_change_own_password(
         .begin()
         .await
         .map_err(crate::admin_error::AdminError::from)?;
-    crate::update_user_password::update_user_password(
-        crate::sqlx_admin_repository_connection_mut_ref::SqlxAdminRepositoryConnectionMutRef::from(
-            &mut *tx,
-        ),
-        *actor.get_id(),
-        &password_hash,
-        crate::admin_password_change_required::AdminPasswordChangeRequired::from(false),
-    )
-    .await
-    .map_err(crate::admin_error::AdminError::from)?
-    .get()
-    .then_some(())
-    .ok_or(crate::admin_error::AdminError::Conflict)?;
+    sqlx::query_scalar::<_, bool>(constants_str::SERVER_ADMIN_UPDATE_OWN_PASSWORD_IF_UNCHANGED_SQL)
+        .bind(actor.get_id().get())
+        .bind(password_hash.expose().as_ref())
+        .bind(false)
+        .bind(expected_hash_text.as_str())
+        .fetch_optional(&mut *tx)
+        .await
+        .map_err(crate::sqlx_admin_error::SqlxAdminError::from)
+        .map_err(crate::admin_error::AdminError::from)?
+        .is_some()
+        .then_some(())
+        .ok_or(crate::admin_error::AdminError::Conflict)?;
     sqlx::query(constants_str::SERVER_ADMIN_REVOKE_OTHER_ACCESS_SESSIONS_SQL)
         .bind(actor.get_id().get())
         .bind(actor.get_session_id().get().get())

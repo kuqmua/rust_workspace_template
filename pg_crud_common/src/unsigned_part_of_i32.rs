@@ -10,9 +10,7 @@
     serde::Deserialize,
     schemars::JsonSchema,
     proc_macro_optimal_memory_layout::OptimalMemoryLayout,
-    proc_macro_newtype_from_getter::FromGetter,
 )]
-#[from_getter(source = std::num::NonZeroI32, getter = get)]
 #[serde(try_from = "i32")]
 pub struct UnsignedPartOfI32(i32);
 
@@ -34,6 +32,20 @@ impl TryFrom<i32> for UnsignedPartOfI32 {
                 location: proc_macro_location_bang::location!(),
             })
         }
+    }
+}
+
+impl TryFrom<std::num::NonZeroI32> for UnsignedPartOfI32 {
+    type Error = crate::unsigned_part_of_i32_try_from_i32_error::UnsignedPartOfI32TryFromI32Error;
+
+    fn try_from(value: std::num::NonZeroI32) -> Result<Self, Self::Error> {
+        Self::try_from(value.get())
+    }
+}
+
+impl From<crate::not_zero_unsigned_part_of_i32::NotZeroUnsignedPartOfI32> for UnsignedPartOfI32 {
+    fn from(value: crate::not_zero_unsigned_part_of_i32::NotZeroUnsignedPartOfI32) -> Self {
+        Self(value.get_inner().get())
     }
 }
 
@@ -89,11 +101,17 @@ mod tests {
                 .expect(constants_str::DIAGNOSTIC_EA8C2D71),
             crate::unsigned_part_of_i32::UnsignedPartOfI32::from(7u16)
         );
-        assert_eq!(
-            crate::unsigned_part_of_i32::UnsignedPartOfI32::from(
+        assert!(matches!(
+            crate::unsigned_part_of_i32::UnsignedPartOfI32::try_from(
                 std::num::NonZeroI32::new(7i32).expect(constants_str::DIAGNOSTIC_DD53FC4D),
             ),
-            crate::unsigned_part_of_i32::UnsignedPartOfI32::from(7u16)
-        );
+            Ok(unsigned) if unsigned == crate::unsigned_part_of_i32::UnsignedPartOfI32::from(7u16)
+        ));
+        assert!(matches!(
+            crate::unsigned_part_of_i32::UnsignedPartOfI32::try_from(
+                std::num::NonZeroI32::MIN
+            ),
+            Err(crate::unsigned_part_of_i32_try_from_i32_error::UnsignedPartOfI32TryFromI32Error::LessThanZero { .. })
+        ));
     }
 }

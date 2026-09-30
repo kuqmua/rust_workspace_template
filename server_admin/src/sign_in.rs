@@ -40,25 +40,8 @@ pub(crate) async fn sign_in(
                 });
             target
         }
-        Err(_error) => {
-            let message_result =
-                frontend_admin::admin_ssr_error_message::AdminSsrErrorMessage::try_from(
-                    String::from(constants_str::SIGN_IN_FAILED),
-                );
-            match message_result {
-                Ok(error_message) => axum::response::IntoResponse::into_response((
-                    http::StatusCode::UNAUTHORIZED,
-                    axum::response::Html(String::from(
-                        frontend_admin::render_sign_in::render_sign_in(
-                            Some(error_message),
-                            branding.as_ref(),
-                        ),
-                    )),
-                )),
-                Err(_message_error) => axum::response::IntoResponse::into_response(
-                    http::StatusCode::INTERNAL_SERVER_ERROR,
-                ),
-            }
+        Err(error) => {
+            crate::sign_in_error_response::sign_in_error_response(error, branding.as_ref())
         }
     }
 }

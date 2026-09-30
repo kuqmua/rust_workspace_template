@@ -3137,6 +3137,12 @@ mod test_flow {
         .await
         .expect(constants_str::DIAGNOSTIC_CA94AEC1);
         assert_eq!(removed_route_response.status(), http::StatusCode::NOT_FOUND);
+        let sign_out_cookie = format!(
+            "{}{refreshed_access}; {}{}",
+            constants_str::ADMIN_ACCESS_TOKEN,
+            constants_str::ADMIN_CSRF_TOKEN_ALT,
+            refreshed_csrf.0,
+        );
         let sign_out_response = tower::ServiceExt::oneshot(
             crate::router_with_pool(&pool).0,
             crate::request_with_peer(
@@ -3148,7 +3154,7 @@ mod test_flow {
                     .as_ref(),
                 ),
                 super::StdAdminApiTestStrRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
-                Some(super::StdAdminApiTestStrRef::from(active_cookie.as_str())),
+                Some(super::StdAdminApiTestStrRef::from(sign_out_cookie.as_str())),
                 Some(super::StdAdminApiTestStrRef::from(
                     refreshed_csrf.0.as_str(),
                 )),
@@ -3158,6 +3164,33 @@ mod test_flow {
         .await
         .expect(constants_str::DIAGNOSTIC_EF71E50A);
         assert_eq!(sign_out_response.status(), http::StatusCode::NO_CONTENT);
+        let rotated_refresh_cookie = format!(
+            "{}{rotated_refresh}",
+            constants_str::ADMIN_REFRESH_TOKEN_ALT,
+        );
+        let refresh_after_sign_out = tower::ServiceExt::oneshot(
+            crate::router_with_pool(&pool).0,
+            crate::request_with_peer(
+                super::HttpAdminApiTestMethod::from(http::Method::POST),
+                super::StdAdminApiTestStrRef::from(
+                    frontend_contract::typed_route_path::typed_route_path::<
+                        server_admin_contract::admin_refresh_route::AdminRefreshRoute,
+                    >()
+                    .as_ref(),
+                ),
+                super::StdAdminApiTestStrRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
+                Some(super::StdAdminApiTestStrRef::from(
+                    rotated_refresh_cookie.as_str(),
+                )),
+                None,
+            )
+            .0,
+        )
+        .await;
+        assert!(
+            refresh_after_sign_out
+                .is_ok_and(|response| response.status() == http::StatusCode::UNAUTHORIZED)
+        );
         let revoked_response = tower::ServiceExt::oneshot(
             crate::router_with_pool(&pool).0,
             crate::request_with_peer(
@@ -4044,6 +4077,7 @@ mod test_html {
         let _inserted_other_refresh_token = sqlx::query(constants_str::VALUE_0FCC992D)
             .bind(uuid::Uuid::from_u128(3u128))
             .bind(user_id)
+            .bind(other_session_id)
             .execute(&fixture.pool.0)
             .await
             .expect(constants_str::DIAGNOSTIC_D61FC342);
@@ -4073,6 +4107,16 @@ mod test_html {
         .await
         .expect(constants_str::DIAGNOSTIC_696330CA);
         assert_ne!(changed_password_hash, original_password_hash);
+        let stale_password_update = sqlx::query_scalar::<_, bool>(
+            constants_str::SERVER_ADMIN_UPDATE_OWN_PASSWORD_IF_UNCHANGED_SQL,
+        )
+        .bind(user_id)
+        .bind(original_password_hash.as_str())
+        .bind(false)
+        .bind(original_password_hash.as_str())
+        .fetch_optional(&fixture.pool.0)
+        .await;
+        assert!(stale_password_update.is_ok_and(|updated| updated.is_none()));
         let current_session_revoked = sqlx::query_scalar::<_, bool>(constants_str::VALUE_26E35E53)
             .bind(current_session_id)
             .fetch_one(&fixture.pool.0)
@@ -4125,6 +4169,16 @@ mod test_html {
             .execute(&fixture.pool.0)
             .await
             .expect(constants_str::DIAGNOSTIC_3538E3FC);
+        let refresh_token_id = uuid::Uuid::from_u128(3u128);
+        let inserted_refresh = sqlx::query(constants_str::SERVER_ADMIN_INSERT_REFRESH_TOKEN_SQL)
+            .bind(refresh_token_id)
+            .bind(user_id)
+            .bind(session_id)
+            .bind(constants_str::FIXED_TEST_TOKEN)
+            .bind(3600i64)
+            .execute(&fixture.pool.0)
+            .await;
+        assert!(inserted_refresh.is_ok_and(|result| result.rows_affected() == 1));
         let body = serde_json::json!({
             (stringify!(filter)): {(stringify!(session_id)): session_id}
         })
@@ -4154,6 +4208,13 @@ mod test_html {
             .fetch_one(&fixture.pool.0)
             .await;
         assert!(revoked.is_ok_and(|value| value));
+        let active_refresh = sqlx::query_scalar::<_, bool>(
+            constants_str::SERVER_ADMIN_HAS_ACTIVE_REFRESH_TOKEN_FOR_SESSION_SQL,
+        )
+        .bind(session_id)
+        .fetch_one(&fixture.pool.0)
+        .await;
+        assert!(active_refresh.is_ok_and(|value| !value));
         fixture
             .lock
             .0
@@ -4163,7 +4224,7 @@ mod test_html {
     }
     #[tokio::test]
     #[ignore = "requires PostgreSQL; run through workspace_test_runner database"]
-    async fn test_postgresql_html_sessions_reads_every_field_and_revokes_future_created_session() {
+    async fn test_postgresql_html_sessions_revocation_blocks_refresh_and_future_session() {
         let fixture = crate::admin_html_test_fixture().await;
         let admin_id = sqlx::query_scalar::<_, i64>(
             constants_str::SELECT_ID_FROM_ADMIN_USERS_WHERE_LOGIN_ADMIN,
@@ -4220,6 +4281,29 @@ mod test_html {
             .await
             .expect(constants_str::DIAGNOSTIC_E443902E);
         assert!(revoked);
+        let refresh_after_revoke = tower::ServiceExt::oneshot(
+            crate::router_with_pool(&fixture.pool).0,
+            crate::request_with_peer(
+                super::HttpAdminApiTestMethod::from(http::Method::POST),
+                super::StdAdminApiTestStrRef::from(
+                    frontend_contract::typed_route_path::typed_route_path::<
+                        server_admin_contract::admin_refresh_route::AdminRefreshRoute,
+                    >()
+                    .as_ref(),
+                ),
+                super::StdAdminApiTestStrRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
+                Some(super::StdAdminApiTestStrRef::from(
+                    fixture.cookie.0.as_str(),
+                )),
+                None,
+            )
+            .0,
+        )
+        .await;
+        assert!(
+            refresh_after_revoke
+                .is_ok_and(|response| response.status() == http::StatusCode::UNAUTHORIZED)
+        );
         let rejected_response = crate::admin_html_response(
             &fixture,
             super::HttpAdminApiTestMethod::from(http::Method::GET),
@@ -4864,7 +4948,7 @@ mod test_maintenance {
         .fetch_one(&base_pool)
         .await
         .expect(constants_str::DIAGNOSTIC_5C10C931);
-        assert_eq!(version, 4i64);
+        assert_eq!(version, 5i64);
         let expected_tables = server_admin_contract::admin_data_table::AdminDataTable::PG_ORDER
             .map(|table| table.to_string())
             .into_iter()
@@ -4891,6 +4975,73 @@ mod test_maintenance {
         .await
         .expect(constants_str::DIAGNOSTIC_3CC6053F);
         assert_eq!(idempotency_rows, constants_i64::ZERO);
+        let rules_before_duplicate_check =
+            pg_crud_common::inspect_postgres_table::inspect_postgres_table(
+                pg_crud_common::sqlx_pg_catalog_pool_ref::SqlxPgCatalogPoolRef::from(&fresh_pool),
+                pg_crud_common::db_schema_name_ref::DbSchemaNameRef::from(
+                    constants_str::ADMIN_MIGRATION_FRESH_TEST,
+                ),
+                pg_crud_common::db_table_name_ref::DbTableNameRef::from(constants_str::RULES_TABLE),
+            )
+            .await
+            .expect(constants_str::DIAGNOSTIC_345C13F9);
+        let _duplicate_check =
+            sqlx::raw_sql(constants_str::ADMIN_TEST_ADD_DUPLICATE_RULES_CHECK_SQL)
+                .execute(&fresh_pool)
+                .await
+                .expect(constants_str::DIAGNOSTIC_A165AC89);
+        let rules_after_duplicate_check =
+            pg_crud_common::inspect_postgres_table::inspect_postgres_table(
+                pg_crud_common::sqlx_pg_catalog_pool_ref::SqlxPgCatalogPoolRef::from(&fresh_pool),
+                pg_crud_common::db_schema_name_ref::DbSchemaNameRef::from(
+                    constants_str::ADMIN_MIGRATION_FRESH_TEST,
+                ),
+                pg_crud_common::db_table_name_ref::DbTableNameRef::from(constants_str::RULES_TABLE),
+            )
+            .await
+            .expect(constants_str::DIAGNOSTIC_87884FD9);
+        assert_eq!(rules_before_duplicate_check, rules_after_duplicate_check);
+        let _removed_duplicate_check =
+            sqlx::raw_sql(constants_str::ADMIN_TEST_DROP_DUPLICATE_RULES_CHECK_SQL)
+                .execute(&fresh_pool)
+                .await
+                .expect(constants_str::DIAGNOSTIC_0BC2F962);
+        let _dropped_not_null =
+            sqlx::raw_sql(constants_str::ADMIN_TEST_DROP_PERMISSION_ACTION_ID_NOT_NULL_SQL)
+                .execute(&fresh_pool)
+                .await
+                .expect(constants_str::DIAGNOSTIC_3BDF1331);
+        assert!(matches!(
+            server_admin::validate_catalog_schema::validate_catalog_schema(
+                pg_crud_common::sqlx_pg_catalog_pool_ref::SqlxPgCatalogPoolRef::from(&fresh_pool),
+                pg_crud_common::db_schema_name_ref::DbSchemaNameRef::from(
+                    constants_str::ADMIN_MIGRATION_FRESH_TEST,
+                ),
+            )
+            .await,
+            Err(pg_crud_common::db_schema_conformance_error::DbSchemaConformanceError::ColumnContractMismatch { .. })
+        ));
+        let _restored_not_null =
+            sqlx::raw_sql(constants_str::ADMIN_TEST_RESTORE_PERMISSION_ACTION_ID_NOT_NULL_SQL)
+                .execute(&fresh_pool)
+                .await
+                .expect(constants_str::DIAGNOSTIC_55615D60);
+        let _altered_foreign_key = sqlx::raw_sql(
+            constants_str::ADMIN_TEST_ALTER_ACCESS_SESSIONS_FOREIGN_KEY_TO_RESTRICT_SQL,
+        )
+        .execute(&fresh_pool)
+        .await
+        .expect(constants_str::DIAGNOSTIC_00ADA03F);
+        assert!(matches!(
+            server_admin::validate_catalog_schema::validate_catalog_schema(
+                pg_crud_common::sqlx_pg_catalog_pool_ref::SqlxPgCatalogPoolRef::from(&fresh_pool),
+                pg_crud_common::db_schema_name_ref::DbSchemaNameRef::from(
+                    constants_str::ADMIN_MIGRATION_FRESH_TEST,
+                ),
+            )
+            .await,
+            Err(pg_crud_common::db_schema_conformance_error::DbSchemaConformanceError::KeyContractMismatch { .. })
+        ));
         fresh_pool.close().await;
         let _drop_after =
             sqlx::raw_sql(constants_str::DROP_SCHEMA_ADMIN_MIGRATION_FRESH_TEST_CASCADE)

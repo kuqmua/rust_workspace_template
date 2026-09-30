@@ -4,7 +4,7 @@
 pub struct CursorSigningKey(
     bounded_types::bounded_vec::BoundedVec<
         u8,
-        { constants_usize::ONE },
+        { constants_usize::VALUE_32 },
         { super::cursor_signing_key_maximum_length::CURSOR_SIGNING_KEY_MAXIMUM_LENGTH },
     >,
 );
@@ -30,7 +30,16 @@ impl TryFrom<Vec<u8>> for CursorSigningKey {
 #[cfg(test)]
 mod tests {
     #[test]
-    fn test_signing_key_rejects_empty_and_oversized_values() {
+    fn test_signing_key_rejects_short_and_oversized_values() {
+        assert_eq!(
+            crate::cursor_signing_key::CursorSigningKey::try_from(vec![
+                constants_u8::ZERO;
+                constants_usize::VALUE_32
+                    - constants_usize::ONE
+            ])
+            .map(drop),
+            Err(crate::cursor_signing_key_error::CursorSigningKeyError::InvalidLength)
+        );
         assert_eq!(
             crate::cursor_signing_key::CursorSigningKey::try_from(Vec::new()).map(drop),
             Err(crate::cursor_signing_key_error::CursorSigningKeyError::InvalidLength)

@@ -97,6 +97,12 @@ pub(crate) async fn api_delete_access_sessions(
                 .await
                 .map_err(crate::admin_error::AdminError::from)
                 .map(drop)?;
+            sqlx::query(constants_str::SERVER_ADMIN_REVOKE_SESSION_REFRESH_TOKENS_SQL)
+                .bind(admin_session_id.get().get())
+                .execute(&mut **sqlx_admin_transaction)
+                .await
+                .map_err(crate::admin_error::AdminError::from)
+                .map(drop)?;
             crate::record_audit_success_in_connection::record_audit_success_in_connection(
                 crate::sqlx_admin_repository_connection_mut_ref::SqlxAdminRepositoryConnectionMutRef::from(&mut **sqlx_admin_transaction),
                 crate::admin_audit_success_ref::AdminAuditSuccessRef::new(

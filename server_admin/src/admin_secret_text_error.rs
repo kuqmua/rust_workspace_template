@@ -43,6 +43,27 @@ impl From<server_admin_core::std_admin_string::StdAdminStringTryFromStringError>
         }
     }
 }
+impl From<crate::std_admin_cookie::StdAdminCookieTryFromStringError> for AdminSecretTextError {
+    fn from(value: crate::std_admin_cookie::StdAdminCookieTryFromStringError) -> Self {
+        match value {
+            crate::std_admin_cookie::StdAdminCookieTryFromStringError::InvalidBounds { .. } => {
+                Self::InvalidBounds
+            }
+            crate::std_admin_cookie::StdAdminCookieTryFromStringError::TooShort { .. } => {
+                Self::TooShort
+            }
+            crate::std_admin_cookie::StdAdminCookieTryFromStringError::TooLong { .. } => {
+                Self::TooLong
+            }
+            crate::std_admin_cookie::StdAdminCookieTryFromStringError::ContainsNul => {
+                Self::ContainsNul
+            }
+            crate::std_admin_cookie::StdAdminCookieTryFromStringError::InvalidValue => {
+                Self::InvalidValue
+            }
+        }
+    }
+}
 impl From<crate::std_admin_access_token::StdAdminAccessTokenTryFromStringError>
     for AdminSecretTextError
 {

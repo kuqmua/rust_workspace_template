@@ -1,10 +1,12 @@
-#[must_use]
 pub fn build_admin_cookie(
     admin_cookie_kind: crate::admin_cookie_kind::AdminCookieKind,
     std_admin_str_ref: server_admin_core::std_admin_str_ref::StdAdminStrRef<'_>,
     admin_cookie_max_age_seconds: crate::admin_cookie_max_age_seconds::AdminCookieMaxAgeSeconds,
     runtime_admin_cookie_secure: crate::runtime_admin_cookie_secure::RuntimeAdminCookieSecure,
-) -> crate::std_admin_cookie::StdAdminCookie {
+) -> Result<
+    crate::std_admin_cookie::StdAdminCookie,
+    crate::admin_secret_text_error::AdminSecretTextError,
+> {
     let http_only = if matches!(
         admin_cookie_kind,
         crate::admin_cookie_kind::AdminCookieKind::Csrf
@@ -24,5 +26,5 @@ pub fn build_admin_cookie(
         std_admin_str_ref.as_ref(),
         admin_cookie_max_age_seconds.get_inner()
     ))
-    .unwrap_or_else(crate::std_admin_cookie::StdAdminCookie::from)
+    .map_err(crate::admin_secret_text_error::AdminSecretTextError::from)
 }

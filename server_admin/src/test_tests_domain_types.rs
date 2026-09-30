@@ -62,7 +62,7 @@ fn test_unknown_rule_is_rejected() {
 fn test_migration_inventory_is_not_empty() {
     let migrator = crate::migrator::migrator();
     let migrations = migrator.iter().collect::<Vec<_>>();
-    assert_eq!(migrations.len(), 4usize);
+    assert_eq!(migrations.len(), 5usize);
     assert!(!migrator.ignore_missing);
     assert!(
         migrations
@@ -157,11 +157,43 @@ fn test_cookie_policy_marks_only_secret_tokens_http_only() {
         crate::admin_cookie_max_age_seconds::AdminCookieMaxAgeSeconds::from(60),
         crate::runtime_admin_cookie_secure::RuntimeAdminCookieSecure::from(true),
     );
-    assert!(access.as_ref().contains(constants_str::VALUE_A0820391));
-    assert!(access.as_ref().contains(constants_str::VALUE_1BCED1D0));
-    assert!(access.as_ref().contains(constants_str::VALUE_DD7C3F04));
-    assert!(!csrf.as_ref().contains(constants_str::VALUE_A0820391));
-    assert!(csrf.as_ref().contains(constants_str::VALUE_1BCED1D0));
+    assert!(
+        access
+            .as_ref()
+            .is_ok_and(|cookie| cookie.as_ref().contains(constants_str::VALUE_A0820391))
+    );
+    assert!(
+        access
+            .as_ref()
+            .is_ok_and(|cookie| cookie.as_ref().contains(constants_str::VALUE_1BCED1D0))
+    );
+    assert!(
+        access
+            .as_ref()
+            .is_ok_and(|cookie| cookie.as_ref().contains(constants_str::VALUE_DD7C3F04))
+    );
+    assert!(
+        csrf.as_ref()
+            .is_ok_and(|cookie| !cookie.as_ref().contains(constants_str::VALUE_A0820391))
+    );
+    assert!(
+        csrf.as_ref()
+            .is_ok_and(|cookie| cookie.as_ref().contains(constants_str::VALUE_1BCED1D0))
+    );
+}
+#[test]
+fn test_cookie_builder_does_not_return_error_text_as_cookie() {
+    let oversized_value = constants_str::ACCESS.repeat(8192usize);
+    let cookie = crate::build_admin_cookie::build_admin_cookie(
+        crate::admin_cookie_kind::AdminCookieKind::Access,
+        server_admin_core::std_admin_str_ref::StdAdminStrRef::from(oversized_value.as_str()),
+        crate::admin_cookie_max_age_seconds::AdminCookieMaxAgeSeconds::from(60),
+        crate::runtime_admin_cookie_secure::RuntimeAdminCookieSecure::from(true),
+    );
+    assert_eq!(
+        cookie,
+        Err(crate::admin_secret_text_error::AdminSecretTextError::TooLong)
+    );
 }
 #[test]
 fn test_cookie_parser_matches_complete_cookie_name() {

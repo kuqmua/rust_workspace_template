@@ -12,7 +12,9 @@ pub(crate) fn append_cleared_session_cookies(
         let cookie = crate::clear_admin_cookie::clear_admin_cookie(
             kind,
             *admin_auth_svc_state.get_cookie_secure(),
-        );
+        )
+        .map_err(crate::admin_session_error::AdminSessionError::SecretText)
+        .map_err(crate::admin_error::AdminError::session)?;
         http::HeaderValue::from_str(cookie.as_ref())
             .map(|header| {
                 axum_admin_response

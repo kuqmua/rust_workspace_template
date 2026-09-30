@@ -12,6 +12,7 @@ pub enum DbKeyContractSnapshot {
         columns: crate::db_schema_texts::DbSchemaTexts,
         referenced_columns: crate::db_schema_texts::DbSchemaTexts,
         referenced_table: crate::db_schema_text::DbSchemaText,
+        on_delete: crate::db_foreign_key_delete_action::DbForeignKeyDeleteAction,
     },
     PrimaryKey(crate::db_schema_texts::DbSchemaTexts),
     Unique(crate::db_schema_texts::DbSchemaTexts),

@@ -32,8 +32,14 @@ pub async fn validate_catalog_schema(
                             )
                             .await
                         }
+                        crate::admin_generated_table::AdminGeneratedTable::PermissionResourceActions => {
+                            validate_generated_table::<crate::admin_permission_resource_actions::AdminPermissionResourceActions>(
+                                sqlx_pg_catalog_pool_ref,
+                                db_schema_name_ref,
+                            )
+                            .await
+                        }
                         crate::admin_generated_table::AdminGeneratedTable::PermissionActions
-                        | crate::admin_generated_table::AdminGeneratedTable::PermissionResourceActions
                         | crate::admin_generated_table::AdminGeneratedTable::PermissionResources
                         | crate::admin_generated_table::AdminGeneratedTable::Rules => {
                             Ok(())

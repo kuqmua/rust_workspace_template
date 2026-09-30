@@ -15,8 +15,8 @@
     "db_table_name": "permission_resource_actions",
     "route_resource_name": "permission_resource_actions",
     "db_foreign_keys": [
-        {"columns": ["permission_resource_id"], "referenced_columns": ["id"], "referenced_table": "permission_resources"},
-        {"columns": ["permission_action_id"], "referenced_columns": ["id"], "referenced_table": "permission_actions"}
+        {"columns": ["permission_resource_id"], "on_delete": "Cascade", "referenced_columns": ["id"], "referenced_table": "permission_resources"},
+        {"columns": ["permission_action_id"], "on_delete": "Cascade", "referenced_columns": ["id"], "referenced_table": "permission_actions"}
     ],
     "db_unique_keys": [["permission_resource_id", "permission_action_id"]],
     "rule_prefix": "permission_resource_actions",

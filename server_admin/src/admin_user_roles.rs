@@ -15,8 +15,8 @@
     "db_table_name": "user_roles",
     "create_exclude_fields": ["created_at"],
     "db_foreign_keys": [
-        {"columns": ["user_id"], "referenced_columns": ["id"], "referenced_table": "users"},
-        {"columns": ["role_id"], "referenced_columns": ["id"], "referenced_table": "roles"}
+        {"columns": ["user_id"], "on_delete": "Cascade", "referenced_columns": ["id"], "referenced_table": "users"},
+        {"columns": ["role_id"], "on_delete": "Cascade", "referenced_columns": ["id"], "referenced_table": "roles"}
     ],
     "db_unique_keys": [["user_id", "role_id"]],
     "rule_prefix": "user_roles",
