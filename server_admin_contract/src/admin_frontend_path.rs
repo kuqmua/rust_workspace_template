@@ -82,6 +82,8 @@ pub enum AdminFrontendPath {
     UsersRead,
     #[strum(serialize = "/admin/user_roles/{user_role_id}")]
     UserRoleRead,
+    #[strum(serialize = "/admin/user_roles/{user_role_id}/read")]
+    UserRolesRead,
     #[strum(serialize = "/admin/version")]
     Version,
 }

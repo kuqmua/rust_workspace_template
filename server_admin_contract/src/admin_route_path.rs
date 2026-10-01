@@ -168,12 +168,13 @@ impl From<crate::admin_rule_id::AdminRuleId> for AdminRoutePath {
 impl From<crate::admin_user_role_id::AdminUserRoleId> for AdminRoutePath {
     fn from(value: crate::admin_user_role_id::AdminUserRoleId) -> Self {
         Self(
-            format!(
-                "{}/{}",
-                crate::admin_data_table::AdminDataTable::UserRoles.frontend_path(),
-                value
-            )
-            .into_boxed_str(),
+            crate::admin_frontend_path::AdminFrontendPath::UserRolesRead
+                .get()
+                .replace(
+                    constants_str::ADMIN_USER_ROLE_ID_PLACEHOLDER,
+                    &value.to_string(),
+                )
+                .into_boxed_str(),
         )
     }
 }

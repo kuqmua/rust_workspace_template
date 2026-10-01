@@ -37,20 +37,11 @@ impl AdminUserId {
         admin_page_path_ref: crate::admin_page_path_ref::AdminPagePathRef<'_>,
     ) -> Option<Self> {
         admin_page_path_ref
-            .record_id(crate::admin_data_table::AdminDataTable::Users)
+            .record_read_id(
+                crate::admin_data_table::AdminDataTable::Users,
+                crate::admin_frontend_path::AdminFrontendPath::UsersRead,
+            )
             .map(Self::from)
-            .or_else(|| {
-                let (prefix, suffix) = crate::admin_frontend_path::AdminFrontendPath::UsersRead
-                    .get()
-                    .split_once(constants_str::ADMIN_USER_ID_PLACEHOLDER)?;
-                let value = admin_page_path_ref
-                    .get()
-                    .strip_prefix(prefix)?
-                    .strip_suffix(suffix)?
-                    .parse::<i64>()
-                    .ok()?;
-                Self::try_from(value).ok()
-            })
     }
 }
 #[cfg(test)]

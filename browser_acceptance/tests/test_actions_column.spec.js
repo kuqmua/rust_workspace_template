@@ -38,7 +38,7 @@ test("test_data_tables_have_consistent_actions_column", async ({ page }) => {
       });
       expect(valid, path).toBe(true);
       const rows = table.locator("tbody tr");
-      const readButtons = table.locator('tbody td[data-label="actions"]').getByRole(path === "/admin/users" ? "link" : "button", { name: "read", exact: true });
+      const readButtons = table.locator('tbody td[data-label="actions"]').getByRole(["/admin/users", "/admin/user_roles"].includes(path) ? "link" : "button", { name: "read", exact: true });
       if (readPaths.has(path)) {
         await expect(readButtons, path).toHaveCount(await rows.count());
       } else {

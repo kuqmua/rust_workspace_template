@@ -21,6 +21,24 @@ impl<'path_lt> AdminPagePathRef<'path_lt> {
             .and_then(|value| value.strip_prefix('/'))
     }
 
+    pub(crate) fn record_read_id(
+        self,
+        admin_data_table: crate::admin_data_table::AdminDataTable,
+        admin_frontend_path: crate::admin_frontend_path::AdminFrontendPath,
+    ) -> Option<crate::positive_non_zero_i64::PositiveNonZeroI64> {
+        self.record_id(admin_data_table).or_else(|| {
+            let (prefix, parameter_suffix) = admin_frontend_path.get().split_once('{')?;
+            let (_parameter, suffix) = parameter_suffix.split_once('}')?;
+            let value = self
+                .get()
+                .strip_prefix(prefix)?
+                .strip_suffix(suffix)?
+                .parse::<i64>()
+                .ok()?;
+            crate::positive_non_zero_i64::PositiveNonZeroI64::try_from(value).ok()
+        })
+    }
+
     pub(crate) fn record_id(
         self,
         admin_data_table: crate::admin_data_table::AdminDataTable,

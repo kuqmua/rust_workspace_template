@@ -26,13 +26,17 @@ pub(crate) fn AdminReadAction(
                 <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5M12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5m0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3"></path>
             </svg>
     };
-    if let Some(admin_user_id) =
-        server_admin_contract::admin_user_id::AdminUserId::from_frontend_path(
-            server_admin_contract::admin_page_path_ref::AdminPagePathRef::from(read_path.as_ref()),
+    let admin_page_path_ref =
+        server_admin_contract::admin_page_path_ref::AdminPagePathRef::from(read_path.as_ref());
+    if server_admin_contract::admin_user_id::AdminUserId::from_frontend_path(admin_page_path_ref)
+        .is_some()
+        || server_admin_contract::admin_user_role_id::AdminUserRoleId::from_frontend_path(
+            admin_page_path_ref,
         )
+        .is_some()
     {
         return leptos::prelude::IntoAny::into_any(leptos::view! {
-            <crate::admin_table_action_trigger::AdminTableActionTrigger label=constants_str::PG_CRUD_READ_RULE_ACTION href=server_admin_contract::admin_route_path::AdminRoutePath::from(admin_user_id)>{icon}</crate::admin_table_action_trigger::AdminTableActionTrigger>
+            <crate::admin_table_action_trigger::AdminTableActionTrigger label=constants_str::PG_CRUD_READ_RULE_ACTION href=read_path>{icon}</crate::admin_table_action_trigger::AdminTableActionTrigger>
         });
     }
     let dialog_id = format!("read-{read_path}");

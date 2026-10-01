@@ -32,7 +32,10 @@ impl AdminUserRoleId {
         admin_page_path_ref: crate::admin_page_path_ref::AdminPagePathRef<'_>,
     ) -> Option<Self> {
         admin_page_path_ref
-            .record_id(crate::admin_data_table::AdminDataTable::UserRoles)
+            .record_read_id(
+                crate::admin_data_table::AdminDataTable::UserRoles,
+                crate::admin_frontend_path::AdminFrontendPath::UserRolesRead,
+            )
             .map(Self::from)
     }
 }
@@ -63,6 +66,17 @@ mod tests {
                     crate::admin_page_path_ref::AdminPagePathRef::from(route_path.as_ref()),
                 );
                 assert_eq!(identifier, Some(expected_identifier));
+                let legacy_path = format!(
+                    "{}/{}",
+                    crate::admin_data_table::AdminDataTable::UserRoles.frontend_path(),
+                    expected_identifier
+                );
+                assert_eq!(
+                    super::AdminUserRoleId::from_frontend_path(
+                        crate::admin_page_path_ref::AdminPagePathRef::from(legacy_path.as_str())
+                    ),
+                    Some(expected_identifier)
+                );
             });
         assert!(
             super::AdminUserRoleId::from_frontend_path(
