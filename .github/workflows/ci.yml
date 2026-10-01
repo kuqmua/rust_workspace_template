@@ -195,11 +195,6 @@ jobs:
         env:
           BROWSER_ACCEPTANCE_CROSS_BROWSER: "1"
           BROWSER_ACCEPTANCE_DATABASE_URL: postgres://postgres:postgres@127.0.0.1:5432/rust_workspace_template_browser_test
-      - if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
-        run: npm run test:session-limit
-        working-directory: browser_acceptance
-        env:
-          BROWSER_ACCEPTANCE_DATABASE_URL: postgres://postgres:postgres@127.0.0.1:5432/rust_workspace_template_browser_test
       - run: npm run test:swagger
         working-directory: browser_acceptance
         env:

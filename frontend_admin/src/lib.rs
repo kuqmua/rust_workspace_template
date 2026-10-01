@@ -76,6 +76,8 @@ pub mod admin_mutation_method;
 pub mod admin_navigation_link;
 pub mod admin_page_nav_disabled;
 pub mod admin_page_range;
+mod admin_pagination;
+mod admin_pagination_query;
 #[cfg(target_arch = "wasm32")]
 mod admin_password_generation_error;
 #[cfg(target_arch = "wasm32")]

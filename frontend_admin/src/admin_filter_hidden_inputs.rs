@@ -3,6 +3,10 @@
     reason = "converted filter values intentionally replace borrowed inputs"
 )]
 
+#[allow(
+    clippy::single_call_fn,
+    reason = "shared hidden filter renderer serves SSR pagination and CSR forms compiled for different targets"
+)]
 pub(crate) fn admin_filter_hidden_inputs(
     field: Option<&server_admin_contract::admin_filter_field::AdminFilterField>,
     operation: Option<&server_admin_contract::admin_filter_operation_key::AdminFilterOperationKey>,

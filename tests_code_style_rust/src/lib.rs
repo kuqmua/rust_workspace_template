@@ -142,3 +142,6 @@ pub mod walkdir_walk_dir;
 
 #[cfg(test)]
 mod external_type_segment_kind;
+
+#[cfg(test)]
+mod test_location_input;

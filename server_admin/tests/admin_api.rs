@@ -3967,6 +3967,9 @@ mod test_html {
     async fn test_postgresql_initial_administrator_password_must_change_before_admin_access() {
         let fixture = crate::admin_html_test_fixture_with_password_change(
             server_admin_contract::admin_bool::AdminBool::from(true),
+            crate::env::<config_lib::admin_session_limit::AdminSessionLimit>(
+                crate::StdAdminApiTestStrRef::from(constants_str::VALUE_20),
+            ),
         )
         .await;
         let users_response = crate::admin_html_response(
@@ -5146,6 +5149,944 @@ mod test_policy {
         );
     }
 }
+mod test_migrated_api {
+    async fn migrated_api_response(
+        admin_html_test_fixture: &crate::AdminHtmlTestFixture,
+        http_admin_api_test_method: crate::HttpAdminApiTestMethod,
+        std_admin_api_test_str_ref: crate::StdAdminApiTestStrRef<'_>,
+        admin_html_test_body: crate::AdminHtmlTestBody,
+    ) -> crate::HttpAdminHtmlTestResponse {
+        tower::ServiceExt::oneshot(
+            crate::router_with_pool(&admin_html_test_fixture.pool).0,
+            crate::request_with_peer(
+                http_admin_api_test_method,
+                std_admin_api_test_str_ref,
+                crate::StdAdminApiTestStrRef::from(admin_html_test_body.0.as_str()),
+                Some(crate::StdAdminApiTestStrRef::from(
+                    admin_html_test_fixture.cookie.0.as_str(),
+                )),
+                Some(crate::StdAdminApiTestStrRef::from(
+                    admin_html_test_fixture.csrf.0.as_str(),
+                )),
+            )
+            .0,
+        )
+        .await
+        .map(crate::HttpAdminHtmlTestResponse::from)
+        .expect(constants_str::DIAGNOSTIC_2B45A774)
+    }
+
+    #[tokio::test]
+    #[ignore = "requires PostgreSQL; run through workspace_test_runner database"]
+    async fn test_postgresql_literal_wildcard_search_matches_no_assignments() {
+        let fixture = crate::admin_html_test_fixture().await;
+        futures::StreamExt::fold(
+            futures::stream::iter([
+                None,
+                Some(constants_str::VALUE_PERCENT),
+                Some(constants_str::VALUE_UNDERSCORE),
+            ]),
+            (),
+            async |(), search| {
+                let table_query = server_admin_contract::admin_data_table_query::AdminDataTableQuery::new(server_admin_contract::admin_data_table_filter_query::AdminDataTableFilterQuery::default(), server_admin_contract::admin_table_query::AdminTableQuery::new(server_admin_contract::admin_table_search::AdminTableSearch::try_from(search.unwrap_or(constants_str::EMPTY).to_owned()).expect(constants_str::DIAGNOSTIC_5AAA0F25), server_admin_contract::admin_table_sort_key::AdminTableSortKey::default(), server_admin_contract::admin_page_offset::AdminPageOffset::default(), server_admin_contract::admin_page_limit::AdminPageLimit::default(), server_admin_contract::admin_sort_direction::AdminSortDirection::default()));
+                let query = serde_json::to_string(&table_query).expect(constants_str::DIAGNOSTIC_DC0E991F);
+                let response = migrated_api_response(
+                    &fixture,
+                    crate::HttpAdminApiTestMethod::from(http::Method::POST),
+                    crate::StdAdminApiTestStrRef::from(
+                        server_admin_contract::admin_route::AdminRoute::UserRolesTable
+                            .contract()
+                            .path()
+                            .as_ref(),
+                    ),
+                    crate::AdminHtmlTestBody::try_from(query)
+                        .expect(constants_str::DIAGNOSTIC_9EDEC36F),
+                )
+                .await;
+                assert_eq!(response.0.status(), http::StatusCode::OK);
+                let body = crate::admin_html_body(response).await;
+                let view = serde_json::from_str::<
+                    server_admin_contract::admin_data_table_view::AdminDataTableView,
+                >(body.0.as_str())
+                .expect(constants_str::DIAGNOSTIC_48467371);
+                if search.is_some() {
+                    assert_eq!(u64::from(view.total()), 0u64);
+                    assert!(view.items().is_empty());
+                } else {
+                    assert!(u64::from(view.total()) > 0u64);
+                }
+            },
+        )
+        .await;
+        fixture
+            .lock
+            .0
+            .rollback()
+            .await
+            .expect(constants_str::DIAGNOSTIC_311D3AA8);
+    }
+
+    #[tokio::test]
+    #[ignore = "requires PostgreSQL; run through workspace_test_runner database"]
+    async fn test_postgresql_generated_reads_reject_legacy_routes_and_get() {
+        let fixture = crate::admin_html_test_fixture().await;
+        futures::StreamExt::fold(
+            futures::stream::iter([
+                server_admin_contract::admin_route::AdminRoute::Users,
+                server_admin_contract::admin_route::AdminRoute::Roles,
+                server_admin_contract::admin_route::AdminRoute::Rules,
+                server_admin_contract::admin_route::AdminRoute::SystemSettings,
+                server_admin_contract::admin_route::AdminRoute::AccessSessionsTable,
+                server_admin_contract::admin_route::AdminRoute::RoleRulesTable,
+            ]),
+            (),
+            async |(), route| {
+                let path = route.contract().path();
+                let initial_response = migrated_api_response(
+                    &fixture,
+                    crate::HttpAdminApiTestMethod::from(http::Method::GET),
+                    crate::StdAdminApiTestStrRef::from(path.as_ref()),
+                    crate::AdminHtmlTestBody::try_from(constants_str::EMPTY.to_owned())
+                        .expect(constants_str::DIAGNOSTIC_401AFD70),
+                )
+                .await;
+                if matches!(
+                    route,
+                    server_admin_contract::admin_route::AdminRoute::AccessSessionsTable
+                        | server_admin_contract::admin_route::AdminRoute::RoleRulesTable
+                ) {
+                    assert_eq!(
+                        initial_response.0.status(),
+                        http::StatusCode::METHOD_NOT_ALLOWED
+                    );
+                }
+                let resource = path
+                    .as_ref()
+                    .trim_matches('/')
+                    .split('/')
+                    .next()
+                    .expect(constants_str::DIAGNOSTIC_0BD74542);
+                futures::StreamExt::fold(
+                    futures::stream::iter([
+                        stringify!(read_one),
+                        stringify!(read_one_payload_example),
+                        stringify!(read_many),
+                        stringify!(read_many_payload_example),
+                    ]),
+                    (),
+                    async |(), operation| {
+                        let legacy = format!("/{resource}/{operation}");
+                        let method = if operation.ends_with(stringify!(payload_example)) {
+                            http::Method::GET
+                        } else {
+                            http::Method::POST
+                        };
+                        let subsequent_response = migrated_api_response(
+                            &fixture,
+                            crate::HttpAdminApiTestMethod::from(method),
+                            crate::StdAdminApiTestStrRef::from(legacy.as_str()),
+                            crate::AdminHtmlTestBody::try_from(constants_str::EMPTY.to_owned())
+                                .expect(constants_str::DIAGNOSTIC_2D01D0AA),
+                        )
+                        .await;
+                        assert_ne!(subsequent_response.0.status(), http::StatusCode::OK);
+                    },
+                )
+                .await;
+                futures::StreamExt::fold(
+                    futures::stream::iter([
+                        format!("/admin_{resource}/read_payload_example"),
+                        format!("/tables/{resource}/read"),
+                    ]),
+                    (),
+                    async |(), legacy| {
+                        let final_response = migrated_api_response(
+                            &fixture,
+                            crate::HttpAdminApiTestMethod::from(http::Method::GET),
+                            crate::StdAdminApiTestStrRef::from(legacy.as_str()),
+                            crate::AdminHtmlTestBody::try_from(constants_str::EMPTY.to_owned())
+                                .expect(constants_str::DIAGNOSTIC_244BBAA9),
+                        )
+                        .await;
+                        assert_ne!(final_response.0.status(), http::StatusCode::OK);
+                    },
+                )
+                .await;
+            },
+        )
+        .await;
+        fixture
+            .lock
+            .0
+            .rollback()
+            .await
+            .expect(constants_str::DIAGNOSTIC_769A509B);
+    }
+
+    #[tokio::test]
+    #[ignore = "requires PostgreSQL; run through workspace_test_runner database"]
+    async fn test_postgresql_settings_reject_foreign_csrf_and_origin_without_mutation() {
+        let fixture = crate::admin_html_test_fixture().await;
+        let settings_path = server_admin_contract::admin_route::AdminRoute::Settings
+            .contract()
+            .path();
+        let original_response = migrated_api_response(
+            &fixture,
+            crate::HttpAdminApiTestMethod::from(http::Method::GET),
+            crate::StdAdminApiTestStrRef::from(settings_path.as_ref()),
+            crate::AdminHtmlTestBody::try_from(constants_str::EMPTY.to_owned())
+                .expect(constants_str::DIAGNOSTIC_C9A2F2D7),
+        )
+        .await;
+        assert_eq!(original_response.0.status(), http::StatusCode::OK);
+        let original = crate::admin_html_body(original_response).await;
+        let sign_in = crate::admin_html_response(
+            &fixture,
+            crate::HttpAdminApiTestMethod::from(http::Method::POST),
+            crate::StdAdminApiTestStrRef::from(
+                server_admin_contract::admin_html_action::AdminHtmlAction::SignIn.get(),
+            ),
+            crate::StdAdminApiTestStrRef::from(
+                format!(
+                    "login={}&password={}",
+                    constants_str::ADMIN_ALT,
+                    serde_json::from_str::<String>(constants_str::CORRECT_PASSWORD)
+                        .expect(constants_str::DIAGNOSTIC_B4651482)
+                )
+                .as_str(),
+            ),
+        )
+        .await;
+        assert_eq!(sign_in.0.status(), http::StatusCode::SEE_OTHER);
+        let other_csrf = crate::cookie_value(
+            crate::HttpAdminApiTestResponseRef::from(&sign_in.0),
+            crate::StdAdminApiTestStrRef::from(constants_str::ADMIN_CSRF_TOKEN_ALT),
+        );
+        futures::StreamExt::fold(futures::stream::iter([
+            (None, constants_str::HTTP_LOCALHOST),
+            (Some(constants_str::LOGIN), constants_str::HTTP_LOCALHOST),
+            (Some(other_csrf.0.as_str()), constants_str::HTTP_LOCALHOST),
+            (Some(fixture.csrf.0.as_str()), constants_str::VALUE_88B6A990),
+        ]), (), async |(), (csrf, origin)| {
+            let body = serde_json::json!({(stringify!(clear)): [], (stringify!(site_name)): constants_str::LOGIN}).to_string();
+            let mut request = crate::request_with_peer(crate::HttpAdminApiTestMethod::from(http::Method::PATCH), crate::StdAdminApiTestStrRef::from(server_admin_contract::admin_route::AdminRoute::UpdateSettings.contract().path().as_ref()), crate::StdAdminApiTestStrRef::from(body.as_str()), Some(crate::StdAdminApiTestStrRef::from(fixture.cookie.0.as_str())), csrf.map(crate::StdAdminApiTestStrRef::from)).0;
+            let _previous_origin = request.headers_mut().insert(http::header::ORIGIN, http::HeaderValue::from_str(origin).expect(constants_str::DIAGNOSTIC_59E15AC1));
+            let response = tower::ServiceExt::oneshot(crate::router_with_pool(&fixture.pool).0, request).await.expect(constants_str::DIAGNOSTIC_16E4FAA4);
+            assert!(matches!(response.status(), http::StatusCode::UNAUTHORIZED | http::StatusCode::FORBIDDEN));
+        }).await;
+        let unchanged = migrated_api_response(
+            &fixture,
+            crate::HttpAdminApiTestMethod::from(http::Method::GET),
+            crate::StdAdminApiTestStrRef::from(settings_path.as_ref()),
+            crate::AdminHtmlTestBody::try_from(constants_str::EMPTY.to_owned())
+                .expect(constants_str::DIAGNOSTIC_E9EE0A67),
+        )
+        .await;
+        assert_eq!(unchanged.0.status(), http::StatusCode::OK);
+        assert_eq!(
+            crate::admin_html_body(unchanged).await.0.as_str(),
+            original.0.as_str()
+        );
+        fixture
+            .lock
+            .0
+            .rollback()
+            .await
+            .expect(constants_str::DIAGNOSTIC_4FF52A14);
+    }
+
+    #[tokio::test]
+    #[ignore = "requires PostgreSQL; run through workspace_test_runner database"]
+    async fn test_postgresql_session_limit_evicts_only_oldest_session() {
+        let fixture = crate::admin_html_test_fixture_with_password_change(
+            server_admin_contract::admin_bool::AdminBool::from(false),
+            crate::env::<config_lib::admin_session_limit::AdminSessionLimit>(
+                crate::StdAdminApiTestStrRef::from(constants_str::VALUE_2),
+            ),
+        )
+        .await;
+        let sign_in_body = format!(
+            "login={}&password={}",
+            constants_str::ADMIN_ALT,
+            serde_json::from_str::<String>(constants_str::CORRECT_PASSWORD)
+                .expect(constants_str::DIAGNOSTIC_4FBD4022)
+        );
+        let cookies = futures::StreamExt::fold(
+            futures::stream::iter([1u8, 2u8]),
+            vec![fixture.cookie.0.to_string()],
+            async |mut cookies, _index| {
+                let initial_response = crate::admin_html_response(
+                    &fixture,
+                    crate::HttpAdminApiTestMethod::from(http::Method::POST),
+                    crate::StdAdminApiTestStrRef::from(
+                        server_admin_contract::admin_html_action::AdminHtmlAction::SignIn.get(),
+                    ),
+                    crate::StdAdminApiTestStrRef::from(sign_in_body.as_str()),
+                )
+                .await;
+                assert_eq!(initial_response.0.status(), http::StatusCode::SEE_OTHER);
+                let access = crate::cookie_value(
+                    crate::HttpAdminApiTestResponseRef::from(&initial_response.0),
+                    crate::StdAdminApiTestStrRef::from(constants_str::ADMIN_ACCESS_TOKEN),
+                );
+                cookies.push(format!("{}{access}", constants_str::ADMIN_ACCESS_TOKEN));
+                cookies
+            },
+        )
+        .await;
+        futures::StreamExt::fold(
+            futures::stream::iter(cookies.iter().enumerate()),
+            (),
+            async |(), (index, cookie)| {
+                let subsequent_response = tower::ServiceExt::oneshot(
+                    crate::router_with_pool(&fixture.pool).0,
+                    crate::request_with_peer(
+                        crate::HttpAdminApiTestMethod::from(http::Method::GET),
+                        crate::StdAdminApiTestStrRef::from(
+                            server_admin_contract::admin_route::AdminRoute::Me
+                                .contract()
+                                .path()
+                                .as_ref(),
+                        ),
+                        crate::StdAdminApiTestStrRef::from(constants_str::EMPTY),
+                        Some(crate::StdAdminApiTestStrRef::from(cookie.as_str())),
+                        None,
+                    )
+                    .0,
+                )
+                .await
+                .expect(constants_str::DIAGNOSTIC_AE2EAE55);
+                assert_eq!(
+                    subsequent_response.status(),
+                    if index == 0usize {
+                        http::StatusCode::UNAUTHORIZED
+                    } else {
+                        http::StatusCode::OK
+                    }
+                );
+            },
+        )
+        .await;
+        fixture
+            .lock
+            .0
+            .rollback()
+            .await
+            .expect(constants_str::DIAGNOSTIC_74F9A3E3);
+    }
+
+    #[tokio::test]
+    #[ignore = "requires PostgreSQL; run through workspace_test_runner database"]
+    async fn test_postgresql_public_branding_contract_requires_no_credentials() {
+        let fixture = crate::admin_html_test_fixture().await;
+        let response = tower::ServiceExt::oneshot(
+            crate::router_with_pool(&fixture.pool).0,
+            crate::request_with_peer(
+                crate::HttpAdminApiTestMethod::from(http::Method::GET),
+                crate::StdAdminApiTestStrRef::from(
+                    server_admin_contract::admin_route::AdminRoute::Branding
+                        .contract()
+                        .path()
+                        .as_ref(),
+                ),
+                crate::StdAdminApiTestStrRef::from(constants_str::EMPTY),
+                None,
+                None,
+            )
+            .0,
+        )
+        .await
+        .expect(constants_str::DIAGNOSTIC_D6029916);
+        assert_eq!(response.status(), http::StatusCode::OK);
+        let body = crate::admin_html_body(crate::HttpAdminHtmlTestResponse::from(response)).await;
+        let branding = serde_json::from_str::<serde_json::Value>(body.0.as_str())
+            .expect(constants_str::DIAGNOSTIC_D8FDB2F6);
+        let settings_response = migrated_api_response(
+            &fixture,
+            crate::HttpAdminApiTestMethod::from(http::Method::GET),
+            crate::StdAdminApiTestStrRef::from(
+                server_admin_contract::admin_route::AdminRoute::Settings
+                    .contract()
+                    .path()
+                    .as_ref(),
+            ),
+            crate::admin_users_read_test_payload(),
+        )
+        .await;
+        assert_eq!(settings_response.0.status(), http::StatusCode::OK);
+        let settings_body = crate::admin_html_body(settings_response).await;
+        assert!(
+            serde_json::from_str::<serde_json::Value>(settings_body.0.as_str()).is_ok_and(
+                |settings| {
+                    branding
+                        .get(stringify!(default_admin_route))
+                        .is_some_and(|route| {
+                            route.is_string()
+                                && Some(route) == settings.get(stringify!(default_admin_route))
+                        })
+                }
+            )
+        );
+        assert!(
+            branding
+                .get(stringify!(site_name))
+                .is_some_and(serde_json::Value::is_string)
+        );
+        fixture
+            .lock
+            .0
+            .rollback()
+            .await
+            .expect(constants_str::DIAGNOSTIC_52A8EDAE);
+    }
+
+    #[tokio::test]
+    #[ignore = "requires PostgreSQL; run through workspace_test_runner database"]
+    async fn test_postgresql_html_success_and_error_preserve_security_headers() {
+        let fixture = crate::admin_html_test_fixture().await;
+        let policy =
+            server_runtime_http::http_content_security_policy::HttpContentSecurityPolicy::try_from(
+                constants_str::TEST_CONTENT_SECURITY_POLICY.to_owned(),
+            )
+            .expect(constants_str::DIAGNOSTIC_929A8CC3);
+        let router = axum::Router::from(
+            server_runtime_http::security_headers_layer::SecurityHeadersLayer::from(
+                server_runtime_http::forwarded_proto_trust::ForwardedProtoTrust::Ignore,
+            )
+            .with_content_security_policy(policy)
+            .apply(server_runtime_http::axum_router::AxumRouter::from(
+                fixture.router.0.clone(),
+            )),
+        );
+        futures::StreamExt::fold(
+            futures::stream::iter([
+                (
+                    server_admin_contract::admin_frontend_path::AdminFrontendPath::Users,
+                    http::StatusCode::OK,
+                ),
+                (
+                    server_admin_contract::admin_frontend_path::AdminFrontendPath::Tables,
+                    http::StatusCode::UNPROCESSABLE_ENTITY,
+                ),
+                (
+                    server_admin_contract::admin_frontend_path::AdminFrontendPath::OpenApi,
+                    http::StatusCode::OK,
+                ),
+            ]),
+            (),
+            async |(), (path, status)| {
+                let response = tower::ServiceExt::oneshot(
+                    router.clone(),
+                    crate::html_request_with_peer(
+                        crate::HttpAdminApiTestMethod::from(http::Method::GET),
+                        crate::StdAdminApiTestStrRef::from(path.get()),
+                        crate::StdAdminApiTestStrRef::from(constants_str::EMPTY),
+                        Some(crate::StdAdminApiTestStrRef::from(
+                            fixture.cookie.0.as_str(),
+                        )),
+                    )
+                    .0,
+                )
+                .await
+                .expect(constants_str::DIAGNOSTIC_F0A24AFE);
+                assert_eq!(response.status(), status);
+                assert_eq!(
+                    response
+                        .headers()
+                        .get(constants_str::CONTENT_SECURITY_POLICY_HEADER),
+                    Some(&http::HeaderValue::from_static(
+                        constants_str::TEST_CONTENT_SECURITY_POLICY
+                    ))
+                );
+                assert_eq!(
+                    response
+                        .headers()
+                        .get(constants_str::X_CONTENT_TYPE_OPTIONS),
+                    Some(&http::HeaderValue::from_static(constants_str::NOSNIFF))
+                );
+                assert_eq!(
+                    response.headers().get(constants_str::X_FRAME_OPTIONS),
+                    Some(&http::HeaderValue::from_static(constants_str::DENY))
+                );
+                assert_eq!(
+                    response.headers().get(constants_str::REFERRER_POLICY),
+                    Some(&http::HeaderValue::from_static(constants_str::SAME_ORIGIN))
+                );
+            },
+        )
+        .await;
+        fixture
+            .lock
+            .0
+            .rollback()
+            .await
+            .expect(constants_str::DIAGNOSTIC_C0263659);
+    }
+
+    #[tokio::test]
+    #[ignore = "requires PostgreSQL; run through workspace_test_runner database"]
+    async fn test_postgresql_invalid_and_oversized_mutations_preserve_state() {
+        let fixture = crate::admin_html_test_fixture().await;
+        let path = server_admin_contract::admin_route::AdminRoute::Settings
+            .contract()
+            .path();
+        let original_response = migrated_api_response(
+            &fixture,
+            crate::HttpAdminApiTestMethod::from(http::Method::GET),
+            crate::StdAdminApiTestStrRef::from(path.as_ref()),
+            crate::AdminHtmlTestBody::try_from(constants_str::EMPTY.to_owned())
+                .expect(constants_str::DIAGNOSTIC_58B1C2BF),
+        )
+        .await;
+        assert_eq!(original_response.0.status(), http::StatusCode::OK);
+        let original = crate::admin_html_body(original_response).await;
+        let invalid = serde_json::json!({(stringify!(clear)): [], (stringify!(default_admin_route)): constants_str::HTTP_LOCALHOST}).to_string();
+        let initial_response = migrated_api_response(
+            &fixture,
+            crate::HttpAdminApiTestMethod::from(http::Method::PATCH),
+            crate::StdAdminApiTestStrRef::from(
+                server_admin_contract::admin_route::AdminRoute::UpdateSettings
+                    .contract()
+                    .path()
+                    .as_ref(),
+            ),
+            crate::AdminHtmlTestBody::try_from(invalid).expect(constants_str::DIAGNOSTIC_CF160AFA),
+        )
+        .await;
+        assert_eq!(
+            initial_response.0.status(),
+            http::StatusCode::UNPROCESSABLE_ENTITY
+        );
+        let oversized = serde_json::json!({(stringify!(display_name)): constants_str::X.repeat(1_100_000usize), (stringify!(login)): constants_str::USERNAME, (stringify!(password)): constants_str::LOGIN}).to_string();
+        let subsequent_response = tower::ServiceExt::oneshot(
+            crate::router_with_pool(&fixture.pool).0,
+            crate::request_with_peer(
+                crate::HttpAdminApiTestMethod::from(http::Method::POST),
+                crate::StdAdminApiTestStrRef::from(
+                    server_admin_contract::admin_route::AdminRoute::CreateUser
+                        .contract()
+                        .path()
+                        .as_ref(),
+                ),
+                crate::StdAdminApiTestStrRef::from(oversized.as_str()),
+                Some(crate::StdAdminApiTestStrRef::from(
+                    fixture.cookie.0.as_str(),
+                )),
+                Some(crate::StdAdminApiTestStrRef::from(fixture.csrf.0.as_str())),
+            )
+            .0,
+        )
+        .await
+        .expect(constants_str::DIAGNOSTIC_6429B013);
+        assert_eq!(
+            subsequent_response.status(),
+            http::StatusCode::PAYLOAD_TOO_LARGE
+        );
+        let final_response = migrated_api_response(
+            &fixture,
+            crate::HttpAdminApiTestMethod::from(http::Method::GET),
+            crate::StdAdminApiTestStrRef::from(path.as_ref()),
+            crate::AdminHtmlTestBody::try_from(constants_str::EMPTY.to_owned())
+                .expect(constants_str::DIAGNOSTIC_EB21A694),
+        )
+        .await;
+        assert_eq!(final_response.0.status(), http::StatusCode::OK);
+        assert_eq!(
+            crate::admin_html_body(final_response).await.0.as_str(),
+            original.0.as_str()
+        );
+        let count = sqlx::query_scalar::<_, i64>(constants_str::SERVER_ADMIN_USER_ID_BY_LOGIN_SQL)
+            .bind(constants_str::USERNAME)
+            .fetch_optional(&fixture.pool.0)
+            .await
+            .expect(constants_str::DIAGNOSTIC_C237DA89);
+        assert!(count.is_none());
+        fixture
+            .lock
+            .0
+            .rollback()
+            .await
+            .expect(constants_str::DIAGNOSTIC_961D02A4);
+    }
+
+    #[tokio::test]
+    #[ignore = "requires PostgreSQL; run through workspace_test_runner database"]
+    async fn test_postgresql_audit_records_mutation_without_submitted_password() {
+        let fixture = crate::admin_html_test_fixture().await;
+        let password = serde_json::from_str::<String>(constants_str::CORRECT_PASSWORD)
+            .expect(constants_str::DIAGNOSTIC_393E2C65);
+        let initial_payload = serde_json::json!([{(stringify!(login)): constants_str::USERNAME, (stringify!(display_name)): constants_str::LOGIN, (stringify!(password)): password}]);
+        let initial_response = migrated_api_response(
+            &fixture,
+            crate::HttpAdminApiTestMethod::from(http::Method::POST),
+            crate::StdAdminApiTestStrRef::from(
+                server_admin_contract::admin_route::AdminRoute::CreateUser
+                    .contract()
+                    .path()
+                    .as_ref(),
+            ),
+            crate::AdminHtmlTestBody::try_from(initial_payload.to_string())
+                .expect(constants_str::DIAGNOSTIC_77EFB547),
+        )
+        .await;
+        assert_eq!(initial_response.0.status(), http::StatusCode::CREATED);
+        let created = crate::admin_html_body(initial_response).await;
+        let ids = serde_json::from_str::<Vec<i64>>(created.0.as_str())
+            .expect(constants_str::DIAGNOSTIC_36C00F07);
+        let id = ids
+            .first()
+            .expect(constants_str::DIAGNOSTIC_C5328060)
+            .to_string();
+        let subsequent_payload = serde_json::json!({(stringify!(search)): null, (stringify!(select)): ([stringify!(id), stringify!(user_id), stringify!(user_login), stringify!(action), stringify!(resource), stringify!(resource_id), stringify!(request_id), stringify!(succeeded), stringify!(created_at)].map(|field| serde_json::json!({field: null}))), (stringify!(pagination)): {(stringify!(limit)): 100i32, (stringify!(offset)): 0i32}, (stringify!(order_by)): {(stringify!(column)): {(stringify!(created_at)): null}, (stringify!(order)): stringify!(descending)}, (stringify!(where_many)): null});
+        let subsequent_response = migrated_api_response(
+            &fixture,
+            crate::HttpAdminApiTestMethod::from(http::Method::POST),
+            crate::StdAdminApiTestStrRef::from(
+                server_admin_contract::admin_route::AdminRoute::AuditLog
+                    .contract()
+                    .path()
+                    .as_ref(),
+            ),
+            crate::AdminHtmlTestBody::try_from(subsequent_payload.to_string())
+                .expect(constants_str::DIAGNOSTIC_1918D515),
+        )
+        .await;
+        assert_eq!(subsequent_response.0.status(), http::StatusCode::OK);
+        let body = crate::admin_html_body(subsequent_response).await;
+        assert!(!body.0.as_str().contains(password.as_str()));
+        let view = serde_json::from_str::<
+            server_admin_contract::admin_data_table_view::AdminDataTableView,
+        >(body.0.as_str())
+        .expect(constants_str::DIAGNOSTIC_AFDD2BEA);
+        assert!(view.items().iter().any(|row| {
+            [
+                stringify!(create),
+                stringify!(user),
+                id.as_str(),
+                constants_str::TRUE,
+            ]
+            .iter()
+            .all(|expected| {
+                row.values()
+                    .iter()
+                    .any(|value| value.as_ref().as_str() == *expected)
+            })
+        }));
+        fixture
+            .lock
+            .0
+            .rollback()
+            .await
+            .expect(constants_str::DIAGNOSTIC_8F649CBC);
+    }
+
+    #[tokio::test]
+    #[ignore = "requires PostgreSQL; run through workspace_test_runner database"]
+    async fn test_postgresql_pagination_is_disjoint_and_rejects_invalid_bounds() {
+        let fixture = crate::admin_html_test_fixture().await;
+        let password = serde_json::from_str::<String>(constants_str::CORRECT_PASSWORD)
+            .expect(constants_str::DIAGNOSTIC_BB88C70C);
+        let initial_payload = [constants_str::LOGIN, constants_str::USERNAME, constants_str::VALUE_2562E0C2].map(|login| serde_json::json!({(stringify!(login)): login, (stringify!(display_name)): constants_str::LOGIN, (stringify!(password)): password}));
+        let invalid_bodies = [
+            serde_json::json!([]).to_string(),
+            serde_json::to_string(
+                initial_payload
+                    .first()
+                    .expect(constants_str::DIAGNOSTIC_FDA85E9C),
+            )
+            .expect(constants_str::DIAGNOSTIC_CB0B1602),
+        ];
+        futures::StreamExt::fold(
+            futures::stream::iter(invalid_bodies),
+            (),
+            async |(), body| {
+                let initial_response = migrated_api_response(
+                    &fixture,
+                    crate::HttpAdminApiTestMethod::from(http::Method::POST),
+                    crate::StdAdminApiTestStrRef::from(
+                        server_admin_contract::admin_route::AdminRoute::CreateUser
+                            .contract()
+                            .path()
+                            .as_ref(),
+                    ),
+                    crate::AdminHtmlTestBody::try_from(body)
+                        .expect(constants_str::DIAGNOSTIC_103706A6),
+                )
+                .await;
+                assert_eq!(
+                    initial_response.0.status(),
+                    http::StatusCode::UNPROCESSABLE_ENTITY
+                );
+            },
+        )
+        .await;
+        let subsequent_response = migrated_api_response(
+            &fixture,
+            crate::HttpAdminApiTestMethod::from(http::Method::POST),
+            crate::StdAdminApiTestStrRef::from(
+                server_admin_contract::admin_route::AdminRoute::CreateUser
+                    .contract()
+                    .path()
+                    .as_ref(),
+            ),
+            crate::AdminHtmlTestBody::try_from(serde_json::json!(initial_payload).to_string())
+                .expect(constants_str::DIAGNOSTIC_565C505C),
+        )
+        .await;
+        assert_eq!(subsequent_response.0.status(), http::StatusCode::CREATED);
+        let pages = futures::StreamExt::fold(
+            futures::stream::iter([0usize, 2usize]),
+            Vec::new(),
+            async |mut pages, offset| {
+                let mut subsequent_payload = serde_json::from_str::<serde_json::Value>(
+                    crate::admin_users_read_test_payload().0.as_str(),
+                )
+                .expect(constants_str::DIAGNOSTIC_C2F047A8);
+                *subsequent_payload
+                    .get_mut(stringify!(pagination))
+                    .expect(constants_str::DIAGNOSTIC_6B8A2071) =
+                    serde_json::json!({(stringify!(limit)): 2i32, (stringify!(offset)): offset});
+                let final_response = migrated_api_response(
+                    &fixture,
+                    crate::HttpAdminApiTestMethod::from(http::Method::POST),
+                    crate::StdAdminApiTestStrRef::from(
+                        server_admin_contract::admin_route::AdminRoute::Users
+                            .contract()
+                            .path()
+                            .as_ref(),
+                    ),
+                    crate::AdminHtmlTestBody::try_from(subsequent_payload.to_string())
+                        .expect(constants_str::DIAGNOSTIC_BD52C8BA),
+                )
+                .await;
+                assert_eq!(final_response.0.status(), http::StatusCode::OK);
+                let body = crate::admin_html_body(final_response).await;
+                let page = serde_json::from_str::<
+                    server_admin_contract::admin_data_table_view::AdminDataTableView,
+                >(body.0.as_str())
+                .expect(constants_str::DIAGNOSTIC_E57B3D7A);
+                assert_eq!(page.items().len(), 2usize);
+                assert_eq!(u64::from(page.total()), 4u64);
+                assert_eq!(
+                    page.columns()
+                        .first()
+                        .map(|column| column.name().as_ref().as_str()),
+                    Some(stringify!(id))
+                );
+                pages.push(page);
+                pages
+            },
+        )
+        .await;
+        let first = pages.first().expect(constants_str::DIAGNOSTIC_76A6A191);
+        let second = pages.last().expect(constants_str::DIAGNOSTIC_9A68525E);
+        assert!(first.items().iter().all(|row| {
+            second
+                .items()
+                .iter()
+                .all(|other| row.values().first() != other.values().first())
+        }));
+        assert!(pages.iter().all(
+            |page| page.items().first().and_then(|row| row.values().first())
+                != page.items().last().and_then(|row| row.values().first())
+        ));
+        futures::StreamExt::fold(futures::stream::iter([serde_json::json!({(stringify!(limit)): 0i32, (stringify!(offset)): 0i32}), serde_json::json!({(stringify!(limit)): 1e100f64, (stringify!(offset)): 0i32}), serde_json::json!({(stringify!(limit)): 2i32, (stringify!(offset)): -1i32}), serde_json::json!({(stringify!(limit)): constants_str::LOGIN, (stringify!(offset)): 0i32})]), (), async |(), pagination| {
+            let mut final_payload = serde_json::from_str::<serde_json::Value>(crate::admin_users_read_test_payload().0.as_str()).expect(constants_str::DIAGNOSTIC_CA6D61B5);
+            *final_payload.get_mut(stringify!(pagination)).expect(constants_str::DIAGNOSTIC_B6008933) = pagination;
+            let response_4 = migrated_api_response(&fixture, crate::HttpAdminApiTestMethod::from(http::Method::POST), crate::StdAdminApiTestStrRef::from(server_admin_contract::admin_route::AdminRoute::Users.contract().path().as_ref()), crate::AdminHtmlTestBody::try_from(final_payload.to_string()).expect(constants_str::DIAGNOSTIC_B3BFBEA1)).await;
+            assert_eq!(response_4.0.status(), http::StatusCode::BAD_REQUEST);
+        }).await;
+        fixture
+            .lock
+            .0
+            .rollback()
+            .await
+            .expect(constants_str::DIAGNOSTIC_91931A88);
+    }
+
+    #[tokio::test]
+    #[ignore = "requires PostgreSQL; run through workspace_test_runner database"]
+    async fn test_postgresql_generated_filters_constrain_rows_and_reject_malformed_contracts() {
+        let fixture = crate::admin_html_test_fixture().await;
+        let role_id = sqlx::query_scalar::<_, i64>(constants_str::SERVER_ADMIN_INSERT_ROLE_SQL)
+            .bind(constants_str::LOGIN)
+            .fetch_one(&fixture.pool.0)
+            .await
+            .expect(constants_str::DIAGNOSTIC_927D73FC);
+        let rule_id = sqlx::query_scalar::<_, i64>(constants_str::VALUE_1491D3FA)
+            .fetch_one(&fixture.pool.0)
+            .await
+            .expect(constants_str::DIAGNOSTIC_459DD987);
+        let assignment = serde_json::json!({(stringify!(updates)): [{(stringify!(filter)): {(stringify!(role_id)): role_id}, (stringify!(changes)): {(stringify!(rules)): {(stringify!(expected_rule_ids)): [], (stringify!(rule_ids)): [rule_id]}}}]}).to_string();
+        let assigned_response = migrated_api_response(
+            &fixture,
+            crate::HttpAdminApiTestMethod::from(http::Method::PATCH),
+            crate::StdAdminApiTestStrRef::from(
+                server_admin_contract::admin_route::AdminRoute::UpdateRoles
+                    .contract()
+                    .path()
+                    .as_ref(),
+            ),
+            crate::AdminHtmlTestBody::try_from(assignment)
+                .expect(constants_str::DIAGNOSTIC_43DDCB46),
+        )
+        .await;
+        assert_eq!(assigned_response.0.status(), http::StatusCode::NO_CONTENT);
+        let query = server_admin_contract::admin_table_query::AdminTableQuery::default();
+        let mut read_payload = serde_json::from_str::<serde_json::Value>(
+            crate::admin_table_test_read_body::<
+                server_admin_contract::admin_role_rules_read_request::AdminRoleRulesReadRequest,
+            >(&query)
+            .0
+            .as_str(),
+        )
+        .expect(constants_str::DIAGNOSTIC_06E31F8B);
+        *read_payload
+            .get_mut(stringify!(where_many))
+            .expect(constants_str::DIAGNOSTIC_7F8A0BB7) = serde_json::json!({(stringify!(role_id)): {(stringify!(operator)): constants_str::SERVER_ADMIN_FILTER_OPERATOR_AND, (stringify!(values)): [{(stringify!(Eq)): {(stringify!(operator)): constants_str::SERVER_ADMIN_FILTER_OPERATOR_AND, (stringify!(values)): role_id}}]}});
+        let filtered_response = migrated_api_response(
+            &fixture,
+            crate::HttpAdminApiTestMethod::from(http::Method::POST),
+            crate::StdAdminApiTestStrRef::from(
+                server_admin_contract::admin_route::AdminRoute::RoleRulesTable
+                    .contract()
+                    .path()
+                    .as_ref(),
+            ),
+            crate::AdminHtmlTestBody::try_from(read_payload.to_string())
+                .expect(constants_str::DIAGNOSTIC_990A20CA),
+        )
+        .await;
+        assert_eq!(filtered_response.0.status(), http::StatusCode::OK);
+        let body = crate::admin_html_body(filtered_response).await;
+        let view = serde_json::from_str::<
+            server_admin_contract::admin_data_table_view::AdminDataTableView,
+        >(body.0.as_str())
+        .expect(constants_str::DIAGNOSTIC_AD346CD2);
+        assert_eq!(
+            view.table(),
+            server_admin_contract::admin_data_table::AdminDataTable::RoleRules
+        );
+        assert_eq!(u64::from(view.total()), 1u64);
+        assert_eq!(view.items().len(), 1usize);
+        let role_id_text = role_id.to_string();
+        let rule_id_text = rule_id.to_string();
+        assert!(
+            [role_id_text.as_str(), rule_id_text.as_str()]
+                .iter()
+                .all(|expected| view.items().first().is_some_and(|row| row
+                    .values()
+                    .iter()
+                    .any(|value| value.as_ref().as_str() == *expected)))
+        );
+        let _malformed_payload = futures::StreamExt::fold(futures::stream::iter([
+            serde_json::json!({(stringify!(role_id)): {(stringify!(operator)): constants_str::SERVER_ADMIN_FILTER_OPERATOR_AND, (stringify!(values)): [{(stringify!(Eq)): {(stringify!(operator)): constants_str::SERVER_ADMIN_FILTER_OPERATOR_AND}}]}}),
+            serde_json::json!({(stringify!(unknown)): {(stringify!(operator)): constants_str::SERVER_ADMIN_FILTER_OPERATOR_AND, (stringify!(values)): [{(stringify!(Eq)): {(stringify!(operator)): constants_str::SERVER_ADMIN_FILTER_OPERATOR_AND, (stringify!(values)): 1i64}}]}})
+        ]), read_payload, async |mut malformed_payload, filter| {
+            *malformed_payload.get_mut(stringify!(where_many)).expect(constants_str::DIAGNOSTIC_44BFE7A9) = filter;
+            let response = migrated_api_response(&fixture, crate::HttpAdminApiTestMethod::from(http::Method::POST), crate::StdAdminApiTestStrRef::from(server_admin_contract::admin_route::AdminRoute::RoleRulesTable.contract().path().as_ref()), crate::AdminHtmlTestBody::try_from(malformed_payload.to_string()).expect(constants_str::DIAGNOSTIC_2C50B30A)).await;
+            assert_eq!(response.0.status(), http::StatusCode::BAD_REQUEST);
+            malformed_payload
+        }).await;
+        fixture
+            .lock
+            .0
+            .rollback()
+            .await
+            .expect(constants_str::DIAGNOSTIC_153A25FC);
+    }
+
+    #[tokio::test]
+    #[ignore = "requires PostgreSQL; run through workspace_test_runner database"]
+    async fn test_postgresql_search_and_sorting_are_deterministic() {
+        let fixture = crate::admin_html_test_fixture().await;
+        let password = serde_json::from_str::<String>(constants_str::CORRECT_PASSWORD)
+            .expect(constants_str::DIAGNOSTIC_DA3FD67C);
+        let users = [constants_str::VALUE_2562E0C2, constants_str::VALUE_A582339C].map(|login| serde_json::json!({(stringify!(login)): login, (stringify!(display_name)): constants_str::LOGIN, (stringify!(password)): password}));
+        let created_response = migrated_api_response(
+            &fixture,
+            crate::HttpAdminApiTestMethod::from(http::Method::POST),
+            crate::StdAdminApiTestStrRef::from(
+                server_admin_contract::admin_route::AdminRoute::CreateUser
+                    .contract()
+                    .path()
+                    .as_ref(),
+            ),
+            crate::AdminHtmlTestBody::try_from(serde_json::json!(users).to_string())
+                .expect(constants_str::DIAGNOSTIC_A5335B10),
+        )
+        .await;
+        assert_eq!(created_response.0.status(), http::StatusCode::CREATED);
+        let _role_id = sqlx::query_scalar::<_, i64>(constants_str::SERVER_ADMIN_INSERT_ROLE_SQL)
+            .bind(constants_str::LOGIN)
+            .fetch_one(&fixture.pool.0)
+            .await
+            .expect(constants_str::DIAGNOSTIC_B3FD47FA);
+        let query = server_admin_contract::admin_table_query::AdminTableQuery::new(
+            server_admin_contract::admin_table_search::AdminTableSearch::default(),
+            server_admin_contract::admin_table_sort_key::AdminTableSortKey::default(),
+            server_admin_contract::admin_page_offset::AdminPageOffset::default(),
+            server_admin_contract::admin_page_limit::AdminPageLimit::try_from(100u16)
+                .expect(constants_str::DIAGNOSTIC_65909542),
+            server_admin_contract::admin_sort_direction::AdminSortDirection::default(),
+        );
+        futures::StreamExt::fold(futures::stream::iter([
+            (server_admin_contract::admin_route::AdminRoute::Users, stringify!(login), crate::admin_table_test_read_body::<server_admin_contract::admin_users_read_request::AdminUsersReadRequest>(&query)),
+            (server_admin_contract::admin_route::AdminRoute::Roles, stringify!(name), crate::admin_table_test_read_body::<server_admin_contract::admin_roles_read_request::AdminRolesReadRequest>(&query)),
+            (server_admin_contract::admin_route::AdminRoute::Rules, stringify!(id), crate::admin_table_test_read_body::<server_admin_contract::admin_rules_read_request::AdminRulesReadRequest>(&query)),
+        ]), (), async |(), (route, column, body)| {
+            let mut payload = serde_json::from_str::<serde_json::Value>(body.0.as_str()).expect(constants_str::DIAGNOSTIC_46B10B43);
+            if route == server_admin_contract::admin_route::AdminRoute::Users {
+                *payload.get_mut(stringify!(search)).expect(constants_str::DIAGNOSTIC_F24198BE) = serde_json::json!(constants_str::VALUE_2562E0C2);
+            }
+            let pages = futures::StreamExt::fold(futures::stream::iter([server_admin_contract::admin_sort_direction::AdminSortDirection::Ascending, server_admin_contract::admin_sort_direction::AdminSortDirection::Descending]), (payload, Vec::new()), async |(mut sorted_payload, mut pages), direction| {
+                *sorted_payload.get_mut(stringify!(order_by)).expect(constants_str::DIAGNOSTIC_9C4B40A4) = serde_json::json!({(stringify!(column)): {column: null}, (stringify!(order)): direction});
+                let sorted_response = migrated_api_response(&fixture, crate::HttpAdminApiTestMethod::from(http::Method::POST), crate::StdAdminApiTestStrRef::from(route.contract().path().as_ref()), crate::AdminHtmlTestBody::try_from(sorted_payload.to_string()).expect(constants_str::DIAGNOSTIC_3CEED3F5)).await;
+                assert_eq!(sorted_response.0.status(), http::StatusCode::OK);
+                let sorted_body = crate::admin_html_body(sorted_response).await;
+                let page = serde_json::from_str::<serde_json::Value>(sorted_body.0.as_str()).expect(constants_str::DIAGNOSTIC_98E91084);
+                let items = page.get(stringify!(items)).and_then(serde_json::Value::as_array).expect(constants_str::DIAGNOSTIC_BBEB88AD);
+                assert!(items.len() > 1usize);
+                assert_eq!(page.get(stringify!(total)).and_then(serde_json::Value::as_u64), Some(u64::try_from(items.len()).expect(constants_str::DIAGNOSTIC_885B56B3)));
+                let values = if page.get(stringify!(columns)).is_some() {
+                    let id_index = page.get(stringify!(columns)).and_then(serde_json::Value::as_array).expect(constants_str::DIAGNOSTIC_E9C0A2B5).iter().position(|column_view| column_view.get(stringify!(name)).and_then(serde_json::Value::as_str) == Some(if route == server_admin_contract::admin_route::AdminRoute::Users { stringify!(login) } else { stringify!(id) })).expect(constants_str::DIAGNOSTIC_C7E51038);
+                    items.iter().map(|item| item.get(stringify!(values)).and_then(serde_json::Value::as_array).and_then(|values| values.get(id_index)).expect(constants_str::DIAGNOSTIC_9DB2EE94).clone()).collect::<Vec<_>>()
+                } else {
+                    items.iter().map(|item| item.get(if route == server_admin_contract::admin_route::AdminRoute::Users { stringify!(login) } else { stringify!(id) }).expect(constants_str::DIAGNOSTIC_D1FB1D07).clone()).collect::<Vec<_>>()
+                };
+                pages.push(values);
+                (sorted_payload, pages)
+            }).await.1;
+            assert!(pages.first().expect(constants_str::DIAGNOSTIC_A6D89DF3).iter().rev().eq(pages.last().expect(constants_str::DIAGNOSTIC_0365BE14).iter()));
+            if route == server_admin_contract::admin_route::AdminRoute::Users {
+                assert_eq!(pages.first().expect(constants_str::DIAGNOSTIC_54BF01F4), &vec![serde_json::json!(constants_str::VALUE_2562E0C2), serde_json::json!(constants_str::VALUE_A582339C)]);
+                let mut invalid_payload = serde_json::from_str::<serde_json::Value>(body.0.as_str()).expect(constants_str::DIAGNOSTIC_BBFC7394);
+                *invalid_payload.get_mut(stringify!(order_by)).expect(constants_str::DIAGNOSTIC_FD99A26C) = serde_json::json!({(stringify!(column)): {(stringify!(unknown)): null}, (stringify!(order)): server_admin_contract::admin_sort_direction::AdminSortDirection::Ascending});
+                let invalid_response = migrated_api_response(&fixture, crate::HttpAdminApiTestMethod::from(http::Method::POST), crate::StdAdminApiTestStrRef::from(route.contract().path().as_ref()), crate::AdminHtmlTestBody::try_from(invalid_payload.to_string()).expect(constants_str::DIAGNOSTIC_2CACAB83)).await;
+                assert_eq!(invalid_response.0.status(), http::StatusCode::BAD_REQUEST);
+            }
+        }).await;
+        fixture
+            .lock
+            .0
+            .rollback()
+            .await
+            .expect(constants_str::DIAGNOSTIC_296E62A9);
+    }
+
+    #[tokio::test]
+    async fn test_migrated_update_operations_reject_missing_authentication() {
+        futures::StreamExt::fold(futures::stream::iter([
+            (server_admin_contract::admin_route::AdminRoute::UpdateUsers, serde_json::json!({(stringify!(filter)): {(stringify!(user_id)): 1i32}, (stringify!(changes)): {(stringify!(display_name)): constants_str::LOGIN}})),
+            (server_admin_contract::admin_route::AdminRoute::UpdateRoles, serde_json::json!({(stringify!(filter)): {(stringify!(role_id)): 1i32}, (stringify!(changes)): {(stringify!(name)): constants_str::LOGIN}})),
+        ]), (), async |(), (route, update)| {
+            let body = serde_json::json!({(stringify!(updates)): [update]}).to_string();
+            let response = tower::ServiceExt::oneshot(crate::admin_api_test_router().0, crate::request_with_peer(crate::HttpAdminApiTestMethod::from(http::Method::PATCH), crate::StdAdminApiTestStrRef::from(route.contract().path().as_ref()), crate::StdAdminApiTestStrRef::from(body.as_str()), None, None).0).await.expect(constants_str::DIAGNOSTIC_90F0DAA8);
+            assert_eq!(response.status(), http::StatusCode::UNAUTHORIZED);
+        }).await;
+    }
+}
+
 mod test_routing {
     #[tokio::test]
     async fn test_protected_routes_reject_missing_authentication_without_database_io() {
@@ -6019,6 +6960,7 @@ fn assert_admin_csr_shell(admin_html_test_body: &AdminHtmlTestBody) {
 )]
 async fn admin_html_test_fixture_with_password_change(
     admin_bool: server_admin_contract::admin_bool::AdminBool,
+    admin_session_limit: config_lib::admin_session_limit::AdminSessionLimit,
 ) -> AdminHtmlTestFixture {
     let database_url = std::env::var(constants_str::ENV_NAMES_DATABASE_URL)
         .expect(constants_str::DIAGNOSTIC_FBE54D19);
@@ -6096,9 +7038,7 @@ async fn admin_html_test_fixture_with_password_change(
         &env::<config_lib::admin_refresh_token_ttl_seconds::AdminRefreshTokenTtlSeconds>(
             StdAdminApiTestStrRef::from(constants_str::VALUE_3600),
         ),
-        &env::<config_lib::admin_session_limit::AdminSessionLimit>(StdAdminApiTestStrRef::from(
-            constants_str::VALUE_20,
-        )),
+        &admin_session_limit,
         &env::<config_lib::admin_sign_in_rate_limit::AdminSignInRateLimit>(
             StdAdminApiTestStrRef::from(constants_str::VALUE_20),
         ),
@@ -6182,6 +7122,9 @@ async fn admin_html_test_fixture_with_password_change(
 async fn admin_html_test_fixture() -> AdminHtmlTestFixture {
     admin_html_test_fixture_with_password_change(
         server_admin_contract::admin_bool::AdminBool::from(false),
+        env::<config_lib::admin_session_limit::AdminSessionLimit>(StdAdminApiTestStrRef::from(
+            constants_str::VALUE_20,
+        )),
     )
     .await
 }

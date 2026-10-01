@@ -342,3 +342,16 @@ fn test_tests_mode_leaves_ignored_suite_to_database_mode() {
             .all(|(_program, args)| !args.contains(&constants_str::SHARED_VALUES_RUN_IGNORED))
     );
 }
+
+#[test]
+fn test_database_mode_excludes_tests_requiring_a_deployed_application() {
+    assert!(
+        constants_str::WORKSPACE_TEST_RUNNER_CARGO_TEST_DATABASE_ARGS
+            .windows(2)
+            .any(|arguments| arguments
+                == [
+                    constants_str::MIGRATED_SKIP_ARGUMENT,
+                    constants_str::MIGRATED_DEPLOYMENT_TEST_NAME
+                ])
+    );
+}

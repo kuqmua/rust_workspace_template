@@ -20,25 +20,8 @@ test("test_table_views_use_unprefixed_api_paths", async ({ page }) => {
       expect(response.status(), resource).toBe(200);
       expect(await response.json(), resource).toBeTruthy();
       await expect(page.locator('section[data-renderer="csr"] table')).toBeVisible();
-      const legacy = await page.request.get(`/tables/${resource}/read`, { maxRedirects: 0 });
-      expect(legacy.status(), resource).not.toBe(200);
-    }, Promise.resolve());
-  } finally {
-    await signOutIfAuthenticated(page);
-  }
-});
 
-test("test_generic_table_search_treats_wildcards_as_text", async ({ page }) => {
-  await signInInitialAdministrator(page);
-  try {
-    const baseline = await page.request.post("/user_roles/read", { data: {} });
-    expect(baseline.status()).toBe(200);
-    expect((await baseline.json()).total).toBeGreaterThan(0);
-    for (const search of ["%", "_"]) {
-      const response = await page.request.post("/user_roles/read", { data: { search } });
-      expect(response.status()).toBe(200);
-      expect((await response.json()).total).toBe(0);
-    }
+    }, Promise.resolve());
   } finally {
     await signOutIfAuthenticated(page);
   }

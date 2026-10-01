@@ -35,15 +35,45 @@ mod tests {
 
     #[tokio::test]
     async fn test_administrator_asset_route_preserves_static_file_serving() {
+        let router = axum::Router::from(
+            server_runtime_http::security_headers_layer::SecurityHeadersLayer::from(
+                server_runtime_http::forwarded_proto_trust::ForwardedProtoTrust::Ignore,
+            )
+            .apply(server_runtime_http::axum_router::AxumRouter::from(
+                axum::Router::from(frontend_admin::admin_frontend_routes::admin_frontend_routes()),
+            )),
+        );
         let response = tower::ServiceExt::oneshot(
-            axum::Router::from(frontend_admin::admin_frontend_routes::admin_frontend_routes()),
+            router,
             axum::http::Request::get(constants_str::VALUE_688DB289)
                 .body(axum::body::Body::empty())
-                .expect(constants_str::DIAGNOSTIC_D694B6F6),
+                .expect(constants_str::DIAGNOSTIC_69409C47),
         )
         .await
-        .expect(constants_str::DIAGNOSTIC_499F35E2);
+        .expect(constants_str::DIAGNOSTIC_34ACCF01);
         assert_eq!(response.status(), axum::http::StatusCode::OK);
+        assert!(
+            response
+                .headers()
+                .get(axum::http::header::CONTENT_TYPE)
+                .and_then(|header| header.to_str().ok())
+                .is_some_and(|header| header.contains(constants_str::TEXT_CSS))
+        );
+        assert_eq!(
+            response
+                .headers()
+                .get(constants_str::X_CONTENT_TYPE_OPTIONS),
+            Some(&axum::http::HeaderValue::from_static(
+                constants_str::NOSNIFF
+            ))
+        );
+        assert!(
+            axum::body::to_bytes(response.into_body(), constants_usize::VALUE_1_048_576)
+                .await
+                .expect(constants_str::DIAGNOSTIC_1A1131EA)
+                .len()
+                > 1_000usize
+        );
     }
 
     #[tokio::test]
