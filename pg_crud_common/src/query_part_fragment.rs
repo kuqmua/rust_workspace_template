@@ -30,12 +30,6 @@ impl TryFrom<String> for QueryPartFragment {
     type Error =
         crate::pg_crud_string_wrapper_try_from_string_error::PgCrudStringWrapperTryFromStringError;
     fn try_from(value: String) -> Result<Self, Self::Error> {
-        if value.len() > crate::pg_crud_string_wrapper_max_len::PG_CRUD_STRING_WRAPPER_MAX_LEN {
-            return Err(Self::Error::TooLong {
-                len: value.len(),
-                max: crate::pg_crud_string_wrapper_max_len::PG_CRUD_STRING_WRAPPER_MAX_LEN,
-            });
-        }
         bounded_types::bounded_string::BoundedString::try_from(value)
             .map(Self)
             .map_err(|source| match source {

@@ -12,33 +12,35 @@ pub struct BoundedJsonText(
 
 impl BoundedJsonText {
     pub fn compact(&self) -> Result<Self, crate::bounded_json_read_error::BoundedJsonReadError> {
-        let value =
-            serde_json::from_str::<serde_json::Value>(self.0.as_str()).map_err(|error| {
-                crate::bounded_json_read_error::BoundedJsonReadError::SerdeJson(
-                    crate::serde_json_error::SerdeJsonError::from(error),
-                )
-            })?;
-        let text = serde_json::to_string(&value).map_err(|error| {
-            crate::bounded_json_read_error::BoundedJsonReadError::SerdeJson(
-                crate::serde_json_error::SerdeJsonError::from(error),
-            )
-        })?;
-        Self::try_from(text)
+        self.format_json_text(crate::json_text_format::JsonTextFormat::Compact)
     }
 
     pub fn pretty(&self) -> Result<Self, crate::bounded_json_read_error::BoundedJsonReadError> {
+        self.format_json_text(crate::json_text_format::JsonTextFormat::Pretty)
+    }
+
+    fn format_json_text(
+        &self,
+        json_text_format: crate::json_text_format::JsonTextFormat,
+    ) -> Result<Self, crate::bounded_json_read_error::BoundedJsonReadError> {
         let value =
             serde_json::from_str::<serde_json::Value>(self.0.as_str()).map_err(|error| {
                 crate::bounded_json_read_error::BoundedJsonReadError::SerdeJson(
                     crate::serde_json_error::SerdeJsonError::from(error),
                 )
             })?;
-        let text = serde_json::to_string_pretty(&value).map_err(|error| {
+        let text = match json_text_format {
+            crate::json_text_format::JsonTextFormat::Compact => serde_json::to_string(&value),
+            crate::json_text_format::JsonTextFormat::Pretty => serde_json::to_string_pretty(&value),
+        }
+        .map_err(|error| {
             crate::bounded_json_read_error::BoundedJsonReadError::SerdeJson(
                 crate::serde_json_error::SerdeJsonError::from(error),
             )
         })?;
-        Self::try_from(text)
+        bounded_types::bounded_string::BoundedString::try_from(text)
+            .map(Self)
+            .map_err(crate::bounded_json_read_error::BoundedJsonReadError::from_string_bounds)
     }
 }
 
@@ -56,29 +58,14 @@ impl TryFrom<String> for BoundedJsonText {
             ));
         }
         let _validated_value =
-            serde_json::from_str::<serde_json::Value>(value.as_str()).map_err(|error| {
-                crate::bounded_json_read_error::BoundedJsonReadError::SerdeJson(
-                    crate::serde_json_error::SerdeJsonError::from(error),
-                )
-            })?;
+            serde_json::from_str::<crate::validated_json_value::ValidatedJsonValue>(value.as_str())
+                .map_err(|error| {
+                    crate::bounded_json_read_error::BoundedJsonReadError::SerdeJson(
+                        crate::serde_json_error::SerdeJsonError::from(error),
+                    )
+                })?;
         bounded_types::bounded_string::BoundedString::try_from(value)
             .map(Self)
-            .map_err(|source| match source {
-                bounded_types::bounded_string_error::BoundedStringError::AboveMaximum {
-                    maximum_length,
-                    ..
-                }
-                | bounded_types::bounded_string_error::BoundedStringError::BelowMinimum {
-                    minimum_length: maximum_length,
-                    ..
-                } => Self::Error::Read(
-                    crate::bounded_read_error::BoundedReadError::ExceedsMaximum {
-                        maximum_bytes:
-                            crate::bounded_read_maximum_bytes::BoundedReadMaximumBytes::from(
-                                maximum_length.get(),
-                            ),
-                    },
-                ),
-            })
+            .map_err(crate::bounded_json_read_error::BoundedJsonReadError::from_string_bounds)
     }
 }

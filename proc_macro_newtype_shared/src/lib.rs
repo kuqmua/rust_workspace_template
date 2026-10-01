@@ -1940,8 +1940,9 @@ fn type_path_ends_with_bounded_string_identifier(
 fn identifier_to_snake(
     syn_identifier_ref: syn_identifier_ref::SynIdentifierRef<'_>,
 ) -> snake_identifier::SnakeIdentifier {
-    let (output, _) = syn_identifier_ref.as_ref().to_string().chars().fold(
-        (String::new(), false),
+    let identifier_text = syn_identifier_ref.as_ref().to_string();
+    let (output, _) = identifier_text.chars().fold(
+        (String::with_capacity(identifier_text.len()), false),
         |(mut output, mut previous_lowercase), character| {
             if character.is_uppercase() {
                 if previous_lowercase && !output.is_empty() {

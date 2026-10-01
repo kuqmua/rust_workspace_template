@@ -174,6 +174,7 @@ pub mod inject_trace_context;
 pub mod io_error_presence_disposition;
 pub mod ipnet_network;
 pub mod join_diagnostic;
+mod json_text_format;
 pub mod metrics_response_body;
 pub mod metrics_response_body_error;
 pub mod metrics_shared_string;
@@ -411,3 +412,8 @@ pub(crate) mod validate_outbound_resolved_addresses;
 pub mod versioned_url_safe_wire_token_text;
 pub mod versioned_url_safe_wire_token_text_error;
 pub mod wait_for_service_shutdown_signal;
+
+mod json_validation_visitor;
+#[cfg(test)]
+mod test_json_validation_equivalence;
+mod validated_json_value;

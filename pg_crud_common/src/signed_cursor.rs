@@ -8,6 +8,7 @@
 )]
 pub struct SignedCursor(bounded_types::bounded_string::BoundedString<1usize, 65_536usize, false>);
 
+#[cfg(test)]
 impl SignedCursor {
     const MAXIMUM_LENGTH: usize = 65_536usize;
 }
@@ -16,12 +17,6 @@ impl TryFrom<String> for SignedCursor {
     type Error = crate::signed_cursor_error::SignedCursorError;
 
     fn try_from(value: String) -> Result<Self, Self::Error> {
-        if value.is_empty() {
-            return Err(Self::Error::Empty);
-        }
-        if value.len() > Self::MAXIMUM_LENGTH {
-            return Err(Self::Error::TooLong);
-        }
         bounded_types::bounded_string::BoundedString::try_from(value)
             .map(Self)
             .map_err(|source| match source {
@@ -37,6 +32,18 @@ impl TryFrom<String> for SignedCursor {
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn test_signed_cursor_accepts_exact_byte_bounds() {
+        assert!(
+            [constants_usize::ONE, super::SignedCursor::MAXIMUM_LENGTH]
+                .into_iter()
+                .all(|length| {
+                    super::SignedCursor::try_from(constants_str::X.repeat(length))
+                        .is_ok_and(|cursor| cursor.as_ref().len() == length)
+                })
+        );
+    }
+
     #[test]
     fn test_signed_cursor_distinguishes_empty_and_oversized_values() {
         assert_eq!(

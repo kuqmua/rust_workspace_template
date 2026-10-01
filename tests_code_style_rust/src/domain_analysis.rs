@@ -1776,121 +1776,45 @@ impl ExternalLeafWrapperNameVisitor<'_> {
         &self,
         syn_type_ref: crate::syn_type_ref::SynTypeRef<'ty_lt>,
     ) -> Option<crate::syn_path_segment_ref::SynPathSegmentRef<'ty_lt>> {
-        match syn_type_ref.get() {
-            syn::Type::Array(ty_array) => {
-                self.external_root_segment(crate::syn_type_ref::SynTypeRef::from(&*ty_array.elem))
-            }
-            syn::Type::Group(ty_group) => {
-                self.external_root_segment(crate::syn_type_ref::SynTypeRef::from(&*ty_group.elem))
-            }
-            syn::Type::Paren(ty_paren) => {
-                self.external_root_segment(crate::syn_type_ref::SynTypeRef::from(&*ty_paren.elem))
-            }
-            syn::Type::Path(ty_path) => {
-                let ty_path_ref = crate::syn_type_path_ref::SynTypePathRef::from(ty_path).get();
-                if let Some(qself) = &ty_path_ref.qself {
-                    return self
-                        .external_root_segment(crate::syn_type_ref::SynTypeRef::from(&*qself.ty));
-                }
-                let first_segment = ty_path_ref.path.segments.first()?;
-                let parse_first_identifier = first_segment.ident.to_string();
-                if parse_first_identifier == constants_str::CRATE
-                    || parse_first_identifier == constants_str::SELF_ALT
-                    || parse_first_identifier == constants_str::SUPER
-                    || self.repo_crates.as_ref().contains(&parse_first_identifier)
-                {
-                    return ty_path_ref.path.segments.iter().find_map(|segment| {
-                        self.external_root_segment_from_arguments(
-                            crate::syn_path_arguments_ref::SynPathArgumentsRef::from(
-                                &segment.arguments,
-                            ),
-                        )
-                    });
-                }
-                if ty_path_ref.path.segments.len() > 1 {
-                    return Some(crate::syn_path_segment_ref::SynPathSegmentRef::from(
-                        first_segment,
-                    ));
-                }
-                ty_path_ref.path.segments.iter().find_map(|segment| {
-                    self.external_root_segment_from_arguments(
-                        crate::syn_path_arguments_ref::SynPathArgumentsRef::from(
-                            &segment.arguments,
-                        ),
-                    )
-                })
-            }
-            syn::Type::Reference(ty_reference) => self
-                .external_root_segment(crate::syn_type_ref::SynTypeRef::from(&*ty_reference.elem)),
-            syn::Type::Slice(ty_slice) => {
-                self.external_root_segment(crate::syn_type_ref::SynTypeRef::from(&*ty_slice.elem))
-            }
-            syn::Type::Tuple(ty_tuple) => ty_tuple.elems.iter().find_map(|elem| {
-                self.external_root_segment(crate::syn_type_ref::SynTypeRef::from(elem))
-            }),
-            syn::Type::FnPtr(_)
-            | syn::Type::ImplTrait(_)
-            | syn::Type::Infer(_)
-            | syn::Type::Macro(_)
-            | syn::Type::Never(_)
-            | syn::Type::Ptr(_)
-            | syn::Type::TraitObject(_)
-            | syn::Type::Verbatim(_)
-            | _ => None,
-        }
-    }
-    fn external_root_segment_from_arguments<'args_lt>(
-        &self,
-        syn_path_arguments_ref: crate::syn_path_arguments_ref::SynPathArgumentsRef<'args_lt>,
-    ) -> Option<crate::syn_path_segment_ref::SynPathSegmentRef<'args_lt>> {
-        match syn_path_arguments_ref.get() {
-            syn::PathArguments::AngleBracketed(args) => {
-                args.args.iter().find_map(|arg| match arg {
-                    syn::GenericArgument::Type(ty) => {
-                        self.external_root_segment(crate::syn_type_ref::SynTypeRef::from(ty))
-                    }
-                    syn::GenericArgument::AssocConst(_)
-                    | syn::GenericArgument::AssocType(_)
-                    | syn::GenericArgument::Constraint(_)
-                    | syn::GenericArgument::Const(_)
-                    | syn::GenericArgument::Lifetime(_)
-                    | _ => None,
-                })
-            }
-            syn::PathArguments::Parenthesized(args) => args
-                .inputs
-                .iter()
-                .find_map(|arg| {
-                    self.external_root_segment(crate::syn_type_ref::SynTypeRef::from(&arg.ty))
-                })
-                .or_else(|| match &args.output {
-                    syn::ReturnType::Default => None,
-                    syn::ReturnType::Type(_, ty) => {
-                        self.external_root_segment(crate::syn_type_ref::SynTypeRef::from(&**ty))
-                    }
-                }),
-            syn::PathArguments::None => None,
-        }
+        self.external_type_segment(
+            syn_type_ref,
+            crate::external_type_segment_kind::ExternalTypeSegmentKind::Root,
+        )
     }
     fn external_leaf_segment<'ty_lt>(
         &self,
         syn_type_ref: crate::syn_type_ref::SynTypeRef<'ty_lt>,
     ) -> Option<crate::syn_path_segment_ref::SynPathSegmentRef<'ty_lt>> {
+        self.external_type_segment(
+            syn_type_ref,
+            crate::external_type_segment_kind::ExternalTypeSegmentKind::Leaf,
+        )
+    }
+    fn external_type_segment<'ty_lt>(
+        &self,
+        syn_type_ref: crate::syn_type_ref::SynTypeRef<'ty_lt>,
+        external_type_segment_kind: crate::external_type_segment_kind::ExternalTypeSegmentKind,
+    ) -> Option<crate::syn_path_segment_ref::SynPathSegmentRef<'ty_lt>> {
         match syn_type_ref.get() {
-            syn::Type::Array(ty_array) => {
-                self.external_leaf_segment(crate::syn_type_ref::SynTypeRef::from(&*ty_array.elem))
-            }
-            syn::Type::Group(ty_group) => {
-                self.external_leaf_segment(crate::syn_type_ref::SynTypeRef::from(&*ty_group.elem))
-            }
-            syn::Type::Paren(ty_paren) => {
-                self.external_leaf_segment(crate::syn_type_ref::SynTypeRef::from(&*ty_paren.elem))
-            }
+            syn::Type::Array(ty_array) => self.external_type_segment(
+                crate::syn_type_ref::SynTypeRef::from(&*ty_array.elem),
+                external_type_segment_kind,
+            ),
+            syn::Type::Group(ty_group) => self.external_type_segment(
+                crate::syn_type_ref::SynTypeRef::from(&*ty_group.elem),
+                external_type_segment_kind,
+            ),
+            syn::Type::Paren(ty_paren) => self.external_type_segment(
+                crate::syn_type_ref::SynTypeRef::from(&*ty_paren.elem),
+                external_type_segment_kind,
+            ),
             syn::Type::Path(ty_path) => {
                 let ty_path_ref = crate::syn_type_path_ref::SynTypePathRef::from(ty_path).get();
                 if let Some(qself) = &ty_path_ref.qself {
-                    return self
-                        .external_leaf_segment(crate::syn_type_ref::SynTypeRef::from(&*qself.ty));
+                    return self.external_type_segment(
+                        crate::syn_type_ref::SynTypeRef::from(&*qself.ty),
+                        external_type_segment_kind,
+                    );
                 }
                 let first_segment = ty_path_ref.path.segments.first()?;
                 let parse_first_identifier = first_segment.ident.to_string();
@@ -1900,35 +1824,50 @@ impl ExternalLeafWrapperNameVisitor<'_> {
                     || self.repo_crates.as_ref().contains(&parse_first_identifier)
                 {
                     return ty_path_ref.path.segments.iter().find_map(|segment| {
-                        self.external_leaf_segment_from_arguments(
+                        self.external_type_segment_from_arguments(
                             crate::syn_path_arguments_ref::SynPathArgumentsRef::from(
                                 &segment.arguments,
                             ),
+                            external_type_segment_kind,
                         )
                     });
                 }
                 if ty_path_ref.path.segments.len() > 1 {
-                    return ty_path_ref
-                        .path
-                        .segments
-                        .last()
-                        .map(crate::syn_path_segment_ref::SynPathSegmentRef::from);
+                    return match external_type_segment_kind {
+                        crate::external_type_segment_kind::ExternalTypeSegmentKind::Root => Some(
+                            crate::syn_path_segment_ref::SynPathSegmentRef::from(first_segment),
+                        ),
+                        crate::external_type_segment_kind::ExternalTypeSegmentKind::Leaf => {
+                            ty_path_ref
+                                .path
+                                .segments
+                                .last()
+                                .map(crate::syn_path_segment_ref::SynPathSegmentRef::from)
+                        }
+                    };
                 }
                 ty_path_ref.path.segments.iter().find_map(|segment| {
-                    self.external_leaf_segment_from_arguments(
+                    self.external_type_segment_from_arguments(
                         crate::syn_path_arguments_ref::SynPathArgumentsRef::from(
                             &segment.arguments,
                         ),
+                        external_type_segment_kind,
                     )
                 })
             }
-            syn::Type::Reference(ty_reference) => self
-                .external_leaf_segment(crate::syn_type_ref::SynTypeRef::from(&*ty_reference.elem)),
-            syn::Type::Slice(ty_slice) => {
-                self.external_leaf_segment(crate::syn_type_ref::SynTypeRef::from(&*ty_slice.elem))
-            }
+            syn::Type::Reference(ty_reference) => self.external_type_segment(
+                crate::syn_type_ref::SynTypeRef::from(&*ty_reference.elem),
+                external_type_segment_kind,
+            ),
+            syn::Type::Slice(ty_slice) => self.external_type_segment(
+                crate::syn_type_ref::SynTypeRef::from(&*ty_slice.elem),
+                external_type_segment_kind,
+            ),
             syn::Type::Tuple(ty_tuple) => ty_tuple.elems.iter().find_map(|elem| {
-                self.external_leaf_segment(crate::syn_type_ref::SynTypeRef::from(elem))
+                self.external_type_segment(
+                    crate::syn_type_ref::SynTypeRef::from(elem),
+                    external_type_segment_kind,
+                )
             }),
             syn::Type::FnPtr(_)
             | syn::Type::ImplTrait(_)
@@ -1941,16 +1880,18 @@ impl ExternalLeafWrapperNameVisitor<'_> {
             | _ => None,
         }
     }
-    fn external_leaf_segment_from_arguments<'args_lt>(
+    fn external_type_segment_from_arguments<'args_lt>(
         &self,
         syn_path_arguments_ref: crate::syn_path_arguments_ref::SynPathArgumentsRef<'args_lt>,
+        external_type_segment_kind: crate::external_type_segment_kind::ExternalTypeSegmentKind,
     ) -> Option<crate::syn_path_segment_ref::SynPathSegmentRef<'args_lt>> {
         match syn_path_arguments_ref.get() {
             syn::PathArguments::AngleBracketed(args) => {
                 args.args.iter().find_map(|arg| match arg {
-                    syn::GenericArgument::Type(ty) => {
-                        self.external_leaf_segment(crate::syn_type_ref::SynTypeRef::from(ty))
-                    }
+                    syn::GenericArgument::Type(ty) => self.external_type_segment(
+                        crate::syn_type_ref::SynTypeRef::from(ty),
+                        external_type_segment_kind,
+                    ),
                     syn::GenericArgument::AssocConst(_)
                     | syn::GenericArgument::AssocType(_)
                     | syn::GenericArgument::Constraint(_)
@@ -1963,13 +1904,17 @@ impl ExternalLeafWrapperNameVisitor<'_> {
                 .inputs
                 .iter()
                 .find_map(|arg| {
-                    self.external_leaf_segment(crate::syn_type_ref::SynTypeRef::from(&arg.ty))
+                    self.external_type_segment(
+                        crate::syn_type_ref::SynTypeRef::from(&arg.ty),
+                        external_type_segment_kind,
+                    )
                 })
                 .or_else(|| match &args.output {
                     syn::ReturnType::Default => None,
-                    syn::ReturnType::Type(_, ty) => {
-                        self.external_leaf_segment(crate::syn_type_ref::SynTypeRef::from(&**ty))
-                    }
+                    syn::ReturnType::Type(_, ty) => self.external_type_segment(
+                        crate::syn_type_ref::SynTypeRef::from(&**ty),
+                        external_type_segment_kind,
+                    ),
                 }),
             syn::PathArguments::None => None,
         }

@@ -1483,9 +1483,9 @@ pub fn emit_generate_pg_table(
         .as_deref()
         .unwrap_or(&[]);
     if create_exclude_fields.iter().any(|excluded| {
-        excluded.as_ref() == primary_key_field.get_identifier().to_string()
+        primary_key_field.get_identifier().as_ref() == excluded.as_ref()
             || !fields_without_primary_key_iter()
-                .any(|field| field.get_identifier().to_string() == excluded.as_ref())
+                .any(|field| field.get_identifier().as_ref() == excluded.as_ref())
     }) {
         return crate::pg_table_compile_error_tokens::pg_table_compile_error_tokens(
             crate::pg_table_compile_error_message::PgTableCompileErrorMessage::from(
@@ -1496,7 +1496,7 @@ pub fn emit_generate_pg_table(
     let create_field_is_excluded = |field: &macro_helpers::syn_field::SynField| {
         create_exclude_fields
             .iter()
-            .any(|excluded| excluded.as_ref() == field.get_identifier().to_string())
+            .any(|excluded| field.get_identifier().as_ref() == excluded.as_ref())
     };
     let create_fields_without_primary_key_iter =
         || fields_without_primary_key_iter().filter(|field| !create_field_is_excluded(field));
@@ -1507,9 +1507,9 @@ pub fn emit_generate_pg_table(
         .len()
         == read_exclude_fields.len();
     let read_excluded_fields_are_valid = read_exclude_fields.iter().all(|excluded| {
-        excluded.as_ref() != primary_key_field.get_identifier().to_string()
+        primary_key_field.get_identifier().as_ref() != excluded.as_ref()
             && fields_without_primary_key_iter()
-                .any(|field| field.get_identifier().to_string() == excluded.as_ref())
+                .any(|field| field.get_identifier().as_ref() == excluded.as_ref())
     });
     if !read_excluded_fields_are_unique || !read_excluded_fields_are_valid {
         return crate::pg_table_compile_error_tokens::pg_table_compile_error_tokens(
@@ -1521,7 +1521,7 @@ pub fn emit_generate_pg_table(
     let read_field_is_excluded = |field: &macro_helpers::syn_field::SynField| {
         read_exclude_fields
             .iter()
-            .any(|excluded| excluded.as_ref() == field.get_identifier().to_string())
+            .any(|excluded| field.get_identifier().as_ref() == excluded.as_ref())
     };
     let read_fields_iter = || fields.iter().filter(|field| !read_field_is_excluded(field));
     let read_fields_without_primary_key_iter =
@@ -1533,7 +1533,7 @@ pub fn emit_generate_pg_table(
             if config.search_columns.iter().any(|column| {
                 !read_fields
                     .iter()
-                    .any(|field| field.get_identifier().to_string() == column.as_ref())
+                    .any(|field| field.get_identifier().as_ref() == column.as_ref())
             }) {
                 return quote::quote! { compile_error!("read page search columns must be readable table columns"); }.into();
             }
@@ -1577,7 +1577,7 @@ pub fn emit_generate_pg_table(
     {
         let Some(field_index) = fields
             .iter()
-            .position(|field| field.get_identifier().to_string() == *revision_field_name)
+            .position(|field| field.get_identifier().as_ref() == revision_field_name.as_str())
         else {
             return crate::pg_table_compile_error_tokens::pg_table_compile_error_tokens(
                 crate::pg_table_compile_error_message::PgTableCompileErrorMessage::from(

@@ -18,9 +18,12 @@ pub fn plan_disk_cache_eviction(
                 .checked_add(u64::from(entry.size()))
                 .ok_or(crate::disk_cache_budget_error::DiskCacheBudgetError::SizeOverflow)
         })?;
+    let available_for_existing = maximum_size.saturating_sub(incoming_size);
+    if current <= available_for_existing {
+        return Ok(crate::disk_cache_eviction_plan::DiskCacheEvictionPlan::default());
+    }
     let mut ordered = entries.iter().collect::<Vec<_>>();
     ordered.sort_by_key(|entry| std::time::SystemTime::from(entry.modified_at()));
-    let available_for_existing = maximum_size.saturating_sub(incoming_size);
     let required = current.saturating_sub(available_for_existing);
     let remove_capacity = ordered
         .iter()

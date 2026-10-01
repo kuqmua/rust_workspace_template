@@ -19,7 +19,11 @@ pub fn render_roles(
         .map(|item| {
             let id = item.id().to_string();
             let name = item.name().to_string();
-            let system = item.is_system().to_string();
+            let system = if bool::from(item.is_system()) {
+                constants_str::TRUE
+            } else {
+                constants_str::FALSE
+            };
             let can_update_role = can_update && !bool::from(item.is_system());
             let created_at = item.created_at().to_string();
             let updated_at = item.updated_at().to_string();

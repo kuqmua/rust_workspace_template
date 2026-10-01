@@ -139,3 +139,6 @@ pub mod toml_table_ref;
 pub mod toml_value_ref;
 #[cfg(test)]
 pub mod walkdir_walk_dir;
+
+#[cfg(test)]
+mod external_type_segment_kind;

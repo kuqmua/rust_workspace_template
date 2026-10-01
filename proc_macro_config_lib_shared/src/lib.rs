@@ -4,9 +4,19 @@
     reason = "shared proc-macro implementations preserve original entrypoint conversion points while returning proc_macro2 streams to one-entrypoint facade crates; every result is consumed immediately by its facade"
 )]
 
+pub(crate) mod proc_macro2_config_assertion_tokens;
 pub(crate) mod proc_macro2_try_from_parse_fixed_error_ty;
 pub(crate) mod proc_macro2_try_from_parse_input;
 pub(crate) mod proc_macro_try_from_parse_token_stream;
+
+#[cfg(test)]
+mod test_config_parse_assertions;
+
+#[derive(Clone, Copy, proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
+enum ConfigParseAssertionKind {
+    Failure,
+    Success,
+}
 
 pub fn impl_try_from_non_empty_string(
     token_stream: proc_macro2::TokenStream,
@@ -276,84 +286,83 @@ fn impl_try_from_parse_with_error_ty(
         }),
     )
 }
-pub fn assert_parse_ok_matches(token_stream: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
+fn generate_config_parse_assertion(
+    proc_macro2_macro_tokens: workspace_macro_helpers::proc_macro2_macro_tokens::ProcMacro2MacroTokens,
+    config_parse_assertion_kind: ConfigParseAssertionKind,
+) -> proc_macro2_config_assertion_tokens::ProcMacro2ConfigAssertionTokens {
     let parts = workspace_macro_helpers::split_top_level_commas::split_top_level_commas(
-        workspace_macro_helpers::proc_macro2_macro_tokens::ProcMacro2MacroTokens::from_into(
-            token_stream,
-        ),
+        proc_macro2_macro_tokens,
     );
     if parts.len() != 3 {
-        return workspace_macro_helpers::compile_error_token_stream::compile_error_token_stream(
-            constants_str::COMPILE_ERROR_CE_040,
-        )
-        .into_inner()
-        .into();
+        return proc_macro2_config_assertion_tokens::ProcMacro2ConfigAssertionTokens::from(
+            workspace_macro_helpers::compile_error_token_stream::compile_error_token_stream(
+                match config_parse_assertion_kind {
+                    ConfigParseAssertionKind::Success => constants_str::COMPILE_ERROR_CE_040,
+                    ConfigParseAssertionKind::Failure => constants_str::COMPILE_ERROR_CE_036,
+                },
+            )
+            .into_inner(),
+        );
     }
     let Some(ty) = workspace_macro_helpers::part_at::part_at(&parts, 0) else {
-        return workspace_macro_helpers::compile_error_token_stream::compile_error_token_stream(
-            constants_str::COMPILE_ERROR_CE_039,
-        )
-        .into_inner()
-        .into();
+        return proc_macro2_config_assertion_tokens::ProcMacro2ConfigAssertionTokens::from(
+            workspace_macro_helpers::compile_error_token_stream::compile_error_token_stream(
+                match config_parse_assertion_kind {
+                    ConfigParseAssertionKind::Success => constants_str::COMPILE_ERROR_CE_039,
+                    ConfigParseAssertionKind::Failure => constants_str::COMPILE_ERROR_CE_035,
+                },
+            )
+            .into_inner(),
+        );
     };
     let Some(value) = workspace_macro_helpers::part_at::part_at(&parts, 1) else {
-        return workspace_macro_helpers::compile_error_token_stream::compile_error_token_stream(
-            constants_str::COMPILE_ERROR_CE_041,
-        )
-        .into_inner()
-        .into();
+        return proc_macro2_config_assertion_tokens::ProcMacro2ConfigAssertionTokens::from(
+            workspace_macro_helpers::compile_error_token_stream::compile_error_token_stream(
+                match config_parse_assertion_kind {
+                    ConfigParseAssertionKind::Success => constants_str::COMPILE_ERROR_CE_041,
+                    ConfigParseAssertionKind::Failure => constants_str::COMPILE_ERROR_CE_037,
+                },
+            )
+            .into_inner(),
+        );
     };
     let Some(pattern) = workspace_macro_helpers::part_at::part_at(&parts, 2) else {
-        return workspace_macro_helpers::compile_error_token_stream::compile_error_token_stream(
-            constants_str::COMPILE_ERROR_CE_038,
-        )
-        .into_inner()
-        .into();
+        return proc_macro2_config_assertion_tokens::ProcMacro2ConfigAssertionTokens::from(
+            workspace_macro_helpers::compile_error_token_stream::compile_error_token_stream(
+                match config_parse_assertion_kind {
+                    ConfigParseAssertionKind::Success => constants_str::COMPILE_ERROR_CE_038,
+                    ConfigParseAssertionKind::Failure => constants_str::COMPILE_ERROR_CE_034,
+                },
+            )
+            .into_inner(),
+        );
     };
-    quote::quote! {
-        assert!(matches!(parse_env::<#ty>(#value), Ok(#pattern)));
-    }
+    let result = match config_parse_assertion_kind {
+        ConfigParseAssertionKind::Success => quote::quote! { Ok(#pattern) },
+        ConfigParseAssertionKind::Failure => quote::quote! { Err(#pattern) },
+    };
+    proc_macro2_config_assertion_tokens::ProcMacro2ConfigAssertionTokens::from(quote::quote! {
+        assert!(matches!(parse_env::<#ty>(#value), #result));
+    })
+}
+pub fn assert_parse_ok_matches(token_stream: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
+    generate_config_parse_assertion(
+        workspace_macro_helpers::proc_macro2_macro_tokens::ProcMacro2MacroTokens::from(
+            token_stream,
+        ),
+        ConfigParseAssertionKind::Success,
+    )
     .into()
 }
 pub fn assert_parse_err_matches(
     token_stream: proc_macro2::TokenStream,
 ) -> proc_macro2::TokenStream {
-    let parts = workspace_macro_helpers::split_top_level_commas::split_top_level_commas(
-        workspace_macro_helpers::proc_macro2_macro_tokens::ProcMacro2MacroTokens::from_into(
+    generate_config_parse_assertion(
+        workspace_macro_helpers::proc_macro2_macro_tokens::ProcMacro2MacroTokens::from(
             token_stream,
         ),
-    );
-    if parts.len() != 3 {
-        return workspace_macro_helpers::compile_error_token_stream::compile_error_token_stream(
-            constants_str::COMPILE_ERROR_CE_036,
-        )
-        .into_inner()
-        .into();
-    }
-    let Some(ty) = workspace_macro_helpers::part_at::part_at(&parts, 0) else {
-        return workspace_macro_helpers::compile_error_token_stream::compile_error_token_stream(
-            constants_str::COMPILE_ERROR_CE_035,
-        )
-        .into_inner()
-        .into();
-    };
-    let Some(value) = workspace_macro_helpers::part_at::part_at(&parts, 1) else {
-        return workspace_macro_helpers::compile_error_token_stream::compile_error_token_stream(
-            constants_str::COMPILE_ERROR_CE_037,
-        )
-        .into_inner()
-        .into();
-    };
-    let Some(pattern) = workspace_macro_helpers::part_at::part_at(&parts, 2) else {
-        return workspace_macro_helpers::compile_error_token_stream::compile_error_token_stream(
-            constants_str::COMPILE_ERROR_CE_034,
-        )
-        .into_inner()
-        .into();
-    };
-    quote::quote! {
-        assert!(matches!(parse_env::<#ty>(#value), Err(#pattern)));
-    }
+        ConfigParseAssertionKind::Failure,
+    )
     .into()
 }
 pub fn assert_empty_parse_err_matches(

@@ -20,7 +20,11 @@ pub fn render_users(
             let id = item.id().to_string();
             let login = item.login().to_string();
             let display_name = item.display_name().to_string();
-            let banned = item.is_banned().to_string();
+            let banned = if bool::from(item.is_banned()) {
+                constants_str::TRUE
+            } else {
+                constants_str::FALSE
+            };
             let roles =
                 crate::admin_user_roles::admin_user_roles(item, admin_users_page);
             leptos::view! {

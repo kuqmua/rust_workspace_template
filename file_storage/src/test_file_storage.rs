@@ -459,3 +459,27 @@ async fn test_staged_upload_delete_and_rollback_preserve_transaction_boundaries(
         .await
         .expect(constants_str::DIAGNOSTIC_9A69203B);
 }
+
+#[test]
+fn test_disk_cache_budget_retains_entries_when_budget_is_sufficient() {
+    assert!(
+        crate::storage_relative_path_buf::StorageRelativePathBuf::try_from(
+            std::path::PathBuf::from(constants_str::TEST_DISK_CACHE_OLD_PATH),
+        )
+        .is_ok_and(|storage_relative_path_buf| {
+            let entries = [crate::disk_cache_entry::DiskCacheEntry::new(
+                storage_relative_path_buf,
+                8u64.into(),
+                std::time::UNIX_EPOCH.into(),
+            )];
+            [12u64, 16u64].into_iter().all(|maximum| {
+                crate::plan_disk_cache_eviction::plan_disk_cache_eviction(
+                    &entries,
+                    maximum.into(),
+                    4u64.into(),
+                )
+                .is_ok_and(|disk_cache_eviction_plan| disk_cache_eviction_plan.as_ref().is_empty())
+            })
+        })
+    );
+}
