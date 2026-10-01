@@ -45,7 +45,7 @@ export default defineConfig({
     command: "./run-server.sh",
     cwd: import.meta.dirname,
     url: "http://127.0.0.1:18080/health/live/read",
-    reuseExistingServer: !process.env.CI,
+    reuseExistingServer: !process.env.CI && process.env.BROWSER_ACCEPTANCE_SWAGGER_ENABLED !== "true",
     timeout: 600_000
   }
 });

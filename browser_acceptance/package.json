@@ -6,6 +6,7 @@
   "scripts": {
     "screenshots": "BROWSER_ACCEPTANCE_SCREENSHOTS=1 playwright test tests/screenshots.spec.js",
     "test": "playwright test",
+    "test:swagger": "BROWSER_ACCEPTANCE_SWAGGER_ENABLED=true playwright test tests/test_swagger_enabled.spec.js",
     "test:full": "BROWSER_ACCEPTANCE_FULL=1 playwright test",
     "test:session-limit": "BROWSER_ACCEPTANCE_SESSION_LIMIT=2 playwright test tests/session-limit.spec.js"
   },
