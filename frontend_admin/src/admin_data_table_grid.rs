@@ -158,8 +158,8 @@ pub(crate) fn admin_data_table_grid(
                 if admin_data_table_view.table()
                     == server_admin_contract::admin_data_table::AdminDataTable::Users
                 {
-                    Some(leptos::prelude::IntoAny::into_any(leptos::view! {
-                        <crate::admin_user_update_action::AdminUserUpdateAction />
+                    row_identifier.and_then(|value| value.parse::<i64>().ok()).and_then(|value| server_admin_contract::admin_user_id::AdminUserId::try_from(value).ok()).map(|admin_user_id| leptos::prelude::IntoAny::into_any(leptos::view! {
+                        <crate::admin_user_update_action::AdminUserUpdateAction admin_user_id=admin_user_id />
                     }))
                 } else if admin_data_table_view.table()
                     == server_admin_contract::admin_data_table::AdminDataTable::Roles

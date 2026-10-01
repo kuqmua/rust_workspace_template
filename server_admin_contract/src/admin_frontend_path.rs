@@ -74,10 +74,12 @@ pub enum AdminFrontendPath {
     UsersCreate,
     #[strum(serialize = "/admin/users/manage")]
     UsersManage,
-    #[strum(serialize = "/admin/users/update")]
+    #[strum(serialize = "/admin/users/{user_id}/update")]
     UsersUpdate,
     #[strum(serialize = "/admin/users/{user_id}")]
     UserRead,
+    #[strum(serialize = "/admin/users/{user_id}/read")]
+    UsersRead,
     #[strum(serialize = "/admin/user_roles/{user_role_id}")]
     UserRoleRead,
     #[strum(serialize = "/admin/version")]

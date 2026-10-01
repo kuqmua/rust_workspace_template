@@ -219,6 +219,7 @@ pub mod admin_user_role_id;
 pub mod admin_user_roles_table_route;
 pub mod admin_user_summaries;
 pub mod admin_user_summary;
+pub mod admin_user_update_path;
 pub mod admin_users_page;
 pub mod admin_users_read_request;
 pub mod admin_where_many;

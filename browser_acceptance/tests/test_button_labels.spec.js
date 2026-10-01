@@ -36,7 +36,7 @@ test.describe("authenticated button labels", () => {
   const paths = [
     ...navigationAdminPaths.filter(path => path !== "/admin/swagger_ui"),
     "/admin/users/create",
-    "/admin/users/update",
+    "/admin/users/1/update",
     "/admin/users/manage",
     "/admin/roles/create",
     "/admin/roles/update",
@@ -60,8 +60,8 @@ test.describe("authenticated button labels", () => {
   });
 
   [
-    { path: "/admin/users", labels: ["create", "update"] },
-    { path: "/admin/roles", labels: ["create", "update"] }
+    { path: "/admin/users", labels: ["create"] },
+    { path: "/admin/roles", labels: ["create"] }
   ].forEach(({ path, labels }) => {
     test(`test_resource_and_pagination_labels_on_${path.replaceAll("/", "_")}`, async ({ page }) => {
       await page.goto(path);

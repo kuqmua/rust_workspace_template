@@ -16,7 +16,7 @@ test("test_role_details_follow_table_link_and_ignore_list_filters", async ({ pag
     };
   });
   await page.goto("/admin/users");
-  const userLink = page.locator("tbody tr").first().getByRole("button", { name: "read", exact: true });
+  const userLink = page.locator("tbody tr").first().getByRole("link", { name: "read", exact: true });
   await expect(userLink).toBeVisible();
   const userAppearance = await appearance(userLink);
   await page.goto("/admin/roles");

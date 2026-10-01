@@ -5,5 +5,5 @@ pub(crate) enum AdminCrudPage {
     RoleUpdate,
     UserCreate,
     UserManage,
-    UserUpdate,
+    UserUpdate(server_admin_contract::admin_user_id::AdminUserId),
 }

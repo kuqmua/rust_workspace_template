@@ -7,8 +7,14 @@
 - Login: `admin`
 - Password: `Dev-admin-2026-Ready!`
 
-These credentials belong to the local development database recreated on 2026-09-24.
-The initial mandatory password change has been completed.
+The current local development administrator account was created on 2026-09-30.
+The mandatory Profile password step was completed on 2026-10-01.
+The documented login and password remain unchanged.
+
+Creating an initial administrator or resetting its password sets
+`must_change_password=true`. After signing in, complete the password form on
+`/admin/profile` to unlock administrator navigation. Recreating the database
+requires this same step after initializing the administrator.
 
 Run the login check against the running local server:
 

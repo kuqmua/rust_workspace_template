@@ -65,7 +65,7 @@ const crudPages = [
   {
     activePath: "/admin/users",
     name: "user-update",
-    path: "/admin/users/update"
+    path: "/admin/users/1/update"
   },
   {
     activePath: "/admin/users",

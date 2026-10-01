@@ -16,11 +16,11 @@ test("test_user_role_details_follow_table_link_and_ignore_list_filters", async (
     };
   });
   await page.goto("/admin/users");
-  const userLink = page.locator("tbody tr").first().getByRole("button", { name: "read", exact: true });
+  const userLink = page.locator("tbody tr").first().getByRole("link", { name: "read", exact: true });
   await expect(userLink).toBeVisible();
   const userAppearance = await appearance(userLink);
   await userLink.click();
-  await expect(page.getByRole("dialog", { name: "read" }).locator(".health-result")).toHaveCount(7);
+  await expect(page.locator('section[data-page="user-read"] .health-result')).toHaveCount(7);
   await page.goto("/admin/user_roles");
   const row = page.locator("tbody tr").last();
   const cells = row.locator("td");

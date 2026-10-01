@@ -12,6 +12,7 @@ use leptos::prelude::{ClassAttribute, ElementChild};
 
 #[must_use]
 pub fn render_user_update(
+    admin_user_id: server_admin_contract::admin_user_id::AdminUserId,
     authenticated_admin: &server_admin_contract::authenticated_admin::AuthenticatedAdmin,
     admin_branding_view: &server_admin_contract::admin_branding_view::AdminBrandingView,
 ) -> crate::admin_ssr_html::AdminSsrHtml {
@@ -19,9 +20,9 @@ pub fn render_user_update(
         server_admin_contract::admin_page::AdminPage::Users,
         leptos::view! {
             <section class="crud-page user-update-page">
-                <form class="user-update-form" method="post" action=server_admin_contract::admin_html_action::AdminHtmlAction::UserUpdate.get()>
+                <form class="user-update-form" method="post" action=server_admin_contract::admin_route_path::AdminRoutePath::user_update_action_path(admin_user_id).to_string()>
                     <section class="crud-form">
-                        <crate::admin_field::AdminField admin_field_label=constants_str::USER_ID><crate::admin_input::AdminInput admin_input_name=constants_str::USER_ID admin_input_kind=crate::admin_input_kind::AdminInputKind::Number min=1u16 required=true /></crate::admin_field::AdminField>
+                        <input type="hidden" name=constants_str::USER_ID value=admin_user_id.to_string() />
                         <crate::admin_field::AdminField admin_field_label=constants_str::ADMIN_UI_DISPLAY_NAME><crate::admin_input::AdminInput admin_input_name="display_name" required=true /></crate::admin_field::AdminField>
                         <crate::admin_field::AdminField admin_field_label=constants_str::ADMIN_UI_LOGIN><crate::admin_input::AdminInput admin_input_name="login" autocomplete="username" required=true /></crate::admin_field::AdminField>
                     </section>

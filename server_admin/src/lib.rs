@@ -373,6 +373,7 @@ pub mod update_settings;
 pub mod update_user;
 pub mod update_user_form;
 pub mod update_user_password;
+mod update_user_record;
 pub mod user_ban;
 pub mod user_ban_form;
 pub mod user_id_form;

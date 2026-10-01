@@ -33,13 +33,17 @@ pub(crate) async fn crud_resource_page(
             )
             .await
         }
-        crate::admin_crud_page::AdminCrudPage::UserUpdate => {
+        crate::admin_crud_page::AdminCrudPage::UserUpdate(admin_user_id) => {
             crate::crud_page::crud_page(
                 admin_auth_request,
                 &[server_admin_contract::admin_rule::AdminRule::UsersUpdate],
                 async |_auth| Ok(()),
                 |_view, admin, branding| {
-                    frontend_admin::render_user_update::render_user_update(admin, branding)
+                    frontend_admin::render_user_update::render_user_update(
+                        admin_user_id,
+                        admin,
+                        branding,
+                    )
                 },
             )
             .await

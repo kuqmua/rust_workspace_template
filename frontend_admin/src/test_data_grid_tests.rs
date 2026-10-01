@@ -73,6 +73,29 @@ fn test_data_grid() {
         crate::data_table_grid::data_table_grid(&view, &default_query),
     );
 
+    let update_path = format!(
+        "{}/{}/{}",
+        server_admin_contract::admin_frontend_path::AdminFrontendPath::Users.get(),
+        constants_str::VALUE_42,
+        constants_str::PG_CRUD_UPDATE_RULE_ACTION
+    );
+    assert!(!html.as_ref().contains(update_path.as_str()));
+    let actions_html = crate::admin_ssr_view_ext_tests::AdminSsrViewExt::render_admin_ssr(
+        crate::admin_data_table_grid::admin_data_table_grid(
+            &view,
+            default_query.filter().field(),
+            None,
+            default_query.filter().value(),
+            default_query.filter().end(),
+            default_query.page().limit(),
+            Some(default_query.page()),
+            &view.table().frontend_path(),
+            false,
+            true,
+        ),
+    );
+    assert!(actions_html.as_ref().contains(update_path.as_str()));
+
     assert!(html.as_ref().contains(constants_str::VALUE_469219C9));
     assert!(html.as_ref().contains(constants_str::VALUE_846B8D6B));
     assert!(html.as_ref().contains(constants_str::VALUE_31819FEE));

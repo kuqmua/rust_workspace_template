@@ -76,7 +76,7 @@ test.describe("administrator typography", () => {
 
   const paths = [
     ...navigationAdminPaths.filter(path => path !== "/admin/swagger_ui"),
-    "/admin/users/create", "/admin/users/update", "/admin/users/manage",
+    "/admin/users/create", "/admin/users/1/update", "/admin/users/manage",
     "/admin/roles/create", "/admin/roles/update", "/admin/roles/manage"
   ];
 

@@ -17,7 +17,8 @@ pub fn render_users(
         .items()
         .iter()
         .map(|item| {
-            let id = item.id().to_string();
+            let admin_user_id = item.id();
+            let id = admin_user_id.to_string();
             let login = item.login().to_string();
             let display_name = item.display_name().to_string();
             let banned = if bool::from(item.is_banned()) {
@@ -34,7 +35,7 @@ pub fn render_users(
                     <crate::table_cell::TableCell data_label="display_name">{display_name}</crate::table_cell::TableCell>
                     <crate::table_cell::TableCell data_label="banned">{banned}</crate::table_cell::TableCell>
                     {roles}
-                    <crate::table_cell::TableCell data_label=constants_str::ADMIN_UI_ACTIONS bool=true>{can_update.then(|| leptos::view! { <crate::admin_user_update_action::AdminUserUpdateAction /> })}</crate::table_cell::TableCell>
+                    <crate::table_cell::TableCell data_label=constants_str::ADMIN_UI_ACTIONS bool=true>{can_update.then(|| leptos::view! { <crate::admin_user_update_action::AdminUserUpdateAction admin_user_id=admin_user_id /> })}</crate::table_cell::TableCell>
                 </crate::table_row::TableRow>
             }
         })

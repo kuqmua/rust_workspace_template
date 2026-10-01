@@ -87,13 +87,17 @@ fn test_crud() {
             .as_ref()
             .contains(server_admin_contract::admin_html_action::AdminHtmlAction::UserCreate.get())
     );
-    let user_update = crate::render_user_update::render_user_update(&admin, &branding);
+    let user_update = crate::render_user_update::render_user_update(*admin.id(), &admin, &branding);
     assert!(
-        user_update
+        user_update.as_ref().contains(
+            server_admin_contract::admin_route_path::AdminRoutePath::user_update_action_path(
+                *admin.id()
+            )
             .as_ref()
-            .contains(server_admin_contract::admin_html_action::AdminHtmlAction::UserUpdate.get())
+        )
     );
     assert!(user_update.as_ref().contains(constants_str::USER_ID));
+    assert!(user_update.as_ref().contains(constants_str::HIDDEN));
     let user_manage = crate::render_user_manage::render_user_manage(&users, &admin, &branding);
     assert!(user_manage.as_ref().contains(constants_str::VALUE_A7CEAFCE));
     assert!(

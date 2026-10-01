@@ -39,6 +39,18 @@ impl AdminUserId {
         admin_page_path_ref
             .record_id(crate::admin_data_table::AdminDataTable::Users)
             .map(Self::from)
+            .or_else(|| {
+                let (prefix, suffix) = crate::admin_frontend_path::AdminFrontendPath::UsersRead
+                    .get()
+                    .split_once(constants_str::ADMIN_USER_ID_PLACEHOLDER)?;
+                let value = admin_page_path_ref
+                    .get()
+                    .strip_prefix(prefix)?
+                    .strip_suffix(suffix)?
+                    .parse::<i64>()
+                    .ok()?;
+                Self::try_from(value).ok()
+            })
     }
 }
 #[cfg(test)]
@@ -66,6 +78,17 @@ mod tests {
                     crate::admin_page_path_ref::AdminPagePathRef::from(route_path.as_ref()),
                 );
                 assert_eq!(identifier, Some(expected_identifier));
+                let legacy_path = format!(
+                    "{}/{}",
+                    crate::admin_frontend_path::AdminFrontendPath::Users.get(),
+                    expected_identifier
+                );
+                assert_eq!(
+                    super::AdminUserId::from_frontend_path(
+                        crate::admin_page_path_ref::AdminPagePathRef::from(legacy_path.as_str()),
+                    ),
+                    Some(expected_identifier)
+                );
             });
         assert!(
             super::AdminUserId::from_frontend_path(

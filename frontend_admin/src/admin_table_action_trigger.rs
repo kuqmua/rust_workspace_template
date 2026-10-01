@@ -13,10 +13,16 @@ use leptos::prelude::AddAnyAttr;
 )]
 pub(crate) fn AdminTableActionTrigger(
     label: &'static str,
-    dialog_id: String,
+    #[prop(optional)] dialog_id: String,
+    #[prop(optional)] href: Option<server_admin_contract::admin_route_path::AdminRoutePath>,
     children: leptos::prelude::Children,
 ) -> impl leptos::prelude::IntoView {
-    leptos::view! {
-        <crate::admin_button::AdminButton admin_button_variant=crate::admin_button_variant::AdminButtonVariant::Secondary admin_button_kind=crate::admin_button_kind::AdminButtonKind::Button command_for=dialog_id command="show-modal" aria_label=String::from(label) attr:title=label>{children()}</crate::admin_button::AdminButton>
+    match href {
+        Some(value) => leptos::prelude::IntoAny::into_any(leptos::view! {
+            <singlestage::Link href=value.to_string() class=crate::admin_button_variant::AdminButtonVariant::Secondary.class() attr:aria-label=label attr:title=label>{children()}</singlestage::Link>
+        }),
+        None => leptos::prelude::IntoAny::into_any(leptos::view! {
+            <crate::admin_button::AdminButton admin_button_variant=crate::admin_button_variant::AdminButtonVariant::Secondary admin_button_kind=crate::admin_button_kind::AdminButtonKind::Button command_for=dialog_id command="show-modal" aria_label=String::from(label) attr:title=label>{children()}</crate::admin_button::AdminButton>
+        }),
     }
 }

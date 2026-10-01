@@ -88,12 +88,10 @@ impl From<crate::admin_rate_limit_id::AdminRateLimitId> for AdminRoutePath {
 impl From<crate::admin_user_id::AdminUserId> for AdminRoutePath {
     fn from(value: crate::admin_user_id::AdminUserId) -> Self {
         Self(
-            format!(
-                "{}/{}",
-                crate::admin_frontend_path::AdminFrontendPath::Users.get(),
-                value
-            )
-            .into_boxed_str(),
+            crate::admin_frontend_path::AdminFrontendPath::UsersRead
+                .get()
+                .replace(constants_str::ADMIN_USER_ID_PLACEHOLDER, &value.to_string())
+                .into_boxed_str(),
         )
     }
 }
@@ -216,5 +214,42 @@ impl From<crate::admin_system_setting_id::AdminSystemSettingId> for AdminRoutePa
             )
             .into_boxed_str(),
         )
+    }
+}
+
+impl From<crate::admin_user_update_path::AdminUserUpdatePath> for AdminRoutePath {
+    fn from(value: crate::admin_user_update_path::AdminUserUpdatePath) -> Self {
+        let (admin_user_id, template) = match value {
+            crate::admin_user_update_path::AdminUserUpdatePath::Page(admin_user_id) => (
+                admin_user_id,
+                crate::admin_frontend_path::AdminFrontendPath::UsersUpdate.get(),
+            ),
+            crate::admin_user_update_path::AdminUserUpdatePath::Action(admin_user_id) => (
+                admin_user_id,
+                crate::admin_html_action::AdminHtmlAction::UserRecordUpdate.get(),
+            ),
+        };
+        Self(
+            template
+                .replace(
+                    constants_str::ADMIN_USER_ID_PLACEHOLDER,
+                    &admin_user_id.to_string(),
+                )
+                .into_boxed_str(),
+        )
+    }
+}
+impl AdminRoutePath {
+    #[must_use]
+    pub fn user_update_path(admin_user_id: crate::admin_user_id::AdminUserId) -> Self {
+        Self::from(crate::admin_user_update_path::AdminUserUpdatePath::Page(
+            admin_user_id,
+        ))
+    }
+    #[must_use]
+    pub fn user_update_action_path(admin_user_id: crate::admin_user_id::AdminUserId) -> Self {
+        Self::from(crate::admin_user_update_path::AdminUserUpdatePath::Action(
+            admin_user_id,
+        ))
     }
 }

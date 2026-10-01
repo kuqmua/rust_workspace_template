@@ -682,26 +682,26 @@ p {
     box-shadow: none !important;
   }
 
-  :is(.user-create-form, .role-create-form, .profile-fields) [data-name="Label"] {
+  :is(.user-create-form, .user-update-form, .role-create-form, .profile-fields) [data-name="Label"] {
     width: 100% !important;
     gap: 0 !important;
   }
 
-  :is(.user-create-form, .role-create-form, .profile-fields) [data-name="Label"] > span,
-  :is(.user-create-form, .role-create-form, .profile-fields) [data-name="Input"],
-  :is(.user-create-form, .role-create-form) .crud-actions > button {
+  :is(.user-create-form, .user-update-form, .role-create-form, .profile-fields) [data-name="Label"] > span,
+  :is(.user-create-form, .user-update-form, .role-create-form, .profile-fields) [data-name="Input"],
+  :is(.user-create-form, .user-update-form, .role-create-form) .crud-actions > button {
     height: 36px !important;
     min-height: 36px !important;
     padding-block: 0 !important;
   }
 
-  :is(.user-create-form, .role-create-form, .profile-fields) [data-name="Label"] > span,
-  :is(.user-create-form, .role-create-form, .profile-fields) [data-name="Input"] {
+  :is(.user-create-form, .user-update-form, .role-create-form, .profile-fields) [data-name="Label"] > span,
+  :is(.user-create-form, .user-update-form, .role-create-form, .profile-fields) [data-name="Input"] {
     height: 32px !important;
     min-height: 32px !important;
   }
 
-  :is(.user-create-form, .role-create-form, .profile-fields) [data-name="Label"] > span {
+  :is(.user-create-form, .user-update-form, .role-create-form, .profile-fields) [data-name="Label"] > span {
     display: grid;
     place-items: center;
     width: 100%;
@@ -758,7 +758,7 @@ p {
   .table-admin_roles_page > .resource-actions > a,
   .table-admin_sessions_page > .resource-actions > div,
   .table-admin_sessions_page > .resource-actions button:not(dialog button),
-  :is(.user-create-form, .role-create-form) .crud-actions > button,
+  :is(.user-create-form, .user-update-form, .role-create-form) .crud-actions > button,
   .auth-card form button {
     width: 100% !important;
   }
@@ -778,7 +778,7 @@ p {
   min-height: 64px;
 }
 
-:is(.user-create-page, .role-create-page) {
+:is(.user-create-page, .user-update-page, .role-create-page) {
   gap: 0;
 }
 
@@ -826,17 +826,17 @@ p {
   padding: 4px 0;
 }
 
-:is(.user-create-page, .role-create-page) .crud-form {
+:is(.user-create-page, .user-update-page, .role-create-page) .crud-form {
   grid-template-columns: minmax(0, 1fr);
   padding-bottom: 0;
 }
 
-:is(.user-create-form, .role-create-form) {
+:is(.user-create-form, .user-update-form, .role-create-form) {
   display: grid;
   gap: 0;
 }
 
-:is(.user-create-form, .role-create-form) .crud-form {
+:is(.user-create-form, .user-update-form, .role-create-form) .crud-form {
   gap: 0;
 }
 
@@ -1382,6 +1382,10 @@ th:has(.table-column-filter[data-filter-active="true"]) {
   align-items: center;
   gap: 8px;
   padding: 0;
+}
+
+.table-admin_users_page .table-actions {
+  gap: 0;
 }
 
 .table-actions > input:not([type="checkbox"]),

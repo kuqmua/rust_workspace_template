@@ -5,7 +5,7 @@ import { dataTablePages, tablePages } from "./support/pages.js";
 const paths = [
   ...tablePages.map(page => page.path),
   ...dataTablePages.map(page => page.path),
-  "/admin/profile", "/admin/settings", "/admin/users/create", "/admin/users/update", "/admin/users/manage",
+  "/admin/profile", "/admin/settings", "/admin/users/create", "/admin/users/1/update", "/admin/users/manage",
   "/admin/roles/create", "/admin/roles/update", "/admin/roles/manage", "/admin/metrics", "/admin/version"
 ];
 
@@ -60,7 +60,7 @@ test("test_interface_labels_are_snake_case_across_all_admin_pages", async ({ pag
       await expect(page.locator(".profile-account-value").first()).toHaveText("Initial Administrator");
     }
     if (path === "/admin/settings" || path === "/admin/sessions") {
-      const trigger = path === "/admin/settings" ? "reset_to_template_defaults" : "delete";
+      const trigger = path === "/admin/settings" ? "reset_to_template_defaults" : "revoke_session";
       await page.getByRole("button", { name: trigger, exact: true }).first().click();
       await expect(page.getByRole("dialog")).toBeVisible();
       await assertInterfaceText(page);

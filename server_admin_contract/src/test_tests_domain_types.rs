@@ -667,8 +667,9 @@ fn test_administrator_crud_frontend_paths_are_dedicated_pages() {
     assert_eq!(
         crate::admin_frontend_path::AdminFrontendPath::UsersUpdate.get(),
         format!(
-            "{}/{}",
+            "{}/{}/{}",
             crate::admin_frontend_path::AdminFrontendPath::Users.get(),
+            constants_str::ADMIN_USER_ID_PLACEHOLDER,
             constants_str::PG_CRUD_UPDATE_RULE_ACTION
         )
     );
@@ -1450,4 +1451,46 @@ fn test_role_update_batch_validates_ids_names_and_collection_bound() {
         serde_json::json!({(stringify!(updates)): [{(stringify!(filter)): {(stringify!(role_id)): 1i64, (stringify!(login)): constants_str::LOGIN}, (stringify!(changes)): {(stringify!(name)): constants_str::LOGIN}}]}),
         serde_json::json!({(stringify!(updates)): [{(stringify!(filter)): {(stringify!(role_id)): 1i64}, (stringify!(changes)): {(stringify!(name)): constants_str::LOGIN, (stringify!(is_system)): true}}]}),
     ].into_iter().all(|invalid| serde_json::from_value::<crate::admin_update_roles_request::AdminUpdateRolesRequest>(invalid).is_err()));
+}
+
+#[test]
+fn test_user_update_paths_bind_the_selected_identifier() {
+    let identifiers = [constants_i64::ONE, 7i64].map(crate::admin_user_id::AdminUserId::try_from);
+    assert_eq!(
+        identifiers
+            .iter()
+            .filter_map(|identifier| identifier.as_ref().ok())
+            .count(),
+        constants_usize::TWO
+    );
+    identifiers
+        .into_iter()
+        .filter_map(Result::ok)
+        .for_each(|admin_user_id| {
+            let path = crate::admin_route_path::AdminRoutePath::user_update_path(admin_user_id);
+            let action =
+                crate::admin_route_path::AdminRoutePath::user_update_action_path(admin_user_id);
+            let suffix = format!(
+                "/{}/{}",
+                admin_user_id,
+                constants_str::PG_CRUD_UPDATE_RULE_ACTION
+            );
+            assert!(
+                path.as_ref()
+                    .starts_with(crate::admin_frontend_path::AdminFrontendPath::Users.get())
+            );
+            assert!(path.as_ref().ends_with(suffix.as_str()));
+            assert!(action.as_ref().ends_with(suffix.as_str()));
+            assert!(
+                !path
+                    .as_ref()
+                    .contains(constants_str::ADMIN_USER_ID_PLACEHOLDER)
+            );
+            assert!(
+                !action
+                    .as_ref()
+                    .contains(constants_str::ADMIN_USER_ID_PLACEHOLDER)
+            );
+            assert_ne!(path, action);
+        });
 }

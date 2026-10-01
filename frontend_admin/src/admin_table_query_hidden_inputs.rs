@@ -11,9 +11,16 @@ pub(crate) fn admin_table_query_hidden_inputs(
     let search = admin_table_search.as_ref().to_owned();
     let sort = admin_table_sort_key.as_ref().to_owned();
     let direction = match admin_table_query_direction {
-        #[cfg(target_arch = "wasm32")]
+        #[cfg(any(target_arch = "wasm32", test))]
         crate::admin_table_query_direction::AdminTableQueryDirection::Csr(value) => {
-            value.as_ref().map(ToString::to_string).unwrap_or_default()
+            value.as_ref().map_or_else(
+                || {
+                    server_admin_contract::admin_sort_direction::AdminSortDirection::default()
+                        .as_ref()
+                        .to_owned()
+                },
+                ToString::to_string,
+            )
         }
         #[cfg(not(target_arch = "wasm32"))]
         crate::admin_table_query_direction::AdminTableQueryDirection::Ssr(value) => {

@@ -239,3 +239,17 @@ fn test_sign_in_uses_server_side_color_without_logo() {
     assert!(html.as_ref().contains(constants_str::VALUE_ECD92E68));
     assert!(!html.as_ref().contains(constants_str::VALUE_5D74223D));
 }
+
+#[test]
+fn test_query_hidden_inputs_default_missing_client_direction_to_ascending() {
+    let html = crate::admin_ssr_view_ext_tests::AdminSsrViewExt::render_admin_ssr(
+        crate::admin_table_query_hidden_inputs::admin_table_query_hidden_inputs(
+            &server_admin_contract::admin_table_search::AdminTableSearch::default(),
+            &server_admin_contract::admin_table_sort_key::AdminTableSortKey::default(),
+            &crate::admin_table_query_direction::AdminTableQueryDirection::Csr(None),
+        ),
+    );
+    assert!(html.as_ref().contains(
+        server_admin_contract::admin_sort_direction::AdminSortDirection::default().as_ref()
+    ));
+}

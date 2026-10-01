@@ -39,6 +39,8 @@ pub enum AdminHtmlAction {
     UserRoles,
     #[strum(serialize = "/admin/actions/users/update")]
     UserUpdate,
+    #[strum(serialize = "/admin/actions/users/{user_id}/update")]
+    UserRecordUpdate,
 }
 impl AdminHtmlAction {
     #[must_use]
