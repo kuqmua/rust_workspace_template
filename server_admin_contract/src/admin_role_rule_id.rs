@@ -27,12 +27,19 @@ impl From<AdminRoleRuleId> for i64 {
     }
 }
 impl AdminRoleRuleId {
+    pub(crate) const fn value(self) -> crate::positive_non_zero_i64::PositiveNonZeroI64 {
+        self.0
+    }
+
     #[must_use]
     pub fn from_frontend_path(
         admin_page_path_ref: crate::admin_page_path_ref::AdminPagePathRef<'_>,
     ) -> Option<Self> {
         admin_page_path_ref
-            .record_id(crate::admin_data_table::AdminDataTable::RoleRules)
+            .record_read_id(
+                crate::admin_data_table::AdminDataTable::RoleRules,
+                crate::admin_frontend_path::AdminFrontendPath::RoleRulesRead,
+            )
             .map(Self::from)
     }
 }

@@ -121,7 +121,7 @@ test("one-session and all-session revocation are enforced", async ({
       response.url().includes("/auth/sessions/") &&
       response.status() === 204
   );
-  await otherSession.getByRole("button", { name: "delete", exact: true }).click();
+  await otherSession.getByRole("button", { name: "revoke_session", exact: true }).click();
   await otherSession
     .getByRole("dialog", { name: "revoke_session" })
     .getByRole("button", { name: "revoke", exact: true })
@@ -148,7 +148,7 @@ test("one-session and all-session revocation are enforced", async ({
   await expect(page).toHaveURL(/\/admin\/sign_in$/);
 });
 
-test("failed sign-in reaches the concealed account lockout", async ({ page }) => {
+test("failed sign-in reaches the account rate limit", async ({ page }) => {
   await page.goto("/admin/sign_in");
   for (let attempt = 0; attempt < 10; attempt += 1) {
     await page.getByLabel("login").fill("missing_browser_user");
@@ -163,13 +163,13 @@ test("failed sign-in reaches the concealed account lockout", async ({ page }) =>
   }
   await page.getByLabel("login").fill("missing_browser_user");
   await page.getByLabel("password").fill("Wrong-password1!");
-  const concealedLockout = page.waitForResponse(
+  const rateLimited = page.waitForResponse(
     response =>
       response.url().endsWith("/admin/actions/sign_in") &&
-      response.status() === 401
+      response.status() === 429
   );
   await page.getByRole("button", { name: "sign_in" }).click();
-  await concealedLockout;
+  await rateLimited;
   await expect(page.getByRole("alert")).toBeVisible();
 
   await signInAdministrator(page);

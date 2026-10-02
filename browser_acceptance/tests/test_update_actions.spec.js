@@ -45,10 +45,10 @@ test("test_role_row_update_actions_navigate_to_update_page", async ({ page }) =>
   await expect(page.locator('section[data-renderer="csr"] dialog[aria-label="update"]')).toHaveCount(0);
   for (const row of await rows.all()) {
     await expect(row.locator('td[data-label="actions"]').getByRole("link", { name: "update", exact: true }))
-      .toHaveAttribute("href", "/admin/roles/update");
+      .toHaveAttribute("href", `/admin/roles/${roleId}/update`);
   }
 
   await rows.first().locator('td[data-label="actions"]').getByRole("link", { name: "update", exact: true }).click();
-  await expect(page).toHaveURL("http://127.0.0.1:18080/admin/roles/update");
+  await expect(page).toHaveURL(`http://127.0.0.1:18080/admin/roles/${roleId}/update`);
   await expect(page.locator("form.role-update-form")).toBeVisible();
 });

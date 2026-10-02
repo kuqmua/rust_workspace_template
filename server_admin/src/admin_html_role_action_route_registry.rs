@@ -2,6 +2,7 @@ proc_macro_frontend_contract_route_registry::route_registry! {
     pub(crate);
     state = crate::shared_admin_auth_service_state_arc::SharedAdminAuthServiceStateArc;
     (server_admin_contract::admin_html_action::AdminHtmlAction::RoleCreate, crate::create_role::create_role),
+    (server_admin_contract::admin_html_action::AdminHtmlAction::RoleRecordUpdate, crate::update_role_record::update_role_record),
     (server_admin_contract::admin_html_action::AdminHtmlAction::RoleUpdate, crate::update_role::update_role),
     (server_admin_contract::admin_html_action::AdminHtmlAction::RoleDelete, crate::delete_role::delete_role),
     (server_admin_contract::admin_html_action::AdminHtmlAction::RoleRules, crate::role_rules::role_rules),

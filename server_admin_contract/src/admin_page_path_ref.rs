@@ -12,6 +12,21 @@
 pub struct AdminPagePathRef<'path_lt>(&'path_lt str);
 
 impl<'path_lt> AdminPagePathRef<'path_lt> {
+    #[must_use]
+    pub fn is_navigation_section(
+        self,
+        admin_data_table_frontend_path: &crate::admin_data_table_frontend_path::AdminDataTableFrontendPath,
+    ) -> crate::admin_bool::AdminBool {
+        crate::admin_bool::AdminBool::from(
+            self.get()
+                .strip_prefix(admin_data_table_frontend_path.as_ref())
+                .is_some_and(|suffix| suffix.is_empty() || suffix.starts_with('/'))
+                || (admin_data_table_frontend_path
+                    == &crate::admin_data_table::AdminDataTable::Rules.frontend_path()
+                    && crate::admin_rule_id::AdminRuleId::from_frontend_path(self).is_some()),
+        )
+    }
+
     pub(crate) fn record_identifier(
         self,
         admin_data_table: crate::admin_data_table::AdminDataTable,
@@ -47,5 +62,64 @@ impl<'path_lt> AdminPagePathRef<'path_lt> {
             .record_identifier(admin_data_table)
             .and_then(|value| value.parse::<i64>().ok())?;
         crate::positive_non_zero_i64::PositiveNonZeroI64::try_from(value).ok()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    #[allow(
+        clippy::needless_for_each,
+        reason = "repository policy forbids for loops; iterator traversal checks every navigation fixture"
+    )]
+    fn test_navigation_section_matches_lists_and_details_without_matching_adjacent_sections() {
+        [
+            (
+                crate::admin_data_table::AdminDataTable::Rules,
+                crate::admin_frontend_path::AdminFrontendPath::RuleRecordRead,
+                constants_str::ADMIN_RULE_ID_PLACEHOLDER,
+            ),
+            (
+                crate::admin_data_table::AdminDataTable::Users,
+                crate::admin_frontend_path::AdminFrontendPath::UsersRead,
+                constants_str::ADMIN_USER_ID_PLACEHOLDER,
+            ),
+            (
+                crate::admin_data_table::AdminDataTable::Roles,
+                crate::admin_frontend_path::AdminFrontendPath::RolesRead,
+                constants_str::ADMIN_ROLE_ID_PLACEHOLDER,
+            ),
+            (
+                crate::admin_data_table::AdminDataTable::UserRoles,
+                crate::admin_frontend_path::AdminFrontendPath::UserRolesRead,
+                constants_str::ADMIN_USER_ROLE_ID_PLACEHOLDER,
+            ),
+        ]
+        .into_iter()
+        .for_each(|(admin_data_table, admin_frontend_path, placeholder)| {
+            let section = admin_data_table.frontend_path();
+            let detail = admin_frontend_path
+                .get()
+                .replace(placeholder, &constants_i64::ONE.to_string());
+            assert!(bool::from(
+                super::AdminPagePathRef::from(section.as_ref()).is_navigation_section(&section)
+            ));
+            assert!(bool::from(
+                super::AdminPagePathRef::from(detail.as_str()).is_navigation_section(&section)
+            ));
+            let adjacent = format!("{}{}", section, constants_str::SQL_NAMES_ID);
+            assert!(!bool::from(
+                super::AdminPagePathRef::from(adjacent.as_str()).is_navigation_section(&section)
+            ));
+            crate::admin_data_table::AdminDataTable::PG_ORDER
+                .into_iter()
+                .filter(|other| *other != admin_data_table)
+                .for_each(|other| {
+                    assert!(!bool::from(
+                        super::AdminPagePathRef::from(detail.as_str())
+                            .is_navigation_section(&other.frontend_path())
+                    ));
+                });
+        });
     }
 }

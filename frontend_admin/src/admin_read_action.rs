@@ -28,12 +28,44 @@ pub(crate) fn AdminReadAction(
     };
     let admin_page_path_ref =
         server_admin_contract::admin_page_path_ref::AdminPagePathRef::from(read_path.as_ref());
-    if server_admin_contract::admin_user_id::AdminUserId::from_frontend_path(admin_page_path_ref)
+    if server_admin_contract::admin_cleanup_status_id::AdminCleanupStatusId::from_frontend_path(admin_page_path_ref).is_some()
+        || server_admin_contract::admin_rate_limit_id::AdminRateLimitId::from_frontend_path(admin_page_path_ref).is_some()
+        || server_admin_contract::admin_system_setting_id::AdminSystemSettingId::from_frontend_path(admin_page_path_ref).is_some()
+        || server_admin_contract::admin_audit_log_id::AdminAuditLogId::from_frontend_path(admin_page_path_ref).is_some()
+        || server_admin_contract::admin_login_attempt_id::AdminLoginAttemptId::from_frontend_path(admin_page_path_ref).is_some()
+        || server_admin_contract::admin_user_id::AdminUserId::from_frontend_path(admin_page_path_ref)
         .is_some()
         || server_admin_contract::admin_user_role_id::AdminUserRoleId::from_frontend_path(
             admin_page_path_ref,
         )
         .is_some()
+        || server_admin_contract::admin_role_id::AdminRoleId::from_frontend_path(
+            admin_page_path_ref,
+        )
+        .is_some()
+        || server_admin_contract::admin_role_rule_id::AdminRoleRuleId::from_frontend_path(
+            admin_page_path_ref,
+        )
+        .is_some()
+        || server_admin_contract::admin_rule_id::AdminRuleId::from_frontend_path(
+            admin_page_path_ref,
+        )
+        .is_some()
+        || server_admin_contract::admin_permission_action_id::AdminPermissionActionId::from_frontend_path(
+            admin_page_path_ref,
+        ).is_some()
+        || server_admin_contract::admin_permission_resource_action_id::AdminPermissionResourceActionId::from_frontend_path(
+            admin_page_path_ref,
+        ).is_some()
+        || server_admin_contract::admin_permission_resource_id::AdminPermissionResourceId::from_frontend_path(
+            admin_page_path_ref,
+        ).is_some()
+        || server_admin_contract::admin_refresh_token_id::AdminRefreshTokenId::from_frontend_path(
+            admin_page_path_ref,
+        ).is_some()
+        || server_admin_contract::admin_access_session_id::AdminAccessSessionId::from_frontend_path(
+            admin_page_path_ref,
+        ).is_some()
     {
         return leptos::prelude::IntoAny::into_any(leptos::view! {
             <crate::admin_table_action_trigger::AdminTableActionTrigger label=constants_str::PG_CRUD_READ_RULE_ACTION href=read_path>{icon}</crate::admin_table_action_trigger::AdminTableActionTrigger>

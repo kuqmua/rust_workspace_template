@@ -431,3 +431,9 @@ mod api_update_roles;
 mod dispatch_filtered_update;
 mod role_mutations_create_many;
 mod role_mutations_update_many;
+
+mod role_update_page;
+
+mod admin_record_update_form;
+mod update_record_form;
+mod update_role_record;

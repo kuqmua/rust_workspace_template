@@ -153,7 +153,7 @@ test("user changes are visible through the read-only UI", async ({
   const row = page.locator("tbody tr").filter({ hasText: "production_user" });
   await expect(row).toContainText("Renamed Production User");
   await expect(row.locator("input, select, textarea")).toHaveCount(0);
-  await expect(row.locator('td[data-label="actions"] button[aria-label="read"]')).toHaveCount(1);
+  await expect(row.locator('td[data-label="actions"]').getByRole("link", { name: "read", exact: true })).toHaveCount(1);
 
   const deleted = await page.request.delete("/users/delete", {
     data: { filter: { user_id: userId } },

@@ -117,13 +117,25 @@ fn test_crud() {
             .as_ref()
             .contains(constants_str::ADMIN_UI_EXPECT_CREATE_ROLE)
     );
-    let role_update = crate::render_role_update::render_role_update(&admin, &branding);
+    let role_update = crate::render_role_update::render_role_update(None, &admin, &branding);
     assert!(
         role_update
             .as_ref()
             .contains(server_admin_contract::admin_html_action::AdminHtmlAction::RoleUpdate.get())
     );
     assert!(role_update.as_ref().contains(constants_str::ROLE_ID));
+    let role_identifier =
+        server_admin_contract::admin_role_id::AdminRoleId::try_from(constants_i64::ONE);
+    assert_eq!(role_identifier.iter().count(), constants_usize::ONE);
+    if let Ok(admin_role_id) = role_identifier {
+        let html =
+            crate::render_role_update::render_role_update(Some(admin_role_id), &admin, &branding);
+        let action =
+            server_admin_contract::admin_route_path::AdminRoutePath::role_update_action_path(
+                admin_role_id,
+            );
+        assert!(html.as_ref().contains(action.as_ref()));
+    }
     let role_manage = crate::render_role_manage::render_role_manage(&roles, &admin, &branding);
     assert!(role_manage.as_ref().contains(constants_str::VALUE_6186A0EE));
     assert!(

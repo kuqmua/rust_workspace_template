@@ -8,8 +8,8 @@ test("test_login_attempt_details_follow_table_link_and_ignore_list_filters", asy
   const cells = row.locator("td");
   await expect(cells).toHaveCount(6);
   const values = await cells.allTextContents();
-  const path = `/admin/login_attempts/${values[0].trim()}`;
-  await page.goto(path);
+  const path = `/admin/login_attempts/${values[0].trim()}/read`;
+  await row.locator('a[aria-label="read"]').click();
   await expect(page).toHaveURL(new RegExp(`${path}$`));
   const detail = page.locator('[data-page="login-attempt-read"]');
   await expect(detail.locator(".health-result")).toHaveText(values.slice(0, 5));
@@ -17,12 +17,12 @@ test("test_login_attempt_details_follow_table_link_and_ignore_list_filters", asy
   await expect(detail.locator(".health-result")).toHaveText(values.slice(0, 5));
   await page.goto(`${path}?search=missing&offset=999&filter_field=login&filter_operation=eq&filter_value=missing`);
   await expect(detail.locator(".health-result")).toHaveText(values.slice(0, 5));
-  await page.goto("/admin/login_attempts/9223372036854775807");
+  await page.goto("/admin/login_attempts/9223372036854775807/read");
   await expect(detail).toContainText("resource not found");
   await expect(detail.locator(".health-result")).toHaveCount(0);
 });
 
 test("test_login_attempt_details_require_authentication", async ({ page }) => {
-  await page.goto("/admin/login_attempts/1");
+  await page.goto("/admin/login_attempts/1/read");
   await expect(page).toHaveURL(/\/admin\/sign_in$/);
 });

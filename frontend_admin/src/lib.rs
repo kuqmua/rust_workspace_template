@@ -132,6 +132,7 @@ pub mod admin_table_query;
 pub mod admin_table_query_direction;
 pub mod admin_table_query_hidden_inputs;
 pub mod admin_textarea;
+mod admin_update_action;
 #[cfg(not(target_arch = "wasm32"))]
 pub mod admin_user_roles;
 mod admin_user_update_action;

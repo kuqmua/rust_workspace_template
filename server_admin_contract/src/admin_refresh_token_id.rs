@@ -25,6 +25,11 @@ impl AdminRefreshTokenId {
     ) -> Option<Self> {
         admin_page_path_ref
             .record_identifier(crate::admin_data_table::AdminDataTable::RefreshTokens)
+            .map(|identifier| {
+                identifier
+                    .strip_suffix(constants_str::READ_ROUTE_SUFFIX)
+                    .unwrap_or(identifier)
+            })
             .map(str::to_owned)
             .map(Self::try_from)
             .and_then(Result::ok)

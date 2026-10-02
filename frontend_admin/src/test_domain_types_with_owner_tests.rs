@@ -260,7 +260,7 @@ fn test_table_primitives_preserve_structure_and_class_merging() {
 
 #[test]
 fn test_alert_dialog_wires_singlestage_trigger_and_dialog_forms() {
-    let render_dialog = |disabled| {
+    let render_dialog = |disabled, dialog_only| {
         render_owned_view(leptos::view! {
             <crate::admin_alert_dialog::AdminAlertDialog
                 string=String::from("delete-dialog")
@@ -269,23 +269,37 @@ fn test_alert_dialog_wires_singlestage_trigger_and_dialog_forms() {
                 trigger="Delete"
                 confirm="Confirm"
                 bool=disabled
+                dialog_only=dialog_only
                 callback=leptos::prelude::Callback::new(|()| {})
             />
         })
     };
 
-    let disabled = render_dialog(true);
+    let disabled = render_dialog(true, false);
     assert!(disabled.contains(constants_str::VALUE_17EB3C01));
     assert!(!disabled.contains(constants_str::VALUE_64474E4B));
     assert!(!disabled.contains(constants_str::VALUE_AB29C21D));
 
-    let html = render_dialog(false);
+    let html = render_dialog(false, false);
     assert!(html.contains(constants_str::VALUE_AB29C21D));
     assert!(html.contains(constants_str::VALUE_5AADB989));
     assert_eq!(html.matches(constants_str::VALUE_65D07A5E).count(), 1);
     assert!(html.contains(constants_str::VALUE_706A5FC3));
     assert!(html.contains(constants_str::VALUE_C1451BBC));
     assert!(html.contains(constants_str::VALUE_3B0143B5));
+
+    let dialog_only = render_dialog(false, true);
+    assert!(dialog_only.contains(constants_str::VALUE_AB29C21D));
+    assert_eq!(
+        dialog_only.matches(constants_str::VALUE_65D07A5E).count(),
+        1
+    );
+    assert!(dialog_only.contains(constants_str::VALUE_706A5FC3));
+    assert!(!dialog_only.contains(constants_str::VALUE_C1451BBC));
+    assert!(dialog_only.contains(constants_str::ADMIN_BUTTON_CANCEL));
+    assert!(!dialog_only.contains(constants_str::VALUE_3B0143B5));
+
+    assert_eq!(render_dialog(true, true), disabled);
 }
 
 #[test]

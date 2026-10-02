@@ -31,12 +31,19 @@ impl From<AdminCleanupStatusId> for i64 {
 }
 
 impl AdminCleanupStatusId {
+    pub(crate) const fn value(self) -> crate::positive_non_zero_i64::PositiveNonZeroI64 {
+        self.0
+    }
+
     #[must_use]
     pub fn from_frontend_path(
         admin_page_path_ref: crate::admin_page_path_ref::AdminPagePathRef<'_>,
     ) -> Option<Self> {
         admin_page_path_ref
-            .record_id(crate::admin_data_table::AdminDataTable::CleanupStatus)
+            .record_read_id(
+                crate::admin_data_table::AdminDataTable::CleanupStatus,
+                crate::admin_frontend_path::AdminFrontendPath::CleanupStatusesRead,
+            )
             .map(Self::from)
     }
 }
@@ -55,6 +62,27 @@ mod tests {
             .into_iter()
             .for_each(|expected_identifier| {
                 let route_path = crate::admin_route_path::AdminRoutePath::from(expected_identifier);
+                assert_eq!(
+                    route_path.as_ref(),
+                    crate::admin_frontend_path::AdminFrontendPath::CleanupStatusesRead
+                        .get()
+                        .replace(
+                            constants_str::ADMIN_CLEANUP_STATUS_ID_PLACEHOLDER,
+                            &expected_identifier.to_string(),
+                        ),
+                );
+                let legacy_path = crate::admin_frontend_path::AdminFrontendPath::CleanupStatusRead
+                    .get()
+                    .replace(
+                        constants_str::ADMIN_CLEANUP_STATUS_ID_PLACEHOLDER,
+                        &expected_identifier.to_string(),
+                    );
+                assert_eq!(
+                    super::AdminCleanupStatusId::from_frontend_path(
+                        crate::admin_page_path_ref::AdminPagePathRef::from(legacy_path.as_str()),
+                    ),
+                    Some(expected_identifier),
+                );
                 assert_eq!(
                     super::AdminCleanupStatusId::from_frontend_path(
                         crate::admin_page_path_ref::AdminPagePathRef::from(route_path.as_ref()),

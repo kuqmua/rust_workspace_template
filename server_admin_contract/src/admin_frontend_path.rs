@@ -10,16 +10,24 @@
 pub enum AdminFrontendPath {
     #[strum(serialize = "/admin/access_sessions/{access_session_id}")]
     AccessSessionRead,
+    #[strum(serialize = "/admin/access_sessions/{access_session_id}/read")]
+    AccessSessionsRead,
     #[strum(serialize = "/admin/audit_log/{audit_log_id}")]
     AuditLogRead,
+    #[strum(serialize = "/admin/audit_log/{audit_log_id}/read")]
+    AuditLogsRead,
     #[strum(serialize = "/admin/branding")]
     Branding,
     #[strum(serialize = "/admin/cleanup_status/{cleanup_status_id}")]
     CleanupStatusRead,
+    #[strum(serialize = "/admin/cleanup_status/{cleanup_status_id}/read")]
+    CleanupStatusesRead,
     #[strum(serialize = "/admin/health")]
     Health,
     #[strum(serialize = "/admin/login_attempts/{login_attempt_id}")]
     LoginAttemptRead,
+    #[strum(serialize = "/admin/login_attempts/{login_attempt_id}/read")]
+    LoginAttemptsRead,
     #[strum(serialize = "/admin/assets")]
     Assets,
     #[strum(serialize = "/admin/metrics")]
@@ -28,22 +36,36 @@ pub enum AdminFrontendPath {
     OpenApiDocument,
     #[strum(serialize = "/admin/permission_actions/{permission_action_id}")]
     PermissionActionRead,
+    #[strum(serialize = "/admin/permission_actions/{permission_action_id}/read")]
+    PermissionActionsRead,
     #[strum(serialize = "/admin/permission_resource_actions/{permission_resource_action_id}")]
     PermissionResourceActionRead,
+    #[strum(serialize = "/admin/permission_resource_actions/{permission_resource_action_id}/read")]
+    PermissionResourceActionsRead,
     #[strum(serialize = "/admin/permission_resources/{permission_resource_id}")]
     PermissionResourceRead,
+    #[strum(serialize = "/admin/permission_resources/{permission_resource_id}/read")]
+    PermissionResourcesRead,
     #[strum(serialize = "/admin/swagger_ui")]
     OpenApi,
     #[strum(serialize = "/admin/rules")]
     Rules,
     #[strum(serialize = "/admin/rules/{rule_id}")]
     RuleRead,
+    #[strum(serialize = "/admin/rules/{rule_id}/read")]
+    RulesRead,
+    #[strum(serialize = "/admin/rule/{rule_id}/read")]
+    RuleRecordRead,
     #[strum(serialize = "/admin/profile")]
     Profile,
     #[strum(serialize = "/admin/rate_limits/{rate_limit_id}")]
     RateLimitRead,
+    #[strum(serialize = "/admin/rate_limits/{rate_limit_id}/read")]
+    RateLimitsRead,
     #[strum(serialize = "/admin/refresh_tokens/{refresh_token_id}")]
     RefreshTokenRead,
+    #[strum(serialize = "/admin/refresh_tokens/{refresh_token_id}/read")]
+    RefreshTokensRead,
     #[strum(serialize = "/admin/roles")]
     Roles,
     #[strum(serialize = "/admin/roles/create")]
@@ -52,10 +74,16 @@ pub enum AdminFrontendPath {
     RolesManage,
     #[strum(serialize = "/admin/roles/update")]
     RolesUpdate,
+    #[strum(serialize = "/admin/roles/{role_id}/update")]
+    RoleRecordUpdate,
     #[strum(serialize = "/admin/roles/{role_id}")]
     RoleRead,
+    #[strum(serialize = "/admin/roles/{role_id}/read")]
+    RolesRead,
     #[strum(serialize = "/admin/role_rules/{role_rule_id}")]
     RoleRuleRead,
+    #[strum(serialize = "/admin/role_rules/{role_rule_id}/read")]
+    RoleRulesRead,
     #[strum(serialize = "/admin/sessions")]
     Sessions,
     #[strum(serialize = "/admin")]
@@ -66,6 +94,8 @@ pub enum AdminFrontendPath {
     Settings,
     #[strum(serialize = "/admin/system_settings/{system_setting_id}")]
     SystemSettingRead,
+    #[strum(serialize = "/admin/system_settings/{system_setting_id}/read")]
+    SystemSettingsRead,
     #[strum(serialize = "/admin/{table}")]
     Tables,
     #[strum(serialize = "/admin/users")]

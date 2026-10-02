@@ -319,3 +319,8 @@ pub mod admin_update_roles_request;
 pub mod admin_update_roles_route;
 #[cfg(test)]
 mod test_delete_roles_contract;
+
+mod admin_record_read_path;
+mod admin_session_read_path;
+
+mod admin_record_update_path;

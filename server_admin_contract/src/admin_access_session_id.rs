@@ -25,7 +25,13 @@ impl AdminAccessSessionId {
     ) -> Option<Self> {
         let identifier = admin_page_path_ref
             .record_identifier(crate::admin_data_table::AdminDataTable::AccessSessions)?;
-        Self::try_from(identifier.to_owned()).ok()
+        Self::try_from(
+            identifier
+                .strip_suffix(constants_str::READ_ROUTE_SUFFIX)
+                .unwrap_or(identifier)
+                .to_owned(),
+        )
+        .ok()
     }
 }
 

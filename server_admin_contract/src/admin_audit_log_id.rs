@@ -37,7 +37,10 @@ impl AdminAuditLogId {
         admin_page_path_ref: crate::admin_page_path_ref::AdminPagePathRef<'_>,
     ) -> Option<Self> {
         admin_page_path_ref
-            .record_id(crate::admin_data_table::AdminDataTable::AuditLog)
+            .record_read_id(
+                crate::admin_data_table::AdminDataTable::AuditLog,
+                crate::admin_frontend_path::AdminFrontendPath::AuditLogsRead,
+            )
             .map(Self::from)
     }
 }
@@ -50,6 +53,27 @@ mod tests {
             .expect(constants_str::DIAGNOSTIC_1A6EF5D3);
         assert_eq!(i64::from(identifier), constants_i64::ONE);
         let route_path = crate::admin_route_path::AdminRoutePath::from(identifier);
+        assert_eq!(
+            route_path.as_ref(),
+            crate::admin_frontend_path::AdminFrontendPath::AuditLogsRead
+                .get()
+                .replace(
+                    constants_str::ADMIN_AUDIT_LOG_ID_PLACEHOLDER,
+                    &identifier.to_string(),
+                ),
+        );
+        let legacy_path = crate::admin_frontend_path::AdminFrontendPath::AuditLogRead
+            .get()
+            .replace(
+                constants_str::ADMIN_AUDIT_LOG_ID_PLACEHOLDER,
+                &identifier.to_string(),
+            );
+        assert_eq!(
+            super::AdminAuditLogId::from_frontend_path(
+                crate::admin_page_path_ref::AdminPagePathRef::from(legacy_path.as_str()),
+            ),
+            Some(identifier),
+        );
         assert_eq!(
             super::AdminAuditLogId::from_frontend_path(
                 crate::admin_page_path_ref::AdminPagePathRef::from(route_path.as_ref()),

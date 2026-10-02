@@ -59,13 +59,17 @@ pub(crate) async fn crud_resource_page(
             )
             .await
         }
-        crate::admin_crud_page::AdminCrudPage::RoleUpdate => {
+        crate::admin_crud_page::AdminCrudPage::RoleUpdate(admin_role_id) => {
             crate::crud_page::crud_page(
                 admin_auth_request,
                 &[server_admin_contract::admin_rule::AdminRule::RolesUpdate],
                 async |_auth| Ok(()),
                 |_view, admin, branding| {
-                    frontend_admin::render_role_update::render_role_update(admin, branding)
+                    frontend_admin::render_role_update::render_role_update(
+                        admin_role_id,
+                        admin,
+                        branding,
+                    )
                 },
             )
             .await

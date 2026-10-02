@@ -8,12 +8,12 @@ test("test_rate_limit_details_follow_table_link", async ({ page }) => {
   const cells = row.locator("td");
   await expect(cells).toHaveCount(6);
   const values = await cells.allTextContents();
-  const identifier = values[0];
-  const path = `/admin/rate_limits/${identifier}`;
+  const identifier = values[0].trim();
+  const path = `/admin/rate_limits/${identifier}/read`;
   const detailResponsePromise = page.waitForResponse((response) =>
     new URL(response.url()).pathname.endsWith("/rate_limits/read"),
   );
-  await page.goto(path);
+  await row.getByRole("link", { name: "read", exact: true }).click();
   const detailResponseUrl = new URL((await detailResponsePromise).url());
   expect(detailResponseUrl.searchParams.get("filter_field")).toBe("id");
   expect(detailResponseUrl.searchParams.get("filter_operation")).toBe("eq");
@@ -23,12 +23,12 @@ test("test_rate_limit_details_follow_table_link", async ({ page }) => {
   await expect(detail.locator(".health-result")).toHaveText(values.slice(0, 5));
   await page.reload();
   await expect(detail.locator(".health-result")).toHaveText(values.slice(0, 5));
-  await page.goto("/admin/rate_limits/9223372036854775807");
+  await page.goto("/admin/rate_limits/9223372036854775807/read");
   await expect(detail).toContainText("resource not found");
   await expect(detail.locator(".health-result")).toHaveCount(0);
 });
 
 test("test_rate_limit_details_require_authentication", async ({ page }) => {
-  await page.goto("/admin/rate_limits/1");
+  await page.goto("/admin/rate_limits/1/read");
   await expect(page).toHaveURL(/\/admin\/sign_in$/);
 });

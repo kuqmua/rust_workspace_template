@@ -242,7 +242,7 @@ for (const viewport of viewports) {
           `header nav a[href="${pageSpec.activePath}"][aria-current="page"]`
         )
       ).toHaveCount(1);
-      if (pageSpec.name === "role-manage") {
+      if (["user-manage", "role-manage"].includes(pageSpec.name)) {
         await page.locator(".crud-list > :not(:first-child)").evaluateAll(elements =>
           elements.forEach(element => element.remove())
         );

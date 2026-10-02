@@ -8,22 +8,36 @@ test("test_refresh_token_details_follow_table_link_and_ignore_list_filters", asy
   const cells = row.locator("td");
   await expect(cells).toHaveCount(6);
   const values = await cells.allTextContents();
-  const path = `/admin/refresh_tokens/${values[0].trim()}`;
-  await page.goto(path);
+  const path = `/admin/refresh_tokens/${values[0].trim()}/read`;
+  const read = row.getByRole("link", { name: "read", exact: true });
+  await expect(read).toHaveAttribute("href", path);
+  await read.click();
   await expect(page).toHaveURL(new RegExp(`${path}$`));
   const detail = page.locator('[data-page="refresh-token-read"]');
   await expect(detail.locator(".health-result")).toHaveText(values.slice(0, 5));
   await expect(detail).not.toContainText("token_hash");
+  await page.goto(`/admin/refresh_tokens/${values[0].trim()}`);
+  await expect(detail.locator(".health-result")).toHaveText(values.slice(0, 5));
+  await page.goto(path);
   await page.reload();
   await expect(detail.locator(".health-result")).toHaveText(values.slice(0, 5));
   await page.goto(`${path}?search=missing&offset=999&filter_field=user_id&filter_operation=eq&filter_value=999`);
   await expect(detail.locator(".health-result")).toHaveText(values.slice(0, 5));
-  await page.goto("/admin/refresh_tokens/ffffffff-ffff-4fff-bfff-ffffffffffff");
+  await page.goto("/admin/refresh_tokens/ffffffff-ffff-4fff-bfff-ffffffffffff/read");
   await expect(detail).toContainText("resource not found");
   await expect(detail.locator(".health-result")).toHaveCount(0);
 });
 
 test("test_refresh_token_details_require_authentication", async ({ page }) => {
-  await page.goto("/admin/refresh_tokens/67e55044-10b1-426f-9247-bb680e5fe0c8");
+  await page.goto("/admin/refresh_tokens/67e55044-10b1-426f-9247-bb680e5fe0c8/read");
   await expect(page).toHaveURL(/\/admin\/sign_in$/);
+});
+
+
+test("test_refresh_token_read_rejects_invalid_identifiers", async ({ page }) => {
+  await signInAdministratorWithPasswordReset(page);
+  for (const id of ["1", "invalid", "67e55044-10b1-426f-9247-bb680e5fe0cz"]) {
+    const response = await page.goto(`/admin/refresh_tokens/${id}/read`);
+    expect(response.status()).toBe(422);
+  }
 });

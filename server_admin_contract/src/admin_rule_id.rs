@@ -32,7 +32,16 @@ impl AdminRuleId {
         admin_page_path_ref: crate::admin_page_path_ref::AdminPagePathRef<'_>,
     ) -> Option<Self> {
         admin_page_path_ref
-            .record_id(crate::admin_data_table::AdminDataTable::Rules)
+            .record_read_id(
+                crate::admin_data_table::AdminDataTable::Rules,
+                crate::admin_frontend_path::AdminFrontendPath::RulesRead,
+            )
+            .or_else(|| {
+                admin_page_path_ref.record_read_id(
+                    crate::admin_data_table::AdminDataTable::Rules,
+                    crate::admin_frontend_path::AdminFrontendPath::RuleRecordRead,
+                )
+            })
             .map(Self::from)
     }
     #[must_use]

@@ -12,9 +12,8 @@ test.skip(
 );
 
 test("administrator shell works across production browser engines", async ({ page }) => {
-  const { consoleErrors, pageErrors } = observeBrowserErrors(page);
-
   await signInInitialAdministrator(page);
+  const { consoleErrors, pageErrors } = observeBrowserErrors(page);
 
   for (const path of primaryAdminPaths) {
     const response = await page.goto(path);

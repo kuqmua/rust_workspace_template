@@ -8,7 +8,7 @@ pub(crate) async fn roles_update_page(
 ) -> axum::response::Response {
     crate::crud_resource_page::crud_resource_page(
         admin_auth_request,
-        crate::admin_crud_page::AdminCrudPage::RoleUpdate,
+        crate::admin_crud_page::AdminCrudPage::RoleUpdate(None),
     )
     .await
 }

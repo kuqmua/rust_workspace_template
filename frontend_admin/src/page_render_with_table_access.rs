@@ -23,6 +23,17 @@ pub(super) fn page_render_with_table_access(
     let primary_color = branding
         .and_then(server_admin_contract::admin_branding_view::AdminBrandingView::primary_color)
         .map(|value| format!("--accent:{}", AsRef::<str>::as_ref(value)));
+    let navigation_path = active_table.map_or_else(
+        || {
+            server_admin_contract::admin_data_table_frontend_path::AdminDataTableFrontendPath::from(
+                spec.frontend_path(),
+            )
+        },
+        server_admin_contract::admin_data_table::AdminDataTable::frontend_path,
+    );
+    let admin_page_path_ref = server_admin_contract::admin_page_path_ref::AdminPagePathRef::from(
+        navigation_path.as_ref(),
+    );
     let navigation = {
         let tables = server_admin_contract::admin_data_table::AdminDataTable::PG_ORDER
             .into_iter()
@@ -36,8 +47,9 @@ pub(super) fn page_render_with_table_access(
             .map(|table| {
                 let name = table.to_string();
                 let href = table.frontend_path().to_string();
+                    let active = bool::from(admin_page_path_ref.is_navigation_section(&table.frontend_path()));
                 leptos::view! {
-                    <crate::admin_sidebar_item::AdminSidebarItem><crate::admin_navigation_link::AdminNavigationLink bool=active_table == Some(table) string=href>{name}</crate::admin_navigation_link::AdminNavigationLink></crate::admin_sidebar_item::AdminSidebarItem>
+                    <crate::admin_sidebar_item::AdminSidebarItem><crate::admin_navigation_link::AdminNavigationLink bool=active string=href>{name}</crate::admin_navigation_link::AdminNavigationLink></crate::admin_sidebar_item::AdminSidebarItem>
                 }
             })
             .collect::<Vec<_>>();
@@ -49,8 +61,9 @@ pub(super) fn page_render_with_table_access(
                 let item = item_page.spec();
                 let href = String::from(item.path());
                 let label = item.route_name().as_ref().to_owned();
+                let active = bool::from(admin_page_path_ref.is_navigation_section(&server_admin_contract::admin_data_table_frontend_path::AdminDataTableFrontendPath::from(item.frontend_path())));
                 leptos::view! {
-                    <crate::admin_sidebar_item::AdminSidebarItem><crate::admin_navigation_link::AdminNavigationLink bool=item_page == admin_page string=href>{label}</crate::admin_navigation_link::AdminNavigationLink></crate::admin_sidebar_item::AdminSidebarItem>
+                    <crate::admin_sidebar_item::AdminSidebarItem><crate::admin_navigation_link::AdminNavigationLink bool=active string=href>{label}</crate::admin_navigation_link::AdminNavigationLink></crate::admin_sidebar_item::AdminSidebarItem>
                 }
             })
             .collect::<Vec<_>>();

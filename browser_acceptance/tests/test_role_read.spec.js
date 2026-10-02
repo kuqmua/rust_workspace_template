@@ -24,13 +24,17 @@ test("test_role_details_follow_table_link_and_ignore_list_filters", async ({ pag
   const cells = row.locator("td");
   await expect(cells).toHaveCount(6);
   const values = await cells.allTextContents();
-  const path = `/admin/roles/${values[0].trim()}`;
-  const link = row.getByRole("button", { name: "read", exact: true });
+  const path = `/admin/roles/${values[0].trim()}/read`;
+  const link = row.getByRole("link", { name: "read", exact: true });
   expect(await appearance(link)).toEqual(userAppearance);
-  await page.goto(path);
+  await expect(link).toHaveAttribute("href", path);
+  await link.click();
   await expect(page).toHaveURL(new RegExp(`${path}$`));
   const detail = page.locator('[data-page="role-read"]');
   await expect(detail.locator(".health-result")).toHaveText(values.slice(0, 5));
+  await page.goto(`/admin/roles/${values[0].trim()}`);
+  await expect(detail.locator(".health-result")).toHaveText(values.slice(0, 5));
+  await page.goto(path);
   await page.reload();
   await expect(detail.locator(".health-result")).toHaveText(values.slice(0, 5));
   await page.goto(`${path}?search=missing&offset=999&filter_field=id&filter_operation=eq&filter_value=999`);
@@ -41,7 +45,7 @@ test("test_role_details_follow_table_link_and_ignore_list_filters", async ({ pag
   });
   expect(created.status()).toBe(201);
   const [id] = await created.json();
-  await page.goto(`/admin/roles/${id}`);
+  await page.goto(`/admin/roles/${id}/read`);
   const createdRoleValues = detail.locator(".health-result");
   await expect(createdRoleValues).toHaveCount(5);
   await expect(createdRoleValues.nth(0)).toHaveText(String(id));
@@ -49,7 +53,7 @@ test("test_role_details_follow_table_link_and_ignore_list_filters", async ({ pag
   await expect(createdRoleValues.nth(2)).toHaveText("false");
   await expect(createdRoleValues.nth(3)).not.toBeEmpty();
   await expect(createdRoleValues.nth(4)).not.toBeEmpty();
-  await page.goto("/admin/roles/9223372036854775807");
+  await page.goto("/admin/roles/9223372036854775807/read");
   await expect(detail).toContainText("resource not found");
   await expect(detail.locator(".health-result")).toHaveCount(0);
   await page.goto("/admin/roles/manage");
@@ -62,6 +66,16 @@ test("test_role_details_follow_table_link_and_ignore_list_filters", async ({ pag
 });
 
 test("test_role_details_require_authentication", async ({ page }) => {
-  await page.goto("/admin/roles/1");
+  await page.goto("/admin/roles/1/read");
   await expect(page).toHaveURL(/\/admin\/sign_in$/);
+});
+
+test("test_role_read_page_rejects_invalid_identifiers", async ({ page }) => {
+  await signInAdministratorWithPasswordReset(page);
+  await ["0", "-1", "invalid", "9223372036854775808"].reduce(async (previous, identifier) => {
+    await previous;
+    const response = await page.goto(`/admin/roles/${identifier}/read`);
+    expect(response.status()).toBe(422);
+    await expect(page.locator('[data-page="role-read"]')).toHaveCount(0);
+  }, Promise.resolve());
 });

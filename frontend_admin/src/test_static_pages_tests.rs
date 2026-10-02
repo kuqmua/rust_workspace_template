@@ -105,6 +105,8 @@ fn test_static_pages() {
         .first()
         .expect(constants_str::DIAGNOSTIC_E4AA599B)
         .clone();
+    let path =
+        server_admin_contract::admin_route_path::AdminRoutePath::role_update_path(custom_role.id());
     let system_role = server_admin_contract::admin_role_summary::AdminRoleSummary::new(
         custom_role.id(),
         server_admin_contract::admin_bool::AdminBool::from(true),
@@ -140,13 +142,8 @@ fn test_static_pages() {
     let mixed_roles_html =
         crate::render_roles::render_roles(&mixed_roles, &query, &update_admin, &branding);
     assert_eq!(
-        mixed_roles_html
-            .as_ref()
-            .matches(
-                server_admin_contract::admin_frontend_path::AdminFrontendPath::RolesUpdate.get()
-            )
-            .count(),
-        1usize
+        mixed_roles_html.as_ref().matches(path.as_ref()).count(),
+        constants_usize::TWO
     );
 
     let sessions = server_admin_contract::admin_sessions_page::AdminSessionsPage::new(

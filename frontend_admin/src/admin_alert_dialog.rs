@@ -40,18 +40,11 @@ pub(crate) fn AdminAlertDialog(
                 <crate::admin_button::AdminButton admin_button_variant=crate::admin_button_variant::AdminButtonVariant::Danger admin_button_kind=crate::admin_button_kind::AdminButtonKind::Button bool=true>{trigger}</crate::admin_button::AdminButton>
             });
         }
-        if dialog_only {
-            return leptos::prelude::IntoAny::into_any(leptos::view! {
-                <dialog id=string class="singlestage-dialog" aria-label=title aria-description=description>
-                    <form method="dialog">
-                        <crate::admin_button::AdminButton admin_button_variant=crate::admin_button_variant::AdminButtonVariant::Danger on_click=leptos::prelude::Callback::new(move |_event| callback.run(()))>{confirm}</crate::admin_button::AdminButton>
-                        <crate::admin_button::AdminButton admin_button_variant=crate::admin_button_variant::AdminButtonVariant::Secondary>{constants_str::ADMIN_BUTTON_CANCEL}</crate::admin_button::AdminButton>
-                    </form>
-                </dialog>
-            });
-        }
-        leptos::prelude::IntoAny::into_any(leptos::view! {
+        let trigger = (!dialog_only).then(|| leptos::view! {
             <crate::admin_button::AdminButton admin_button_variant=crate::admin_button_variant::AdminButtonVariant::Danger admin_button_kind=crate::admin_button_kind::AdminButtonKind::Button attr:commandfor=string.clone() attr:command="show-modal">{trigger}</crate::admin_button::AdminButton>
+        });
+        leptos::prelude::IntoAny::into_any(leptos::view! {
+            {trigger}
             <dialog id=string class="singlestage-dialog" aria-label=title aria-description=description>
                 <form method="dialog">
                     <crate::admin_button::AdminButton admin_button_variant=crate::admin_button_variant::AdminButtonVariant::Danger on_click=leptos::prelude::Callback::new(move |_event| callback.run(()))>{confirm}</crate::admin_button::AdminButton>

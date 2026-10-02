@@ -9,6 +9,13 @@ roles, rules, sessions, profile, settings, and generated data-table pages in the
 Those pages read and mutate data exclusively through the typed JSON API rooted at the server origin.
 Sign-in, user and role management forms, and operational pages remain server-rendered.
 
+UI reuse stays in this shared crate. `admin_data_table_grid` owns table markup for SSR and
+CSR, while `admin_pagination` renders both query variants through `AdminPaginationQuery`.
+`AdminField`, `AdminInput`, and the button components provide the shared form controls.
+`AdminAlertDialog` owns one confirmation form for both standalone triggers and
+`dialog_only` consumers; disabled actions render only a disabled trigger. Keep page-specific
+routing and mutations in their page owners and compose these components for presentation.
+
 On the first sign-in, change the initial password on Profile before using other pages.
 The server enforces this requirement; the frontend shows an explanation and displays
 only Profile navigation until the change succeeds. Header links become available after
@@ -95,11 +102,11 @@ typed refresh route, with at most one refresh and one retry. Ordinary network fa
 and non-authentication server errors are not replayed. Full-page navigation retains the
 server authentication policy: an expired access session redirects to sign-in.
 
-Role rows link to `/admin/roles/{role_id}` for read-only details: ID, name, system status,
+Role rows link to `/admin/roles/{role_id}/read` for read-only details: ID, name, system status,
 and assigned rules. The existing roles read API filters by the path ID; list query
 parameters do not change the selected record. Missing records display `resource not found`.
 The public contract snapshot intentionally adds `AdminFrontendPath::RoleRead` and the
-role ID path parser, matching the existing user detail route.
+role ID path parser, matching the existing user detail route. The legacy `/admin/roles/{role_id}` path remains available.
 
 Role-rule assignment rows link to `/admin/role_rules/{role_rule_id}`.
 The read-only page renders the fields from the typed table catalog and selects only the

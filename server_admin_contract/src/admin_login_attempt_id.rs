@@ -27,12 +27,18 @@ impl From<AdminLoginAttemptId> for i64 {
     }
 }
 impl AdminLoginAttemptId {
+    pub(crate) const fn value(self) -> crate::positive_non_zero_i64::PositiveNonZeroI64 {
+        self.0
+    }
+
     #[must_use]
     pub fn from_frontend_path(
         admin_page_path_ref: crate::admin_page_path_ref::AdminPagePathRef<'_>,
     ) -> Option<Self> {
-        let identifier = admin_page_path_ref
-            .record_id(crate::admin_data_table::AdminDataTable::LoginAttempts)?;
+        let identifier = admin_page_path_ref.record_read_id(
+            crate::admin_data_table::AdminDataTable::LoginAttempts,
+            crate::admin_frontend_path::AdminFrontendPath::LoginAttemptsRead,
+        )?;
         Some(Self::from(identifier))
     }
 }
@@ -55,6 +61,27 @@ mod tests {
             .into_iter()
             .for_each(|expected_identifier| {
                 let route_path = crate::admin_route_path::AdminRoutePath::from(expected_identifier);
+                assert_eq!(
+                    route_path.as_ref(),
+                    crate::admin_frontend_path::AdminFrontendPath::LoginAttemptsRead
+                        .get()
+                        .replace(
+                            constants_str::ADMIN_LOGIN_ATTEMPT_ID_PLACEHOLDER,
+                            &expected_identifier.to_string(),
+                        ),
+                );
+                let legacy_path = crate::admin_frontend_path::AdminFrontendPath::LoginAttemptRead
+                    .get()
+                    .replace(
+                        constants_str::ADMIN_LOGIN_ATTEMPT_ID_PLACEHOLDER,
+                        &expected_identifier.to_string(),
+                    );
+                assert_eq!(
+                    super::AdminLoginAttemptId::from_frontend_path(
+                        crate::admin_page_path_ref::AdminPagePathRef::from(legacy_path.as_str()),
+                    ),
+                    Some(expected_identifier),
+                );
                 let identifier = super::AdminLoginAttemptId::from_frontend_path(
                     crate::admin_page_path_ref::AdminPagePathRef::from(route_path.as_ref()),
                 );

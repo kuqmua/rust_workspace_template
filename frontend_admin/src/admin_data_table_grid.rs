@@ -163,12 +163,9 @@ pub(crate) fn admin_data_table_grid(
                     }))
                 } else if admin_data_table_view.table()
                     == server_admin_contract::admin_data_table::AdminDataTable::Roles
-                    && value_for_column(constants_str::IS_SYSTEM).is_some_and(|value| {
-                        value.as_ref().as_str() == constants_str::FALSE
-                    })
                 {
-                    Some(leptos::prelude::IntoAny::into_any(leptos::view! {
-                        <crate::admin_role_update_action::AdminRoleUpdateAction />
+                    row_identifier.and_then(|value| value.parse::<i64>().ok()).and_then(|value| server_admin_contract::admin_role_id::AdminRoleId::try_from(value).ok()).map(|admin_role_id| leptos::prelude::IntoAny::into_any(leptos::view! {
+                        <crate::admin_role_update_action::AdminRoleUpdateAction admin_role_id=admin_role_id />
                     }))
                 } else {
                     None

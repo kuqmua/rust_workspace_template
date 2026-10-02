@@ -4,7 +4,7 @@ import {
   signOutIfAuthenticated
 } from "./support/admin.js";
 
-test("test_sessions_rows_expose_read_and_icon_delete_actions", async ({ page }) => {
+test("test_sessions_rows_expose_read_and_icon_revoke_actions", async ({ page }) => {
   await signInAdministratorWithPasswordReset(page);
   try {
     await page.goto("/admin/sessions");
@@ -16,10 +16,10 @@ test("test_sessions_rows_expose_read_and_icon_delete_actions", async ({ page }) 
     await expect(row.getByRole("dialog", { name: "read" }).locator(".health-result").first()).toHaveText(sessionId);
     await row.getByRole("dialog", { name: "read" }).getByRole("button", { name: "close" }).click();
     await expect(read.locator("svg")).toHaveCount(1);
-    const deleteButton = row.getByRole("button", { name: "delete", exact: true });
-    await expect(deleteButton.locator("svg")).toHaveCount(1);
+    const revokeButton = row.getByRole("button", { name: "revoke_session", exact: true });
+    await expect(revokeButton.locator("svg")).toHaveCount(1);
     const actionStyles = await Promise.all(
-      [read, deleteButton].map((action) =>
+      [read, revokeButton].map((action) =>
         action.evaluate((element) => {
           const style = getComputedStyle(element);
           return {
@@ -37,10 +37,10 @@ test("test_sessions_rows_expose_read_and_icon_delete_actions", async ({ page }) 
     await expect(row.locator(".table-actions")).toHaveCSS("flex-wrap", "nowrap");
     await expect(row.locator(".table-actions")).toHaveCSS("gap", "0px");
     await expect(read).toHaveCSS("border-width", "0px");
-    await expect(deleteButton).toHaveCSS("border-width", "0px");
+    await expect(revokeButton).toHaveCSS("border-width", "0px");
     await expect(read).toHaveCSS("box-shadow", "none");
-    await expect(deleteButton).toHaveCSS("box-shadow", "none");
-    await deleteButton.click();
+    await expect(revokeButton).toHaveCSS("box-shadow", "none");
+    await revokeButton.click();
     await expect(row.getByRole("dialog", { name: "revoke_session" })).toBeVisible();
   } finally {
     await signOutIfAuthenticated(page);
