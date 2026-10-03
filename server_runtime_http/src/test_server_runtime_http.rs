@@ -485,6 +485,27 @@ fn test_observed_client_preparation_injects_context_and_creates_child_span() {
             .is_some()
     );
     drop(prepared_client_span);
+    let hostless_url = reqwest::Url::parse(&format!("{}:{}", constants_str::X, constants_str::X));
+    assert!(hostless_url.is_ok_and(|opaque_url| {
+        let mut hostless_request = crate::reqwest_request::ReqwestRequest::from(
+            reqwest::Request::new(http::Method::GET, opaque_url.clone()),
+        );
+        let hostless_span = root_span.in_scope(|| {
+            crate::reqwest_client::ReqwestClient::prepare_observed_http_request(
+                &mut hostless_request,
+            )
+        });
+        let prepared_hostless = hostless_request.into_inner();
+        assert_eq!(prepared_hostless.url(), &opaque_url);
+        assert_eq!(prepared_hostless.method(), http::Method::GET);
+        assert!(
+            prepared_hostless
+                .headers()
+                .contains_key(constants_str::TRACEPARENT)
+        );
+        drop(hostless_span);
+        true
+    }));
     drop(root_span);
     let spans = exporter
         .get_finished_spans()
@@ -509,6 +530,13 @@ fn test_observed_client_preparation_injects_context_and_creates_child_span() {
         exported_client_span.span_kind,
         opentelemetry::trace::SpanKind::Client
     );
+    let hostless_name = format!("{} ", http::Method::GET);
+    assert!(spans.iter().any(|span| {
+        span.name == hostless_name && span.attributes.iter().any(|attribute| {
+            attribute.key.as_str() == constants_str::OTEL_SERVER_ADDRESS
+                && matches!(&attribute.value, opentelemetry::Value::String(value) if value.as_str().is_empty())
+        })
+    }));
     tracer_provider
         .shutdown()
         .expect(constants_str::DIAGNOSTIC_721FF26E);

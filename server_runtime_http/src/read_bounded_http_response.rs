@@ -41,3 +41,52 @@ pub async fn read_bounded_http_response(
     }
     Ok(crate::bounded_bytes::BoundedBytes::from(bytes))
 }
+
+#[cfg(test)]
+mod tests {
+    #[tokio::test]
+    async fn test_response_reads_release_permit_after_success_and_size_errors() {
+        let bounded_read_concurrency_arc_semaphore = crate::bounded_read_concurrency_arc_semaphore::BoundedReadConcurrencyArcSemaphore::new(
+            crate::bounded_read_concurrency_maximum_non_zero_usize::BoundedReadConcurrencyMaximumNonZeroUsize::from(std::num::NonZeroUsize::MIN),
+        );
+        let read = async |bounded_read_maximum_bytes: crate::bounded_read_maximum_bytes::BoundedReadMaximumBytes,
+                          bounded_read_observed_bytes: Option<crate::bounded_read_observed_bytes::BoundedReadObservedBytes>| {
+            let mut response = http::Response::new(constants_str::ABCD_ALT);
+            if let Some(content_length) = bounded_read_observed_bytes {
+                assert!(http::HeaderValue::try_from(content_length.get().to_string()).is_ok_and(|header_value| response.headers_mut().insert(http::header::CONTENT_LENGTH, header_value).is_none()));
+            }
+            let result = crate::read_bounded_http_response::read_bounded_http_response(
+                crate::reqwest_response::ReqwestResponse::from(reqwest::Response::from(response)),
+                bounded_read_maximum_bytes,
+                bounded_read_concurrency_arc_semaphore.clone(),
+            ).await;
+            let expected_result = if bounded_read_maximum_bytes.get() == 4usize {
+                result.is_ok_and(|bounded_bytes| bounded_bytes.into_inner() == constants_str::ABCD_ALT.as_bytes())
+            } else {
+                matches!(result, Err(crate::bounded_read_error::BoundedReadError::ExceedsMaximum { maximum_bytes }) if maximum_bytes == bounded_read_maximum_bytes)
+            };
+            expected_result && bounded_read_concurrency_arc_semaphore.clone().into_inner().available_permits() == 1usize
+        };
+        assert!(
+            read(
+                crate::bounded_read_maximum_bytes::BoundedReadMaximumBytes::from(4usize),
+                None
+            )
+            .await
+        );
+        assert!(
+            read(
+                crate::bounded_read_maximum_bytes::BoundedReadMaximumBytes::from(3usize),
+                None
+            )
+            .await
+        );
+        assert!(
+            read(
+                crate::bounded_read_maximum_bytes::BoundedReadMaximumBytes::from(3usize),
+                Some(crate::bounded_read_observed_bytes::BoundedReadObservedBytes::from(4usize))
+            )
+            .await
+        );
+    }
+}

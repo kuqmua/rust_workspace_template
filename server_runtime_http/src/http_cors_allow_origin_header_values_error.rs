@@ -31,3 +31,17 @@ impl From<http::header::InvalidHeaderValue> for HttpCorsAllowOriginHeaderValuesE
         Self::InvalidOrigin
     }
 }
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn test_cors_origin_errors_classify_invalid_origin_and_header_value() {
+        assert_eq!(crate::http_cors_allow_origin_header_values_error::HttpCorsAllowOriginHeaderValuesError::from(crate::allowed_origin_error::AllowedOriginError::Invalid), crate::http_cors_allow_origin_header_values_error::HttpCorsAllowOriginHeaderValuesError::InvalidOrigin);
+        let header_result = http::HeaderValue::from_bytes(&[0u8]);
+        assert!(header_result.is_err());
+        let Err(invalid_header_value) = header_result else {
+            return;
+        };
+        assert_eq!(crate::http_cors_allow_origin_header_values_error::HttpCorsAllowOriginHeaderValuesError::from(invalid_header_value), crate::http_cors_allow_origin_header_values_error::HttpCorsAllowOriginHeaderValuesError::InvalidOrigin);
+    }
+}

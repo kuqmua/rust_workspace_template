@@ -1,6 +1,48 @@
 #[cfg(test)]
 mod tests {
     #[test]
+    fn test_cors_configuration_byte_limit_precedes_whitespace_trimming() {
+        assert!([65535usize, 65536usize, 65537usize].into_iter().all(|length| {
+            [constants_str::PG_CRUD_EMPTY_SQL_SUFFIX, constants_str::HTTP_LOCALHOST].into_iter().all(|origin| {
+                let text = format!("{}{origin}", constants_str::SPACE.repeat(length.saturating_sub(origin.len())));
+                let result = crate::parse_cors_allow_origin::parse_cors_allow_origin(
+                    crate::http_cors_allow_origin_text_ref::HttpCorsAllowOriginTextRef::from(text.as_str()),
+                );
+                if length > 65536usize {
+                    matches!(result, Err(crate::http_cors_allow_origin_header_values_error::HttpCorsAllowOriginHeaderValuesError::TooLong))
+                } else {
+                    result.is_ok_and(|values| {
+                        let headers = Vec::<http::HeaderValue>::from(values);
+                        if origin.is_empty() {
+                            headers.is_empty()
+                        } else {
+                            headers == [http::HeaderValue::from_static(constants_str::HTTP_LOCALHOST)]
+                        }
+                    })
+                }
+            })
+        }));
+    }
+
+    #[test]
+    fn test_cors_configuration_item_limit_preserves_duplicate_origins() {
+        assert!([0usize, 1usize, 127usize, 128usize, 129usize].into_iter().all(|count| {
+            let text = vec![constants_str::HTTP_LOCALHOST; count].join(constants_str::TEXT_ALT_7);
+            let result = crate::parse_cors_allow_origin::parse_cors_allow_origin(
+                crate::http_cors_allow_origin_text_ref::HttpCorsAllowOriginTextRef::from(text.as_str()),
+            );
+            if count > 128usize {
+                matches!(result, Err(crate::http_cors_allow_origin_header_values_error::HttpCorsAllowOriginHeaderValuesError::TooManyItems))
+            } else {
+                result.is_ok_and(|values| {
+                    let headers = Vec::<http::HeaderValue>::from(values);
+                    headers.len() == count && headers.iter().all(|header| header.as_bytes() == constants_str::HTTP_LOCALHOST.as_bytes())
+                })
+            }
+        }));
+    }
+
+    #[test]
     fn test_parser_trims_valid_origins() {
         let parsed = Vec::<http::HeaderValue>::from(
             crate::parse_cors_allow_origin::parse_cors_allow_origin(

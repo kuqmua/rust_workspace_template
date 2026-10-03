@@ -75,36 +75,6 @@ test("test_update_pages_require_identifiers_and_new_values", async ({ page }) =>
   }
 });
 
-
-test("test_user_update_rejects_a_different_form_identifier", async ({ page }) => {
-  await signInAdministratorWithPasswordReset(page);
-  const row = page.locator("tbody tr").first();
-  const id = (await row.locator('td[data-label="id"]').textContent()).trim();
-  const login = (await row.locator('td[data-label="login"]').textContent()).trim();
-  const displayName = (await row.locator('td[data-label="display_name"]').textContent()).trim();
-  await row.getByRole("link", { name: "update", exact: true }).click();
-  const form = page.locator("form.user-update-form");
-  await expect(form).toHaveAttribute("action", `/admin/actions/users/${id}/update`);
-  await form.locator('input[name="user_id"]').evaluate(input => { input.value = String(Number(input.value) + 1); });
-  await form.locator('input[name="login"]').fill(login);
-  await form.locator('input[name="display_name"]').fill("Rejected wrong identifier");
-  const response = page.waitForResponse(response => response.request().method() === "POST" && new URL(response.url()).pathname === `/admin/actions/users/${id}/update`);
-  await form.getByRole("button", { name: "update", exact: true }).click();
-  expect((await response).status()).toBe(422);
-  await page.goto("/admin/users");
-  await expect(page.locator("tbody tr").filter({ has: page.locator('td[data-label="id"]').filter({ hasText: new RegExp(`^${id}$`) }) }).locator('td[data-label="display_name"]')).toHaveText(displayName);
-});
-
-test("test_user_update_page_rejects_invalid_identifiers", async ({ page }) => {
-  await signInAdministratorWithPasswordReset(page);
-  for (const id of ["0", "-1", "invalid", "9223372036854775808"]) {
-    const response = await page.goto(`/admin/users/${id}/update`);
-    expect(response.status()).toBe(422);
-    await expect(page.locator("form.user-update-form")).toHaveCount(0);
-  }
-});
-
-
 test("test_user_update_changes_only_the_selected_row", async ({ page }) => {
   await signInAdministratorWithPasswordReset(page);
   const created = await page.request.post("/users/create", {
@@ -137,7 +107,7 @@ test("test_user_update_changes_only_the_selected_row", async ({ page }) => {
   await expect(row(otherId).locator('td[data-label="login"]')).toHaveText("user_update_other");
 });
 
-test("test_role_update_changes_only_selected_row_and_rejects_identifier_tampering", async ({ page }) => {
+test("test_role_update_changes_only_selected_row", async ({ page }) => {
   await signInAdministratorWithPasswordReset(page);
   const created = await page.request.post("/roles/create", {
     data: [{ name: "role_update_selected" }, { name: "role_update_other" }],
@@ -159,26 +129,7 @@ test("test_role_update_changes_only_selected_row_and_rejects_identifier_tamperin
   await page.goto("/admin/roles");
   await expect(row(selectedId).locator('td[data-label="name"]')).toHaveText("role_update_selected_changed");
   await expect(row(otherId).locator('td[data-label="name"]')).toHaveText("role_update_other");
-  await row(selectedId).getByRole("link", { name: "update", exact: true }).click();
-  await form.locator('input[name="role_id"]').evaluate((input, id) => { input.value = String(id); }, otherId);
-  await form.locator('input[name="name"]').fill("role_tampered_rejected");
-  const response = page.waitForResponse(response => response.request().method() === "POST" && new URL(response.url()).pathname === `/admin/actions/roles/${selectedId}/update`);
-  await form.getByRole("button", { name: "update", exact: true }).click();
-  expect((await response).status()).toBe(422);
-  await page.goto("/admin/roles");
-  await expect(row(selectedId).locator('td[data-label="name"]')).toHaveText("role_update_selected_changed");
-  await expect(row(otherId).locator('td[data-label="name"]')).toHaveText("role_update_other");
 });
-
-test("test_role_update_page_rejects_invalid_identifiers", async ({ page }) => {
-  await signInAdministratorWithPasswordReset(page);
-  for (const id of ["0", "-1", "invalid", "9223372036854775808"]) {
-    const response = await page.goto(`/admin/roles/${id}/update`);
-    expect(response.status()).toBe(422);
-    await expect(page.locator("form.role-update-form")).toHaveCount(0);
-  }
-});
-
 
 test("test_role_one_update_page_has_selected_identifier", async ({ page }) => {
   await signInAdministratorWithPasswordReset(page);

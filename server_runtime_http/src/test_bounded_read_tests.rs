@@ -161,6 +161,36 @@ mod tests {
             .expect(constants_str::DIAGNOSTIC_9D5A2DB0);
     }
     #[tokio::test]
+    async fn test_asynchronous_file_open_failure_precedes_zero_limit() {
+        let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join(constants_str::CARGO_TOML)
+            .join(constants_str::X);
+        let result = crate::read_bounded_file_async::read_bounded_file_async(
+            crate::runtime_path_ref::RuntimePathRef::from(path.as_path()),
+            crate::bounded_read_maximum_bytes::BoundedReadMaximumBytes::from(0usize),
+        )
+        .await;
+        assert!(matches!(
+            result,
+            Err(crate::bounded_read_error::BoundedReadError::Io { .. })
+        ));
+    }
+
+    #[tokio::test]
+    async fn test_asynchronous_file_metadata_rejects_oversize_before_reading() {
+        let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join(constants_str::CARGO_TOML);
+        let maximum_bytes =
+            crate::bounded_read_maximum_bytes::BoundedReadMaximumBytes::from(0usize);
+        let result = crate::read_bounded_file_async::read_bounded_file_async(
+            crate::runtime_path_ref::RuntimePathRef::from(path.as_path()),
+            maximum_bytes,
+        )
+        .await;
+        assert!(
+            matches!(result, Err(crate::bounded_read_error::BoundedReadError::ExceedsMaximum { maximum_bytes: rejected_limit }) if rejected_limit == maximum_bytes)
+        );
+    }
+    #[tokio::test]
     async fn test_asynchronous_file_read_grows_past_initial_reservation() {
         let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join(constants_str::SRC_LIB_RS);
         let expected_length = match tokio::fs::metadata(path.as_path()).await {

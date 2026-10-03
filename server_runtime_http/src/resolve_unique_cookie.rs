@@ -63,3 +63,93 @@ pub fn resolve_unique_cookie<'value_lt>(
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn test_cookie_resolver_missing_target_and_duplicate_headers() {
+        let mut headers = http::HeaderMap::new();
+        let resolves_to =
+            |http_cookie_headers_ref: crate::http_cookie_headers_ref::HttpCookieHeadersRef<'_>,
+             cookie_resolution: crate::cookie_resolution::CookieResolution<'_>| {
+                crate::resolve_unique_cookie::resolve_unique_cookie(
+                    http_cookie_headers_ref,
+                    crate::http_cookie_name_ref::HttpCookieNameRef::from(
+                        constants_str::TEST_COOKIE_NAME,
+                    ),
+                ) == cookie_resolution
+            };
+        assert!(resolves_to(
+            crate::http_cookie_headers_ref::HttpCookieHeadersRef::from(&headers),
+            crate::cookie_resolution::CookieResolution::Missing
+        ));
+        let unrelated = format!("{}={}", constants_str::X, constants_str::TEST_FIRST);
+        assert!(http::HeaderValue::from_str(&unrelated).is_ok_and(|header| {
+            let _previous = headers.insert(http::header::COOKIE, header.clone());
+            assert!(resolves_to(
+                crate::http_cookie_headers_ref::HttpCookieHeadersRef::from(&headers),
+                crate::cookie_resolution::CookieResolution::Missing
+            ));
+            let _appended = headers.append(http::header::COOKIE, header);
+            resolves_to(
+                crate::http_cookie_headers_ref::HttpCookieHeadersRef::from(&headers),
+                crate::cookie_resolution::CookieResolution::Invalid,
+            )
+        }));
+    }
+
+    #[test]
+    fn test_cookie_pair_limit_counts_malformed_pairs_and_target_position() {
+        let target = format!(
+            "{}={}",
+            constants_str::TEST_COOKIE_NAME,
+            constants_str::TEST_FIRST
+        );
+        assert!([127usize, 128usize].into_iter().all(|unrelated_count| {
+            [false, true].into_iter().all(|target_first| {
+                let mut pairs = vec![constants_str::X.to_owned(); unrelated_count];
+                if target_first {
+                    pairs.insert(0usize, target.clone());
+                } else {
+                    pairs.push(target.clone());
+                }
+                http::HeaderValue::from_str(&pairs.join(&';'.to_string())).is_ok_and(|header| {
+                    let mut headers = http::HeaderMap::new();
+                    let _previous = headers.insert(http::header::COOKIE, header);
+                    let actual = crate::resolve_unique_cookie::resolve_unique_cookie(
+                        crate::http_cookie_headers_ref::HttpCookieHeadersRef::from(&headers),
+                        crate::http_cookie_name_ref::HttpCookieNameRef::from(
+                            constants_str::TEST_COOKIE_NAME,
+                        ),
+                    );
+                    if unrelated_count == 127usize {
+                        actual
+                            == crate::cookie_resolution::CookieResolution::Resolved(
+                                crate::http_cookie_value_ref::HttpCookieValueRef::from(
+                                    constants_str::TEST_FIRST,
+                                ),
+                            )
+                    } else {
+                        actual == crate::cookie_resolution::CookieResolution::Invalid
+                    }
+                })
+            })
+        }));
+    }
+
+    #[test]
+    fn test_cookie_resolver_rejects_non_text_header_bytes() {
+        assert!(
+            http::HeaderValue::from_bytes(&[0xffu8]).is_ok_and(|header| {
+                let mut headers = http::HeaderMap::new();
+                let _previous = headers.insert(http::header::COOKIE, header);
+                crate::resolve_unique_cookie::resolve_unique_cookie(
+                    crate::http_cookie_headers_ref::HttpCookieHeadersRef::from(&headers),
+                    crate::http_cookie_name_ref::HttpCookieNameRef::from(
+                        constants_str::TEST_COOKIE_NAME,
+                    ),
+                ) == crate::cookie_resolution::CookieResolution::Invalid
+            })
+        );
+    }
+}

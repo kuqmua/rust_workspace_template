@@ -1,11 +1,13 @@
 #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Debug, thiserror::Error)]
 pub(crate) enum ScaffoldError {
     #[error(
-        "usage: workspace-scaffold project <snake_case_name> <repository_url> | service <snake_case_name> <port> | generate <sync|check> | deployment <sync|check>"
+        "usage: workspace-scaffold project <snake_case_name> <repository_url> | service <snake_case_name> <port> | generate <sync|check> | deployment <sync|check> | manifest <rendered_manifest> | manifest_example <rendered_manifest>"
     )]
     Arguments,
     #[error("deployment service catalog is invalid")]
     Catalog,
+    #[error("{0}")]
+    Manifest(#[from] macro_helpers::production_manifest_error::ProductionManifestError),
     #[error("generated code-style snapshots are not synchronized")]
     GeneratedCodeStyle,
     #[error("generated configuration projections are not synchronized")]

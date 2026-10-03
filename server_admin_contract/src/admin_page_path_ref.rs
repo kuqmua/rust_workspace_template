@@ -122,4 +122,73 @@ mod tests {
                 });
         });
     }
+
+    #[test]
+    fn test_record_path_identifier_bounds_and_incomplete_read_paths() {
+        assert!(
+            crate::admin_data_table::AdminDataTable::PG_ORDER
+                .into_iter()
+                .all(|admin_data_table| {
+                    let section = admin_data_table.frontend_path();
+                    [1i64, i64::MAX].into_iter().all(|identifier| {
+                        let path = format!("{section}/{identifier}");
+                        super::AdminPagePathRef::from(path.as_str())
+                            .record_id(admin_data_table)
+                            .is_some_and(|value| value.get() == identifier)
+                    }) && [
+                        constants_str::EMPTY.to_owned(),
+                        constants_str::X.to_owned(),
+                        0i64.to_string(),
+                        (-1i64).to_string(),
+                    ]
+                    .into_iter()
+                    .all(|identifier| {
+                        let path = format!("{section}/{identifier}");
+                        super::AdminPagePathRef::from(path.as_str())
+                            .record_id(admin_data_table)
+                            .is_none()
+                    }) && super::AdminPagePathRef::from(section.as_ref())
+                        .record_id(admin_data_table)
+                        .is_none()
+                })
+        );
+        let read_path = crate::admin_frontend_path::AdminFrontendPath::UsersRead
+            .get()
+            .replace(constants_str::ADMIN_USER_ID_PLACEHOLDER, &1i64.to_string());
+        assert!(
+            super::AdminPagePathRef::from(read_path.as_str())
+                .record_read_id(
+                    crate::admin_data_table::AdminDataTable::Users,
+                    crate::admin_frontend_path::AdminFrontendPath::UsersRead
+                )
+                .is_some_and(|identifier| identifier.get() == 1i64)
+        );
+        assert!(
+            [constants_str::EMPTY, constants_str::X, constants_str::ROOT]
+                .into_iter()
+                .all(|path| {
+                    super::AdminPagePathRef::from(path)
+                        .record_read_id(
+                            crate::admin_data_table::AdminDataTable::Users,
+                            crate::admin_frontend_path::AdminFrontendPath::Root,
+                        )
+                        .is_none()
+                        && super::AdminPagePathRef::from(path)
+                            .record_read_id(
+                                crate::admin_data_table::AdminDataTable::Users,
+                                crate::admin_frontend_path::AdminFrontendPath::UsersRead,
+                            )
+                            .is_none()
+                })
+        );
+        let incomplete_path = read_path.trim_end_matches(constants_str::PG_CRUD_READ_RULE_ACTION);
+        assert!(
+            super::AdminPagePathRef::from(incomplete_path)
+                .record_read_id(
+                    crate::admin_data_table::AdminDataTable::Users,
+                    crate::admin_frontend_path::AdminFrontendPath::UsersRead
+                )
+                .is_none()
+        );
+    }
 }

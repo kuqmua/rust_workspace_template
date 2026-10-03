@@ -36,3 +36,27 @@ impl AdminAuditDetailsTooLarge {
         )
     }
 }
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn test_audit_size_error_accessors_preserve_actual_bytes_and_shared_maximum() {
+        assert!(
+            [
+                0usize,
+                crate::admin_audit_details_max_bytes::ADMIN_AUDIT_DETAILS_MAX_BYTES,
+                crate::admin_audit_details_max_bytes::ADMIN_AUDIT_DETAILS_MAX_BYTES
+                    .saturating_add(2usize)
+            ]
+            .into_iter()
+            .all(|actual| {
+                let admin_audit_details_bytes =
+                    crate::admin_audit_details_bytes::AdminAuditDetailsBytes::from(actual);
+                let error = super::AdminAuditDetailsTooLarge::from(admin_audit_details_bytes);
+                error.actual_bytes() == admin_audit_details_bytes
+                    && error.maximum_bytes().get()
+                        == crate::admin_audit_details_max_bytes::ADMIN_AUDIT_DETAILS_MAX_BYTES
+            })
+        );
+    }
+}

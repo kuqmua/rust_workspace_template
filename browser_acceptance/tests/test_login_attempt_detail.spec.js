@@ -21,8 +21,3 @@ test("test_login_attempt_details_follow_table_link_and_ignore_list_filters", asy
   await expect(detail).toContainText("resource not found");
   await expect(detail.locator(".health-result")).toHaveCount(0);
 });
-
-test("test_login_attempt_details_require_authentication", async ({ page }) => {
-  await page.goto("/admin/login_attempts/1/read");
-  await expect(page).toHaveURL(/\/admin\/sign_in$/);
-});

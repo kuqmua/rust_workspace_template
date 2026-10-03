@@ -1,6 +1,69 @@
 #[cfg(test)]
 mod tests {
     #[test]
+    fn test_cookie_wrappers_ascii_rules_and_value_debug_redaction() {
+        assert!((0u8..=127u8).all(|byte| {
+            let text = char::from(byte).to_string();
+            let name = crate::http_cookie_name::HttpCookieName::try_from(text.clone());
+            let value = crate::http_cookie_value::HttpCookieValue::try_from(text.clone());
+            let name_allowed = byte.is_ascii_alphanumeric()
+                || matches!(
+                    byte,
+                    b'!' | b'#'
+                        | b'$'
+                        | b'%'
+                        | b'&'
+                        | b'\''
+                        | b'*'
+                        | b'+'
+                        | b'-'
+                        | b'.'
+                        | b'^'
+                        | b'_'
+                        | b'`'
+                        | b'|'
+                        | b'~'
+                );
+            let value_allowed =
+                (33u8..=126u8).contains(&byte) && !matches!(byte, b'"' | b',' | b';' | b'\\');
+            let name_matches = if name_allowed {
+                name.is_ok_and(|http_cookie_name| http_cookie_name.as_str() == text)
+            } else {
+                name == Err(crate::http_secure_cookie_error::HttpSecureCookieError::InvalidName)
+            };
+            let value_matches = if value_allowed {
+                value.is_ok_and(|http_cookie_value| {
+                    http_cookie_value.as_str() == text
+                        && format!("{http_cookie_value:?}") == constants_str::REDACTED_ALT_3
+                })
+            } else {
+                value == Err(crate::http_secure_cookie_error::HttpSecureCookieError::InvalidValue)
+            };
+            name_matches && value_matches
+        }));
+    }
+
+    #[test]
+    fn test_cookie_wrapper_empty_and_exact_size_limits() {
+        assert!([0usize, 1usize, 8191usize, 8192usize, 8193usize].into_iter().all(|length| {
+            let text = constants_str::X.repeat(length);
+            let name = crate::http_cookie_name::HttpCookieName::try_from(text.clone());
+            let value = crate::http_cookie_value::HttpCookieValue::try_from(text.clone());
+            let name_matches = if (1usize..=8192usize).contains(&length) {
+                name.is_ok_and(|http_cookie_name| http_cookie_name.as_str() == text)
+            } else {
+                name == Err(crate::http_secure_cookie_error::HttpSecureCookieError::InvalidName)
+            };
+            let value_matches = if length <= 8192usize {
+                value.is_ok_and(|http_cookie_value| http_cookie_value.as_str() == text)
+            } else {
+                value == Err(crate::http_secure_cookie_error::HttpSecureCookieError::InvalidValue)
+            };
+            name_matches && value_matches
+        }));
+    }
+
+    #[test]
     fn test_builder_sets_security_attributes_and_rejects_injection() {
         let name = crate::http_cookie_name::HttpCookieName::try_from(String::from(
             constants_str::TEST_COOKIE_NAME,

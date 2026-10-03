@@ -10,11 +10,14 @@ test("test_sessions_rows_expose_read_and_icon_revoke_actions", async ({ page }) 
     await page.goto("/admin/sessions");
     const row = page.locator("tbody tr").first();
     const sessionId = (await row.locator('td[data-label="id"]').innerText()).trim();
-    const read = row.getByRole("button", { name: "read", exact: true });
+    const read = row.getByRole("link", { name: "read", exact: true });
+    const readPath = `/admin/access_sessions/${sessionId}/read`;
+    await expect(read).toHaveAttribute("href", readPath);
     await read.click();
+    await expect(page).toHaveURL(readPath);
+    await expect(page.locator('[data-page="access-session-read"] .health-result').first()).toHaveText(sessionId);
+    await page.goBack();
     await expect(page).toHaveURL("/admin/sessions");
-    await expect(row.getByRole("dialog", { name: "read" }).locator(".health-result").first()).toHaveText(sessionId);
-    await row.getByRole("dialog", { name: "read" }).getByRole("button", { name: "close" }).click();
     await expect(read.locator("svg")).toHaveCount(1);
     const revokeButton = row.getByRole("button", { name: "revoke_session", exact: true });
     await expect(revokeButton.locator("svg")).toHaveCount(1);

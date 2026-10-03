@@ -72,4 +72,32 @@ mod tests {
         let cloned = history.clone();
         assert_eq!(history.maximum_len, cloned.maximum_len, "f1c763a4");
     }
+    #[tokio::test]
+    async fn test_history_evicts_oldest_and_shares_updates_with_clone() {
+        let maximum_result = crate::async_run_history_maximum_len_non_zero_usize::AsyncRunHistoryMaximumLenNonZeroUsize::try_from(constants_usize::TWO);
+        assert!(
+            maximum_result
+                .as_ref()
+                .is_ok_and(|maximum| maximum.get() == constants_usize::TWO)
+        );
+        if let Ok(maximum) = maximum_result {
+            let history = super::AsyncRunHistory::new(maximum);
+            let clone = history.clone();
+            let empty = history.snapshot().await;
+            assert_eq!(usize::from(empty.report_count()), constants_usize::ZERO);
+            assert_eq!(empty.latest_report(), None);
+            history.push(1u8).await;
+            let first = clone.snapshot().await;
+            assert_eq!(first.latest_report(), Some(&1u8));
+            assert_eq!(usize::from(first.report_count()), constants_usize::ONE);
+            clone.push(2u8).await;
+            history.push(3u8).await;
+            let latest = clone.snapshot().await;
+            assert_eq!(latest.latest_report(), Some(&3u8));
+            assert_eq!(usize::from(latest.report_count()), constants_usize::TWO);
+            assert!(history.reports.read().await.iter().copied().eq([2u8, 3u8]));
+            assert_eq!(first.latest_report(), Some(&1u8));
+            assert_eq!(empty.latest_report(), None);
+        }
+    }
 }

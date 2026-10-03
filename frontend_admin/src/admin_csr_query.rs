@@ -70,19 +70,16 @@ impl AdminCsrQuery {
             .map_err(|_error| crate::admin_table_load_error::AdminTableLoadError::Fetch)?;
         let admin_page_path_ref =
             server_admin_contract::admin_page_path_ref::AdminPagePathRef::from(pathname.as_str());
-        let params =
-            if server_admin_contract::admin_data_table::AdminDataTable::from_frontend_path(
+        let params = if bool::from(
+            server_admin_contract::admin_path_uses_table_query::admin_path_uses_table_query(
                 admin_page_path_ref,
-            )
-            .is_some()
-                || server_admin_contract::admin_page::AdminPage::from_path(admin_page_path_ref)
-                    .is_some_and(|admin_page| bool::from(admin_page.uses_table_query()))
-            {
-                web_sys::UrlSearchParams::new_with_str(&search)
-            } else {
-                web_sys::UrlSearchParams::new()
-            }
-            .map_err(|_error| crate::admin_table_load_error::AdminTableLoadError::Fetch)?;
+            ),
+        ) {
+            web_sys::UrlSearchParams::new_with_str(&search)
+        } else {
+            web_sys::UrlSearchParams::new()
+        }
+        .map_err(|_error| crate::admin_table_load_error::AdminTableLoadError::Fetch)?;
         if [
             constants_str::ADMIN_DIRECTION_QUERY_KEY,
             constants_str::ADMIN_FILTER_END_QUERY_KEY,

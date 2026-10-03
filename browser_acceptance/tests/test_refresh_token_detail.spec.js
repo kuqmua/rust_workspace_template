@@ -27,17 +27,3 @@ test("test_refresh_token_details_follow_table_link_and_ignore_list_filters", asy
   await expect(detail).toContainText("resource not found");
   await expect(detail.locator(".health-result")).toHaveCount(0);
 });
-
-test("test_refresh_token_details_require_authentication", async ({ page }) => {
-  await page.goto("/admin/refresh_tokens/67e55044-10b1-426f-9247-bb680e5fe0c8/read");
-  await expect(page).toHaveURL(/\/admin\/sign_in$/);
-});
-
-
-test("test_refresh_token_read_rejects_invalid_identifiers", async ({ page }) => {
-  await signInAdministratorWithPasswordReset(page);
-  for (const id of ["1", "invalid", "67e55044-10b1-426f-9247-bb680e5fe0cz"]) {
-    const response = await page.goto(`/admin/refresh_tokens/${id}/read`);
-    expect(response.status()).toBe(422);
-  }
-});

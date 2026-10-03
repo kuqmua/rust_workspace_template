@@ -1,5 +1,107 @@
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn test_openapi_route_catalog_reports_missing_sections_and_unused_schema_name() {
+        let missing_paths =
+            serde_json::json!({ constants_str::COMPONENTS: { constants_str::SCHEMAS: {} } });
+        assert!(matches!(
+            crate::validate_openapi_contract::validate_openapi_contract(
+                &missing_paths,
+                (&[][..]).into()
+            ),
+            Err(crate::open_api_validation_error::OpenApiValidationError::MissingPaths)
+        ));
+        let missing_schemas = serde_json::json!({ constants_str::PATHS: {} });
+        assert!(matches!(
+            crate::validate_openapi_contract::validate_openapi_contract(
+                &missing_schemas,
+                (&[][..]).into()
+            ),
+            Err(crate::open_api_validation_error::OpenApiValidationError::MissingSchemas)
+        ));
+        let unused_schema = serde_json::json!({
+            constants_str::PATHS: {},
+            constants_str::COMPONENTS: { constants_str::SCHEMAS: { constants_str::TEST_OPENAPI_SCHEMA: {} } }
+        });
+        assert!(crate::validate_openapi_contract::validate_openapi_contract(&unused_schema, (&[][..]).into()).is_err_and(|error| matches!(error, crate::open_api_validation_error::OpenApiValidationError::UnusedSchema(name) if name.as_ref() == constants_str::TEST_OPENAPI_SCHEMA)));
+    }
+
+    #[test]
+    fn test_openapi_route_catalog_mismatches_preserve_method_path_and_identifiers() {
+        let document_for_identifier = |operation_id| {
+            serde_json::json!({
+                constants_str::PATHS: { constants_str::TEST_OPENAPI_PATH: { constants_str::GET_LOWERCASE: { constants_str::OPERATION_ID_JSON: operation_id } } },
+                constants_str::COMPONENTS: { constants_str::SCHEMAS: {} }
+            })
+        };
+        let route = frontend_contract::route_metadata::RouteMetadata::new(
+            frontend_contract::route_method::RouteMethod::Get,
+            constants_str::TEST_OPENAPI_OPERATION_ID.into(),
+            constants_str::TEST_OPENAPI_PATH.into(),
+        );
+        let undocumented = serde_json::json!({ constants_str::PATHS: {}, constants_str::COMPONENTS: { constants_str::SCHEMAS: {} } });
+        assert!(crate::validate_openapi_contract::validate_openapi_contract(&undocumented, [route].as_slice().into()).is_err_and(|error| matches!(error,
+            crate::open_api_validation_error::OpenApiValidationError::RuntimeRouteMissing(method, path)
+            if method.as_ref() == constants_str::GET && path.as_ref() == constants_str::TEST_OPENAPI_PATH
+        )));
+        let mismatched = document_for_identifier(constants_str::X);
+        assert!(crate::validate_openapi_contract::validate_openapi_contract(&mismatched, [route].as_slice().into()).is_err_and(|error| matches!(error,
+            crate::open_api_validation_error::OpenApiValidationError::OperationIdMismatch(method, path, expected, observed)
+            if method.as_ref() == constants_str::GET && path.as_ref() == constants_str::TEST_OPENAPI_PATH
+                && expected.as_ref() == constants_str::TEST_OPENAPI_OPERATION_ID && observed.as_ref() == constants_str::X
+        )));
+        let undocumented_runtime =
+            document_for_identifier(constants_str::TEST_OPENAPI_OPERATION_ID);
+        assert!(crate::validate_openapi_contract::validate_openapi_contract(&undocumented_runtime, (&[][..]).into()).is_err_and(|error| matches!(error,
+            crate::open_api_validation_error::OpenApiValidationError::OpenApiRouteMissing(method, path)
+            if method.as_ref() == constants_str::GET && path.as_ref() == constants_str::TEST_OPENAPI_PATH
+        )));
+    }
+
+    #[test]
+    fn test_openapi_route_contract_preserves_document_serialization_diagnostic() {
+        let document = std::collections::BTreeMap::from([([1u8, 2u8], 3u8)]);
+        let expected_diagnostic = serde_json::to_value(&document)
+            .err()
+            .map(|error| error.to_string());
+        assert!(expected_diagnostic.is_some());
+        assert!(
+            crate::validate_openapi_contract::validate_openapi_contract(
+                &document,
+                (&[][..]).into()
+            )
+            .is_err_and(|error| {
+                let crate::open_api_validation_error::OpenApiValidationError::DocumentSerialization(
+                    source,
+                ) = error
+                else {
+                    return false;
+                };
+                Some(source.to_string()) == expected_diagnostic
+            })
+        );
+    }
+
+    #[test]
+    fn test_openapi_route_contract_missing_operation_identifiers_preserve_method_and_path() {
+        assert!([
+            serde_json::json!({}),
+            serde_json::json!({ constants_str::OPERATION_ID_JSON: null }),
+            serde_json::json!({ constants_str::OPERATION_ID_JSON: 1u8 }),
+            serde_json::json!(null),
+        ].into_iter().all(|operation| {
+            let document = serde_json::json!({
+                constants_str::PATHS: { constants_str::TEST_OPENAPI_PATH: { constants_str::GET_LOWERCASE: operation } },
+                constants_str::COMPONENTS: { constants_str::SCHEMAS: {} }
+            });
+            crate::validate_openapi_contract::validate_openapi_contract(&document, (&[][..]).into())
+                .is_err_and(|error| matches!(error,
+                    crate::open_api_validation_error::OpenApiValidationError::MissingOperationId(method, path)
+                    if method.as_ref() == constants_str::GET_LOWERCASE && path.as_ref() == constants_str::TEST_OPENAPI_PATH
+                ))
+        }));
+    }
+
     fn test_drop_nested_json_values<Values>(values: Values)
     where
         Values: IntoIterator<Item = serde_json::Value>,
@@ -613,6 +715,53 @@ mod tests {
                     crate::open_api_schema_mismatch::OpenApiSchemaMismatch::RequiredProperty
                 )
             )
+        ));
+    }
+    #[test]
+    fn test_schema_reference_validation_requires_object_schema_catalog() {
+        [
+            serde_json::json!({}),
+            serde_json::json!({constants_str::COMPONENTS: {}}),
+            serde_json::json!({constants_str::COMPONENTS: {constants_str::SCHEMAS: null}}),
+            serde_json::json!({constants_str::COMPONENTS: {constants_str::SCHEMAS: []}}),
+        ]
+        .into_iter()
+        .fold((), |(), document| {
+            assert!(matches!(
+                crate::validate_openapi_schema_references::validate_openapi_schema_references(
+                    &document
+                ),
+                Err(crate::open_api_validation_error::OpenApiValidationError::MissingSchemas)
+            ));
+        });
+    }
+
+    #[test]
+    fn test_schema_reference_validation_reports_document_serialization_error() {
+        let document = std::collections::BTreeMap::from([([1u8, 2u8], 3u8)]);
+        assert!(matches!(
+            crate::validate_openapi_schema_references::validate_openapi_schema_references(
+                &document
+            ),
+            Err(crate::open_api_validation_error::OpenApiValidationError::DocumentSerialization(_))
+        ));
+    }
+
+    #[test]
+    fn test_schema_reference_validation_ignores_external_and_non_string_references() {
+        let document = serde_json::json!({
+            constants_str::COMPONENTS: {constants_str::SCHEMAS: {}},
+            constants_str::ITEMS: [
+                {constants_str::DOLLAR_REF: constants_str::HTTPS_ADMIN_EXAMPLE_COM},
+                {constants_str::DOLLAR_REF: 1u8},
+                {constants_str::DOLLAR_REF: null},
+            ],
+        });
+        assert!(matches!(
+            crate::validate_openapi_schema_references::validate_openapi_schema_references(
+                &document
+            ),
+            Ok(())
         ));
     }
 }

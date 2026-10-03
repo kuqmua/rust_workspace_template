@@ -61,4 +61,53 @@ mod tests {
             2usize
         );
     }
+    #[test]
+    fn test_snapshot_without_dynamic_fields_preserves_nested_values() {
+        let payload = serde_json::json!({
+            constants_str::TEST_JSON_REQUEST_ID: constants_str::TEST_JSON_FIRST,
+            constants_str::ITEMS: [null, true, 1i32, { constants_str::TEST_JSON_REQUEST_ID: constants_str::TEST_JSON_SECOND }],
+        });
+        assert!(
+            crate::canonical_json_contract_snapshot::canonical_json_contract_snapshot(
+                &payload,
+                &[]
+            )
+            .is_ok_and(|snapshot| serde_json::from_str::<serde_json::Value>(
+                snapshot.as_ref()
+            )
+            .is_ok_and(|decoded| decoded == payload))
+        );
+    }
+
+    #[test]
+    fn test_snapshot_preserves_serialization_failure_category() {
+        let payload = std::collections::BTreeMap::from([([1u8, 2u8], 3u8)]);
+        assert_eq!(
+            crate::canonical_json_contract_snapshot::canonical_json_contract_snapshot(
+                &payload,
+                &[]
+            ),
+            Err(crate::json_contract_snapshot_error::JsonContractSnapshotError::Serialization),
+        );
+    }
+
+    #[test]
+    fn test_snapshot_size_bound_includes_json_string_delimiters() {
+        let maximum = constants_usize::VALUE_1_048_576;
+        let fitting = constants_str::X.repeat(maximum - constants_usize::TWO);
+        assert!(
+            crate::canonical_json_contract_snapshot::canonical_json_contract_snapshot(
+                &fitting,
+                &[]
+            )
+            .is_ok_and(|snapshot| snapshot.as_ref().len() == maximum)
+        );
+        let oversized = constants_str::X.repeat(maximum - constants_usize::ONE);
+        assert!(crate::canonical_json_contract_snapshot::canonical_json_contract_snapshot(&oversized, &[])
+            .is_err_and(|error| matches!(error,
+                crate::json_contract_snapshot_error::JsonContractSnapshotError::TooLong(
+                    bounded_types::bounded_string_error::BoundedStringError::AboveMaximum { actual_length, maximum_length }
+                ) if actual_length.get() == maximum + constants_usize::ONE && maximum_length.get() == maximum
+            )));
+    }
 }

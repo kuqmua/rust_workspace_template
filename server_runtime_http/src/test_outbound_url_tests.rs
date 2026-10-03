@@ -1,5 +1,108 @@
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn test_outbound_control_bytes_are_rejected_before_other_url_errors() {
+        assert!([0u8, 10u8, 13u8].into_iter().all(|byte| {
+            let encoded = format!("%{byte:02x}");
+            [
+                char::from(byte).to_string(),
+                encoded.clone(),
+                encoded.to_ascii_uppercase(),
+            ]
+            .into_iter()
+            .all(|control| {
+                [
+                    constants_str::X.to_owned(),
+                    format!("{}/", constants_str::TEST_PUBLIC_HTTPS_URL),
+                    format!(
+                        "{}?{}=",
+                        constants_str::TEST_PUBLIC_HTTPS_URL,
+                        constants_str::X
+                    ),
+                    format!("{}#", constants_str::TEST_PUBLIC_HTTPS_URL),
+                    constants_str::TEST_URL_WITH_CREDENTIALS.to_owned(),
+                ]
+                .into_iter()
+                .all(|prefix| {
+                    let text = format!("{prefix}{control}");
+                    matches!(
+                        POLICY.validate(text.as_str().into()),
+                        Err(crate::outbound_url_error::OutboundUrlError::ControlCharacter)
+                    )
+                })
+            })
+        }));
+    }
+
+    #[test]
+    fn test_outbound_policy_distinguishes_parse_scheme_and_missing_host_errors() {
+        assert!(matches!(
+            POLICY.validate(constants_str::X.into()),
+            Err(crate::outbound_url_error::OutboundUrlError::Invalid)
+        ));
+        let no_schemes = crate::outbound_url_policy::OutboundUrlPolicy::new(
+            &[],
+            crate::outbound_host_policy::OutboundHostPolicy::AllowPrivate,
+        );
+        assert!(matches!(
+            no_schemes.validate(constants_str::TEST_PUBLIC_HTTPS_URL.into()),
+            Err(crate::outbound_url_error::OutboundUrlError::Scheme)
+        ));
+        let rtsp_policy = crate::outbound_url_policy::OutboundUrlPolicy::new(
+            &[crate::outbound_url_scheme::OutboundUrlScheme::Rtsp],
+            crate::outbound_host_policy::OutboundHostPolicy::AllowPrivate,
+        );
+        let hostless = format!("{}:{}", constants_str::RTSP, constants_str::X);
+        assert!(matches!(
+            rtsp_policy.validate(hostless.as_str().into()),
+            Err(crate::outbound_url_error::OutboundUrlError::MissingHost)
+        ));
+    }
+
+    #[test]
+    fn test_outbound_policy_accepts_all_registered_schemes_when_private_hosts_allowed() {
+        let policy = crate::outbound_url_policy::OutboundUrlPolicy::new(
+            &[
+                crate::outbound_url_scheme::OutboundUrlScheme::Http,
+                crate::outbound_url_scheme::OutboundUrlScheme::Https,
+                crate::outbound_url_scheme::OutboundUrlScheme::Rtsp,
+                crate::outbound_url_scheme::OutboundUrlScheme::Rtsps,
+            ],
+            crate::outbound_host_policy::OutboundHostPolicy::AllowPrivate,
+        );
+        assert!(
+            [
+                (
+                    constants_str::HTTP,
+                    crate::outbound_url_scheme::OutboundUrlScheme::Http
+                ),
+                (
+                    constants_str::HTTPS,
+                    crate::outbound_url_scheme::OutboundUrlScheme::Https
+                ),
+                (
+                    constants_str::RTSP,
+                    crate::outbound_url_scheme::OutboundUrlScheme::Rtsp
+                ),
+                (
+                    constants_str::RTSPS,
+                    crate::outbound_url_scheme::OutboundUrlScheme::Rtsps
+                ),
+            ]
+            .into_iter()
+            .all(|(scheme, expected)| {
+                let text = format!(
+                    "{scheme}{}{}",
+                    constants_str::TEXT_ALT_10,
+                    constants_str::LOCALHOST
+                );
+                policy.validate(text.as_str().into()).is_ok_and(|url| {
+                    url.scheme() == expected && url.host_str() == Some(constants_str::LOCALHOST)
+                })
+            })
+        );
+    }
+
     const POLICY: crate::outbound_url_policy::OutboundUrlPolicy =
         crate::outbound_url_policy::OutboundUrlPolicy::new(
             &[

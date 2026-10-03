@@ -171,3 +171,6 @@ pub mod utoipa_open_api_route_schema;
 pub mod validate_route_coverage;
 pub mod value_example;
 pub mod value_format;
+
+#[cfg(test)]
+mod test_transport_header_bounds;

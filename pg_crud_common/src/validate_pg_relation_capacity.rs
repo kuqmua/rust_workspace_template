@@ -51,4 +51,46 @@ mod tests {
             Err(crate::pg_relation_capacity_error::PgRelationCapacityError::Overflow)
         );
     }
+    #[test]
+    fn test_relation_capacity_preserves_empty_and_maximum_counts() {
+        let maximum = crate::pg_relation_capacity_maximum::PgRelationCapacityMaximum::from(
+            std::num::NonZeroU64::MAX,
+        );
+        assert_eq!(
+            crate::validate_pg_relation_capacity::validate_pg_relation_capacity(
+                0u64.into(),
+                0u64.into(),
+                maximum
+            ),
+            Ok(crate::pg_relation_row_count::PgRelationRowCount::from(0u64))
+        );
+        assert_eq!(
+            crate::validate_pg_relation_capacity::validate_pg_relation_capacity(
+                u64::MAX.into(),
+                0u64.into(),
+                maximum
+            ),
+            Ok(crate::pg_relation_row_count::PgRelationRowCount::from(
+                u64::MAX
+            ))
+        );
+        assert_eq!(
+            crate::validate_pg_relation_capacity::validate_pg_relation_capacity(
+                0u64.into(),
+                u64::MAX.into(),
+                maximum
+            ),
+            Ok(crate::pg_relation_row_count::PgRelationRowCount::from(
+                u64::MAX
+            ))
+        );
+        assert_eq!(
+            crate::validate_pg_relation_capacity::validate_pg_relation_capacity(
+                u64::MAX.into(),
+                1u64.into(),
+                maximum
+            ),
+            Err(crate::pg_relation_capacity_error::PgRelationCapacityError::Overflow)
+        );
+    }
 }

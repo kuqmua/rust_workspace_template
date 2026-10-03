@@ -26,6 +26,36 @@ impl FrontendDependencyInputs {
 #[cfg(test)]
 mod tests {
     #[test]
+    fn test_dependency_fingerprint_distinguishes_input_boundaries() {
+        let longer = constants_str::X.repeat(2usize);
+        let empty = String::default();
+        let fingerprints = [
+            [constants_str::X, longer.as_str(), empty.as_str()],
+            [longer.as_str(), constants_str::X, empty.as_str()],
+        ]
+        .into_iter()
+        .map(|[manifest, lock, version]| {
+            let package_manifest = crate::bounded_text::BoundedText::try_from(manifest.to_owned())?;
+            let package_lock = crate::bounded_text::BoundedText::try_from(lock.to_owned())?;
+            let node_version = crate::bounded_text::BoundedText::try_from(version.to_owned())?;
+            Ok::<_, crate::bounded_read_error::BoundedReadError>(
+                crate::frontend_dependency_inputs::FrontendDependencyInputs::new(
+                    package_manifest,
+                    package_lock,
+                    node_version,
+                )
+                .fingerprint(),
+            )
+        })
+        .collect::<Result<Vec<_>, _>>();
+        assert!(fingerprints.is_ok_and(|values| {
+            values
+                .windows(2usize)
+                .all(|pair| matches!(pair, [first, second] if first != second))
+        }));
+    }
+
+    #[test]
     #[allow(
         clippy::panic_in_result_fn,
         clippy::needless_for_each,

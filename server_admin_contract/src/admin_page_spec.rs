@@ -72,3 +72,66 @@ impl AdminPageSpec {
         })
     }
 }
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn test_page_catalog_titles_match_every_registered_page() {
+        let cases = [
+            (
+                crate::admin_page::AdminPage::Health,
+                constants_str::ADMIN_UI_HEALTH,
+            ),
+            (
+                crate::admin_page::AdminPage::Branding,
+                constants_str::ADMIN_UI_BRANDING,
+            ),
+            (
+                crate::admin_page::AdminPage::Users,
+                constants_str::ADMIN_UI_USERS,
+            ),
+            (
+                crate::admin_page::AdminPage::Roles,
+                constants_str::ADMIN_UI_ROLES,
+            ),
+            (
+                crate::admin_page::AdminPage::Rules,
+                constants_str::ADMIN_UI_RULES,
+            ),
+            (
+                crate::admin_page::AdminPage::Settings,
+                constants_str::ADMIN_UI_SETTINGS,
+            ),
+            (
+                crate::admin_page::AdminPage::Tables,
+                constants_str::ADMIN_UI_TABLES,
+            ),
+            (
+                crate::admin_page::AdminPage::Sessions,
+                constants_str::ADMIN_UI_SESSIONS,
+            ),
+            (
+                crate::admin_page::AdminPage::Metrics,
+                constants_str::ADMIN_UI_METRICS,
+            ),
+            (
+                crate::admin_page::AdminPage::Version,
+                constants_str::ADMIN_UI_VERSION,
+            ),
+            (
+                crate::admin_page::AdminPage::Profile,
+                constants_str::ADMIN_UI_PROFILE,
+            ),
+            (
+                crate::admin_page::AdminPage::OpenApi,
+                constants_str::ADMIN_UI_API,
+            ),
+        ];
+        assert_eq!(crate::admin_page::AdminPage::specs().len(), cases.len());
+        assert!(cases.into_iter().all(|(page, expected_title)| {
+            page.spec().title().as_ref() == expected_title
+                && page.title().as_ref() == expected_title
+                && page.spec().page() == page
+        }));
+    }
+}

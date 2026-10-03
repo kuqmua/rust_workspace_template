@@ -45,4 +45,56 @@ mod tests {
             Err(crate::data_invariant_violation::DataInvariantViolation::PaginationTotalChanged)
         );
     }
+    #[test]
+    fn test_pagination_accepts_disjoint_and_empty_pages() {
+        assert_eq!(
+            crate::validate_pagination_invariants::validate_pagination_invariants(
+                &[1u8, 2u8],
+                4usize.into(),
+                &[3u8, 4u8],
+                4usize.into()
+            ),
+            Ok(())
+        );
+        assert_eq!(
+            crate::validate_pagination_invariants::validate_pagination_invariants(
+                &[0u8; 0],
+                0usize.into(),
+                &[],
+                0usize.into()
+            ),
+            Ok(())
+        );
+        assert_eq!(
+            crate::validate_pagination_invariants::validate_pagination_invariants(
+                &[1u8],
+                1usize.into(),
+                &[],
+                1usize.into()
+            ),
+            Ok(())
+        );
+        assert_eq!(
+            crate::validate_pagination_invariants::validate_pagination_invariants(
+                &[],
+                1usize.into(),
+                &[1u8],
+                1usize.into()
+            ),
+            Ok(())
+        );
+    }
+
+    #[test]
+    fn test_changed_pagination_total_precedes_overlapping_items() {
+        assert_eq!(
+            crate::validate_pagination_invariants::validate_pagination_invariants(
+                &[1u8],
+                1usize.into(),
+                &[1u8],
+                2usize.into()
+            ),
+            Err(crate::data_invariant_violation::DataInvariantViolation::PaginationTotalChanged)
+        );
+    }
 }

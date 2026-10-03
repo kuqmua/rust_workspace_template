@@ -243,3 +243,196 @@ impl axum::response::IntoResponse for crate::admin_error::AdminError {
         )
     }
 }
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn test_admin_observed_error_codes_preserve_source_kind() {
+        let cases = [
+            (
+                super::AdminObservedErrorCode::AuthenticationSecretText,
+                constants_str::ADMIN_OBSERVED_ERROR_AUTH_SECRET_TEXT,
+            ),
+            (
+                super::AdminObservedErrorCode::CsrfSecretText,
+                constants_str::ADMIN_OBSERVED_ERROR_CSRF_SECRET_TEXT,
+            ),
+            (
+                super::AdminObservedErrorCode::Collection,
+                constants_str::ADMIN_OBSERVED_ERROR_COLLECTION,
+            ),
+            (
+                super::AdminObservedErrorCode::Database,
+                constants_str::ADMIN_OBSERVED_ERROR_DATABASE,
+            ),
+            (
+                super::AdminObservedErrorCode::Header,
+                constants_str::ADMIN_OBSERVED_ERROR_RESPONSE_HEADER,
+            ),
+            (
+                super::AdminObservedErrorCode::PasswordHash,
+                constants_str::ADMIN_OBSERVED_ERROR_PASSWORD_HASH,
+            ),
+            (
+                super::AdminObservedErrorCode::PasswordText,
+                constants_str::ADMIN_OBSERVED_ERROR_PASSWORD_TEXT,
+            ),
+            (
+                super::AdminObservedErrorCode::SecretText,
+                constants_str::ADMIN_OBSERVED_ERROR_SECRET_TEXT,
+            ),
+            (
+                super::AdminObservedErrorCode::Session,
+                constants_str::ADMIN_OBSERVED_ERROR_SESSION,
+            ),
+        ];
+        assert!(cases.into_iter().all(|(code, expected)| {
+            let source = std::io::Error::from(std::io::ErrorKind::InvalidData);
+            let observed = crate::admin_error::AdminError::observed(source, code);
+            observed.error_code()
+                == server_observability::observed_error_code::ObservedErrorCode::from(expected)
+                && observed.source_ref().kind() == std::io::ErrorKind::InvalidData
+        }));
+    }
+    #[test]
+    fn test_admin_plain_errors_map_to_route_statuses() {
+        let cases = [
+            (
+                crate::admin_error::AdminError::Authentication,
+                frontend_contract::route_error_status::RouteErrorStatus::Authentication,
+            ),
+            (
+                crate::admin_error::AdminError::Authorization,
+                frontend_contract::route_error_status::RouteErrorStatus::Authorization,
+            ),
+            (
+                crate::admin_error::AdminError::Csrf,
+                frontend_contract::route_error_status::RouteErrorStatus::Authorization,
+            ),
+            (
+                crate::admin_error::AdminError::Conflict,
+                frontend_contract::route_error_status::RouteErrorStatus::Conflict,
+            ),
+            (
+                crate::admin_error::AdminError::MethodNotAllowed,
+                frontend_contract::route_error_status::RouteErrorStatus::MethodNotAllowed,
+            ),
+            (
+                crate::admin_error::AdminError::PayloadTooLarge,
+                frontend_contract::route_error_status::RouteErrorStatus::PayloadTooLarge,
+            ),
+            (
+                crate::admin_error::AdminError::RateLimited,
+                frontend_contract::route_error_status::RouteErrorStatus::RateLimited,
+            ),
+            (
+                crate::admin_error::AdminError::Validation,
+                frontend_contract::route_error_status::RouteErrorStatus::Validation,
+            ),
+        ];
+        assert!(
+            cases
+                .into_iter()
+                .all(|(error, expected)| error.route_error_status() == expected)
+        );
+    }
+
+    #[test]
+    fn test_admin_secret_error_status_depends_on_operation() {
+        let source = crate::admin_secret_text_error::AdminSecretTextError::ContainsNul;
+        let cases = [
+            (
+                crate::admin_error::AdminError::authentication_secret_text(source),
+                frontend_contract::route_error_status::RouteErrorStatus::Authentication,
+                constants_str::ADMIN_OBSERVED_ERROR_AUTH_SECRET_TEXT,
+            ),
+            (
+                crate::admin_error::AdminError::csrf_secret_text(source),
+                frontend_contract::route_error_status::RouteErrorStatus::Authorization,
+                constants_str::ADMIN_OBSERVED_ERROR_CSRF_SECRET_TEXT,
+            ),
+            (
+                crate::admin_error::AdminError::secret_text(source),
+                frontend_contract::route_error_status::RouteErrorStatus::Validation,
+                constants_str::ADMIN_OBSERVED_ERROR_SECRET_TEXT,
+            ),
+        ];
+        assert!(cases.into_iter().all(|(error, status, code)| {
+            if error.route_error_status() != status {
+                return false;
+            }
+            match error {
+                crate::admin_error::AdminError::AuthenticationSecretText(observed)
+                | crate::admin_error::AdminError::CsrfSecretText(observed)
+                | crate::admin_error::AdminError::SecretText(observed) => {
+                    observed.error_code()
+                        == server_observability::observed_error_code::ObservedErrorCode::from(code)
+                        && *observed.source_ref() == source
+                }
+                crate::admin_error::AdminError::Authentication
+                | crate::admin_error::AdminError::Authorization
+                | crate::admin_error::AdminError::Conflict
+                | crate::admin_error::AdminError::Csrf
+                | crate::admin_error::AdminError::RateLimited
+                | crate::admin_error::AdminError::Validation
+                | crate::admin_error::AdminError::ValidationCollection(_)
+                | crate::admin_error::AdminError::Pg(_)
+                | crate::admin_error::AdminError::PasswordHash(_)
+                | crate::admin_error::AdminError::PasswordText(_)
+                | crate::admin_error::AdminError::PayloadTooLarge
+                | crate::admin_error::AdminError::MethodNotAllowed
+                | crate::admin_error::AdminError::Session(_)
+                | crate::admin_error::AdminError::Header(_) => false,
+            }
+        }));
+    }
+
+    #[test]
+    fn test_admin_body_rejection_distinguishes_payload_limit() {
+        assert!(matches!(
+            crate::admin_error::AdminError::body_rejection(true.into()),
+            crate::admin_error::AdminError::PayloadTooLarge
+        ));
+        assert!(matches!(
+            crate::admin_error::AdminError::body_rejection(false.into()),
+            crate::admin_error::AdminError::Validation
+        ));
+    }
+    #[test]
+    fn test_admin_infrastructure_errors_map_to_internal_status() {
+        let errors = [
+            crate::admin_error::AdminError::from(sqlx::Error::RowNotFound),
+            crate::admin_error::AdminError::session(
+                crate::admin_session_error::AdminSessionError::SystemClock,
+            ),
+            crate::admin_error::AdminError::password_hash(
+                crate::admin_password_hash_error::AdminPasswordHashError::BoundedText(
+                    bounded_types::bounded_string_error::BoundedStringError::AboveMaximum {
+                        actual_length: 2usize.into(),
+                        maximum_length: 1usize.into(),
+                    },
+                ),
+            ),
+        ];
+        assert!(errors.into_iter().all(|error| error.route_error_status()
+            == frontend_contract::route_error_status::RouteErrorStatus::Internal));
+        assert!(
+            http::HeaderValue::from_bytes(constants_str::NEWLINE.as_bytes()).is_err_and(|source| {
+                crate::admin_error::AdminError::header(
+                    crate::http_admin_header_value_error::HttpAdminHeaderValueError::from(source),
+                )
+                .route_error_status()
+                    == frontend_contract::route_error_status::RouteErrorStatus::Internal
+            })
+        );
+    }
+    #[test]
+    fn test_admin_typed_validation_errors_map_to_validation_status() {
+        let errors = [
+            crate::admin_error::AdminError::password_text(crate::admin_password_try_from_string_error::AdminPasswordTryFromStringError::InvalidLength),
+            crate::admin_error::AdminError::validation_collection(server_admin_contract::admin_collection_error::AdminCollectionError::TooLong(bounded_types::bounded_value_error::BoundedValueError::AboveMax { actual: 2usize.into(), max: 1usize.into() })),
+        ];
+        assert!(errors.into_iter().all(|error| error.route_error_status()
+            == frontend_contract::route_error_status::RouteErrorStatus::Validation));
+    }
+}

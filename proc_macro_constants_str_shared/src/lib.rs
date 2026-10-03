@@ -564,3 +564,6 @@ pub fn define_git_info_constants(
         .into_compile_error()
     }
 }
+
+#[cfg(test)]
+mod test_string_constant_expansion;

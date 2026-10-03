@@ -29,6 +29,12 @@ pub mod syn_parsed_generate_pg_table_input;
 pub mod syn_validated_generate_pg_table_input;
 pub mod table_test_names;
 #[cfg(test)]
+mod test_config_value_bounds;
+#[cfg(test)]
+mod test_custom_table_annotations;
+#[cfg(test)]
+mod test_frontend_option_values;
+#[cfg(test)]
 pub mod test_pg_crud_pg_table_generate_src;
 pub mod validate_generate_pg_table;
 

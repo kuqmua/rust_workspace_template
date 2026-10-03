@@ -91,3 +91,103 @@ impl AdminTableSortField {
         )
     }
 }
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn test_sort_catalog_preserves_keys_labels_and_table_specific_lookup() {
+        assert!(
+            [
+                (
+                    super::AdminTableSortField::AuditAction,
+                    constants_str::ACTION,
+                    constants_str::SHARED_VALUES_ACTION_2
+                ),
+                (
+                    super::AdminTableSortField::AuditCreatedAt,
+                    constants_str::CREATED_AT,
+                    constants_str::SHARED_VALUES_TIME
+                ),
+                (
+                    super::AdminTableSortField::AuditResource,
+                    constants_str::RESOURCE,
+                    constants_str::SHARED_VALUES_RESOURCE_2
+                ),
+                (
+                    super::AdminTableSortField::AuditSucceeded,
+                    constants_str::SUCCEEDED,
+                    constants_str::RESULT
+                ),
+                (
+                    super::AdminTableSortField::AuditUserId,
+                    constants_str::USER_ID,
+                    constants_str::SHARED_VALUES_USER
+                ),
+                (
+                    super::AdminTableSortField::RuleCreatedAt,
+                    constants_str::CREATED_AT,
+                    constants_str::SHARED_VALUES_TIME
+                ),
+                (
+                    super::AdminTableSortField::RuleId,
+                    constants_str::SQL_NAMES_ID,
+                    constants_str::ID
+                ),
+                (
+                    super::AdminTableSortField::RuleName,
+                    constants_str::NAME,
+                    constants_str::SHARED_VALUES_NAME_2
+                ),
+                (
+                    super::AdminTableSortField::RoleId,
+                    constants_str::SQL_NAMES_ID,
+                    constants_str::ID
+                ),
+                (
+                    super::AdminTableSortField::RoleName,
+                    constants_str::NAME,
+                    constants_str::SHARED_VALUES_NAME_2
+                ),
+                (
+                    super::AdminTableSortField::RoleSystem,
+                    constants_str::SYSTEM,
+                    constants_str::SHARED_VALUES_SYSTEM_2
+                ),
+                (
+                    super::AdminTableSortField::UserDisplayName,
+                    constants_str::DISPLAY_NAME,
+                    constants_str::SHARED_VALUES_DISPLAY_NAME_2
+                ),
+                (
+                    super::AdminTableSortField::UserId,
+                    constants_str::SQL_NAMES_ID,
+                    constants_str::ID
+                ),
+                (
+                    super::AdminTableSortField::UserLogin,
+                    constants_str::LOGIN,
+                    constants_str::SHARED_VALUES_LOGIN_2
+                ),
+                (
+                    super::AdminTableSortField::UserStatus,
+                    constants_str::STATUS_ALT,
+                    constants_str::SHARED_VALUES_STATUS_2
+                ),
+            ]
+            .into_iter()
+            .all(|(field, key, label)| field.key().as_ref() == key
+                && field.label().as_ref() == label)
+        );
+        assert!([
+            super::AdminTableSortField::USER.as_slice(),
+            super::AdminTableSortField::ROLE.as_slice(),
+            super::AdminTableSortField::RULE.as_slice(),
+            super::AdminTableSortField::AUDIT.as_slice(),
+        ].into_iter().all(|options| {
+            options.iter().all(|field| {
+                super::AdminTableSortField::try_from_key(options, crate::admin_table_sort_key_ref::AdminTableSortKeyRef::from(field.key().as_ref())) == Ok(*field)
+            }) && super::AdminTableSortField::try_from_key(options, crate::admin_table_sort_key_ref::AdminTableSortKeyRef::from(constants_str::X)) == Err(crate::admin_table_sort_field_try_from_key_error::AdminTableSortFieldTryFromKeyError::Unknown)
+        }));
+        assert_eq!(super::AdminTableSortField::try_from_key(&[], crate::admin_table_sort_key_ref::AdminTableSortKeyRef::from(constants_str::LOGIN)), Err(crate::admin_table_sort_field_try_from_key_error::AdminTableSortFieldTryFromKeyError::Unknown));
+    }
+}

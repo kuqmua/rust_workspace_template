@@ -28,6 +28,38 @@ mod tests {
         crate::child_process_supervisor::ChildProcessSupervisor::default()
     }
 
+    #[tokio::test(start_paused = true)]
+    async fn test_diagnostic_join_preserves_completed_payload_and_inner_error() {
+        let diagnostic = crate::child_diagnostic::ChildDiagnostic::from(
+            bounded_types::bounded_vec::BoundedVec::from_max_iter(
+                constants_str::X.as_bytes().iter().copied(),
+            ),
+        );
+        let mut successful_task =
+            crate::tokio_child_diagnostic_task::TokioChildDiagnosticTask::from(tokio::spawn(
+                std::future::ready(Ok(diagnostic.clone())),
+            ));
+        let successful_join = crate::join_diagnostic::join_diagnostic(
+            Some(&mut successful_task),
+            diagnostic_join_timeout_fixture(),
+        )
+        .await;
+        assert!(successful_join.is_ok_and(|payload| payload == diagnostic));
+        let mut failed_task = crate::tokio_child_diagnostic_task::TokioChildDiagnosticTask::from(
+            tokio::spawn(std::future::ready(Err(
+                crate::child_process_error::ChildProcessError::DiagnosticRange,
+            ))),
+        );
+        assert!(matches!(
+            crate::join_diagnostic::join_diagnostic(
+                Some(&mut failed_task),
+                diagnostic_join_timeout_fixture(),
+            )
+            .await,
+            Err(crate::child_process_error::ChildProcessError::DiagnosticRange)
+        ));
+    }
+
     #[tokio::test]
     async fn test_process_set_enforces_capacity_and_identifier_overflow() {
         let mut full = crate::child_process_set::ChildProcessSet::new(
@@ -219,5 +251,25 @@ mod tests {
             Ok(value) if value.as_ref() == constants_str::X.as_bytes()
         ));
         assert!(matches!(write_result, Ok(Ok(()))));
+    }
+    #[tokio::test]
+    async fn test_nonempty_process_set_preserves_shutdown_error() {
+        let mut processes = crate::child_process_set::ChildProcessSet::new(
+            crate::child_process_set_maximum_non_zero_usize::ChildProcessSetMaximumNonZeroUsize::from(std::num::NonZeroUsize::MIN),
+        );
+        assert!(matches!(
+            processes.insert(empty_supervisor()),
+            Ok(crate::child_process_id::ChildProcessId { .. })
+        ));
+        assert!(matches!(
+            processes
+                .shutdown_all(diagnostic_join_timeout_fixture())
+                .await,
+            Err(
+                crate::child_process_set_error::ChildProcessSetError::Process(
+                    crate::child_process_error::ChildProcessError::MissingChild
+                )
+            )
+        ));
     }
 }

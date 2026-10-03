@@ -615,4 +615,33 @@ mod tests {
         assert_eq!(format!("{borrowed:?}"), constants_str::REDACTED_ALT_3);
         assert_eq!(borrowed.as_ref(), constants_str::SECRET_VALUE);
     }
+    #[test]
+    fn test_generated_secret_text_validates_utf8_byte_bounds_and_keeps_debug_redacted() {
+        let maximum = 1_048_576usize;
+        let cases = [
+            String::new(),
+            constants_str::X.repeat(maximum),
+            '\u{00e9}'.to_string().repeat(524_288usize),
+            constants_str::X.repeat(maximum + 1usize),
+            '\u{00e9}'.to_string().repeat(524_288usize + 1usize),
+        ];
+        assert!(cases.into_iter().all(|value| {
+            let byte_length = value.len();
+            match pg_types_text_misc::generate_pg_types_mod::StringAsNonNullTextSecret::try_from(value) {
+                Ok(secret) => {
+                    let borrowed = pg_types_text_misc::generate_pg_types_mod::StringAsNonNullTextSecretRef::from(&secret);
+                    byte_length <= maximum
+                        && secret.as_ref().len() == byte_length
+                        && borrowed.as_ref() == secret.as_ref()
+                        && format!("{secret:?}") == constants_str::REDACTED_ALT_3
+                        && format!("{borrowed:?}") == constants_str::REDACTED_ALT_3
+                }
+                Err(error) => {
+                    byte_length > maximum
+                        && error.to_string().contains(&byte_length.to_string())
+                        && error.to_string().contains(&maximum.to_string())
+                }
+            }
+        }));
+    }
 }

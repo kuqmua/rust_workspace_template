@@ -1,58 +1,90 @@
 #[cfg(test)]
 mod tests {
     #[test]
-    #[cfg_attr(
-        miri,
-        ignore = "native TLS initialization calls OpenSSL functions that Miri does not support"
-    )]
-    fn test_validates_and_applies_w3c_trace_context() {
-        let trace_parent = crate::http_trace_parent::HttpTraceParent::try_from(
-            constants_str::TRACEPARENT_TEST_VALUE.to_owned(),
-        )
-        .expect(constants_str::DIAGNOSTIC_6B490BF8);
-        let trace_state = crate::http_trace_state::HttpTraceState::try_from(
-            constants_str::TRACESTATE_TEST_VALUE.to_owned(),
-        )
-        .expect(constants_str::DIAGNOSTIC_B82FB9EF);
-        let request_id =
-            crate::request_id::RequestId::try_from(constants_str::REQUEST_ID_TEST_VALUE.to_owned())
-                .expect(constants_str::DIAGNOSTIC_50C01EA8);
-        let client = crate::reqwest_client::ReqwestClient::try_new(
-            crate::reqwest_client_policy::ReqwestClientPolicy::new(
-                crate::reqwest_connect_timeout_duration::ReqwestConnectTimeoutDuration::try_from(
-                    std::time::Duration::from_secs(1u64),
-                )
-                .expect(constants_str::DIAGNOSTIC_CE032A9F),
-                crate::reqwest_request_timeout_duration::ReqwestRequestTimeoutDuration::try_from(
-                    std::time::Duration::from_secs(2u64),
-                )
-                .expect(constants_str::DIAGNOSTIC_A1DABED3),
-                crate::outbound_host_policy::OutboundHostPolicy::AllowPrivate,
-            ),
-        )
-        .expect(constants_str::DIAGNOSTIC_8DED9D63);
-        let request_builder: reqwest::RequestBuilder =
-            crate::outbound_trace_context::OutboundTraceContext::new(
-                trace_parent,
-                Some(trace_state),
-                Some(request_id),
-            )
-            .apply(
-                reqwest::Client::from(client)
-                    .get(constants_str::HTTPS_EXAMPLE_COM)
-                    .into(),
-            )
-            .into();
-        let request = request_builder
-            .build()
-            .expect(constants_str::DIAGNOSTIC_1574578F);
+    fn test_trace_state_ascii_character_policy_preserves_printable_text() {
+        assert!((0u8..=127u8).all(|byte| {
+            let text = char::from(byte).to_string();
+            let result = crate::http_trace_state::HttpTraceState::try_from(text.clone());
+            if (32u8..=126u8).contains(&byte) {
+                result.is_ok_and(|http_trace_state| http_trace_state.as_ref() == text)
+            } else {
+                result == Err(crate::http_trace_state_error::HttpTraceStateError::Invalid)
+            }
+        }));
         assert_eq!(
-            request.headers()[constants_str::TRACESTATE],
-            constants_str::TRACESTATE_TEST_VALUE
+            crate::http_trace_state::HttpTraceState::try_from('\u{e9}'.to_string()),
+            Err(crate::http_trace_state_error::HttpTraceStateError::Invalid)
         );
+    }
+
+    #[test]
+    fn test_trace_state_exact_size_limits() {
+        assert!(
+            [0usize, 1usize, 511usize, 512usize, 513usize]
+                .into_iter()
+                .all(|length| {
+                    let text = constants_str::X.repeat(length);
+                    let result = crate::http_trace_state::HttpTraceState::try_from(text.clone());
+                    if (1usize..=512usize).contains(&length) {
+                        result.is_ok_and(|http_trace_state| http_trace_state.as_ref() == text)
+                    } else {
+                        result == Err(crate::http_trace_state_error::HttpTraceStateError::Invalid)
+                    }
+                })
+        );
+    }
+
+    #[test]
+    fn test_trace_parent_rejects_invalid_symbols_at_every_position() {
+        assert!((0usize..55usize).all(|position| {
+            ['A', 'x'].into_iter().all(|symbol| {
+                let mut text = constants_str::TRACEPARENT_TEST_VALUE.to_owned();
+                text.replace_range(
+                    position..position.saturating_add(1usize),
+                    &symbol.to_string(),
+                );
+                crate::http_trace_parent::HttpTraceParent::try_from(text)
+                    == Err(crate::http_trace_parent_error::HttpTraceParentError::Format)
+            })
+        }));
+        assert!([54usize, 56usize].into_iter().all(|length| {
+            let text = constants_str::TRACEPARENT_TEST_VALUE
+                .chars()
+                .chain(std::iter::once('0'))
+                .take(length)
+                .collect::<String>();
+            crate::http_trace_parent::HttpTraceParent::try_from(text)
+                == Err(crate::http_trace_parent_error::HttpTraceParentError::Format)
+        }));
+    }
+
+    #[test]
+    fn test_trace_parent_zero_parent_and_zero_trace_error_precedence() {
+        let mut zero_parent = constants_str::TRACEPARENT_TEST_VALUE.to_owned();
+        zero_parent.replace_range(36usize..52usize, &'0'.to_string().repeat(16usize));
         assert_eq!(
-            request.headers()[constants_str::X_REQUEST_ID],
-            constants_str::REQUEST_ID_TEST_VALUE
+            crate::http_trace_parent::HttpTraceParent::try_from(zero_parent.clone()),
+            Err(crate::http_trace_parent_error::HttpTraceParentError::ZeroParentId)
+        );
+        zero_parent.replace_range(3usize..35usize, &'0'.to_string().repeat(32usize));
+        assert_eq!(
+            crate::http_trace_parent::HttpTraceParent::try_from(zero_parent),
+            Err(crate::http_trace_parent_error::HttpTraceParentError::ZeroTraceId)
+        );
+    }
+
+    #[test]
+    fn test_trace_parent_preserves_every_valid_flag_byte() {
+        assert!(
+            constants_str::TRACEPARENT_TEST_VALUE
+                .get(..53usize)
+                .is_some_and(|prefix| {
+                    (0u16..256u16).all(|flags| {
+                        let text = format!("{prefix}{flags:02x}");
+                        crate::http_trace_parent::HttpTraceParent::try_from(text.clone())
+                            .is_ok_and(|http_trace_parent| http_trace_parent.as_ref() == text)
+                    })
+                })
         );
     }
 

@@ -69,3 +69,46 @@ impl TryFrom<String> for BoundedJsonText {
             .map_err(crate::bounded_json_read_error::BoundedJsonReadError::from_string_bounds)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn test_json_formatting_enforces_output_bounds_after_pretty_expansion() {
+        let maximum = constants_usize::VALUE_16_777_216;
+        assert!([maximum - 4usize, maximum - 3usize, maximum, maximum + 1usize]
+            .into_iter()
+            .all(|length| {
+                let mut text = String::with_capacity(length);
+                text.push('[');
+                text.push('"');
+                text.push_str(&constants_str::X.repeat(length - 4usize));
+                text.push('"');
+                text.push(']');
+                let converted = crate::bounded_json_text::BoundedJsonText::try_from(text);
+                if length > maximum {
+                    return converted.is_err_and(|error| matches!(error,
+                        crate::bounded_json_read_error::BoundedJsonReadError::Read(
+                            crate::bounded_read_error::BoundedReadError::ExceedsMaximum { maximum_bytes }
+                        ) if maximum_bytes.get() == maximum
+                    ));
+                }
+                converted.is_ok_and(|json| {
+                    let compact = json.compact();
+                    let pretty = json.pretty();
+                    compact.is_ok_and(|value| value == json)
+                        && if length == maximum - 4usize {
+                            pretty.is_ok_and(|value| {
+                                value.as_ref().len() == maximum
+                                    && value.compact().is_ok_and(|restored| restored == json)
+                            })
+                        } else {
+                            pretty.is_err_and(|error| matches!(error,
+                                crate::bounded_json_read_error::BoundedJsonReadError::Read(
+                                    crate::bounded_read_error::BoundedReadError::ExceedsMaximum { maximum_bytes }
+                                ) if maximum_bytes.get() == maximum
+                            ))
+                        }
+                })
+            }));
+    }
+}

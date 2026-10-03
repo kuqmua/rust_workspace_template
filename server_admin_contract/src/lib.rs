@@ -324,3 +324,23 @@ mod admin_record_read_path;
 mod admin_session_read_path;
 
 mod admin_record_update_path;
+
+#[cfg(test)]
+mod test_migrated_query_contract;
+
+pub mod admin_path_uses_table_query;
+
+#[cfg(test)]
+mod test_admin_where_many_failures;
+
+#[cfg(test)]
+mod test_admin_role_timestamp_wire;
+
+#[cfg(test)]
+mod test_permission_read_query_adapters;
+
+#[cfg(test)]
+mod test_identifier_collection_contracts;
+
+#[cfg(test)]
+mod test_response_collection_conversions;

@@ -126,4 +126,76 @@ mod tests {
             Some(crate::route_contract_mismatch::RouteContractMismatch::Path { .. })
         ));
     }
+    #[test]
+    fn test_http_fixture_checks_empty_and_json_body_failure_categories() {
+        let metadata = route_validation_metadata(
+            frontend_contract::route_method::RouteMethod::Get,
+            constants_str::ROUTE_READ,
+            constants_str::ROUTE,
+        );
+        assert!(crate::http_contract_status::HttpContractStatus::try_from(200u16).is_ok_and(|status| {
+            [
+                (crate::http_contract_body_kind::HttpContractBodyKind::Empty, constants_str::EMPTY, Ok(())),
+                (crate::http_contract_body_kind::HttpContractBodyKind::Empty, constants_str::X, Err(crate::http_contract_mismatch::HttpContractMismatch::BodyExpectedEmpty)),
+                (crate::http_contract_body_kind::HttpContractBodyKind::Json, constants_str::EMPTY, Err(crate::http_contract_mismatch::HttpContractMismatch::BodyExpectedJson)),
+                (crate::http_contract_body_kind::HttpContractBodyKind::Json, constants_str::X, Err(crate::http_contract_mismatch::HttpContractMismatch::BodyExpectedJson)),
+                (crate::http_contract_body_kind::HttpContractBodyKind::Json, constants_str::VALUE_1, Ok(())),
+                (crate::http_contract_body_kind::HttpContractBodyKind::Json, constants_str::VALUE_4F53CDA1, Ok(())),
+            ].into_iter().all(|(body_kind, text, expected)| {
+                crate::http_contract_body::HttpContractBody::try_from(text.as_bytes().to_vec()).is_ok_and(|body| {
+                    let expectation = crate::http_contract_expectation::HttpContractExpectation::new(metadata, status, body_kind);
+                    let calls = std::cell::Cell::new(0usize);
+                    let observed = futures::executor::block_on(crate::run_http_contract_fixture::run_http_contract_fixture(expectation, |sent_metadata| {
+                        assert_eq!(sent_metadata, metadata);
+                        calls.set(calls.get() + constants_usize::ONE);
+                        std::future::ready(crate::http_contract_observation::HttpContractObservation::new(sent_metadata, status, body))
+                    }));
+                    observed == expected && calls.get() == constants_usize::ONE
+                })
+            })
+        }));
+    }
+
+    #[test]
+    fn test_http_fixture_reports_status_before_body_mismatch() {
+        let metadata = route_validation_metadata(
+            frontend_contract::route_method::RouteMethod::Get,
+            constants_str::ROUTE_READ,
+            constants_str::ROUTE,
+        );
+        assert!(crate::http_contract_status::HttpContractStatus::try_from(200u16).is_ok_and(|expected_status| {
+            crate::http_contract_status::HttpContractStatus::try_from(401u16).is_ok_and(|observed_status| {
+                crate::http_contract_body::HttpContractBody::try_from(constants_str::X.as_bytes().to_vec()).is_ok_and(|body| {
+                    let expectation = crate::http_contract_expectation::HttpContractExpectation::new(metadata, expected_status, crate::http_contract_body_kind::HttpContractBodyKind::Json);
+                    let actual = futures::executor::block_on(crate::run_http_contract_fixture::run_http_contract_fixture(expectation, |sent_metadata| std::future::ready(crate::http_contract_observation::HttpContractObservation::new(sent_metadata, observed_status, body))));
+                    actual == Err(crate::http_contract_mismatch::HttpContractMismatch::Status { expected: expected_status, observed: observed_status })
+                })
+            })
+        }));
+    }
+    #[test]
+    fn test_http_fixture_reports_metadata_before_status_and_body_mismatches() {
+        let metadata = route_validation_metadata(
+            frontend_contract::route_method::RouteMethod::Get,
+            constants_str::ROUTE_READ,
+            constants_str::ROUTE,
+        );
+        let wrong_metadata = route_validation_metadata(
+            frontend_contract::route_method::RouteMethod::Post,
+            constants_str::ROUTE_READ,
+            constants_str::ROUTE,
+        );
+        assert!(crate::http_contract_status::HttpContractStatus::try_from(200u16).is_ok_and(|expected_status| {
+            crate::http_contract_status::HttpContractStatus::try_from(401u16).is_ok_and(|observed_status| {
+                crate::http_contract_body::HttpContractBody::try_from(constants_str::X.as_bytes().to_vec()).is_ok_and(|body| {
+                    let expectation = crate::http_contract_expectation::HttpContractExpectation::new(metadata, expected_status, crate::http_contract_body_kind::HttpContractBodyKind::Json);
+                    let actual = futures::executor::block_on(crate::run_http_contract_fixture::run_http_contract_fixture(expectation, |sent_metadata| {
+                        assert_eq!(sent_metadata, metadata);
+                        std::future::ready(crate::http_contract_observation::HttpContractObservation::new(wrong_metadata, observed_status, body))
+                    }));
+                    actual.is_err_and(|error| matches!(error, crate::http_contract_mismatch::HttpContractMismatch::Metadata(mismatches) if mismatches.as_ref() == [crate::route_contract_mismatch::RouteContractMismatch::Method { expected: metadata.method(), observed: wrong_metadata.method() }]))
+                })
+            })
+        }));
+    }
 }

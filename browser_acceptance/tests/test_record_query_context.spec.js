@@ -29,17 +29,17 @@ import { signInAdministratorWithPasswordReset } from "./support/admin.js";
     const values = page.locator(`[data-page="${detailPage}"] .health-result`);
     await expect(values.first()).toBeVisible();
     const expected = await values.allTextContents();
-    await [
-      "search=missing&sort=id&offset=999",
-      "limit=0&offset=-1",
-      "limit=1&limit=2&offset=0&offset=1",
-      new URLSearchParams({ search: "x".repeat(129), sort: "x".repeat(33), filter_value: "x".repeat(4097) }).toString()
-    ].reduce(async (previous, query) => {
-      await previous;
-      const response = await page.goto(`${path}?${query}`);
-      expect(response.status()).toBe(200);
-      await expect(values).toHaveText(expected);
-    }, Promise.resolve());
+    const query = new URLSearchParams({ search: "x".repeat(129), sort: "x".repeat(33), filter_value: "x".repeat(4097) });
+    query.append("limit", "0");
+    query.append("limit", "1");
+    query.append("limit", "2");
+    query.append("offset", "999");
+    query.append("offset", "-1");
+    query.append("offset", "0");
+    query.append("offset", "1");
+    const response = await page.goto(`${path}?${query}`);
+    expect(response.status()).toBe(200);
+    await expect(values).toHaveText(expected);
   });
 });
 

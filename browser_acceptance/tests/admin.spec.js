@@ -145,7 +145,7 @@ test("administrator roles page contains only its header, table, and pagination",
   await expect(page.locator("nav.table-pagination")).toHaveCount(1);
   await expect(page.locator("form.table-tools")).toHaveCount(0);
   await expect(page.locator("form.mutation-form")).toHaveCount(0);
-  await expect(page.locator("tbody button[aria-label='read']")).not.toHaveCount(0);
+  await expect(page.locator("tbody tr").first().getByRole("link", { name: "read", exact: true })).toBeVisible();
   await expect(page.locator("tbody input, tbody select")).toHaveCount(0);
   await expect(page.locator("thead th")).toHaveCount(6);
   const rolesCellStyle = await firstCellStyle(page);

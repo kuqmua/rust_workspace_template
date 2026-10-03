@@ -575,6 +575,7 @@ pub trait TypedRoute: Sized { type Request: serde::Serialize + serde::de::Deseri
 #[must_use] pub const fn value(self) -> crate::positive_non_zero_i64::PositiveNonZeroI64
 #[must_use] pub const fn value(self) -> crate::positive_non_zero_i64::PositiveNonZeroI64
 #[must_use] pub const fn values(&self) -> &[crate::admin_text::AdminText]
+#[must_use] pub fn admin_path_uses_table_query( admin_page_path_ref: crate::admin_page_path_ref::AdminPagePathRef<'_>, ) -> crate::admin_bool::AdminBool
 #[must_use] pub fn authentication( self, ) -> frontend_contract::authentication_requirement::AuthenticationRequirement
 #[must_use] pub fn can_access( &self, admin_page: crate::admin_page::AdminPage, ) -> crate::admin_bool::AdminBool
 #[must_use] pub fn default_admin_api_body_max_bytes() -> crate::admin_api_body_max_bytes::AdminApiBodyMaxBytes

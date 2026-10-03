@@ -71,3 +71,37 @@ impl ChildProcessSet {
         self.next_id = child_process_id;
     }
 }
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn test_process_set_capacity_precedes_overflow_and_failed_insert_preserves_state() {
+        let mut child_process_set = crate::child_process_set::ChildProcessSet::new(
+            crate::child_process_set_maximum_non_zero_usize::ChildProcessSetMaximumNonZeroUsize::from(std::num::NonZeroUsize::MIN),
+        );
+        let last_usable_id = crate::child_process_id::ChildProcessId::from(u64::MAX - 1u64);
+        child_process_set.set_next_id_for_test(last_usable_id);
+        assert!(matches!(
+            child_process_set.insert(crate::child_process_supervisor::ChildProcessSupervisor::default()),
+            Ok(child_process_id) if child_process_id == last_usable_id
+        ));
+        assert_eq!(*child_process_set.next_id, u64::MAX);
+        assert!(matches!(
+            child_process_set
+                .insert(crate::child_process_supervisor::ChildProcessSupervisor::default()),
+            Err(crate::child_process_set_error::ChildProcessSetError::Full)
+        ));
+        assert_eq!(child_process_set.processes.len().get(), 1usize);
+        assert_eq!(*child_process_set.next_id, u64::MAX);
+        assert!(
+            matches!(child_process_set.processes.pop_first(), Some((child_process_id, _)) if child_process_id == last_usable_id)
+        );
+        assert!(matches!(
+            child_process_set
+                .insert(crate::child_process_supervisor::ChildProcessSupervisor::default()),
+            Err(crate::child_process_set_error::ChildProcessSetError::IdOverflow)
+        ));
+        assert_eq!(child_process_set.processes.len().get(), 0usize);
+        assert_eq!(*child_process_set.next_id, u64::MAX);
+    }
+}

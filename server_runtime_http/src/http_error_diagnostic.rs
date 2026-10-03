@@ -103,6 +103,49 @@ impl HttpErrorDiagnostic {
 #[cfg(test)]
 mod tests {
     #[test]
+    fn test_observed_http_diagnostic_preserves_captured_metadata_and_source_chain() {
+        let observed = server_observability::observed_error::ObservedError::capture(
+            std::io::Error::from(std::io::ErrorKind::NotFound),
+            server_observability::observed_error_code::ObservedErrorCode::from(
+                constants_str::VALUE_CF4DCEBB,
+            ),
+        );
+        let diagnostic = crate::http_error_diagnostic::HttpErrorDiagnostic::from_observed(
+            crate::http_error_type::HttpErrorType::from(constants_str::VALUE_AF7C24A2),
+            &observed,
+        );
+        assert_eq!(
+            diagnostic.telemetry().error_type().to_string(),
+            constants_str::VALUE_AF7C24A2
+        );
+        assert_eq!(
+            diagnostic.telemetry().error_code().to_string(),
+            constants_str::VALUE_CF4DCEBB
+        );
+        assert_eq!(
+            diagnostic.location().to_string(),
+            observed.location().to_string()
+        );
+        assert_eq!(
+            diagnostic.backtrace().to_string(),
+            observed.backtrace().to_string()
+        );
+        assert_eq!(
+            diagnostic.span_trace().to_string(),
+            observed.span_trace().to_string()
+        );
+        assert_eq!(
+            diagnostic.error_chain_text().to_string(),
+            format!(
+                "{}{}{}",
+                observed,
+                constants_str::HTTP_ERROR_CHAIN_SEPARATOR,
+                observed.source_ref()
+            )
+        );
+    }
+
+    #[test]
     fn test_fallback_diagnostic_keeps_telemetry() {
         let telemetry = crate::http_error_telemetry::HttpErrorTelemetry::new(
             crate::http_error_type::HttpErrorType::from(constants_str::VALUE_AF7C24A2),

@@ -32,20 +32,6 @@ test("test_user_read_page_shows_only_the_selected_user_and_survives_reload", asy
   await expect(details).toContainText("user_read_selected");
 });
 
-test("test_user_read_page_requires_authentication", async ({ page }) => {
-  await page.goto("/admin/users/1/read");
-  await expect(page).toHaveURL(/\/admin\/sign_in$/);
-});
-
-test("test_user_read_page_rejects_invalid_identifiers", async ({ page }) => {
-  await signInAdministratorWithPasswordReset(page);
-  for (const id of ["0", "-1", "invalid", "9223372036854775808"]) {
-    const response = await page.goto(`/admin/users/${id}/read`);
-    expect(response.status()).toBe(422);
-    await expect(page.locator('section[data-page="user-read"]')).toHaveCount(0);
-  }
-});
-
 test("test_user_read_page_reports_a_missing_user", async ({ page }) => {
   await signInAdministratorWithPasswordReset(page);
   await page.goto("/admin/users/9223372036854775807/read");

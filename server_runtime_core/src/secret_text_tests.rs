@@ -30,4 +30,75 @@ mod tests {
             Err(crate::bounded_secret_text_error::BoundedSecretTextError::RepeatedByte),
         );
     }
+    #[test]
+    fn test_secret_text_boundaries_and_validation_precedence_match_borrowed_and_owned_values() {
+        let mixed = |length| {
+            format!(
+                "{}{}",
+                constants_str::X.repeat(length),
+                constants_str::VALUE_1
+            )
+        };
+        [
+            (
+                constants_str::EMPTY.to_owned(),
+                Err(crate::bounded_secret_text_error::BoundedSecretTextError::InvalidLength),
+            ),
+            (
+                mixed(14usize),
+                Err(crate::bounded_secret_text_error::BoundedSecretTextError::InvalidLength),
+            ),
+            (mixed(15usize), Ok(())),
+            (mixed(8_191usize), Ok(())),
+            (
+                mixed(8_192usize),
+                Err(crate::bounded_secret_text_error::BoundedSecretTextError::InvalidLength),
+            ),
+            (
+                constants_str::SPACE.repeat(15usize),
+                Err(crate::bounded_secret_text_error::BoundedSecretTextError::InvalidLength),
+            ),
+            (
+                constants_str::SPACE.repeat(16usize),
+                Err(
+                    crate::bounded_secret_text_error::BoundedSecretTextError::SurroundingWhitespace,
+                ),
+            ),
+            (
+                format!(
+                    "{}{}",
+                    constants_str::SPACE,
+                    constants_str::TEST_SECRET_TEXT
+                ),
+                Err(
+                    crate::bounded_secret_text_error::BoundedSecretTextError::SurroundingWhitespace,
+                ),
+            ),
+            (
+                format!(
+                    "{}{}",
+                    constants_str::TEST_SECRET_TEXT,
+                    constants_str::SPACE
+                ),
+                Err(
+                    crate::bounded_secret_text_error::BoundedSecretTextError::SurroundingWhitespace,
+                ),
+            ),
+            (
+                constants_str::X.repeat(16usize),
+                Err(crate::bounded_secret_text_error::BoundedSecretTextError::RepeatedByte),
+            ),
+        ]
+        .into_iter()
+        .fold((), |(), (value, expected)| {
+            assert_eq!(
+                crate::secret_text_ref::SecretTextRef::try_from(value.as_str()).map(|_secret| ()),
+                expected
+            );
+            assert_eq!(
+                crate::bounded_secret_text::BoundedSecretText::try_from(value).map(|_secret| ()),
+                expected
+            );
+        });
+    }
 }

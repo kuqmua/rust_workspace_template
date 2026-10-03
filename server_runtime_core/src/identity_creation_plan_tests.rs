@@ -11,6 +11,13 @@ mod tests {
         );
         assert_eq!(
             crate::plan_identity_creation::plan_identity_creation(
+                crate::identity_presence::IdentityPresence::Present,
+                crate::identity_role_presence::IdentityRolePresence::Missing,
+            ),
+            crate::identity_creation_decision::IdentityCreationDecision::AlreadyExists
+        );
+        assert_eq!(
+            crate::plan_identity_creation::plan_identity_creation(
                 crate::identity_presence::IdentityPresence::Missing,
                 crate::identity_role_presence::IdentityRolePresence::Missing,
             ),

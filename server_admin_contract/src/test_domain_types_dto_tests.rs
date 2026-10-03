@@ -144,3 +144,105 @@ fn test_domain_values_follow_database_compatible_policies() {
         std::panic::panic_any(constants_str::PANIC_147FE35A);
     };
 }
+
+#[test]
+fn test_authenticated_admin_borrowed_permissions_preserve_order_and_duplicates() {
+    assert!([false, true].into_iter().all(|populated| {
+        let rules = if populated {
+            serde_json::json!([
+                crate::admin_rule::AdminRule::RulesRead,
+                crate::admin_rule::AdminRule::UsersRead,
+                crate::admin_rule::AdminRule::RulesRead
+            ])
+        } else {
+            serde_json::json!([])
+        };
+        let roles = if populated {
+            serde_json::json!([
+                constants_str::LOGIN,
+                constants_str::ROOT,
+                constants_str::LOGIN
+            ])
+        } else {
+            serde_json::json!([])
+        };
+        let administrator_result = serde_json::from_value::<
+            crate::authenticated_admin::AuthenticatedAdmin,
+        >(serde_json::json!({
+            (stringify!(display_name)): constants_str::ADMIN,
+            (stringify!(id)): 1i64,
+            (stringify!(login)): constants_str::ROOT,
+            (stringify!(rules)): rules,
+            (stringify!(roles)): roles
+        }));
+        assert!(administrator_result.is_ok());
+        let Ok(administrator) = administrator_result else {
+            return false;
+        };
+        assert!(serde_json::to_value(administrator.rules()).is_ok_and(|wire| wire == rules));
+        assert!(serde_json::to_value(administrator.roles()).is_ok_and(|wire| wire == roles));
+        [
+            crate::admin_rule::AdminRule::AccessSessionsDelete,
+            crate::admin_rule::AdminRule::AccessSessionsRead,
+            crate::admin_rule::AdminRule::AuditLogRead,
+            crate::admin_rule::AdminRule::CleanupStatusRead,
+            crate::admin_rule::AdminRule::LoginAttemptsRead,
+            crate::admin_rule::AdminRule::MetricsRead,
+            crate::admin_rule::AdminRule::OpenApiRead,
+            crate::admin_rule::AdminRule::PermissionActionsRead,
+            crate::admin_rule::AdminRule::PermissionResourceActionsRead,
+            crate::admin_rule::AdminRule::PermissionResourcesRead,
+            crate::admin_rule::AdminRule::RulesRead,
+            crate::admin_rule::AdminRule::RateLimitsRead,
+            crate::admin_rule::AdminRule::RefreshTokensRead,
+            crate::admin_rule::AdminRule::RoleRulesCreate,
+            crate::admin_rule::AdminRule::RoleRulesDelete,
+            crate::admin_rule::AdminRule::RoleRulesRead,
+            crate::admin_rule::AdminRule::RoleRulesUpdate,
+            crate::admin_rule::AdminRule::RolesCreate,
+            crate::admin_rule::AdminRule::RolesDelete,
+            crate::admin_rule::AdminRule::RolesRead,
+            crate::admin_rule::AdminRule::RolesUpdate,
+            crate::admin_rule::AdminRule::SystemSettingsRead,
+            crate::admin_rule::AdminRule::SystemSettingsUpdate,
+            crate::admin_rule::AdminRule::TablesRead,
+            crate::admin_rule::AdminRule::UserRolesCreate,
+            crate::admin_rule::AdminRule::UserRolesDelete,
+            crate::admin_rule::AdminRule::UserRolesRead,
+            crate::admin_rule::AdminRule::UserRolesUpdate,
+            crate::admin_rule::AdminRule::UsersCreate,
+            crate::admin_rule::AdminRule::UsersDelete,
+            crate::admin_rule::AdminRule::UsersRead,
+            crate::admin_rule::AdminRule::UsersUpdate,
+        ]
+        .into_iter()
+        .all(|admin_rule| {
+            let expected = populated
+                && matches!(
+                    admin_rule,
+                    crate::admin_rule::AdminRule::RulesRead
+                        | crate::admin_rule::AdminRule::UsersRead
+                );
+            administrator.has_rule(admin_rule) == crate::admin_bool::AdminBool::from(expected)
+        })
+    }));
+}
+
+#[test]
+fn test_sign_in_request_into_parts_preserves_login_and_password_ownership() {
+    let expected = serde_json::json!({
+        (stringify!(login)): constants_str::ROOT,
+        (stringify!(password)): constants_str::VALUE_A1AB879D
+    });
+    let request_result = serde_json::from_value::<crate::admin_sign_in_request::AdminSignInRequest>(
+        expected.clone(),
+    );
+    assert!(request_result.is_ok());
+    let Ok(request) = request_result else {
+        return;
+    };
+    let (admin_login, admin_password) = request.into_parts();
+    let rebuilt_request =
+        crate::admin_sign_in_request::AdminSignInRequest::new(admin_login, admin_password);
+    assert!(serde_json::to_value(rebuilt_request).is_ok_and(|wire| wire == expected));
+}

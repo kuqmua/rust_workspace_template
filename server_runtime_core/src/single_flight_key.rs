@@ -32,3 +32,50 @@ impl TryFrom<String> for SingleFlightKey {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn test_single_flight_key_bounds_use_bytes_and_preserve_error_precedence() {
+        let maximum = crate::single_flight_key_maximum_bytes::SINGLE_FLIGHT_KEY_MAXIMUM_BYTES;
+        [
+            (
+                constants_str::EMPTY.to_owned(),
+                Err(crate::single_flight_key_error::SingleFlightKeyError::Empty),
+            ),
+            (constants_str::SPACE.to_owned(), Ok(())),
+            (
+                constants_str::TEST_TEXT_WITH_NUL.to_owned(),
+                Err(crate::single_flight_key_error::SingleFlightKeyError::ContainsNul),
+            ),
+            (constants_str::X.repeat(maximum), Ok(())),
+            (
+                constants_str::X.repeat(maximum + constants_usize::ONE),
+                Err(crate::single_flight_key_error::SingleFlightKeyError::TooLong),
+            ),
+            (
+                '\u{e9}'
+                    .to_string()
+                    .repeat(maximum.div_euclid(constants_usize::TWO)),
+                Ok(()),
+            ),
+            (
+                '\u{e9}'
+                    .to_string()
+                    .repeat(maximum.div_euclid(constants_usize::TWO) + constants_usize::ONE),
+                Err(crate::single_flight_key_error::SingleFlightKeyError::TooLong),
+            ),
+            (
+                '\0'.to_string().repeat(maximum + constants_usize::ONE),
+                Err(crate::single_flight_key_error::SingleFlightKeyError::TooLong),
+            ),
+        ]
+        .into_iter()
+        .fold((), |(), (value, expected)| {
+            assert_eq!(
+                super::SingleFlightKey::try_from(value.clone()).map(|key| key.0.as_str() == value),
+                expected.map(|()| true)
+            );
+        });
+    }
+}

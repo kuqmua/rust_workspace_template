@@ -94,3 +94,12 @@ pub mod wrap_into_scopes_token_stream;
 
 const _: fn(&str) -> Result<(), bounded_types::bounded_string_error::BoundedStringError> =
     bounded_types::bounded_string::BoundedString::<0, 0>::validate_str;
+
+#[cfg(test)]
+mod test_is_nullable;
+
+#[cfg(test)]
+mod test_deserialize_diagnostics;
+
+#[cfg(test)]
+mod test_token_stream_parsing;

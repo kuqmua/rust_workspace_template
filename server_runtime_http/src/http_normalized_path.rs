@@ -33,3 +33,37 @@ impl TryFrom<String> for HttpNormalizedPath {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn test_normalized_path_preserves_text_at_ascii_and_utf8_limits() {
+        assert!(
+            [
+                String::default(),
+                constants_str::X.to_owned(),
+                constants_str::X.repeat(8191usize),
+                constants_str::X.repeat(8192usize),
+                constants_str::X.repeat(8193usize),
+                '\u{e9}'.to_string().repeat(4096usize),
+                format!(
+                    "{}{}",
+                    '\u{e9}'.to_string().repeat(4096usize),
+                    constants_str::X
+                ),
+            ]
+            .into_iter()
+            .all(|text| {
+                let valid = text.len() <= 8192usize;
+                let result =
+                    crate::http_normalized_path::HttpNormalizedPath::try_from(text.clone());
+                if valid {
+                    result.is_ok_and(|http_normalized_path| http_normalized_path.as_ref() == text)
+                } else {
+                    result
+                        == Err(crate::http_normalized_path_error::HttpNormalizedPathError::TooLarge)
+                }
+            })
+        );
+    }
+}

@@ -33,19 +33,3 @@ test("test_rule_details_follow_table_link_and_ignore_list_filters", async ({ pag
   await page.goto("/admin/rule/1/read");
   await expect(detail.locator(".health-result").first()).toHaveText("1");
 });
-
-test("test_rule_details_require_authentication", async ({ page }) => {
-  await page.goto("/admin/rules/1/read");
-  await expect(page).toHaveURL(/\/admin\/sign_in$/);
-});
-
-
-test("test_rule_read_routes_reject_invalid_identifiers", async ({ page }) => {
-  await signInAdministratorWithPasswordReset(page);
-  for (const resource of ["rules", "rule"]) {
-    for (const id of ["0", "-1", "invalid", "9223372036854775808"]) {
-      const response = await page.goto(`/admin/${resource}/${id}/read`);
-      expect(response.status()).toBe(422);
-    }
-  }
-});

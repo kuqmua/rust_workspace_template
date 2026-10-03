@@ -20,6 +20,18 @@ pub(crate) fn error_status(
 #[cfg(test)]
 mod tests {
     #[test]
+    fn test_administrator_command_operational_errors_and_invalid_password_file_exit_codes() {
+        assert!([
+            (crate::administrator_account_command_error::AdministratorAccountCommandError::PasswordFileValue, 2u8),
+            (crate::administrator_account_command_error::AdministratorAccountCommandError::PasswordFile(server_runtime_http::bounded_read_error::BoundedReadError::LimiterClosed), 1u8),
+            (crate::administrator_account_command_error::AdministratorAccountCommandError::InitialAdministratorCreation(server_admin::initial_administrator_creation_error::InitialAdministratorCreationError::AuditDetails), 1u8),
+            (crate::administrator_account_command_error::AdministratorAccountCommandError::InitialAdministratorCreation(server_admin::initial_administrator_creation_error::InitialAdministratorCreationError::EmptyDisplayName), 1u8),
+            (crate::administrator_account_command_error::AdministratorAccountCommandError::InitialAdministratorCreation(server_admin::initial_administrator_creation_error::InitialAdministratorCreationError::InvalidLogin), 1u8),
+            (crate::administrator_account_command_error::AdministratorAccountCommandError::InitialAdministratorCreation(server_admin::initial_administrator_creation_error::InitialAdministratorCreationError::InvalidPassword), 1u8),
+        ].into_iter().all(|(error, code)| crate::error_status::error_status(&error) == crate::administrator_account_command_status::AdministratorAccountCommandStatus::from(code)));
+    }
+
+    #[test]
     fn test_exit_codes_distinguish_invalid_input_and_completed_initial_administrator_creation() {
         assert_eq!(
             crate::error_status::error_status(

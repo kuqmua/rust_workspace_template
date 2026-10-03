@@ -41,3 +41,32 @@ impl TryFrom<String> for GeoJsonDocumentText {
             })
     }
 }
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn test_geo_json_document_exact_text_limit_preserves_whitespace() {
+        assert!(
+            [16_777_215usize, 16_777_216usize, 16_777_217usize]
+                .into_iter()
+                .all(|length| {
+                    let document = constants_str::TEST_GEO_JSON_POINT;
+                    let padding =
+                        constants_str::SPACE.repeat(length.saturating_sub(document.len()));
+                    let text = format!("{padding}{document}");
+                    let result =
+                        crate::geo_json_document_text::GeoJsonDocumentText::try_from(text.clone());
+                    if length <= 16_777_216usize {
+                        result.is_ok_and(|geo_json_document_text| {
+                            geo_json_document_text.as_ref() == text
+                        })
+                    } else {
+                        matches!(
+                            result,
+                            Err(crate::geo_json_validation_error::GeoJsonValidationError::TooLarge)
+                        )
+                    }
+                })
+        );
+    }
+}

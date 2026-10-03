@@ -60,3 +60,124 @@ impl ResourceBudget {
         )
     }
 }
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn test_budget_shares_reservations_and_recovers_capacity_after_drop() {
+        let budget = super::ResourceBudget::new(
+            crate::resource_budget_maximum::ResourceBudgetMaximum::from(
+                std::num::NonZeroUsize::MIN.saturating_add(constants_usize::TWO),
+            ),
+        );
+        let clone = budget.clone();
+        let first = budget.reserve(crate::resource_budget_amount::ResourceBudgetAmount::from(
+            constants_usize::TWO,
+        ));
+        assert!(
+            first
+                .as_ref()
+                .is_ok_and(|_reservation| *clone.reserved() == constants_usize::TWO)
+        );
+        let second = clone.reserve(crate::resource_budget_amount::ResourceBudgetAmount::from(
+            constants_usize::ONE,
+        ));
+        assert!(
+            second
+                .as_ref()
+                .is_ok_and(|_reservation| *budget.reserved() == constants_usize::THREE)
+        );
+        assert!(
+            budget
+                .reserve(crate::resource_budget_amount::ResourceBudgetAmount::from(
+                    constants_usize::ONE
+                ))
+                .is_err_and(|error| error
+                    == crate::resource_budget_reserve_error::ResourceBudgetReserveError::Exhausted)
+        );
+        assert_eq!(*clone.reserved(), constants_usize::THREE);
+        drop(first);
+        assert_eq!(*budget.reserved(), constants_usize::ONE);
+        drop(second);
+        assert_eq!(*clone.reserved(), constants_usize::ZERO);
+        let recovered = clone.reserve(crate::resource_budget_amount::ResourceBudgetAmount::from(
+            constants_usize::THREE,
+        ));
+        assert!(
+            recovered
+                .as_ref()
+                .is_ok_and(|_reservation| *budget.reserved() == constants_usize::THREE)
+        );
+        drop(recovered);
+        assert_eq!(*budget.reserved(), constants_usize::ZERO);
+    }
+
+    #[test]
+    fn test_budget_zero_reservation_leaves_full_capacity_unchanged() {
+        let budget = super::ResourceBudget::new(
+            crate::resource_budget_maximum::ResourceBudgetMaximum::from(
+                std::num::NonZeroUsize::MIN,
+            ),
+        );
+        let full = budget.reserve(crate::resource_budget_amount::ResourceBudgetAmount::from(
+            constants_usize::ONE,
+        ));
+        assert!(
+            full.as_ref()
+                .is_ok_and(|_reservation| *budget.reserved() == constants_usize::ONE)
+        );
+        let zero = budget.reserve(crate::resource_budget_amount::ResourceBudgetAmount::from(
+            constants_usize::ZERO,
+        ));
+        assert!(
+            zero.as_ref()
+                .is_ok_and(|_reservation| *budget.reserved() == constants_usize::ONE)
+        );
+        drop(zero);
+        assert_eq!(*budget.reserved(), constants_usize::ONE);
+        drop(full);
+        assert_eq!(*budget.reserved(), constants_usize::ZERO);
+    }
+
+    #[test]
+    fn test_budget_overflow_preserves_accounting_and_release() {
+        let maximum = std::num::NonZeroUsize::MAX;
+        let budget = super::ResourceBudget::new(
+            crate::resource_budget_maximum::ResourceBudgetMaximum::from(maximum),
+        );
+        let full = budget.reserve(crate::resource_budget_amount::ResourceBudgetAmount::from(
+            usize::from(maximum),
+        ));
+        assert!(
+            full.as_ref()
+                .is_ok_and(|_reservation| *budget.reserved() == usize::from(maximum))
+        );
+        assert!(
+            budget
+                .reserve(crate::resource_budget_amount::ResourceBudgetAmount::from(
+                    constants_usize::ONE
+                ))
+                .is_err_and(|error| error
+                    == crate::resource_budget_reserve_error::ResourceBudgetReserveError::Overflow)
+        );
+        assert_eq!(*budget.reserved(), usize::from(maximum));
+        drop(full);
+        assert_eq!(*budget.reserved(), constants_usize::ZERO);
+    }
+    #[test]
+    fn test_budget_maximum_rejects_zero_and_preserves_positive_capacity() {
+        assert!(
+            crate::resource_budget_maximum::ResourceBudgetMaximum::try_from(constants_usize::ZERO)
+                .is_err_and(|error| error
+                    == crate::resource_budget_config_error::ResourceBudgetConfigError::Zero)
+        );
+        [constants_usize::ONE, constants_usize::THREE]
+            .into_iter()
+            .fold((), |(), maximum| {
+                assert!(
+                    crate::resource_budget_maximum::ResourceBudgetMaximum::try_from(maximum)
+                        .is_ok_and(|value| value.get() == maximum)
+                );
+            });
+    }
+}

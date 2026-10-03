@@ -437,3 +437,36 @@ mod role_update_page;
 mod admin_record_update_form;
 mod update_record_form;
 mod update_role_record;
+
+#[cfg(test)]
+mod test_admin_secret_error_conversion;
+
+#[cfg(test)]
+mod test_sqlx_admin_error;
+
+#[cfg(test)]
+mod test_generated_filter_forwarding;
+
+#[cfg(test)]
+mod test_action_result_impl;
+
+#[cfg(test)]
+mod test_find_admin_cookie;
+
+#[cfg(test)]
+mod test_generated_read_page_error_contracts;
+
+#[cfg(test)]
+mod test_payload_example_error_contracts;
+
+#[cfg(test)]
+mod test_admin_migrate_error;
+
+#[cfg(test)]
+mod test_admin_boundary_error_conversions;
+
+#[cfg(test)]
+mod test_http_admin_header_map_extractor;
+
+#[cfg(test)]
+mod test_open_api_wrapper_diagnostics;

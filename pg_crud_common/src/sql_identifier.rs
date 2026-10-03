@@ -39,6 +39,63 @@ impl TryFrom<String> for SqlIdentifier {
 }
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn test_sql_identifier_validates_every_ascii_byte_at_each_position() {
+        assert!((0u8..=127u8).all(|byte| {
+            let character = char::from(byte);
+            let first = crate::sql_identifier::SqlIdentifier::try_from(character.to_string());
+            let valid_first = byte.is_ascii_alphabetic() || byte == b'_';
+            assert_eq!(first.is_ok(), valid_first);
+            let mut suffix_input = constants_str::X.to_owned();
+            suffix_input.push(character);
+            let suffix = crate::sql_identifier::SqlIdentifier::try_from(suffix_input.clone());
+            let valid_suffix = byte.is_ascii_alphanumeric() || byte == b'_';
+            assert_eq!(suffix.is_ok(), valid_suffix);
+            (!valid_first
+                || first.is_ok_and(|identifier| identifier.as_ref() == character.to_string()))
+                && (!valid_suffix
+                    || suffix.is_ok_and(|identifier| identifier.as_ref() == suffix_input))
+        }));
+    }
+
+    #[test]
+    fn test_sql_identifier_length_boundaries_and_empty_error() {
+        assert_eq!(
+            crate::sql_identifier::SqlIdentifier::try_from(String::new()),
+            Err(crate::sql_identifier_error::SqlIdentifierError::Empty)
+        );
+        assert!([1usize, 127usize, 128usize].into_iter().all(|length| {
+            let value = constants_str::X.repeat(length);
+            crate::sql_identifier::SqlIdentifier::try_from(value.clone())
+                .is_ok_and(|identifier| identifier.as_ref() == value)
+        }));
+        assert_eq!(
+            crate::sql_identifier::SqlIdentifier::try_from(constants_str::X.repeat(129usize)),
+            Err(crate::sql_identifier_error::SqlIdentifierError::Invalid)
+        );
+    }
+
+    #[test]
+    fn test_qualified_sql_identifier_preserves_each_component_without_normalization() {
+        let schema = sql_identifier_fixture(&constants_str::X.to_uppercase().repeat(128usize));
+        let table = sql_identifier_fixture(&constants_str::X.repeat(128usize));
+        let qualified = crate::sql_qualified_identifier::SqlQualifiedIdentifier::new(
+            schema.clone(),
+            table.clone(),
+        );
+        assert_eq!(qualified.get_schema(), &schema);
+        assert_eq!(qualified.get_table(), &table);
+        assert_eq!(
+            qualified.to_string(),
+            format!(
+                "{}{}{}",
+                schema.as_ref(),
+                constants_str::DOT,
+                table.as_ref()
+            )
+        );
+    }
+
     fn sql_identifier_fixture(str: &str) -> crate::sql_identifier::SqlIdentifier {
         crate::sql_identifier::SqlIdentifier::try_from(str.to_owned())
             .expect(constants_str::DIAGNOSTIC_940EB924)

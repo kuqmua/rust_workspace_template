@@ -94,3 +94,63 @@ impl HttpCspBuilder {
         )
     }
 }
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn test_csp_builder_value_append_obeys_exact_limit_and_preserves_rejected_state() {
+        let name = crate::http_csp_directive_name::HttpCspDirectiveName::try_from(
+            constants_str::X.to_owned(),
+        );
+        assert!(name.is_ok_and(|http_csp_directive_name| {
+            let value = crate::http_csp_directive_value::HttpCspDirectiveValue::try_from(
+                constants_str::X.repeat(1024usize),
+            );
+            value.is_ok_and(|http_csp_directive_value| {
+                [3068usize, 3069usize].into_iter().all(|length| {
+                    let input = constants_str::X.repeat(length);
+                    crate::http_csp_builder::HttpCspBuilder::try_from(input.clone()).is_ok_and(|mut builder| {
+                        let before = builder.clone();
+                        let result = builder.try_add(&http_csp_directive_name, std::slice::from_ref(&http_csp_directive_value));
+                        if length == 3069usize {
+                            return result == Err(crate::http_csp_maximum_bytes_error::HttpCspMaximumBytesError::TooLarge)
+                                && builder == before;
+                        }
+                        let mut expected = input;
+                        expected.push_str(constants_str::HTTP_CSP_DIRECTIVE_SEPARATOR);
+                        expected.push_str(constants_str::X);
+                        expected.push(' ');
+                        expected.push_str(http_csp_directive_value.as_str());
+                        result == Ok(()) && expected.len() == 4096usize
+                            && builder.try_build().is_ok_and(|policy| policy.as_bytes() == expected.as_bytes())
+                    })
+                })
+            })
+        }));
+    }
+
+    #[test]
+    fn test_csp_builder_rejects_oversized_input_and_preserves_state_on_append_failure() {
+        assert_eq!(
+            crate::http_csp_builder::HttpCspBuilder::try_from(constants_str::X.repeat(4097usize)),
+            Err(crate::http_csp_maximum_bytes_error::HttpCspMaximumBytesError::TooLarge)
+        );
+        assert!(crate::http_csp_directive_name::HttpCspDirectiveName::try_from(constants_str::X.to_owned()).is_ok_and(|name| {
+            [4093usize, 4094usize, 4096usize].into_iter().all(|length| {
+                crate::http_csp_builder::HttpCspBuilder::try_from(constants_str::X.repeat(length)).is_ok_and(|mut builder| {
+                    let before = builder.clone();
+                    let result = builder.try_add(&name, &[]);
+                    if length == 4093usize {
+                        let mut expected = constants_str::X.repeat(length);
+                        expected.push_str(constants_str::HTTP_CSP_DIRECTIVE_SEPARATOR);
+                        expected.push_str(constants_str::X);
+                        result == Ok(()) && crate::http_csp_builder::HttpCspBuilder::try_from(expected).is_ok_and(|after| after == builder)
+                    } else {
+                        result == Err(crate::http_csp_maximum_bytes_error::HttpCspMaximumBytesError::TooLarge)
+                            && builder == before
+                    }
+                })
+            })
+        }));
+    }
+}

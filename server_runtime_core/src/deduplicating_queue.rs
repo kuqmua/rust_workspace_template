@@ -84,4 +84,24 @@ mod tests {
         assert_eq!(queue.pop(), Some(1u8));
         assert_eq!(queue.push(1u8), crate::queue_push::QueuePush::Queued);
     }
+    #[test]
+    fn test_queue_preserves_fifo_order_and_recovers_after_full_rejection() {
+        let mut queue = super::DeduplicatingQueue::new(
+            crate::queue_maximum_non_zero_usize::QueueMaximumNonZeroUsize::from(
+                std::num::NonZeroUsize::MIN.saturating_add(constants_usize::ONE),
+            ),
+        );
+        assert_eq!(queue.pop(), None);
+        assert_eq!(queue.push(1u8), crate::queue_push::QueuePush::Queued);
+        assert_eq!(queue.push(2u8), crate::queue_push::QueuePush::Queued);
+        assert_eq!(queue.push(1u8), crate::queue_push::QueuePush::Duplicate);
+        assert_eq!(queue.push(3u8), crate::queue_push::QueuePush::Full);
+        assert_eq!(queue.pop(), Some(1u8));
+        assert_eq!(queue.push(3u8), crate::queue_push::QueuePush::Queued);
+        assert_eq!(queue.pop(), Some(2u8));
+        assert_eq!(queue.pop(), Some(3u8));
+        assert_eq!(queue.pop(), None);
+        assert_eq!(queue.push(2u8), crate::queue_push::QueuePush::Queued);
+        assert_eq!(queue.pop(), Some(2u8));
+    }
 }

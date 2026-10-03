@@ -30,4 +30,41 @@ mod tests {
             [(1u8, 10u8), (2u8, 20u8)]
         );
     }
+
+    #[test]
+    fn test_deduplication_handles_empty_unique_and_repeated_keys_with_one_access_per_value() {
+        let cases = [
+            (Vec::new(), Vec::new()),
+            (
+                vec![(3u8, 30u8), (1u8, 10u8), (2u8, 20u8)],
+                vec![(3u8, 30u8), (1u8, 10u8), (2u8, 20u8)],
+            ),
+            (
+                vec![(1u8, 10u8), (1u8, 20u8), (1u8, 30u8)],
+                vec![(1u8, 10u8)],
+            ),
+            (
+                vec![
+                    (2u8, 20u8),
+                    (1u8, 10u8),
+                    (2u8, 30u8),
+                    (3u8, 40u8),
+                    (1u8, 50u8),
+                ],
+                vec![(2u8, 20u8), (1u8, 10u8), (3u8, 40u8)],
+            ),
+        ];
+        assert!(cases.into_iter().all(|(values, expected)| {
+            let input_count = values.len();
+            let access_count = std::cell::Cell::new(0usize);
+            let observed = Vec::from(super::deduplicate_preserving_order_by_key(
+                values.into(),
+                |value| {
+                    access_count.set(access_count.get() + 1usize);
+                    value.0
+                },
+            ));
+            observed == expected && access_count.get() == input_count
+        }));
+    }
 }

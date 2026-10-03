@@ -88,6 +88,67 @@ fn test_runner_report_success_requires_no_command_failures() {
 }
 
 #[test]
+fn test_runner_report_errors_preserve_diagnostics_and_sources_without_command_failures() {
+    let io_error = std::io::Error::from(std::io::ErrorKind::PermissionDenied);
+    let io_text = io_error.to_string();
+    let log_path = std::path::PathBuf::from(constants_str::WORKSPACE_TEST_RUNNER_RESULT_ROOT);
+    [
+        (
+            crate::run_report_error::RunReportError::from(
+                crate::summary_text_append_error::SummaryTextAppendError::CapacityExceeded,
+            ),
+            constants_str::RUNNER_SUMMARY_LIMIT_MESSAGE.to_owned(),
+            None,
+        ),
+        (
+            crate::run_report_error::RunReportError::MissingCommand {
+                command_index: crate::command_index::CommandIndex::from(constants_usize::ONE),
+            },
+            format!("{} {}", constants_str::RUNNER_COMMAND_MISSING_MESSAGE, constants_usize::ONE),
+            None,
+        ),
+        (
+            crate::run_report_error::RunReportError::WriteLog {
+                written_file_path_buf: macro_helpers::written_file_path_buf::WrittenFilePathBuf::from(log_path.clone()),
+                execution_io_error: macro_helpers::std_tool_io_error::StdToolIoError::from(io_error),
+            },
+            format!("{} {}: {}", constants_str::RUNNER_WRITE_LOG_MESSAGE, log_path.display(), io_text),
+            Some(std::io::ErrorKind::PermissionDenied),
+        ),
+        (
+            crate::run_report_error::RunReportError::WriteSummary {
+                execution_io_error: macro_helpers::std_tool_io_error::StdToolIoError::from(
+                    std::io::Error::from(std::io::ErrorKind::NotFound),
+                ),
+            },
+            format!("{}: {}", constants_str::RUNNER_WRITE_SUMMARY_MESSAGE, std::io::Error::from(std::io::ErrorKind::NotFound)),
+            Some(std::io::ErrorKind::NotFound),
+        ),
+    ].into_iter().for_each(|(report_error, expected, expected_kind)| {
+        assert_eq!(report_error.to_string(), expected);
+        let result = crate::run_commands_error::RunCommandsError::from_report_result(
+            crate::command_failures_vec_deque::CommandFailuresVecDeque::default(),
+            Err(report_error),
+        );
+        let error = result.expect_err(constants_str::DIAGNOSTIC_8690840B);
+        assert_eq!(error.to_string(), expected);
+        assert!(std::error::Error::source(&error).is_some_and(|source| {
+            assert!(source.downcast_ref::<crate::run_report_error::RunReportError>().is_some());
+            expected_kind.map_or_else(
+                || source.source().is_none(),
+                |kind| source.source()
+                    .and_then(|io_error_source| io_error_source.downcast_ref::<macro_helpers::std_tool_io_error::StdToolIoError>())
+                    .is_some_and(|io_source| io_source.kind() == kind),
+            )
+        }));
+        assert!(matches!(error,
+            crate::run_commands_error::RunCommandsError::WriteReport { command_failures, .. }
+                if command_failures.is_empty()
+        ));
+    });
+}
+
+#[test]
 fn test_runner_measurement_spawn_errors_keep_legacy_text_and_source() {
     let measurement_name = crate::measurement_name::MeasurementName::from(constants_str::STATIC);
     let io_error = std::io::Error::from(std::io::ErrorKind::NotFound);
@@ -187,4 +248,41 @@ fn test_runner_output_failure_joins_command_failures_without_losing_sources() {
             } if usize::from(*command_index) == constants_usize::ONE && std_tool_io_error.kind() == std::io::ErrorKind::BrokenPipe
         )) && command_failures.len() == constants_usize::TWO
     ));
+}
+
+#[test]
+fn test_runner_summary_recovers_after_utf8_overflow_and_accepts_empty_append() {
+    let maximum = constants_usize::VALUE_1_048_576;
+    let initial = constants_str::X.repeat(maximum - 1usize);
+    assert!(
+        crate::summary_text::SummaryText::try_from(initial).is_ok_and(|mut summary| {
+            let multibyte = '\u{00e9}'.to_string();
+            assert!(matches!(
+                summary.push_str(crate::text_ref::TextRef::from(multibyte.as_str())),
+                Err(crate::summary_text_append_error::SummaryTextAppendError::CapacityExceeded),
+            ));
+            assert_eq!(summary.as_ref().len(), maximum - 1usize);
+            assert!(
+                summary
+                    .as_ref()
+                    .bytes()
+                    .eq(constants_str::X.bytes().cycle().take(maximum - 1usize))
+            );
+            assert!(matches!(
+                summary.push_str(crate::text_ref::TextRef::from(constants_str::X)),
+                Ok(()),
+            ));
+            assert!(matches!(
+                summary.push_str(crate::text_ref::TextRef::from(
+                    constants_str::PG_CRUD_EMPTY_SQL_SUFFIX
+                )),
+                Ok(()),
+            ));
+            summary.as_ref().len() == maximum
+                && summary
+                    .as_ref()
+                    .bytes()
+                    .eq(constants_str::X.bytes().cycle().take(maximum))
+        })
+    );
 }

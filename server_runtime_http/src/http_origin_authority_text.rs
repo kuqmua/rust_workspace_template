@@ -52,3 +52,78 @@ impl TryFrom<String> for HttpOriginAuthorityText {
             })
     }
 }
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn test_origin_authority_validates_ports_for_hostnames_and_bracketed_ipv6() {
+        let ipv6 = format!("[{}]", std::net::Ipv6Addr::LOCALHOST);
+        assert!(
+            [constants_str::LOCALHOST.to_owned(), ipv6]
+                .into_iter()
+                .all(|host| {
+                    assert!(
+                        crate::http_origin_authority_text::HttpOriginAuthorityText::try_from(
+                            host.clone()
+                        )
+                        .is_ok_and(|authority| authority.get() == host)
+                    );
+                    [
+                        (String::new(), false),
+                        (0u32.to_string(), true),
+                        (80u32.to_string(), true),
+                        (443u32.to_string(), true),
+                        (65_535u32.to_string(), true),
+                        (65_536u32.to_string(), false),
+                        (constants_str::X.to_owned(), false),
+                    ]
+                    .into_iter()
+                    .all(|(port, accepted)| {
+                        let text = format!("{host}:{port}");
+                        let result =
+                            crate::http_origin_authority_text::HttpOriginAuthorityText::try_from(
+                                text.clone(),
+                            );
+                        if accepted {
+                            result.is_ok_and(|authority| authority.get() == text)
+                        } else {
+                            result == Err(crate::allowed_origin_error::AllowedOriginError::Invalid)
+                        }
+                    })
+                })
+        );
+    }
+
+    #[test]
+    fn test_origin_authority_enforces_exact_text_length_and_rejects_userinfo() {
+        assert!(
+            [1usize, 511usize, 512usize, 513usize]
+                .into_iter()
+                .all(|length| {
+                    let text = constants_str::X.repeat(length);
+                    let result =
+                        crate::http_origin_authority_text::HttpOriginAuthorityText::try_from(
+                            text.clone(),
+                        );
+                    if length <= 512usize {
+                        result.is_ok_and(|authority| authority.get() == text)
+                    } else {
+                        result == Err(crate::allowed_origin_error::AllowedOriginError::Invalid)
+                    }
+                })
+        );
+        assert!(
+            [
+                String::new(),
+                format!("{}@{}", constants_str::X, constants_str::LOCALHOST),
+                ' '.to_string(),
+                '['.to_string(),
+            ]
+            .into_iter()
+            .all(|text| {
+                crate::http_origin_authority_text::HttpOriginAuthorityText::try_from(text)
+                    == Err(crate::allowed_origin_error::AllowedOriginError::Invalid)
+            })
+        );
+    }
+}

@@ -39,3 +39,44 @@ pub fn read_bounded_file(
     )?;
     Ok(crate::bounded_bytes::BoundedBytes::from(bytes))
 }
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn test_bounded_file_read_preserves_directory_and_invalid_parent_io_errors() {
+        let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
+        let directory = root.join(constants_str::SRC);
+        let invalid_parent = root.join(constants_str::SRC_LIB_RS).join(constants_str::X);
+        assert!([directory, invalid_parent].into_iter().all(|path| {
+            std::fs::read(path.as_path()).is_err_and(|expected| {
+                crate::read_bounded_file::read_bounded_file(
+                    crate::runtime_path_ref::RuntimePathRef::from(path.as_path()),
+                    crate::bounded_read_maximum_bytes::BoundedReadMaximumBytes::from(
+                        constants_usize::VALUE_16_777_216,
+                    ),
+                )
+                .is_err_and(|actual| {
+                    matches!(actual,
+                        crate::bounded_read_error::BoundedReadError::Io { source }
+                            if source.kind() == expected.kind()
+                    )
+                })
+            })
+        }));
+    }
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn test_sync_bounded_read_rejects_content_beyond_reported_zero_length() {
+        let path = std::path::Path::new(constants_str::TEST_PROCESS_COMMAND_LINE_PATH);
+        let metadata_result = std::fs::metadata(path);
+        assert!(metadata_result.is_ok_and(|metadata| metadata.len() == 0u64));
+        let maximum = crate::bounded_read_maximum_bytes::BoundedReadMaximumBytes::from(0usize);
+        let result = crate::read_bounded_file::read_bounded_file(
+            crate::runtime_path_ref::RuntimePathRef::from(path),
+            maximum,
+        );
+        assert!(
+            matches!(result, Err(crate::bounded_read_error::BoundedReadError::ExceedsMaximum { maximum_bytes }) if maximum_bytes == maximum)
+        );
+    }
+}

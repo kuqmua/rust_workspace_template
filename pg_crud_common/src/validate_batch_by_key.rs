@@ -103,4 +103,109 @@ mod tests {
             crate::batch_stopped_early::BatchStoppedEarly::from(false),
         );
     }
+
+    #[test]
+    fn test_batch_duplicate_policies_preserve_records_and_invalid_source_positions() {
+        let cases = [
+            (
+                crate::batch_duplicate_policy::BatchDuplicatePolicy::Reject,
+                vec![(1u8, 10u8), (2u8, 20u8), (3u8, 50u8)],
+                vec![(2usize, 2u8), (3usize, 9u8), (4usize, 1u8)],
+            ),
+            (
+                crate::batch_duplicate_policy::BatchDuplicatePolicy::KeepFirst,
+                vec![(1u8, 10u8), (2u8, 20u8), (3u8, 50u8)],
+                vec![(3usize, 9u8)],
+            ),
+            (
+                crate::batch_duplicate_policy::BatchDuplicatePolicy::KeepLast,
+                vec![(1u8, 40u8), (2u8, 30u8), (3u8, 50u8)],
+                vec![(3usize, 9u8)],
+            ),
+        ];
+        assert!(
+            cases
+                .into_iter()
+                .all(|(policy, expected_records, expected_invalid)| {
+                    let report = super::validate_batch_by_key(
+                        vec![
+                            (2u8, 20u8),
+                            (1u8, 10u8),
+                            (2u8, 30u8),
+                            (0u8, 0u8),
+                            (1u8, 40u8),
+                            (3u8, 50u8),
+                        ],
+                        crate::batch_invalid_item_count::BatchInvalidItemCount::from(10usize),
+                        policy,
+                        |record| {
+                            if record.0 == 0u8 {
+                                Err(9u8)
+                            } else {
+                                Ok(record)
+                            }
+                        },
+                        |record| record.0,
+                        |item_index, error| (item_index, error),
+                        |item_index, key| (item_index, *key),
+                    );
+                    let observed_records = report
+                        .records_by_key()
+                        .as_ref()
+                        .values()
+                        .copied()
+                        .collect::<Vec<_>>();
+                    observed_records == expected_records
+                        && report.invalid_items() == expected_invalid
+                        && report.processed_item_count()
+                            == crate::batch_processed_item_count::BatchProcessedItemCount::from(
+                                6usize,
+                            )
+                        && report.stopped_early()
+                            == crate::batch_stopped_early::BatchStoppedEarly::from(false)
+                })
+        );
+    }
+
+    #[test]
+    fn test_batch_invalid_limits_bound_validation_and_distinguish_exhaustion_from_early_stop() {
+        let cases = [
+            (0usize, 0usize, true),
+            (1usize, 1usize, true),
+            (2usize, 2usize, true),
+            (3usize, 3usize, false),
+            (4usize, 3usize, false),
+        ];
+        assert!(
+            cases
+                .into_iter()
+                .all(|(limit, processed_count, stopped_early)| {
+                    let validation_count = std::cell::Cell::new(0usize);
+                    let report = super::validate_batch_by_key(
+                        vec![0u8; 3usize],
+                        crate::batch_invalid_item_count::BatchInvalidItemCount::from(limit),
+                        crate::batch_duplicate_policy::BatchDuplicatePolicy::Reject,
+                        |record| {
+                            validation_count.set(validation_count.get() + 1usize);
+                            Err::<u8, u8>(record)
+                        },
+                        |record| *record,
+                        |item_index, error| (item_index, error),
+                        |item_index, key| (item_index, *key),
+                    );
+                    let expected_invalid = (0usize..processed_count)
+                        .map(|item_index| (item_index, 0u8))
+                        .collect::<Vec<_>>();
+                    report.records_by_key().as_ref().is_empty()
+                        && report.invalid_items() == expected_invalid
+                        && validation_count.get() == processed_count
+                        && report.processed_item_count()
+                            == crate::batch_processed_item_count::BatchProcessedItemCount::from(
+                                processed_count,
+                            )
+                        && report.stopped_early()
+                            == crate::batch_stopped_early::BatchStoppedEarly::from(stopped_early)
+                })
+        );
+    }
 }

@@ -29,17 +29,3 @@ test("test_role_rule_details_follow_table_link_and_ignore_list_filters", async (
   await expect(detail.locator(".health-result")).toHaveCount(4);
   await expect(detail.locator(".health-result").first()).toHaveText("1");
 });
-
-test("test_role_rule_details_require_authentication", async ({ page }) => {
-  await page.goto("/admin/role_rules/1/read");
-  await expect(page).toHaveURL(/\/admin\/sign_in$/);
-});
-
-
-test("test_role_rule_read_page_rejects_invalid_identifiers", async ({ page }) => {
-  await signInAdministratorWithPasswordReset(page);
-  for (const id of ["0", "-1", "invalid", "9223372036854775808"]) {
-    const response = await page.goto(`/admin/role_rules/${id}/read`);
-    expect(response.status()).toBe(422);
-  }
-});

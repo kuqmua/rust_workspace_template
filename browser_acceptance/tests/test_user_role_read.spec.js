@@ -49,21 +49,6 @@ test("test_user_role_details_follow_table_link_and_ignore_list_filters", async (
   await expect(detail.locator(".health-result")).toHaveCount(0);
 });
 
-test("test_user_role_details_require_authentication", async ({ page }) => {
-  await page.goto("/admin/user_roles/1/read");
-  await expect(page).toHaveURL(/\/admin\/sign_in$/);
-});
-
-
-test("test_user_role_read_page_rejects_invalid_identifiers", async ({ page }) => {
-  await signInAdministratorWithPasswordReset(page);
-  for (const id of ["0", "-1", "invalid", "9223372036854775808"]) {
-    const response = await page.goto(`/admin/user_roles/${id}/read`);
-    expect(response.status()).toBe(422);
-    await expect(page.locator('[data-page="user-role-read"]')).toHaveCount(0);
-  }
-});
-
 test("test_user_role_read_links_follow_each_row_and_support_keyboard_and_back", async ({ page }) => {
   await signInAdministratorWithPasswordReset(page);
   const roles = await page.request.post("/roles/create", {

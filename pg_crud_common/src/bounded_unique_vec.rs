@@ -51,6 +51,71 @@ impl<'de, T: serde::Deserialize<'de> + PartialEq, const MIN: usize, const MAX: u
 #[cfg(test)]
 mod tests {
     #[test]
+    fn test_unique_collection_conversion_and_deserialization_preserve_boundary_values() {
+        assert!(
+            [
+                (vec![], false),
+                (vec![3u8], true),
+                (vec![3u8, 1u8], true),
+                (vec![3u8, 1u8, 2u8], true),
+                (vec![3u8, 1u8, 2u8, 0u8], false),
+                (vec![3u8, 3u8], false),
+                (vec![3u8, 1u8, 3u8], false),
+                (vec![3u8, 1u8, 1u8], false),
+            ]
+            .into_iter()
+            .all(|(values, accepted)| {
+                let converted = crate::bounded_unique_vec::BoundedUniqueVec::<u8, 1, 3>::try_from(
+                    values.clone(),
+                );
+                assert_eq!(converted.is_ok(), accepted);
+                let serialized = serde_json::to_value(&values);
+                assert!(serialized.is_ok());
+                serialized.is_ok_and(|json| {
+                    let deserialized = serde_json::from_value::<
+                        crate::bounded_unique_vec::BoundedUniqueVec<u8, 1, 3>,
+                    >(json);
+                    assert_eq!(deserialized.is_ok(), accepted);
+                    converted.is_err()
+                        || converted.is_ok_and(|collection| {
+                            collection.as_ref() == values
+                                && deserialized.is_ok_and(|decoded| decoded.as_ref() == values)
+                        })
+                })
+            })
+        );
+    }
+
+    #[test]
+    fn test_zero_capacity_unique_collection_accepts_only_empty_input() {
+        assert!(
+            crate::bounded_unique_vec::BoundedUniqueVec::<u8, 0, 0>::try_from(Vec::new())
+                .is_ok_and(|collection| collection.as_ref().is_empty())
+        );
+        assert!(matches!(
+            crate::bounded_unique_vec::BoundedUniqueVec::<u8, 0, 0>::try_from(vec![1u8]),
+            Err(crate::unique_vec_error::UniqueVecError::AboveMax { max })
+                if max == crate::unique_vec_len::UniqueVecLen::from(0usize)
+        ));
+        assert!(
+            serde_json::from_value::<crate::bounded_unique_vec::BoundedUniqueVec<u8, 0, 0>>(
+                serde_json::Value::Array(Vec::new()),
+            )
+            .is_ok_and(|collection| collection.as_ref().is_empty())
+        );
+        assert!(
+            serde_json::from_value::<crate::bounded_unique_vec::BoundedUniqueVec<u8, 0, 0>>(
+                serde_json::Value::Array(vec![serde_json::Value::from(1u8)]),
+            )
+            .is_err_and(|error| {
+                error
+                    .to_string()
+                    .contains(constants_str::BOUNDED_UNIQUE_VEC_ABOVE_MAX)
+            })
+        );
+    }
+
+    #[test]
     fn test_duplicate_is_rejected_before_later_invalid_item() {
         let result = serde_json::from_str::<crate::bounded_unique_vec::BoundedUniqueVec<u8, 1, 4>>(
             constants_str::TEST_BOUNDED_UNIQUE_VEC_DUPLICATE_THEN_INVALID,

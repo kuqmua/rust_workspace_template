@@ -55,3 +55,37 @@ impl TryFrom<crate::bounded_bytes::BoundedBytes> for BoundedText {
         Self::try_from(text)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn test_bounded_text_string_and_byte_conversions_enforce_exact_byte_limit() {
+        let maximum = constants_usize::VALUE_16_777_216;
+        let unicode = '\u{e9}'.to_string().repeat(8_388_608usize);
+        let mut oversized_unicode = unicode.clone();
+        oversized_unicode.push('x');
+        assert!([
+            String::new(),
+            constants_str::X.to_owned(),
+            constants_str::X.repeat(maximum - 1usize),
+            constants_str::X.repeat(maximum),
+            constants_str::X.repeat(maximum + 1usize),
+            unicode,
+            oversized_unicode,
+        ].into_iter().all(|text| {
+            [
+                crate::bounded_text::BoundedText::try_from(text.clone()),
+                crate::bounded_text::BoundedText::try_from(crate::bounded_bytes::BoundedBytes::from(text.as_bytes().to_vec())),
+            ].into_iter().all(|result| {
+                if text.len() <= maximum {
+                    result.is_ok_and(|bounded| bounded.as_ref() == text)
+                } else {
+                    result.is_err_and(|error| matches!(error,
+                        crate::bounded_read_error::BoundedReadError::ExceedsMaximum { maximum_bytes }
+                            if maximum_bytes.get() == maximum
+                    ))
+                }
+            })
+        }));
+    }
+}

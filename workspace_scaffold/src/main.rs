@@ -69,6 +69,46 @@ fn main() {
         let result = (|| {
             let mut arguments = std::env::args().skip(constants_usize::ONE);
             match arguments.next().as_deref() {
+                Some(command)
+                    if command == constants_str::WORKSPACE_SCAFFOLD_MANIFEST_COMMAND
+                        || command
+                            == constants_str::WORKSPACE_SCAFFOLD_MANIFEST_EXAMPLE_COMMAND =>
+                {
+                    let path = arguments
+                        .next()
+                        .ok_or(scaffold_error::ScaffoldError::Arguments)?;
+                    if arguments.next().is_some() {
+                        return Err(scaffold_error::ScaffoldError::Arguments);
+                    }
+                    let contents = template_fs_read_bounded_text::template_fs_read_bounded_text(
+                        scaffold_path_ref::ScaffoldPathRef::from(std::path::Path::new(&path)),
+                    )?;
+                    let contents_ref =
+                        macro_helpers::string_file_content_ref::StringFileContentRef::from(
+                            contents.as_ref(),
+                        );
+                    let result = if command
+                        == constants_str::WORKSPACE_SCAFFOLD_MANIFEST_EXAMPLE_COMMAND
+                    {
+                        macro_helpers::validate_production_manifest_example::validate_production_manifest_example(contents_ref)
+                    } else {
+                        macro_helpers::validate_production_manifest::validate_production_manifest(
+                            contents_ref,
+                        )
+                    };
+                    match result {
+                        Ok(()) => Ok(()),
+                        Err(error) => {
+                            macro_helpers::tool_console_stream::ToolConsoleStream::StandardError
+                                .write_or_exit(
+                                    macro_helpers::std_fmt_arguments::StdFmtArguments::from(
+                                        format_args!("{error}{}", constants_str::NEWLINE),
+                                    ),
+                                );
+                            Err(scaffold_error::ScaffoldError::Manifest(error))
+                        }
+                    }
+                }
                 Some(constants_str::WORKSPACE_SCAFFOLD_PROJECT_COMMAND) => {
                     let name = arguments
                         .next()

@@ -157,6 +157,62 @@ mod tests {
         Long(TestLongRouteParameter),
     }
 
+    #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
+    struct TestDefaultHooksRoute;
+
+    impl frontend_contract::typed_route::TypedRoute for TestDefaultHooksRoute {
+        type Request = TestRequest;
+        type Response = TestResponse;
+        type Transport = frontend_contract::public_transport::PublicTransport;
+
+        fn metadata() -> frontend_contract::route_metadata::RouteMetadata {
+            <TestRoute as frontend_contract::typed_route::TypedRoute>::metadata()
+        }
+    }
+
+    #[test]
+    fn test_default_typed_route_schema_hooks_and_error_statuses() {
+        assert!(<TestDefaultHooksRoute as frontend_contract::typed_route::TypedRoute>::openapi_request_schema().is_none());
+        assert!(<TestDefaultHooksRoute as frontend_contract::typed_route::TypedRoute>::openapi_request_body_schema().is_none());
+        assert!(<TestDefaultHooksRoute as frontend_contract::typed_route::TypedRoute>::openapi_response_schema().is_none());
+        assert!(<TestDefaultHooksRoute as frontend_contract::typed_route::TypedRoute>::openapi_path_parameter().is_none());
+        assert_eq!(
+            <TestDefaultHooksRoute as frontend_contract::typed_route::TypedRoute>::request_body(),
+            frontend_contract::route_request_body::RouteRequestBody::Absent,
+        );
+        assert!([
+            frontend_contract::route_error_status::RouteErrorStatus::Authentication,
+            frontend_contract::route_error_status::RouteErrorStatus::Authorization,
+            frontend_contract::route_error_status::RouteErrorStatus::Conflict,
+            frontend_contract::route_error_status::RouteErrorStatus::Internal,
+            frontend_contract::route_error_status::RouteErrorStatus::MethodNotAllowed,
+            frontend_contract::route_error_status::RouteErrorStatus::PayloadTooLarge,
+            frontend_contract::route_error_status::RouteErrorStatus::RateLimited,
+            frontend_contract::route_error_status::RouteErrorStatus::ServiceUnavailable,
+            frontend_contract::route_error_status::RouteErrorStatus::Validation,
+        ].into_iter().all(|status| {
+            <TestDefaultHooksRoute as frontend_contract::typed_route::TypedRoute>::openapi_error_response_schema(status)
+                .is_some_and(|schema| {
+                    utoipa::openapi::RefOr::<utoipa::openapi::Schema>::from(schema)
+                        == <frontend_contract::api_problem::ApiProblem as utoipa::PartialSchema>::schema()
+                })
+        }));
+    }
+
+    #[test]
+    fn test_default_typed_route_schema_registration_preserves_components() {
+        let mut components = utoipa::openapi::schema::Components::default();
+        let _previous = components.schemas.insert(
+            constants_str::ROUTE.to_owned(),
+            <TestRequest as utoipa::PartialSchema>::schema(),
+        );
+        let expected = components.clone();
+        <TestDefaultHooksRoute as frontend_contract::typed_route::TypedRoute>::register_openapi_schemas(
+            &mut frontend_contract::utoipa_open_api_components_ref_mut::UtoipaOpenApiComponentsRefMut::from(&mut components),
+        );
+        assert!(components == expected);
+    }
+
     #[test]
     fn test_derive_uses_one_declaration_for_types_and_metadata() {
         let metadata =

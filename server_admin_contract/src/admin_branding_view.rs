@@ -54,3 +54,35 @@ impl AdminBrandingView {
         self.tab_title.as_ref()
     }
 }
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn test_branding_projection_preserves_every_optional_field_combination() {
+        assert!((0usize..16usize).all(|mask| {
+            let expected = serde_json::json!({
+                (stringify!(default_admin_route)): crate::admin_frontend_path::AdminFrontendPath::Users.get(),
+                (stringify!(main_logo)): (mask & 1usize != 0usize).then_some(constants_str::ADMIN_DEFAULT_MAIN_LOGO),
+                (stringify!(primary_color)): (mask & 2usize != 0usize).then_some(constants_str::PRIMARY_COLOR_DEFAULT),
+                (stringify!(site_name)): constants_str::X,
+                (stringify!(support_url)): (mask & 4usize != 0usize).then_some(constants_str::ADMIN_DEFAULT_SUPPORT_URL),
+                (stringify!(tab_title)): (mask & 8usize != 0usize).then_some(constants_str::ADMIN),
+            });
+            let mut settings_wire = expected.clone();
+            let extended = settings_wire.as_object_mut().is_some_and(|fields| {
+                fields.insert(stringify!(organization_name).to_owned(), serde_json::json!(constants_str::LOGIN)).is_none()
+                    && fields.insert(stringify!(organization_contacts).to_owned(), serde_json::json!(constants_str::ADMIN)).is_none()
+            });
+            extended && serde_json::from_value::<crate::admin_settings_view::AdminSettingsView>(settings_wire).is_ok_and(|settings| {
+                let branding = super::AdminBrandingView::from_settings(&settings);
+                branding.default_admin_route().as_ref() == settings.default_admin_route().as_ref()
+                    && branding.site_name().as_ref() == settings.site_name().as_ref()
+                    && branding.main_logo().map(AsRef::as_ref) == settings.main_logo().map(AsRef::as_ref)
+                    && branding.primary_color().map(AsRef::as_ref) == settings.primary_color().map(AsRef::as_ref)
+                    && branding.support_url().map(AsRef::as_ref) == settings.support_url().map(AsRef::as_ref)
+                    && branding.tab_title().map(AsRef::as_ref) == settings.tab_title().map(AsRef::as_ref)
+                    && serde_json::to_value(branding).is_ok_and(|wire| wire == expected)
+            })
+        }));
+    }
+}

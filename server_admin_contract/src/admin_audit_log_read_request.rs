@@ -88,3 +88,57 @@ impl TryFrom<&crate::admin_table_query::AdminTableQuery> for AdminAuditLogReadRe
         ))
     }
 }
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn test_audit_read_request_maps_every_sort_and_preserves_query_values() {
+        let cases = [
+            (constants_str::EMPTY, constants_str::CREATED_AT),
+            (constants_str::CREATED_AT, constants_str::CREATED_AT),
+            (constants_str::ACTION, constants_str::ACTION),
+            (constants_str::RESOURCE, constants_str::RESOURCE),
+            (constants_str::SUCCEEDED, constants_str::SUCCEEDED),
+            (constants_str::USER_ID, constants_str::USER_ID),
+        ];
+        assert!(cases.into_iter().all(|(sort, column)| {
+            [
+                crate::admin_sort_direction::AdminSortDirection::Ascending,
+                crate::admin_sort_direction::AdminSortDirection::Descending,
+            ]
+            .into_iter()
+            .all(|direction| {
+                serde_json::from_value::<crate::admin_table_query::AdminTableQuery>(
+                    serde_json::json!({
+                        (stringify!(search)): constants_str::X,
+                        (stringify!(sort)): sort,
+                        (stringify!(offset)): 7u32,
+                        (stringify!(limit)): 11u16,
+                        (stringify!(direction)): direction,
+                    }),
+                )
+                .is_ok_and(|query| {
+                    super::AdminAuditLogReadRequest::try_from(&query).is_ok_and(|request| {
+                        request
+                            .get_search()
+                            .is_some_and(|search| search.as_ref() == query.search().as_ref())
+                            && request.get_where_many().is_none()
+                            && *request.get_pagination().get_offset() == query.offset()
+                            && *request.get_pagination().get_limit() == query.limit()
+                            && *request.get_order_by().get_order()
+                                == if sort.is_empty() {
+                                    crate::admin_sort_direction::AdminSortDirection::Descending
+                                } else {
+                                    direction
+                                }
+                            && serde_json::to_value(request.get_order_by().get_column())
+                                .is_ok_and(|wire| wire == serde_json::json!({(column): null}))
+                    })
+                })
+            })
+        }));
+        assert!([constants_str::X, constants_str::SQL_NAMES_ID, constants_str::LOGIN].into_iter().all(|sort| {
+            serde_json::from_value::<crate::admin_table_query::AdminTableQuery>(serde_json::json!({(stringify!(sort)): sort})).is_ok_and(|query| matches!(super::AdminAuditLogReadRequest::try_from(&query), Err(crate::admin_table_sort_field_try_from_key_error::AdminTableSortFieldTryFromKeyError::Unknown)))
+        }));
+    }
+}

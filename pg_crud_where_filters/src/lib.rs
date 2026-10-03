@@ -17,3 +17,12 @@ pub mod variant;
 pub mod test_generic_utoipa_schema_components;
 #[cfg(test)]
 pub mod test_pg_crud_where_filters;
+
+#[cfg(test)]
+mod test_pg_filter_vec;
+
+#[cfg(test)]
+mod test_between_query;
+
+#[cfg(test)]
+mod test_unique_filter_vec;

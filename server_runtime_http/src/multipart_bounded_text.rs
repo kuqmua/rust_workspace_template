@@ -37,3 +37,53 @@ impl<const MAXIMUM_LEN: usize> TryFrom<String> for MultipartBoundedText<MAXIMUM_
             })
     }
 }
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn test_multipart_bounded_text_preserves_content_and_counts_utf8_bytes() {
+        let unicode = '\u{e9}'.to_string().repeat(2usize);
+        let mut oversized_unicode = unicode.clone();
+        oversized_unicode.push('x');
+        assert!(
+            [
+                String::new(),
+                [' ', '\t', '\n', ' '].into_iter().collect::<String>(),
+                constants_str::X.repeat(3usize),
+                constants_str::X.repeat(4usize),
+                constants_str::X.repeat(5usize),
+                unicode,
+                oversized_unicode,
+            ]
+            .into_iter()
+            .all(|text| {
+                let result =
+                    crate::multipart_bounded_text::MultipartBoundedText::<4usize>::try_from(
+                        text.clone(),
+                    );
+                if text.len() <= 4usize {
+                    result.is_ok_and(|value| value.as_ref() == text)
+                } else {
+                    result
+                        == Err(crate::multipart_value_error::MultipartValueError::TooLong {
+                            actual: crate::multipart_value_length::MultipartValueLength::from(
+                                text.len(),
+                            ),
+                        })
+                }
+            })
+        );
+        assert!(
+            crate::multipart_bounded_text::MultipartBoundedText::<0usize>::try_from(String::new())
+                .is_ok_and(|value| value.as_ref().is_empty())
+        );
+        assert_eq!(
+            crate::multipart_bounded_text::MultipartBoundedText::<0usize>::try_from(
+                constants_str::X.to_owned()
+            ),
+            Err(crate::multipart_value_error::MultipartValueError::TooLong {
+                actual: crate::multipart_value_length::MultipartValueLength::from(1usize),
+            })
+        );
+    }
+}

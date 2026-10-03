@@ -61,3 +61,63 @@ impl TrustedProxyRange {
         )
     }
 }
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn test_proxy_range_prefix_boundaries_control_same_family_membership() {
+        assert!(
+            [
+                (
+                    std::net::IpAddr::V4(std::net::Ipv4Addr::LOCALHOST),
+                    std::net::IpAddr::V4(std::net::Ipv4Addr::UNSPECIFIED),
+                    32u8
+                ),
+                (
+                    std::net::IpAddr::V6(std::net::Ipv6Addr::LOCALHOST),
+                    std::net::IpAddr::V6(std::net::Ipv6Addr::UNSPECIFIED),
+                    128u8
+                ),
+            ]
+            .into_iter()
+            .all(|(address, other_address, width)| {
+                [0u8, width].into_iter().all(|prefix| {
+                    crate::trusted_proxy_range::TrustedProxyRange::try_from(format!(
+                        "{address}/{prefix}"
+                    ))
+                    .is_ok_and(|range| {
+                        range
+                            .contains(crate::parsed_ip_addr::ParsedIpAddr::from(address))
+                            .get()
+                            && range
+                                .contains(crate::parsed_ip_addr::ParsedIpAddr::from(other_address))
+                                .get()
+                                == (prefix == 0u8)
+                    })
+                })
+            })
+        );
+    }
+
+    #[test]
+    fn test_proxy_range_parser_distinguishes_invalid_prefix_syntax_from_address_width() {
+        let address = std::net::Ipv4Addr::LOCALHOST;
+        assert!(matches!(
+            crate::trusted_proxy_range::TrustedProxyRange::try_from(address.to_string()),
+            Err(crate::trusted_proxy_range_parse_error::TrustedProxyRangeParseError::MissingPrefix)
+        ));
+        assert!([String::new(), constants_str::X.to_owned(), 256u16.to_string(), '/'.to_string()]
+            .into_iter().all(|prefix| {
+                let text = format!("{address}/{prefix}");
+                matches!(crate::trusted_proxy_range::TrustedProxyRange::try_from(text), Err(crate::trusted_proxy_range_parse_error::TrustedProxyRangeParseError::InvalidPrefix { .. }))
+            }));
+        assert!([
+            format!("{}/{}", std::net::Ipv4Addr::LOCALHOST, 33u8),
+            format!("{}/{}", std::net::Ipv6Addr::LOCALHOST, 129u8),
+        ].into_iter().all(|text| {
+            matches!(crate::trusted_proxy_range::TrustedProxyRange::try_from(text), Err(crate::trusted_proxy_range_parse_error::TrustedProxyRangeParseError::PrefixExceedsAddressWidth))
+        }));
+        let invalid_address = format!("{}/{}", constants_str::X, 24u8);
+        assert!(matches!(crate::trusted_proxy_range::TrustedProxyRange::try_from(invalid_address), Err(crate::trusted_proxy_range_parse_error::TrustedProxyRangeParseError::InvalidAddress { .. })));
+    }
+}

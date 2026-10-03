@@ -33,4 +33,26 @@ mod tests {
             .is_err()
         );
     }
+    #[test]
+    fn test_zero_budget_and_exceeded_payload() {
+        assert_eq!(
+            crate::validate_operation_budget::validate_operation_budget(
+                0usize.into(),
+                0usize.into()
+            ),
+            Ok(())
+        );
+        assert_eq!(
+            crate::validate_operation_budget::validate_operation_budget(
+                1usize.into(),
+                0usize.into()
+            ),
+            Err(
+                crate::operation_budget_exceeded::OperationBudgetExceeded::Exceeded {
+                    actual: 1usize.into(),
+                    budget: 0usize.into()
+                }
+            )
+        );
+    }
 }

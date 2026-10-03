@@ -56,3 +56,62 @@ impl PgScopedForeignKey {
         })
     }
 }
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn test_foreign_key_column_bounds_and_error_precedence() {
+        let verify = || -> Result<bool, crate::sql_identifier_error::SqlIdentifierError> {
+            let columns = |count, duplicate| {
+                (0..count)
+                    .map(|index| {
+                        crate::sql_identifier::SqlIdentifier::try_from(format!(
+                            "{}{}",
+                            constants_str::X,
+                            if duplicate { 0usize } else { index }
+                        ))
+                    })
+                    .collect::<Result<Vec<_>, _>>()
+                    .map(crate::pg_sql_identifiers::PgSqlIdentifiers::from)
+            };
+            let table = crate::sql_qualified_identifier::SqlQualifiedIdentifier::new(
+                crate::sql_identifier::SqlIdentifier::try_from(constants_str::X.to_owned())?,
+                crate::sql_identifier::SqlIdentifier::try_from(constants_str::TABLE.to_owned())?,
+            );
+            [
+                (0usize, 0usize, false, false, Some(crate::pg_scoped_foreign_key_error::PgScopedForeignKeyError::InvalidColumnCount)),
+                (0usize, 1usize, false, false, Some(crate::pg_scoped_foreign_key_error::PgScopedForeignKeyError::ColumnCountMismatch)),
+                (1usize, 0usize, false, false, Some(crate::pg_scoped_foreign_key_error::PgScopedForeignKeyError::ColumnCountMismatch)),
+                (1usize, 1usize, false, false, Some(crate::pg_scoped_foreign_key_error::PgScopedForeignKeyError::InvalidColumnCount)),
+                (2usize, 2usize, false, false, None),
+                (2usize, 2usize, true, false, Some(crate::pg_scoped_foreign_key_error::PgScopedForeignKeyError::DuplicateColumn)),
+                (2usize, 2usize, false, true, Some(crate::pg_scoped_foreign_key_error::PgScopedForeignKeyError::DuplicateColumn)),
+                (2usize, 2usize, true, true, Some(crate::pg_scoped_foreign_key_error::PgScopedForeignKeyError::DuplicateColumn)),
+                (16usize, 16usize, false, false, None),
+                (17usize, 17usize, false, false, Some(crate::pg_scoped_foreign_key_error::PgScopedForeignKeyError::InvalidColumnCount)),
+                (17usize, 16usize, false, false, Some(crate::pg_scoped_foreign_key_error::PgScopedForeignKeyError::ColumnCountMismatch)),
+            ]
+            .into_iter()
+            .try_fold(true, |valid, (local_count, referenced_count, duplicate_local, duplicate_referenced, expected_error)| {
+                let local_columns = columns(local_count, duplicate_local)?;
+                let referenced_columns = columns(referenced_count, duplicate_referenced)?;
+                let actual = crate::pg_scoped_foreign_key::PgScopedForeignKey::new(
+                    local_columns.clone(),
+                    table.clone(),
+                    referenced_columns.clone(),
+                    crate::pg_scoped_foreign_key_on_delete::PgScopedForeignKeyOnDelete::Restrict,
+                );
+                Ok::<_, crate::sql_identifier_error::SqlIdentifierError>(valid && expected_error.map_or_else(
+                    || actual.as_ref().is_ok_and(|foreign_key| {
+                        foreign_key.get_local_columns() == &local_columns
+                            && foreign_key.get_referenced_columns() == &referenced_columns
+                            && foreign_key.get_referenced_table() == &table
+                            && *foreign_key.get_on_delete() == crate::pg_scoped_foreign_key_on_delete::PgScopedForeignKeyOnDelete::Restrict
+                    }),
+                    |error| actual == Err(error),
+                ))
+            })
+        };
+        assert!(verify().is_ok_and(|valid| valid));
+    }
+}

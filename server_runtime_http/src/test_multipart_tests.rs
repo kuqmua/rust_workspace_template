@@ -1,5 +1,111 @@
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn test_multipart_name_length_errors_precede_content_errors() {
+        assert!(['\0', '\n', '/', '\\'].into_iter().all(|character| {
+            let field = character.to_string().repeat(257usize);
+            let filename = character.to_string().repeat(1025usize);
+            crate::multipart_field_name::MultipartFieldName::try_from(field)
+                == Err(crate::multipart_value_error::MultipartValueError::TooLong {
+                    actual: crate::multipart_value_length::MultipartValueLength::from(257usize),
+                })
+                && crate::multipart_file_name::MultipartFileName::try_from(filename)
+                    == Err(crate::multipart_value_error::MultipartValueError::TooLong {
+                        actual: crate::multipart_value_length::MultipartValueLength::from(
+                            1025usize,
+                        ),
+                    })
+        }));
+    }
+
+    #[test]
+    fn test_multipart_name_ascii_validation_preserves_allowed_characters() {
+        assert!((0u8..=127u8).all(|byte| {
+            let character = char::from(byte);
+            let text = format!("{}{character}", constants_str::X);
+            let field = crate::multipart_field_name::MultipartFieldName::try_from(text.clone());
+            let filename = crate::multipart_file_name::MultipartFileName::try_from(text.clone());
+            if character.is_control() {
+                return field
+                    == Err(crate::multipart_value_error::MultipartValueError::ControlCharacter)
+                    && filename
+                        == Err(
+                            crate::multipart_value_error::MultipartValueError::ControlCharacter,
+                        );
+            }
+            field.is_ok_and(|value| value.as_ref() == text)
+                && if matches!(character, '/' | '\\') {
+                    filename
+                        == Err(crate::multipart_value_error::MultipartValueError::PathComponent)
+                } else {
+                    filename.is_ok_and(|value| value.as_ref() == text)
+                }
+        }));
+    }
+
+    #[test]
+    fn test_multipart_names_preserve_utf8_and_reject_exact_byte_overflow() {
+        let filename = '\u{e9}'.to_string().repeat(512usize);
+        assert!(
+            crate::multipart_file_name::MultipartFileName::try_from(filename.clone())
+                .is_ok_and(|value| value.as_ref() == filename)
+        );
+        let mut oversized_filename = filename;
+        oversized_filename.push('x');
+        assert_eq!(
+            crate::multipart_file_name::MultipartFileName::try_from(oversized_filename),
+            Err(crate::multipart_value_error::MultipartValueError::TooLong {
+                actual: crate::multipart_value_length::MultipartValueLength::from(1025usize)
+            })
+        );
+        let field = '\u{e9}'.to_string().repeat(128usize);
+        assert!(
+            crate::multipart_field_name::MultipartFieldName::try_from(field.clone())
+                .is_ok_and(|value| value.as_ref() == field)
+        );
+        let mut oversized_field = field;
+        oversized_field.push('x');
+        assert_eq!(
+            crate::multipart_field_name::MultipartFieldName::try_from(oversized_field),
+            Err(crate::multipart_value_error::MultipartValueError::TooLong {
+                actual: crate::multipart_value_length::MultipartValueLength::from(257usize)
+            })
+        );
+    }
+
+    #[test]
+    fn test_multipart_filename_rejects_path_components_and_control_characters() {
+        assert!(
+            [
+                constants_str::CURRENT_PATH_SEGMENT.to_owned(),
+                constants_str::PARENT_PATH_SEGMENT.to_owned(),
+                '/'.to_string(),
+                '\\'.to_string(),
+                format!("{}/{}", constants_str::X, constants_str::X),
+                format!("{}\\{}", constants_str::X, constants_str::X),
+            ]
+            .into_iter()
+            .all(|text| {
+                crate::multipart_file_name::MultipartFileName::try_from(text)
+                    == Err(crate::multipart_value_error::MultipartValueError::PathComponent)
+            })
+        );
+        assert!(
+            ['\0', '\n', '\r', '\t', '\u{7f}', '\u{85}']
+                .into_iter()
+                .all(|character| {
+                    let mut text = constants_str::X.to_owned();
+                    text.push(character);
+                    crate::multipart_file_name::MultipartFileName::try_from(text.clone())
+                        == Err(crate::multipart_value_error::MultipartValueError::ControlCharacter)
+                        && crate::multipart_field_name::MultipartFieldName::try_from(text)
+                            == Err(
+                                crate::multipart_value_error::MultipartValueError::ControlCharacter,
+                            )
+                })
+        );
+    }
+
     fn field_name() -> crate::multipart_field_name::MultipartFieldName {
         crate::multipart_field_name::MultipartFieldName::try_from(String::from(
             constants_str::FIELD,
@@ -115,6 +221,36 @@ mod tests {
             bytes_part.file_name().map(AsRef::as_ref),
             Some(constants_str::VALUE_EAFB4AFF)
         );
+        let empty_bytes_result = crate::multipart_bytes::MultipartBytes::try_from(Vec::new());
+        assert!(empty_bytes_result.is_ok());
+        let Ok(empty_bytes) = empty_bytes_result else {
+            return;
+        };
+        let unnamed_file =
+            crate::multipart_bytes_part::MultipartBytesPart::new(field_name(), empty_bytes);
+        let maximum = crate::multipart_payload_maximum::MultipartPayloadMaximum::from(6usize);
+        let request = crate::multipart_upload_request::MultipartUploadRequest::new()
+            .with_bytes_part(bytes_part, maximum)
+            .and_then(|multipart_upload_request| {
+                multipart_upload_request.with_text_part(text_part(constants_str::AB), maximum)
+            })
+            .and_then(|multipart_upload_request| {
+                multipart_upload_request.with_bytes_part(unnamed_file, maximum)
+            })
+            .and_then(|multipart_upload_request| {
+                multipart_upload_request.with_text_part(text_part(constants_str::X), maximum)
+            });
+        assert!(request.is_ok_and(|multipart_upload_request| {
+            matches!(multipart_upload_request.bytes_parts(), [first, second]
+                if first.name().as_ref() == constants_str::FIELD
+                    && first.bytes().as_ref() == [1u8, 2u8, 3u8]
+                    && first.file_name().is_some_and(|multipart_file_name| multipart_file_name.as_ref() == constants_str::VALUE_EAFB4AFF)
+                    && second.name().as_ref() == constants_str::FIELD
+                    && second.bytes().as_ref().is_empty()
+                    && second.file_name().is_none())
+                && matches!(multipart_upload_request.text_parts(), [first, second]
+                    if first.value().as_ref() == constants_str::AB && second.value().as_ref() == constants_str::X)
+        }));
     }
     #[test]
     fn test_request_enforces_combined_payload_and_part_count() {

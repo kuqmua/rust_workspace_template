@@ -1526,6 +1526,19 @@ fn test_regex_filter_builds_a_typed_predicate() {
 
     assert!(fragment.as_ref().contains(constants_str::LOGIN));
     assert_eq!(increment.get(), 1u64);
+    let sqlx_postgres_query = pg_crud_common::sqlx_postgres_query::SqlxPostgresQuery::from(
+        sqlx::query(constants_str::EMPTY),
+    );
+    assert!(
+        filter
+            .query_bind(sqlx_postgres_query)
+            .is_ok_and(|bound_query| {
+                let mut bound_sqlx_query = bound_query.into_inner();
+                sqlx::Execute::take_arguments(&mut bound_sqlx_query).is_ok_and(|arguments| {
+                    arguments.is_some_and(|arguments| sqlx::Arguments::len(&arguments) == 1usize)
+                })
+            })
+    );
 }
 
 #[test]
@@ -1607,4 +1620,29 @@ fn test_table_spec_generates_bounded_projection_and_count_sql_for_every_table() 
                     .ends_with(constants_str::SERVER_ADMIN_FILTER_LIMIT_SEPARATOR)
             );
         });
+}
+
+#[test]
+fn test_regex_filter_query_propagates_counter_overflow() {
+    let query = filter_query(
+        constants_str::LOGIN,
+        frontend_contract::filter_operation::FilterOperation::Regex,
+        Some(constants_str::VALUE_78C40633),
+        None,
+    );
+    assert!(
+        crate::data_filter::data_filter(
+            server_admin_contract::admin_data_table::AdminDataTable::Users,
+            query.filter()
+        )
+        .is_ok_and(|filter| filter.is_some_and(|filter| {
+            let mut increment =
+                pg_crud_common::query_part_increment::QueryPartIncrement::from(u64::MAX);
+            let result = filter.query_part(&mut increment);
+            matches!(
+                result,
+                Err(pg_crud_common::query_part_error::QueryPartError::CheckedAdd { .. })
+            ) && increment.get() == u64::MAX
+        }))
+    );
 }

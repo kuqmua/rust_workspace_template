@@ -360,3 +360,197 @@ fn test_data_grid() {
             .contains(server_admin_contract::admin_html_action::AdminHtmlAction::SignOut.get())
     );
 }
+
+#[test]
+fn test_admin_grid_requires_valid_identifier_and_permission_for_actions() {
+    assert!(
+        server_admin_contract::admin_data_table::AdminDataTable::PG_ORDER
+            .into_iter()
+            .all(|table| {
+                let valid_identifier = if table == server_admin_contract::admin_data_table::AdminDataTable::AccessSessions { constants_str::TEST_ACCESS_SESSION_ID } else if table == server_admin_contract::admin_data_table::AdminDataTable::RefreshTokens { constants_str::TEST_REFRESH_TOKEN_ID } else { constants_str::VALUE_42 };
+                [
+                    (valid_identifier, true, true, true),
+                    (valid_identifier, true, false, false),
+                    (constants_str::X, true, true, false),
+                    (stringify!(0), true, true, false),
+                    (stringify!(-1), true, true, false),
+                    (stringify!(9223372036854775808), true, true, false),
+                    (valid_identifier, false, true, false),
+                ]
+                .into_iter()
+                .all(
+                    |(identifier, has_identifier_column, can_update, expected_update)| {
+                        let column_name = if has_identifier_column {
+                            constants_str::SQL_NAMES_ID
+                        } else {
+                            constants_str::LOGIN
+                        };
+                        let Ok(name) = server_admin_contract::admin_text::AdminText::try_from(
+                            column_name.to_owned(),
+                        ) else {
+                            return false;
+                        };
+                        let Ok(filters) =
+                            server_admin_contract::admin_data_filters::AdminDataFilters::try_from(
+                                Vec::new(),
+                            )
+                        else {
+                            return false;
+                        };
+                        let Ok(columns) =
+                            server_admin_contract::admin_data_columns::AdminDataColumns::try_from(
+                                vec![
+                                    server_admin_contract::admin_data_column::AdminDataColumn::new(
+                                        filters,
+                                        frontend_contract::input_kind::InputKind::Number,
+                                        name.clone(),
+                                        name,
+                                    ),
+                                ],
+                            )
+                        else {
+                            return false;
+                        };
+                        let Ok(text) = server_admin_contract::admin_text::AdminText::try_from(
+                            identifier.to_owned(),
+                        ) else {
+                            return false;
+                        };
+                        let Ok(values) =
+                            server_admin_contract::admin_texts::AdminTexts::try_from(vec![text])
+                        else {
+                            return false;
+                        };
+                        let Ok(rows) =
+                            server_admin_contract::admin_data_rows::AdminDataRows::try_from(vec![
+                                server_admin_contract::admin_data_row::AdminDataRow::new(values),
+                            ])
+                        else {
+                            return false;
+                        };
+
+                        let view =
+                            server_admin_contract::admin_data_table_view::AdminDataTableView::new(
+                                columns,
+                                rows,
+                                table,
+                                server_admin_contract::admin_page_total::AdminPageTotal::from(1u64),
+                            );
+                        let query =
+                            server_admin_contract::admin_table_query::AdminTableQuery::default();
+                        let html =
+                            crate::admin_ssr_view_ext_tests::AdminSsrViewExt::render_admin_ssr(
+                                crate::admin_data_table_grid::admin_data_table_grid(
+                                    &view,
+                                    None,
+                                    None,
+                                    None,
+                                    None,
+                                    query.limit(),
+                                    Some(&query),
+                                    &table.frontend_path(),
+                                    false,
+                                    can_update,
+                                ),
+                            );
+                        let Ok(role) =
+                            server_admin_contract::admin_role_id::AdminRoleId::try_from(42i64)
+                        else {
+                            return false;
+                        };
+                        let update =
+                    server_admin_contract::admin_route_path::AdminRoutePath::role_update_path(role);
+                        let expected_role_update = expected_update
+                            && table
+                                == server_admin_contract::admin_data_table::AdminDataTable::Roles;
+                        let Ok(user) = server_admin_contract::admin_user_id::AdminUserId::try_from(42i64) else { return false; };
+                        let user_update = server_admin_contract::admin_route_path::AdminRoutePath::user_update_path(user);
+                        let expected_user_update = expected_update && table == server_admin_contract::admin_data_table::AdminDataTable::Users;
+                        let read_path = if table == server_admin_contract::admin_data_table::AdminDataTable::Rules {
+                            let Ok(rule) = server_admin_contract::admin_rule_id::AdminRuleId::try_from(42i64) else { return false; };
+                            server_admin_contract::admin_route_path::AdminRoutePath::from(rule).to_string()
+                        } else { format!("{}/{}/{}", table.frontend_path(), valid_identifier, constants_str::PG_CRUD_READ_RULE_ACTION) };
+                        let read_link = format!("href=\"{read_path}\"");
+                        let read_label =
+                            format!("aria-label=\"{}\"", constants_str::PG_CRUD_READ_RULE_ACTION);
+                        html.as_ref().contains(update.as_ref()) == expected_role_update
+                            && html.as_ref().contains(user_update.as_ref()) == expected_user_update
+                            && html.as_ref().contains(read_link.as_str()) == (has_identifier_column && identifier == valid_identifier)
+                            && html.as_ref().contains(read_label.as_str())
+                                == (has_identifier_column && identifier == valid_identifier)
+                    },
+                )
+            })
+    );
+}
+
+#[test]
+fn test_admin_grid_renders_empty_columns_and_unmatched_cells_without_actions() {
+    assert!(
+        [None, Some(0usize), Some(2usize)]
+            .into_iter()
+            .all(|value_count| {
+                let Ok(columns) =
+                    server_admin_contract::admin_data_columns::AdminDataColumns::try_from(
+                        Vec::new(),
+                    )
+                else {
+                    return false;
+                };
+                let Ok(text) = server_admin_contract::admin_text::AdminText::try_from(
+                    constants_str::TEST_FIRST.to_owned(),
+                ) else {
+                    return false;
+                };
+                let rows = if let Some(count) = value_count {
+                    let Ok(values) =
+                        server_admin_contract::admin_texts::AdminTexts::try_from(vec![text; count])
+                    else {
+                        return false;
+                    };
+                    vec![server_admin_contract::admin_data_row::AdminDataRow::new(
+                        values,
+                    )]
+                } else {
+                    Vec::new()
+                };
+                let Ok(items) =
+                    server_admin_contract::admin_data_rows::AdminDataRows::try_from(rows)
+                else {
+                    return false;
+                };
+                let table = server_admin_contract::admin_data_table::AdminDataTable::Users;
+                let view = server_admin_contract::admin_data_table_view::AdminDataTableView::new(
+                    columns,
+                    items,
+                    table,
+                    server_admin_contract::admin_page_total::AdminPageTotal::from(0u64),
+                );
+                let query = server_admin_contract::admin_table_query::AdminTableQuery::default();
+                let html = crate::admin_ssr_view_ext_tests::AdminSsrViewExt::render_admin_ssr(
+                    crate::admin_data_table_grid::admin_data_table_grid(
+                        &view,
+                        None,
+                        None,
+                        None,
+                        None,
+                        query.limit(),
+                        Some(&query),
+                        &table.frontend_path(),
+                        false,
+                        true,
+                    ),
+                );
+                let cell_text = format!(">{}<", constants_str::TEST_FIRST);
+                let read_label =
+                    format!("aria-label=\"{}\"", constants_str::PG_CRUD_READ_RULE_ACTION);
+                html.as_ref().contains(stringify!(TableBody))
+                    && html.as_ref().matches(cell_text.as_str()).count()
+                        == value_count.unwrap_or_default()
+                    && !html.as_ref().contains(read_label.as_str())
+                    && !html
+                        .as_ref()
+                        .contains(concat!(stringify!(numeric), "-", stringify!(cell)))
+            })
+    );
+}

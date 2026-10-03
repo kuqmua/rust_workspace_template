@@ -85,6 +85,53 @@ impl crate::pg_range_length_sql::PgRangeLengthSql for PgNumericRangeLength {
 #[cfg(test)]
 mod tests {
     #[test]
+    fn test_numeric_range_length_json_preserves_integer_boundaries() {
+        assert!(
+            [
+                1u64,
+                u64::from(u16::MAX),
+                2_147_483_647u64,
+                9_223_372_036_854_775_807u64,
+                u64::MAX
+            ]
+            .into_iter()
+            .all(|value| {
+                crate::pg_numeric_range_length::PgNumericRangeLength::try_from(value).is_ok_and(
+                    |length| {
+                        serde_json::to_value(length).is_ok_and(|json| {
+                            json == value
+                                && serde_json::from_value::<
+                                    crate::pg_numeric_range_length::PgNumericRangeLength,
+                                >(json)
+                                .is_ok_and(|decoded| decoded == length)
+                        })
+                    },
+                )
+            })
+        );
+        assert!(
+            [
+                serde_json::Value::Null,
+                serde_json::Value::Bool(true),
+                serde_json::Value::from(-1i64),
+                serde_json::Value::from(1.5f64),
+                serde_json::Value::from(constants_str::X),
+            ]
+            .into_iter()
+            .all(|json| {
+                serde_json::from_value::<crate::pg_numeric_range_length::PgNumericRangeLength>(json)
+                    .is_err_and(|error| error.is_data())
+            })
+        );
+        assert_eq!(
+            crate::pg_numeric_range_length::PgNumericRangeLength::try_from(u64::from(u16::MAX)),
+            Ok(crate::pg_numeric_range_length::PgNumericRangeLength::from(
+                std::num::NonZeroU16::MAX
+            ))
+        );
+    }
+
+    #[test]
     fn test_full_u64_range_length_validation() {
         assert!(matches!(
             crate::pg_numeric_range_length::PgNumericRangeLength::try_from(0u64),

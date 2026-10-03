@@ -29,6 +29,47 @@ pub(crate) fn validate_frontend_node_version(
 #[cfg(test)]
 mod tests {
     #[test]
+    fn test_frontend_node_major_version_parse_errors() {
+        assert!([
+            String::default(),
+            constants_str::X.to_owned(),
+            (u64::from(u32::MAX) + 1u64).to_string(),
+        ]
+        .into_iter()
+        .all(|major| {
+            let text = format!("v{major}.0");
+            crate::bounded_text::BoundedText::try_from(text).is_ok_and(
+                |bounded_text| matches!(
+                    crate::validate_frontend_node_version::validate_frontend_node_version(
+                        &bounded_text
+                    ),
+                    Err(crate::frontend_preparation_error::FrontendPreparationError::NodeVersionParse(source))
+                        if Some(source.to_string()) == major.parse::<u32>().err().map(|error| error.to_string())
+                )
+            )
+        }));
+    }
+
+    #[test]
+    fn test_frontend_node_major_version_threshold_and_whitespace() {
+        assert!([(21u32, false), (22u32, true), (u32::MAX, true)]
+            .into_iter()
+            .all(|(major, supported)| {
+                let text = format!(" \tv{major}.0\n");
+                crate::bounded_text::BoundedText::try_from(text).is_ok_and(
+                    |bounded_text| {
+                        let result = crate::validate_frontend_node_version::validate_frontend_node_version(&bounded_text);
+                        if supported {
+                            result.is_ok()
+                        } else {
+                            matches!(result, Err(crate::frontend_preparation_error::FrontendPreparationError::NodeUnsupported))
+                        }
+                    }
+                )
+            }));
+    }
+
+    #[test]
     #[allow(
         clippy::panic_in_result_fn,
         reason = "the test harness propagates bounded fixture setup errors while assertions verify the version gate"

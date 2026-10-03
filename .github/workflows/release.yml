@@ -49,10 +49,8 @@ jobs:
         run: |
           rendered="${RUNNER_TEMP}/production-example.yaml"
           kubectl kustomize deploy/k8s/overlays/production-example > "${rendered}"
-          if deploy/validate-production-manifest.sh "${rendered}"; then
-            echo "example production values were accepted" >&2
-            exit 1
-          fi
+          cargo run --locked -p workspace_scaffold -- manifest_example "${rendered}"
+
   extended:
     runs-on: ubuntu-latest
     timeout-minutes: 90

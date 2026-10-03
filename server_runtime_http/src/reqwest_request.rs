@@ -39,3 +39,42 @@ impl TryFrom<crate::reqwest_request_builder::ReqwestRequestBuilder> for ReqwestR
             .map_err(crate::reqwest_error::ReqwestError::from)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn test_request_accessors_and_header_mutation_preserve_request() {
+        let hostless = format!("{}:{}", constants_str::X, constants_str::X);
+        assert!(
+            [constants_str::HTTPS_EXAMPLE_COM, hostless.as_str(),]
+                .into_iter()
+                .all(|text| {
+                    reqwest::Url::parse(text).is_ok_and(|url| {
+                        [http::Method::POST, http::Method::DELETE]
+                            .into_iter()
+                            .all(|method| {
+                                let mut reqwest_request =
+                                    crate::reqwest_request::ReqwestRequest::from(
+                                        reqwest::Request::new(method.clone(), url.clone()),
+                                    );
+                                let accessor_matches = reqwest_request.method().to_string()
+                                    == method.as_str()
+                                    && reqwest_request.host().map(|host| host.to_string())
+                                        == url.host_str().map(str::to_owned);
+                                let previous = reqwest_request.headers_mut().insert(
+                                    http::header::CONTENT_TYPE,
+                                    http::HeaderValue::from_static(constants_str::X),
+                                );
+                                let request = reqwest_request.into_inner();
+                                accessor_matches
+                                    && previous.is_none()
+                                    && request.method() == method
+                                    && request.url() == &url
+                                    && request.headers().get(http::header::CONTENT_TYPE)
+                                        == Some(&http::HeaderValue::from_static(constants_str::X))
+                            })
+                    })
+                })
+        );
+    }
+}

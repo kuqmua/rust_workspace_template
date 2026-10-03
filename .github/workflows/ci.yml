@@ -300,20 +300,9 @@ jobs:
       - name: Validate production manifest guard
         run: |
           rendered="${RUNNER_TEMP}/production-example.yaml"
-          candidate="${RUNNER_TEMP}/production-candidate.yaml"
           kubectl kustomize deploy/k8s/overlays/production-example > "${rendered}"
-          if deploy/validate-production-manifest.sh "${rendered}"; then
-            echo "example production values were accepted" >&2
-            exit 1
-          fi
-          sed \
-            -e 's/registry\.example\.invalid/ghcr.io\/deployment-owner/g' \
-            -e 's/admin\.example\.invalid/admin.example.com/g' \
-            -e 's/replace-with-release-digest/0000000000000000000000000000000000000000000000000000000000000000/g' \
-            -e 's/replace-with-config-revision/release-v1/g' \
-            -e 's#TRUSTED_PROXY_RANGES_TEXT: 127.0.0.1/32#TRUSTED_PROXY_RANGES_TEXT: 10.0.0.0/24#g' \
-            "${rendered}" > "${candidate}"
-          deploy/validate-production-manifest.sh "${candidate}"
+          cargo run --locked -p workspace_scaffold -- manifest_example "${rendered}"
+
   database-tests:
     if: github.event_name == 'push' || github.event_name == 'pull_request'
     runs-on: ubuntu-latest

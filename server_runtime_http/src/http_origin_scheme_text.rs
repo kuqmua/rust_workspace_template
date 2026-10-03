@@ -29,3 +29,37 @@ impl TryFrom<String> for HttpOriginSchemeText {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn test_origin_scheme_text_exact_ascii_and_utf8_limits() {
+        assert!(
+            [
+                String::default(),
+                constants_str::X.to_owned(),
+                constants_str::X.repeat(15usize),
+                constants_str::X.repeat(16usize),
+                constants_str::X.repeat(17usize),
+                '\u{e9}'.to_string().repeat(8usize),
+                format!(
+                    "{}{}",
+                    '\u{e9}'.to_string().repeat(8usize),
+                    constants_str::X
+                ),
+            ]
+            .into_iter()
+            .all(|text| {
+                let valid = (1usize..=16usize).contains(&text.len());
+                let result =
+                    crate::http_origin_scheme_text::HttpOriginSchemeText::try_from(text.clone());
+                if valid {
+                    result
+                        .is_ok_and(|http_origin_scheme_text| http_origin_scheme_text.get() == text)
+                } else {
+                    result == Err(crate::allowed_origin_error::AllowedOriginError::Invalid)
+                }
+            })
+        );
+    }
+}

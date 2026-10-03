@@ -27,6 +27,30 @@ where
 #[cfg(test)]
 mod tests {
     #[test]
+    fn test_ordering_classification_handles_empty_singleton_and_duplicate_boundaries() {
+        assert!([Vec::<u8>::new(), vec![1u8]].iter().all(|values| {
+            crate::classify_slice_ordering::classify_slice_ordering(values)
+                == crate::slice_ordering::SliceOrdering::StrictlyIncreasing
+        }));
+        assert!(
+            [vec![1u8, 1u8, 1u8], vec![1u8, 2u8, 2u8]]
+                .iter()
+                .all(|values| {
+                    crate::classify_slice_ordering::classify_slice_ordering(values)
+                        == crate::slice_ordering::SliceOrdering::NonDecreasingWithDuplicates
+                })
+        );
+        assert!(
+            [vec![2u8, 2u8, 1u8], vec![2u8, 1u8, 1u8]]
+                .iter()
+                .all(|values| {
+                    crate::classify_slice_ordering::classify_slice_ordering(values)
+                        == crate::slice_ordering::SliceOrdering::Unordered
+                })
+        );
+    }
+
+    #[test]
     fn test_ordering_classification_distinguishes_all_shapes() {
         assert_eq!(
             crate::classify_slice_ordering::classify_slice_ordering(&[1u8, 2u8, 3u8]),

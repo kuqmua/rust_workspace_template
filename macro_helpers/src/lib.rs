@@ -171,3 +171,13 @@ mod std_str_chars;
 pub mod tool_ansi_chars;
 mod tool_ansi_escape_state;
 pub mod tool_ansi_text_ref;
+
+pub mod production_manifest_error;
+#[cfg(test)]
+mod test_production_manifest;
+pub mod validate_production_manifest;
+
+pub mod validate_production_manifest_example;
+
+#[cfg(test)]
+mod test_status_code_catalog;

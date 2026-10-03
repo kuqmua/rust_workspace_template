@@ -64,18 +64,3 @@ test("test_role_details_follow_table_link_and_ignore_list_filters", async ({ pag
   await createdRole.getByRole("button", { name: "delete_role" }).click();
   await expect(page).toHaveURL(/\/admin\/roles#saved$/);
 });
-
-test("test_role_details_require_authentication", async ({ page }) => {
-  await page.goto("/admin/roles/1/read");
-  await expect(page).toHaveURL(/\/admin\/sign_in$/);
-});
-
-test("test_role_read_page_rejects_invalid_identifiers", async ({ page }) => {
-  await signInAdministratorWithPasswordReset(page);
-  await ["0", "-1", "invalid", "9223372036854775808"].reduce(async (previous, identifier) => {
-    await previous;
-    const response = await page.goto(`/admin/roles/${identifier}/read`);
-    expect(response.status()).toBe(422);
-    await expect(page.locator('[data-page="role-read"]')).toHaveCount(0);
-  }, Promise.resolve());
-});

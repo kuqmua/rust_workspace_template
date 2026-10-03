@@ -29,3 +29,29 @@ impl AdminSettingSpec {
         ))
     }
 }
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn test_setting_spec_required_flag_preserves_clearable_and_input_metadata() {
+        let label = crate::admin_setting_label::AdminSettingLabel::from(constants_str::ADMIN);
+        let name = crate::admin_setting_name::AdminSettingName::from(constants_str::LOGIN);
+        assert!([
+            crate::admin_setting_input_kind::AdminSettingInputKind::Text,
+            crate::admin_setting_input_kind::AdminSettingInputKind::TextArea,
+            crate::admin_setting_input_kind::AdminSettingInputKind::Url,
+        ].into_iter().all(|input_kind| {
+            let required = super::AdminSettingSpec::new(label, name, input_kind, crate::admin_setting_optionality::AdminSettingOptionality::Required);
+            required.required() == crate::admin_bool::AdminBool::from(true)
+                && required.input_kind() == input_kind
+                && crate::admin_optional_setting::AdminOptionalSetting::ALL.iter().all(|optional_setting| {
+                    let optionality = crate::admin_setting_optionality::AdminSettingOptionality::Clearable(*optional_setting);
+                    let clearable = super::AdminSettingSpec::new(label, name, input_kind, optionality);
+                    clearable.required() == crate::admin_bool::AdminBool::from(false)
+                        && clearable.optionality() == optionality
+                        && clearable.label() == label && clearable.name() == name
+                        && clearable.input_kind() == input_kind
+                })
+        }));
+    }
+}

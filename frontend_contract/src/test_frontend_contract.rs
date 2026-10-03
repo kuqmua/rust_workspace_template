@@ -287,3 +287,102 @@ fn test_http_status_wrappers_reject_values_below_protocol_range() {
     let _problem_error = crate::api_problem_status::ApiProblemStatus::try_from(99u16)
         .expect_err(constants_str::VALUE_766AAE46);
 }
+
+#[test]
+fn test_problem_decoder_rejects_non_problem_and_malformed_bodies() {
+    [
+        constants_str::EMPTY,
+        constants_str::SPACE,
+        constants_str::VALUE_F1234D75,
+        constants_str::VALUE_4F53CDA1,
+        constants_str::VALUE_1,
+    ]
+    .into_iter()
+    .fold((), |(), value| {
+        assert!(
+            crate::transport_body::TransportBody::try_from(value.as_bytes().to_vec())
+                .is_ok_and(|body| crate::decode_api_problem::decode_api_problem(&body).is_none())
+        );
+    });
+}
+
+#[test]
+fn test_problem_decoder_accepts_trailing_whitespace_and_rejects_trailing_data() {
+    let problem = crate::api_problem::ApiProblem::from_error(
+        crate::api_problem_error::ApiProblemError::Authentication,
+    );
+    assert!(serde_json::to_vec(&problem).is_ok_and(|mut bytes| {
+        bytes.extend_from_slice(constants_str::SPACE.as_bytes());
+        let accepted =
+            crate::transport_body::TransportBody::try_from(bytes.clone()).is_ok_and(|body| {
+                crate::decode_api_problem::decode_api_problem(&body)
+                    .is_some_and(|decoded| decoded == problem)
+            });
+        bytes.extend_from_slice(constants_str::X.as_bytes());
+        accepted
+            && crate::transport_body::TransportBody::try_from(bytes)
+                .is_ok_and(|body| crate::decode_api_problem::decode_api_problem(&body).is_none())
+    }));
+}
+
+#[test]
+fn test_problem_decoder_rejects_missing_required_fields() {
+    let problem = crate::api_problem::ApiProblem::from_error(
+        crate::api_problem_error::ApiProblemError::Authentication,
+    );
+    [
+        stringify!(detail),
+        stringify!(violations),
+        stringify!(status),
+        stringify!(kind),
+    ]
+    .into_iter()
+    .fold((), |(), field| {
+        assert!(serde_json::to_value(&problem).is_ok_and(|mut value| {
+            let removed = value
+                .as_object_mut()
+                .is_some_and(|object| object.remove(field).is_some());
+            removed
+                && serde_json::to_vec(&value).is_ok_and(|bytes| {
+                    crate::transport_body::TransportBody::try_from(bytes).is_ok_and(|body| {
+                        crate::decode_api_problem::decode_api_problem(&body).is_none()
+                    })
+                })
+        }));
+    });
+}
+
+#[test]
+fn test_http_status_wrappers_accept_inclusive_boundaries_and_reject_out_of_range() {
+    [
+        (
+            0u16,
+            Err(crate::http_status_try_from_u16_error::HttpStatusTryFromU16Error::OutOfRange),
+        ),
+        (
+            99u16,
+            Err(crate::http_status_try_from_u16_error::HttpStatusTryFromU16Error::OutOfRange),
+        ),
+        (100u16, Ok(100u16)),
+        (999u16, Ok(999u16)),
+        (
+            1_000u16,
+            Err(crate::http_status_try_from_u16_error::HttpStatusTryFromU16Error::OutOfRange),
+        ),
+        (
+            u16::MAX,
+            Err(crate::http_status_try_from_u16_error::HttpStatusTryFromU16Error::OutOfRange),
+        ),
+    ]
+    .into_iter()
+    .fold((), |(), (status, expected)| {
+        assert_eq!(
+            crate::transport_status::TransportStatus::try_from(status).map(u16::from),
+            expected
+        );
+        assert_eq!(
+            crate::api_problem_status::ApiProblemStatus::try_from(status).map(u16::from),
+            expected
+        );
+    });
+}

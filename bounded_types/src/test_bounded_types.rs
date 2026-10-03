@@ -689,3 +689,81 @@ fn test_vector_schema_names_distinguish_equal_named_item_types() {
         <crate::bounded_vec::BoundedVec<TestBoundedVecSchemaCollisionSecond, 0, 2> as utoipa::ToSchema>::name()
     );
 }
+
+#[test]
+fn test_bounded_maps_preserve_key_and_value_type_errors_below_capacity() {
+    [false, true].into_iter().fold((), |(), invalid_key| {
+        let entries = || {
+            [if invalid_key {
+                (
+                    TestDeserializerValue::Text(constants_str::UNKNOWN),
+                    TestDeserializerValue::Number(1u8),
+                )
+            } else {
+                (
+                    TestDeserializerValue::Number(1u8),
+                    TestDeserializerValue::Text(constants_str::UNKNOWN),
+                )
+            }]
+        };
+        let expected = <serde::de::value::Error as serde::de::Error>::invalid_type(
+            serde::de::Unexpected::Str(constants_str::UNKNOWN),
+            &stringify!(u8),
+        )
+        .to_string();
+        let tree = <crate::bounded_b_tree_map::BoundedBTreeMap<u8, u8, 2> as serde::Deserialize>::deserialize(
+            serde::de::value::MapDeserializer::<_, serde::de::value::Error>::new(
+                entries().into_iter(),
+            ),
+        );
+        assert!(tree.is_err_and(|error| error.to_string() == expected));
+        let hash = <crate::bounded_hash_map::BoundedHashMap<u8, u8, 2> as serde::Deserialize>::deserialize(
+            serde::de::value::MapDeserializer::<_, serde::de::value::Error>::new(
+                entries().into_iter(),
+            ),
+        );
+        assert!(hash.is_err_and(|error| error.to_string() == expected));
+    });
+}
+
+#[test]
+fn test_btree_map_removal_restores_capacity_and_failed_insert_preserves_values() {
+    let mut values = crate::bounded_b_tree_map::BoundedBTreeMap::<u8, u8, 1>::default();
+    assert_eq!(values.try_insert(1u8, 2u8), Ok(None));
+    assert_eq!(values.get_mut(&1u8).map(|value| *value = 3u8), Some(()));
+    assert!(values.try_insert(2u8, 4u8).is_err_and(|error| {
+        error
+            == crate::bounded_value_error::BoundedValueError::AboveMax {
+                actual: crate::bounded_len::BoundedLen::from(2usize),
+                max: crate::bounded_len::BoundedLen::from(1usize),
+            }
+    }));
+    assert_eq!(values.len().get(), 1usize);
+    assert_eq!(values.get(&1u8), Some(&3u8));
+    assert_eq!(values.get(&2u8), None);
+    assert_eq!(values.remove(&2u8), None);
+    assert_eq!(values.len().get(), 1usize);
+    assert_eq!(values.remove(&1u8), Some(3u8));
+    assert_eq!(values.len().get(), 0usize);
+    assert_eq!(values.try_insert(2u8, 4u8), Ok(None));
+    assert_eq!(values.get(&2u8), Some(&4u8));
+    assert_eq!(values.get_mut(&1u8), None);
+}
+
+#[test]
+fn test_zero_capacity_maps_deserialize_empty_input() {
+    let tree =
+        <crate::bounded_b_tree_map::BoundedBTreeMap<u8, u8, 0> as serde::Deserialize>::deserialize(
+            serde::de::value::MapDeserializer::<_, serde::de::value::Error>::new(
+                std::iter::empty::<(u8, u8)>(),
+            ),
+        );
+    assert!(tree.is_ok_and(|values| values.len().get() == 0usize));
+    let hash =
+        <crate::bounded_hash_map::BoundedHashMap<u8, u8, 0> as serde::Deserialize>::deserialize(
+            serde::de::value::MapDeserializer::<_, serde::de::value::Error>::new(
+                std::iter::empty::<(u8, u8)>(),
+            ),
+        );
+    assert!(hash.is_ok_and(|values| values.len().get() == 0usize));
+}

@@ -47,3 +47,20 @@ impl PositiveNonZeroI64 {
         self.0.get()
     }
 }
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn test_positive_identifier_schema_preserves_integer_format_and_minimum() {
+        let schema = <super::PositiveNonZeroI64 as utoipa::PartialSchema>::schema();
+        let serialized = serde_json::to_value(schema);
+        assert!(serialized.is_ok());
+        let Ok(wire) = serialized else {
+            return;
+        };
+        assert_eq!(
+            wire,
+            serde_json::json!({(stringify!(type)): stringify!(integer), (stringify!(format)): stringify!(int64), (stringify!(minimum)): 1i64})
+        );
+    }
+}

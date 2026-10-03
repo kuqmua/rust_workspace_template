@@ -106,6 +106,40 @@ impl GeoJsonValidation for Vec<Vec<Vec<geojson::Position>>> {
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn test_geojson_collections_accept_empty_and_reject_later_invalid_children() {
+        assert!([0usize, 1usize, 2usize].into_iter().all(|count| {
+            let geometries = (0usize..count)
+                .map(|index| serde_json::json!({
+                    constants_str::GEO_JSON_TYPE: constants_str::GEO_JSON_POINT,
+                    constants_str::GEO_JSON_COORDINATES: [if index == 0usize { 0.0f64 } else { 181.0f64 }, 0.0f64]
+                }))
+                .collect::<Vec<_>>();
+            let features = geometries.iter().map(|geometry| serde_json::json!({
+                constants_str::GEO_JSON_TYPE: constants_str::GEO_JSON_FEATURE,
+                constants_str::GEO_JSON_GEOMETRY: geometry,
+                constants_str::PROPERTIES: {}
+            })).collect::<Vec<_>>();
+            [
+                serde_json::json!({
+                    constants_str::GEO_JSON_TYPE: constants_str::GEO_JSON_GEOMETRY_COLLECTION,
+                    constants_str::GEO_JSON_GEOMETRIES: geometries
+                }),
+                serde_json::json!({
+                    constants_str::GEO_JSON_TYPE: constants_str::GEO_JSON_FEATURE_COLLECTION,
+                    constants_str::GEO_JSON_FEATURES: features
+                }),
+            ].iter().all(|value| {
+                let result = document(value);
+                if count == 2usize {
+                    matches!(result, Err(crate::geo_json_validation_error::GeoJsonValidationError::Coordinates))
+                } else {
+                    result.is_ok()
+                }
+            })
+        }));
+    }
+
     fn document(
         value: &serde_json::Value,
     ) -> Result<
@@ -210,5 +244,34 @@ mod tests {
             )),
             Err(crate::geo_json_validation_error::GeoJsonValidationError::Coordinates)
         ));
+    }
+    #[test]
+    fn test_nested_coordinate_collections_validate_every_child() {
+        assert!([false, true].into_iter().all(|invalid_child| {
+            let longitude = if invalid_child { 181.0f64 } else { 180.0f64 };
+            let positions = serde_json::json!([[0.0f64, 0.0f64], [longitude, 90.0f64]]);
+            let rings = serde_json::json!([positions]);
+            let polygons = serde_json::json!([rings]);
+            [
+                (constants_str::GEO_JSON_LINE_STRING, positions),
+                (constants_str::GEO_JSON_POLYGON, rings),
+                (constants_str::GEO_JSON_MULTI_POLYGON, polygons),
+            ]
+            .into_iter()
+            .all(|(geometry_type, coordinates)| {
+                let result = document(&serde_json::json!({
+                    constants_str::GEO_JSON_TYPE: geometry_type,
+                    constants_str::GEO_JSON_COORDINATES: coordinates
+                }));
+                if invalid_child {
+                    matches!(
+                        result,
+                        Err(crate::geo_json_validation_error::GeoJsonValidationError::Coordinates)
+                    )
+                } else {
+                    result.is_ok()
+                }
+            })
+        }));
     }
 }

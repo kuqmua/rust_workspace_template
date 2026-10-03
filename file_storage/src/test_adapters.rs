@@ -20,6 +20,25 @@ mod tests {
             root.join(constants_str::FILE_DELETE_STAGING_DIRECTORY)
                 .is_dir()
         );
+        assert!(matches!(storage.prepare().await, Ok(())));
+        let deletion_staging = root.join(constants_str::FILE_DELETE_STAGING_DIRECTORY);
+        assert!(matches!(
+            tokio::fs::remove_dir(&deletion_staging).await,
+            Ok(())
+        ));
+        assert!(matches!(
+            tokio::fs::write(&deletion_staging, constants_str::X).await,
+            Ok(())
+        ));
+        assert!(matches!(
+            storage.prepare().await,
+            Err(crate::file_storage_error::FileStorageError::Symlink)
+        ));
+        assert!(
+            tokio::fs::metadata(&deletion_staging)
+                .await
+                .is_ok_and(|metadata| metadata.is_file() && metadata.len() == 1u64)
+        );
         tokio::fs::remove_dir_all(root)
             .await
             .expect(constants_str::DIAGNOSTIC_1FC58E0B);

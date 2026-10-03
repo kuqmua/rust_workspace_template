@@ -416,3 +416,204 @@ fn test_service_scaffold_registers_all_artifacts() {
     );
     std::fs::remove_dir_all(root).expect(constants_str::DIAGNOSTIC_6F608418);
 }
+
+#[test]
+fn test_deployment_sync_rejects_unsafe_catalog_paths_before_projection_writes() {
+    let root = std::env::temp_dir().join(format!(
+        "{}-{}",
+        stringify!(test_deployment_sync_rejects_unsafe_catalog_paths_before_projection_writes),
+        std::process::id(),
+    ));
+    let catalog_path = root.join(constants_str::VALUE_C1590960);
+    assert!([
+        constants_str::CRATE,
+        constants_str::VALUE_739ED940,
+        constants_str::VALUE_254DB0FB,
+        constants_str::VALUE_94ABCB2D,
+    ].into_iter().all(|key| {
+        [
+            '/'.to_string(),
+            ['.', '.'].into_iter().collect::<String>(),
+            '.'.to_string(),
+        ].into_iter().all(|invalid_path| {
+            let prefix = format!("{key} =");
+            let catalog = constants_str::VALUE_D4291B4A.lines().map(|line| {
+                if line.starts_with(prefix.as_str()) {
+                    format!("{key} = \"{invalid_path}\"")
+                } else {
+                    line.to_owned()
+                }
+            }).collect::<Vec<_>>().join(constants_str::NEWLINE);
+            assert!(crate::service_catalog_parse::service_catalog_parse(
+                crate::scaffold_text_ref::ScaffoldTextRef::from(catalog.as_str()),
+            ).is_ok_and(|entries| entries.get_inner().as_slice().len() == 2usize));
+            write(catalog_path.as_path(), catalog.as_str());
+            [false, true].into_iter().all(|write_enabled| {
+                let result = crate::synchronize_deployment_projections::synchronize_deployment_projections(
+                    crate::scaffold_path_ref::ScaffoldPathRef::from(root.as_path()),
+                    crate::should_write::ShouldWrite::from(write_enabled),
+                );
+                assert_scaffold_file_content(catalog_path.as_path(), catalog.as_str());
+                matches!(result, Err(crate::scaffold_error::ScaffoldError::Catalog))
+            })
+        })
+    }));
+    assert!(matches!(std::fs::remove_dir_all(root), Ok(())));
+}
+
+#[test]
+fn test_deployment_sync_repairs_stale_projection_and_preserves_all_other_files() {
+    let result = (|| -> Result<(), crate::scaffold_error::ScaffoldError> {
+        let source_directory = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
+        let workspace_directory = source_directory
+            .parent()
+            .ok_or(crate::scaffold_error::ScaffoldError::Catalog)?;
+        let root = std::env::temp_dir().join(format!(
+            "{}-{}",
+            stringify!(test_deployment_sync_repairs_stale_projection_and_preserves_all_other_files),
+            std::process::id(),
+        ));
+        let catalog_path = workspace_directory.join(constants_str::VALUE_C1590960);
+        let catalog = crate::template_fs_read_bounded_text::template_fs_read_bounded_text(
+            crate::scaffold_path_ref::ScaffoldPathRef::from(catalog_path.as_path()),
+        )?;
+        let entries = crate::service_catalog_parse::service_catalog_parse(
+            crate::scaffold_text_ref::ScaffoldTextRef::from(catalog.as_ref()),
+        )?;
+        let paths = [
+            constants_str::VALUE_C1590960.to_owned(),
+            constants_str::CODE_STYLE_CI_WORKFLOW_PATH.to_owned(),
+            constants_str::VALUE_87DB21A9.to_owned(),
+        ]
+        .into_iter()
+        .chain(entries.get_inner().as_slice().iter().flat_map(|entry| {
+            [
+                entry.get_compose_file().as_ref().to_owned(),
+                entry.get_dockerfile().as_ref().to_owned(),
+                entry.get_kubernetes_manifest().as_ref().to_owned(),
+                format!(
+                    "{}/{}",
+                    entry.get_crate_name().as_ref(),
+                    constants_str::CARGO_TOML
+                ),
+            ]
+        }))
+        .collect::<std::collections::BTreeSet<_>>();
+        let originals = paths
+            .into_iter()
+            .map(|path| {
+                let source_path = workspace_directory.join(path.as_str());
+                let text = crate::template_fs_read_bounded_text::template_fs_read_bounded_text(
+                    crate::scaffold_path_ref::ScaffoldPathRef::from(source_path.as_path()),
+                )?;
+                let fixture_path = root.join(path);
+                write(fixture_path.as_path(), text.as_ref());
+                Ok::<_, crate::scaffold_error::ScaffoldError>((fixture_path, text))
+            })
+            .collect::<Result<Vec<_>, crate::scaffold_error::ScaffoldError>>()?;
+        let synchronize = |write_enabled| {
+            crate::synchronize_deployment_projections::synchronize_deployment_projections(
+                crate::scaffold_path_ref::ScaffoldPathRef::from(root.as_path()),
+                crate::should_write::ShouldWrite::from(write_enabled),
+            )
+        };
+        synchronize(false)?;
+        let ci_path = root.join(constants_str::CODE_STYLE_CI_WORKFLOW_PATH);
+        let ci = crate::template_fs_read_bounded_text::template_fs_read_bounded_text(
+            crate::scaffold_path_ref::ScaffoldPathRef::from(ci_path.as_path()),
+        )?;
+        let (prefix, generated_suffix) = ci
+            .as_ref()
+            .split_once(constants_str::VALUE_48916059)
+            .ok_or(crate::scaffold_error::ScaffoldError::Marker)?;
+        let (_generated, suffix) = generated_suffix
+            .split_once(constants_str::VALUE_37E65562)
+            .ok_or(crate::scaffold_error::ScaffoldError::Marker)?;
+        write(
+            ci_path.as_path(),
+            format!(
+                "{prefix}{}{}{}{suffix}",
+                constants_str::VALUE_48916059,
+                constants_str::X,
+                constants_str::VALUE_37E65562
+            )
+            .as_str(),
+        );
+        assert!(matches!(
+            synchronize(false),
+            Err(crate::scaffold_error::ScaffoldError::GeneratedDeployment)
+        ));
+        synchronize(true)?;
+        synchronize(false)?;
+        assert!(
+            [constants_str::VALUE_48916059, constants_str::VALUE_37E65562]
+                .into_iter()
+                .all(|marker| {
+                    [false, true].into_iter().all(|duplicate| {
+                        let replacement = if duplicate {
+                            format!("{marker}{marker}")
+                        } else {
+                            constants_str::X.to_owned()
+                        };
+                        let malformed = ci.as_ref().replace(marker, replacement.as_str());
+                        write(ci_path.as_path(), malformed.as_str());
+                        let rejected = [false, true].into_iter().all(|write_enabled| {
+                            let result = synchronize(write_enabled);
+                            assert_scaffold_file_content(ci_path.as_path(), malformed.as_str());
+                            matches!(result, Err(crate::scaffold_error::ScaffoldError::Marker))
+                        });
+                        write(ci_path.as_path(), ci.as_ref());
+                        rejected
+                    })
+                })
+        );
+        let fixture_catalog_path = root.join(constants_str::VALUE_C1590960);
+        std::fs::remove_file(fixture_catalog_path.as_path())?;
+        assert!([false, true].into_iter().all(|write_enabled| matches!(
+            synchronize(write_enabled),
+            Err(crate::scaffold_error::ScaffoldError::Read(
+                server_runtime_http::bounded_read_error::BoundedReadError::Io { source },
+            )) if source.kind() == std::io::ErrorKind::NotFound
+        )));
+        write(fixture_catalog_path.as_path(), catalog.as_ref());
+        synchronize(false)?;
+        entries
+            .get_inner()
+            .as_slice()
+            .iter()
+            .flat_map(|entry| {
+                [
+                    root.join(format!(
+                        "{}/{}",
+                        entry.get_crate_name().as_ref(),
+                        constants_str::CARGO_TOML
+                    )),
+                    root.join(entry.get_dockerfile().as_ref()),
+                ]
+            })
+            .try_for_each(|required_file| {
+                let (_, original) = originals
+                    .iter()
+                    .find(|(original_path, _)| original_path == &required_file)
+                    .ok_or(crate::scaffold_error::ScaffoldError::Catalog)?;
+                std::fs::remove_file(required_file.as_path())?;
+                assert!([false, true].into_iter().all(|write_enabled| matches!(
+                    synchronize(write_enabled),
+                    Err(crate::scaffold_error::ScaffoldError::GeneratedDeployment),
+                )));
+                write(required_file.as_path(), original.as_ref());
+                synchronize(false)?;
+                Ok::<(), crate::scaffold_error::ScaffoldError>(())
+            })?;
+        assert!(originals.iter().all(|(path, text)| {
+            crate::template_fs_read_bounded_text::template_fs_read_bounded_text(
+                crate::scaffold_path_ref::ScaffoldPathRef::from(path.as_path()),
+            )
+            .is_ok_and(|observed| observed.as_ref() == text.as_ref())
+        }));
+        std::fs::remove_dir_all(root)?;
+
+        Ok(())
+    })();
+    assert!(matches!(result, Ok(())));
+}

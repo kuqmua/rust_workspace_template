@@ -94,4 +94,47 @@ mod tests {
             crate::single_flight_acquire::SingleFlightAcquire::Owner(_)
         ));
     }
+    #[test]
+    fn test_single_flight_full_capacity_preserves_duplicate_admission_and_recovers() {
+        let flights = super::SingleFlight::new(
+            crate::single_flight_maximum_non_zero_usize::SingleFlightMaximumNonZeroUsize::from(
+                std::num::NonZeroUsize::MIN,
+            ),
+        );
+        let owner = flights.acquire(single_flight_key());
+        assert!(matches!(
+            &owner,
+            crate::single_flight_acquire::SingleFlightAcquire::Owner(_)
+        ));
+        assert!(matches!(
+            flights.acquire(single_flight_key()),
+            crate::single_flight_acquire::SingleFlightAcquire::Waiter(_)
+        ));
+        assert!(
+            crate::single_flight_key::SingleFlightKey::try_from(
+                constants_str::TEST_DIFFERENT_SECRET_TEXT.to_owned()
+            )
+            .is_ok_and(|other_key| {
+                assert!(matches!(
+                    flights.acquire(other_key.clone()),
+                    crate::single_flight_acquire::SingleFlightAcquire::Full
+                ));
+                drop(owner);
+                let recovered = flights.acquire(other_key);
+                assert!(matches!(
+                    &recovered,
+                    crate::single_flight_acquire::SingleFlightAcquire::Owner(_)
+                ));
+                assert!(matches!(
+                    flights.acquire(single_flight_key()),
+                    crate::single_flight_acquire::SingleFlightAcquire::Full
+                ));
+                drop(recovered);
+                matches!(
+                    flights.acquire(single_flight_key()),
+                    crate::single_flight_acquire::SingleFlightAcquire::Owner(_)
+                )
+            })
+        );
+    }
 }

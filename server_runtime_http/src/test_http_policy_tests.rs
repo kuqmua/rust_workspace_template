@@ -1,6 +1,49 @@
 #[cfg(test)]
 mod tests {
     #[test]
+    fn test_bearer_header_size_limit_includes_scheme_and_spacing() {
+        assert!([1usize, 2usize, 3usize].into_iter().all(|spaces| {
+            [4095usize, 4096usize, 4097usize].into_iter().all(|total_length| {
+                let mut header = constants_str::BEARER.to_ascii_lowercase();
+                header.push_str(&' '.to_string().repeat(spaces));
+                let token = constants_str::X.repeat(total_length.saturating_sub(header.len()));
+                header.push_str(&token);
+                let actual = crate::resolve_bearer_authorization::resolve_bearer_authorization(
+                    crate::http_authorization_header_text_ref::HttpAuthorizationHeaderTextRef::from(Some(header.as_str())),
+                );
+                if total_length == 4097usize {
+                    actual == crate::bearer_authorization_resolution::BearerAuthorizationResolution::Invalid
+                } else {
+                    actual == crate::bearer_authorization_resolution::BearerAuthorizationResolution::Resolved(
+                        crate::http_bearer_token_ref::HttpBearerTokenRef::from(token.as_str()),
+                    )
+                }
+            })
+        }));
+    }
+
+    #[test]
+    fn test_bearer_token_validates_every_ascii_suffix_and_preserves_padding() {
+        assert!((0u8..=127u8).all(|byte| {
+            let mut token = constants_str::X.to_owned();
+            token.push(char::from(byte));
+            let mut header = constants_str::BEARER.to_owned();
+            header.push(' ');
+            header.push_str(&token);
+            let actual = crate::resolve_bearer_authorization::resolve_bearer_authorization(
+                crate::http_authorization_header_text_ref::HttpAuthorizationHeaderTextRef::from(Some(header.as_str())),
+            );
+            if byte.is_ascii_alphanumeric() || matches!(byte, b'-' | b'.' | b'_' | b'~' | b'+' | b'/' | b'=') {
+                actual == crate::bearer_authorization_resolution::BearerAuthorizationResolution::Resolved(
+                    crate::http_bearer_token_ref::HttpBearerTokenRef::from(token.as_str()),
+                )
+            } else {
+                actual == crate::bearer_authorization_resolution::BearerAuthorizationResolution::Invalid
+            }
+        }));
+    }
+
+    #[test]
     fn test_bearer_authorization_requires_exact_scheme_and_token() {
         assert!(matches!(
             crate::resolve_bearer_authorization::resolve_bearer_authorization(

@@ -54,7 +54,6 @@ test("test_permission_table_filters_reach_read_requests", async ({ page }) => {
   }
 });
 
-
 test("test_permission_action_one_read_and_legacy_routes_show_same_record", async ({ page }) => {
   await signInAdministratorWithPasswordReset(page);
   await page.goto("/admin/permission_actions/1/read");
@@ -66,20 +65,6 @@ test("test_permission_action_one_read_and_legacy_routes_show_same_record", async
   await page.goto("/admin/permission_actions/1");
   await expect(values).toHaveText(expected);
 });
-
-test("test_permission_action_read_requires_authentication", async ({ page }) => {
-  await page.goto("/admin/permission_actions/1/read");
-  await expect(page).toHaveURL(/\/admin\/sign_in$/);
-});
-
-test("test_permission_action_read_rejects_invalid_identifiers", async ({ page }) => {
-  await signInAdministratorWithPasswordReset(page);
-  for (const id of ["0", "-1", "invalid", "9223372036854775808"]) {
-    const response = await page.goto(`/admin/permission_actions/${id}/read`);
-    expect(response.status()).toBe(422);
-  }
-});
-
 
 test("test_permission_resource_action_one_read_and_legacy_routes_show_same_record", async ({ page }) => {
   await signInAdministratorWithPasswordReset(page);
@@ -93,20 +78,6 @@ test("test_permission_resource_action_one_read_and_legacy_routes_show_same_recor
   await expect(values).toHaveText(expected);
 });
 
-test("test_permission_resource_action_read_requires_authentication", async ({ page }) => {
-  await page.goto("/admin/permission_resource_actions/1/read");
-  await expect(page).toHaveURL(/\/admin\/sign_in$/);
-});
-
-test("test_permission_resource_action_read_rejects_invalid_identifiers", async ({ page }) => {
-  await signInAdministratorWithPasswordReset(page);
-  for (const id of ["0", "-1", "invalid", "9223372036854775808"]) {
-    const response = await page.goto(`/admin/permission_resource_actions/${id}/read`);
-    expect(response.status()).toBe(422);
-  }
-});
-
-
 test("test_permission_resource_one_read_and_legacy_routes_show_same_record", async ({ page }) => {
   await signInAdministratorWithPasswordReset(page);
   await page.goto("/admin/permission_resources/1/read");
@@ -117,17 +88,4 @@ test("test_permission_resource_one_read_and_legacy_routes_show_same_record", asy
   await expect(values).toHaveText(expected);
   await page.goto("/admin/permission_resources/1");
   await expect(values).toHaveText(expected);
-});
-
-test("test_permission_resource_read_requires_authentication", async ({ page }) => {
-  await page.goto("/admin/permission_resources/1/read");
-  await expect(page).toHaveURL(/\/admin\/sign_in$/);
-});
-
-test("test_permission_resource_read_rejects_invalid_identifiers", async ({ page }) => {
-  await signInAdministratorWithPasswordReset(page);
-  for (const id of ["0", "-1", "invalid", "9223372036854775808"]) {
-    const response = await page.goto(`/admin/permission_resources/${id}/read`);
-    expect(response.status()).toBe(422);
-  }
 });

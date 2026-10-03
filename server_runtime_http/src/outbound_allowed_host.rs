@@ -74,3 +74,41 @@ impl TryFrom<String> for OutboundAllowedHost {
             })
     }
 }
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn test_outbound_allowed_host_exact_size_and_lowercase_normalization() {
+        assert!([1usize, 252usize, 253usize, 254usize].into_iter().all(|length| {
+            let value = constants_str::X.to_ascii_uppercase().repeat(length);
+            let result = crate::outbound_allowed_host::OutboundAllowedHost::try_from(value);
+            if length <= 253usize {
+                result.is_ok_and(|host| host.as_str() == constants_str::X.repeat(length))
+            } else {
+                result == Err(crate::outbound_host_allowlist_error::OutboundHostAllowlistError::InvalidHost)
+            }
+        }));
+    }
+
+    #[test]
+    fn test_outbound_allowed_host_rejects_ambiguous_ipv4_and_malformed_authorities() {
+        assert!([
+            String::new(),
+            std::net::Ipv4Addr::LOCALHOST.to_bits().to_string(),
+            format!("{}.{}", 127u8, 1u8),
+            std::net::Ipv6Addr::LOCALHOST.to_string(),
+            '['.to_string(),
+            ']'.to_string(),
+            format!("{}@{}", constants_str::X, constants_str::LOCALHOST),
+            ' '.to_string(),
+        ].into_iter().all(|value| {
+            crate::outbound_allowed_host::OutboundAllowedHost::try_from(value)
+                == Err(crate::outbound_host_allowlist_error::OutboundHostAllowlistError::InvalidHost)
+        }));
+        let canonical = std::net::Ipv4Addr::LOCALHOST.to_string();
+        assert!(
+            crate::outbound_allowed_host::OutboundAllowedHost::try_from(canonical.clone())
+                .is_ok_and(|host| host.as_str() == canonical)
+        );
+    }
+}

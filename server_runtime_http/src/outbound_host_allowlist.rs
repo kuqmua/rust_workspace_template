@@ -48,3 +48,32 @@ impl OutboundHostAllowlist {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn test_allowlist_limits_unique_hosts_and_sorts_before_lookup() {
+        assert!([(0usize, 1usize), (1usize, 1usize), (64usize, 1usize), (65usize, 1usize), (64usize, 2usize), (1usize, 100usize)]
+            .into_iter().all(|(count, repetitions)| {
+                (0usize..count).map(|index| crate::outbound_allowed_host::OutboundAllowedHost::try_from(format!("{}{index}", constants_str::X)))
+                    .collect::<Result<Vec<_>, _>>().is_ok_and(|hosts| {
+                        let repeated = hosts.into_iter().rev().flat_map(|host| std::iter::repeat_n(host, repetitions)).collect::<Vec<_>>();
+                        let result = crate::outbound_host_allowlist::OutboundHostAllowlist::try_from(repeated);
+                        if count == 0usize {
+                            result == Err(crate::outbound_host_allowlist_error::OutboundHostAllowlistError::Empty)
+                        } else if count > 64usize {
+                            result == Err(crate::outbound_host_allowlist_error::OutboundHostAllowlistError::TooManyHosts)
+                        } else {
+                            result.is_ok_and(|allowlist| allowlist.0.len().get() == count
+                                && allowlist.0.windows(2usize).all(|pair| matches!(pair, [first, second] if first < second))
+                                && allowlist.0.iter().all(|host| {
+                                    let text = format!("{}{}", constants_str::HTTPS_SCHEME_PREFIX, host.as_str());
+                                    reqwest::Url::parse(text.as_str()).is_ok_and(|url| {
+                                        allowlist.validate(&crate::reqwest_outbound_url::ReqwestOutboundUrl::from(url)) == Ok(())
+                                    })
+                                }))
+                        }
+                    })
+            }));
+    }
+}

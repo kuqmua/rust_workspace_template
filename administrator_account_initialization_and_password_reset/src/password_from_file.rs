@@ -36,6 +36,29 @@ pub(crate) fn password_from_file(
 #[cfg(test)]
 mod tests {
     #[test]
+    fn test_password_file_preserves_io_and_read_limit_errors() {
+        let crate_directory = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
+        assert!([
+            crate_directory.join(constants_str::SRC),
+            crate_directory.join(constants_str::CARGO_TOML).join(constants_str::X),
+        ].into_iter().all(|path| {
+            let administrator_password_file_path_buf = crate::administrator_password_file_path_buf::AdministratorPasswordFilePathBuf::from(path);
+            matches!(crate::password_from_file::password_from_file(&administrator_password_file_path_buf),
+                Err(crate::administrator_account_command_error::AdministratorAccountCommandError::PasswordFile(server_runtime_http::bounded_read_error::BoundedReadError::Io { .. })))
+        }));
+        let administrator_password_file_path_buf =
+            crate::administrator_password_file_path_buf::AdministratorPasswordFilePathBuf::from(
+                crate_directory
+                    .join(constants_str::PARENT_PATH_SEGMENT)
+                    .join(constants_str::CARGO_TOML),
+            );
+        assert!(
+            matches!(crate::password_from_file::password_from_file(&administrator_password_file_path_buf),
+            Err(crate::administrator_account_command_error::AdministratorAccountCommandError::PasswordFile(server_runtime_http::bounded_read_error::BoundedReadError::ExceedsMaximum { maximum_bytes })) if maximum_bytes == server_runtime_http::bounded_read_maximum_bytes::BoundedReadMaximumBytes::from(1024usize))
+        );
+    }
+
+    #[test]
     fn test_password_file_accepts_one_trailing_line_ending() {
         let password_text = constants_str::TEST_STRONG_PASSWORD;
         let password = crate::password_from_bytes::password_from_bytes(

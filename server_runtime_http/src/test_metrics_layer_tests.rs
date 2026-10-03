@@ -4,6 +4,33 @@
 )]
 #[cfg(test)]
 mod tests {
+    #[tokio::test]
+    async fn test_metrics_response_conversion_preserves_utf8_body_and_http_metadata() {
+        let text = format!("{}\n{}", constants_str::X, '\u{e9}');
+        let response_matches =
+            match crate::metrics_response_body::MetricsResponseBody::try_from(text.clone()) {
+                Ok(metrics_response_body) => {
+                    let response =
+                        axum::response::IntoResponse::into_response(metrics_response_body);
+                    let metadata_matches = response.status() == http::StatusCode::OK
+                        && response
+                            .headers()
+                            .get(http::header::CONTENT_TYPE)
+                            .and_then(|header| header.to_str().ok())
+                            .and_then(|header| header.split(';').next())
+                            == Some(constants_str::TEXT_PLAIN);
+                    metadata_matches
+                        && axum::body::to_bytes(response.into_body(), text.len())
+                            .await
+                            .is_ok_and(|bytes| bytes.as_ref() == text.as_bytes())
+                }
+                Err(crate::metrics_response_body_error::MetricsResponseBodyError::TooLarge) => {
+                    false
+                }
+            };
+        assert!(response_matches);
+    }
+
     async fn call_method(router: axum::Router, method: http::Method) -> http::StatusCode {
         tower::ServiceExt::oneshot(
             router,
@@ -36,6 +63,20 @@ mod tests {
             .expect(constants_str::DIAGNOSTIC_329FB604),
         )
         .expect_err(constants_str::F0FC293DD);
+    }
+
+    #[test]
+    fn test_metrics_response_body_limits_utf8_bytes_and_preserves_text() {
+        let exact = '\u{e9}'.to_string().repeat(4_194_304usize);
+        let oversized = format!("{exact}{}", constants_str::X);
+        assert!(
+            crate::metrics_response_body::MetricsResponseBody::try_from(exact.clone())
+                .is_ok_and(|body| body.into_inner() == exact)
+        );
+        assert!(matches!(
+            crate::metrics_response_body::MetricsResponseBody::try_from(oversized),
+            Err(crate::metrics_response_body_error::MetricsResponseBodyError::TooLarge)
+        ));
     }
 
     #[test]
@@ -125,6 +166,57 @@ mod tests {
                 )
                 .as_str(),
             constants_str::ROOT
+        );
+    }
+
+    #[test]
+    fn test_metrics_path_cache_preserves_utf8_boundaries_and_existing_labels() {
+        let cache = crate::http_metrics_path_cache::HttpMetricsPathCache::from(
+            crate::http_metrics_path_cache_maximum::HttpMetricsPathCacheMaximum::from(
+                std::num::NonZeroUsize::MIN,
+            ),
+        );
+        let exact = '\u{e9}'.to_string().repeat(4_096usize);
+        let oversized = format!("{exact}{}", constants_str::X);
+        assert!(
+            crate::http_metrics_path_text::HttpMetricsPathText::try_from(exact.clone())
+                .is_ok_and(|path_text| path_text.as_str() == exact)
+        );
+        assert_eq!(
+            cache
+                .label(
+                    crate::http_metrics_path_text_ref::HttpMetricsPathTextRef::from(
+                        oversized.as_str()
+                    )
+                )
+                .as_str(),
+            constants_str::HTTP_METRICS_UNMATCHED_PATH
+        );
+        assert_eq!(
+            cache
+                .label(
+                    crate::http_metrics_path_text_ref::HttpMetricsPathTextRef::from(exact.as_str())
+                )
+                .as_str(),
+            exact
+        );
+        assert_eq!(
+            cache
+                .label(
+                    crate::http_metrics_path_text_ref::HttpMetricsPathTextRef::from(
+                        constants_str::ROOT
+                    )
+                )
+                .as_str(),
+            constants_str::HTTP_METRICS_UNMATCHED_PATH
+        );
+        assert_eq!(
+            cache
+                .label(
+                    crate::http_metrics_path_text_ref::HttpMetricsPathTextRef::from(exact.as_str())
+                )
+                .as_str(),
+            exact
         );
     }
 

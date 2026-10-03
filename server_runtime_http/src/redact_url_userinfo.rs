@@ -62,3 +62,53 @@ pub fn redact_url_userinfo(
             .ok(),
     )
 }
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn test_fallback_redaction_uses_last_authority_separator() {
+        assert!(['/', '?', '#'].into_iter().all(|delimiter| {
+            let input = format!(
+                "1{}://{}@{}:{}@{}{delimiter}{}@{}",
+                constants_str::X,
+                constants_str::X,
+                constants_str::X,
+                constants_str::SECRET,
+                constants_str::LOCALHOST,
+                constants_str::X,
+                constants_str::LOCALHOST
+            );
+            let expected = format!(
+                "1{}://{}@{}{delimiter}{}@{}",
+                constants_str::X,
+                constants_str::REDACTED_ALT,
+                constants_str::LOCALHOST,
+                constants_str::X,
+                constants_str::LOCALHOST
+            );
+            let redacted = crate::redact_url_userinfo::redact_url_userinfo(input.as_str().into());
+            redacted.as_ref() == expected
+                && redacted.to_string() == expected
+                && !format!("{redacted:?}").contains(constants_str::SECRET)
+        }));
+    }
+
+    #[test]
+    fn test_fallback_preserves_authorities_without_userinfo() {
+        assert!(['/', '?', '#'].into_iter().all(|delimiter| {
+            let input = format!(
+                "1{}://{}{delimiter}{}@{}",
+                constants_str::X,
+                constants_str::LOCALHOST,
+                constants_str::X,
+                constants_str::SECRET
+            );
+            crate::redact_url_userinfo::redact_url_userinfo(input.as_str().into()).as_ref() == input
+        }));
+        let input = format!("1{}://{}", constants_str::X, constants_str::LOCALHOST);
+        assert_eq!(
+            crate::redact_url_userinfo::redact_url_userinfo(input.as_str().into()).as_ref(),
+            input
+        );
+    }
+}

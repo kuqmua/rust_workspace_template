@@ -104,6 +104,8 @@ pub mod std_async_run_history_maximum_len_try_from_usize_error;
 pub mod std_async_run_history_report_count;
 pub mod std_lease_stale_timeout_error;
 pub mod std_retry_attempts_error;
+#[cfg(test)]
+mod test_lease_text;
 pub mod tokio_lease_instant;
 pub mod tokio_lease_registry_rw_lock_arc;
 pub mod tokio_single_flight_receiver;

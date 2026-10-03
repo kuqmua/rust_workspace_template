@@ -252,6 +252,8 @@ pub mod test_domain_types_db_schema_conformance_tests;
 #[cfg(test)]
 pub mod test_domain_types_query_pagination_tests;
 #[cfg(test)]
+mod test_duplicate_removal;
+#[cfg(test)]
 pub mod test_explicit_value_openapi_contract;
 #[cfg(test)]
 pub mod test_explicit_value_serializes_with_full_field_name;
@@ -296,3 +298,9 @@ pub mod validate_postgres_table_extensions;
 pub mod validate_postgres_table_schema;
 pub mod validate_snapshot;
 pub mod window_total_presence;
+
+#[cfg(test)]
+mod test_pagination_base_query;
+
+#[cfg(test)]
+mod test_schema_text_collections;

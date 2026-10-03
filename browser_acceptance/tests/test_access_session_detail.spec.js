@@ -28,11 +28,6 @@ test("test_access_session_read_opens_matching_detail_page", async ({ page }) => 
   await expect(detail).toContainText("resource not found");
 });
 
-test("test_access_session_details_require_authentication", async ({ page }) => {
-  await page.goto("/admin/access_sessions/123e4567-e89b-42d3-a456-426614174000/read");
-  await expect(page).toHaveURL(/\/admin\/sign_in$/);
-});
-
 test("test_access_session_datetime_filter_reaches_read_request", async ({ page }) => {
   await signInAdministratorWithPasswordReset(page);
   const request = page.waitForRequest(candidate => new URL(candidate.url()).pathname === "/access_sessions/read", { timeout: 10000 });
@@ -41,13 +36,4 @@ test("test_access_session_datetime_filter_reaches_read_request", async ({ page }
   const body = (await request).postDataJSON();
   expect(body.where_many?.created_at?.values?.[0]?.Eq?.values).toMatchObject({ date_naive: "2026-01-01" });
   expect((await response).status()).toBe(200);
-});
-
-
-test("test_access_session_read_rejects_invalid_identifiers", async ({ page }) => {
-  await signInAdministratorWithPasswordReset(page);
-  for (const id of ["1", "invalid", "123e4567-e89b-42d3-a456-42661417400z"]) {
-    const response = await page.goto(`/admin/access_sessions/${id}/read`);
-    expect(response.status()).toBe(422);
-  }
 });

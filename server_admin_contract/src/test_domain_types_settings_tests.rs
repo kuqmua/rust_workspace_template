@@ -177,3 +177,119 @@ fn test_catalog_covers_read_and_update_wire_fields() {
         .collect::<std::collections::BTreeSet<_>>();
     assert_eq!(view_fields, setting_fields);
 }
+
+#[test]
+fn test_settings_update_checks_each_populated_field_and_clear_conflict() {
+    assert!(
+        crate::admin_setting::AdminSetting::ALL
+            .into_iter()
+            .all(|setting| {
+                let spec = setting.spec();
+                let value = match setting {
+                    crate::admin_setting::AdminSetting::DefaultRoute => {
+                        constants_str::VALUE_074B6E5E
+                    }
+                    crate::admin_setting::AdminSetting::MainLogo => constants_str::VALUE_A24910BB,
+                    crate::admin_setting::AdminSetting::PrimaryColor => {
+                        constants_str::VALUE_55F98A52
+                    }
+                    crate::admin_setting::AdminSetting::SupportUrl => constants_str::VALUE_FE4E2333,
+                    crate::admin_setting::AdminSetting::SiteName
+                    | crate::admin_setting::AdminSetting::TabTitle
+                    | crate::admin_setting::AdminSetting::OrganizationName
+                    | crate::admin_setting::AdminSetting::OrganizationContacts => {
+                        constants_str::ADMIN
+                    }
+                };
+                let mut fields = serde_json::Map::new();
+                let _previous = fields.insert(
+                    spec.name().as_ref().to_owned(),
+                    serde_json::Value::String(value.to_owned()),
+                );
+                let _previous_clear = fields.insert(
+                    constants_str::VALUE_913A4CB9.to_owned(),
+                    serde_json::Value::Array(Vec::new()),
+                );
+                let Ok(request) = serde_json::from_value::<
+                    crate::admin_update_settings_request::AdminUpdateSettingsRequest,
+                >(serde_json::Value::Object(fields.clone())) else {
+                    return false;
+                };
+                if !bool::from(request.has_fields()) || !bool::from(request.is_valid()) {
+                    return false;
+                }
+                match spec.optionality() {
+                    crate::admin_setting_optionality::AdminSettingOptionality::Required => true,
+                    crate::admin_setting_optionality::AdminSettingOptionality::Clearable(
+                        optional_setting,
+                    ) => crate::admin_optional_setting::AdminOptionalSetting::ALL
+                        .into_iter()
+                        .all(|clear_setting| {
+                            let Ok(clear_value) = serde_json::to_value([clear_setting]) else {
+                                return false;
+                            };
+                            let mut request_fields = fields.clone();
+                            let _previous_request_clear = request_fields
+                                .insert(constants_str::VALUE_913A4CB9.to_owned(), clear_value);
+                            serde_json::from_value::<
+                                crate::admin_update_settings_request::AdminUpdateSettingsRequest,
+                            >(serde_json::Value::Object(request_fields))
+                            .is_ok_and(|update| {
+                                bool::from(update.has_fields())
+                                    && bool::from(update.is_valid())
+                                        == (clear_setting != optional_setting)
+                            })
+                        }),
+                }
+            })
+    );
+}
+
+#[test]
+fn test_settings_update_rejects_duplicate_clear_fields_and_accepts_all_unique_fields() {
+    let deserialize_clear = |optional_settings: Vec<
+        crate::admin_optional_setting::AdminOptionalSetting,
+    >| {
+        let clear = serde_json::to_value(optional_settings)?;
+        let mut fields = serde_json::Map::new();
+        let _previous = fields.insert(constants_str::VALUE_913A4CB9.to_owned(), clear);
+        serde_json::from_value::<crate::admin_update_settings_request::AdminUpdateSettingsRequest>(
+            serde_json::Value::Object(fields),
+        )
+    };
+    assert!(deserialize_clear(crate::admin_optional_setting::AdminOptionalSetting::ALL.to_vec())
+        .is_ok_and(|request| bool::from(request.has_fields()) && bool::from(request.is_valid())));
+    assert!(
+        crate::admin_optional_setting::AdminOptionalSetting::ALL
+            .into_iter()
+            .all(|optional_setting| {
+                deserialize_clear(vec![optional_setting, optional_setting]).is_ok_and(|request| {
+                    bool::from(request.has_fields()) && !bool::from(request.is_valid())
+                })
+            })
+    );
+}
+
+#[test]
+fn test_settings_update_into_parts_preserves_values_and_clear_ownership() {
+    assert!([true, false].into_iter().all(|populated| {
+        let wire = serde_json::json!({
+            (stringify!(default_admin_route)): populated.then_some(crate::admin_frontend_path::AdminFrontendPath::Users.get()),
+            (stringify!(main_logo)): populated.then_some(constants_str::ADMIN_DEFAULT_MAIN_LOGO),
+            (stringify!(organization_contacts)): populated.then_some(constants_str::ADMIN),
+            (stringify!(organization_name)): populated.then_some(constants_str::LOGIN),
+            (stringify!(primary_color)): populated.then_some(constants_str::PRIMARY_COLOR_DEFAULT),
+            (stringify!(site_name)): populated.then_some(constants_str::X),
+            (stringify!(support_url)): populated.then_some(constants_str::ADMIN_DEFAULT_SUPPORT_URL),
+            (stringify!(tab_title)): populated.then_some(constants_str::ADMIN),
+            (stringify!(clear)): if populated { Vec::new() } else { crate::admin_optional_setting::AdminOptionalSetting::ALL.to_vec() },
+        });
+        let fields = [stringify!(default_admin_route), stringify!(main_logo), stringify!(organization_contacts), stringify!(organization_name), stringify!(primary_color), stringify!(site_name), stringify!(support_url), stringify!(tab_title), stringify!(clear)];
+        let expected = fields.into_iter().map(|field| wire.get(field).cloned()).collect::<Option<Vec<_>>>();
+        expected.is_some_and(|values| {
+            serde_json::from_value::<crate::admin_update_settings_request::AdminUpdateSettingsRequest>(wire).is_ok_and(|request| {
+                serde_json::to_value(request.into_parts()).is_ok_and(|parts| parts == serde_json::Value::Array(values))
+            })
+        })
+    }));
+}

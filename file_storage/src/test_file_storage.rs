@@ -49,6 +49,20 @@ async fn test_stale_staging_cleanup_is_bounded_and_removes_regular_files() {
         constants_usize::ONE,
     )
     .expect(constants_str::DIAGNOSTIC_C35F98C6);
+    assert!(
+        storage
+            .cleanup_stale_staging(
+                crate::file_storage_staging_area::FileStorageStagingArea::Delete,
+                crate::stale_staging_cleanup_configuration::StaleStagingCleanupConfiguration::new(
+                    std::time::UNIX_EPOCH.into(),
+                    limit,
+                    limit
+                ),
+            )
+            .await
+            .is_ok_and(|cleanup_report| cleanup_report
+                == crate::stale_staging_cleanup_report::StaleStagingCleanupReport::default())
+    );
     let report = storage
         .cleanup_stale_staging(
             crate::file_storage_staging_area::FileStorageStagingArea::Upload,
@@ -89,6 +103,133 @@ async fn test_stale_staging_cleanup_is_bounded_and_removes_regular_files() {
             .expect(constants_str::DIAGNOSTIC_406536B7)
             .is_none()
     );
+    assert!(
+        storage
+            .cleanup_stale_staging(
+                crate::file_storage_staging_area::FileStorageStagingArea::Upload,
+                crate::stale_staging_cleanup_configuration::StaleStagingCleanupConfiguration::new(
+                    stale_before.into(),
+                    limit,
+                    limit
+                ),
+            )
+            .await
+            .is_ok_and(|cleanup_report| cleanup_report.scanned().get() == 1usize
+                && cleanup_report.removed().get() == 1usize)
+    );
+    assert!(
+        storage
+            .cleanup_stale_staging(
+                crate::file_storage_staging_area::FileStorageStagingArea::Upload,
+                crate::stale_staging_cleanup_configuration::StaleStagingCleanupConfiguration::new(
+                    stale_before.into(),
+                    limit,
+                    limit
+                ),
+            )
+            .await
+            .is_ok_and(|cleanup_report| cleanup_report
+                == crate::stale_staging_cleanup_report::StaleStagingCleanupReport::default())
+    );
+    let timestamped_path = root_path
+        .join(constants_str::FILE_UPLOAD_STAGING_DIRECTORY)
+        .join(operation_id.as_ref());
+    assert!(matches!(
+        tokio::fs::write(&timestamped_path, [3u8]).await,
+        Ok(())
+    ));
+    let fixture_file_result = tokio::fs::OpenOptions::new()
+        .write(true)
+        .open(&timestamped_path)
+        .await;
+    assert!(fixture_file_result.as_ref().err().is_none());
+    let Ok(fixture_file) = fixture_file_result else {
+        return;
+    };
+    let standard_fixture_file = fixture_file.into_std().await;
+    let fixture_modified = std::time::UNIX_EPOCH + std::time::Duration::from_hours(24u64);
+    let timestamp_task = tokio::task::spawn_blocking(move || {
+        standard_fixture_file.set_times(std::fs::FileTimes::new().set_modified(fixture_modified))
+    });
+    assert!(
+        timestamp_task
+            .await
+            .is_ok_and(|timestamp_result| matches!(timestamp_result, Ok(())))
+    );
+    assert!(
+        storage
+            .cleanup_stale_staging(
+                crate::file_storage_staging_area::FileStorageStagingArea::Upload,
+                crate::stale_staging_cleanup_configuration::StaleStagingCleanupConfiguration::new(
+                    std::time::UNIX_EPOCH.into(),
+                    limit,
+                    limit
+                ),
+            )
+            .await
+            .is_ok_and(|newer_report| newer_report.scanned().get() == 1usize
+                && newer_report.removed().get() == 0usize)
+    );
+    assert!(
+        tokio::fs::read(&timestamped_path)
+            .await
+            .is_ok_and(|newer_bytes| newer_bytes == [3u8])
+    );
+    assert!(
+        storage
+            .cleanup_stale_staging(
+                crate::file_storage_staging_area::FileStorageStagingArea::Upload,
+                crate::stale_staging_cleanup_configuration::StaleStagingCleanupConfiguration::new(
+                    fixture_modified.into(),
+                    limit,
+                    limit
+                ),
+            )
+            .await
+            .is_ok_and(|cutoff_report| cutoff_report.scanned().get() == 1usize
+                && cutoff_report.removed().get() == 1usize)
+    );
+    assert!(!timestamped_path.exists());
+    #[cfg(unix)]
+    let () = {
+        let upload_directory = root_path.join(constants_str::FILE_UPLOAD_STAGING_DIRECTORY);
+        let retained_directory = upload_directory.join(constants_str::X);
+        let target_file = root_path.join(constants_str::X);
+        let retained_link = upload_directory.join(constants_str::A);
+        assert!(matches!(
+            tokio::fs::create_dir(&retained_directory).await,
+            Ok(())
+        ));
+        assert!(matches!(
+            tokio::fs::write(&target_file, [6u8]).await,
+            Ok(())
+        ));
+        assert!(matches!(
+            tokio::fs::symlink(&target_file, &retained_link).await,
+            Ok(())
+        ));
+        let entry_limit_result =
+            crate::std_stale_staging_entry_limit::StdStaleStagingEntryLimit::try_from(2usize);
+        assert!(
+            entry_limit_result
+                .as_ref()
+                .is_ok_and(|entry_limit| entry_limit.get() == 2usize)
+        );
+        let Ok(two_entry_limit) = entry_limit_result else {
+            return;
+        };
+        assert!(storage.cleanup_stale_staging(
+            crate::file_storage_staging_area::FileStorageStagingArea::Upload,
+            crate::stale_staging_cleanup_configuration::StaleStagingCleanupConfiguration::new(stale_before.into(), two_entry_limit, two_entry_limit),
+        ).await.is_ok_and(|skipped_report| skipped_report.scanned().get() == 2usize && skipped_report.removed().get() == 0usize));
+        assert!(retained_directory.is_dir());
+        assert!(retained_link.is_symlink());
+        assert!(
+            tokio::fs::read(&target_file)
+                .await
+                .is_ok_and(|target_bytes| target_bytes == [6u8])
+        );
+    };
     tokio::fs::remove_dir_all(root_path)
         .await
         .expect(constants_str::DIAGNOSTIC_9CF8105C);
@@ -252,6 +393,33 @@ async fn test_staged_upload_delete_and_rollback_preserve_transaction_boundaries(
     .expect(constants_str::DIAGNOSTIC_85ED3042);
     let bytes = crate::std_file_bytes::StdFileBytes::try_from(vec![1u8, 2u8, 3u8])
         .expect(constants_str::DIAGNOSTIC_D7DF0F1C);
+    assert!(
+        [
+            storage.commit_upload(&operation_id, &relative_path).await,
+            storage.rollback_upload(&operation_id).await,
+            storage.rollback_delete(&operation_id, &relative_path).await,
+            storage.commit_delete(&operation_id).await,
+            storage.stage_delete(&operation_id, &relative_path).await,
+        ]
+        .into_iter()
+        .all(|result| matches!(
+            result,
+            Err(crate::file_storage_error::FileStorageError::Io(_))
+        ))
+    );
+    assert!(!root_path.join(relative_path.as_ref()).exists());
+    assert!(
+        !root_path
+            .join(constants_str::FILE_UPLOAD_STAGING_DIRECTORY)
+            .join(operation_id.as_ref())
+            .exists()
+    );
+    assert!(
+        !root_path
+            .join(constants_str::FILE_DELETE_STAGING_DIRECTORY)
+            .join(operation_id.as_ref())
+            .exists()
+    );
     storage
         .stage_upload(&operation_id, &bytes)
         .await
@@ -267,6 +435,96 @@ async fn test_staged_upload_delete_and_rollback_preserve_transaction_boundaries(
         .stage_delete(&operation_id, &relative_path)
         .await
         .expect(constants_str::DIAGNOSTIC_40761D28);
+    assert!(matches!(
+        tokio::fs::write(root_path.join(relative_path.as_ref()), [9u8]).await,
+        Ok(())
+    ));
+    assert!(matches!(
+        storage.rollback_delete(&operation_id, &relative_path).await,
+        Err(crate::file_storage_error::FileStorageError::DestinationExists)
+    ));
+    assert!(
+        tokio::fs::read(root_path.join(relative_path.as_ref()))
+            .await
+            .is_ok_and(|destination_bytes| destination_bytes == [9u8])
+    );
+    assert!(
+        tokio::fs::read(
+            root_path
+                .join(constants_str::FILE_DELETE_STAGING_DIRECTORY)
+                .join(operation_id.as_ref())
+        )
+        .await
+        .is_ok_and(|staged_bytes| staged_bytes == [1u8, 2u8, 3u8])
+    );
+    assert!(matches!(
+        tokio::fs::remove_file(root_path.join(relative_path.as_ref())).await,
+        Ok(())
+    ));
+    #[cfg(unix)]
+    let () = {
+        let staged_original = root_path
+            .join(constants_str::FILE_DELETE_STAGING_DIRECTORY)
+            .join(operation_id.as_ref());
+        let destination_link = root_path.join(relative_path.as_ref());
+        assert!(matches!(
+            tokio::fs::symlink(&staged_original, &destination_link).await,
+            Ok(())
+        ));
+        assert!(matches!(
+            storage.rollback_delete(&operation_id, &relative_path).await,
+            Err(crate::file_storage_error::FileStorageError::Symlink)
+        ));
+        assert!(destination_link.is_symlink());
+        assert!(
+            tokio::fs::read(&staged_original)
+                .await
+                .is_ok_and(|original_bytes| original_bytes == [1u8, 2u8, 3u8])
+        );
+        assert!(matches!(
+            tokio::fs::remove_file(&destination_link).await,
+            Ok(())
+        ));
+    };
+    let blocked_parent = root_path
+        .join(relative_path.as_ref())
+        .with_file_name(constants_str::EMPTY)
+        .components()
+        .collect::<std::path::PathBuf>();
+    assert!(matches!(
+        tokio::fs::remove_dir(&blocked_parent).await,
+        Ok(())
+    ));
+    assert!(matches!(
+        tokio::fs::write(&blocked_parent, [8u8]).await,
+        Ok(())
+    ));
+    assert!(matches!(
+        storage.rollback_delete(&operation_id, &relative_path).await,
+        Err(crate::file_storage_error::FileStorageError::Symlink)
+    ));
+    assert!(
+        tokio::fs::read(&blocked_parent)
+            .await
+            .is_ok_and(|parent_bytes| parent_bytes == [8u8])
+    );
+    assert!(
+        tokio::fs::read(
+            root_path
+                .join(constants_str::FILE_DELETE_STAGING_DIRECTORY)
+                .join(operation_id.as_ref())
+        )
+        .await
+        .is_ok_and(|retained_bytes| retained_bytes == [1u8, 2u8, 3u8])
+    );
+    assert!(matches!(
+        tokio::fs::remove_file(&blocked_parent).await,
+        Ok(())
+    ));
+    assert!(matches!(
+        tokio::fs::create_dir(&blocked_parent).await,
+        Ok(())
+    ));
     storage
         .rollback_delete(&operation_id, &relative_path)
         .await
@@ -366,23 +624,13 @@ async fn test_staged_upload_delete_and_rollback_preserve_transaction_boundaries(
         String::from(constants_str::TEST_STALE_STAGING_SECOND_OPERATION_ID),
     )
     .expect(constants_str::DIAGNOSTIC_55012796);
-    assert!(
-        storage
-            .atomic_replace(
-                &failed_operation_id,
-                &failed_relative_path,
-                &replacement_bytes,
-                crate::atomic_replace_durability::AtomicReplaceDurability::SyncAll,
-            )
-            .await
-            .is_err()
-    );
-    assert!(
-        !root_path
-            .join(constants_str::FILE_UPLOAD_STAGING_DIRECTORY)
-            .join(failed_operation_id.as_ref())
-            .exists()
-    );
+    let assert_failed_replace = async |atomic_replace_durability: crate::atomic_replace_durability::AtomicReplaceDurability| {
+        assert!(matches!(storage.atomic_replace(&failed_operation_id, &failed_relative_path, &replacement_bytes, atomic_replace_durability).await, Err(crate::file_storage_error::FileStorageError::SourceNotRegular)));
+        assert!(!root_path.join(constants_str::FILE_UPLOAD_STAGING_DIRECTORY).join(failed_operation_id.as_ref()).exists());
+        assert!(root_path.join(failed_relative_path.as_ref()).is_dir());
+    };
+    assert_failed_replace(crate::atomic_replace_durability::AtomicReplaceDurability::Flush).await;
+    assert_failed_replace(crate::atomic_replace_durability::AtomicReplaceDurability::SyncAll).await;
     assert!(matches!(
         tokio::fs::remove_dir(root_path.join(failed_relative_path.as_ref())).await,
         Ok(())
@@ -450,11 +698,63 @@ async fn test_staged_upload_delete_and_rollback_preserve_transaction_boundaries(
                 .await,
             Err(crate::file_storage_error::FileStorageError::Symlink)
         ));
+        assert!(matches!(
+            storage.prepare().await,
+            Err(crate::file_storage_error::FileStorageError::Symlink)
+        ));
         assert!(!outside_path.join(failed_operation_id.as_ref()).exists());
         tokio::fs::remove_dir_all(outside_path)
             .await
             .expect(constants_str::DIAGNOSTIC_7352F192);
     };
+    let displaced_root =
+        root_path.with_extension(constants_str::TEST_FILE_STORAGE_REPLACEMENT_OPERATION_ID);
+    match tokio::fs::remove_dir_all(&displaced_root).await {
+        Ok(()) => {}
+        Err(error) => assert_eq!(error.kind(), std::io::ErrorKind::NotFound),
+    }
+    assert!(matches!(
+        tokio::fs::rename(&root_path, &displaced_root).await,
+        Ok(())
+    ));
+    assert!(matches!(tokio::fs::write(&root_path, [7u8]).await, Ok(())));
+    assert!(matches!(
+        storage.rollback_upload(&operation_id).await,
+        Err(crate::file_storage_error::FileStorageError::Symlink)
+    ));
+    assert!(
+        tokio::fs::read(&root_path)
+            .await
+            .is_ok_and(|root_bytes| root_bytes == [7u8])
+    );
+    assert!(
+        tokio::fs::read(displaced_root.join(relative_path.as_ref()))
+            .await
+            .is_ok_and(|displaced_bytes| displaced_bytes == [4u8, 5u8])
+    );
+    assert!(matches!(tokio::fs::remove_file(&root_path).await, Ok(())));
+    #[cfg(unix)]
+    let () = {
+        assert!(matches!(
+            tokio::fs::symlink(&displaced_root, &root_path).await,
+            Ok(())
+        ));
+        assert!(matches!(
+            storage.rollback_upload(&operation_id).await,
+            Err(crate::file_storage_error::FileStorageError::Symlink)
+        ));
+        assert!(root_path.is_symlink());
+        assert!(
+            tokio::fs::read(displaced_root.join(relative_path.as_ref()))
+                .await
+                .is_ok_and(|preserved_bytes| preserved_bytes == [4u8, 5u8])
+        );
+        assert!(matches!(tokio::fs::remove_file(&root_path).await, Ok(())));
+    };
+    assert!(matches!(
+        tokio::fs::rename(&displaced_root, &root_path).await,
+        Ok(())
+    ));
     tokio::fs::remove_dir_all(root_path)
         .await
         .expect(constants_str::DIAGNOSTIC_9A69203B);
@@ -480,6 +780,155 @@ fn test_disk_cache_budget_retains_entries_when_budget_is_sufficient() {
                 )
                 .is_ok_and(|disk_cache_eviction_plan| disk_cache_eviction_plan.as_ref().is_empty())
             })
+        })
+    );
+}
+
+#[test]
+fn test_disk_cache_budget_rejects_existing_overflow_and_prioritizes_incoming_limit() {
+    let storage_path_result = crate::storage_relative_path_buf::StorageRelativePathBuf::try_from(
+        std::path::PathBuf::from(constants_str::TEST_DISK_CACHE_OLD_PATH),
+    );
+    assert!(storage_path_result.is_ok());
+    let Ok(storage_path) = storage_path_result else {
+        return;
+    };
+    let entries = [
+        crate::disk_cache_entry::DiskCacheEntry::new(
+            storage_path.clone(),
+            u64::MAX.into(),
+            std::time::UNIX_EPOCH.into(),
+        ),
+        crate::disk_cache_entry::DiskCacheEntry::new(
+            storage_path,
+            1u64.into(),
+            std::time::UNIX_EPOCH.into(),
+        ),
+    ];
+    assert!(matches!(
+        crate::plan_disk_cache_eviction::plan_disk_cache_eviction(
+            &entries,
+            u64::MAX.into(),
+            0u64.into()
+        ),
+        Err(crate::disk_cache_budget_error::DiskCacheBudgetError::SizeOverflow)
+    ));
+    assert!(matches!(
+        crate::plan_disk_cache_eviction::plan_disk_cache_eviction(
+            &entries,
+            1u64.into(),
+            2u64.into()
+        ),
+        Err(crate::disk_cache_budget_error::DiskCacheBudgetError::IncomingTooLarge)
+    ));
+    assert!(matches!(
+        crate::plan_disk_cache_eviction::plan_disk_cache_eviction(&[], 0u64.into(), 1u64.into()),
+        Err(crate::disk_cache_budget_error::DiskCacheBudgetError::IncomingTooLarge)
+    ));
+}
+
+#[test]
+fn test_disk_cache_equal_timestamps_preserve_input_order_and_skip_zero_size_budget() {
+    let path_results = [
+        constants_str::TEST_DISK_CACHE_OLD_PATH,
+        constants_str::TEST_DISK_CACHE_NEW_PATH,
+    ]
+    .map(|path| {
+        crate::storage_relative_path_buf::StorageRelativePathBuf::try_from(
+            std::path::PathBuf::from(path),
+        )
+    });
+    assert!(path_results.iter().all(Result::is_ok));
+    let [Ok(old_path), Ok(new_path)] = path_results else {
+        return;
+    };
+    let entries = [
+        crate::disk_cache_entry::DiskCacheEntry::new(
+            old_path.clone(),
+            0u64.into(),
+            std::time::UNIX_EPOCH.into(),
+        ),
+        crate::disk_cache_entry::DiskCacheEntry::new(
+            new_path.clone(),
+            4u64.into(),
+            std::time::UNIX_EPOCH.into(),
+        ),
+        crate::disk_cache_entry::DiskCacheEntry::new(
+            old_path.clone(),
+            4u64.into(),
+            std::time::UNIX_EPOCH.into(),
+        ),
+    ];
+    assert!(
+        crate::plan_disk_cache_eviction::plan_disk_cache_eviction(
+            &entries,
+            8u64.into(),
+            4u64.into()
+        )
+        .is_ok_and(|plan| plan.as_ref() == [old_path, new_path])
+    );
+    assert!(
+        crate::plan_disk_cache_eviction::plan_disk_cache_eviction(&[], 0u64.into(), 0u64.into())
+            .is_ok_and(|plan| plan.as_ref().is_empty())
+    );
+}
+
+#[test]
+fn test_stale_staging_entry_limit_accepts_exact_bounds_and_rejects_outside_values() {
+    assert!([1usize, 10_000usize].into_iter().all(|value| {
+        crate::std_stale_staging_entry_limit::StdStaleStagingEntryLimit::try_from(value)
+            .is_ok_and(|limit| limit.get() == value)
+    }));
+    assert!([0usize, 10_001usize].into_iter().all(|value| matches!(crate::std_stale_staging_entry_limit::StdStaleStagingEntryLimit::try_from(value), Err(crate::stale_staging_cleanup_configuration_error::StaleStagingCleanupConfigurationError::InvalidLimit))));
+}
+
+#[test]
+fn test_storage_operation_identifiers_preserve_exact_length_and_reject_invalid_tokens() {
+    assert!(
+        [
+            constants_str::X.to_owned(),
+            constants_str::TEST_FILE_STORAGE_OPERATION_ID.to_owned(),
+            constants_str::X.repeat(crate::domain_types::MAXIMUM_OPERATION_ID_BYTES),
+        ]
+        .into_iter()
+        .all(|text| {
+            crate::std_storage_operation_id::StdStorageOperationId::try_from(text.clone())
+                .is_ok_and(|identifier| identifier.as_ref() == text)
+        })
+    );
+    assert!(
+        [
+            constants_str::EMPTY.to_owned(),
+            constants_str::SPACE.to_owned(),
+            constants_str::SLASH.to_owned(),
+            constants_str::TEST_PATH_TRAVERSAL.to_owned(),
+            constants_str::X
+                .repeat(crate::domain_types::MAXIMUM_OPERATION_ID_BYTES.saturating_add(1usize)),
+        ]
+        .into_iter()
+        .all(|text| matches!(
+            crate::std_storage_operation_id::StdStorageOperationId::try_from(text),
+            Err(crate::file_storage_path_error::FileStoragePathError::OperationIdInvalid)
+        ))
+    );
+}
+
+#[test]
+fn test_storage_root_paths_reject_empty_and_relative_paths() {
+    assert!(
+        [
+            constants_str::EMPTY,
+            constants_str::TEST_FILE_STORAGE_RELATIVE_PATH,
+            constants_str::TEST_PATH_TRAVERSAL
+        ]
+        .into_iter()
+        .all(|text| {
+            matches!(
+                crate::file_storage_root_path_buf::FileStorageRootPathBuf::try_from(
+                    std::path::PathBuf::from(text)
+                ),
+                Err(crate::file_storage_path_error::FileStoragePathError::RootMustBeAbsolute)
+            )
         })
     );
 }

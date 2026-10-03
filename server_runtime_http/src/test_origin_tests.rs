@@ -1,5 +1,64 @@
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn test_origin_header_precedence_over_valid_invalid_and_duplicate_referers() {
+        let allowed = allowed_origins();
+        assert!(
+            http::HeaderValue::from_bytes(&[0xffu8]).is_ok_and(|opaque| {
+                let valid_origin =
+                    http::HeaderValue::from_static(constants_str::HTTPS_ADMIN_EXAMPLE_COM);
+                let valid_referer =
+                    http::HeaderValue::from_static(constants_str::HTTPS_ADMIN_EXAMPLE_COM_PATH);
+                let invalid = http::HeaderValue::from_static(constants_str::HTTP_LOCALHOST);
+                let origins = [
+                    (None, false),
+                    (Some(valid_origin), true),
+                    (Some(invalid.clone()), false),
+                    (Some(opaque.clone()), false),
+                    (
+                        Some(http::HeaderValue::from_static(
+                            constants_str::PG_CRUD_EMPTY_SQL_SUFFIX,
+                        )),
+                        false,
+                    ),
+                ];
+                let referers = [
+                    (vec![], false),
+                    (vec![valid_referer.clone()], true),
+                    (vec![invalid], false),
+                    (vec![opaque], false),
+                    (vec![valid_referer.clone(), valid_referer], false),
+                ];
+                origins.iter().all(|(origin, origin_allowed)| {
+                    referers.iter().all(|(referer_values, referer_allowed)| {
+                        let mut headers = http::HeaderMap::new();
+                        if let Some(origin_value) = origin {
+                            let _previous =
+                                headers.insert(http::header::ORIGIN, origin_value.clone());
+                        }
+                        let _appended_count =
+                            referer_values.iter().fold(0usize, |count, referer| {
+                                let _appended =
+                                    headers.append(http::header::REFERER, referer.clone());
+                                count + 1usize
+                            });
+                        let expected = origin
+                            .as_ref()
+                            .map_or(*referer_allowed, |_| *origin_allowed);
+                        bool::from(
+                            crate::resolve_request_origin_allowed::resolve_request_origin_allowed(
+                                crate::http_origin_headers_ref::HttpOriginHeadersRef::from(
+                                    &headers,
+                                ),
+                                &allowed,
+                            ),
+                        ) == expected
+                    })
+                })
+            })
+        );
+    }
+
     fn allowed_origins() -> crate::allowed_origins::AllowedOrigins {
         crate::allowed_origins::AllowedOrigins::try_from(vec![String::from(
             constants_str::HTTPS_ADMIN_EXAMPLE_COM,

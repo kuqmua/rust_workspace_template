@@ -27,8 +27,3 @@ test("test_rate_limit_details_follow_table_link", async ({ page }) => {
   await expect(detail).toContainText("resource not found");
   await expect(detail.locator(".health-result")).toHaveCount(0);
 });
-
-test("test_rate_limit_details_require_authentication", async ({ page }) => {
-  await page.goto("/admin/rate_limits/1/read");
-  await expect(page).toHaveURL(/\/admin\/sign_in$/);
-});

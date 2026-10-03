@@ -123,6 +123,59 @@ impl crate::pg_range_length_sql::PgRangeLengthSql for StdDurationRangeLength {
 #[cfg(test)]
 mod tests {
     #[test]
+    fn test_interval_encoding_preserves_day_boundaries_and_maximum_day_count() {
+        let day = std::time::Duration::from_hours(24u64);
+        let last_microsecond_of_day = std::time::Duration::from_micros(86_399_999_999u64);
+        let microsecond = std::time::Duration::from_micros(1u64);
+        let maximum_days =
+            std::time::Duration::from_secs(u64::from(i32::MAX.unsigned_abs()) * 86_400u64);
+        assert!(
+            [
+                (microsecond, 0i32, 1i64),
+                (last_microsecond_of_day, 0i32, 86_399_999_999i64),
+                (day, 1i32, 0i64),
+                (day + microsecond, 1i32, 1i64),
+                (maximum_days, i32::MAX, 0i64),
+                (maximum_days + last_microsecond_of_day, i32::MAX, 86_399_999_999i64),
+            ]
+            .into_iter()
+            .all(|(duration, days, microseconds)| {
+                crate::std_duration_range_length::StdDurationRangeLength::try_from(duration)
+                    .is_ok_and(|length| {
+                        let mut actual = sqlx::postgres::PgArgumentBuffer::default();
+                        let mut expected = sqlx::postgres::PgArgumentBuffer::default();
+                        let reference = sqlx::postgres::types::PgInterval {
+                            months: 0i32,
+                            days,
+                            microseconds,
+                        };
+                        matches!(
+                            <crate::std_duration_range_length::StdDurationRangeLength as sqlx::Encode<sqlx::Postgres>>::encode_by_ref(&length, &mut actual),
+                            Ok(sqlx::encode::IsNull::No)
+                        ) && matches!(
+                            <sqlx::postgres::types::PgInterval as sqlx::Encode<sqlx::Postgres>>::encode_by_ref(&reference, &mut expected),
+                            Ok(sqlx::encode::IsNull::No)
+                        ) && actual.as_slice() == expected.as_slice()
+                            && serde_json::to_value(duration).is_ok_and(|value| {
+                                serde_json::from_value::<crate::std_duration_range_length::StdDurationRangeLength>(value)
+                                    .is_ok_and(|decoded| decoded == length)
+                            })
+                    })
+            })
+        );
+        assert!(matches!(
+            crate::std_duration_range_length::StdDurationRangeLength::try_from(maximum_days + day),
+            Err(crate::std_duration_range_length_error::StdDurationRangeLengthError::ExceedsPostgresIntervalDays { .. })
+        ));
+        assert!(matches!(
+            crate::std_duration_range_length::StdDurationRangeLength::try_from(
+                maximum_days + day + std::time::Duration::from_nanos(1u64)
+            ),
+            Err(crate::std_duration_range_length_error::StdDurationRangeLengthError::SubmicrosecondPrecision { .. })
+        ));
+    }
+
+    #[test]
     fn test_interval_length_validation() {
         assert!(matches!(
             crate::std_duration_range_length::StdDurationRangeLength::try_from(

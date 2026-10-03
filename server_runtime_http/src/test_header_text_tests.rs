@@ -1,6 +1,29 @@
 #[cfg(test)]
 mod tests {
     #[test]
+    fn test_header_resolution_checks_raw_size_before_trimming_and_text_validation() {
+        let name = crate::http_header_name::HttpHeaderName::from(http::header::COOKIE);
+        assert!(crate::http_header_text_maximum_bytes::HttpHeaderTextMaximumBytes::try_from(1usize).is_ok_and(|maximum| {
+            [
+                (Vec::new(), crate::http_header_text_resolution::HttpHeaderTextResolution::Value(crate::http_header_text_ref::HttpHeaderTextRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX))),
+                (vec![b' '], crate::http_header_text_resolution::HttpHeaderTextResolution::Value(crate::http_header_text_ref::HttpHeaderTextRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX))),
+                (vec![b'x'], crate::http_header_text_resolution::HttpHeaderTextResolution::Value(crate::http_header_text_ref::HttpHeaderTextRef::from(constants_str::X))),
+                (vec![b' ', b'x'], crate::http_header_text_resolution::HttpHeaderTextResolution::ExceedsMaximumBytes { actual_bytes: crate::http_header_text_bytes::HttpHeaderTextBytes::from(2usize) }),
+                (vec![0xffu8], crate::http_header_text_resolution::HttpHeaderTextResolution::InvalidText),
+                (vec![0xffu8, 0xffu8], crate::http_header_text_resolution::HttpHeaderTextResolution::ExceedsMaximumBytes { actual_bytes: crate::http_header_text_bytes::HttpHeaderTextBytes::from(2usize) }),
+            ].into_iter().all(|(bytes, expected)| {
+                http::HeaderValue::from_bytes(&bytes).is_ok_and(|value| {
+                    let mut headers = http::HeaderMap::new();
+                    let _previous = headers.insert(http::header::COOKIE, value);
+                    crate::resolve_header_text::resolve_header_text(
+                        crate::http_header_map_ref::HttpHeaderMapRef::from(&headers), &name, maximum,
+                    ) == expected
+                })
+            })
+        }));
+    }
+
+    #[test]
     fn test_resolution_distinguishes_missing_invalid_oversized_and_valid_values() {
         let maximum =
             crate::http_header_text_maximum_bytes::HttpHeaderTextMaximumBytes::try_from(5usize)

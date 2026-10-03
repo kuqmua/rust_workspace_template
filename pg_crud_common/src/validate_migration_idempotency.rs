@@ -32,4 +32,11 @@ mod tests {
             Err(crate::data_invariant_violation::DataInvariantViolation::BulkFailureChangedState)
         );
     }
+    #[test]
+    fn test_migration_second_run_changed_schema_is_rejected() {
+        assert_eq!(
+            crate::validate_migration_idempotency::validate_migration_idempotency(&[1u8, 2u8], &[1u8, 3u8]),
+            Err(crate::data_invariant_violation::DataInvariantViolation::MigrationSecondRunChangedSchema)
+        );
+    }
 }

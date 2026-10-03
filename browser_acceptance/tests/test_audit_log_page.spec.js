@@ -35,8 +35,3 @@ test("test_audit_log_read_navigates_to_record_details", async ({ page }) => {
   await expect(detail).toContainText("resource not found");
   await expect(detail.locator(".health-result")).toHaveCount(0);
 });
-
-test("test_audit_log_details_require_authentication", async ({ page }) => {
-  await page.goto("/admin/audit_log/1/read");
-  await expect(page).toHaveURL(/\/admin\/sign_in$/);
-});

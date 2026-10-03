@@ -53,7 +53,12 @@ test("read-only role rows and runtime branding persist", async ({ page }) => {
   });
   await expect(roleRow).toBeVisible();
   await expect(roleRow.locator("input, select, textarea")).toHaveCount(0);
-  await expect(roleRow.locator('td[data-label="actions"] button[aria-label="read"]')).toHaveCount(1);
+  const roleId = (await roleRow.locator('td[data-label="id"]').textContent()).trim();
+  const readLink = roleRow.getByRole("link", { name: "read", exact: true });
+  await expect(readLink).toHaveAttribute("href", `/admin/roles/${roleId}/read`);
+  await readLink.click();
+  await expect(page).toHaveURL(`/admin/roles/${roleId}/read`);
+  await expect(page.locator('section[data-page="role-read"]')).toContainText("browser_role");
 
   await page.goto("/admin/settings");
   await page.getByLabel("site_name").fill("Browser Acceptance Admin");
@@ -114,7 +119,7 @@ test("one-session and all-session revocation are enforced", async ({
     .filter({ hasText: "false" })
     .first();
   const revokedSessionId = await otherSession.locator("td").first().innerText();
-  await expect(otherSession.getByRole("button", { name: "read", exact: true })).toBeVisible();
+  await expect(otherSession.getByRole("link", { name: "read", exact: true })).toHaveAttribute("href", `/admin/access_sessions/${revokedSessionId.trim()}/read`);
   const oneRevoked = page.waitForResponse(
     response =>
       response.request().method() === "DELETE" &&
