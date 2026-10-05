@@ -170,6 +170,42 @@ mod tests {
         }
     }
 
+    #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
+    struct CreatedContractTestRoute;
+    impl frontend_contract::typed_route::TypedRoute for CreatedContractTestRoute {
+        type Request = TestRequest;
+        type Response = TestResponse;
+        type Transport = frontend_contract::public_transport::PublicTransport;
+        fn metadata() -> frontend_contract::route_metadata::RouteMetadata {
+            success_contract_test_metadata(
+                frontend_contract::success_status::SuccessStatus::Code201,
+            )
+        }
+        fn openapi_response_schema()
+        -> Option<frontend_contract::utoipa_open_api_route_schema::UtoipaOpenApiRouteSchema>
+        {
+            <TestRoute as frontend_contract::typed_route::TypedRoute>::openapi_response_schema()
+        }
+    }
+
+    #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
+    struct NoContentContractTestRoute;
+    impl frontend_contract::typed_route::TypedRoute for NoContentContractTestRoute {
+        type Request = TestRequest;
+        type Response = TestResponse;
+        type Transport = frontend_contract::public_transport::PublicTransport;
+        fn metadata() -> frontend_contract::route_metadata::RouteMetadata {
+            success_contract_test_metadata(
+                frontend_contract::success_status::SuccessStatus::Code204,
+            )
+        }
+        fn openapi_response_schema()
+        -> Option<frontend_contract::utoipa_open_api_route_schema::UtoipaOpenApiRouteSchema>
+        {
+            <TestRoute as frontend_contract::typed_route::TypedRoute>::openapi_response_schema()
+        }
+    }
+
     #[test]
     fn test_default_typed_route_schema_hooks_and_error_statuses() {
         assert!(<TestDefaultHooksRoute as frontend_contract::typed_route::TypedRoute>::openapi_request_schema().is_none());
@@ -411,5 +447,140 @@ mod tests {
         );
         assert!(schema_contract.request_schema().is_some());
         assert!(schema_contract.response_schema().is_some());
+    }
+    fn success_contract_test_metadata(
+        success_status: frontend_contract::success_status::SuccessStatus,
+    ) -> frontend_contract::route_metadata::RouteMetadata {
+        let metadata = <TestRoute as frontend_contract::typed_route::TypedRoute>::metadata();
+        frontend_contract::route_metadata::RouteMetadata::new_with_policy(
+            metadata.authentication(),
+            metadata.error_statuses(),
+            metadata.route_method(),
+            metadata.mutation(),
+            metadata.openapi_operation_id(),
+            metadata.path(),
+            success_status,
+        )
+    }
+
+    fn assert_success_contract_replaces_successes_and_retains_errors<Route>(
+        success_status: frontend_contract::success_status::SuccessStatus,
+        utoipa_open_api_route_schema: Option<
+            frontend_contract::utoipa_open_api_route_schema::UtoipaOpenApiRouteSchema,
+        >,
+    ) where
+        Route: frontend_contract::typed_route::TypedRoute,
+    {
+        let stale = utoipa::openapi::RefOr::T(utoipa::openapi::response::Response::new(
+            constants_str::NEVER_PRINT_THIS_VALUE,
+        ));
+        let error_status = frontend_contract::transport_status::TransportStatus::from(
+            frontend_contract::known_http_status::KnownHttpStatus::BadRequest,
+        )
+        .to_string();
+        let mut operation = utoipa::openapi::path::Operation::default();
+        operation.responses.responses = std::collections::BTreeMap::from([
+            (
+                frontend_contract::success_status::SuccessStatus::Code200
+                    .transport_status()
+                    .to_string(),
+                stale.clone(),
+            ),
+            (
+                frontend_contract::success_status::SuccessStatus::Code201
+                    .transport_status()
+                    .to_string(),
+                stale.clone(),
+            ),
+            (
+                frontend_contract::success_status::SuccessStatus::Code204
+                    .transport_status()
+                    .to_string(),
+                stale.clone(),
+            ),
+            (error_status.clone(), stale),
+        ]);
+        frontend_contract::apply_openapi_success_contract::apply_openapi_success_contract::<Route>(
+            &mut operation,
+        );
+        assert_eq!(operation.responses.responses.len(), 2usize);
+        assert!(
+            operation
+                .responses
+                .responses
+                .get(&error_status)
+                .is_some_and(|response_ref| {
+                    match response_ref {
+                        utoipa::openapi::RefOr::T(response) => {
+                            response.description == constants_str::NEVER_PRINT_THIS_VALUE
+                                && response.content.is_empty()
+                        }
+                        utoipa::openapi::RefOr::Ref(_) => false,
+                    }
+                })
+        );
+        let status = success_status.transport_status().to_string();
+        assert!(
+            operation
+                .responses
+                .responses
+                .get(&status)
+                .is_some_and(|response_ref| {
+                    match response_ref {
+                        utoipa::openapi::RefOr::T(response) => {
+                            let schema_matches = utoipa_open_api_route_schema.map_or_else(
+                                || response.content.is_empty(),
+                                |schema| {
+                                    response.content.len() == 1usize
+                                        && response
+                                            .content
+                                            .get(constants_str::APPLICATION_JSON)
+                                            .is_some_and(|content| {
+                                                let expected_schema = utoipa::openapi::RefOr::<
+                                                    utoipa::openapi::Schema,
+                                                >::from(
+                                                    schema
+                                                );
+                                                content.schema.as_ref().is_some_and(
+                                                    |actual_schema| {
+                                                        serde_json::to_value(actual_schema)
+                                                            .is_ok_and(|actual_json| {
+                                                                serde_json::to_value(
+                                                                    &expected_schema,
+                                                                )
+                                                                .is_ok_and(|expected_json| {
+                                                                    actual_json == expected_json
+                                                                })
+                                                            })
+                                                    },
+                                                )
+                                            })
+                                },
+                            );
+                            response.description == status && schema_matches
+                        }
+                        utoipa::openapi::RefOr::Ref(_) => false,
+                    }
+                })
+        );
+    }
+    #[test]
+    fn test_success_contract_replaces_stale_successes_preserves_errors_and_respects_content() {
+        assert_success_contract_replaces_successes_and_retains_errors::<TestRoute>(
+            frontend_contract::success_status::SuccessStatus::Code200,
+            <TestRoute as frontend_contract::typed_route::TypedRoute>::openapi_response_schema(),
+        );
+        assert_success_contract_replaces_successes_and_retains_errors::<TestDefaultHooksRoute>(
+            frontend_contract::success_status::SuccessStatus::Code200,
+            None,
+        );
+        assert_success_contract_replaces_successes_and_retains_errors::<CreatedContractTestRoute>(
+            frontend_contract::success_status::SuccessStatus::Code201,
+            <TestRoute as frontend_contract::typed_route::TypedRoute>::openapi_response_schema(),
+        );
+        assert_success_contract_replaces_successes_and_retains_errors::<NoContentContractTestRoute>(
+            frontend_contract::success_status::SuccessStatus::Code204,
+            None,
+        );
     }
 }

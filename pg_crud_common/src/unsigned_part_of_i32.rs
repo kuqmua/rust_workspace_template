@@ -91,6 +91,69 @@ impl crate::default_some_one_element::DefaultSomeOneElement for UnsignedPartOfI3
 #[cfg(test)]
 mod tests {
     #[test]
+    fn test_unsigned_integer_json_and_database_encoding_preserve_boundaries() {
+        assert!(
+            [(0i32, [0u8; 4]), (i32::MAX, [0x7fu8, 0xff, 0xff, 0xff])]
+                .into_iter()
+                .all(|(integer, encoded_bytes)| {
+                    crate::unsigned_part_of_i32::UnsignedPartOfI32::try_from(integer).is_ok_and(
+                        |unsigned_part_of_i32| {
+                            let json = serde_json::json!(integer);
+                            let serialized = serde_json::to_value(unsigned_part_of_i32);
+                            let deserialized = serde_json::from_value::<
+                                crate::unsigned_part_of_i32::UnsignedPartOfI32,
+                            >(json.clone());
+                            let mut buffer = sqlx::postgres::PgArgumentBuffer::default();
+                            let encoded =
+                                <crate::unsigned_part_of_i32::UnsignedPartOfI32 as sqlx::Encode<
+                                    sqlx::Postgres,
+                                >>::encode_by_ref(
+                                    &unsigned_part_of_i32, &mut buffer
+                                );
+                            serialized.is_ok_and(|value| value == json)
+                                && deserialized.is_ok_and(|value| value == unsigned_part_of_i32)
+                                && matches!(encoded, Ok(sqlx::encode::IsNull::No))
+                                && buffer.as_slice() == encoded_bytes.as_slice()
+                                && to_err_string::to_err_string::ToErrString::to_err_string(
+                                    &unsigned_part_of_i32,
+                                )
+                                .as_ref()
+                                .parse::<i32>()
+                                .is_ok_and(|value| value == integer)
+                        },
+                    )
+                })
+        );
+        let integer_type = <i32 as sqlx::Type<sqlx::Postgres>>::type_info();
+        assert_eq!(
+            <crate::unsigned_part_of_i32::UnsignedPartOfI32 as
+                sqlx::Type<sqlx::Postgres>>::type_info(),
+            integer_type,
+        );
+        assert!(<crate::unsigned_part_of_i32::UnsignedPartOfI32 as
+            sqlx::Type<sqlx::Postgres>>::compatible(&integer_type));
+        assert!(!<crate::unsigned_part_of_i32::UnsignedPartOfI32 as
+            sqlx::Type<sqlx::Postgres>>::compatible(
+                &<String as sqlx::Type<sqlx::Postgres>>::type_info(),
+            ));
+    }
+
+    #[test]
+    fn test_unsigned_integer_rejections_preserve_raw_values_and_validate_json() {
+        assert!([-1i32, i32::MIN].into_iter().all(|integer| {
+            matches!(
+                crate::unsigned_part_of_i32::UnsignedPartOfI32::try_from(integer),
+                Err(crate::unsigned_part_of_i32_try_from_i32_error::UnsignedPartOfI32TryFromI32Error::LessThanZero {
+                    v: unsigned_part_of_i32_raw,
+                    ..
+                }) if unsigned_part_of_i32_raw == crate::unsigned_part_of_i32_raw::UnsignedPartOfI32Raw::from(integer)
+            ) && serde_json::from_value::<crate::unsigned_part_of_i32::UnsignedPartOfI32>(
+                serde_json::json!(integer),
+            ).is_err()
+        }));
+    }
+
+    #[test]
     fn test_unsigned_database_value_rejects_negative_input() {
         assert!(matches!(
             crate::unsigned_part_of_i32::UnsignedPartOfI32::try_from(-1i32),

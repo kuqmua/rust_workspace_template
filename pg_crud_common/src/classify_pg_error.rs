@@ -33,6 +33,42 @@ pub fn classify_pg_error(
 #[cfg(test)]
 mod tests {
     #[test]
+    fn test_postgres_connection_and_internal_errors_preserve_classification() {
+        assert!(
+            [
+                (
+                    sqlx::Error::Io(std::io::Error::from(std::io::ErrorKind::ConnectionReset)),
+                    crate::pg_error_kind::PgErrorKind::Connection
+                ),
+                (
+                    sqlx::Error::Tls(Box::new(std::io::Error::from(
+                        std::io::ErrorKind::InvalidData
+                    ))),
+                    crate::pg_error_kind::PgErrorKind::Connection
+                ),
+                (
+                    sqlx::Error::Protocol(String::from(constants_str::X)),
+                    crate::pg_error_kind::PgErrorKind::Unknown
+                ),
+                (
+                    sqlx::Error::ColumnNotFound(String::from(constants_str::X)),
+                    crate::pg_error_kind::PgErrorKind::Unknown
+                ),
+                (
+                    sqlx::Error::WorkerCrashed,
+                    crate::pg_error_kind::PgErrorKind::Unknown
+                ),
+            ]
+            .into_iter()
+            .all(
+                |(error, expected)| crate::classify_pg_error::classify_pg_error(
+                    crate::sqlx_pg_error_ref::SqlxPgErrorRef::from(&error),
+                ) == expected
+            )
+        );
+    }
+
+    #[test]
     fn test_classifies_non_database_errors() {
         assert_eq!(
             crate::classify_pg_error::classify_pg_error(

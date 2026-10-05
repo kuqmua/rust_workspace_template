@@ -160,6 +160,14 @@ mod tests {
         );
     }
 
+    fn lease_registry_timeout_fixture()
+    -> crate::lease_stale_timeout_duration::LeaseStaleTimeoutDuration {
+        crate::lease_stale_timeout_duration::LeaseStaleTimeoutDuration::try_from(
+            std::time::Duration::from_secs(1u64),
+        )
+        .expect(constants_str::DIAGNOSTIC_8CB64054)
+    }
+
     #[tokio::test(start_paused = true)]
     async fn test_heartbeat_and_stale_transition_are_observable() {
         let registry = super::LeaseRegistry::new();
@@ -176,18 +184,110 @@ mod tests {
             crate::lease_heartbeat::LeaseHeartbeat::Accepted
         );
         tokio::time::advance(std::time::Duration::from_secs(2u64)).await;
-        let stale = registry
-            .stale(
-                crate::lease_stale_timeout_duration::LeaseStaleTimeoutDuration::try_from(
-                    std::time::Duration::from_secs(1u64),
-                )
-                .expect(constants_str::DIAGNOSTIC_8CB64054),
-            )
-            .await;
+        let stale = registry.stale(lease_registry_timeout_fixture()).await;
         assert_eq!(stale.as_ref(), std::slice::from_ref(&lease_id));
         assert_eq!(
             registry.heartbeat(&lease_id).await,
             crate::lease_heartbeat::LeaseHeartbeat::Missing
+        );
+    }
+
+    #[tokio::test(start_paused = true)]
+    async fn test_lease_expiration_boundary_and_heartbeat_refresh_preserve_admission() {
+        let timeout = lease_registry_timeout_fixture();
+        let registry = super::LeaseRegistry::new();
+        let lease_id = id(constants_str::TEST_LEASE_ID_ONE);
+        assert_eq!(
+            registry
+                .reserve(
+                    lease_id.clone(),
+                    lease_key(constants_str::TEST_LEASE_KEY_ONE),
+                    maximum()
+                )
+                .await,
+            crate::lease_reservation::LeaseReservation::Reserved
+        );
+        tokio::time::advance(std::time::Duration::from_secs(1u64)).await;
+        assert!(registry.stale(timeout).await.as_ref().is_empty());
+        assert_eq!(
+            registry.heartbeat(&lease_id).await,
+            crate::lease_heartbeat::LeaseHeartbeat::Accepted
+        );
+        tokio::time::advance(std::time::Duration::from_secs(1u64)).await;
+        assert!(registry.stale(timeout).await.as_ref().is_empty());
+        tokio::time::advance(std::time::Duration::from_nanos(1u64)).await;
+        assert_eq!(
+            registry.stale(timeout).await.as_ref(),
+            std::slice::from_ref(&lease_id)
+        );
+        assert_eq!(
+            registry.heartbeat(&lease_id).await,
+            crate::lease_heartbeat::LeaseHeartbeat::Missing
+        );
+        assert_eq!(
+            registry.release(&lease_id).await,
+            crate::lease_heartbeat::LeaseHeartbeat::Accepted
+        );
+        assert!(registry.stale(timeout).await.as_ref().is_empty());
+        assert_eq!(
+            registry.release(&lease_id).await,
+            crate::lease_heartbeat::LeaseHeartbeat::Missing
+        );
+    }
+
+    #[tokio::test(start_paused = true)]
+    async fn test_expired_lease_replacement_reclaims_capacity_and_removes_previous_identity() {
+        let timeout = lease_registry_timeout_fixture();
+        let registry = super::LeaseRegistry::new();
+        let previous_id = id(constants_str::TEST_LEASE_ID_ONE);
+        let replacement_id = id(constants_str::TEST_LEASE_ID_TWO);
+        assert_eq!(
+            registry
+                .reserve(
+                    previous_id.clone(),
+                    lease_key(constants_str::TEST_LEASE_KEY_ONE),
+                    maximum()
+                )
+                .await,
+            crate::lease_reservation::LeaseReservation::Reserved
+        );
+        tokio::time::advance(std::time::Duration::from_secs(2u64)).await;
+        assert_eq!(
+            registry.stale(timeout).await.as_ref(),
+            std::slice::from_ref(&previous_id)
+        );
+        assert_eq!(
+            registry
+                .reserve(
+                    replacement_id.clone(),
+                    lease_key(constants_str::TEST_LEASE_KEY_ONE),
+                    maximum()
+                )
+                .await,
+            crate::lease_reservation::LeaseReservation::Reserved
+        );
+        assert_eq!(
+            registry.heartbeat(&previous_id).await,
+            crate::lease_heartbeat::LeaseHeartbeat::Missing
+        );
+        assert_eq!(
+            registry.heartbeat(&replacement_id).await,
+            crate::lease_heartbeat::LeaseHeartbeat::Accepted
+        );
+        assert!(registry.stale(timeout).await.as_ref().is_empty());
+        assert_eq!(
+            registry
+                .reserve(
+                    previous_id,
+                    lease_key(constants_str::TEST_LEASE_KEY_TWO),
+                    maximum()
+                )
+                .await,
+            crate::lease_reservation::LeaseReservation::LimitReached
+        );
+        assert_eq!(
+            registry.release(&replacement_id).await,
+            crate::lease_heartbeat::LeaseHeartbeat::Accepted
         );
     }
 }

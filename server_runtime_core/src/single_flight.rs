@@ -137,4 +137,39 @@ mod tests {
             })
         );
     }
+
+    #[tokio::test]
+    async fn test_single_flight_recovers_poisoned_lock_and_releases_owner_capacity() {
+        let flights = super::SingleFlight::new(
+            crate::single_flight_maximum_non_zero_usize::SingleFlightMaximumNonZeroUsize::from(
+                std::num::NonZeroUsize::MIN,
+            ),
+        );
+        let poisoning = std::panic::catch_unwind(|| {
+            let _guard = crate::write_inner::write_inner(&flights.inner);
+            std::panic::resume_unwind(Box::new(()));
+        });
+        assert!(poisoning.is_err_and(|_payload| flights.inner.is_poisoned()));
+        let owner = flights.acquire(single_flight_key());
+        assert!(matches!(
+            &owner,
+            crate::single_flight_acquire::SingleFlightAcquire::Owner(_)
+        ));
+        let acquisition = flights.acquire(single_flight_key());
+        assert!(matches!(
+            &acquisition,
+            crate::single_flight_acquire::SingleFlightAcquire::Waiter(_)
+        ));
+        drop(owner);
+        if let crate::single_flight_acquire::SingleFlightAcquire::Waiter(waiter) = acquisition {
+            assert_eq!(
+                waiter.wait().await,
+                crate::single_flight_wait_outcome::SingleFlightWaitOutcome::Retry
+            );
+        }
+        assert!(matches!(
+            flights.acquire(single_flight_key()),
+            crate::single_flight_acquire::SingleFlightAcquire::Owner(_)
+        ));
+    }
 }

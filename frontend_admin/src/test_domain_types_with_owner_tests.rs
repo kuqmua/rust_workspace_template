@@ -174,7 +174,7 @@ fn test_bound_form_controls_render_signal_values() {
             leptos::prelude::RwSignal::new(String::from(constants_str::VALUE_F013164D)),
         );
         render_owned_view(leptos::view! {
-            <crate::admin_input::AdminInput admin_input_name="bound_input" bind_value=input />
+            <crate::admin_input::AdminInput admin_input_name="bound_input" bind_value=input min=1u16 max=10u16 />
             <crate::admin_textarea::AdminTextarea admin_input_name="bound_textarea" option=textarea />
         })
     });
@@ -182,6 +182,8 @@ fn test_bound_form_controls_render_signal_values() {
     assert!(html.contains(constants_str::VALUE_89410775));
     assert!(html.contains(constants_str::VALUE_14CE4117));
     assert!(html.contains(constants_str::VALUE_C34F2EC8));
+    assert!(html.contains(constants_str::VALUE_3901EFC3));
+    assert!(html.contains(constants_str::ADMIN_INPUT_MAXIMUM_TEN_ATTRIBUTE_FIXTURE));
 }
 
 #[test]
@@ -323,4 +325,20 @@ fn test_table_actions_render_read_and_revoke_in_one_row() {
     );
     assert_eq!(html.matches(constants_str::VALUE_24B9818D).count(), 2);
     assert!(html.contains(constants_str::ADMIN_BUTTON_CLOSE));
+}
+
+#[test]
+fn test_numeric_input_preserves_optional_minimum_and_maximum_attributes() {
+    let html = render_owned_view(crate::with_owner::with_owner(|| {
+        leptos::view! {
+            <crate::admin_input::AdminInput
+                admin_input_name=crate::admin_input_name::AdminInputName::from(constants_str::LOGIN)
+                admin_input_kind=crate::admin_input_kind::AdminInputKind::Number
+                min=1u16
+                max=10u16
+            />
+        }
+    }));
+    assert!(html.contains(constants_str::VALUE_3901EFC3));
+    assert!(html.contains(constants_str::ADMIN_INPUT_MAXIMUM_TEN_ATTRIBUTE_FIXTURE));
 }

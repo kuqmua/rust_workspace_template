@@ -40,6 +40,35 @@ impl TryFrom<String> for PgRelationLockNamespace {
 #[cfg(test)]
 mod tests {
     #[test]
+    fn test_relation_namespace_accepts_token_boundaries_and_rejects_invalid_bytes() {
+        assert!(
+            [
+                String::from(constants_str::X),
+                constants_str::X.repeat(128usize),
+                ['a', 'Z', '0', '_', '-'].into_iter().collect(),
+            ]
+            .into_iter()
+            .all(|value| {
+                crate::pg_relation_lock_namespace::PgRelationLockNamespace::try_from(value).is_ok()
+            })
+        );
+        assert!(
+            [
+                String::new(),
+                constants_str::X.repeat(129usize),
+                ' '.to_string(),
+                '/'.to_string(),
+                '\u{00e9}'.to_string(),
+            ]
+            .into_iter()
+            .all(|value| {
+                crate::pg_relation_lock_namespace::PgRelationLockNamespace::try_from(value)
+                    == Err(crate::pg_relation_lock_error::PgRelationLockError::InvalidNamespace)
+            })
+        );
+    }
+
+    #[test]
     fn test_namespace_rejects_sql_syntax() {
         assert_eq!(
             crate::pg_relation_lock_namespace::PgRelationLockNamespace::try_from(String::from(

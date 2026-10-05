@@ -624,6 +624,29 @@ async fn test_staged_upload_delete_and_rollback_preserve_transaction_boundaries(
         String::from(constants_str::TEST_STALE_STAGING_SECOND_OPERATION_ID),
     )
     .expect(constants_str::DIAGNOSTIC_55012796);
+    let assert_delete_reservation_absent = async || {
+        assert!(
+            tokio::fs::symlink_metadata(
+                root_path
+                    .join(constants_str::FILE_DELETE_STAGING_DIRECTORY)
+                    .join(failed_operation_id.as_ref()),
+            )
+            .await
+            .is_err_and(|error| error.kind() == std::io::ErrorKind::NotFound)
+        );
+    };
+    assert!(matches!(
+        storage
+            .stage_delete(&failed_operation_id, &failed_relative_path)
+            .await,
+        Err(crate::file_storage_error::FileStorageError::SourceNotRegular)
+    ));
+    assert_delete_reservation_absent().await;
+    assert!(
+        tokio::fs::symlink_metadata(root_path.join(failed_relative_path.as_ref()))
+            .await
+            .is_ok_and(|metadata| metadata.is_dir())
+    );
     let assert_failed_replace = async |atomic_replace_durability: crate::atomic_replace_durability::AtomicReplaceDurability| {
         assert!(matches!(storage.atomic_replace(&failed_operation_id, &failed_relative_path, &replacement_bytes, atomic_replace_durability).await, Err(crate::file_storage_error::FileStorageError::SourceNotRegular)));
         assert!(!root_path.join(constants_str::FILE_UPLOAD_STAGING_DIRECTORY).join(failed_operation_id.as_ref()).exists());
@@ -668,6 +691,92 @@ async fn test_staged_upload_delete_and_rollback_preserve_transaction_boundaries(
         tokio::fs::create_dir(&outside_path)
             .await
             .expect(constants_str::DIAGNOSTIC_E394BE93);
+        let outside_file = outside_path.join(constants_str::TEST_DISK_CACHE_OLD_PATH);
+        assert!(matches!(
+            tokio::fs::write(&outside_file, [9u8]).await,
+            Ok(())
+        ));
+        let destination_link = root_path.join(failed_relative_path.as_ref());
+        assert!(matches!(
+            tokio::fs::symlink(&outside_file, &destination_link).await,
+            Ok(())
+        ));
+        assert!(matches!(
+            storage
+                .stage_delete(&failed_operation_id, &failed_relative_path)
+                .await,
+            Err(crate::file_storage_error::FileStorageError::Symlink)
+        ));
+        assert_delete_reservation_absent().await;
+        assert!(
+            tokio::fs::symlink_metadata(&destination_link)
+                .await
+                .is_ok_and(|metadata| metadata.file_type().is_symlink())
+        );
+        assert!(
+            tokio::fs::read(&outside_file)
+                .await
+                .is_ok_and(|file_bytes| file_bytes == [9u8])
+        );
+        let assert_staged_destination_symlink_rejected = async |file_storage_staging_area: crate::file_storage_staging_area::FileStorageStagingArea| {
+            let staged_path = root_path.join(file_storage_staging_area.directory_name().get())
+                .join(failed_operation_id.as_ref());
+            match file_storage_staging_area {
+                crate::file_storage_staging_area::FileStorageStagingArea::Upload => {
+                    assert!(matches!(storage.stage_upload(&failed_operation_id, &replacement_bytes).await, Ok(())));
+                }
+                crate::file_storage_staging_area::FileStorageStagingArea::Delete => {
+                    assert!(matches!(tokio::fs::write(&staged_path, replacement_bytes.as_ref()).await, Ok(())));
+                }
+            }
+            let result = match file_storage_staging_area {
+                crate::file_storage_staging_area::FileStorageStagingArea::Upload => {
+                    storage.commit_upload(&failed_operation_id, &failed_relative_path).await
+                }
+                crate::file_storage_staging_area::FileStorageStagingArea::Delete => {
+                    storage.rollback_delete(&failed_operation_id, &failed_relative_path).await
+                }
+            };
+            assert!(matches!(result, Err(crate::file_storage_error::FileStorageError::Symlink)));
+            assert!(tokio::fs::read(&staged_path).await.is_ok_and(|file_bytes| file_bytes.as_slice() == replacement_bytes.as_ref()));
+            assert!(tokio::fs::symlink_metadata(&destination_link).await.is_ok_and(|metadata| metadata.file_type().is_symlink()));
+            assert!(tokio::fs::read(&outside_file).await.is_ok_and(|file_bytes| file_bytes == [9u8]));
+            let cleanup = match file_storage_staging_area {
+                crate::file_storage_staging_area::FileStorageStagingArea::Upload => storage.rollback_upload(&failed_operation_id).await,
+                crate::file_storage_staging_area::FileStorageStagingArea::Delete => storage.commit_delete(&failed_operation_id).await,
+            };
+            assert!(matches!(cleanup, Ok(())));
+            assert!(tokio::fs::symlink_metadata(&staged_path).await.is_err_and(|error| error.kind() == std::io::ErrorKind::NotFound));
+        };
+        assert_staged_destination_symlink_rejected(
+            crate::file_storage_staging_area::FileStorageStagingArea::Upload,
+        )
+        .await;
+        assert_staged_destination_symlink_rejected(
+            crate::file_storage_staging_area::FileStorageStagingArea::Delete,
+        )
+        .await;
+        let assert_destination_symlink_rejected = async |atomic_replace_durability: crate::atomic_replace_durability::AtomicReplaceDurability| {
+            assert!(matches!(
+                storage.atomic_replace(&failed_operation_id, &failed_relative_path, &replacement_bytes, atomic_replace_durability).await,
+                Err(crate::file_storage_error::FileStorageError::Symlink)
+            ));
+            assert!(tokio::fs::symlink_metadata(&destination_link).await.is_ok_and(|metadata| metadata.file_type().is_symlink()));
+            assert!(tokio::fs::symlink_metadata(root_path.join(constants_str::FILE_UPLOAD_STAGING_DIRECTORY).join(failed_operation_id.as_ref())).await.is_err_and(|error| error.kind() == std::io::ErrorKind::NotFound));
+            assert!(tokio::fs::read(&outside_file).await.is_ok_and(|file_bytes| file_bytes == [9u8]));
+        };
+        assert_destination_symlink_rejected(
+            crate::atomic_replace_durability::AtomicReplaceDurability::Flush,
+        )
+        .await;
+        assert_destination_symlink_rejected(
+            crate::atomic_replace_durability::AtomicReplaceDurability::SyncAll,
+        )
+        .await;
+        assert!(matches!(
+            tokio::fs::remove_file(&destination_link).await,
+            Ok(())
+        ));
         let staged_link = root_path
             .join(constants_str::FILE_UPLOAD_STAGING_DIRECTORY)
             .join(failed_operation_id.as_ref());
@@ -930,5 +1039,33 @@ fn test_storage_root_paths_reject_empty_and_relative_paths() {
                 Err(crate::file_storage_path_error::FileStoragePathError::RootMustBeAbsolute)
             )
         })
+    );
+}
+
+#[test]
+fn test_file_bytes_preserve_empty_and_exact_limit_and_reject_oversized_payloads() {
+    let maximum = crate::domain_types::MAXIMUM_FILE_BYTES;
+    assert!(
+        [0usize, maximum, maximum + 1usize]
+            .into_iter()
+            .all(|length| {
+                match crate::std_file_bytes::StdFileBytes::try_from(vec![7u8; length]) {
+                    Ok(std_file_bytes) => {
+                        length <= maximum
+                            && std_file_bytes.as_ref().len() == length
+                            && std_file_bytes.as_ref().first().copied()
+                                == (length > 0usize).then_some(7u8)
+                            && std_file_bytes.as_ref().last().copied()
+                                == (length > 0usize).then_some(7u8)
+                    }
+                    Err(file_storage_path_error) => {
+                        length > maximum
+                            && matches!(
+                                file_storage_path_error,
+                                crate::file_storage_path_error::FileStoragePathError::FileTooLarge
+                            )
+                    }
+                }
+            })
     );
 }

@@ -518,3 +518,6 @@ fn main() {
         std::process::exit(1);
     }
 }
+
+#[cfg(test)]
+mod test_source_place_environment_processes;

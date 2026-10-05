@@ -220,4 +220,47 @@ mod tests {
             .expect(constants_str::DIAGNOSTIC_B61A0E23);
         assert_eq!(value.len(), 2usize);
     }
+
+    #[test]
+    fn test_character_truncation_preserves_unicode_boundaries() {
+        let text = ['\u{00e9}', '\u{03b2}', 'x']
+            .into_iter()
+            .collect::<String>();
+        let value = super::BoundedStringStorage::<0usize, 2usize, true>::from_truncated(text);
+        assert_eq!(value.len(), 2usize);
+        assert!(value.as_str().chars().eq(['\u{00e9}', '\u{03b2}']));
+        assert!(!value.is_empty());
+        let empty = super::BoundedStringStorage::<0usize, 0usize, true>::from_truncated(
+            '\u{00e9}'.to_string(),
+        );
+        assert!(empty.as_str().is_empty());
+        assert!(empty.is_empty());
+        let unchanged = super::BoundedStringStorage::<0usize, 2usize, true>::from_truncated(
+            constants_str::X.to_owned(),
+        );
+        assert_eq!(unchanged.as_str(), constants_str::X);
+    }
+
+    #[test]
+    fn test_storage_borrowing_and_tokens_preserve_escaped_text() {
+        let text = ['x', '"', '\\', '\n'].into_iter().collect::<String>();
+        let expected = proc_macro2::Literal::string(&text).to_string();
+        let result = super::BoundedStringStorage::<0usize, 16usize, false>::try_from(text);
+        assert!(result.is_ok());
+        let Ok(value) = result else {
+            return;
+        };
+        assert_eq!(
+            <super::BoundedStringStorage<0usize, 16usize, false> as AsRef<str>>::as_ref(&value),
+            value.as_str()
+        );
+        assert_eq!(
+            <super::BoundedStringStorage<0usize, 16usize, false> as std::ops::Deref>::deref(&value),
+            value.as_str()
+        );
+        assert_eq!(value.to_string(), value.as_str());
+        let mut tokens = proc_macro2::TokenStream::new();
+        quote::ToTokens::to_tokens(&value, &mut tokens);
+        assert_eq!(tokens.to_string(), expected);
+    }
 }

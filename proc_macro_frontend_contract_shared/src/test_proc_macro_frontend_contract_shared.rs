@@ -945,3 +945,574 @@ fn test_route_error_forwards_identifier_and_tuple_struct_parameters() {
                 && function.sig.output == syn::parse_quote!(-> Result<Response, OperationError>))
     }));
 }
+
+#[test]
+fn test_typed_route_missing_required_fields_preserve_exact_diagnostics() {
+    let fields = [
+        (
+            quote::quote!(authentication),
+            quote::quote!(Authentication),
+            constants_str::TYPED_ROUTE_REQUIRES_AUTHENTICATION,
+        ),
+        (
+            quote::quote!(method),
+            quote::quote!(Method),
+            constants_str::TYPED_ROUTE_REQUIRES_METHOD,
+        ),
+        (
+            quote::quote!(openapi_operation_id),
+            quote::quote!(Operation),
+            constants_str::TYPED_ROUTE_REQUIRES_OPERATION_ID,
+        ),
+        (
+            quote::quote!(path),
+            quote::quote!(Path),
+            constants_str::TYPED_ROUTE_REQUIRES_PATH,
+        ),
+        (
+            quote::quote!(request),
+            quote::quote!(Request),
+            constants_str::TYPED_ROUTE_REQUIRES_REQUEST,
+        ),
+        (
+            quote::quote!(response),
+            quote::quote!(Response),
+            constants_str::TYPED_ROUTE_REQUIRES_RESPONSE,
+        ),
+        (
+            quote::quote!(success_status),
+            quote::quote!(Status),
+            constants_str::TYPED_ROUTE_REQUIRES_SUCCESS_STATUS,
+        ),
+        (
+            quote::quote!(transport),
+            quote::quote!(Transport),
+            constants_str::TYPED_ROUTE_REQUIRES_TRANSPORT,
+        ),
+    ];
+    assert!(
+        fields
+            .iter()
+            .enumerate()
+            .all(|(missing_index, (_, _, expected))| {
+                let mut tokens = quote::quote!(error_policy = Policy,);
+                tokens.extend(
+                    fields
+                        .iter()
+                        .enumerate()
+                        .filter(|(index, _field)| *index != missing_index)
+                        .map(|(_index, (name, value, _diagnostic))| quote::quote!(#name = #value,)),
+                );
+                syn::parse2::<crate::typed_route_args::TypedRouteArgs>(tokens).is_err_and(|error| {
+                    error
+                        .to_string()
+                        .rsplit_once(',')
+                        .is_some_and(|(_context, diagnostic)| diagnostic.trim() == *expected)
+                })
+            })
+    );
+}
+
+#[test]
+fn test_typed_route_invalid_field_values_preserve_syn_diagnostics() {
+    let expected_expression = syn::parse2::<syn::Expr>(quote::quote!(,))
+        .err()
+        .map(|error| error.to_string());
+    let expected_type = syn::parse2::<syn::Type>(quote::quote!(,))
+        .err()
+        .map(|error| error.to_string());
+    assert!(expected_expression.is_some());
+    assert!(expected_type.is_some());
+    assert!(
+        [
+            (quote::quote!(authentication), false),
+            (quote::quote!(error_statuses), false),
+            (quote::quote!(error_policy), false),
+            (quote::quote!(method), false),
+            (quote::quote!(openapi_operation_id), false),
+            (quote::quote!(mutation), false),
+            (quote::quote!(obligations), false),
+            (quote::quote!(path), false),
+            (quote::quote!(request_body), false),
+            (quote::quote!(success_status), false),
+            (quote::quote!(error_response), true),
+            (quote::quote!(path_parameter), true),
+            (quote::quote!(request), true),
+            (quote::quote!(response), true),
+            (quote::quote!(transport), true),
+        ]
+        .into_iter()
+        .all(|(field, is_type)| {
+            let expected = if is_type {
+                &expected_type
+            } else {
+                &expected_expression
+            };
+            syn::parse2::<crate::typed_route_args::TypedRouteArgs>(quote::quote!(#field = ,))
+                .is_err_and(|error| {
+                    expected
+                        .as_deref()
+                        .is_some_and(|diagnostic| error.to_string() == diagnostic)
+                })
+        })
+    );
+}
+
+#[test]
+fn test_typed_route_unknown_fields_and_missing_syntax_retain_diagnostics() {
+    assert!(
+        syn::parse2::<crate::typed_route_args::TypedRouteArgs>(quote::quote!(unknown = Value))
+            .is_err_and(|error| error.to_string() == constants_str::UNSUPPORTED_TYPED_ROUTE_FIELD)
+    );
+    let cases = [
+        (
+            quote::quote!(0u8 = Value),
+            syn::parse2::<syn::Ident>(quote::quote!(0u8))
+                .err()
+                .map(|error| error.to_string()),
+        ),
+        (
+            quote::quote!(authentication Authentication),
+            syn::parse2::<syn::Token![=]>(quote::quote!(Authentication))
+                .err()
+                .map(|error| error.to_string()),
+        ),
+        (
+            quote::quote!(authentication = Authentication method = Method),
+            syn::parse2::<syn::Token![,]>(quote::quote!(method))
+                .err()
+                .map(|error| error.to_string()),
+        ),
+    ];
+    assert!(cases.into_iter().all(|(tokens, expected)| {
+        assert!(expected.is_some());
+        syn::parse2::<crate::typed_route_args::TypedRouteArgs>(tokens).is_err_and(|error| {
+            expected
+                .as_deref()
+                .is_some_and(|diagnostic| error.to_string() == diagnostic)
+        })
+    }));
+}
+
+#[test]
+fn test_catalog_parsers_missing_required_fields_preserve_domain_diagnostics() {
+    assert!(
+        [
+            (
+                syn::parse2::<crate::route_catalog_args::RouteCatalogArgs>(quote::quote!(
+                    family = Family
+                ))
+                .map(|_args| ()),
+                constants_str::ROUTE_CATALOG_REQUIRES_BODY_LIMIT
+            ),
+            (
+                syn::parse2::<crate::route_catalog_args::RouteCatalogArgs>(quote::quote!(
+                    body_limit = Limit
+                ))
+                .map(|_args| ()),
+                constants_str::ROUTE_CATALOG_REQUIRES_FAMILY
+            ),
+            (
+                syn::parse2::<crate::route_catalog_route_args::RouteCatalogRouteArgs>(
+                    quote::quote!(contract = Contract)
+                )
+                .map(|_args| ()),
+                constants_str::ROUTE_CATALOG_ROUTE_REQUIRES_TYPE_OR_CUSTOM_VALUES
+            ),
+            (
+                syn::parse2::<crate::route_catalog_route_args::RouteCatalogRouteArgs>(
+                    quote::quote!(path = Path)
+                )
+                .map(|_args| ()),
+                constants_str::ROUTE_CATALOG_ROUTE_REQUIRES_TYPE_OR_CUSTOM_VALUES
+            ),
+            (
+                syn::parse2::<crate::page_catalog_args::PageCatalogArgs>(quote::quote!(
+                    path_ref = PathRef,
+                    spec = Spec
+                ))
+                .map(|_args| ()),
+                constants_str::PAGE_CATALOG_REQUIRES_ATTRIBUTE
+            ),
+            (
+                syn::parse2::<crate::page_catalog_args::PageCatalogArgs>(quote::quote!(
+                    inventory = Inventory,
+                    spec = Spec
+                ))
+                .map(|_args| ()),
+                constants_str::PAGE_CATALOG_REQUIRES_ATTRIBUTE
+            ),
+            (
+                syn::parse2::<crate::page_catalog_args::PageCatalogArgs>(quote::quote!(
+                    inventory = Inventory,
+                    path_ref = PathRef
+                ))
+                .map(|_args| ()),
+                constants_str::PAGE_CATALOG_REQUIRES_ATTRIBUTE
+            ),
+            (
+                syn::parse2::<crate::page_catalog_page_args::PageCatalogPageArgs>(quote::quote!(
+                    metadata = Metadata,
+                    path = Path,
+                    route = Route,
+                    title = Title
+                ))
+                .map(|_args| ()),
+                constants_str::PAGE_CATALOG_PAGE_REQUIRES_FIELDS
+            ),
+            (
+                syn::parse2::<crate::page_catalog_page_args::PageCatalogPageArgs>(quote::quote!(
+                    capability = Capability,
+                    path = Path,
+                    route = Route,
+                    title = Title
+                ))
+                .map(|_args| ()),
+                constants_str::PAGE_CATALOG_PAGE_REQUIRES_FIELDS
+            ),
+            (
+                syn::parse2::<crate::page_catalog_page_args::PageCatalogPageArgs>(quote::quote!(
+                    capability = Capability,
+                    metadata = Metadata,
+                    route = Route,
+                    title = Title
+                ))
+                .map(|_args| ()),
+                constants_str::PAGE_CATALOG_PAGE_REQUIRES_FIELDS
+            ),
+            (
+                syn::parse2::<crate::page_catalog_page_args::PageCatalogPageArgs>(quote::quote!(
+                    capability = Capability,
+                    metadata = Metadata,
+                    path = Path,
+                    title = Title
+                ))
+                .map(|_args| ()),
+                constants_str::PAGE_CATALOG_PAGE_REQUIRES_FIELDS
+            ),
+            (
+                syn::parse2::<crate::page_catalog_page_args::PageCatalogPageArgs>(quote::quote!(
+                    capability = Capability,
+                    metadata = Metadata,
+                    path = Path,
+                    route = Route
+                ))
+                .map(|_args| ()),
+                constants_str::PAGE_CATALOG_PAGE_REQUIRES_FIELDS
+            ),
+        ]
+        .into_iter()
+        .all(|(result, expected)| result.is_err_and(|error| error
+            .to_string()
+            .split_once(',')
+            .is_some_and(|(_context, diagnostic)| diagnostic.trim() == expected)))
+    );
+}
+
+#[test]
+fn test_catalog_parsers_unknown_fields_preserve_owned_diagnostics() {
+    assert!(
+        [
+            (
+                syn::parse2::<crate::route_catalog_args::RouteCatalogArgs>(quote::quote!(
+                    unknown = Value
+                ))
+                .map(|_args| ()),
+                constants_str::UNSUPPORTED_TYPED_ROUTE_FIELD
+            ),
+            (
+                syn::parse2::<crate::route_catalog_route_args::RouteCatalogRouteArgs>(
+                    quote::quote!(unknown = Value)
+                )
+                .map(|_args| ()),
+                constants_str::UNSUPPORTED_TYPED_ROUTE_FIELD
+            ),
+            (
+                syn::parse2::<crate::page_catalog_args::PageCatalogArgs>(quote::quote!(
+                    unknown = Value
+                ))
+                .map(|_args| ()),
+                constants_str::PAGE_CATALOG_REQUIRES_ATTRIBUTE
+            ),
+            (
+                syn::parse2::<crate::page_catalog_page_args::PageCatalogPageArgs>(quote::quote!(
+                    unknown = Value
+                ))
+                .map(|_args| ()),
+                constants_str::PAGE_CATALOG_PAGE_REQUIRES_FIELDS
+            ),
+        ]
+        .into_iter()
+        .all(|(result, expected)| result.is_err_and(|error| error.to_string() == expected))
+    );
+}
+
+#[test]
+fn test_catalog_parsers_syntax_failures_preserve_syn_diagnostics() {
+    let expected_identifier = syn::parse2::<syn::Ident>(quote::quote!(,))
+        .err()
+        .map(|error| error.to_string());
+    let expected_equals = syn::parse2::<syn::Token![=]>(quote::quote!(Value))
+        .err()
+        .map(|error| error.to_string());
+    let expected_comma = syn::parse2::<syn::Token![,]>(quote::quote!(field))
+        .err()
+        .map(|error| error.to_string());
+    let expected_expression = syn::parse2::<syn::Expr>(quote::quote!(,))
+        .err()
+        .map(|error| error.to_string());
+    let expected_type = syn::parse2::<syn::Type>(quote::quote!(,))
+        .err()
+        .map(|error| error.to_string());
+    assert!(
+        [
+            &expected_identifier,
+            &expected_equals,
+            &expected_comma,
+            &expected_expression,
+            &expected_type
+        ]
+        .into_iter()
+        .all(Option::is_some)
+    );
+    assert!(
+        [
+            (
+                syn::parse2::<crate::route_catalog_args::RouteCatalogArgs>(quote::quote!(,))
+                    .map(|_args| ()),
+                &expected_identifier
+            ),
+            (
+                syn::parse2::<crate::route_catalog_args::RouteCatalogArgs>(
+                    quote::quote!(family Family)
+                )
+                .map(|_args| ()),
+                &expected_equals
+            ),
+            (
+                syn::parse2::<crate::route_catalog_args::RouteCatalogArgs>(
+                    quote::quote!(family = Family body_limit = Limit)
+                )
+                .map(|_args| ()),
+                &expected_comma
+            ),
+            (
+                syn::parse2::<crate::route_catalog_args::RouteCatalogArgs>(
+                    quote::quote!(family = ,)
+                )
+                .map(|_args| ()),
+                &expected_identifier
+            ),
+            (
+                syn::parse2::<crate::route_catalog_args::RouteCatalogArgs>(
+                    quote::quote!(body_limit = ,)
+                )
+                .map(|_args| ()),
+                &expected_expression
+            ),
+            (
+                syn::parse2::<crate::route_catalog_route_args::RouteCatalogRouteArgs>(
+                    quote::quote!(,)
+                )
+                .map(|_args| ()),
+                &expected_type
+            ),
+            (
+                syn::parse2::<crate::route_catalog_route_args::RouteCatalogRouteArgs>(
+                    quote::quote!(contract = Contract, ,)
+                )
+                .map(|_args| ()),
+                &expected_identifier
+            ),
+            (
+                syn::parse2::<crate::route_catalog_route_args::RouteCatalogRouteArgs>(
+                    quote::quote!(contract = Contract, path Path)
+                )
+                .map(|_args| ()),
+                &expected_equals
+            ),
+            (
+                syn::parse2::<crate::route_catalog_route_args::RouteCatalogRouteArgs>(
+                    quote::quote!(contract = Contract path = Path)
+                )
+                .map(|_args| ()),
+                &expected_comma
+            ),
+            (
+                syn::parse2::<crate::route_catalog_route_args::RouteCatalogRouteArgs>(
+                    quote::quote!(contract = ,)
+                )
+                .map(|_args| ()),
+                &expected_expression
+            ),
+            (
+                syn::parse2::<crate::route_catalog_route_args::RouteCatalogRouteArgs>(
+                    quote::quote!(path = ,)
+                )
+                .map(|_args| ()),
+                &expected_expression
+            ),
+            (
+                syn::parse2::<crate::page_catalog_args::PageCatalogArgs>(quote::quote!(,))
+                    .map(|_args| ()),
+                &expected_identifier
+            ),
+            (
+                syn::parse2::<crate::page_catalog_args::PageCatalogArgs>(
+                    quote::quote!(inventory Inventory)
+                )
+                .map(|_args| ()),
+                &expected_equals
+            ),
+            (
+                syn::parse2::<crate::page_catalog_args::PageCatalogArgs>(
+                    quote::quote!(inventory = Inventory path_ref = PathRef)
+                )
+                .map(|_args| ()),
+                &expected_comma
+            ),
+            (
+                syn::parse2::<crate::page_catalog_args::PageCatalogArgs>(
+                    quote::quote!(inventory = ,)
+                )
+                .map(|_args| ()),
+                &expected_identifier
+            ),
+            (
+                syn::parse2::<crate::page_catalog_args::PageCatalogArgs>(
+                    quote::quote!(path_ref = ,)
+                )
+                .map(|_args| ()),
+                &expected_type
+            ),
+            (
+                syn::parse2::<crate::page_catalog_args::PageCatalogArgs>(quote::quote!(spec = ,))
+                    .map(|_args| ()),
+                &expected_type
+            ),
+            (
+                syn::parse2::<crate::page_catalog_page_args::PageCatalogPageArgs>(quote::quote!(,))
+                    .map(|_args| ()),
+                &expected_identifier
+            ),
+            (
+                syn::parse2::<crate::page_catalog_page_args::PageCatalogPageArgs>(
+                    quote::quote!(capability Capability)
+                )
+                .map(|_args| ()),
+                &expected_equals
+            ),
+            (
+                syn::parse2::<crate::page_catalog_page_args::PageCatalogPageArgs>(
+                    quote::quote!(capability = Capability metadata = Metadata)
+                )
+                .map(|_args| ()),
+                &expected_comma
+            ),
+            (
+                syn::parse2::<crate::page_catalog_page_args::PageCatalogPageArgs>(
+                    quote::quote!(capability = ,)
+                )
+                .map(|_args| ()),
+                &expected_expression
+            ),
+        ]
+        .into_iter()
+        .all(|(result, expected)| result.is_err_and(|error| expected
+            .as_deref()
+            .is_some_and(|diagnostic| error.to_string() == diagnostic)))
+    );
+}
+
+#[test]
+fn test_route_registry_required_labels_and_bindings_preserve_domain_diagnostics() {
+    assert!(
+        [
+            (
+                quote::quote!(unknown = State),
+                constants_str::ROUTE_REGISTRY_REQUIRES_STATE
+            ),
+            (
+                quote::quote!(state = State, unknown = Family),
+                constants_str::ROUTE_REGISTRY_REQUIRES_FAMILY
+            ),
+            (
+                quote::quote!(state = State, family = Family; (Auth, Csrf); unknown()),
+                constants_str::ROUTE_REGISTRY_REQUIRES_SCHEMAS
+            ),
+            (
+                quote::quote!(state = State, family = Family; (Auth, Csrf); schemas();),
+                constants_str::ROUTE_REGISTRY_REQUIRES_BINDING
+            ),
+        ]
+        .into_iter()
+        .all(|(tokens, expected)| syn::parse2::<
+            crate::route_registry_args::RouteRegistryArgs,
+        >(tokens)
+        .is_err_and(|error| {
+            let diagnostic = error.to_string();
+            diagnostic == expected
+                || diagnostic
+                    .split_once(',')
+                    .is_some_and(|(_context, message)| message.trim() == expected)
+        }))
+    );
+}
+
+#[test]
+fn test_route_registry_syntax_failures_preserve_syn_diagnostics() {
+    let identifier = syn::parse2::<syn::Ident>(quote::quote!(,))
+        .err()
+        .map(|error| error.to_string());
+    let equals = syn::parse2::<syn::Token![=]>(quote::quote!(Value))
+        .err()
+        .map(|error| error.to_string());
+    let comma = syn::parse2::<syn::Token![,]>(quote::quote!(field))
+        .err()
+        .map(|error| error.to_string());
+    let semicolon = syn::parse2::<syn::Token![;]>(quote::quote!(,))
+        .err()
+        .map(|error| error.to_string());
+    let expression = syn::parse2::<syn::Expr>(quote::quote!(,))
+        .err()
+        .map(|error| error.to_string());
+    let schema_type = syn::parse2::<syn::Type>(quote::quote!(,))
+        .err()
+        .map(|error| error.to_string());
+    let endpoint = syn::parse2::<syn::Path>(quote::quote!(,))
+        .err()
+        .map(|error| error.to_string());
+    assert!(
+        [
+            &identifier,
+            &equals,
+            &comma,
+            &semicolon,
+            &expression,
+            &schema_type,
+            &endpoint
+        ]
+        .into_iter()
+        .all(Option::is_some)
+    );
+    assert!([
+        (quote::quote!(,), &identifier),
+        (quote::quote!(state State), &equals),
+        (quote::quote!(state = ,), &schema_type),
+        (quote::quote!(state = State family = Family), &comma),
+        (quote::quote!(state = State, ,), &identifier),
+        (quote::quote!(state = State, family Family), &equals),
+        (quote::quote!(state = State, family = ,), &schema_type),
+        (quote::quote!(state = State, family = Family,), &semicolon),
+        (quote::quote!(state = State, family = Family; (, Csrf)), &expression),
+        (quote::quote!(state = State, family = Family; (Auth Csrf)), &comma),
+        (quote::quote!(state = State, family = Family; (Auth, ,)), &expression),
+        (quote::quote!(state = State, family = Family; (Auth, Csrf),), &semicolon),
+        (quote::quote!(state = State, family = Family; (Auth, Csrf); ,), &identifier),
+        (quote::quote!(state = State, family = Family; (Auth, Csrf); schemas(,)), &schema_type),
+        (quote::quote!(state = State, family = Family; (Auth, Csrf); schemas(),), &semicolon),
+        (quote::quote!(state = State, family = Family; (Auth, Csrf); schemas(); (, Endpoint)), &schema_type),
+        (quote::quote!(state = State, family = Family; (Auth, Csrf); schemas(); (Route Endpoint)), &comma),
+        (quote::quote!(state = State, family = Family; (Auth, Csrf); schemas(); (Route, ,)), &endpoint),
+    ].into_iter().all(|(tokens, expected)| syn::parse2::<crate::route_registry_args::RouteRegistryArgs>(tokens).is_err_and(|error| expected.as_deref().is_some_and(|diagnostic| error.to_string() == diagnostic))));
+}

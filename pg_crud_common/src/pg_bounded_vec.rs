@@ -122,6 +122,33 @@ impl<T: utoipa::ToSchema, const MIN: usize, const MAX: usize> utoipa::ToSchema
 #[cfg(test)]
 mod tests {
     #[test]
+    fn test_pg_bounded_vector_json_round_trip_preserves_order_and_typed_length() {
+        assert!([vec![9u8], vec![9u8, 3u8]]
+            .into_iter()
+            .all(|values| {
+                let expected_json = serde_json::json!(values);
+                let expected_length = crate::pg_bounded_vec_len::PgBoundedVecLen::from(values.len());
+                crate::pg_bounded_vec::PgBoundedVec::<u8, 1, 2>::try_from(values)
+                    .is_ok_and(|value| {
+                        value.len() == expected_length
+                            && serde_json::to_value(&value).is_ok_and(|json| {
+                                json == expected_json
+                                    && matches!(serde_json::from_value::<crate::pg_bounded_vec::PgBoundedVec<u8, 1, 2>>(json), Ok(decoded) if decoded == value)
+                            })
+                    })
+            }));
+        assert!(crate::pg_bounded_vec::PgBoundedVec::<u8, 0, 0>::try_from(Vec::new())
+            .is_ok_and(|value| {
+                value.len() == crate::pg_bounded_vec_len::PgBoundedVecLen::from(0usize)
+                    && value.as_slice().is_empty()
+                    && serde_json::to_value(&value).is_ok_and(|json| {
+                        json == serde_json::Value::Array(Vec::new())
+                            && matches!(serde_json::from_value::<crate::pg_bounded_vec::PgBoundedVec<u8, 0, 0>>(json), Ok(decoded) if decoded == value)
+                    })
+            }));
+    }
+
+    #[test]
     fn test_try_from_enforces_inclusive_bounds() {
         assert!(matches!(
             crate::pg_bounded_vec::PgBoundedVec::<u8, 1, 2>::try_from(Vec::new()),

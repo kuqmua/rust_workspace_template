@@ -101,4 +101,60 @@ mod tests {
             );
         });
     }
+
+    #[test]
+    fn test_borrowed_and_owned_secret_text_formatting_preserves_redaction() {
+        assert!(
+            [
+                constants_str::TEST_SECRET_TEXT,
+                constants_str::TEST_DIFFERENT_SECRET_TEXT
+            ]
+            .into_iter()
+            .all(|value| {
+                let owned = bounded_secret(value);
+                let borrowed = crate::secret_text_ref::SecretTextRef::from(&owned);
+                format!("{owned}") == constants_str::REDACTED_ALT_3
+                    && format!("{owned:?}") == constants_str::REDACTED_ALT_3
+                    && format!("{borrowed:?}") == constants_str::REDACTED_ALT_3
+                    && format!("{borrowed:#?}") == constants_str::REDACTED_ALT_3
+            })
+        );
+    }
+
+    #[test]
+    fn test_secret_text_comparison_distinguishes_zero_byte_suffixes_in_both_directions() {
+        let expected = bounded_secret(constants_str::TEST_SECRET_TEXT);
+        let extended = bounded_secret(&format!("{}{}", constants_str::TEST_SECRET_TEXT, '\0'));
+        assert_eq!(
+            crate::secret_texts_match::secret_texts_match((&expected).into(), (&extended).into()),
+            crate::secret_text_match::SecretTextMatch::Different,
+        );
+        assert_eq!(
+            crate::secret_texts_match::secret_texts_match((&extended).into(), (&expected).into()),
+            crate::secret_text_match::SecretTextMatch::Different,
+        );
+        assert_eq!(
+            crate::secret_texts_match::secret_texts_match((&extended).into(), (&extended).into()),
+            crate::secret_text_match::SecretTextMatch::Equal,
+        );
+    }
+
+    #[test]
+    fn test_maximum_length_secret_text_comparison_checks_the_final_byte() {
+        let prefix = constants_str::X.repeat(constants_usize::VALUE_8_192 - 1usize);
+        let expected = bounded_secret(&format!("{prefix}{}", '1'));
+        let different = bounded_secret(&format!("{prefix}{}", '2'));
+        assert_eq!(
+            crate::secret_texts_match::secret_texts_match((&expected).into(), (&different).into()),
+            crate::secret_text_match::SecretTextMatch::Different,
+        );
+        assert_eq!(
+            crate::secret_texts_match::secret_texts_match((&different).into(), (&expected).into()),
+            crate::secret_text_match::SecretTextMatch::Different,
+        );
+        assert_eq!(
+            crate::secret_texts_match::secret_texts_match((&expected).into(), (&expected).into()),
+            crate::secret_text_match::SecretTextMatch::Equal,
+        );
+    }
 }

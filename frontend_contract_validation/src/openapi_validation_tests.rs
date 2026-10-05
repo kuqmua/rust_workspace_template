@@ -1,6 +1,299 @@
 #[cfg(test)]
 mod tests {
     #[test]
+    fn test_payload_additional_property_policies_reject_unknown_fields_and_skip_scalars() {
+        let document = serde_json::json!({});
+        assert!([
+            (serde_json::json!({ constants_str::ADDITIONAL_PROPERTIES: false }), serde_json::json!({ constants_str::NAME: 1u8 }), false),
+            (serde_json::json!({ constants_str::PROPERTIES: { constants_str::NAME: {} }, constants_str::ADDITIONAL_PROPERTIES: false }), serde_json::json!({ constants_str::NAME: 1u8, constants_str::X: true }), false),
+            (serde_json::json!({ constants_str::ADDITIONAL_PROPERTIES: { constants_str::JSON_TYPE: constants_str::STRING } }), serde_json::json!(1u8), true),
+            (serde_json::json!({ constants_str::ADDITIONAL_PROPERTIES: { constants_str::JSON_TYPE: constants_str::STRING } }), serde_json::json!(null), true),
+        ].into_iter().all(|(schema, payload, accepted)| {
+            let result = crate::validate_openapi_json_payload::validate_openapi_json_payload(&payload, &schema, &document);
+            if accepted { matches!(result, Ok(())) } else { matches!(result, Err(crate::open_api_payload_validation_error::OpenApiPayloadValidationError::Mismatch(crate::open_api_schema_mismatch::OpenApiSchemaMismatch::AdditionalProperty))) }
+        }));
+    }
+
+    #[test]
+    fn test_payload_missing_schema_references_report_exact_mismatch() {
+        let payload = serde_json::json!(null);
+        assert!([
+            (serde_json::json!({ constants_str::DOLLAR_REF: constants_str::TEST_OPENAPI_SCHEMA_REF }), serde_json::json!({})),
+            (serde_json::json!({ constants_str::DOLLAR_REF: constants_str::TEST_OPENAPI_SCHEMA_REF }), serde_json::json!({ constants_str::COMPONENTS: { constants_str::SCHEMAS: {} } })),
+            (serde_json::json!({ constants_str::DOLLAR_REF: constants_str::TEST_OPENAPI_SCHEMA_REF }), serde_json::json!({ constants_str::COMPONENTS: { constants_str::SCHEMAS: null } })),
+            (serde_json::json!({ constants_str::DOLLAR_REF: constants_str::TEST_OPENAPI_PATH }), serde_json::json!({ constants_str::COMPONENTS: { constants_str::SCHEMAS: { constants_str::TEST_OPENAPI_SCHEMA: {} } } })),
+        ].into_iter().all(|(schema, document)| matches!(crate::validate_openapi_json_payload::validate_openapi_json_payload(&payload, &schema, &document), Err(crate::open_api_payload_validation_error::OpenApiPayloadValidationError::Mismatch(crate::open_api_schema_mismatch::OpenApiSchemaMismatch::MissingReference)))));
+    }
+
+    #[test]
+    fn test_payload_null_and_numeric_types_preserve_json_kind_and_unsigned_range() {
+        let document = serde_json::json!({});
+        assert!([
+            (constants_str::JSON_NULL, serde_json::json!(null), true),
+            (constants_str::JSON_NULL, serde_json::json!(false), false),
+            (constants_str::NUMBER, serde_json::json!(1u8), true),
+            (constants_str::NUMBER, serde_json::json!(1.5f64), true),
+            (constants_str::NUMBER, serde_json::json!(u64::MAX), true),
+            (constants_str::NUMBER, serde_json::json!(constants_str::X), false),
+            (constants_str::INTEGER, serde_json::json!(u64::MAX), true),
+            (constants_str::INTEGER, serde_json::json!(i64::MIN), true),
+            (constants_str::INTEGER, serde_json::json!(1.5f64), false),
+            (constants_str::INTEGER, serde_json::json!(null), false),
+            (constants_str::X, serde_json::json!(null), false),
+        ].into_iter().all(|(kind, payload, accepted)| {
+            let schema = serde_json::json!({ constants_str::JSON_TYPE: kind });
+            let result = crate::validate_openapi_json_payload::validate_openapi_json_payload(&payload, &schema, &document);
+            if accepted { matches!(result, Ok(())) } else { matches!(result, Err(crate::open_api_payload_validation_error::OpenApiPayloadValidationError::Mismatch(crate::open_api_schema_mismatch::OpenApiSchemaMismatch::Type))) }
+        }));
+    }
+
+    #[test]
+    fn test_payload_additional_property_schema_skips_declared_fields_and_propagates_mismatch() {
+        let document = serde_json::json!({});
+        assert!([true, false].into_iter().all(|declared_properties| {
+            let schema = if declared_properties {
+                serde_json::json!({ constants_str::JSON_TYPE: constants_str::OBJECT, constants_str::PROPERTIES: { constants_str::NAME: { constants_str::JSON_TYPE: constants_str::INTEGER } }, constants_str::ADDITIONAL_PROPERTIES: { constants_str::JSON_TYPE: constants_str::STRING } })
+            } else {
+                serde_json::json!({ constants_str::JSON_TYPE: constants_str::OBJECT, constants_str::ADDITIONAL_PROPERTIES: { constants_str::JSON_TYPE: constants_str::STRING } })
+            };
+            let payload = if declared_properties {
+                serde_json::json!({ constants_str::NAME: 1u8, constants_str::ITEMS: constants_str::TEST_JSON_FIRST, constants_str::X: constants_str::TEST_JSON_SECOND })
+            } else {
+                serde_json::json!({ constants_str::ITEMS: constants_str::TEST_JSON_FIRST, constants_str::X: constants_str::TEST_JSON_SECOND })
+            };
+            assert!(matches!(crate::validate_openapi_json_payload::validate_openapi_json_payload(&payload, &schema, &document), Ok(())));
+            let invalid_payload = if declared_properties {
+                serde_json::json!({ constants_str::NAME: 1u8, constants_str::ITEMS: constants_str::TEST_JSON_FIRST, constants_str::X: false })
+            } else {
+                serde_json::json!({ constants_str::ITEMS: constants_str::TEST_JSON_FIRST, constants_str::X: false })
+            };
+            matches!(crate::validate_openapi_json_payload::validate_openapi_json_payload(&invalid_payload, &schema, &document), Err(crate::open_api_payload_validation_error::OpenApiPayloadValidationError::Mismatch(crate::open_api_schema_mismatch::OpenApiSchemaMismatch::Type)))
+        }));
+    }
+
+    #[test]
+    fn test_openapi_operation_serialization_failure_preserves_original_diagnostic() {
+        let document = std::collections::BTreeMap::from([([1u8, 2u8], 3u8)]);
+        let expected_diagnostic = serde_json::to_value(&document)
+            .err()
+            .map(|error| error.to_string());
+        assert!(expected_diagnostic.is_some());
+        assert!(crate::validate_openapi_operations::validate_openapi_operations(&document, &[]).is_err_and(|error| {
+            let crate::open_api_operation_validation_error::OpenApiOperationValidationError::DocumentSerialization(source) = error else { return false; };
+            Some(source.to_string()) == expected_diagnostic
+        }));
+    }
+
+    #[test]
+    fn test_openapi_operation_missing_response_parts_report_exact_validation_stage() {
+        let status_result =
+            crate::open_api_response_status::OpenApiResponseStatus::try_from(200u16);
+        assert!(status_result.as_ref().err().is_none());
+        let Ok(status) = status_result else {
+            return;
+        };
+        let expectation = crate::open_api_operation_expectation::OpenApiOperationExpectation::new(
+            frontend_contract::route_metadata::RouteMetadata::new(
+                frontend_contract::route_method::RouteMethod::Get,
+                constants_str::TEST_OPENAPI_OPERATION_ID.into(),
+                constants_str::TEST_OPENAPI_PATH.into(),
+            ),
+            status,
+            constants_str::APPLICATION_JSON.into(),
+            crate::open_api_security_expectation::OpenApiSecurityExpectation::Public,
+        );
+        assert!([
+            (serde_json::json!({}), crate::open_api_operation_validation_error::OpenApiOperationValidationError::MissingOperation),
+            (serde_json::json!({ constants_str::PATHS: {} }), crate::open_api_operation_validation_error::OpenApiOperationValidationError::MissingOperation),
+            (serde_json::json!({ constants_str::PATHS: { constants_str::TEST_OPENAPI_PATH: {} } }), crate::open_api_operation_validation_error::OpenApiOperationValidationError::MissingOperation),
+            (serde_json::json!({ constants_str::PATHS: { constants_str::TEST_OPENAPI_PATH: { constants_str::GET_LOWERCASE: {} } } }), crate::open_api_operation_validation_error::OpenApiOperationValidationError::MissingResponseStatus),
+            (serde_json::json!({ constants_str::PATHS: { constants_str::TEST_OPENAPI_PATH: { constants_str::GET_LOWERCASE: { constants_str::RESPONSES: {} } } } }), crate::open_api_operation_validation_error::OpenApiOperationValidationError::MissingResponseStatus),
+            (serde_json::json!({ constants_str::PATHS: { constants_str::TEST_OPENAPI_PATH: { constants_str::GET_LOWERCASE: { constants_str::RESPONSES: { constants_str::STATUS_OK: {} } } } } }), crate::open_api_operation_validation_error::OpenApiOperationValidationError::MissingContentType),
+            (serde_json::json!({ constants_str::PATHS: { constants_str::TEST_OPENAPI_PATH: { constants_str::GET_LOWERCASE: { constants_str::RESPONSES: { constants_str::STATUS_OK: { constants_str::OPENAPI_CONTENT: null } } } } } }), crate::open_api_operation_validation_error::OpenApiOperationValidationError::MissingContentType),
+            (serde_json::json!({ constants_str::PATHS: { constants_str::TEST_OPENAPI_PATH: { constants_str::GET_LOWERCASE: { constants_str::RESPONSES: { constants_str::STATUS_OK: { constants_str::OPENAPI_CONTENT: {} } } } } } }), crate::open_api_operation_validation_error::OpenApiOperationValidationError::MissingContentType),
+            (serde_json::json!({ constants_str::PATHS: { constants_str::TEST_OPENAPI_PATH: { constants_str::GET_LOWERCASE: { constants_str::RESPONSES: { constants_str::STATUS_OK: { constants_str::OPENAPI_CONTENT: { constants_str::APPLICATION_JSON: {} } } } } } } }), crate::open_api_operation_validation_error::OpenApiOperationValidationError::MissingResponseSchema),
+        ].into_iter().all(|(document, expected)| crate::validate_openapi_operations::validate_openapi_operations(&document, &[expectation]).is_err_and(|error| std::mem::discriminant(&error) == std::mem::discriminant(&expected))));
+    }
+
+    #[test]
+    fn test_openapi_internal_reference_operations_preserve_serialization_diagnostics() {
+        let document = std::collections::BTreeMap::from([([1u8, 2u8], 3u8)]);
+        let expected_diagnostic = serde_json::to_value(&document)
+            .err()
+            .map(|error| error.to_string());
+        assert!(expected_diagnostic.is_some());
+        let references =
+            crate::open_api_schema_references_b_tree_set::OpenApiSchemaReferencesBTreeSet::from(
+                std::collections::BTreeSet::new(),
+            );
+        assert!(
+            [
+                crate::openapi_schema_references::openapi_schema_references(&document).map(|_| ()),
+                references.validate(&document),
+            ]
+            .into_iter()
+            .all(|result| result.is_err_and(|error| {
+                let crate::open_api_validation_error::OpenApiValidationError::DocumentSerialization(
+                    source,
+                ) = error
+                else {
+                    return false;
+                };
+                Some(source.to_string()) == expected_diagnostic
+            }))
+        );
+    }
+
+    #[test]
+    fn test_openapi_reference_set_validation_checks_document_and_exact_schema_names() {
+        let name_result = crate::open_api_contract_text::OpenApiContractText::try_from(
+            constants_str::TEST_OPENAPI_SCHEMA.to_owned(),
+        );
+        assert!(name_result.is_ok());
+        let Ok(schema_name) = name_result else {
+            return;
+        };
+        let references =
+            crate::open_api_schema_references_b_tree_set::OpenApiSchemaReferencesBTreeSet::from(
+                std::collections::BTreeSet::from([schema_name]),
+            );
+        assert!(
+            references
+                .validate(&serde_json::json!({}))
+                .is_err_and(|error| matches!(
+                    error,
+                    crate::open_api_validation_error::OpenApiValidationError::MissingSchemas
+                ))
+        );
+        assert!(references.validate(&serde_json::json!({ constants_str::COMPONENTS: { constants_str::SCHEMAS: {} } })).is_err_and(|error| matches!(error, crate::open_api_validation_error::OpenApiValidationError::MissingSchemaReference(name) if name.as_ref() == constants_str::TEST_OPENAPI_SCHEMA)));
+        assert!(matches!(references.validate(&serde_json::json!({ constants_str::COMPONENTS: { constants_str::SCHEMAS: { constants_str::TEST_OPENAPI_SCHEMA: {} } } })), Ok(())));
+    }
+
+    #[test]
+    fn test_openapi_reference_invalid_escape_names_are_rejected_even_when_pointer_resolves() {
+        assert!([Some('2'), None].into_iter().all(|suffix| {
+            let invalid_name = constants_str::TEST_OPENAPI_SCHEMA.chars().chain(std::iter::once('~')).chain(suffix).collect::<String>();
+            let reference = [constants_str::COMPONENTS_SCHEMAS, invalid_name.as_str()].concat();
+            let document = serde_json::json!({
+                constants_str::DOLLAR_REF: reference,
+                constants_str::COMPONENTS: { constants_str::SCHEMAS: { (invalid_name.as_str()): {} } }
+            });
+            crate::validate_openapi_schema_references::validate_openapi_schema_references(&document)
+                .is_err_and(|error| matches!(error, crate::open_api_validation_error::OpenApiValidationError::MissingSchemaReference(name) if name.as_ref() == invalid_name))
+        }));
+    }
+
+    #[test]
+    fn test_openapi_reference_oversized_names_retain_missing_existing_and_escape_failures() {
+        let oversized_name = constants_str::X.repeat(constants_usize::VALUE_1_048_576 + 1usize);
+        let invalid_oversized_name = oversized_name.chars().chain(['~', '2']).collect::<String>();
+        assert!([
+            (oversized_name.as_str(), false),
+            (oversized_name.as_str(), true),
+            (invalid_oversized_name.as_str(), true),
+        ].into_iter().all(|(name, schema_present)| {
+            let expected_diagnostic = crate::open_api_contract_text::OpenApiContractText::try_from(name.to_owned()).err().map(|error| error.to_string());
+            assert!(expected_diagnostic.is_some());
+            let schemas = if schema_present { serde_json::json!({ (name): {} }) } else { serde_json::json!({}) };
+            let reference = [constants_str::COMPONENTS_SCHEMAS, name].concat();
+            let document = serde_json::json!({ constants_str::DOLLAR_REF: reference, constants_str::COMPONENTS: { constants_str::SCHEMAS: schemas } });
+            crate::validate_openapi_schema_references::validate_openapi_schema_references(&document).is_err_and(|error| {
+                let crate::open_api_validation_error::OpenApiValidationError::TextTooLong(source) = error else { return false; };
+                Some(source.to_string()) == expected_diagnostic
+            })
+        }));
+    }
+
+    #[test]
+    fn test_openapi_runtime_oversized_error_fields_preserve_conversion_failures() {
+        const FIXTURE_BYTES: &[u8; constants_usize::VALUE_1_048_576 + 1usize] =
+            &[1u8; constants_usize::VALUE_1_048_576 + 1usize];
+        let static_text_result = std::str::from_utf8(FIXTURE_BYTES);
+        assert!(
+            static_text_result
+                .as_ref()
+                .is_ok_and(|text| text.len() == constants_usize::VALUE_1_048_576 + 1usize)
+        );
+        let Ok(static_text) = static_text_result else {
+            return;
+        };
+        let expected_diagnostic =
+            crate::open_api_contract_text::OpenApiContractText::try_from(static_text.to_owned())
+                .err()
+                .map(|error| error.to_string());
+        assert!(expected_diagnostic.is_some());
+        let oversized_path_route = frontend_contract::route_metadata::RouteMetadata::new(
+            frontend_contract::route_method::RouteMethod::Get,
+            constants_str::TEST_OPENAPI_OPERATION_ID.into(),
+            static_text.into(),
+        );
+        let oversized_identifier_route = frontend_contract::route_metadata::RouteMetadata::new(
+            frontend_contract::route_method::RouteMethod::Get,
+            static_text.into(),
+            constants_str::TEST_OPENAPI_PATH.into(),
+        );
+        let document_for_route =
+            |path_contract_str: frontend_contract::contract_str::ContractStr,
+             operation_id_contract_str: frontend_contract::contract_str::ContractStr| {
+                serde_json::json!({
+                    constants_str::PATHS: { (path_contract_str.as_ref()): { constants_str::GET_LOWERCASE: { constants_str::OPERATION_ID_JSON: operation_id_contract_str.as_ref() } } },
+                    constants_str::COMPONENTS: { constants_str::SCHEMAS: {} }
+                })
+            };
+        assert!([
+            (document_for_route(static_text.into(), constants_str::TEST_OPENAPI_OPERATION_ID.into()), [oversized_path_route, oversized_path_route], 2usize),
+            (serde_json::json!({ constants_str::PATHS: {}, constants_str::COMPONENTS: { constants_str::SCHEMAS: {} } }), [oversized_path_route, oversized_path_route], 1usize),
+            (document_for_route(static_text.into(), constants_str::X.into()), [oversized_path_route, oversized_path_route], 1usize),
+            (document_for_route(constants_str::TEST_OPENAPI_PATH.into(), constants_str::TEST_OPENAPI_OPERATION_ID.into()), [oversized_identifier_route, oversized_identifier_route], 1usize),
+        ].into_iter().all(|(document, routes, route_count)| {
+            let Some(selected_routes) = routes.get(..route_count) else { return false; };
+            crate::validate_openapi_contract::validate_openapi_contract(&document, selected_routes.into()).is_err_and(|error| {
+                let crate::open_api_validation_error::OpenApiValidationError::TextTooLong(source) = error else { return false; };
+                Some(source.to_string()) == expected_diagnostic
+            })
+        }));
+    }
+
+    #[test]
+    fn test_openapi_route_document_oversized_error_fields_retain_validation_diagnostics() {
+        let oversized = constants_str::X.repeat(constants_usize::VALUE_1_048_576 + 1usize);
+        let expected_diagnostic =
+            crate::open_api_contract_text::OpenApiContractText::try_from(oversized.clone())
+                .err()
+                .map(|error| error.to_string());
+        assert!(expected_diagnostic.is_some());
+        let document_from_paths = |paths| {
+            serde_json::json!({
+                constants_str::PATHS: paths,
+                constants_str::COMPONENTS: { constants_str::SCHEMAS: {} }
+            })
+        };
+        let route = frontend_contract::route_metadata::RouteMetadata::new(
+            frontend_contract::route_method::RouteMethod::Get,
+            constants_str::TEST_OPENAPI_OPERATION_ID.into(),
+            constants_str::TEST_OPENAPI_PATH.into(),
+        );
+        let runtime_routes = [route];
+        assert!([
+            (serde_json::json!({ constants_str::PATHS: {}, constants_str::COMPONENTS: { constants_str::SCHEMAS: { (oversized.as_str()): {} } } }), false),
+            (document_from_paths(serde_json::json!({ (oversized.as_str()): null })), false),
+            (document_from_paths(serde_json::json!({ (oversized.as_str()): { constants_str::GET_LOWERCASE: {} } })), false),
+            (document_from_paths(serde_json::json!({ (oversized.as_str()): {
+                constants_str::GET: { constants_str::OPERATION_ID_JSON: constants_str::TEST_OPENAPI_OPERATION_ID },
+                constants_str::GET_LOWERCASE: { constants_str::OPERATION_ID_JSON: constants_str::TEST_OPENAPI_OPERATION_ID }
+            } })), false),
+            (document_from_paths(serde_json::json!({ (oversized.as_str()): { constants_str::GET_LOWERCASE: { constants_str::OPERATION_ID_JSON: constants_str::TEST_OPENAPI_OPERATION_ID } } })), false),
+            (document_from_paths(serde_json::json!({ constants_str::TEST_OPENAPI_PATH: { constants_str::GET_LOWERCASE: { constants_str::OPERATION_ID_JSON: oversized.as_str() } } })), true),
+        ].into_iter().all(|(document, runtime_route_enabled)| {
+            let routes = if runtime_route_enabled { runtime_routes.as_slice() } else { &[][..] };
+            crate::validate_openapi_contract::validate_openapi_contract(&document, routes.into()).is_err_and(|error| {
+                let crate::open_api_validation_error::OpenApiValidationError::TextTooLong(source) = error else { return false; };
+                Some(source.to_string()) == expected_diagnostic
+            })
+        }));
+    }
+
+    #[test]
     fn test_openapi_route_catalog_reports_missing_sections_and_unused_schema_name() {
         let missing_paths =
             serde_json::json!({ constants_str::COMPONENTS: { constants_str::SCHEMAS: {} } });

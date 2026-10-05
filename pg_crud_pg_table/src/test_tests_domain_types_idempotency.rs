@@ -92,3 +92,179 @@ fn test_persisted_idempotency_body_enforces_inclusive_storage_limit() {
             && max.get() == constants_usize::VALUE_1_048_576
     ));
 }
+
+#[test]
+fn test_idempotency_methods_preserve_supported_verbs_and_validation_precedence() {
+    assert!(
+        [
+            constants_str::POST,
+            constants_str::PATCH,
+            constants_str::DELETE
+        ]
+        .into_iter()
+        .all(|value| {
+            crate::pg_table_idempotency_method::PgTableIdempotencyMethod::try_from(value.to_owned())
+                .is_ok_and(|method| method.as_ref() == value)
+        })
+    );
+    [
+        (
+            constants_str::EMPTY.to_owned(),
+            crate::pg_table_idempotency_text_error::PgTableIdempotencyTextError::Empty,
+        ),
+        (
+            constants_str::POST.to_lowercase(),
+            crate::pg_table_idempotency_text_error::PgTableIdempotencyTextError::InvalidMethod,
+        ),
+        (
+            format!("{}{}", constants_str::SPACE, constants_str::POST),
+            crate::pg_table_idempotency_text_error::PgTableIdempotencyTextError::InvalidMethod,
+        ),
+        (
+            format!("{}{}", constants_str::POST, constants_str::SPACE),
+            crate::pg_table_idempotency_text_error::PgTableIdempotencyTextError::InvalidMethod,
+        ),
+        (
+            constants_str::X.repeat(255usize),
+            crate::pg_table_idempotency_text_error::PgTableIdempotencyTextError::InvalidMethod,
+        ),
+        (
+            constants_str::X.repeat(256usize),
+            crate::pg_table_idempotency_text_error::PgTableIdempotencyTextError::TooLong {
+                actual_bytes:
+                    crate::pg_table_idempotency_text_bytes::PgTableIdempotencyTextBytes::from(
+                        256usize,
+                    ),
+                maximum_bytes:
+                    crate::pg_table_idempotency_text_bytes::PgTableIdempotencyTextBytes::from(
+                        255usize,
+                    ),
+            },
+        ),
+    ]
+    .into_iter()
+    .fold((), |(), (value, expected)| {
+        assert_eq!(
+            crate::pg_table_idempotency_method::PgTableIdempotencyMethod::try_from(value),
+            Err(expected)
+        );
+    });
+}
+
+#[test]
+fn test_idempotency_routes_preserve_prefix_contract_and_exact_byte_boundaries() {
+    [
+        '/'.to_string(),
+        format!("/{}", constants_str::X.repeat(1_023usize)),
+        format!(
+            "/{}{}",
+            '\u{e9}'.to_string().repeat(511usize),
+            constants_str::X
+        ),
+    ]
+    .into_iter()
+    .fold((), |(), value| {
+        assert!(
+            crate::pg_table_idempotency_route::PgTableIdempotencyRoute::try_from(value.clone())
+                .is_ok_and(|route| route.as_ref() == value)
+        );
+    });
+    [
+        (
+            constants_str::EMPTY.to_owned(),
+            crate::pg_table_idempotency_text_error::PgTableIdempotencyTextError::Empty,
+        ),
+        (
+            constants_str::X.repeat(1_024usize),
+            crate::pg_table_idempotency_text_error::PgTableIdempotencyTextError::InvalidRoute,
+        ),
+        (
+            format!("/{}", '\u{e9}'.to_string().repeat(512usize)),
+            crate::pg_table_idempotency_text_error::PgTableIdempotencyTextError::TooLong {
+                actual_bytes:
+                    crate::pg_table_idempotency_text_bytes::PgTableIdempotencyTextBytes::from(
+                        1_025usize,
+                    ),
+                maximum_bytes:
+                    crate::pg_table_idempotency_text_bytes::PgTableIdempotencyTextBytes::from(
+                        1_024usize,
+                    ),
+            },
+        ),
+        (
+            constants_str::X.repeat(1_025usize),
+            crate::pg_table_idempotency_text_error::PgTableIdempotencyTextError::TooLong {
+                actual_bytes:
+                    crate::pg_table_idempotency_text_bytes::PgTableIdempotencyTextBytes::from(
+                        1_025usize,
+                    ),
+                maximum_bytes:
+                    crate::pg_table_idempotency_text_bytes::PgTableIdempotencyTextBytes::from(
+                        1_024usize,
+                    ),
+            },
+        ),
+    ]
+    .into_iter()
+    .fold((), |(), (value, expected)| {
+        assert_eq!(
+            crate::pg_table_idempotency_route::PgTableIdempotencyRoute::try_from(value),
+            Err(expected)
+        );
+    });
+}
+
+#[test]
+fn test_idempotency_actor_and_key_preserve_text_and_shared_byte_limits() {
+    [
+        constants_str::X.to_owned(),
+        constants_str::SPACE.to_owned(),
+        constants_str::X.repeat(255usize),
+        format!(
+            "{}{}",
+            '\u{e9}'.to_string().repeat(127usize),
+            constants_str::X
+        ),
+    ]
+    .into_iter()
+    .fold((), |(), value| {
+        assert!(
+            crate::pg_table_idempotency_actor::PgTableIdempotencyActor::try_from(value.clone())
+                .is_ok_and(|actor| actor.as_ref() == value)
+        );
+        assert!(
+            crate::pg_table_idempotency_key::PgTableIdempotencyKey::try_from(value.clone())
+                .is_ok_and(|key| key.as_ref() == value)
+        );
+    });
+    [
+        (
+            constants_str::EMPTY.to_owned(),
+            crate::pg_table_idempotency_text_error::PgTableIdempotencyTextError::Empty,
+        ),
+        (
+            '\u{e9}'.to_string().repeat(128usize),
+            crate::pg_table_idempotency_text_error::PgTableIdempotencyTextError::TooLong {
+                actual_bytes:
+                    crate::pg_table_idempotency_text_bytes::PgTableIdempotencyTextBytes::from(
+                        256usize,
+                    ),
+                maximum_bytes:
+                    crate::pg_table_idempotency_text_bytes::PgTableIdempotencyTextBytes::from(
+                        255usize,
+                    ),
+            },
+        ),
+    ]
+    .into_iter()
+    .fold((), |(), (value, expected)| {
+        assert_eq!(
+            crate::pg_table_idempotency_actor::PgTableIdempotencyActor::try_from(value.clone()),
+            Err(expected.clone())
+        );
+        assert_eq!(
+            crate::pg_table_idempotency_key::PgTableIdempotencyKey::try_from(value),
+            Err(expected)
+        );
+    });
+}

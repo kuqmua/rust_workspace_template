@@ -7,7 +7,186 @@
     reason = "admin api requires this localized allowance for generated or framework-constrained code verified by focused tests"
 )]
 
+mod test_frontend_static_assets {
+    #[cfg(unix)]
+    #[tokio::test]
+    async fn test_static_asset_router_returns_empty_internal_error_for_symlink_loop() {
+        let directory_option = option_env!("ADMIN_FRONTEND_STATIC_DIR").map_or_else(
+            || {
+                std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+                    .parent()
+                    .map(|path| {
+                        path.join(constants_str::FRONTEND_DIRECTORY)
+                            .join(constants_str::STATIC)
+                    })
+            },
+            |path| Some(std::path::PathBuf::from(path)),
+        );
+        assert!(directory_option.is_some());
+        let Some(directory) = directory_option else {
+            return;
+        };
+        let filename = format!(
+            "{}{}",
+            constants_str::TEST_STATIC_LOOP_ASSET_PREFIX,
+            std::process::id()
+        );
+        let path = directory.join(&filename);
+        let uri = format!(
+            "{}/{}",
+            server_admin_contract::admin_frontend_path::AdminFrontendPath::Assets.get(),
+            filename
+        );
+        let request_result = http::Request::builder()
+            .uri(uri)
+            .body(axum::body::Body::empty());
+        assert!(request_result.is_ok());
+        let Ok(request) = request_result else {
+            return;
+        };
+        let created = tokio::fs::symlink(&filename, &path).await;
+        assert!(created.is_ok());
+        let Ok(()) = created else {
+            return;
+        };
+        let router =
+            axum::Router::from(frontend_admin::admin_frontend_routes::admin_frontend_routes());
+        let response_result = tower::ServiceExt::oneshot(router, request).await;
+        let removed = tokio::fs::remove_file(&path).await;
+        assert!(matches!(removed, Ok(())));
+        assert_eq!(
+            response_result.as_ref().map(http::Response::status),
+            Ok(http::StatusCode::INTERNAL_SERVER_ERROR)
+        );
+        let Ok(response) = response_result;
+        let body_result =
+            axum::body::to_bytes(response.into_body(), constants_usize::VALUE_1_048_576).await;
+        assert!(body_result.is_ok_and(|body| body.is_empty()));
+    }
+
+    #[tokio::test]
+    async fn test_static_asset_router_preserves_javascript_and_missing_file_responses() {
+        let cases = [
+            (
+                constants_str::TEST_STATIC_HEALTH_PROBE_ASSET_PATH,
+                http::StatusCode::OK,
+                Some(constants_str::TEST_STATIC_HEALTH_FUNCTION_NAME),
+            ),
+            (
+                constants_str::TEST_STATIC_MISSING_ASSET_PATH,
+                http::StatusCode::NOT_FOUND,
+                None,
+            ),
+            (
+                constants_str::TEST_STATIC_NUL_ASSET_PATH,
+                http::StatusCode::NOT_FOUND,
+                None,
+            ),
+        ];
+        futures::stream::StreamExt::fold(
+            futures::stream::iter(cases),
+            (),
+            async |(), (path, status, marker)| {
+                let request_result = http::Request::builder()
+                    .uri(path)
+                    .body(axum::body::Body::empty());
+                assert!(
+                    request_result
+                        .as_ref()
+                        .is_ok_and(|request| request.uri().path() == path)
+                );
+                let Ok(request) = request_result else {
+                    return;
+                };
+                let router = axum::Router::from(
+                    frontend_admin::admin_frontend_routes::admin_frontend_routes(),
+                );
+                let response_result = tower::ServiceExt::oneshot(router, request).await;
+                assert_eq!(
+                    response_result.as_ref().map(http::Response::status),
+                    Ok(status)
+                );
+                let Ok(response) = response_result;
+                if marker.is_some() {
+                    assert!(
+                        response
+                            .headers()
+                            .get(http::header::CONTENT_TYPE)
+                            .is_some_and(|value| value.to_str().is_ok_and(|media_type| media_type
+                                == constants_str::TEST_STATIC_JAVASCRIPT_MEDIA_TYPE))
+                    );
+                }
+                let body_result =
+                    axum::body::to_bytes(response.into_body(), constants_usize::VALUE_1_048_576)
+                        .await;
+                assert!(body_result.as_ref().is_ok_and(|body| marker.map_or_else(
+                    || body.is_empty(),
+                    |expected| std::str::from_utf8(body).is_ok_and(|text| text.contains(expected))
+                )));
+            },
+        )
+        .await;
+    }
+}
+
 mod test_data_tables {
+
+    #[tokio::test]
+    #[ignore = "requires PostgreSQL; run through workspace_test_runner database"]
+    async fn test_postgresql_json_cast_errors_preserve_shared_database_error_classification() {
+        let fixture = crate::admin_html_test_fixture().await;
+        futures::stream::StreamExt::fold(
+            futures::stream::iter([
+                constants_str::TEST_NON_PRIMARY_READ_IDS_JSON_QUERY,
+                constants_str::TEST_NON_PRIMARY_READ_IDS_JSONB_QUERY,
+            ]),
+            (),
+            async |(), query| {
+                let result = sqlx::query(query)
+                    .bind(constants_str::UNKNOWN_ALT)
+                    .fetch_one(&fixture.pool.0)
+                    .await;
+                assert!(result.is_err_and(|error| {
+                    matches!(&error, sqlx::Error::Database(database_error) if database_error.code().as_deref() == Some(constants_str::PG_SQLSTATE_INVALID_TEXT_REPRESENTATION))
+                        && pg_crud_common::classify_pg_error::classify_pg_error(
+                            pg_crud_common::sqlx_pg_error_ref::SqlxPgErrorRef::from(&error),
+                        ) == pg_crud_common::pg_error_kind::PgErrorKind::InvalidTextRepresentation
+                }));
+            },
+        ).await;
+    }
+
+    #[tokio::test]
+    #[ignore = "requires PostgreSQL; run through workspace_test_runner database"]
+    async fn test_postgresql_non_primary_key_read_ids_json_decode_preserves_values_and_errors() {
+        let fixture = crate::admin_html_test_fixture().await;
+        let sqlx_admin_api_test_pool = &fixture.pool;
+        let queries = [
+            constants_str::TEST_NON_PRIMARY_READ_IDS_JSON_QUERY,
+            constants_str::TEST_NON_PRIMARY_READ_IDS_JSONB_QUERY,
+        ];
+        futures::stream::StreamExt::fold(
+            futures::stream::iter(queries),
+            (),
+            async |(), query| {
+                let decoded = sqlx::query_scalar::<_, pg_crud_common::non_primary_key_pg_type_read_ids::NonPrimaryKeyPgTypeReadIds>(query)
+                    .bind(constants_str::VALUE_1C197DAE)
+                    .fetch_one(&sqlx_admin_api_test_pool.0)
+                    .await;
+                assert!(decoded.is_ok_and(|value| value == pg_crud_common::non_primary_key_pg_type_read_ids::NonPrimaryKeyPgTypeReadIds::default()));
+                let malformed = sqlx::query_scalar::<_, pg_crud_common::non_primary_key_pg_type_read_ids::NonPrimaryKeyPgTypeReadIds>(query)
+                    .bind(constants_str::TEST_NON_PRIMARY_READ_IDS_INVALID_JSON)
+                    .fetch_one(&sqlx_admin_api_test_pool.0)
+                    .await;
+                assert!(matches!(malformed, Err(sqlx::Error::ColumnDecode { .. })));
+                let null = sqlx::query_scalar::<_, pg_crud_common::non_primary_key_pg_type_read_ids::NonPrimaryKeyPgTypeReadIds>(query)
+                    .bind(None::<&str>)
+                    .fetch_one(&sqlx_admin_api_test_pool.0)
+                    .await;
+                assert!(matches!(null, Err(sqlx::Error::ColumnDecode { .. })));
+            },
+        ).await;
+    }
     #[tokio::test]
     #[ignore = "requires PostgreSQL; run through workspace_test_runner database"]
     async fn test_shared_postgres_rate_limit_preserves_decisions_and_query_errors() {
@@ -3415,6 +3594,117 @@ mod test_generated_descriptor_validation {
         fn schema_table_text() -> pg_crud_common::db_static_schema_text::DbStaticSchemaText {
             pg_crud_common::db_static_schema_text::DbStaticSchemaText::from(constants_str::X)
         }
+    }
+
+    impl pg_crud_common::db_extended_table_schema::DbExtendedTableSchema
+        for DescriptorValidationFixtureTable<6usize>
+    {
+        fn checks_and_indexes() -> pg_crud_common::db_object_specs::DbObjectSpecs {
+            pg_crud_common::db_object_specs::DbObjectSpecs::from(vec![
+                pg_crud_common::db_object_spec::DbObjectSpec::new(
+                    constants_str::X.into(),
+                    pg_crud_common::db_object_kind::DbObjectKind::Check,
+                    constants_str::TEST_EXTENSION_CHECK_DEFINITION.into(),
+                ),
+                pg_crud_common::db_object_spec::DbObjectSpec::new(
+                    constants_str::FIELD.into(),
+                    pg_crud_common::db_object_kind::DbObjectKind::Index,
+                    constants_str::TEST_EXTENSION_INDEX_DEFINITION.into(),
+                ),
+            ])
+        }
+        fn exact_defaults() -> pg_crud_common::db_default_specs::DbDefaultSpecs {
+            pg_crud_common::db_default_specs::DbDefaultSpecs::from(vec![
+                pg_crud_common::db_default_spec::DbDefaultSpec::new(
+                    constants_str::FIELD.into(),
+                    constants_str::VALUE_1.into(),
+                ),
+            ])
+        }
+    }
+
+    #[tokio::test]
+    #[ignore = "requires PostgreSQL; run through workspace_test_runner database"]
+    async fn test_extended_table_catalog_defaults_checks_and_indexes_preserve_mismatch_snapshots() {
+        let fixture = crate::admin_html_test_fixture().await;
+        let setup_result = sqlx::raw_sql(constants_str::TEST_EXTENSION_CATALOG_SETUP)
+            .execute(&fixture.pool.0)
+            .await;
+        assert!(setup_result.as_ref().err().is_none());
+        let pool_ref =
+            pg_crud_common::sqlx_pg_catalog_pool_ref::SqlxPgCatalogPoolRef::from(&fixture.pool.0);
+        let schema_ref =
+            pg_crud_common::db_schema_name_ref::DbSchemaNameRef::from(constants_str::X);
+        assert!(matches!(pg_crud_common::validate_postgres_table_extensions::validate_postgres_table_extensions::<DescriptorValidationFixtureTable<6usize>>(pool_ref, schema_ref).await, Ok(())));
+        let default_snapshot =
+            |db_static_schema_text: pg_crud_common::db_static_schema_text::DbStaticSchemaText| -> Result<
+                pg_crud_common::db_object_snapshots::DbObjectSnapshots,
+                pg_crud_common::db_schema_conformance_error::DbSchemaConformanceError,
+            > {
+                Ok(
+                    pg_crud_common::db_object_snapshots::DbObjectSnapshots::from(vec![
+                        pg_crud_common::db_object_snapshot::DbObjectSnapshot::new(
+                            pg_crud_common::db_schema_text::DbSchemaText::try_from(
+                                constants_str::FIELD.to_owned(),
+                            ).map_err(pg_crud_common::db_schema_conformance_error::DbSchemaConformanceError::SchemaTextTooLong)?,
+                            pg_crud_common::db_object_kind::DbObjectKind::Default,
+                            pg_crud_common::db_schema_text::DbSchemaText::try_from(
+                                (*db_static_schema_text.get_inner()).to_owned(),
+                            ).map_err(pg_crud_common::db_schema_conformance_error::DbSchemaConformanceError::SchemaTextTooLong)?,
+                        ),
+                    ]),
+                )
+            };
+        let snapshots_result =
+            default_snapshot(constants_str::VALUE_1.into()).and_then(|expected| {
+                default_snapshot(constants_str::VALUE_2.into()).map(|observed| (expected, observed))
+            });
+        assert!(snapshots_result.as_ref().err().is_none());
+        let Ok((expected_default, observed_default)) = snapshots_result else {
+            return;
+        };
+        let change_result = sqlx::query(constants_str::TEST_EXTENSION_DEFAULT_CHANGE)
+            .execute(&fixture.pool.0)
+            .await;
+        assert!(change_result.as_ref().err().is_none());
+        assert!(pg_crud_common::validate_postgres_table_extensions::validate_postgres_table_extensions::<DescriptorValidationFixtureTable<6usize>>(pool_ref, schema_ref).await.is_err_and(|error| matches!(error, pg_crud_common::db_schema_conformance_error::DbSchemaConformanceError::DefaultContractMismatch { expected, observed } if expected == expected_default && observed == observed_default)));
+        let restore_result = sqlx::query(constants_str::TEST_EXTENSION_DEFAULT_RESTORE)
+            .execute(&fixture.pool.0)
+            .await;
+        assert!(restore_result.as_ref().err().is_none());
+        let drop_index_result = sqlx::query(constants_str::TEST_EXTENSION_INDEX_DROP)
+            .execute(&fixture.pool.0)
+            .await;
+        assert!(drop_index_result.as_ref().err().is_none());
+        assert!(pg_crud_common::validate_postgres_table_extensions::validate_postgres_table_extensions::<DescriptorValidationFixtureTable<6usize>>(pool_ref, schema_ref).await.is_err_and(|error| matches!(error, pg_crud_common::db_schema_conformance_error::DbSchemaConformanceError::ExtendedObjectContractMismatch { expected, observed } if expected.len() == 2usize && observed.len() == 1usize && expected != observed)));
+        let rebuild_result = sqlx::raw_sql(constants_str::TEST_EXTENSION_CATALOG_SETUP)
+            .execute(&fixture.pool.0)
+            .await;
+        assert!(rebuild_result.as_ref().err().is_none());
+        let drop_check_result = sqlx::query(constants_str::TEST_EXTENSION_CHECK_DROP)
+            .execute(&fixture.pool.0)
+            .await;
+        assert!(drop_check_result.as_ref().err().is_none());
+        assert!(pg_crud_common::validate_postgres_table_extensions::validate_postgres_table_extensions::<DescriptorValidationFixtureTable<6usize>>(pool_ref, schema_ref).await.is_err_and(|error| matches!(error, pg_crud_common::db_schema_conformance_error::DbSchemaConformanceError::ExtendedObjectContractMismatch { expected, observed } if expected.len() == 2usize && observed.len() == 1usize && expected != observed)));
+        let cleanup_result = sqlx::query(constants_str::TEST_EXTENSION_CATALOG_CLEANUP)
+            .execute(&fixture.pool.0)
+            .await;
+        assert!(cleanup_result.as_ref().err().is_none());
+    }
+
+    #[tokio::test]
+    #[ignore = "constructs a closed PostgreSQL pool; run through workspace_test_runner database"]
+    async fn test_extended_table_validation_preserves_catalog_pool_failure() {
+        let pool_result = closed_descriptor_pool_fixture().await;
+        assert!(pool_result.is_ok());
+        let Ok(pool) = pool_result else {
+            return;
+        };
+        let result = pg_crud_common::validate_postgres_table_extensions::validate_postgres_table_extensions::<DescriptorValidationFixtureTable<6usize>>(
+            pg_crud_common::sqlx_pg_catalog_pool_ref::SqlxPgCatalogPoolRef::from(&pool.0),
+            pg_crud_common::db_schema_name_ref::DbSchemaNameRef::from(constants_str::PUBLIC),
+        ).await;
+        assert!(result.is_err_and(|error| matches!(error, pg_crud_common::db_schema_conformance_error::DbSchemaConformanceError::Inspection(sqlx_db_schema_inspection_error) if sqlx_db_schema_inspection_error.to_string() == sqlx::Error::PoolClosed.to_string())));
     }
 
     #[tokio::test]

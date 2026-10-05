@@ -103,3 +103,75 @@ fn test_permission_read_queries_preserve_pagination_and_map_sort_columns() {
             && matches!(crate::admin_permission_resource_actions_read_request::AdminPermissionResourceActionsReadRequest::try_from(&query), Err(crate::admin_table_sort_field_try_from_key_error::AdminTableSortFieldTryFromKeyError::Unknown))
     }));
 }
+
+#[test]
+fn test_user_and_role_read_queries_require_search_and_default_selection_at_boundaries() {
+    fn strict_query_fields_match<Request, Selection>(
+        admin_table_query: &crate::admin_table_query::AdminTableQuery,
+    ) -> crate::admin_bool::AdminBool
+    where
+        Request: serde::Serialize + for<'query> TryFrom<&'query crate::admin_table_query::AdminTableQuery, Error = crate::admin_table_sort_field_try_from_key_error::AdminTableSortFieldTryFromKeyError>,
+        Selection: Default + serde::Serialize,
+    {
+        crate::admin_bool::AdminBool::from(Request::try_from(admin_table_query).is_ok_and(|request| {
+            serde_json::to_value(request).is_ok_and(|wire| {
+                wire.get(stringify!(search)) == Some(&serde_json::json!(admin_table_query.search().as_ref()))
+                    && wire.get(stringify!(pagination)) == Some(&serde_json::json!({
+                        (stringify!(offset)): u32::from(admin_table_query.offset()),
+                        (stringify!(limit)): u16::from(admin_table_query.limit()),
+                    }))
+                    && wire.get(stringify!(where_many)) == Some(&serde_json::Value::Null)
+                    && serde_json::to_value(Selection::default()).is_ok_and(|selection| wire.get(stringify!(select)) == Some(&selection))
+                    && wire.get(stringify!(order_by)) == Some(&serde_json::json!({
+                        (stringify!(column)): {(constants_str::SQL_NAMES_ID): null},
+                        (stringify!(order)): crate::admin_sort_direction::AdminSortDirection::Ascending,
+                    }))
+            })
+        }))
+    }
+    assert!(
+        [
+            String::default(),
+            constants_str::X.repeat(128usize),
+            char::MAX.to_string().repeat(128usize),
+        ]
+        .into_iter()
+        .all(|search| {
+            [
+                (0u32, crate::admin_page_limit::AdminPageLimit::MIN),
+                (u32::MAX, crate::admin_page_limit::AdminPageLimit::MAX),
+                (17u32, crate::admin_page_limit::AdminPageLimit::DEFAULT),
+            ]
+            .into_iter()
+            .all(|(offset, limit)| {
+                [
+                    crate::admin_sort_direction::AdminSortDirection::Ascending,
+                    crate::admin_sort_direction::AdminSortDirection::Descending,
+                ]
+                .into_iter()
+                .all(|direction| {
+                    serde_json::from_value::<crate::admin_table_query::AdminTableQuery>(
+                        serde_json::json!({
+                            (stringify!(search)): search,
+                            (stringify!(offset)): offset,
+                            (stringify!(limit)): limit,
+                            (stringify!(direction)): direction,
+                        }),
+                    )
+                    .is_ok_and(|query| {
+                        strict_query_fields_match::<
+                            crate::admin_users_read_request::AdminUsersReadRequest,
+                            crate::admin_read_user_selection::AdminReadUserSelection,
+                        >(&query)
+                            == crate::admin_bool::AdminBool::from(true)
+                            && strict_query_fields_match::<
+                                crate::admin_roles_read_request::AdminRolesReadRequest,
+                                crate::admin_read_role_selection::AdminReadRoleSelection,
+                            >(&query)
+                                == crate::admin_bool::AdminBool::from(true)
+                    })
+                })
+            })
+        })
+    );
+}

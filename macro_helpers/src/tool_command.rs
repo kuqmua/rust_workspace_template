@@ -145,4 +145,62 @@ mod tests {
         assert!(debug.contains(constants_str::REDACTED));
         assert!(!debug.contains(constants_str::SECRET_VALUE));
     }
+
+    #[test]
+    fn test_tool_command_preserves_empty_program_launch_errors() {
+        let mut command = super::ToolCommand::new(crate::tool_program_ref::ToolProgramRef::from(
+            constants_str::EMPTY,
+        ));
+        assert!(
+            command
+                .output()
+                .is_err_and(|error| error.kind() == std::io::ErrorKind::NotFound)
+        );
+        assert!(
+            command
+                .status()
+                .is_err_and(|error| error.kind() == std::io::ErrorKind::NotFound)
+        );
+        assert!(
+            command
+                .bounded_output(crate::tool_output_limit::ToolOutputLimit::from(
+                    constants_usize::THREE
+                ))
+                .is_err_and(|error| error.kind() == std::io::ErrorKind::NotFound)
+        );
+    }
+
+    #[test]
+    fn test_tool_command_preserves_arguments_directory_and_environment_configuration() {
+        let mut command = super::ToolCommand::new(crate::tool_program_ref::ToolProgramRef::from(
+            constants_str::PRINTF,
+        ));
+        let arguments = [constants_str::SECRET_VALUE];
+        let directory = std::path::Path::new(constants_str::DOT);
+        let _command = command
+            .args(crate::tool_args_ref::ToolArgsRef::from(
+                arguments.as_slice(),
+            ))
+            .current_dir(crate::macro_path_ref::MacroPathRef::from(directory))
+            .env(
+                crate::tool_env_key_ref::ToolEnvKeyRef::from(constants_str::X),
+                crate::tool_env_value_ref::ToolEnvValueRef::from(constants_str::SECRET_VALUE),
+            );
+        assert!(
+            command
+                .inner
+                .get_args()
+                .eq(arguments.iter().map(std::ffi::OsStr::new))
+        );
+        assert_eq!(command.inner.get_current_dir(), Some(directory));
+        assert!(command.inner.get_envs().eq(std::iter::once((
+            std::ffi::OsStr::new(constants_str::X),
+            Some(std::ffi::OsStr::new(constants_str::SECRET_VALUE)),
+        ))));
+        assert!(command.output().is_ok_and(|output| {
+            output.status.success()
+                && output.stdout == constants_str::SECRET_VALUE.as_bytes()
+                && output.stderr.is_empty()
+        }));
+    }
 }

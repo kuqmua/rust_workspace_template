@@ -174,3 +174,6 @@ pub mod value_format;
 
 #[cfg(test)]
 mod test_transport_header_bounds;
+
+#[cfg(test)]
+mod test_utoipa_wrapper_contracts;

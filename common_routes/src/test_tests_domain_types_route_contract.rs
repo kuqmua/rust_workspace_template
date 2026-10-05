@@ -93,3 +93,47 @@ fn test_family_coverage_is_complete() {
         crate::common_route::CommonRoute::ALL.len()
     );
 }
+
+#[tokio::test]
+async fn test_every_named_common_client_preserves_transport_error() {
+    let path_result =
+        frontend_contract::transport_path::TransportPath::try_from(constants_str::SLASH.to_owned());
+    assert!(path_result.is_ok());
+    let Ok(transport_path) = path_result else {
+        return;
+    };
+    let client = frontend_contract::typed_client::TypedClient::new(ClientTransport, transport_path);
+    assert!(
+        [
+            crate::git_info_route::git_info_client(&client, crate::common_no_body::CommonNoBody)
+                .await
+                .map(|_response| ()),
+            crate::health_route::health_client(&client, crate::common_no_body::CommonNoBody)
+                .await
+                .map(|_response| ()),
+            crate::health_check_route::health_check_client(
+                &client,
+                crate::common_no_body::CommonNoBody
+            )
+            .await
+            .map(|_response| ()),
+            crate::health_live_route::health_live_client(
+                &client,
+                crate::common_no_body::CommonNoBody
+            )
+            .await
+            .map(|_response| ()),
+            crate::health_ready_route::health_ready_client(
+                &client,
+                crate::common_no_body::CommonNoBody
+            )
+            .await
+            .map(|_response| ()),
+        ]
+        .into_iter()
+        .all(|result| result
+            == Err(frontend_contract::client_error::ClientError::Transport(
+                frontend_contract::transport_error::TransportError::default(),
+            )))
+    );
+}

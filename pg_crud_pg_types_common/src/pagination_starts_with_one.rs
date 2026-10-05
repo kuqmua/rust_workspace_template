@@ -146,6 +146,91 @@ impl pg_crud_common::default_some_one_element_max_page_size::DefaultSomeOneEleme
 #[cfg(test)]
 mod tests {
     #[test]
+    fn test_one_based_pagination_deserialization_preserves_valid_inclusive_boundaries() {
+        assert!(
+            [
+                (1i64, 1i64),
+                (i64::MAX - 1i64, 1i64),
+                (1i64, i64::MAX - 1i64),
+                (3i64, 2i64)
+            ]
+            .into_iter()
+            .all(|(limit, offset)| {
+                <super::PaginationStartsWithOne as serde::Deserialize>::deserialize(
+                    serde::de::value::MapDeserializer::<_, serde::de::value::Error>::new(
+                        [
+                            (constants_str::OFFSET_ALT, offset),
+                            (constants_str::LIMIT, limit),
+                        ]
+                        .into_iter(),
+                    ),
+                )
+                .is_ok_and(|pagination| {
+                    pagination.start().get() == offset && pagination.end().get() == offset + limit
+                })
+            })
+        );
+    }
+
+    #[test]
+    fn test_one_based_pagination_deserialization_rejects_invalid_values_and_overflow() {
+        assert!(
+            [
+                (0i64, 1i64),
+                (-1i64, 1i64),
+                (1i64, 0i64),
+                (1i64, -1i64),
+                (0i64, 0i64),
+                (1i64, i64::MAX),
+                (i64::MAX, 1i64)
+            ]
+            .into_iter()
+            .all(|(limit, offset)| {
+                <super::PaginationStartsWithOne as serde::Deserialize>::deserialize(
+                    serde::de::value::MapDeserializer::<_, serde::de::value::Error>::new(
+                        [
+                            (constants_str::LIMIT, limit),
+                            (constants_str::OFFSET_ALT, offset),
+                        ]
+                        .into_iter(),
+                    ),
+                )
+                .is_err()
+            })
+        );
+    }
+
+    #[test]
+    fn test_one_based_pagination_deserialization_rejects_missing_and_duplicate_fields() {
+        assert!(
+            [
+                vec![],
+                vec![(constants_str::LIMIT, 1i64)],
+                vec![(constants_str::OFFSET_ALT, 1i64)],
+                vec![
+                    (constants_str::LIMIT, 1i64),
+                    (constants_str::LIMIT, 2i64),
+                    (constants_str::OFFSET_ALT, 1i64)
+                ],
+                vec![
+                    (constants_str::LIMIT, 1i64),
+                    (constants_str::OFFSET_ALT, 1i64),
+                    (constants_str::OFFSET_ALT, 2i64)
+                ],
+            ]
+            .into_iter()
+            .all(|fields| {
+                <super::PaginationStartsWithOne as serde::Deserialize>::deserialize(
+                    serde::de::value::MapDeserializer::<_, serde::de::value::Error>::new(
+                        fields.into_iter(),
+                    ),
+                )
+                .is_err()
+            })
+        );
+    }
+
+    #[test]
     fn test_pagination_starts_with_one_accepts_inclusive_boundaries() {
         let pagination = super::PaginationStartsWithOne::try_new(2i64, constants_i64::ONE)
             .expect(constants_str::DIAGNOSTIC_007C805E);

@@ -134,4 +134,61 @@ mod tests {
         assert_eq!(outcome.attempts().get(), constants_usize::ONE);
         assert_eq!(outcome.into_result(), Err(7usize));
     }
+
+    #[tokio::test(start_paused = true)]
+    async fn test_retry_delay_gates_each_attempt_and_preserves_final_success() {
+        let calls = std::cell::Cell::new(constants_usize::ZERO);
+        let classifications = std::cell::Cell::new(constants_usize::ZERO);
+        let delay = std::time::Duration::from_secs(1u64);
+        let mut future = std::pin::pin!(crate::run_with_retries::run_with_retries(
+            crate::retry_policy::RetryPolicy::new(
+                crate::retry_attempts_non_zero_usize::RetryAttemptsNonZeroUsize::from(
+                    std::num::NonZeroUsize::MIN.saturating_add(constants_usize::TWO),
+                ),
+                Some(crate::retry_delay_duration::RetryDelayDuration::from(delay)),
+            ),
+            || {
+                calls.set(calls.get() + constants_usize::ONE);
+                std::future::ready(if calls.get() < constants_usize::THREE {
+                    Err(calls.get())
+                } else {
+                    Ok(calls.get())
+                })
+            },
+            |_| {
+                classifications.set(classifications.get() + constants_usize::ONE);
+                true
+            },
+        ));
+        let mut context = std::task::Context::from_waker(std::task::Waker::noop());
+        assert!(matches!(
+            Future::poll(future.as_mut(), &mut context),
+            std::task::Poll::Pending
+        ));
+        assert_eq!(calls.get(), constants_usize::ONE);
+        assert_eq!(classifications.get(), constants_usize::ONE);
+        tokio::time::advance(std::time::Duration::from_nanos(999_999_999u64)).await;
+        assert!(matches!(
+            Future::poll(future.as_mut(), &mut context),
+            std::task::Poll::Pending
+        ));
+        assert_eq!(calls.get(), constants_usize::ONE);
+        tokio::time::advance(std::time::Duration::from_nanos(1u64)).await;
+        assert!(matches!(
+            Future::poll(future.as_mut(), &mut context),
+            std::task::Poll::Pending
+        ));
+        assert_eq!(calls.get(), constants_usize::TWO);
+        assert_eq!(classifications.get(), constants_usize::TWO);
+        tokio::time::advance(delay).await;
+        assert_eq!(
+            Future::poll(future.as_mut(), &mut context).map(|outcome| {
+                outcome.attempts().get() == constants_usize::THREE
+                    && outcome.into_result() == Ok(constants_usize::THREE)
+            }),
+            std::task::Poll::Ready(true)
+        );
+        assert_eq!(calls.get(), constants_usize::THREE);
+        assert_eq!(classifications.get(), constants_usize::TWO);
+    }
 }

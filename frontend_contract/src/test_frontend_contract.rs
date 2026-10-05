@@ -386,3 +386,510 @@ fn test_http_status_wrappers_accept_inclusive_boundaries_and_reject_out_of_range
         );
     });
 }
+
+#[test]
+fn test_type_contract_capabilities_cover_every_value_format() {
+    let supported = crate::capability_support::CapabilitySupport::Supported;
+    let unsupported = crate::capability_support::CapabilitySupport::Unsupported;
+    assert!(
+        [
+            (crate::value_format::ValueFormat::Bool, supported, supported),
+            (
+                crate::value_format::ValueFormat::Bytes,
+                unsupported,
+                unsupported
+            ),
+            (crate::value_format::ValueFormat::Date, supported, supported),
+            (
+                crate::value_format::ValueFormat::DateTime,
+                supported,
+                supported
+            ),
+            (
+                crate::value_format::ValueFormat::Float32,
+                supported,
+                supported
+            ),
+            (
+                crate::value_format::ValueFormat::Float64,
+                supported,
+                supported
+            ),
+            (crate::value_format::ValueFormat::Inet, supported, supported),
+            (
+                crate::value_format::ValueFormat::Int16,
+                supported,
+                supported
+            ),
+            (
+                crate::value_format::ValueFormat::Int32,
+                supported,
+                supported
+            ),
+            (
+                crate::value_format::ValueFormat::Int64,
+                supported,
+                supported
+            ),
+            (
+                crate::value_format::ValueFormat::Interval,
+                unsupported,
+                supported
+            ),
+            (crate::value_format::ValueFormat::Mac, supported, supported),
+            (
+                crate::value_format::ValueFormat::Range,
+                unsupported,
+                unsupported
+            ),
+            (crate::value_format::ValueFormat::Text, supported, supported),
+            (crate::value_format::ValueFormat::Time, supported, supported),
+            (
+                crate::value_format::ValueFormat::Timestamp,
+                supported,
+                supported
+            ),
+            (
+                crate::value_format::ValueFormat::TimestampTz,
+                supported,
+                supported
+            ),
+            (crate::value_format::ValueFormat::Uuid, supported, supported),
+        ]
+        .into_iter()
+        .all(|(value_format, filtering, sorting)| {
+            let contract = crate::type_contract::TypeContract::new(
+                crate::input_kind::InputKind::Text,
+                value_format,
+                crate::nullability::Nullability::Nullable,
+            );
+            contract.supports_filtering() == filtering && contract.supports_sorting() == sorting
+        })
+    );
+}
+
+#[test]
+fn test_type_contract_builders_preserve_defaults_and_unrelated_metadata() {
+    let original = crate::type_contract::TypeContract::new(
+        crate::input_kind::InputKind::Number,
+        crate::value_format::ValueFormat::Int64,
+        crate::nullability::Nullability::Nullable,
+    );
+    assert_eq!(original.example(), crate::value_example::ValueExample::None);
+    assert_eq!(original.minimum(), crate::numeric_bound::NumericBound::None);
+    assert_eq!(original.maximum(), crate::numeric_bound::NumericBound::None);
+    assert_eq!(original.step(), crate::input_step::InputStep::Any);
+    let minimum = crate::numeric_bound::NumericBound::Inclusive(
+        crate::contract_i64::ContractI64::from(-5i64),
+    );
+    let maximum =
+        crate::numeric_bound::NumericBound::Inclusive(crate::contract_i64::ContractI64::from(8i64));
+    let changed = original
+        .with_example(crate::value_example::ValueExample::Integer)
+        .with_minimum(minimum)
+        .with_maximum(maximum)
+        .with_step(crate::input_step::InputStep::Integer);
+    assert_eq!(
+        changed.example(),
+        crate::value_example::ValueExample::Integer
+    );
+    assert_eq!(changed.minimum(), minimum);
+    assert_eq!(changed.maximum(), maximum);
+    assert_eq!(changed.step(), crate::input_step::InputStep::Integer);
+    assert_eq!(changed.input_kind(), original.input_kind());
+    assert_eq!(changed.format(), original.format());
+    assert_eq!(changed.nullability(), original.nullability());
+    assert_eq!(
+        changed
+            .with_example(crate::value_example::ValueExample::None)
+            .with_minimum(crate::numeric_bound::NumericBound::None)
+            .with_maximum(crate::numeric_bound::NumericBound::None)
+            .with_step(crate::input_step::InputStep::Any),
+        original
+    );
+}
+
+#[test]
+fn test_action_contracts_and_route_catalogs_preserve_metadata_and_order() {
+    let route = crate::route_contract::RouteContract::new(
+        crate::authentication_requirement::AuthenticationRequirement::Public,
+        crate::route_method::RouteMethod::Get,
+        crate::mutation_kind::MutationKind::ReadOnly,
+        crate::contract_str::ContractStr::from(constants_str::SLASH),
+        crate::success_status::SuccessStatus::Code200,
+    );
+    let actions = [
+        crate::operation_kind::OperationKind::CreateMany,
+        crate::operation_kind::OperationKind::DeleteMany,
+        crate::operation_kind::OperationKind::Read,
+        crate::operation_kind::OperationKind::Update,
+    ]
+    .map(|operation_kind| {
+        let original = crate::action_contract::ActionContract::new(operation_kind, route);
+        assert_eq!(original.operation(), operation_kind);
+        assert_eq!(original.route(), route);
+        assert_eq!(
+            original.confirmation(),
+            crate::confirmation_requirement::ConfirmationRequirement::NotRequired
+        );
+        let confirmed = original
+            .with_confirmation(crate::confirmation_requirement::ConfirmationRequirement::Required);
+        assert_eq!(confirmed.operation(), operation_kind);
+        assert_eq!(confirmed.route(), route);
+        assert_eq!(
+            confirmed.confirmation(),
+            crate::confirmation_requirement::ConfirmationRequirement::Required
+        );
+        assert_eq!(
+            confirmed.with_confirmation(
+                crate::confirmation_requirement::ConfirmationRequirement::NotRequired
+            ),
+            original
+        );
+        confirmed
+    });
+    let ordered_actions = [
+        actions[3usize],
+        actions[0usize],
+        actions[3usize],
+        actions[1usize],
+        actions[2usize],
+    ];
+    let action_catalog = crate::action_contracts::ActionContracts::from_max_iter(ordered_actions);
+    assert_eq!(action_catalog.as_ref(), ordered_actions.as_slice());
+    assert_eq!(
+        crate::action_contracts::ActionContracts::try_from(ordered_actions.to_vec()),
+        Ok(action_catalog)
+    );
+    assert!(
+        crate::action_contracts::ActionContracts::from_max_iter(std::iter::empty())
+            .as_ref()
+            .is_empty()
+    );
+    let other_route = crate::route_contract::RouteContract::new(
+        crate::authentication_requirement::AuthenticationRequirement::Public,
+        crate::route_method::RouteMethod::Post,
+        crate::mutation_kind::MutationKind::Mutating,
+        crate::contract_str::ContractStr::from(constants_str::SLASH),
+        crate::success_status::SuccessStatus::Code200,
+    );
+    let ordered_routes = [other_route, route, other_route];
+    let route_catalog = crate::route_contracts::RouteContracts::from_max_iter(ordered_routes);
+    assert_eq!(route_catalog.as_ref(), ordered_routes.as_slice());
+    assert_eq!(
+        crate::route_contracts::RouteContracts::try_from(ordered_routes.to_vec()),
+        Ok(route_catalog)
+    );
+    assert!(
+        crate::route_contracts::RouteContracts::from_max_iter(std::iter::empty())
+            .as_ref()
+            .is_empty()
+    );
+}
+
+#[test]
+fn test_contract_integer_bounds_match_standard_integer_limits() {
+    assert!(
+        [
+            (
+                crate::contract_i64::ContractI64::i16_min(),
+                i64::from(i16::MIN)
+            ),
+            (
+                crate::contract_i64::ContractI64::i16_max(),
+                i64::from(i16::MAX)
+            ),
+            (
+                crate::contract_i64::ContractI64::i32_min(),
+                i64::from(i32::MIN)
+            ),
+            (
+                crate::contract_i64::ContractI64::i32_max(),
+                i64::from(i32::MAX)
+            ),
+            (crate::contract_i64::ContractI64::min(), i64::MIN),
+            (crate::contract_i64::ContractI64::max(), i64::MAX),
+        ]
+        .into_iter()
+        .all(|(actual, expected)| actual == crate::contract_i64::ContractI64::from(expected))
+    );
+}
+
+#[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
+struct DefaultContractRouteFamily;
+impl crate::route_family::RouteFamily for DefaultContractRouteFamily {
+    fn coverage_descriptors() -> crate::route_coverage_descriptors::RouteCoverageDescriptors {
+        crate::route_coverage_descriptors::RouteCoverageDescriptors::default()
+    }
+}
+#[test]
+fn test_route_family_defaults_preserve_empty_optional_contracts() {
+    assert_eq!(
+        <DefaultContractRouteFamily as crate::route_family::RouteFamily>::ROUTE_COUNT,
+        constants_usize::ZERO
+    );
+    assert_eq!(
+        <DefaultContractRouteFamily as crate::route_family::RouteFamily>::body_limit(),
+        None
+    );
+    assert!(
+        <DefaultContractRouteFamily as crate::route_family::RouteFamily>::schema_contracts()
+            .as_ref()
+            .is_empty()
+    );
+    assert!(
+        <DefaultContractRouteFamily as crate::route_family::RouteFamily>::route_metadata()
+            .as_ref()
+            .is_empty()
+    );
+}
+#[cfg(not(target_arch = "wasm32"))]
+#[test]
+fn test_method_filters_match_axum_http_method_conversion() {
+    assert!(
+        [
+            crate::route_method::RouteMethod::Connect,
+            crate::route_method::RouteMethod::Delete,
+            crate::route_method::RouteMethod::Get,
+            crate::route_method::RouteMethod::Head,
+            crate::route_method::RouteMethod::Options,
+            crate::route_method::RouteMethod::Patch,
+            crate::route_method::RouteMethod::Post,
+            crate::route_method::RouteMethod::Put,
+            crate::route_method::RouteMethod::Trace,
+        ]
+        .into_iter()
+        .all(|route_method| {
+            let actual = axum::routing::MethodFilter::from(
+                crate::to_axum_method_filter::to_axum_method_filter(route_method),
+            );
+            axum::http::Method::from_bytes(route_method.as_str().as_ref().as_bytes()).is_ok_and(
+                |method| {
+                    axum::routing::MethodFilter::try_from(method)
+                        .is_ok_and(|expected| actual == expected)
+                },
+            )
+        })
+    );
+}
+
+#[test]
+fn test_schema_registration_replaces_stale_aliases_and_references_without_losing_unrelated_entries()
+{
+    let schema_name = <crate::api_problem::ApiProblem as utoipa::ToSchema>::name();
+    let qualified_name = std::any::type_name::<crate::api_problem::ApiProblem>()
+        .replace(constants_str::DOUBLE_COLON, constants_str::DOT);
+    let crate_name = std::any::type_name::<crate::api_problem::ApiProblem>()
+        .split(constants_str::DOUBLE_COLON)
+        .next();
+    let crate_qualified_name =
+        crate_name.map(|crate_segment| format!("{crate_segment}.{schema_name}"));
+    let references = [
+        (
+            <crate::api_problem_detail::ApiProblemDetail as utoipa::ToSchema>::name(),
+            <crate::api_problem_detail::ApiProblemDetail as utoipa::PartialSchema>::schema(),
+        ),
+        (
+            <crate::api_problem_request_id::ApiProblemRequestId as utoipa::ToSchema>::name(),
+            <crate::api_problem_request_id::ApiProblemRequestId as utoipa::PartialSchema>::schema(),
+        ),
+        (
+            <crate::api_problem_status::ApiProblemStatus as utoipa::ToSchema>::name(),
+            <crate::api_problem_status::ApiProblemStatus as utoipa::PartialSchema>::schema(),
+        ),
+        (
+            <crate::api_problem_kind::ApiProblemKind as utoipa::ToSchema>::name(),
+            <crate::api_problem_kind::ApiProblemKind as utoipa::PartialSchema>::schema(),
+        ),
+    ];
+    let stale = utoipa::openapi::RefOr::<utoipa::openapi::Schema>::Ref(
+        utoipa::openapi::Ref::from_schema_name(constants_str::NEVER_PRINT_THIS_VALUE),
+    );
+    let mut components = utoipa::openapi::schema::Components::new();
+    components.schemas = std::collections::BTreeMap::from([
+        (schema_name.clone().into_owned(), stale.clone()),
+        (qualified_name.clone(), stale.clone()),
+        (
+            constants_str::NEVER_PRINT_THIS_VALUE.to_owned(),
+            stale.clone(),
+        ),
+    ]);
+    assert!(crate_qualified_name.as_ref().is_some_and(|name| {
+        let previous = components.schemas.insert(name.clone(), stale.clone());
+        previous.is_none()
+    }));
+    let referenced_entries = references
+        .iter()
+        .map(|(name, _schema)| (name.clone().into_owned(), stale.clone()));
+    components.schemas.extend(referenced_entries);
+    let mut components_ref_mut =
+        crate::utoipa_open_api_components_ref_mut::UtoipaOpenApiComponentsRefMut::from(
+            &mut components,
+        );
+    crate::register_openapi_schema::register_openapi_schema::<crate::api_problem::ApiProblem>(
+        &mut components_ref_mut,
+    );
+    let first_registration = serde_json::to_value(&*components_ref_mut);
+    crate::register_openapi_schema::register_openapi_schema::<crate::api_problem::ApiProblem>(
+        &mut components_ref_mut,
+    );
+    assert!(first_registration.is_ok_and(|first| {
+        serde_json::to_value(&*components_ref_mut).is_ok_and(|second| first == second)
+    }));
+    let expected_schema = <crate::api_problem::ApiProblem as utoipa::PartialSchema>::schema();
+    assert!(
+        [
+            Some(schema_name.as_ref()),
+            Some(qualified_name.as_str()),
+            crate_qualified_name.as_deref()
+        ]
+        .into_iter()
+        .all(|optional_name| {
+            optional_name.is_some_and(|name| {
+                components_ref_mut.schemas.get(name).is_some_and(|schema| {
+                    serde_json::to_value(schema).is_ok_and(|actual| {
+                        serde_json::to_value(&expected_schema)
+                            .is_ok_and(|expected| actual == expected)
+                    })
+                })
+            })
+        })
+    );
+    assert!(references.iter().all(|(name, schema)| {
+        components_ref_mut
+            .schemas
+            .get(name.as_ref())
+            .is_some_and(|registered| {
+                serde_json::to_value(registered).is_ok_and(|actual| {
+                    serde_json::to_value(schema).is_ok_and(|expected| actual == expected)
+                })
+            })
+    }));
+    assert!(
+        components_ref_mut
+            .schemas
+            .get(constants_str::NEVER_PRINT_THIS_VALUE)
+            .is_some_and(|schema| serde_json::to_value(schema).is_ok_and(|actual| {
+                serde_json::to_value(&stale).is_ok_and(|expected| actual == expected)
+            }))
+    );
+}
+
+#[test]
+fn test_client_error_display_preserves_operation_and_source_details() {
+    let form_value_error = crate::create_form_value_error::create_form_value_error(
+        constants_str::INVALID_FILTER_SPECIFICATION,
+    );
+    assert!(
+        crate::transport_error::TransportError::try_from(
+            constants_str::INVALID_FILTER_SPECIFICATION.to_owned()
+        )
+        .is_ok_and(|transport_error| {
+            let cases = [
+                (
+                    crate::client_error::ClientError::Decode(form_value_error.clone()),
+                    format!(
+                        "{}{}",
+                        constants_str::CLIENT_ERROR_DECODE_PREFIX,
+                        constants_str::INVALID_FILTER_SPECIFICATION
+                    ),
+                ),
+                (
+                    crate::client_error::ClientError::Encode(form_value_error),
+                    format!(
+                        "{}{}",
+                        constants_str::CLIENT_ERROR_ENCODE_PREFIX,
+                        constants_str::INVALID_FILTER_SPECIFICATION
+                    ),
+                ),
+                (
+                    crate::client_error::ClientError::Transport(transport_error),
+                    format!(
+                        "{}{}",
+                        constants_str::CLIENT_ERROR_TRANSPORT_PREFIX,
+                        constants_str::INVALID_FILTER_SPECIFICATION
+                    ),
+                ),
+                (
+                    crate::client_error::ClientError::Problem(
+                        crate::api_problem::ApiProblem::from_error(
+                            crate::api_problem_error::ApiProblemError::Authentication,
+                        ),
+                    ),
+                    constants_str::AUTHENTICATION_REQUIRED.to_owned(),
+                ),
+            ];
+            cases
+                .into_iter()
+                .all(|(error, expected)| error.to_string() == expected)
+        })
+    );
+}
+#[test]
+fn test_client_error_display_preserves_actual_expected_status_order_and_unexpected_response() {
+    assert_eq!(
+        crate::client_error::ClientError::UnexpectedResponse.to_string(),
+        constants_str::SERVER_RETURNED_AN_ERROR_RESPONSE
+    );
+    let cases = [
+        (
+            crate::known_http_status::KnownHttpStatus::BadRequest,
+            crate::known_http_status::KnownHttpStatus::Ok,
+        ),
+        (
+            crate::known_http_status::KnownHttpStatus::InternalServerError,
+            crate::known_http_status::KnownHttpStatus::Created,
+        ),
+    ];
+    assert!(cases.into_iter().all(|(actual_status, expected_status)| {
+        let actual = crate::transport_status::TransportStatus::from(actual_status);
+        let expected = crate::transport_status::TransportStatus::from(expected_status);
+        let error = crate::client_error::ClientError::Status { actual, expected };
+        error.to_string()
+            == format!(
+                "{}{expected}, {}{actual}",
+                constants_str::CLIENT_ERROR_EXPECTED_HTTP_PREFIX,
+                constants_str::CLIENT_ERROR_RECEIVED_HTTP_PREFIX
+            )
+    }));
+}
+#[test]
+fn test_refresh_interval_rejects_zero_and_preserves_positive_duration_boundaries() {
+    assert_eq!(
+        crate::auth_session_refresh_interval_duration::AuthSessionRefreshIntervalDuration::try_from(
+            std::time::Duration::ZERO,
+        ),
+        Err(crate::auth_session_keep_alive_error::AuthSessionKeepAliveError::ZeroInterval)
+    );
+    assert!(
+        [std::time::Duration::from_nanos(1u64), std::time::Duration::MAX]
+            .into_iter()
+            .all(|duration| {
+                crate::auth_session_refresh_interval_duration::AuthSessionRefreshIntervalDuration::try_from(duration)
+                    .is_ok_and(|interval| interval.get() == duration)
+            })
+    );
+}
+
+#[test]
+fn test_form_value_error_preserves_bounded_text_and_defaults_for_oversized_diagnostics() {
+    assert!(
+        [
+            constants_usize::ZERO,
+            constants_usize::ONE,
+            constants_usize::VALUE_1_048_576
+        ]
+        .into_iter()
+        .all(|length| {
+            let diagnostic = constants_str::SLASH.repeat(length);
+            crate::create_form_value_error::create_form_value_error(&diagnostic).to_string()
+                == diagnostic
+        })
+    );
+    let oversized_diagnostic =
+        constants_str::SLASH.repeat(constants_usize::VALUE_1_048_576 + constants_usize::ONE);
+    assert_eq!(
+        crate::create_form_value_error::create_form_value_error(oversized_diagnostic),
+        crate::form_value_error::FormValueError::default()
+    );
+}

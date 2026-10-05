@@ -21,3 +21,7 @@ proc_macro_generate_pg_types::generate_pg_types!({
 
 #[cfg(test)]
 mod test_generated_read_query_part_overflow;
+
+#[cfg(feature = "test-utils")]
+#[cfg(test)]
+mod test_generated_comparison_cases;

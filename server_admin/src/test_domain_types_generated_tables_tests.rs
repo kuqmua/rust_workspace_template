@@ -1612,3 +1612,916 @@ fn test_role_update_openapi_uses_only_filtered_routes() {
         )
     );
 }
+
+#[test]
+fn test_between_deserialization_preserves_inclusive_bounds_in_maps_and_sequences() {
+    [(1i32, 2i32), (5i32, 5i32), (i32::MIN, i32::MAX)]
+        .into_iter()
+        .fold((), |(), (start, end)| {
+            let canonical = serde_json::json!({
+                (constants_str::PG_CRUD_START_FIELD): start,
+                (constants_str::PG_CRUD_END_FIELD): end,
+            });
+            [
+                canonical.clone(),
+                serde_json::json!([start, end]),
+                serde_json::json!({
+                    (constants_str::PG_CRUD_END_FIELD): end,
+                    (constants_str::PG_CRUD_START_FIELD): start,
+                    (constants_str::UNKNOWN_ALT): { (constants_str::VALUES): [1i32, 2i32] },
+                }),
+            ]
+            .into_iter()
+            .fold((), |(), value| {
+                assert!(
+                    serde_json::from_value::<where_filters::between::Between<i32>>(value)
+                        .is_ok_and(|between| serde_json::to_value(between)
+                            .is_ok_and(|serialized| serialized == canonical))
+                );
+            });
+        });
+}
+
+#[test]
+fn test_between_deserialization_rejects_missing_duplicate_and_invalid_bounds() {
+    [
+        serde_json::json!({}),
+        serde_json::json!({ (constants_str::PG_CRUD_START_FIELD): 1i32 }),
+        serde_json::json!({ (constants_str::PG_CRUD_END_FIELD): 2i32 }),
+        serde_json::json!({ (constants_str::PG_CRUD_START_FIELD): 2i32, (constants_str::PG_CRUD_END_FIELD): 1i32 }),
+        serde_json::json!({ (constants_str::PG_CRUD_START_FIELD): null, (constants_str::PG_CRUD_END_FIELD): 2i32 }),
+        serde_json::json!({ (constants_str::PG_CRUD_START_FIELD): 1i32, (constants_str::PG_CRUD_END_FIELD): constants_str::X }),
+        serde_json::json!([]),
+        serde_json::json!([1i32]),
+        serde_json::json!([2i32, 1i32]),
+        serde_json::json!([1i32, 2i32, 3i32]),
+    ].into_iter().fold((), |(), value| {
+        assert!(serde_json::from_value::<where_filters::between::Between<i32>>(value).is_err_and(|error| error.is_data()));
+    });
+    [
+        format!(
+            "{{\"{}\":1,\"{}\":2,\"{}\":3}}",
+            constants_str::PG_CRUD_START_FIELD,
+            constants_str::PG_CRUD_START_FIELD,
+            constants_str::PG_CRUD_END_FIELD
+        ),
+        format!(
+            "{{\"{}\":1,\"{}\":2,\"{}\":3}}",
+            constants_str::PG_CRUD_START_FIELD,
+            constants_str::PG_CRUD_END_FIELD,
+            constants_str::PG_CRUD_END_FIELD
+        ),
+    ]
+    .into_iter()
+    .fold((), |(), value| {
+        assert!(
+            serde_json::from_str::<where_filters::between::Between<i32>>(&value)
+                .is_err_and(|error| error.is_data())
+        );
+    });
+}
+
+fn assert_generated_pg_storage_type_matches_sqlx<T>()
+where
+    T: pg_crud_common::pg_type::PgType + pg_crud_common::pg_column_schema::PgColumnSchema,
+    <T as pg_crud_common::pg_type::PgType>::TableType: sqlx::Type<sqlx::Postgres>,
+{
+    let declared = <T as pg_crud_common::pg_column_schema::PgColumnSchema>::data_type();
+    let observed = <<T as pg_crud_common::pg_type::PgType>::TableType as sqlx::Type<
+        sqlx::Postgres,
+    >>::type_info();
+    assert!(
+        declared
+            .as_ref()
+            .eq_ignore_ascii_case(sqlx::TypeInfo::name(&observed))
+    );
+}
+
+#[test]
+fn test_generated_non_null_pg_catalog_storage_metadata_matches_sqlx_types() {
+    assert_generated_pg_storage_type_matches_sqlx::<
+        pg_types_numeric::generate_pg_types_mod::I16AsNonNullInt2,
+    >();
+    assert_generated_pg_storage_type_matches_sqlx::<
+        pg_types_numeric::generate_pg_types_mod::I32AsNonNullInt4,
+    >();
+    assert_generated_pg_storage_type_matches_sqlx::<
+        pg_types_numeric::generate_pg_types_mod::I64AsNonNullInt8,
+    >();
+    assert_generated_pg_storage_type_matches_sqlx::<
+        pg_types_numeric::generate_pg_types_mod::F32AsNonNullFloat4,
+    >();
+    assert_generated_pg_storage_type_matches_sqlx::<
+        pg_types_numeric::generate_pg_types_mod::F64AsNonNullFloat8,
+    >();
+    assert_generated_pg_storage_type_matches_sqlx::<
+        pg_types_numeric::generate_pg_types_mod::I16AsNonNullSmallSerialInitializationByPg,
+    >();
+    assert_generated_pg_storage_type_matches_sqlx::<
+        pg_types_numeric::generate_pg_types_mod::I32AsNonNullSerialInitializationByPg,
+    >();
+    assert_generated_pg_storage_type_matches_sqlx::<
+        pg_types_numeric::generate_pg_types_mod::I64AsNonNullBigSerialInitializationByPg,
+    >();
+    assert_generated_pg_storage_type_matches_sqlx::<
+        pg_types_numeric::generate_pg_types_mod::SqlxPgTypesPgMoneyAsNonNullMoney,
+    >();
+    assert_generated_pg_storage_type_matches_sqlx::<
+        pg_types_numeric::generate_pg_types_mod::BoolAsNonNullBool,
+    >();
+    assert_generated_pg_storage_type_matches_sqlx::<
+        pg_types_text_misc::generate_pg_types_mod::StringAsNonNullText,
+    >();
+    assert_generated_pg_storage_type_matches_sqlx::<
+        pg_types_text_misc::generate_pg_types_mod::StdVecVecU8AsNonNullBytea,
+    >();
+    assert_generated_pg_storage_type_matches_sqlx::<
+        pg_types_chrono_net::generate_pg_types_mod::SqlxTypesChronoNaiveTimeAsNonNullTime,
+    >();
+    assert_generated_pg_storage_type_matches_sqlx::<
+        pg_types_text_misc::generate_pg_types_mod::SqlxTypesTimeTimeAsNonNullTime,
+    >();
+    assert_generated_pg_storage_type_matches_sqlx::<
+        pg_types_text_misc::generate_pg_types_mod::SqlxPgTypesPgIntervalAsNonNullInterval,
+    >();
+    assert_generated_pg_storage_type_matches_sqlx::<
+        pg_types_chrono_net::generate_pg_types_mod::SqlxTypesChronoNaiveDateAsNonNullDate,
+    >();
+    assert_generated_pg_storage_type_matches_sqlx::<
+        pg_types_chrono_net::generate_pg_types_mod::SqlxTypesChronoNaiveDateTimeAsNonNullTimestamp,
+    >();
+    assert_generated_pg_storage_type_matches_sqlx::<pg_types_chrono_net::generate_pg_types_mod::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsNonNullTimestampTz>();
+    assert_generated_pg_storage_type_matches_sqlx::<pg_types_text_misc::generate_pg_types_mod::SqlxTypesUuidUuidAsNonNullUuidV4InitializationByPg>();
+    assert_generated_pg_storage_type_matches_sqlx::<pg_types_text_misc::generate_pg_types_mod::SqlxTypesUuidUuidAsNonNullUuidInitializationByClient>();
+    assert_generated_pg_storage_type_matches_sqlx::<
+        pg_types_chrono_net::generate_pg_types_mod::SqlxTypesIpnetworkIpNetworkAsNonNullInet,
+    >();
+    assert_generated_pg_storage_type_matches_sqlx::<
+        pg_types_chrono_net::generate_pg_types_mod::SqlxTypesMacAddressMacAddressAsNonNullMacAddr,
+    >();
+    assert_generated_pg_storage_type_matches_sqlx::<
+        pg_types_numeric::generate_pg_types_mod::SqlxPgTypesPgRangeI32AsNonNullInt4Range,
+    >();
+    assert_generated_pg_storage_type_matches_sqlx::<
+        pg_types_numeric::generate_pg_types_mod::SqlxPgTypesPgRangeI64AsNonNullInt8Range,
+    >();
+    assert_generated_pg_storage_type_matches_sqlx::<pg_types_chrono_net::generate_pg_types_mod::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsNonNullDateRange>();
+    assert_generated_pg_storage_type_matches_sqlx::<pg_types_chrono_net::generate_pg_types_mod::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsNonNullTimestampRange>();
+    assert_generated_pg_storage_type_matches_sqlx::<pg_types_chrono_net::generate_pg_types_mod::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsNonNullTimestampTzRange>();
+}
+
+#[test]
+fn test_generated_nullable_pg_catalog_storage_metadata_matches_sqlx_types() {
+    assert_generated_pg_storage_type_matches_sqlx::<
+        pg_types_numeric::generate_pg_types_mod::OptionalI16AsNullableInt2,
+    >();
+    assert_generated_pg_storage_type_matches_sqlx::<
+        pg_types_numeric::generate_pg_types_mod::OptionalI32AsNullableInt4,
+    >();
+    assert_generated_pg_storage_type_matches_sqlx::<
+        pg_types_numeric::generate_pg_types_mod::OptionalI64AsNullableInt8,
+    >();
+    assert_generated_pg_storage_type_matches_sqlx::<
+        pg_types_numeric::generate_pg_types_mod::OptionalF32AsNullableFloat4,
+    >();
+    assert_generated_pg_storage_type_matches_sqlx::<
+        pg_types_numeric::generate_pg_types_mod::OptionalF64AsNullableFloat8,
+    >();
+    assert_generated_pg_storage_type_matches_sqlx::<
+        pg_types_numeric::generate_pg_types_mod::OptionalSqlxPgTypesPgMoneyAsNullableMoney,
+    >();
+    assert_generated_pg_storage_type_matches_sqlx::<
+        pg_types_numeric::generate_pg_types_mod::OptionalBoolAsNullableBool,
+    >();
+    assert_generated_pg_storage_type_matches_sqlx::<
+        pg_types_text_misc::generate_pg_types_mod::OptionalStringAsNullableText,
+    >();
+    assert_generated_pg_storage_type_matches_sqlx::<
+        pg_types_text_misc::generate_pg_types_mod::OptionalStdVecVecU8AsNullableBytea,
+    >();
+    assert_generated_pg_storage_type_matches_sqlx::<
+        pg_types_chrono_net::generate_pg_types_mod::OptionalSqlxTypesChronoNaiveTimeAsNullableTime,
+    >();
+    assert_generated_pg_storage_type_matches_sqlx::<
+        pg_types_text_misc::generate_pg_types_mod::OptionalSqlxTypesTimeTimeAsNullableTime,
+    >();
+    assert_generated_pg_storage_type_matches_sqlx::<
+        pg_types_text_misc::generate_pg_types_mod::OptionalSqlxPgTypesPgIntervalAsNullableInterval,
+    >();
+    assert_generated_pg_storage_type_matches_sqlx::<
+        pg_types_chrono_net::generate_pg_types_mod::OptionalSqlxTypesChronoNaiveDateAsNullableDate,
+    >();
+    assert_generated_pg_storage_type_matches_sqlx::<pg_types_chrono_net::generate_pg_types_mod::OptionalSqlxTypesChronoNaiveDateTimeAsNullableTimestamp>();
+    assert_generated_pg_storage_type_matches_sqlx::<pg_types_chrono_net::generate_pg_types_mod::OptionalSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsNullableTimestampTz>();
+    assert_generated_pg_storage_type_matches_sqlx::<pg_types_text_misc::generate_pg_types_mod::OptionalSqlxTypesUuidUuidAsNullableUuidInitializationByClient>();
+    assert_generated_pg_storage_type_matches_sqlx::<pg_types_chrono_net::generate_pg_types_mod::OptionalSqlxTypesIpnetworkIpNetworkAsNullableInet>();
+    assert_generated_pg_storage_type_matches_sqlx::<pg_types_chrono_net::generate_pg_types_mod::OptionalSqlxTypesMacAddressMacAddressAsNullableMacAddr>();
+    assert_generated_pg_storage_type_matches_sqlx::<
+        pg_types_numeric::generate_pg_types_mod::OptionalSqlxPgTypesPgRangeI32AsNullableInt4Range,
+    >();
+    assert_generated_pg_storage_type_matches_sqlx::<
+        pg_types_numeric::generate_pg_types_mod::OptionalSqlxPgTypesPgRangeI64AsNullableInt8Range,
+    >();
+    assert_generated_pg_storage_type_matches_sqlx::<pg_types_chrono_net::generate_pg_types_mod::OptionalSqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsNullableDateRange>();
+    assert_generated_pg_storage_type_matches_sqlx::<pg_types_chrono_net::generate_pg_types_mod::OptionalSqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsNullableTimestampRange>();
+    assert_generated_pg_storage_type_matches_sqlx::<pg_types_chrono_net::generate_pg_types_mod::OptionalSqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsNullableTimestampTzRange>();
+}
+fn assert_generated_where_deserialization_requires_a_populated_field<Where>()
+where
+    Where: pg_crud_common::default_some_one_element::DefaultSomeOneElement
+        + serde::Serialize
+        + serde::de::DeserializeOwned,
+{
+    let default_where = Where::default_some_one_element();
+    assert!(serde_json::to_value(default_where).is_ok_and(|value| {
+        value.as_object().is_some_and(|object| {
+            !object.is_empty()
+                && serde_json::from_value::<Where>(value.clone()).is_ok_and(|decoded| {
+                    serde_json::to_value(decoded).is_ok_and(|round_trip| round_trip == value)
+                })
+                && object.iter().all(|(field, field_value)| {
+                    !field_value.is_null()
+                        && serde_json::from_value::<Where>(serde_json::Value::Object(
+                            std::iter::once((field.clone(), field_value.clone())).collect(),
+                        ))
+                        .is_ok_and(|decoded_field| {
+                            serde_json::to_value(decoded_field).is_ok_and(|decoded_value| {
+                                decoded_value.as_object().is_some_and(|decoded_object| {
+                                    decoded_object.get(field) == Some(field_value)
+                                        && decoded_object.iter().all(
+                                            |(decoded_name, decoded_field_value)| {
+                                                decoded_name == field
+                                                    || decoded_field_value.is_null()
+                                            },
+                                        )
+                                })
+                            })
+                        })
+                })
+                && [
+                    serde_json::Map::new(),
+                    object
+                        .keys()
+                        .map(|field_name| (field_name.clone(), serde_json::Value::Null))
+                        .collect(),
+                ]
+                .into_iter()
+                .all(|empty_fields| {
+                    serde_json::from_value::<Where>(serde_json::Value::Object(empty_fields))
+                        .is_err_and(|error| {
+                            error.to_string().contains(stringify!(NoFieldsProvided))
+                        })
+                })
+        })
+    }));
+}
+
+#[test]
+fn test_generated_admin_where_deserialization_rejects_empty_input_and_preserves_each_field() {
+    assert_generated_where_deserialization_requires_a_populated_field::<
+        crate::admin_access_sessions::AdminAccessSessionsWhereMany,
+    >();
+    assert_generated_where_deserialization_requires_a_populated_field::<
+        crate::admin_audit_log::AdminAuditLogWhereMany,
+    >();
+    assert_generated_where_deserialization_requires_a_populated_field::<
+        crate::admin_cleanup_status::AdminCleanupStatusWhereMany,
+    >();
+    assert_generated_where_deserialization_requires_a_populated_field::<
+        crate::admin_login_attempts::AdminLoginAttemptsWhereMany,
+    >();
+    assert_generated_where_deserialization_requires_a_populated_field::<
+        crate::admin_permission_actions::AdminPermissionActionsWhereMany,
+    >();
+    assert_generated_where_deserialization_requires_a_populated_field::<
+        crate::admin_permission_resource_actions::AdminPermissionResourceActionsWhereMany,
+    >();
+    assert_generated_where_deserialization_requires_a_populated_field::<
+        crate::admin_permission_resources::AdminPermissionResourcesWhereMany,
+    >();
+    assert_generated_where_deserialization_requires_a_populated_field::<
+        crate::admin_rate_limits::AdminRateLimitsWhereMany,
+    >();
+    assert_generated_where_deserialization_requires_a_populated_field::<
+        crate::admin_refresh_tokens::AdminRefreshTokensWhereMany,
+    >();
+    assert_generated_where_deserialization_requires_a_populated_field::<
+        crate::admin_role_rules::AdminRoleRulesWhereMany,
+    >();
+    assert_generated_where_deserialization_requires_a_populated_field::<
+        crate::admin_roles::AdminRolesWhereMany,
+    >();
+    assert_generated_where_deserialization_requires_a_populated_field::<
+        crate::admin_rules::AdminRulesWhereMany,
+    >();
+    assert_generated_where_deserialization_requires_a_populated_field::<
+        crate::admin_system_settings::AdminSystemSettingsWhereMany,
+    >();
+    assert_generated_where_deserialization_requires_a_populated_field::<
+        crate::admin_user_roles::AdminUserRolesWhereMany,
+    >();
+    assert_generated_where_deserialization_requires_a_populated_field::<
+        crate::admin_users_database_read::AdminUsersDatabaseReadWhereMany,
+    >();
+}
+fn assert_generated_update_deserialization_requires_primary_key_and_changed_field<Update>()
+where
+    Update: pg_crud_common::default_some_one_element::DefaultSomeOneElement
+        + serde::Serialize
+        + serde::de::DeserializeOwned,
+{
+    assert!(
+        serde_json::to_value(Update::default_some_one_element()).is_ok_and(|value| {
+            value.as_object().is_some_and(|object| {
+                let Some(primary_key) = object.get(constants_str::SQL_NAMES_ID) else {
+                    return false;
+                };
+                object.len() > 1usize
+                    && !primary_key.is_null()
+                    && serde_json::from_value::<Update>(value.clone()).is_ok_and(|decoded| {
+                        serde_json::to_value(decoded).is_ok_and(|round_trip| round_trip == value)
+                    })
+                    && object
+                        .iter()
+                        .filter(|(field, _)| field.as_str() != constants_str::SQL_NAMES_ID)
+                        .all(|(field, field_value)| {
+                            !field_value.is_null()
+                                && serde_json::from_value::<Update>(serde_json::Value::Object(
+                                    [
+                                        (
+                                            constants_str::SQL_NAMES_ID.to_owned(),
+                                            primary_key.clone(),
+                                        ),
+                                        (field.clone(), field_value.clone()),
+                                    ]
+                                    .into_iter()
+                                    .collect(),
+                                ))
+                                .is_ok_and(|decoded_field| {
+                                    serde_json::to_value(decoded_field).is_ok_and(|decoded_value| {
+                                        decoded_value.as_object().is_some_and(|decoded_object| {
+                                            decoded_object.get(constants_str::SQL_NAMES_ID)
+                                                == Some(primary_key)
+                                                && decoded_object.get(field) == Some(field_value)
+                                                && decoded_object.iter().all(
+                                                    |(decoded_name, decoded_field_value)| {
+                                                        decoded_name == constants_str::SQL_NAMES_ID
+                                                            || decoded_name == field
+                                                            || decoded_field_value.is_null()
+                                                    },
+                                                )
+                                        })
+                                    })
+                                })
+                        })
+                    && [
+                        std::iter::once((
+                            constants_str::SQL_NAMES_ID.to_owned(),
+                            primary_key.clone(),
+                        ))
+                        .collect(),
+                        object
+                            .keys()
+                            .map(|field_name| {
+                                (
+                                    field_name.clone(),
+                                    if field_name == constants_str::SQL_NAMES_ID {
+                                        primary_key.clone()
+                                    } else {
+                                        serde_json::Value::Null
+                                    },
+                                )
+                            })
+                            .collect(),
+                    ]
+                    .into_iter()
+                    .all(|unchanged_fields| {
+                        serde_json::from_value::<Update>(serde_json::Value::Object(
+                            unchanged_fields,
+                        ))
+                        .is_err_and(|error| {
+                            error.to_string().contains(stringify!(NoFieldsProvided))
+                        })
+                    })
+                    && serde_json::from_value::<Update>(serde_json::Value::Object(
+                        object
+                            .iter()
+                            .filter(|(field, _)| field.as_str() != constants_str::SQL_NAMES_ID)
+                            .map(|(field, field_value)| (field.clone(), field_value.clone()))
+                            .collect(),
+                    ))
+                    .is_err_and(|error| {
+                        error.is_data() && error.to_string().contains(constants_str::SQL_NAMES_ID)
+                    })
+            })
+        })
+    );
+}
+
+#[test]
+fn test_generated_admin_updates_require_primary_key_and_preserve_each_changed_field() {
+    assert_generated_update_deserialization_requires_primary_key_and_changed_field::<
+        crate::admin_access_sessions::AdminAccessSessionsUpdate,
+    >();
+    assert_generated_update_deserialization_requires_primary_key_and_changed_field::<
+        crate::admin_audit_log::AdminAuditLogUpdate,
+    >();
+    assert_generated_update_deserialization_requires_primary_key_and_changed_field::<
+        crate::admin_cleanup_status::AdminCleanupStatusUpdate,
+    >();
+    assert_generated_update_deserialization_requires_primary_key_and_changed_field::<
+        crate::admin_login_attempts::AdminLoginAttemptsUpdate,
+    >();
+    assert_generated_update_deserialization_requires_primary_key_and_changed_field::<
+        crate::admin_permission_actions::AdminPermissionActionsUpdate,
+    >();
+    assert_generated_update_deserialization_requires_primary_key_and_changed_field::<
+        crate::admin_permission_resource_actions::AdminPermissionResourceActionsUpdate,
+    >();
+    assert_generated_update_deserialization_requires_primary_key_and_changed_field::<
+        crate::admin_permission_resources::AdminPermissionResourcesUpdate,
+    >();
+    assert_generated_update_deserialization_requires_primary_key_and_changed_field::<
+        crate::admin_rate_limits::AdminRateLimitsUpdate,
+    >();
+    assert_generated_update_deserialization_requires_primary_key_and_changed_field::<
+        crate::admin_refresh_tokens::AdminRefreshTokensUpdate,
+    >();
+    assert_generated_update_deserialization_requires_primary_key_and_changed_field::<
+        crate::admin_role_rules::AdminRoleRulesUpdate,
+    >();
+    assert_generated_update_deserialization_requires_primary_key_and_changed_field::<
+        crate::admin_roles::AdminRolesUpdate,
+    >();
+    assert_generated_update_deserialization_requires_primary_key_and_changed_field::<
+        crate::admin_rules::AdminRulesUpdate,
+    >();
+    assert_generated_update_deserialization_requires_primary_key_and_changed_field::<
+        crate::admin_system_settings::AdminSystemSettingsUpdate,
+    >();
+    assert_generated_update_deserialization_requires_primary_key_and_changed_field::<
+        crate::admin_user_roles::AdminUserRolesUpdate,
+    >();
+    assert_generated_update_deserialization_requires_primary_key_and_changed_field::<
+        crate::admin_users_database_read::AdminUsersDatabaseReadUpdate,
+    >();
+}
+fn generated_update_preserves_explicit_null_contract<Update>(
+    std_admin_str_ref: server_admin_core::std_admin_str_ref::StdAdminStrRef<'_>,
+    admin_bool: server_admin_contract::admin_bool::AdminBool,
+) -> server_admin_contract::admin_bool::AdminBool
+where
+    Update: pg_crud_common::default_some_one_element::DefaultSomeOneElement
+        + serde::Serialize
+        + serde::de::DeserializeOwned,
+{
+    server_admin_contract::admin_bool::AdminBool::from(
+        serde_json::to_value(Update::default_some_one_element()).is_ok_and(|value| {
+            value.as_object().is_some_and(|object| {
+                let field = std_admin_str_ref.as_ref();
+                let Some(primary_key) = object.get(constants_str::SQL_NAMES_ID) else {
+                    return false;
+                };
+                let explicit_null = serde_json::Value::Object(
+                    std::iter::once((stringify!(value).to_owned(), serde_json::Value::Null))
+                        .collect(),
+                );
+                let decoded = serde_json::from_value::<Update>(serde_json::Value::Object(
+                    [
+                        (constants_str::SQL_NAMES_ID.to_owned(), primary_key.clone()),
+                        (field.to_owned(), explicit_null.clone()),
+                    ]
+                    .into_iter()
+                    .collect(),
+                ));
+                object.contains_key(field)
+                    && if bool::from(admin_bool) {
+                        decoded.is_ok_and(|cleared| {
+                            serde_json::to_value(cleared).is_ok_and(|cleared_value| {
+                                cleared_value.as_object().is_some_and(|cleared_object| {
+                                    cleared_object.get(constants_str::SQL_NAMES_ID)
+                                        == Some(primary_key)
+                                        && cleared_object.get(field) == Some(&explicit_null)
+                                        && cleared_object.iter().all(
+                                            |(other_field, other_value)| {
+                                                other_field == constants_str::SQL_NAMES_ID
+                                                    || other_field == field
+                                                    || other_value.is_null()
+                                            },
+                                        )
+                                })
+                            })
+                        })
+                    } else {
+                        decoded.is_err_and(|error| error.is_data())
+                    }
+                    && serde_json::from_value::<Update>(serde_json::Value::Object(
+                        [
+                            (constants_str::SQL_NAMES_ID.to_owned(), primary_key.clone()),
+                            (field.to_owned(), serde_json::Value::Null),
+                        ]
+                        .into_iter()
+                        .collect(),
+                    ))
+                    .is_err_and(|error| error.to_string().contains(stringify!(NoFieldsProvided)))
+            })
+        }),
+    )
+}
+
+#[test]
+fn test_generated_admin_updates_distinguish_explicit_null_from_missing_changes() {
+    assert!(
+        [
+            (stringify!(user_id), false),
+            (stringify!(token_identifier_hash), false),
+            (stringify!(csrf_token_hash), false),
+            (stringify!(token_context_hash), false),
+            (stringify!(expires_at), false),
+            (stringify!(created_at), false),
+            (stringify!(revoked_at), true),
+        ]
+        .into_iter()
+        .all(|(field, nullable)| bool::from(
+            generated_update_preserves_explicit_null_contract::<
+                crate::admin_access_sessions::AdminAccessSessionsUpdate,
+            >(
+                server_admin_core::std_admin_str_ref::StdAdminStrRef::from(field),
+                server_admin_contract::admin_bool::AdminBool::from(nullable),
+            )
+        ))
+    );
+    assert!(
+        [
+            (stringify!(user_id), true),
+            (stringify!(user_login), true),
+            (stringify!(action), false),
+            (stringify!(resource), false),
+            (stringify!(resource_id), true),
+            (stringify!(request_id), true),
+            (stringify!(succeeded), false),
+            (stringify!(details), true),
+            (stringify!(created_at), false),
+        ]
+        .into_iter()
+        .all(|(field, nullable)| bool::from(
+            generated_update_preserves_explicit_null_contract::<
+                crate::admin_audit_log::AdminAuditLogUpdate,
+            >(
+                server_admin_core::std_admin_str_ref::StdAdminStrRef::from(field),
+                server_admin_contract::admin_bool::AdminBool::from(nullable),
+            )
+        ))
+    );
+    assert!(
+        [
+            (stringify!(singleton), false),
+            (stringify!(last_success_at), false),
+            (stringify!(last_deleted_rows), false),
+        ]
+        .into_iter()
+        .all(|(field, nullable)| bool::from(
+            generated_update_preserves_explicit_null_contract::<
+                crate::admin_cleanup_status::AdminCleanupStatusUpdate,
+            >(
+                server_admin_core::std_admin_str_ref::StdAdminStrRef::from(field),
+                server_admin_contract::admin_bool::AdminBool::from(nullable),
+            )
+        ))
+    );
+    assert!(
+        [
+            (stringify!(login), false),
+            (stringify!(ip_address), true),
+            (stringify!(succeeded), false),
+            (stringify!(attempted_at), false),
+        ]
+        .into_iter()
+        .all(|(field, nullable)| bool::from(
+            generated_update_preserves_explicit_null_contract::<
+                crate::admin_login_attempts::AdminLoginAttemptsUpdate,
+            >(
+                server_admin_core::std_admin_str_ref::StdAdminStrRef::from(field),
+                server_admin_contract::admin_bool::AdminBool::from(nullable),
+            )
+        ))
+    );
+    assert!(
+        std::iter::once((stringify!(key), false)).all(|(field, nullable)| bool::from(
+            generated_update_preserves_explicit_null_contract::<
+                crate::admin_permission_actions::AdminPermissionActionsUpdate,
+            >(
+                server_admin_core::std_admin_str_ref::StdAdminStrRef::from(field),
+                server_admin_contract::admin_bool::AdminBool::from(nullable),
+            )
+        ))
+    );
+    assert!(
+        [
+            (stringify!(permission_resource_id), false),
+            (stringify!(permission_action_id), false),
+        ]
+        .into_iter()
+        .all(|(field, nullable)| bool::from(
+            generated_update_preserves_explicit_null_contract::<
+                crate::admin_permission_resource_actions::AdminPermissionResourceActionsUpdate,
+            >(
+                server_admin_core::std_admin_str_ref::StdAdminStrRef::from(field),
+                server_admin_contract::admin_bool::AdminBool::from(nullable),
+            )
+        ))
+    );
+    assert!(
+        std::iter::once((stringify!(key), false)).all(|(field, nullable)| bool::from(
+            generated_update_preserves_explicit_null_contract::<
+                crate::admin_permission_resources::AdminPermissionResourcesUpdate,
+            >(
+                server_admin_core::std_admin_str_ref::StdAdminStrRef::from(field),
+                server_admin_contract::admin_bool::AdminBool::from(nullable),
+            )
+        ))
+    );
+    assert!(
+        [
+            (stringify!(scope), false),
+            (stringify!(subject), false),
+            (stringify!(window_started_at), false),
+            (stringify!(request_count), false),
+        ]
+        .into_iter()
+        .all(|(field, nullable)| bool::from(
+            generated_update_preserves_explicit_null_contract::<
+                crate::admin_rate_limits::AdminRateLimitsUpdate,
+            >(
+                server_admin_core::std_admin_str_ref::StdAdminStrRef::from(field),
+                server_admin_contract::admin_bool::AdminBool::from(nullable),
+            )
+        ))
+    );
+    assert!(
+        [
+            (stringify!(user_id), false),
+            (stringify!(session_id), true),
+            (stringify!(token_hash), false),
+            (stringify!(expires_at), false),
+            (stringify!(created_at), false),
+            (stringify!(revoked_at), true),
+        ]
+        .into_iter()
+        .all(|(field, nullable)| bool::from(
+            generated_update_preserves_explicit_null_contract::<
+                crate::admin_refresh_tokens::AdminRefreshTokensUpdate,
+            >(
+                server_admin_core::std_admin_str_ref::StdAdminStrRef::from(field),
+                server_admin_contract::admin_bool::AdminBool::from(nullable),
+            )
+        ))
+    );
+    assert!(
+        [
+            (stringify!(role_id), false),
+            (stringify!(rule_id), false),
+            (stringify!(created_at), false),
+        ]
+        .into_iter()
+        .all(|(field, nullable)| bool::from(
+            generated_update_preserves_explicit_null_contract::<
+                crate::admin_role_rules::AdminRoleRulesUpdate,
+            >(
+                server_admin_core::std_admin_str_ref::StdAdminStrRef::from(field),
+                server_admin_contract::admin_bool::AdminBool::from(nullable),
+            )
+        ))
+    );
+    assert!([
+            (stringify!(name), false),
+            (stringify!(is_system), false),
+            (stringify!(created_at), false),
+            (stringify!(updated_at), false),
+    ].into_iter().all(|(field, nullable)| bool::from(generated_update_preserves_explicit_null_contract::<crate::admin_roles::AdminRolesUpdate>(
+        server_admin_core::std_admin_str_ref::StdAdminStrRef::from(field),
+        server_admin_contract::admin_bool::AdminBool::from(nullable),
+    ))));
+    assert!([
+            (stringify!(permission_resource_action_id), false),
+            (stringify!(basemap_id), true),
+            (stringify!(layer_group_id), true),
+            (stringify!(layer_id), true),
+            (stringify!(project_group_id), true),
+            (stringify!(project_id), true),
+            (stringify!(property_id), true),
+            (stringify!(role_id), true),
+            (stringify!(user_id), true),
+            (stringify!(feature_id), true),
+            (stringify!(value_item_id), true),
+            (stringify!(created_at), false),
+    ].into_iter().all(|(field, nullable)| bool::from(generated_update_preserves_explicit_null_contract::<crate::admin_rules::AdminRulesUpdate>(
+        server_admin_core::std_admin_str_ref::StdAdminStrRef::from(field),
+        server_admin_contract::admin_bool::AdminBool::from(nullable),
+    ))));
+    assert!(
+        [
+            (stringify!(site_name), false),
+            (stringify!(tab_title), false),
+            (stringify!(main_logo), false),
+            (stringify!(primary_color), false),
+            (stringify!(default_admin_route), false),
+            (stringify!(organization_name), false),
+            (stringify!(organization_contacts), false),
+            (stringify!(support_url), false),
+            (stringify!(updated_at), false),
+        ]
+        .into_iter()
+        .all(|(field, nullable)| bool::from(
+            generated_update_preserves_explicit_null_contract::<
+                crate::admin_system_settings::AdminSystemSettingsUpdate,
+            >(
+                server_admin_core::std_admin_str_ref::StdAdminStrRef::from(field),
+                server_admin_contract::admin_bool::AdminBool::from(nullable),
+            )
+        ))
+    );
+    assert!(
+        [
+            (stringify!(user_id), false),
+            (stringify!(role_id), false),
+            (stringify!(created_at), false),
+        ]
+        .into_iter()
+        .all(|(field, nullable)| bool::from(
+            generated_update_preserves_explicit_null_contract::<
+                crate::admin_user_roles::AdminUserRolesUpdate,
+            >(
+                server_admin_core::std_admin_str_ref::StdAdminStrRef::from(field),
+                server_admin_contract::admin_bool::AdminBool::from(nullable),
+            )
+        ))
+    );
+    assert!(
+        [
+            (stringify!(login), false),
+            (stringify!(display_name), false),
+            (stringify!(password_hash), false),
+            (stringify!(is_banned), false),
+            (stringify!(must_change_password), false),
+            (stringify!(created_at), false),
+            (stringify!(updated_at), false),
+        ]
+        .into_iter()
+        .all(|(field, nullable)| bool::from(
+            generated_update_preserves_explicit_null_contract::<
+                crate::admin_users_database_read::AdminUsersDatabaseReadUpdate,
+            >(
+                server_admin_core::std_admin_str_ref::StdAdminStrRef::from(field),
+                server_admin_contract::admin_bool::AdminBool::from(nullable),
+            )
+        ))
+    );
+}
+fn assert_generated_contract_rejects_duplicate_and_malformed_fields<Contract>()
+where
+    Contract: pg_crud_common::default_some_one_element::DefaultSomeOneElement
+        + serde::Serialize
+        + serde::de::DeserializeOwned,
+{
+    assert!(
+        serde_json::to_value(Contract::default_some_one_element()).is_ok_and(|value| {
+            value.as_object().is_some_and(|object| {
+                !object.is_empty()
+                    && serde_json::to_string(&value).is_ok_and(|encoded_object| {
+                        encoded_object.strip_suffix('}').is_some_and(|prefix| {
+                            object.iter().all(|(field, field_value)| {
+                                serde_json::to_string(field).is_ok_and(|encoded_field| {
+                                    serde_json::to_string(field_value).is_ok_and(|encoded_value| {
+                                        let duplicate_payload =
+                                            format!("{prefix},{encoded_field}:{encoded_value}}}");
+                                        serde_json::from_str::<Contract>(&duplicate_payload)
+                                            .is_err_and(|error| {
+                                                error.is_data() && error.to_string().contains(field)
+                                            })
+                                    })
+                                }) && [
+                                    serde_json::Value::Bool(true),
+                                    serde_json::Value::Array(Vec::new()),
+                                ]
+                                .into_iter()
+                                .all(|invalid_value| {
+                                    let malformed = serde_json::Value::Object(
+                                        object
+                                            .iter()
+                                            .map(|(field_name, original_value)| {
+                                                (
+                                                    field_name.clone(),
+                                                    if field_name == field {
+                                                        invalid_value.clone()
+                                                    } else {
+                                                        original_value.clone()
+                                                    },
+                                                )
+                                            })
+                                            .collect(),
+                                    );
+                                    serde_json::from_value::<Contract>(malformed)
+                                        .is_err_and(|error| error.is_data())
+                                })
+                            })
+                        })
+                    })
+            })
+        })
+    );
+}
+
+#[test]
+fn test_generated_admin_contracts_reject_duplicate_and_malformed_field_values() {
+    assert_generated_contract_rejects_duplicate_and_malformed_fields::<
+        crate::admin_access_sessions::AdminAccessSessionsWhereMany,
+    >();
+    assert_generated_contract_rejects_duplicate_and_malformed_fields::<
+        crate::admin_access_sessions::AdminAccessSessionsUpdate,
+    >();
+    assert_generated_contract_rejects_duplicate_and_malformed_fields::<
+        crate::admin_audit_log::AdminAuditLogWhereMany,
+    >();
+    assert_generated_contract_rejects_duplicate_and_malformed_fields::<
+        crate::admin_audit_log::AdminAuditLogUpdate,
+    >();
+    assert_generated_contract_rejects_duplicate_and_malformed_fields::<
+        crate::admin_cleanup_status::AdminCleanupStatusWhereMany,
+    >();
+    assert_generated_contract_rejects_duplicate_and_malformed_fields::<
+        crate::admin_cleanup_status::AdminCleanupStatusUpdate,
+    >();
+    assert_generated_contract_rejects_duplicate_and_malformed_fields::<
+        crate::admin_login_attempts::AdminLoginAttemptsWhereMany,
+    >();
+    assert_generated_contract_rejects_duplicate_and_malformed_fields::<
+        crate::admin_login_attempts::AdminLoginAttemptsUpdate,
+    >();
+    assert_generated_contract_rejects_duplicate_and_malformed_fields::<
+        crate::admin_permission_actions::AdminPermissionActionsWhereMany,
+    >();
+    assert_generated_contract_rejects_duplicate_and_malformed_fields::<
+        crate::admin_permission_actions::AdminPermissionActionsUpdate,
+    >();
+    assert_generated_contract_rejects_duplicate_and_malformed_fields::<
+        crate::admin_permission_resource_actions::AdminPermissionResourceActionsWhereMany,
+    >();
+    assert_generated_contract_rejects_duplicate_and_malformed_fields::<
+        crate::admin_permission_resource_actions::AdminPermissionResourceActionsUpdate,
+    >();
+    assert_generated_contract_rejects_duplicate_and_malformed_fields::<
+        crate::admin_permission_resources::AdminPermissionResourcesWhereMany,
+    >();
+    assert_generated_contract_rejects_duplicate_and_malformed_fields::<
+        crate::admin_permission_resources::AdminPermissionResourcesUpdate,
+    >();
+    assert_generated_contract_rejects_duplicate_and_malformed_fields::<
+        crate::admin_rate_limits::AdminRateLimitsWhereMany,
+    >();
+    assert_generated_contract_rejects_duplicate_and_malformed_fields::<
+        crate::admin_rate_limits::AdminRateLimitsUpdate,
+    >();
+    assert_generated_contract_rejects_duplicate_and_malformed_fields::<
+        crate::admin_refresh_tokens::AdminRefreshTokensWhereMany,
+    >();
+    assert_generated_contract_rejects_duplicate_and_malformed_fields::<
+        crate::admin_refresh_tokens::AdminRefreshTokensUpdate,
+    >();
+    assert_generated_contract_rejects_duplicate_and_malformed_fields::<
+        crate::admin_role_rules::AdminRoleRulesWhereMany,
+    >();
+    assert_generated_contract_rejects_duplicate_and_malformed_fields::<
+        crate::admin_role_rules::AdminRoleRulesUpdate,
+    >();
+    assert_generated_contract_rejects_duplicate_and_malformed_fields::<
+        crate::admin_roles::AdminRolesWhereMany,
+    >();
+    assert_generated_contract_rejects_duplicate_and_malformed_fields::<
+        crate::admin_roles::AdminRolesUpdate,
+    >();
+    assert_generated_contract_rejects_duplicate_and_malformed_fields::<
+        crate::admin_rules::AdminRulesWhereMany,
+    >();
+    assert_generated_contract_rejects_duplicate_and_malformed_fields::<
+        crate::admin_rules::AdminRulesUpdate,
+    >();
+    assert_generated_contract_rejects_duplicate_and_malformed_fields::<
+        crate::admin_system_settings::AdminSystemSettingsWhereMany,
+    >();
+    assert_generated_contract_rejects_duplicate_and_malformed_fields::<
+        crate::admin_system_settings::AdminSystemSettingsUpdate,
+    >();
+    assert_generated_contract_rejects_duplicate_and_malformed_fields::<
+        crate::admin_user_roles::AdminUserRolesWhereMany,
+    >();
+    assert_generated_contract_rejects_duplicate_and_malformed_fields::<
+        crate::admin_user_roles::AdminUserRolesUpdate,
+    >();
+    assert_generated_contract_rejects_duplicate_and_malformed_fields::<
+        crate::admin_users_database_read::AdminUsersDatabaseReadWhereMany,
+    >();
+    assert_generated_contract_rejects_duplicate_and_malformed_fields::<
+        crate::admin_users_database_read::AdminUsersDatabaseReadUpdate,
+    >();
+}

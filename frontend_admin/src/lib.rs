@@ -291,3 +291,6 @@ mod std_str_utf8_error;
 mod wasm_bindgen_admin_read_error;
 #[cfg(target_arch = "wasm32")]
 mod wasm_bindgen_password_generation_exception;
+
+#[cfg(test)]
+mod test_admin_text_boundaries;

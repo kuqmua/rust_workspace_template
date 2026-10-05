@@ -1019,3 +1019,132 @@ fn test_table_custom_error_variants_accept_annotated_sources_and_reserved_locati
         })
     );
 }
+
+#[test]
+fn test_table_custom_error_field_annotations_preserve_source_and_response_types() {
+    let scalar = quote::quote! { TestTableAnnotationSource };
+    let scalar_with_serde = quote::quote! { TestTableAnnotationSourceWithSerde };
+    let text = quote::quote! { String };
+    let vector = quote::quote! { Vec<#scalar> };
+    let vector_text = quote::quote! { Vec<#text> };
+    let vector_with_serde = quote::quote! { Vec<#scalar_with_serde> };
+    let map = quote::quote! { std::collections::HashMap<#text, #scalar> };
+    let map_text = quote::quote! { std::collections::HashMap<#text, #text> };
+    let map_with_serde = quote::quote! { std::collections::HashMap<#text, #scalar_with_serde> };
+    let preserves_types = [
+        (quote::quote! { #[error_field_to_err_string] }, &scalar, &text),
+        (quote::quote! { #[error_field_to_err_string_serde] }, &scalar, &scalar),
+        (quote::quote! { #[error_field_location] }, &scalar, &scalar_with_serde),
+        (quote::quote! { #[error_field_vec_to_err_string] }, &vector, &vector_text),
+        (quote::quote! { #[error_field_vec_to_err_string_serde] }, &vector, &vector),
+        (quote::quote! { #[error_field_vec_location] }, &vector, &vector_with_serde),
+        (quote::quote! { #[error_field_hashmap_key_string_value_to_err_string] }, &map, &map_text),
+        (quote::quote! { #[error_field_hashmap_key_string_value_to_err_string_serde] }, &map, &map),
+        (quote::quote! { #[error_field_hashmap_key_string_value_location] }, &map, &map_with_serde),
+    ].into_iter().all(|(attribute, source_type, response_type)| {
+        let input = quote::quote! {
+            #[proc_macro_generate_pg_table_generate_pg_table_config::generate_pg_table_config({
+                "tests_write_into_file": "False", "common_write_into_file": "False", "whole_write_into_file": "False"
+            })]
+            #[proc_macro_generate_pg_table::common_error_variants(
+                enum CommonErrorVariants {
+                    CustomFailure {
+                        #attribute source: #source_type,
+                        location: location_lib::location::Location
+                    }
+                }
+            )]
+            struct Table { #[generate_pg_table_primary_key] id: I64AsNonNullInt8, name: StringAsNonNullText }
+        };
+        let generated = crate::generate_pg_table::generate_pg_table(
+            macro_helpers::proc_macro2_token_stream_ref::ProcMacro2TokenStreamRef::from(&input),
+        );
+        !generated.to_string().contains(stringify!(compile_error))
+            && syn::parse2::<syn::File>(proc_macro2::TokenStream::from(generated)).is_ok_and(|file| {
+                [
+                    (stringify!(TableCreateManyError), source_type),
+                    (stringify!(TableReadError), source_type),
+                    (stringify!(TableUpdateError), source_type),
+                    (stringify!(TableDeleteManyError), source_type),
+                    (stringify!(TableCreateManyResVariants), response_type),
+                    (stringify!(TableReadResVariants), response_type),
+                    (stringify!(TableUpdateResVariants), response_type),
+                    (stringify!(TableDeleteManyResVariants), response_type),
+                ].into_iter().all(|(name, expected_type)| {
+                    file.items.iter().any(|item| {
+                        let syn::Item::Enum(error_enum) = item else { return false; };
+                        error_enum.ident == name && error_enum.variants.iter().any(|variant| {
+                            if variant.ident != stringify!(CustomFailure) { return false; }
+                            let syn::Fields::Named(fields) = &variant.fields else { return false; };
+                            fields.named.len() == 2usize && fields.named.iter().all(|field| {
+                                let actual_type = &field.ty;
+                                if field.ident.as_ref().is_some_and(|identifier| identifier == stringify!(source)) {
+                                    quote::quote! { #actual_type }.to_string() == expected_type.to_string()
+                                } else {
+                                    field.ident.as_ref().is_some_and(|identifier| identifier == stringify!(location))
+                                        && quote::quote! { #actual_type }.to_string() == quote::quote! { location_lib::location::Location }.to_string()
+                                }
+                            })
+                        })
+                    })
+                })
+            })
+    });
+    assert!(preserves_types);
+}
+
+#[test]
+fn test_table_read_page_rust_path_fields_enforce_inclusive_text_bounds() {
+    let preserves_bounds = [0usize, 1usize, 512usize, 513usize]
+        .into_iter()
+        .all(|length| {
+            let path = proc_macro2::Literal::string(&'R'.to_string().repeat(length));
+            [
+                quote::quote! { "response": #path, "enrich": "enrich", "error": "Error" },
+                quote::quote! { "response": "Response", "enrich": #path, "error": "Error" },
+                quote::quote! { "response": "Response", "enrich": "enrich", "error": #path },
+                quote::quote! { "response": "Response", "enrich": "enrich", "error": "Error", "context_field": { "rust_type": #path, "name": "context" } },
+            ].into_iter().all(|read_page| {
+                let input = quote::quote! {
+                    #[proc_macro_generate_pg_table_generate_pg_table_config::generate_pg_table_config({
+                        "tests_write_into_file": "False", "common_write_into_file": "False", "whole_write_into_file": "False",
+                        "read_page": { "search_columns": [], #read_page }
+                    })]
+                    struct Table { #[generate_pg_table_primary_key] id: I64AsNonNullInt8, name: StringAsNonNullText }
+                };
+                let generated = crate::generate_pg_table::generate_pg_table(
+                    macro_helpers::proc_macro2_token_stream_ref::ProcMacro2TokenStreamRef::from(&input),
+                );
+                if length == 0usize || length == 513usize {
+                    syn::parse2::<syn::ItemMacro>(proc_macro2::TokenStream::from(generated)).is_ok_and(|item| {
+                        item.mac.path.is_ident(stringify!(compile_error))
+                            && syn::parse2::<syn::LitStr>(item.mac.tokens).is_ok_and(|message| message.value().contains(stringify!(GeneratePgTableConfig)))
+                    })
+                } else {
+                    !generated.to_string().contains(stringify!(compile_error))
+                        && syn::parse2::<syn::File>(proc_macro2::TokenStream::from(generated)).is_ok_and(|file| !file.items.is_empty())
+                }
+            })
+        });
+    assert!(preserves_bounds);
+}
+
+#[test]
+fn test_table_tuple_structs_emit_the_named_field_requirement_diagnostic() {
+    assert!([
+        quote::quote! { struct Table(I64AsNonNullInt8); },
+        quote::quote! { struct Table(I64AsNonNullInt8, StringAsNonNullText); },
+    ].into_iter().all(|table| {
+        let input = quote::quote! {
+            #[proc_macro_generate_pg_table_generate_pg_table_config::generate_pg_table_config({
+                "tests_write_into_file": "False", "common_write_into_file": "False", "whole_write_into_file": "False"
+            })]
+            #table
+        };
+        let generated = crate::generate_pg_table::generate_pg_table(
+            macro_helpers::proc_macro2_token_stream_ref::ProcMacro2TokenStreamRef::from(&input),
+        );
+        let diagnostic = constants_str::COMPILE_ERROR_CE_018;
+        generated.to_string() == quote::quote! { compile_error!(#diagnostic); }.to_string()
+    }));
+}

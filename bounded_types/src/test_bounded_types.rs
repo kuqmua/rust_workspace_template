@@ -767,3 +767,224 @@ fn test_zero_capacity_maps_deserialize_empty_input() {
         );
     assert!(hash.is_ok_and(|values| values.len().get() == 0usize));
 }
+
+#[test]
+fn test_bounded_character_string_serialization_preserves_unicode_and_write_errors() {
+    let text = ['\u{00e9}', '\u{03b2}'].into_iter().collect::<String>();
+    let json_result = utoipa::r#gen::serde_json::to_string(&text);
+    let value_result =
+        crate::bounded_chars_string::BoundedCharsString::<1usize, 2usize>::try_from(text);
+    assert!(json_result.is_ok() && value_result.is_ok());
+    let (Ok(json), Ok(value)) = (json_result, value_result) else {
+        return;
+    };
+    assert_eq!(value.len().get(), 2usize);
+    assert!(
+        utoipa::r#gen::serde_json::from_str::<
+            crate::bounded_chars_string::BoundedCharsString<1usize, 2usize>,
+        >(&json)
+        .is_ok_and(|parsed| parsed == value)
+    );
+    assert!(utoipa::r#gen::serde_json::to_string(&value).is_ok_and(|actual| actual == json));
+    let mut output = std::io::Cursor::new([0u8; 0usize]);
+    assert!(
+        utoipa::r#gen::serde_json::to_writer(&mut output, &value)
+            .is_err_and(|error| error.is_io()
+                && error.io_error_kind() == Some(std::io::ErrorKind::WriteZero))
+    );
+}
+
+#[test]
+fn test_bounded_character_string_deserialization_preserves_validation_diagnostics() {
+    assert!([
+        (constants_str::EMPTY, crate::bounded_value_error::BoundedValueError::BelowMin {
+            actual: crate::bounded_len::BoundedLen::from(0usize),
+            min: crate::bounded_len::BoundedLen::from(1usize),
+        }),
+        (constants_str::ABC_ALT_3, crate::bounded_value_error::BoundedValueError::AboveMax {
+            actual: crate::bounded_len::BoundedLen::from(3usize),
+            max: crate::bounded_len::BoundedLen::from(2usize),
+        }),
+    ].into_iter().all(|(text, expected)| {
+        <crate::bounded_chars_string::BoundedCharsString<1usize, 2usize> as serde::Deserialize>::deserialize(
+            serde::de::value::StrDeserializer::<serde::de::value::Error>::new(text),
+        ).is_err_and(|error| error.to_string() == expected.to_string())
+    }));
+    let invalid_bounds = crate::bounded_value_error::BoundedValueError::InvalidBounds {
+        min: crate::bounded_len::BoundedLen::from(2usize),
+        max: crate::bounded_len::BoundedLen::from(1usize),
+    };
+    assert!(<crate::bounded_chars_string::BoundedCharsString<2usize, 1usize> as serde::Deserialize>::deserialize(
+        serde::de::value::StrDeserializer::<serde::de::value::Error>::new(constants_str::X),
+    ).is_err_and(|error| error.to_string() == invalid_bounds.to_string()));
+    assert!(
+        utoipa::r#gen::serde_json::from_str::<
+            crate::bounded_chars_string::BoundedCharsString<1usize, 2usize>,
+        >(constants_str::VALUE_1)
+        .is_err_and(|error| error.is_data())
+    );
+}
+
+#[test]
+fn test_bounded_character_string_schema_preserves_character_limits() {
+    let schema = <crate::bounded_chars_string::BoundedCharsString<1usize, 2usize> as utoipa::PartialSchema>::schema();
+    assert!(matches!(
+        &schema,
+        utoipa::openapi::RefOr::T(utoipa::openapi::schema::Schema::Object(_))
+    ));
+    let utoipa::openapi::RefOr::T(utoipa::openapi::schema::Schema::Object(object)) = schema else {
+        return;
+    };
+    assert!(object.schema_type == utoipa::openapi::schema::Type::String.into());
+    assert_eq!(object.min_length, Some(1usize));
+    assert_eq!(object.max_length, Some(2usize));
+    assert!(object.extensions.is_none());
+}
+
+#[test]
+fn test_bounded_tree_map_borrowed_iteration_and_serialization_preserve_order() {
+    let values_result = crate::bounded_b_tree_map::BoundedBTreeMap::<u8, u8, 2usize>::try_from(
+        std::collections::BTreeMap::from([(2u8, 20u8), (1u8, 10u8)]),
+    );
+    assert!(values_result.is_ok());
+    let Ok(mut values) = values_result else {
+        return;
+    };
+    assert_eq!(
+        (&values)
+            .into_iter()
+            .map(|(key, value)| (*key, *value))
+            .collect::<Vec<_>>(),
+        [(1u8, 10u8), (2u8, 20u8)]
+    );
+    (&mut values).into_iter().fold((), |(), (_key, value)| {
+        *value = value.saturating_add(1u8);
+    });
+    assert_eq!(
+        (&values)
+            .into_iter()
+            .map(|(key, value)| (*key, *value))
+            .collect::<Vec<_>>(),
+        [(1u8, 11u8), (2u8, 21u8)]
+    );
+    let expected = utoipa::r#gen::serde_json::to_string(values.as_map());
+    assert!(expected.is_ok());
+    assert!(
+        utoipa::r#gen::serde_json::to_string(&values)
+            .is_ok_and(|actual| expected.as_ref().is_ok_and(|json| actual == *json))
+    );
+    let mut output = std::io::Cursor::new([0u8; 0usize]);
+    assert!(
+        utoipa::r#gen::serde_json::to_writer(&mut output, &values)
+            .is_err_and(|error| error.io_error_kind() == Some(std::io::ErrorKind::WriteZero))
+    );
+}
+
+#[test]
+fn test_bounded_string_appends_preserve_byte_limits_and_failed_write_state() {
+    assert_eq!(
+        crate::bounded_string::BoundedString::<1usize, 2usize>::validate_str(constants_str::EMPTY),
+        Err(
+            crate::bounded_string_error::BoundedStringError::BelowMinimum {
+                actual_length: crate::bounded_len::BoundedLen::from(0usize),
+                minimum_length: crate::bounded_len::BoundedLen::from(1usize),
+            }
+        )
+    );
+    assert_eq!(
+        crate::bounded_string::BoundedString::<1usize, 2usize>::validate_str(
+            constants_str::ABC_ALT_3
+        ),
+        Err(
+            crate::bounded_string_error::BoundedStringError::AboveMaximum {
+                actual_length: crate::bounded_len::BoundedLen::from(3usize),
+                maximum_length: crate::bounded_len::BoundedLen::from(2usize),
+            }
+        )
+    );
+    let result =
+        crate::bounded_string::BoundedString::<0usize, 3usize>::try_from('\u{00e9}'.to_string());
+    assert!(result.is_ok());
+    let Ok(mut value) = result else {
+        return;
+    };
+    assert_eq!(value.try_push_str(constants_str::X), Ok(()));
+    let expected = ['\u{00e9}', 'x'].into_iter().collect::<String>();
+    let error = crate::bounded_string_error::BoundedStringError::AboveMaximum {
+        actual_length: crate::bounded_len::BoundedLen::from(5usize),
+        maximum_length: crate::bounded_len::BoundedLen::from(3usize),
+    };
+    assert_eq!(value.try_push('\u{00e9}'), Err(error));
+    assert_eq!(value.as_string(), &expected);
+    assert_eq!(value.try_push_str(constants_str::AB), Err(error));
+    assert_eq!(value.as_str(), expected.as_str());
+    assert_eq!(value.len().get(), 3usize);
+    assert!(
+        <crate::bounded_string::BoundedString<0usize, 3usize> as PartialEq<str>>::eq(
+            &value,
+            expected.as_str()
+        )
+    );
+    assert_eq!(value.to_string(), expected);
+    assert_eq!(value.into_string(), expected);
+}
+
+#[test]
+fn test_bounded_string_character_mode_preserves_schema_and_append_limits() {
+    let text = '\u{00e9}'.to_string();
+    assert_eq!(
+        crate::bounded_string::BoundedString::<1usize, 1usize, true>::validate_str(&text),
+        Ok(())
+    );
+    let result = crate::bounded_string::BoundedString::<0usize, 2usize, true>::try_from(text);
+    assert!(result.is_ok());
+    let Ok(mut value) = result else {
+        return;
+    };
+    assert_eq!(value.try_push('\u{03b2}'), Ok(()));
+    let expected = ['\u{00e9}', '\u{03b2}'].into_iter().collect::<String>();
+    assert_eq!(value.len().get(), 2usize);
+    let error = crate::bounded_string_error::BoundedStringError::AboveMaximum {
+        actual_length: crate::bounded_len::BoundedLen::from(3usize),
+        maximum_length: crate::bounded_len::BoundedLen::from(2usize),
+    };
+    assert_eq!(value.try_push('x'), Err(error));
+    assert_eq!(value.try_push_str(constants_str::X), Err(error));
+    assert_eq!(value.as_str(), expected.as_str());
+    let schema = <crate::bounded_string::BoundedString<0usize, 2usize, true> as utoipa::PartialSchema>::schema();
+    assert!(matches!(
+        &schema,
+        utoipa::openapi::RefOr::T(utoipa::openapi::schema::Schema::Object(_))
+    ));
+    let utoipa::openapi::RefOr::T(utoipa::openapi::schema::Schema::Object(object)) = schema else {
+        return;
+    };
+    assert_eq!(object.min_length, Some(0usize));
+    assert_eq!(object.max_length, Some(2usize));
+    assert!(object.extensions.is_none());
+}
+
+#[test]
+fn test_bounded_string_deref_and_non_string_deserialization_preserve_contracts() {
+    let result = crate::bounded_string::BoundedString::<0usize, 4usize>::try_from(
+        constants_str::ABC_ALT_3.to_owned(),
+    );
+    assert!(result.is_ok());
+    let Ok(value) = result else {
+        return;
+    };
+    assert_eq!(
+        <crate::bounded_string::BoundedString<0usize, 4usize> as std::ops::Deref>::deref(&value),
+        constants_str::ABC_ALT_3
+    );
+    let expected = utoipa::r#gen::serde_json::from_str::<String>(constants_str::VALUE_1)
+        .err()
+        .map(|error| error.to_string());
+    let actual = utoipa::r#gen::serde_json::from_str::<
+        crate::bounded_string::BoundedString<0usize, 4usize>,
+    >(constants_str::VALUE_1)
+    .err()
+    .map(|error| error.to_string());
+    assert!(expected.is_some());
+    assert_eq!(actual, expected);
+}

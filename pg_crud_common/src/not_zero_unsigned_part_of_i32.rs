@@ -115,6 +115,48 @@ impl crate::pg_range_length_sql::PgRangeLengthSql for NotZeroUnsignedPartOfI32 {
 #[cfg(test)]
 mod tests {
     #[test]
+    fn test_nonzero_integer_json_and_wire_encoding_preserve_positive_boundaries() {
+        assert!([(1i32, [0u8, 0u8, 0u8, 1u8]), (i32::MAX, [0x7fu8, 0xffu8, 0xffu8, 0xffu8])]
+            .into_iter()
+            .all(|(integer, bytes)| {
+                crate::not_zero_unsigned_part_of_i32::NotZeroUnsignedPartOfI32::try_from(integer)
+                    .is_ok_and(|value| {
+                        let mut buffer = sqlx::postgres::PgArgumentBuffer::default();
+                        matches!(<crate::not_zero_unsigned_part_of_i32::NotZeroUnsignedPartOfI32 as sqlx::Encode<sqlx::Postgres>>::encode_by_ref(&value, &mut buffer), Ok(sqlx::encode::IsNull::No))
+                            && buffer.as_slice() == bytes
+                            && matches!(serde_json::to_value(value), Ok(json) if json.as_i64() == Some(i64::from(integer)))
+                            && matches!(serde_json::from_value::<crate::not_zero_unsigned_part_of_i32::NotZeroUnsignedPartOfI32>(serde_json::Value::from(integer)), Ok(decoded) if decoded == value)
+                            && matches!(crate::unsigned_part_of_i32::UnsignedPartOfI32::try_from(integer), Ok(expected) if value.get() == expected)
+                    })
+            }));
+        let type_info =
+            <crate::not_zero_unsigned_part_of_i32::NotZeroUnsignedPartOfI32 as sqlx::Type<
+                sqlx::Postgres,
+            >>::type_info();
+        assert_eq!(type_info, <i32 as sqlx::Type<sqlx::Postgres>>::type_info());
+        assert!(
+            <crate::not_zero_unsigned_part_of_i32::NotZeroUnsignedPartOfI32 as sqlx::Type<
+                sqlx::Postgres,
+            >>::compatible(&type_info)
+        );
+        assert!(
+            !<crate::not_zero_unsigned_part_of_i32::NotZeroUnsignedPartOfI32 as sqlx::Type<
+                sqlx::Postgres,
+            >>::compatible(&<String as sqlx::Type<sqlx::Postgres>>::type_info())
+        );
+        assert!(
+            matches!(<crate::not_zero_unsigned_part_of_i32::NotZeroUnsignedPartOfI32 as utoipa::PartialSchema>::schema(), utoipa::openapi::RefOr::T(utoipa::openapi::schema::Schema::Object(object)) if object.schema_type == utoipa::openapi::schema::SchemaType::new(utoipa::openapi::schema::Type::Integer) && object.minimum == Some(utoipa::Number::Float(1.0f64)) && object.maximum == Some(utoipa::Number::Float(f64::from(i32::MAX))))
+        );
+    }
+
+    #[test]
+    fn test_nonzero_integer_json_rejects_zero_and_negative_boundaries() {
+        assert!([0i32, -1i32, i32::MIN].into_iter().all(|integer| {
+            matches!(serde_json::from_value::<crate::not_zero_unsigned_part_of_i32::NotZeroUnsignedPartOfI32>(serde_json::Value::from(integer)), Err(error) if error.is_data())
+        }));
+    }
+
+    #[test]
     fn test_nonzero_database_value_rejects_zero() {
         assert!(matches!(
             crate::not_zero_unsigned_part_of_i32::NotZeroUnsignedPartOfI32::try_from(constants_i32::ZERO),

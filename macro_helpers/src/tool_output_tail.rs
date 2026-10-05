@@ -75,4 +75,25 @@ mod tests {
         ));
         assert_eq!(tail.into_bytes(), vec![3u8, 4u8, 5u8]);
     }
+
+    #[test]
+    fn test_output_tail_empty_writes_and_flush_preserve_bounded_content() {
+        [
+            (0usize, Vec::new()),
+            (1usize, vec![3u8]),
+            (3usize, vec![1u8, 2u8, 3u8]),
+        ]
+        .into_iter()
+        .fold((), |(), (limit, expected)| {
+            let mut tail =
+                super::ToolOutputTail::new(crate::tool_output_limit::ToolOutputLimit::from(limit));
+            assert!(matches!(
+                std::io::Write::write(&mut tail, &[1u8, 2u8, 3u8]),
+                Ok(3usize)
+            ));
+            assert!(matches!(std::io::Write::write(&mut tail, &[]), Ok(0usize)));
+            assert!(matches!(std::io::Write::flush(&mut tail), Ok(())));
+            assert_eq!(tail.into_bytes(), expected);
+        });
+    }
 }

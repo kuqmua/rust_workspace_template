@@ -227,6 +227,10 @@ mod tests {
     enum ExpectedRequest {
         BodyLen(crate::transport_path::TransportPath, usize),
         Empty(crate::transport_path::TransportPath),
+        Contract(
+            crate::transport_path::TransportPath,
+            crate::route_contract::RouteContract,
+        ),
         Json(crate::transport_path::TransportPath, Request),
     }
     impl crate::transport::Transport for TestTransport {
@@ -243,6 +247,11 @@ mod tests {
                 ExpectedRequest::BodyLen(path, expected_len) => {
                     assert_eq!(transport_request.path(), path);
                     assert_eq!(transport_request.body().as_ref().len(), *expected_len);
+                }
+                ExpectedRequest::Contract(path, route_contract) => {
+                    assert_eq!(transport_request.path(), path);
+                    assert_eq!(transport_request.route(), *route_contract);
+                    assert!(transport_request.body().as_ref().is_empty());
                 }
                 ExpectedRequest::Empty(path) => {
                     assert_eq!(transport_request.path(), path);
@@ -698,5 +707,160 @@ mod tests {
             result,
             Err(crate::client_error::ClientError::Transport(transport_error))
         );
+    }
+    #[test]
+    fn test_send_contract_preserves_contract_and_raw_success_body() {
+        assert!(
+            [
+                crate::success_status::SuccessStatus::Code200,
+                crate::success_status::SuccessStatus::Code201,
+                crate::success_status::SuccessStatus::Code204,
+            ]
+            .into_iter()
+            .all(|success_status| {
+                let route_contract = crate::route_contract::RouteContract::new(
+                    crate::authentication_requirement::AuthenticationRequirement::Authenticated,
+                    crate::route_method::RouteMethod::Delete,
+                    crate::mutation_kind::MutationKind::Mutating,
+                    crate::contract_str::ContractStr::from(constants_str::VALUE_AFE0CD3C),
+                    success_status,
+                );
+                let transport_response = response(
+                    constants_str::NEVER_PRINT_THIS_VALUE.as_bytes().to_vec(),
+                    success_status.transport_status(),
+                );
+                let expected_body = transport_response.body().clone();
+                let transport = TestTransport {
+                    expected: ExpectedRequest::Contract(
+                        transport_path(constants_str::VALUE_AFE0CD3C),
+                        route_contract,
+                    ),
+                    response: Ok(transport_response),
+                };
+                let client = crate::typed_client::TypedClient::new(
+                    transport,
+                    transport_path(constants_str::EMPTY),
+                );
+                futures::executor::block_on(client.send_contract(
+                    route_contract,
+                    crate::contract_str::ContractStr::from(constants_str::VALUE_AFE0CD3C),
+                ))
+                .is_ok_and(|body| body == expected_body)
+            })
+        );
+    }
+    #[test]
+    fn test_send_contract_preserves_status_and_transport_failures() {
+        let route_contract = <Route as crate::typed_route::TypedRoute>::metadata().contract();
+        let actual_status = crate::transport_status::TransportStatus::from(
+            crate::known_http_status::KnownHttpStatus::InternalServerError,
+        );
+        let transport = TestTransport {
+            expected: ExpectedRequest::Contract(
+                transport_path(constants_str::VALUE_AFE0CD3C),
+                route_contract,
+            ),
+            response: Ok(response(
+                constants_str::NEVER_PRINT_THIS_VALUE.as_bytes().to_vec(),
+                actual_status,
+            )),
+        };
+        let client =
+            crate::typed_client::TypedClient::new(transport, transport_path(constants_str::EMPTY));
+        assert_eq!(
+            futures::executor::block_on(client.send_contract(
+                route_contract,
+                crate::contract_str::ContractStr::from(constants_str::VALUE_AFE0CD3C)
+            )),
+            Err(crate::client_error::ClientError::Status {
+                actual: actual_status,
+                expected: route_contract.success_status().transport_status()
+            })
+        );
+        assert!(
+            crate::transport_error::TransportError::try_from(
+                constants_str::VALUE_8E2C7AC5.to_owned()
+            )
+            .is_ok_and(|transport_error| {
+                let failing_transport = TestTransport {
+                    expected: ExpectedRequest::Contract(
+                        transport_path(constants_str::VALUE_AFE0CD3C),
+                        route_contract,
+                    ),
+                    response: Err(transport_error.clone()),
+                };
+                let failing_client = crate::typed_client::TypedClient::new(
+                    failing_transport,
+                    transport_path(constants_str::EMPTY),
+                );
+                futures::executor::block_on(failing_client.send_contract(
+                    route_contract,
+                    crate::contract_str::ContractStr::from(constants_str::VALUE_AFE0CD3C),
+                )) == Err(crate::client_error::ClientError::Transport(transport_error))
+            })
+        );
+    }
+    #[test]
+    fn test_send_contract_empty_path_keeps_prefix_without_trailing_separator() {
+        let route_contract = crate::route_contract::RouteContract::new(
+            crate::authentication_requirement::AuthenticationRequirement::Public,
+            crate::route_method::RouteMethod::Get,
+            crate::mutation_kind::MutationKind::ReadOnly,
+            crate::contract_str::ContractStr::from(constants_str::EMPTY),
+            crate::success_status::SuccessStatus::Code200,
+        );
+        assert!(
+            [constants_str::V1, constants_str::V1_SLASH]
+                .into_iter()
+                .all(|prefix| {
+                    let transport = TestTransport {
+                        expected: ExpectedRequest::Contract(
+                            transport_path(constants_str::V1),
+                            route_contract,
+                        ),
+                        response: Ok(response(
+                            Vec::new(),
+                            route_contract.success_status().transport_status(),
+                        )),
+                    };
+                    let client =
+                        crate::typed_client::TypedClient::new(transport, transport_path(prefix));
+                    futures::executor::block_on(client.send_contract(
+                        route_contract,
+                        crate::contract_str::ContractStr::from(constants_str::EMPTY),
+                    ))
+                    .is_ok_and(|body| body.as_ref().is_empty())
+                })
+        );
+    }
+    #[test]
+    fn test_send_contract_oversized_static_path_preserves_encode_error_before_transport() {
+        let oversized_path = const { std::str::from_utf8(&[b'x'; 8_193usize]) };
+        assert!(oversized_path.is_ok_and(|path| {
+            let route_contract = <Route as crate::typed_route::TypedRoute>::metadata().contract();
+            let transport = TestTransport {
+                expected: ExpectedRequest::BodyLen(
+                    transport_path(constants_str::EMPTY),
+                    constants_usize::ONE,
+                ),
+                response: Ok(response(
+                    Vec::new(),
+                    route_contract.success_status().transport_status(),
+                )),
+            };
+            let client = crate::typed_client::TypedClient::new(
+                transport,
+                transport_path(constants_str::EMPTY),
+            );
+            let result = futures::executor::block_on(
+                client.send_contract(route_contract, crate::contract_str::ContractStr::from(path)),
+            );
+            crate::transport_path::TransportPath::try_from(path.to_owned()).is_err_and(|error| {
+                result
+                    == Err(crate::client_error::ClientError::Encode(
+                        crate::create_form_value_error::create_form_value_error(error),
+                    ))
+            })
+        }));
     }
 }

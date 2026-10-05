@@ -103,3 +103,6 @@ pub mod u32_parse_int_error;
 pub mod usize_parse_int_error;
 
 pub mod domain_types;
+
+#[cfg(test)]
+mod test_source_place_environment_child;

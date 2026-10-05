@@ -703,17 +703,18 @@ mod tests {
 
     #[cfg(unix)]
     #[test]
-    #[ignore = "requires provisioned /usr/bin/gnuprintf, /usr/bin/true, /usr/bin/rm and GNU time; uses isolated Cargo output and rustfmt fixtures"]
+    #[ignore = "requires provisioned /bin/sh, /usr/bin/gnuprintf, /usr/bin/true, /usr/bin/rm and GNU time; uses isolated Cargo output and rustfmt fixtures"]
     fn test_measurement_cli_success_and_output_failures_preserve_stage_diagnostics() {
         assert!(
             [
-                None,
-                Some(constants_str::RUNNER_CLI_TEXT_C8CCFAD7),
-                Some(constants_str::RUNNER_CLI_TEXT_9302A07B),
-                Some(constants_str::RUNNER_CLI_TEXT_04C53EE4)
+                (None, false),
+                (Some(constants_str::RUNNER_CLI_TEXT_C8CCFAD7), false),
+                (Some(constants_str::RUNNER_CLI_TEXT_9302A07B), false),
+                (Some(constants_str::RUNNER_CLI_TEXT_04C53EE4), false),
+                (Some(constants_str::RUNNER_CLI_TEXT_04C53EE4), true),
             ]
             .into_iter()
-            .all(|failure_diagnostic| {
+            .all(|(failure_diagnostic, malformed_stage_output)| {
                 let directory = std::env::temp_dir().join(format!(
                     "{}-{}-{}",
                     constants_str::MEASURE,
@@ -732,6 +733,21 @@ mod tests {
                     ]
                     .into_iter()
                     .try_for_each(|program| {
+                        if program == constants_str::RUSTFMT && malformed_stage_output {
+                            let formatter = directory.join(program);
+                            std::fs::write(
+                                &formatter,
+                                constants_str::RUNNER_MEASUREMENT_INVALID_UTF8_FORMATTER,
+                            )
+                            .map_err(macro_helpers::std_tool_io_error::StdToolIoError::from)?;
+                            return std::fs::set_permissions(
+                                &formatter,
+                                <std::fs::Permissions as std::os::unix::fs::PermissionsExt>::from_mode(
+                                    0o700u32,
+                                ),
+                            )
+                            .map_err(macro_helpers::std_tool_io_error::StdToolIoError::from);
+                        }
                         let fixture_path = if program == constants_str::WORKSPACE_TEST_RUNNER_CARGO
                         {
                             std::path::Path::new(constants_str::TEST_TRUE_EXECUTABLE_PATH)
@@ -831,7 +847,9 @@ mod tests {
                         .join(constants_str::GENERATE_PG_TABLE_TESTS_RS);
                     if let Some(diagnostic) = failure_diagnostic {
                         return Ok(output.status.code() == Some(1i32)
-                            && !generated.exists()
+                            && generated.exists() == malformed_stage_output
+                            && (!malformed_stage_output
+                                || generated.metadata().is_ok_and(|metadata| metadata.len() == 1u64))
                             && std::str::from_utf8(output.stderr.as_slice())
                                 .is_ok_and(|stderr| stderr.contains(diagnostic))
                             && std::str::from_utf8(output.stdout.as_slice()).is_ok_and(

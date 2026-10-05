@@ -46,3 +46,68 @@ fn test_nullability_names_and_prefixes_match_generated_type_conventions() {
         })
     );
 }
+
+#[test]
+fn test_nullable_prefix_wrapper_preserves_empty_and_maximum_ascii_byte_lengths() {
+    assert!(
+        [
+            0usize,
+            1usize,
+            crate::is_nl_prefix_str_max_len::IS_NL_PREFIX_STR_MAX_LEN
+        ]
+        .into_iter()
+        .all(|length| {
+            crate::is_nullable_prefix_str::IsNullablePrefixStr::try_from(
+                constants_str::SLASH.repeat(length),
+            )
+            .is_ok_and(|prefix| {
+                let text = prefix.to_string();
+                text.len() == length && text.bytes().all(|byte| byte == b'/')
+            })
+        })
+    );
+    assert!(
+        crate::is_nullable_prefix_str::IsNullablePrefixStr::try_from(
+            constants_str::SLASH
+                .repeat(crate::is_nl_prefix_str_max_len::IS_NL_PREFIX_STR_MAX_LEN + 1usize),
+        )
+        .is_err_and(|error| error
+            .to_string()
+            .contains(&crate::is_nl_prefix_str_max_len::IS_NL_PREFIX_STR_MAX_LEN.to_string()))
+    );
+}
+
+#[test]
+fn test_nullable_prefix_wrapper_counts_utf8_bytes_and_preserves_allowed_null_characters() {
+    let character_count = 262_144usize;
+    assert_eq!(
+        character_count * char::MAX.len_utf8(),
+        crate::is_nl_prefix_str_max_len::IS_NL_PREFIX_STR_MAX_LEN
+    );
+    assert!(
+        crate::is_nullable_prefix_str::IsNullablePrefixStr::try_from(
+            char::MAX.to_string().repeat(character_count)
+        )
+        .is_ok_and(|prefix| {
+            let text = prefix.to_string();
+            text.len() == crate::is_nl_prefix_str_max_len::IS_NL_PREFIX_STR_MAX_LEN
+                && text.chars().count() == character_count
+                && text.chars().all(|character| character == char::MAX)
+        })
+    );
+    assert!(
+        crate::is_nullable_prefix_str::IsNullablePrefixStr::try_from(
+            char::MAX.to_string().repeat(character_count + 1usize)
+        )
+        .is_err_and(|error| error
+            .to_string()
+            .contains(&crate::is_nl_prefix_str_max_len::IS_NL_PREFIX_STR_MAX_LEN.to_string()))
+    );
+    assert!(
+        crate::is_nullable_prefix_str::IsNullablePrefixStr::try_from(char::from(0u8).to_string())
+            .is_ok_and(|prefix| prefix
+                .to_string()
+                .chars()
+                .eq(std::iter::once(char::from(0u8))))
+    );
+}

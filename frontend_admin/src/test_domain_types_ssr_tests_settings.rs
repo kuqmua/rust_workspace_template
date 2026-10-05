@@ -103,6 +103,19 @@ fn test_editable_settings_render_every_input_kind_from_the_contract_catalog() {
     let branding =
         server_admin_contract::admin_branding_view::AdminBrandingView::from_settings(&settings);
 
+    let csr_html = crate::render_admin_csr::render_admin_csr(
+        server_admin_contract::admin_bool::AdminBool::from(false),
+        server_admin_contract::admin_page::AdminPage::Users,
+        None,
+        &admin,
+        &branding,
+    );
+    let sign_in_html = crate::render_sign_in::render_sign_in(None, Some(&branding));
+    assert!([&csr_html, &sign_in_html].into_iter().all(|document| {
+        document.as_ref().contains(constants_str::VALUE_46BB10C9)
+            && document.as_ref().contains(constants_str::VALUE_55F98A52)
+    }));
+
     let html =
         crate::render_admin_settings_page::render_admin_settings_page(&settings, &admin, &branding);
 

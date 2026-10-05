@@ -149,4 +149,71 @@ mod tests {
             ]
         );
     }
+    #[test]
+    fn test_route_coverage_reports_first_missing_baseline_obligation_with_metadata() {
+        let metadata = route_coverage_metadata();
+        let cases = [
+            (
+                crate::route_coverage_evidence::RouteCoverageEvidence::new(&[]),
+                crate::route_coverage_obligation::RouteCoverageObligation::IntegrationFixture,
+            ),
+            (
+                crate::route_coverage_evidence::RouteCoverageEvidence::new(&[
+                    crate::route_coverage_obligation::RouteCoverageObligation::IntegrationFixture,
+                ]),
+                crate::route_coverage_obligation::RouteCoverageObligation::OpenApiOperation,
+            ),
+            (
+                crate::route_coverage_evidence::RouteCoverageEvidence::new(&[
+                    crate::route_coverage_obligation::RouteCoverageObligation::IntegrationFixture,
+                    crate::route_coverage_obligation::RouteCoverageObligation::OpenApiOperation,
+                ]),
+                crate::route_coverage_obligation::RouteCoverageObligation::PayloadValidation,
+            ),
+        ];
+        assert!(cases.into_iter().all(|(evidence, obligation)| {
+            let descriptor = crate::route_coverage_descriptor::RouteCoverageDescriptor::new(
+                metadata,
+                crate::route_access::RouteAccess::Authenticated,
+                crate::route_mutation::RouteMutation::Mutating,
+                evidence,
+            );
+            crate::validate_route_coverage::validate_route_coverage(&[descriptor])
+                == Err(crate::route_coverage_error::RouteCoverageError::Missing {
+                    metadata,
+                    obligation,
+                })
+        }));
+    }
+    #[test]
+    fn test_route_coverage_security_precedes_replay_for_authenticated_mutations() {
+        let metadata = route_coverage_metadata();
+        let cases = [
+            (
+                crate::route_coverage_obligation::PUBLIC_READ_ROUTE_COVERAGE_OBLIGATIONS,
+                crate::route_coverage_obligation::RouteCoverageObligation::SecurityValidation,
+            ),
+            (
+                crate::route_coverage_obligation::PUBLIC_MUTATING_ROUTE_COVERAGE_OBLIGATIONS,
+                crate::route_coverage_obligation::RouteCoverageObligation::SecurityValidation,
+            ),
+            (
+                crate::route_coverage_obligation::AUTHENTICATED_READ_ROUTE_COVERAGE_OBLIGATIONS,
+                crate::route_coverage_obligation::RouteCoverageObligation::ReplayValidation,
+            ),
+        ];
+        assert!(cases.into_iter().all(|(obligations, obligation)| {
+            let descriptor = crate::route_coverage_descriptor::RouteCoverageDescriptor::new(
+                metadata,
+                crate::route_access::RouteAccess::Authenticated,
+                crate::route_mutation::RouteMutation::Mutating,
+                crate::route_coverage_evidence::RouteCoverageEvidence::new(obligations),
+            );
+            crate::validate_route_coverage::validate_route_coverage(&[descriptor])
+                == Err(crate::route_coverage_error::RouteCoverageError::Missing {
+                    metadata,
+                    obligation,
+                })
+        }));
+    }
 }

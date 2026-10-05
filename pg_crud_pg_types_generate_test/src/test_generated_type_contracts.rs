@@ -1,0 +1,1157 @@
+#[derive(
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+    Eq,
+    PartialEq,
+    serde::Deserialize,
+    serde::Serialize,
+)]
+struct JsonContractValue {
+    value: i32,
+}
+fn assert_schema_example_deserializes<T>()
+where
+    T: utoipa::ToSchema + serde::Serialize + serde::de::DeserializeOwned,
+{
+    fn first_example(value: &serde_json::Value) -> Option<serde_json::Value> {
+        if let Some(example) = value
+            .get(constants_str::VALUE_C590B3C9)
+            .and_then(serde_json::Value::as_array)
+            .and_then(|examples| examples.first())
+        {
+            return Some(example.clone());
+        }
+        match value {
+            serde_json::Value::Array(values) => values.iter().find_map(first_example),
+            serde_json::Value::Object(values) => values.values().find_map(first_example),
+            serde_json::Value::Bool(_)
+            | serde_json::Value::Null
+            | serde_json::Value::Number(_)
+            | serde_json::Value::String(_) => None,
+        }
+    }
+    let schema = <T as utoipa::PartialSchema>::schema();
+    let schema_json = serde_json::to_value(schema).expect(constants_str::DIAGNOSTIC_489F8964);
+    let example = first_example(&schema_json).unwrap_or_else(|| {
+        std::panic::panic_any(
+            constants_str::PANIC_DFF79E9D
+                .replacen(
+                    constants_str::PANIC_POSITIONAL_PLACEHOLDER,
+                    std::any::type_name::<T>(),
+                    1usize,
+                )
+                .replacen(
+                    constants_str::PANIC_PLACEHOLDER_SCHEMA_JSON,
+                    schema_json.to_string().as_str(),
+                    1usize,
+                ),
+        )
+    });
+    let value = serde_json::from_value::<T>(example.clone()).unwrap_or_else(|error| {
+        std::panic::panic_any(
+            constants_str::PANIC_1E9E38EF
+                .replacen(
+                    constants_str::PANIC_POSITIONAL_PLACEHOLDER,
+                    std::any::type_name::<T>(),
+                    1usize,
+                )
+                .replacen(
+                    constants_str::PANIC_PLACEHOLDER_81240055,
+                    error.to_string().as_str(),
+                    1usize,
+                )
+                .replacen(
+                    constants_str::PANIC_PLACEHOLDER_EXAMPLE,
+                    example.to_string().as_str(),
+                    1usize,
+                ),
+        )
+    });
+    assert_eq!(
+        serde_json::to_value(value).expect(constants_str::DIAGNOSTIC_F126EFBE),
+        example
+    );
+}
+fn assert_nullable_origin_preserves_json_null<T>()
+where
+    T: serde::Serialize + serde::de::DeserializeOwned,
+{
+    assert!(
+        serde_json::from_value::<T>(serde_json::Value::Null).is_ok_and(|value| {
+            serde_json::to_value(value)
+                .is_ok_and(|serialized| serialized == serde_json::Value::Null)
+        })
+    );
+}
+fn assert_non_null_origin_rejects_json_null<T>()
+where
+    T: serde::de::DeserializeOwned,
+{
+    assert!(
+        serde_json::from_value::<T>(serde_json::Value::Null).is_err_and(|error| error.is_data())
+    );
+}
+fn assert_nullable_schema_and_frontend_contract<Marker, Origin>()
+where
+    Marker: frontend_contract::has_type_contract::HasTypeContract,
+    Origin: utoipa::PartialSchema,
+{
+    assert_eq!(
+        Marker::type_contract().nullability(),
+        frontend_contract::nullability::Nullability::Nullable
+    );
+    let schema_json =
+        serde_json::to_value(Origin::schema()).expect(constants_str::DIAGNOSTIC_F3B5A711);
+    assert!(
+        schema_json
+            .get(constants_str::ONE_OF)
+            .and_then(serde_json::Value::as_array)
+            .is_some_and(|schemas| {
+                schemas.iter().any(|schema| {
+                    schema
+                        .get(constants_str::JSON_TYPE)
+                        .is_some_and(|schema_type| schema_type == constants_str::JSON_NULL)
+                })
+            })
+    );
+}
+fn assert_non_nullable_schema_and_frontend_contract<Marker, Origin>()
+where
+    Marker: frontend_contract::has_type_contract::HasTypeContract,
+    Origin: utoipa::PartialSchema,
+{
+    assert_eq!(
+        Marker::type_contract().nullability(),
+        frontend_contract::nullability::Nullability::NonNullable
+    );
+    assert!(
+        serde_json::to_value(Origin::schema()).is_ok_and(|schema_json| {
+            let direct_null = schema_json
+                .get(constants_str::JSON_TYPE)
+                .is_some_and(|schema_type| schema_type == constants_str::JSON_NULL);
+            let variant_null = schema_json
+                .get(constants_str::ONE_OF)
+                .and_then(serde_json::Value::as_array)
+                .is_some_and(|schemas| {
+                    schemas.iter().any(|schema| {
+                        schema
+                            .get(constants_str::JSON_TYPE)
+                            .is_some_and(|schema_type| schema_type == constants_str::JSON_NULL)
+                    })
+                });
+            !direct_null && !variant_null
+        })
+    );
+}
+fn assert_nullable_empty_form_maps_to_json_null<Marker, Origin>()
+where
+    Marker: frontend_contract::filter_form_value_contract::FilterFormValueContract,
+    Origin: frontend_contract::form_value_contract::FormValueContract + serde::Serialize,
+{
+    assert!(
+        Origin::parse_form_value(frontend_contract::form_value_ref::FormValueRef::from(
+            constants_str::EMPTY
+        ))
+        .is_ok_and(|value| {
+            serde_json::to_value(value)
+                .is_ok_and(|serialized| serialized == serde_json::Value::Null)
+        })
+    );
+    assert!(
+        Marker::parse_filter_form_value(frontend_contract::form_value_ref::FormValueRef::from(
+            constants_str::EMPTY
+        ))
+        .is_ok_and(|value| value.as_ref() == constants_str::JSON_NULL)
+    );
+}
+fn assert_wrapper_traits<T, Inner>()
+where
+    T: From<Inner> + AsRef<Inner> + std::borrow::Borrow<Inner>,
+{
+    let _: std::marker::PhantomData<(T, Inner)> = std::marker::PhantomData;
+}
+#[test]
+fn test_shared_json_contract_helper_round_trips_pg_type_fixture() {
+    macro_helpers::ensure_json_contract_round_trip::ensure_json_contract_round_trip::<
+        JsonContractValue,
+    >(macro_helpers::json_fixture_ref::JsonFixtureRef::from(
+        constants_str::VALUE_7,
+    ))
+    .expect(constants_str::DIAGNOSTIC_13DF9134);
+}
+#[test]
+#[cfg_attr(
+    miri,
+    ignore = "full type source generation is covered by native determinism tests and is prohibitively slow under interpretation"
+)]
+fn test_generated_output_is_deterministic() {
+    let config = quote::quote! {{
+        "pg_table_cols_write_into_file": "False",
+        "whole_write_into_file": "False",
+        "generate_secret_text": true,
+        "variant": "All"
+    }};
+    let first = generate_pg_types_src::generate_pg_types_tokens::generate_pg_types_tokens(
+        macro_helpers::proc_macro2_token_stream_ref::ProcMacro2TokenStreamRef::from(&config),
+    );
+    let second = generate_pg_types_src::generate_pg_types_tokens::generate_pg_types_tokens(
+        macro_helpers::proc_macro2_token_stream_ref::ProcMacro2TokenStreamRef::from(&config),
+    );
+    assert_eq!(first.to_string(), second.to_string());
+}
+#[test]
+#[cfg_attr(
+    miri,
+    ignore = "compiler subprocess validation is covered by the native Clippy gate"
+)]
+fn test_pg_types_generate_clippy() {
+    let fixture_dependencies = constants_str::DEPENDENCIES_NEWLINE_CHRONO_WORKSPACE_TRUE_NEWLINE_UUID_WORKSPACE_TRUE_NEWLINE_SQLX_WORKSPACE
+        .replace(
+            constants_str::LOCATION_MONOLITHIC_WORKSPACE_DEPENDENCY,
+            constants_str::LOCATION_DERIVE_WORKSPACE_DEPENDENCY,
+        )
+        .replace(
+            constants_str::NEWTYPE_MONOLITHIC_WORKSPACE_DEPENDENCY,
+            constants_str::NEWTYPE_SPLIT_WORKSPACE_DEPENDENCIES,
+        );
+    macro_clippy_check_test_common::clippy_check(
+        constants_str::GENERATE_PG_TYPES_TEST_CONTENT,
+        constants_str::PG_CRUD_PG_TYPES,
+        fixture_dependencies.as_str(),
+        &generate_pg_types_src::generate_pg_types_tokens::generate_pg_types_tokens(
+            macro_helpers::proc_macro2_token_stream_ref::ProcMacro2TokenStreamRef::from(
+                &quote::quote! {
+                    {
+                        "pg_table_cols_write_into_file": "False",
+                        "whole_write_into_file": "False",
+                        "generate_secret_text": true,
+                        "variant": "All"
+                    }
+                },
+            ),
+        )
+        .to_string(),
+    );
+}
+#[test]
+fn test_generated_integer_open_api_schema_has_format_bounds_and_example() {
+    let schema = <pg_types_numeric::generate_pg_types_mod::I16AsNonNullInt2Origin as utoipa::PartialSchema>::schema();
+    let schema_json = serde_json::to_value(schema).expect(constants_str::DIAGNOSTIC_8AF67E13);
+    assert_eq!(
+        schema_json[constants_str::JSON_TYPE],
+        constants_str::INTEGER
+    );
+    assert_eq!(
+        schema_json[constants_str::SHARED_VALUES_FORMAT],
+        constants_str::VALUE_05C31294
+    );
+    assert_eq!(schema_json[constants_str::VALUE_692E4E5D], -32768);
+    assert_eq!(schema_json[constants_str::VALUE_8A64FF09], 32767);
+    assert_eq!(
+        schema_json[constants_str::VALUE_C590B3C9],
+        serde_json::json!([42])
+    );
+}
+#[test]
+fn test_generated_frontend_type_contract_matches_integer_wire_contract() {
+    let contract =
+        <pg_types_numeric::generate_pg_types_mod::I16AsNonNullInt2 as frontend_contract::has_type_contract::HasTypeContract>::type_contract();
+    assert_eq!(
+        contract.input_kind(),
+        frontend_contract::input_kind::InputKind::Number
+    );
+    assert_eq!(
+        contract.format(),
+        frontend_contract::value_format::ValueFormat::Int16
+    );
+    assert_eq!(
+        contract.nullability(),
+        frontend_contract::nullability::Nullability::NonNullable
+    );
+    assert_eq!(
+        contract.minimum(),
+        frontend_contract::numeric_bound::NumericBound::Inclusive(
+            frontend_contract::contract_i64::ContractI64::i16_min()
+        )
+    );
+    assert_eq!(
+        contract.maximum(),
+        frontend_contract::numeric_bound::NumericBound::Inclusive(
+            frontend_contract::contract_i64::ContractI64::i16_max()
+        )
+    );
+}
+#[test]
+fn test_generated_frontend_type_contract_preserves_nullable_uuid_semantics() {
+    let contract = <pg_types_text_misc::generate_pg_types_mod::OptionalSqlxTypesUuidUuidAsNullableUuidInitializationByClient as frontend_contract::has_type_contract::HasTypeContract>::type_contract();
+    assert_eq!(
+        contract.input_kind(),
+        frontend_contract::input_kind::InputKind::Uuid
+    );
+    assert_eq!(
+        contract.format(),
+        frontend_contract::value_format::ValueFormat::Uuid
+    );
+    assert_eq!(
+        contract.nullability(),
+        frontend_contract::nullability::Nullability::Nullable
+    );
+}
+#[test]
+fn test_generated_form_value_contract_parses_and_formats_wire_values() {
+    let integer = <pg_types_numeric::generate_pg_types_mod::I16AsNonNullInt2Origin as frontend_contract::form_value_contract::FormValueContract>::parse_form_value(frontend_contract::form_value_ref::FormValueRef::from(constants_str::VALUE_42)).expect(constants_str::DIAGNOSTIC_0935C11D);
+    assert_eq!(
+        frontend_contract::form_value_contract::FormValueContract::format_form_value(&integer)
+            .expect(constants_str::DIAGNOSTIC_144C7C4C)
+            .as_ref(),
+        constants_str::VALUE_42
+    );
+    let nullable = <pg_types_numeric::generate_pg_types_mod::OptionalI16AsNullableInt2Origin as frontend_contract::form_value_contract::FormValueContract>::parse_form_value(frontend_contract::form_value_ref::FormValueRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX)).expect(constants_str::DIAGNOSTIC_502918C1);
+    assert_eq!(
+        frontend_contract::form_value_contract::FormValueContract::format_form_value(&nullable)
+            .expect(constants_str::DIAGNOSTIC_56531064)
+            .as_ref(),
+        constants_str::EMPTY
+    );
+    let uuid_value = constants_str::VALUE_7B93D4A1_6F28_4C70_9A51_2E8D3F640C12;
+    let uuid = <pg_types_text_misc::generate_pg_types_mod::SqlxTypesUuidUuidAsNonNullUuidInitializationByClientOrigin as frontend_contract::form_value_contract::FormValueContract>::parse_form_value(frontend_contract::form_value_ref::FormValueRef::from(uuid_value)).expect(constants_str::DIAGNOSTIC_804F13B2);
+    assert_eq!(
+        frontend_contract::form_value_contract::FormValueContract::format_form_value(&uuid)
+            .expect(constants_str::DIAGNOSTIC_A17BCB42)
+            .as_ref(),
+        uuid_value
+    );
+    let timestamp = <pg_types_chrono_net::generate_pg_types_mod::SqlxTypesChronoNaiveDateTimeAsNonNullTimestampOrigin as frontend_contract::form_value_contract::FormValueContract>::parse_form_value(frontend_contract::form_value_ref::FormValueRef::from(constants_str::VALUE_2026_07_13T12_30_00)).expect(constants_str::DIAGNOSTIC_AD1DE295);
+    assert_eq!(
+        frontend_contract::form_value_contract::FormValueContract::format_form_value(&timestamp)
+            .expect(constants_str::DIAGNOSTIC_5A9F7D9C)
+            .as_ref(),
+        constants_str::VALUE_2026_07_13T12_30_00
+    );
+}
+#[test]
+fn test_generated_nullable_empty_form_values_preserve_json_null() {
+    assert_nullable_empty_form_maps_to_json_null::<
+        pg_types_numeric::generate_pg_types_mod::OptionalI16AsNullableInt2,
+        pg_types_numeric::generate_pg_types_mod::OptionalI16AsNullableInt2Origin,
+    >();
+    assert_nullable_empty_form_maps_to_json_null::<
+        pg_types_numeric::generate_pg_types_mod::OptionalI32AsNullableInt4,
+        pg_types_numeric::generate_pg_types_mod::OptionalI32AsNullableInt4Origin,
+    >();
+    assert_nullable_empty_form_maps_to_json_null::<
+        pg_types_numeric::generate_pg_types_mod::OptionalI64AsNullableInt8,
+        pg_types_numeric::generate_pg_types_mod::OptionalI64AsNullableInt8Origin,
+    >();
+    assert_nullable_empty_form_maps_to_json_null::<
+        pg_types_numeric::generate_pg_types_mod::OptionalF32AsNullableFloat4,
+        pg_types_numeric::generate_pg_types_mod::OptionalF32AsNullableFloat4Origin,
+    >();
+    assert_nullable_empty_form_maps_to_json_null::<
+        pg_types_numeric::generate_pg_types_mod::OptionalF64AsNullableFloat8,
+        pg_types_numeric::generate_pg_types_mod::OptionalF64AsNullableFloat8Origin,
+    >();
+    assert_nullable_empty_form_maps_to_json_null::<
+        pg_types_numeric::generate_pg_types_mod::OptionalSqlxPgTypesPgMoneyAsNullableMoney,
+        pg_types_numeric::generate_pg_types_mod::OptionalSqlxPgTypesPgMoneyAsNullableMoneyOrigin,
+    >();
+    assert_nullable_empty_form_maps_to_json_null::<
+        pg_types_numeric::generate_pg_types_mod::OptionalBoolAsNullableBool,
+        pg_types_numeric::generate_pg_types_mod::OptionalBoolAsNullableBoolOrigin,
+    >();
+    assert_nullable_empty_form_maps_to_json_null::<
+        pg_types_text_misc::generate_pg_types_mod::OptionalStringAsNullableText,
+        pg_types_text_misc::generate_pg_types_mod::OptionalStringAsNullableTextOrigin,
+    >();
+    assert_nullable_empty_form_maps_to_json_null::<
+        pg_types_text_misc::generate_pg_types_mod::OptionalStdVecVecU8AsNullableBytea,
+        pg_types_text_misc::generate_pg_types_mod::OptionalStdVecVecU8AsNullableByteaOrigin,
+    >();
+    assert_nullable_empty_form_maps_to_json_null::<pg_types_chrono_net::generate_pg_types_mod::OptionalSqlxTypesChronoNaiveTimeAsNullableTime, pg_types_chrono_net::generate_pg_types_mod::OptionalSqlxTypesChronoNaiveTimeAsNullableTimeOrigin>();
+    assert_nullable_empty_form_maps_to_json_null::<
+        pg_types_text_misc::generate_pg_types_mod::OptionalSqlxTypesTimeTimeAsNullableTime,
+        pg_types_text_misc::generate_pg_types_mod::OptionalSqlxTypesTimeTimeAsNullableTimeOrigin,
+    >();
+    assert_nullable_empty_form_maps_to_json_null::<pg_types_text_misc::generate_pg_types_mod::OptionalSqlxPgTypesPgIntervalAsNullableInterval, pg_types_text_misc::generate_pg_types_mod::OptionalSqlxPgTypesPgIntervalAsNullableIntervalOrigin>();
+    assert_nullable_empty_form_maps_to_json_null::<pg_types_chrono_net::generate_pg_types_mod::OptionalSqlxTypesChronoNaiveDateAsNullableDate, pg_types_chrono_net::generate_pg_types_mod::OptionalSqlxTypesChronoNaiveDateAsNullableDateOrigin>();
+    assert_nullable_empty_form_maps_to_json_null::<pg_types_chrono_net::generate_pg_types_mod::OptionalSqlxTypesChronoNaiveDateTimeAsNullableTimestamp, pg_types_chrono_net::generate_pg_types_mod::OptionalSqlxTypesChronoNaiveDateTimeAsNullableTimestampOrigin>();
+    assert_nullable_empty_form_maps_to_json_null::<pg_types_chrono_net::generate_pg_types_mod::OptionalSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsNullableTimestampTz, pg_types_chrono_net::generate_pg_types_mod::OptionalSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsNullableTimestampTzOrigin>();
+    assert_nullable_empty_form_maps_to_json_null::<pg_types_text_misc::generate_pg_types_mod::OptionalSqlxTypesUuidUuidAsNullableUuidInitializationByClient, pg_types_text_misc::generate_pg_types_mod::OptionalSqlxTypesUuidUuidAsNullableUuidInitializationByClientOrigin>();
+    assert_nullable_empty_form_maps_to_json_null::<pg_types_chrono_net::generate_pg_types_mod::OptionalSqlxTypesIpnetworkIpNetworkAsNullableInet, pg_types_chrono_net::generate_pg_types_mod::OptionalSqlxTypesIpnetworkIpNetworkAsNullableInetOrigin>();
+    assert_nullable_empty_form_maps_to_json_null::<pg_types_chrono_net::generate_pg_types_mod::OptionalSqlxTypesMacAddressMacAddressAsNullableMacAddr, pg_types_chrono_net::generate_pg_types_mod::OptionalSqlxTypesMacAddressMacAddressAsNullableMacAddrOrigin>();
+    assert_nullable_empty_form_maps_to_json_null::<pg_types_numeric::generate_pg_types_mod::OptionalSqlxPgTypesPgRangeI32AsNullableInt4Range, pg_types_numeric::generate_pg_types_mod::OptionalSqlxPgTypesPgRangeI32AsNullableInt4RangeOrigin>();
+    assert_nullable_empty_form_maps_to_json_null::<pg_types_numeric::generate_pg_types_mod::OptionalSqlxPgTypesPgRangeI64AsNullableInt8Range, pg_types_numeric::generate_pg_types_mod::OptionalSqlxPgTypesPgRangeI64AsNullableInt8RangeOrigin>();
+    assert_nullable_empty_form_maps_to_json_null::<pg_types_chrono_net::generate_pg_types_mod::OptionalSqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsNullableDateRange, pg_types_chrono_net::generate_pg_types_mod::OptionalSqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsNullableDateRangeOrigin>();
+    assert_nullable_empty_form_maps_to_json_null::<pg_types_chrono_net::generate_pg_types_mod::OptionalSqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsNullableTimestampRange, pg_types_chrono_net::generate_pg_types_mod::OptionalSqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsNullableTimestampRangeOrigin>();
+    assert_nullable_empty_form_maps_to_json_null::<pg_types_chrono_net::generate_pg_types_mod::OptionalSqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsNullableTimestampTzRange, pg_types_chrono_net::generate_pg_types_mod::OptionalSqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsNullableTimestampTzRangeOrigin>();
+}
+#[test]
+fn test_generated_filter_form_values_preserve_json_wire_types() {
+    let integer = <pg_types_numeric::generate_pg_types_mod::I16AsNonNullInt2 as frontend_contract::filter_form_value_contract::FilterFormValueContract>::parse_filter_form_value(frontend_contract::form_value_ref::FormValueRef::from(constants_str::VALUE_42)).expect(constants_str::DIAGNOSTIC_12DF8CB5);
+    assert_eq!(integer.as_ref(), constants_str::VALUE_42);
+    let timestamp = <pg_types_chrono_net::generate_pg_types_mod::SqlxTypesChronoNaiveDateTimeAsNonNullTimestamp as frontend_contract::filter_form_value_contract::FilterFormValueContract>::parse_filter_form_value(frontend_contract::form_value_ref::FormValueRef::from(constants_str::VALUE_2026_07_13T12_30_00)).expect(constants_str::DIAGNOSTIC_98F3DF36);
+    assert_eq!(timestamp.as_ref(), constants_str::VALUE_41FE6651);
+    let nullable = <pg_types_numeric::generate_pg_types_mod::OptionalI16AsNullableInt2 as frontend_contract::filter_form_value_contract::FilterFormValueContract>::parse_filter_form_value(frontend_contract::form_value_ref::FormValueRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX)).expect(constants_str::DIAGNOSTIC_B5939E08);
+    assert_eq!(nullable.as_ref(), constants_str::JSON_NULL);
+}
+#[test]
+fn test_generated_nullable_open_api_schema_is_nullable() {
+    assert_nullable_schema_and_frontend_contract::<
+        pg_types_numeric::generate_pg_types_mod::OptionalI16AsNullableInt2,
+        pg_types_numeric::generate_pg_types_mod::OptionalI16AsNullableInt2Origin,
+    >();
+    assert_nullable_schema_and_frontend_contract::<
+        pg_types_numeric::generate_pg_types_mod::OptionalI32AsNullableInt4,
+        pg_types_numeric::generate_pg_types_mod::OptionalI32AsNullableInt4Origin,
+    >();
+    assert_nullable_schema_and_frontend_contract::<
+        pg_types_numeric::generate_pg_types_mod::OptionalI64AsNullableInt8,
+        pg_types_numeric::generate_pg_types_mod::OptionalI64AsNullableInt8Origin,
+    >();
+    assert_nullable_schema_and_frontend_contract::<
+        pg_types_numeric::generate_pg_types_mod::OptionalF32AsNullableFloat4,
+        pg_types_numeric::generate_pg_types_mod::OptionalF32AsNullableFloat4Origin,
+    >();
+    assert_nullable_schema_and_frontend_contract::<
+        pg_types_numeric::generate_pg_types_mod::OptionalF64AsNullableFloat8,
+        pg_types_numeric::generate_pg_types_mod::OptionalF64AsNullableFloat8Origin,
+    >();
+    assert_nullable_schema_and_frontend_contract::<
+        pg_types_numeric::generate_pg_types_mod::OptionalSqlxPgTypesPgMoneyAsNullableMoney,
+        pg_types_numeric::generate_pg_types_mod::OptionalSqlxPgTypesPgMoneyAsNullableMoneyOrigin,
+    >();
+    assert_nullable_schema_and_frontend_contract::<
+        pg_types_numeric::generate_pg_types_mod::OptionalBoolAsNullableBool,
+        pg_types_numeric::generate_pg_types_mod::OptionalBoolAsNullableBoolOrigin,
+    >();
+    assert_nullable_schema_and_frontend_contract::<
+        pg_types_text_misc::generate_pg_types_mod::OptionalStringAsNullableText,
+        pg_types_text_misc::generate_pg_types_mod::OptionalStringAsNullableTextOrigin,
+    >();
+    assert_nullable_schema_and_frontend_contract::<
+        pg_types_text_misc::generate_pg_types_mod::OptionalStdVecVecU8AsNullableBytea,
+        pg_types_text_misc::generate_pg_types_mod::OptionalStdVecVecU8AsNullableByteaOrigin,
+    >();
+    assert_nullable_schema_and_frontend_contract::<pg_types_chrono_net::generate_pg_types_mod::OptionalSqlxTypesChronoNaiveTimeAsNullableTime, pg_types_chrono_net::generate_pg_types_mod::OptionalSqlxTypesChronoNaiveTimeAsNullableTimeOrigin>();
+    assert_nullable_schema_and_frontend_contract::<
+        pg_types_text_misc::generate_pg_types_mod::OptionalSqlxTypesTimeTimeAsNullableTime,
+        pg_types_text_misc::generate_pg_types_mod::OptionalSqlxTypesTimeTimeAsNullableTimeOrigin,
+    >();
+    assert_nullable_schema_and_frontend_contract::<pg_types_text_misc::generate_pg_types_mod::OptionalSqlxPgTypesPgIntervalAsNullableInterval, pg_types_text_misc::generate_pg_types_mod::OptionalSqlxPgTypesPgIntervalAsNullableIntervalOrigin>();
+    assert_nullable_schema_and_frontend_contract::<pg_types_chrono_net::generate_pg_types_mod::OptionalSqlxTypesChronoNaiveDateAsNullableDate, pg_types_chrono_net::generate_pg_types_mod::OptionalSqlxTypesChronoNaiveDateAsNullableDateOrigin>();
+    assert_nullable_schema_and_frontend_contract::<pg_types_chrono_net::generate_pg_types_mod::OptionalSqlxTypesChronoNaiveDateTimeAsNullableTimestamp, pg_types_chrono_net::generate_pg_types_mod::OptionalSqlxTypesChronoNaiveDateTimeAsNullableTimestampOrigin>();
+    assert_nullable_schema_and_frontend_contract::<pg_types_chrono_net::generate_pg_types_mod::OptionalSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsNullableTimestampTz, pg_types_chrono_net::generate_pg_types_mod::OptionalSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsNullableTimestampTzOrigin>();
+    assert_nullable_schema_and_frontend_contract::<pg_types_text_misc::generate_pg_types_mod::OptionalSqlxTypesUuidUuidAsNullableUuidInitializationByClient, pg_types_text_misc::generate_pg_types_mod::OptionalSqlxTypesUuidUuidAsNullableUuidInitializationByClientOrigin>();
+    assert_nullable_schema_and_frontend_contract::<pg_types_chrono_net::generate_pg_types_mod::OptionalSqlxTypesIpnetworkIpNetworkAsNullableInet, pg_types_chrono_net::generate_pg_types_mod::OptionalSqlxTypesIpnetworkIpNetworkAsNullableInetOrigin>();
+    assert_nullable_schema_and_frontend_contract::<pg_types_chrono_net::generate_pg_types_mod::OptionalSqlxTypesMacAddressMacAddressAsNullableMacAddr, pg_types_chrono_net::generate_pg_types_mod::OptionalSqlxTypesMacAddressMacAddressAsNullableMacAddrOrigin>();
+    assert_nullable_schema_and_frontend_contract::<pg_types_numeric::generate_pg_types_mod::OptionalSqlxPgTypesPgRangeI32AsNullableInt4Range, pg_types_numeric::generate_pg_types_mod::OptionalSqlxPgTypesPgRangeI32AsNullableInt4RangeOrigin>();
+    assert_nullable_schema_and_frontend_contract::<pg_types_numeric::generate_pg_types_mod::OptionalSqlxPgTypesPgRangeI64AsNullableInt8Range, pg_types_numeric::generate_pg_types_mod::OptionalSqlxPgTypesPgRangeI64AsNullableInt8RangeOrigin>();
+    assert_nullable_schema_and_frontend_contract::<pg_types_chrono_net::generate_pg_types_mod::OptionalSqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsNullableDateRange, pg_types_chrono_net::generate_pg_types_mod::OptionalSqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsNullableDateRangeOrigin>();
+    assert_nullable_schema_and_frontend_contract::<pg_types_chrono_net::generate_pg_types_mod::OptionalSqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsNullableTimestampRange, pg_types_chrono_net::generate_pg_types_mod::OptionalSqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsNullableTimestampRangeOrigin>();
+    assert_nullable_schema_and_frontend_contract::<pg_types_chrono_net::generate_pg_types_mod::OptionalSqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsNullableTimestampTzRange, pg_types_chrono_net::generate_pg_types_mod::OptionalSqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsNullableTimestampTzRangeOrigin>();
+}
+#[test]
+fn test_generated_non_nullable_schema_and_frontend_contract_agree() {
+    assert_non_nullable_schema_and_frontend_contract::<
+        pg_types_numeric::generate_pg_types_mod::I16AsNonNullInt2,
+        pg_types_numeric::generate_pg_types_mod::I16AsNonNullInt2Origin,
+    >();
+    assert_non_nullable_schema_and_frontend_contract::<
+        pg_types_numeric::generate_pg_types_mod::I32AsNonNullInt4,
+        pg_types_numeric::generate_pg_types_mod::I32AsNonNullInt4Origin,
+    >();
+    assert_non_nullable_schema_and_frontend_contract::<
+        pg_types_numeric::generate_pg_types_mod::I64AsNonNullInt8,
+        pg_types_numeric::generate_pg_types_mod::I64AsNonNullInt8Origin,
+    >();
+    assert_non_nullable_schema_and_frontend_contract::<
+        pg_types_numeric::generate_pg_types_mod::I16AsNonNullSmallSerialInitializationByPg,
+        pg_types_numeric::generate_pg_types_mod::I16AsNonNullSmallSerialInitializationByPgOrigin,
+    >();
+    assert_non_nullable_schema_and_frontend_contract::<
+        pg_types_numeric::generate_pg_types_mod::I32AsNonNullSerialInitializationByPg,
+        pg_types_numeric::generate_pg_types_mod::I32AsNonNullSerialInitializationByPgOrigin,
+    >();
+    assert_non_nullable_schema_and_frontend_contract::<
+        pg_types_numeric::generate_pg_types_mod::I64AsNonNullBigSerialInitializationByPg,
+        pg_types_numeric::generate_pg_types_mod::I64AsNonNullBigSerialInitializationByPgOrigin,
+    >();
+    assert_non_nullable_schema_and_frontend_contract::<
+        pg_types_numeric::generate_pg_types_mod::SqlxPgTypesPgMoneyAsNonNullMoney,
+        pg_types_numeric::generate_pg_types_mod::SqlxPgTypesPgMoneyAsNonNullMoneyOrigin,
+    >();
+    assert_non_nullable_schema_and_frontend_contract::<
+        pg_types_numeric::generate_pg_types_mod::F32AsNonNullFloat4,
+        pg_types_numeric::generate_pg_types_mod::F32AsNonNullFloat4Origin,
+    >();
+    assert_non_nullable_schema_and_frontend_contract::<
+        pg_types_numeric::generate_pg_types_mod::F64AsNonNullFloat8,
+        pg_types_numeric::generate_pg_types_mod::F64AsNonNullFloat8Origin,
+    >();
+    assert_non_nullable_schema_and_frontend_contract::<
+        pg_types_numeric::generate_pg_types_mod::BoolAsNonNullBool,
+        pg_types_numeric::generate_pg_types_mod::BoolAsNonNullBoolOrigin,
+    >();
+    assert_non_nullable_schema_and_frontend_contract::<
+        pg_types_text_misc::generate_pg_types_mod::StringAsNonNullText,
+        pg_types_text_misc::generate_pg_types_mod::StringAsNonNullTextOrigin,
+    >();
+    assert_non_nullable_schema_and_frontend_contract::<
+        pg_types_text_misc::generate_pg_types_mod::StdVecVecU8AsNonNullBytea,
+        pg_types_text_misc::generate_pg_types_mod::StdVecVecU8AsNonNullByteaOrigin,
+    >();
+    assert_non_nullable_schema_and_frontend_contract::<
+        pg_types_chrono_net::generate_pg_types_mod::SqlxTypesChronoNaiveTimeAsNonNullTime,
+        pg_types_chrono_net::generate_pg_types_mod::SqlxTypesChronoNaiveTimeAsNonNullTimeOrigin,
+    >();
+    assert_non_nullable_schema_and_frontend_contract::<
+        pg_types_text_misc::generate_pg_types_mod::SqlxTypesTimeTimeAsNonNullTime,
+        pg_types_text_misc::generate_pg_types_mod::SqlxTypesTimeTimeAsNonNullTimeOrigin,
+    >();
+    assert_non_nullable_schema_and_frontend_contract::<
+        pg_types_text_misc::generate_pg_types_mod::SqlxPgTypesPgIntervalAsNonNullInterval,
+        pg_types_text_misc::generate_pg_types_mod::SqlxPgTypesPgIntervalAsNonNullIntervalOrigin,
+    >();
+    assert_non_nullable_schema_and_frontend_contract::<
+        pg_types_chrono_net::generate_pg_types_mod::SqlxTypesChronoNaiveDateAsNonNullDate,
+        pg_types_chrono_net::generate_pg_types_mod::SqlxTypesChronoNaiveDateAsNonNullDateOrigin,
+    >();
+    assert_non_nullable_schema_and_frontend_contract::<pg_types_chrono_net::generate_pg_types_mod::SqlxTypesChronoNaiveDateTimeAsNonNullTimestamp, pg_types_chrono_net::generate_pg_types_mod::SqlxTypesChronoNaiveDateTimeAsNonNullTimestampOrigin>();
+    assert_non_nullable_schema_and_frontend_contract::<pg_types_chrono_net::generate_pg_types_mod::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsNonNullTimestampTz, pg_types_chrono_net::generate_pg_types_mod::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsNonNullTimestampTzOrigin>();
+    assert_non_nullable_schema_and_frontend_contract::<pg_types_text_misc::generate_pg_types_mod::SqlxTypesUuidUuidAsNonNullUuidInitializationByClient, pg_types_text_misc::generate_pg_types_mod::SqlxTypesUuidUuidAsNonNullUuidInitializationByClientOrigin>();
+    assert_non_nullable_schema_and_frontend_contract::<pg_types_text_misc::generate_pg_types_mod::SqlxTypesUuidUuidAsNonNullUuidV4InitializationByPg, pg_types_text_misc::generate_pg_types_mod::SqlxTypesUuidUuidAsNonNullUuidV4InitializationByPgOrigin>();
+    assert_non_nullable_schema_and_frontend_contract::<
+        pg_types_chrono_net::generate_pg_types_mod::SqlxTypesIpnetworkIpNetworkAsNonNullInet,
+        pg_types_chrono_net::generate_pg_types_mod::SqlxTypesIpnetworkIpNetworkAsNonNullInetOrigin,
+    >();
+    assert_non_nullable_schema_and_frontend_contract::<pg_types_chrono_net::generate_pg_types_mod::SqlxTypesMacAddressMacAddressAsNonNullMacAddr, pg_types_chrono_net::generate_pg_types_mod::SqlxTypesMacAddressMacAddressAsNonNullMacAddrOrigin>();
+    assert_non_nullable_schema_and_frontend_contract::<
+        pg_types_numeric::generate_pg_types_mod::SqlxPgTypesPgRangeI32AsNonNullInt4Range,
+        pg_types_numeric::generate_pg_types_mod::SqlxPgTypesPgRangeI32AsNonNullInt4RangeOrigin,
+    >();
+    assert_non_nullable_schema_and_frontend_contract::<
+        pg_types_numeric::generate_pg_types_mod::SqlxPgTypesPgRangeI64AsNonNullInt8Range,
+        pg_types_numeric::generate_pg_types_mod::SqlxPgTypesPgRangeI64AsNonNullInt8RangeOrigin,
+    >();
+    assert_non_nullable_schema_and_frontend_contract::<pg_types_chrono_net::generate_pg_types_mod::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsNonNullDateRange, pg_types_chrono_net::generate_pg_types_mod::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsNonNullDateRangeOrigin>();
+    assert_non_nullable_schema_and_frontend_contract::<pg_types_chrono_net::generate_pg_types_mod::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsNonNullTimestampRange, pg_types_chrono_net::generate_pg_types_mod::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsNonNullTimestampRangeOrigin>();
+    assert_non_nullable_schema_and_frontend_contract::<pg_types_chrono_net::generate_pg_types_mod::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsNonNullTimestampTzRange, pg_types_chrono_net::generate_pg_types_mod::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsNonNullTimestampTzRangeOrigin>();
+}
+#[test]
+fn test_generated_uuid_open_api_schema_matches_wire_string() {
+    let schema = <pg_types_text_misc::generate_pg_types_mod::SqlxTypesUuidUuidAsNonNullUuidInitializationByClientOrigin as utoipa::PartialSchema>::schema();
+    let schema_json = serde_json::to_value(schema).expect(constants_str::DIAGNOSTIC_80CB3EA4);
+    assert_eq!(
+        schema_json[constants_str::JSON_TYPE],
+        constants_str::STRING_ALT
+    );
+    assert_eq!(
+        schema_json[constants_str::SHARED_VALUES_FORMAT],
+        constants_str::PG_CRUD_PG_UUID
+    );
+}
+#[test]
+fn test_std_bound_wire_shape_is_stable_for_range_schemas() {
+    assert_eq!(
+        serde_json::to_value(std::ops::Bound::Included(1i32))
+            .expect(constants_str::DIAGNOSTIC_90CDFBA3),
+        serde_json::json!({"Included": 1})
+    );
+    assert_eq!(
+        serde_json::to_value(std::ops::Bound::<i32>::Unbounded)
+            .expect(constants_str::DIAGNOSTIC_2E7BD0DA),
+        serde_json::json!("Unbounded")
+    );
+}
+#[test]
+fn test_generated_time_open_api_properties_match_wire_object() {
+    let time = pg_types_chrono_net::generate_pg_types_mod::SqlxTypesChronoNaiveTimeAsNonNullTimeOrigin::try_new(
+        chrono::NaiveTime::from_hms_micro_opt(12, 34, 56, 789).expect(constants_str::DIAGNOSTIC_C19F58A4),
+    )
+    .expect(constants_str::DIAGNOSTIC_68C0E12B);
+    let wire = serde_json::to_value(time).expect(constants_str::DIAGNOSTIC_DE790942);
+    let schema =
+        <pg_types_chrono_net::generate_pg_types_mod::SqlxTypesChronoNaiveTimeAsNonNullTimeOrigin as utoipa::PartialSchema>::schema();
+    let schema_json = serde_json::to_value(schema).expect(constants_str::DIAGNOSTIC_DC191318);
+    let wire_obj = wire.as_object().expect(constants_str::DIAGNOSTIC_E7150F4C);
+    let schema_props = schema_json[constants_str::PROPERTIES]
+        .as_object()
+        .expect(constants_str::DIAGNOSTIC_85098DC5);
+    assert!(wire_obj.keys().all(|key| schema_props.contains_key(key)));
+    assert_eq!(
+        schema_json[constants_str::REQUIRED]
+            .as_array()
+            .map(Vec::len),
+        Some(4)
+    );
+}
+#[test]
+fn test_generated_range_open_api_properties_match_wire_object() {
+    let range = pg_types_numeric::generate_pg_types_mod::SqlxPgTypesPgRangeI32AsNonNullInt4RangeOrigin::try_new(
+        sqlx::postgres::types::PgRange {
+            start: std::ops::Bound::Included(1),
+            end: std::ops::Bound::Excluded(3),
+        },
+    )
+    .expect(constants_str::DIAGNOSTIC_760545B6);
+    let wire = serde_json::to_value(range).expect(constants_str::DIAGNOSTIC_290B56BB);
+    let schema =
+        <pg_types_numeric::generate_pg_types_mod::SqlxPgTypesPgRangeI32AsNonNullInt4RangeOrigin as utoipa::PartialSchema>::schema();
+    let schema_json = serde_json::to_value(schema).expect(constants_str::DIAGNOSTIC_72860BF4);
+    let wire_obj = wire.as_object().expect(constants_str::DIAGNOSTIC_06A340B9);
+    let schema_props = schema_json[constants_str::PROPERTIES]
+        .as_object()
+        .expect(constants_str::DIAGNOSTIC_3DC31CC6);
+    assert!(wire_obj.keys().all(|key| schema_props.contains_key(key)));
+    assert_eq!(
+        schema_json[constants_str::PROPERTIES][constants_str::PG_CRUD_START_FIELD]
+            [constants_str::ONE_OF]
+            .as_array()
+            .map(Vec::len),
+        Some(3)
+    );
+}
+#[test]
+fn test_generated_filter_has_open_api_one_of_schema() {
+    let schema = <pg_types_numeric::generate_pg_types_mod::I16AsNonNullInt2Where as utoipa::PartialSchema>::schema();
+    let schema_json = serde_json::to_value(schema).expect(constants_str::DIAGNOSTIC_4BBD5367);
+    assert!(
+        schema_json[constants_str::ONE_OF]
+            .as_array()
+            .is_some_and(|variants| !variants.is_empty())
+    );
+}
+#[test]
+fn test_generated_filters_follow_descriptor_capabilities() {
+    let uuid_schema =
+        <pg_types_text_misc::generate_pg_types_mod::SqlxTypesUuidUuidAsNonNullUuidInitializationByClientWhere as utoipa::PartialSchema>::schema();
+    let uuid_schema_json =
+        serde_json::to_string(&uuid_schema).expect(constants_str::DIAGNOSTIC_C3AF72F5);
+    assert!(uuid_schema_json.contains(constants_str::VALUE_8BC1D53C));
+    assert!(!uuid_schema_json.contains(constants_str::VALUE_0F271252));
+    let string_schema =
+        <pg_types_text_misc::generate_pg_types_mod::StringAsNonNullTextWhere as utoipa::PartialSchema>::schema();
+    assert!(
+        serde_json::to_string(&string_schema)
+            .expect(constants_str::DIAGNOSTIC_2672B8C6)
+            .contains(constants_str::VALUE_0F271252)
+    );
+    let range_schema =
+        <pg_types_numeric::generate_pg_types_mod::SqlxPgTypesPgRangeI32AsNonNullInt4RangeWhere as utoipa::PartialSchema>::schema();
+    assert!(
+        serde_json::to_string(&range_schema)
+            .expect(constants_str::DIAGNOSTIC_C7954E5C)
+            .contains(constants_str::VALUE_DBD1BC63)
+    );
+}
+#[test]
+fn test_generated_frontend_filters_follow_the_same_descriptor_matrix() {
+    let boolean = <pg_types_numeric::generate_pg_types_mod::BoolAsNonNullBool as frontend_contract::has_filter_contracts::HasFilterContracts>::filter_contracts();
+    assert_eq!(
+        boolean.as_ref().to_vec(),
+        [frontend_contract::filter_operation::FilterOperation::Eq]
+    );
+    let number = <pg_types_numeric::generate_pg_types_mod::I16AsNonNullInt2 as frontend_contract::has_filter_contracts::HasFilterContracts>::filter_contracts();
+    assert_eq!(
+        number.as_ref().to_vec(),
+        [
+            frontend_contract::filter_operation::FilterOperation::Eq,
+            frontend_contract::filter_operation::FilterOperation::GreaterThan,
+            frontend_contract::filter_operation::FilterOperation::Between,
+            frontend_contract::filter_operation::FilterOperation::In,
+        ]
+    );
+    let text = <pg_types_text_misc::generate_pg_types_mod::StringAsNonNullText as frontend_contract::has_filter_contracts::HasFilterContracts>::filter_contracts();
+    assert_eq!(
+        text.as_ref().to_vec(),
+        [
+            frontend_contract::filter_operation::FilterOperation::Eq,
+            frontend_contract::filter_operation::FilterOperation::In,
+            frontend_contract::filter_operation::FilterOperation::Regex,
+        ]
+    );
+    assert_eq!(
+        text.as_ref().get(2usize).map(|filter| filter.value_shape()),
+        Some(frontend_contract::filter_value_shape::FilterValueShape::Regex)
+    );
+}
+#[test]
+fn test_generated_schema_examples_deserialize_for_every_wire_kind() {
+    assert_schema_example_deserializes::<
+        pg_types_numeric::generate_pg_types_mod::I16AsNonNullInt2Origin,
+    >();
+    assert_schema_example_deserializes::<
+        pg_types_numeric::generate_pg_types_mod::I32AsNonNullInt4Origin,
+    >();
+    assert_schema_example_deserializes::<
+        pg_types_numeric::generate_pg_types_mod::I64AsNonNullInt8Origin,
+    >();
+    assert_schema_example_deserializes::<
+        pg_types_numeric::generate_pg_types_mod::I16AsNonNullSmallSerialInitializationByPgOrigin,
+    >();
+    assert_schema_example_deserializes::<
+        pg_types_numeric::generate_pg_types_mod::I32AsNonNullSerialInitializationByPgOrigin,
+    >();
+    assert_schema_example_deserializes::<
+        pg_types_numeric::generate_pg_types_mod::I64AsNonNullBigSerialInitializationByPgOrigin,
+    >();
+    assert_schema_example_deserializes::<
+        pg_types_numeric::generate_pg_types_mod::SqlxPgTypesPgMoneyAsNonNullMoneyOrigin,
+    >();
+    assert_schema_example_deserializes::<
+        pg_types_numeric::generate_pg_types_mod::F32AsNonNullFloat4Origin,
+    >();
+    assert_schema_example_deserializes::<
+        pg_types_numeric::generate_pg_types_mod::F64AsNonNullFloat8Origin,
+    >();
+    assert_schema_example_deserializes::<
+        pg_types_numeric::generate_pg_types_mod::BoolAsNonNullBoolOrigin,
+    >();
+    assert_schema_example_deserializes::<
+        pg_types_text_misc::generate_pg_types_mod::StringAsNonNullTextOrigin,
+    >();
+    assert_schema_example_deserializes::<
+        pg_types_text_misc::generate_pg_types_mod::StdVecVecU8AsNonNullByteaOrigin,
+    >();
+    assert_schema_example_deserializes::<
+        pg_types_chrono_net::generate_pg_types_mod::SqlxTypesChronoNaiveTimeAsNonNullTimeOrigin,
+    >();
+    assert_schema_example_deserializes::<
+        pg_types_text_misc::generate_pg_types_mod::SqlxTypesTimeTimeAsNonNullTimeOrigin,
+    >();
+    assert_schema_example_deserializes::<
+        pg_types_text_misc::generate_pg_types_mod::SqlxPgTypesPgIntervalAsNonNullIntervalOrigin,
+    >();
+    assert_schema_example_deserializes::<
+        pg_types_chrono_net::generate_pg_types_mod::SqlxTypesChronoNaiveDateAsNonNullDateOrigin,
+    >();
+    assert_schema_example_deserializes::<
+        pg_types_chrono_net::generate_pg_types_mod::SqlxTypesChronoNaiveDateTimeAsNonNullTimestampOrigin,
+    >();
+    assert_schema_example_deserializes::<
+        pg_types_chrono_net::generate_pg_types_mod::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsNonNullTimestampTzOrigin,
+    >();
+    assert_schema_example_deserializes::<
+        pg_types_text_misc::generate_pg_types_mod::SqlxTypesUuidUuidAsNonNullUuidInitializationByClientOrigin,
+    >();
+    assert_schema_example_deserializes::<
+        pg_types_text_misc::generate_pg_types_mod::SqlxTypesUuidUuidAsNonNullUuidV4InitializationByPgOrigin,
+    >();
+    assert_schema_example_deserializes::<
+        pg_types_chrono_net::generate_pg_types_mod::SqlxTypesIpnetworkIpNetworkAsNonNullInetOrigin,
+    >();
+    assert_schema_example_deserializes::<
+        pg_types_chrono_net::generate_pg_types_mod::SqlxTypesMacAddressMacAddressAsNonNullMacAddrOrigin,
+    >();
+    assert_schema_example_deserializes::<
+        pg_types_numeric::generate_pg_types_mod::SqlxPgTypesPgRangeI32AsNonNullInt4RangeOrigin,
+    >();
+    assert_schema_example_deserializes::<
+        pg_types_numeric::generate_pg_types_mod::SqlxPgTypesPgRangeI64AsNonNullInt8RangeOrigin,
+    >();
+    assert_schema_example_deserializes::<
+        pg_types_chrono_net::generate_pg_types_mod::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsNonNullDateRangeOrigin,
+    >();
+    assert_schema_example_deserializes::<pg_types_chrono_net::generate_pg_types_mod::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsNonNullTimestampRangeOrigin>();
+    assert_schema_example_deserializes::<pg_types_chrono_net::generate_pg_types_mod::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsNonNullTimestampTzRangeOrigin>();
+    assert_schema_example_deserializes::<
+        pg_types_numeric::generate_pg_types_mod::OptionalI16AsNullableInt2Origin,
+    >();
+    assert_schema_example_deserializes::<
+        pg_types_numeric::generate_pg_types_mod::OptionalI32AsNullableInt4Origin,
+    >();
+    assert_schema_example_deserializes::<
+        pg_types_numeric::generate_pg_types_mod::OptionalI64AsNullableInt8Origin,
+    >();
+    assert_schema_example_deserializes::<
+        pg_types_numeric::generate_pg_types_mod::OptionalF32AsNullableFloat4Origin,
+    >();
+    assert_schema_example_deserializes::<
+        pg_types_numeric::generate_pg_types_mod::OptionalF64AsNullableFloat8Origin,
+    >();
+    assert_schema_example_deserializes::<
+        pg_types_numeric::generate_pg_types_mod::OptionalSqlxPgTypesPgMoneyAsNullableMoneyOrigin,
+    >();
+    assert_schema_example_deserializes::<
+        pg_types_numeric::generate_pg_types_mod::OptionalBoolAsNullableBoolOrigin,
+    >();
+    assert_schema_example_deserializes::<
+        pg_types_text_misc::generate_pg_types_mod::OptionalStringAsNullableTextOrigin,
+    >();
+    assert_schema_example_deserializes::<
+        pg_types_text_misc::generate_pg_types_mod::OptionalStdVecVecU8AsNullableByteaOrigin,
+    >();
+    assert_schema_example_deserializes::<pg_types_chrono_net::generate_pg_types_mod::OptionalSqlxTypesChronoNaiveTimeAsNullableTimeOrigin>();
+    assert_schema_example_deserializes::<
+        pg_types_text_misc::generate_pg_types_mod::OptionalSqlxTypesTimeTimeAsNullableTimeOrigin,
+    >();
+    assert_schema_example_deserializes::<pg_types_text_misc::generate_pg_types_mod::OptionalSqlxPgTypesPgIntervalAsNullableIntervalOrigin>();
+    assert_schema_example_deserializes::<pg_types_chrono_net::generate_pg_types_mod::OptionalSqlxTypesChronoNaiveDateAsNullableDateOrigin>();
+    assert_schema_example_deserializes::<pg_types_chrono_net::generate_pg_types_mod::OptionalSqlxTypesChronoNaiveDateTimeAsNullableTimestampOrigin>();
+    assert_schema_example_deserializes::<pg_types_chrono_net::generate_pg_types_mod::OptionalSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsNullableTimestampTzOrigin>();
+    assert_schema_example_deserializes::<pg_types_text_misc::generate_pg_types_mod::OptionalSqlxTypesUuidUuidAsNullableUuidInitializationByClientOrigin>();
+    assert_schema_example_deserializes::<pg_types_chrono_net::generate_pg_types_mod::OptionalSqlxTypesIpnetworkIpNetworkAsNullableInetOrigin>();
+    assert_schema_example_deserializes::<pg_types_chrono_net::generate_pg_types_mod::OptionalSqlxTypesMacAddressMacAddressAsNullableMacAddrOrigin>();
+    assert_schema_example_deserializes::<pg_types_numeric::generate_pg_types_mod::OptionalSqlxPgTypesPgRangeI32AsNullableInt4RangeOrigin>();
+    assert_schema_example_deserializes::<pg_types_numeric::generate_pg_types_mod::OptionalSqlxPgTypesPgRangeI64AsNullableInt8RangeOrigin>();
+    assert_schema_example_deserializes::<pg_types_chrono_net::generate_pg_types_mod::OptionalSqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsNullableDateRangeOrigin>();
+    assert_schema_example_deserializes::<pg_types_chrono_net::generate_pg_types_mod::OptionalSqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsNullableTimestampRangeOrigin>();
+    assert_schema_example_deserializes::<pg_types_chrono_net::generate_pg_types_mod::OptionalSqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsNullableTimestampTzRangeOrigin>();
+    let _nullable_value = serde_json::from_value::<
+        pg_types_numeric::generate_pg_types_mod::OptionalI16AsNullableInt2Origin,
+    >(serde_json::Value::Null)
+    .expect(constants_str::DIAGNOSTIC_4063A869);
+}
+#[test]
+fn test_generated_nullable_origins_preserve_json_null() {
+    assert_nullable_origin_preserves_json_null::<
+        pg_types_numeric::generate_pg_types_mod::OptionalI16AsNullableInt2Origin,
+    >();
+    assert_nullable_origin_preserves_json_null::<
+        pg_types_numeric::generate_pg_types_mod::OptionalI32AsNullableInt4Origin,
+    >();
+    assert_nullable_origin_preserves_json_null::<
+        pg_types_numeric::generate_pg_types_mod::OptionalI64AsNullableInt8Origin,
+    >();
+    assert_nullable_origin_preserves_json_null::<
+        pg_types_numeric::generate_pg_types_mod::OptionalF32AsNullableFloat4Origin,
+    >();
+    assert_nullable_origin_preserves_json_null::<
+        pg_types_numeric::generate_pg_types_mod::OptionalF64AsNullableFloat8Origin,
+    >();
+    assert_nullable_origin_preserves_json_null::<
+        pg_types_numeric::generate_pg_types_mod::OptionalSqlxPgTypesPgMoneyAsNullableMoneyOrigin,
+    >();
+    assert_nullable_origin_preserves_json_null::<
+        pg_types_numeric::generate_pg_types_mod::OptionalBoolAsNullableBoolOrigin,
+    >();
+    assert_nullable_origin_preserves_json_null::<
+        pg_types_text_misc::generate_pg_types_mod::OptionalStringAsNullableTextOrigin,
+    >();
+    assert_nullable_origin_preserves_json_null::<
+        pg_types_text_misc::generate_pg_types_mod::OptionalStdVecVecU8AsNullableByteaOrigin,
+    >();
+    assert_nullable_origin_preserves_json_null::<pg_types_chrono_net::generate_pg_types_mod::OptionalSqlxTypesChronoNaiveTimeAsNullableTimeOrigin>();
+    assert_nullable_origin_preserves_json_null::<
+        pg_types_text_misc::generate_pg_types_mod::OptionalSqlxTypesTimeTimeAsNullableTimeOrigin,
+    >();
+    assert_nullable_origin_preserves_json_null::<pg_types_text_misc::generate_pg_types_mod::OptionalSqlxPgTypesPgIntervalAsNullableIntervalOrigin>();
+    assert_nullable_origin_preserves_json_null::<pg_types_chrono_net::generate_pg_types_mod::OptionalSqlxTypesChronoNaiveDateAsNullableDateOrigin>();
+    assert_nullable_origin_preserves_json_null::<pg_types_chrono_net::generate_pg_types_mod::OptionalSqlxTypesChronoNaiveDateTimeAsNullableTimestampOrigin>();
+    assert_nullable_origin_preserves_json_null::<pg_types_chrono_net::generate_pg_types_mod::OptionalSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsNullableTimestampTzOrigin>();
+    assert_nullable_origin_preserves_json_null::<pg_types_text_misc::generate_pg_types_mod::OptionalSqlxTypesUuidUuidAsNullableUuidInitializationByClientOrigin>();
+    assert_nullable_origin_preserves_json_null::<pg_types_chrono_net::generate_pg_types_mod::OptionalSqlxTypesIpnetworkIpNetworkAsNullableInetOrigin>();
+    assert_nullable_origin_preserves_json_null::<pg_types_chrono_net::generate_pg_types_mod::OptionalSqlxTypesMacAddressMacAddressAsNullableMacAddrOrigin>();
+    assert_nullable_origin_preserves_json_null::<pg_types_numeric::generate_pg_types_mod::OptionalSqlxPgTypesPgRangeI32AsNullableInt4RangeOrigin>();
+    assert_nullable_origin_preserves_json_null::<pg_types_numeric::generate_pg_types_mod::OptionalSqlxPgTypesPgRangeI64AsNullableInt8RangeOrigin>();
+    assert_nullable_origin_preserves_json_null::<pg_types_chrono_net::generate_pg_types_mod::OptionalSqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsNullableDateRangeOrigin>();
+    assert_nullable_origin_preserves_json_null::<pg_types_chrono_net::generate_pg_types_mod::OptionalSqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsNullableTimestampRangeOrigin>();
+    assert_nullable_origin_preserves_json_null::<pg_types_chrono_net::generate_pg_types_mod::OptionalSqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsNullableTimestampTzRangeOrigin>();
+}
+#[test]
+fn test_generated_non_null_origins_reject_json_null() {
+    assert_non_null_origin_rejects_json_null::<
+        pg_types_numeric::generate_pg_types_mod::I16AsNonNullInt2Origin,
+    >();
+    assert_non_null_origin_rejects_json_null::<
+        pg_types_numeric::generate_pg_types_mod::I32AsNonNullInt4Origin,
+    >();
+    assert_non_null_origin_rejects_json_null::<
+        pg_types_numeric::generate_pg_types_mod::I64AsNonNullInt8Origin,
+    >();
+    assert_non_null_origin_rejects_json_null::<
+        pg_types_numeric::generate_pg_types_mod::I16AsNonNullSmallSerialInitializationByPgOrigin,
+    >();
+    assert_non_null_origin_rejects_json_null::<
+        pg_types_numeric::generate_pg_types_mod::I32AsNonNullSerialInitializationByPgOrigin,
+    >();
+    assert_non_null_origin_rejects_json_null::<
+        pg_types_numeric::generate_pg_types_mod::I64AsNonNullBigSerialInitializationByPgOrigin,
+    >();
+    assert_non_null_origin_rejects_json_null::<
+        pg_types_numeric::generate_pg_types_mod::SqlxPgTypesPgMoneyAsNonNullMoneyOrigin,
+    >();
+    assert_non_null_origin_rejects_json_null::<
+        pg_types_numeric::generate_pg_types_mod::F32AsNonNullFloat4Origin,
+    >();
+    assert_non_null_origin_rejects_json_null::<
+        pg_types_numeric::generate_pg_types_mod::F64AsNonNullFloat8Origin,
+    >();
+    assert_non_null_origin_rejects_json_null::<
+        pg_types_numeric::generate_pg_types_mod::BoolAsNonNullBoolOrigin,
+    >();
+    assert_non_null_origin_rejects_json_null::<
+        pg_types_text_misc::generate_pg_types_mod::StringAsNonNullTextOrigin,
+    >();
+    assert_non_null_origin_rejects_json_null::<
+        pg_types_text_misc::generate_pg_types_mod::StdVecVecU8AsNonNullByteaOrigin,
+    >();
+    assert_non_null_origin_rejects_json_null::<
+        pg_types_chrono_net::generate_pg_types_mod::SqlxTypesChronoNaiveTimeAsNonNullTimeOrigin,
+    >();
+    assert_non_null_origin_rejects_json_null::<
+        pg_types_text_misc::generate_pg_types_mod::SqlxTypesTimeTimeAsNonNullTimeOrigin,
+    >();
+    assert_non_null_origin_rejects_json_null::<
+        pg_types_text_misc::generate_pg_types_mod::SqlxPgTypesPgIntervalAsNonNullIntervalOrigin,
+    >();
+    assert_non_null_origin_rejects_json_null::<
+        pg_types_chrono_net::generate_pg_types_mod::SqlxTypesChronoNaiveDateAsNonNullDateOrigin,
+    >();
+    assert_non_null_origin_rejects_json_null::<pg_types_chrono_net::generate_pg_types_mod::SqlxTypesChronoNaiveDateTimeAsNonNullTimestampOrigin>();
+    assert_non_null_origin_rejects_json_null::<pg_types_chrono_net::generate_pg_types_mod::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsNonNullTimestampTzOrigin>();
+    assert_non_null_origin_rejects_json_null::<pg_types_text_misc::generate_pg_types_mod::SqlxTypesUuidUuidAsNonNullUuidInitializationByClientOrigin>();
+    assert_non_null_origin_rejects_json_null::<pg_types_text_misc::generate_pg_types_mod::SqlxTypesUuidUuidAsNonNullUuidV4InitializationByPgOrigin>();
+    assert_non_null_origin_rejects_json_null::<
+        pg_types_chrono_net::generate_pg_types_mod::SqlxTypesIpnetworkIpNetworkAsNonNullInetOrigin,
+    >();
+    assert_non_null_origin_rejects_json_null::<pg_types_chrono_net::generate_pg_types_mod::SqlxTypesMacAddressMacAddressAsNonNullMacAddrOrigin>();
+    assert_non_null_origin_rejects_json_null::<
+        pg_types_numeric::generate_pg_types_mod::SqlxPgTypesPgRangeI32AsNonNullInt4RangeOrigin,
+    >();
+    assert_non_null_origin_rejects_json_null::<
+        pg_types_numeric::generate_pg_types_mod::SqlxPgTypesPgRangeI64AsNonNullInt8RangeOrigin,
+    >();
+    assert_non_null_origin_rejects_json_null::<pg_types_chrono_net::generate_pg_types_mod::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsNonNullDateRangeOrigin>();
+    assert_non_null_origin_rejects_json_null::<pg_types_chrono_net::generate_pg_types_mod::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsNonNullTimestampRangeOrigin>();
+    assert_non_null_origin_rejects_json_null::<pg_types_chrono_net::generate_pg_types_mod::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsNonNullTimestampTzRangeOrigin>();
+}
+#[test]
+fn test_generated_wire_contract_rejects_invalid_values() {
+    drop(
+        serde_json::from_value::<pg_types_numeric::generate_pg_types_mod::I16AsNonNullInt2Origin>(
+            serde_json::json!(32768),
+        )
+        .expect_err(constants_str::VALUE_18E07769),
+    );
+    drop(
+        serde_json::from_value::<
+            pg_types_text_misc::generate_pg_types_mod::SqlxTypesUuidUuidAsNonNullUuidInitializationByClientOrigin,
+        >(serde_json::json!("not-a-uuid"))
+        .expect_err(constants_str::VALUE_4805266C),
+    );
+    drop(
+        serde_json::from_value::<
+            pg_types_chrono_net::generate_pg_types_mod::SqlxTypesChronoNaiveTimeAsNonNullTimeOrigin,
+        >(serde_json::json!({"hour": 24, "min": 0, "sec": 0, "micro": 0}))
+        .expect_err(constants_str::VALUE_66B5606B),
+    );
+    drop(
+        serde_json::from_value::<
+            pg_types_chrono_net::generate_pg_types_mod::SqlxTypesMacAddressMacAddressAsNonNullMacAddrOrigin,
+        >(serde_json::json!([0, 1, 2]))
+        .expect_err(constants_str::CABD480A),
+    );
+}
+#[test]
+fn test_generated_float8_rejects_non_finite_values() {
+    let _finite =
+        pg_types_numeric::generate_pg_types_mod::F64AsNonNullFloat8Origin::try_new(1.5f64)
+            .expect(constants_str::DIAGNOSTIC_40483CD5);
+    drop(
+        pg_types_numeric::generate_pg_types_mod::F64AsNonNullFloat8Origin::try_new(f64::NAN)
+            .expect_err(constants_str::VALUE_A3C9AE5D),
+    );
+    drop(
+        pg_types_numeric::generate_pg_types_mod::F64AsNonNullFloat8Origin::try_new(f64::INFINITY)
+            .expect_err(constants_str::VALUE_CD23DFD9),
+    );
+    drop(
+        <pg_types_numeric::generate_pg_types_mod::F64AsNonNullFloat8Origin as serde::Deserialize>::deserialize(
+            serde::de::value::F64Deserializer::<serde::de::value::Error>::new(
+                f64::NEG_INFINITY,
+            ),
+        )
+        .expect_err(constants_str::VALUE_D22548CF),
+    );
+}
+#[test]
+fn test_generated_float4_rejects_non_finite_values() {
+    let finite =
+        pg_types_numeric::generate_pg_types_mod::F32AsNonNullFloat4TableType::try_new(1.5f32);
+    assert!(finite.ok().is_some());
+    assert!(
+        pg_types_numeric::generate_pg_types_mod::F32AsNonNullFloat4Origin::try_new(f32::NAN)
+            .err()
+            .is_some()
+    );
+    assert!(
+        pg_types_numeric::generate_pg_types_mod::F32AsNonNullFloat4Origin::try_new(f32::INFINITY)
+            .err()
+            .is_some()
+    );
+    assert!(<pg_types_numeric::generate_pg_types_mod::F32AsNonNullFloat4Origin as serde::Deserialize>::deserialize(
+        serde::de::value::F32Deserializer::<serde::de::value::Error>::new(f32::NEG_INFINITY),
+    ).err().is_some());
+}
+#[test]
+fn test_generated_wrapper_roles_have_standard_conversions_and_borrows() {
+    assert_wrapper_traits::<
+        pg_types_numeric::generate_pg_types_mod::I16AsNonNullInt2TableType,
+        pg_types_numeric::generate_pg_types_mod::I16AsNonNullInt2Origin,
+    >();
+    assert_wrapper_traits::<
+        pg_types_text_misc::generate_pg_types_mod::SqlxPgTypesPgIntervalAsNonNullIntervalCreate,
+        pg_types_text_misc::generate_pg_types_mod::SqlxPgTypesPgIntervalAsNonNullIntervalOrigin,
+    >();
+    assert_wrapper_traits::<
+        pg_types_numeric::generate_pg_types_mod::I16AsNonNullInt2Read,
+        pg_types_numeric::generate_pg_types_mod::I16AsNonNullInt2Origin,
+    >();
+    assert_wrapper_traits::<
+        pg_types_text_misc::generate_pg_types_mod::SqlxTypesUuidUuidAsNonNullUuidV4InitializationByPgReadIds,
+        pg_types_text_misc::generate_pg_types_mod::SqlxTypesUuidUuidAsNonNullUuidV4InitializationByPgRead,
+    >();
+    assert_wrapper_traits::<
+        pg_types_numeric::generate_pg_types_mod::I16AsNonNullInt2Update,
+        pg_types_numeric::generate_pg_types_mod::I16AsNonNullInt2Origin,
+    >();
+    assert_wrapper_traits::<
+        pg_types_numeric::generate_pg_types_mod::I16AsNonNullInt2UpdateForQuery,
+        pg_types_numeric::generate_pg_types_mod::I16AsNonNullInt2Origin,
+    >();
+}
+#[test]
+fn test_generated_secret_text_is_redacted_and_borrowable() {
+    fn assert_traits<T>()
+    where
+        T: Clone
+            + Eq
+            + std::fmt::Debug
+            + AsRef<str>
+            + std::borrow::Borrow<str>
+            + sqlx::Type<sqlx::Postgres>,
+    {
+        let _: std::marker::PhantomData<T> = std::marker::PhantomData;
+    }
+    assert_traits::<pg_types_text_misc::generate_pg_types_mod::StringAsNonNullTextSecret>();
+    let secret = pg_types_text_misc::generate_pg_types_mod::StringAsNonNullTextSecret::try_from(
+        constants_str::SECRET_VALUE.to_owned(),
+    )
+    .expect(constants_str::DIAGNOSTIC_408FD4B7);
+    assert_eq!(format!("{secret:?}"), constants_str::REDACTED_ALT_3);
+    let borrowed =
+        pg_types_text_misc::generate_pg_types_mod::StringAsNonNullTextSecretRef::from(&secret);
+    assert_eq!(format!("{borrowed:?}"), constants_str::REDACTED_ALT_3);
+    assert_eq!(borrowed.as_ref(), constants_str::SECRET_VALUE);
+}
+#[test]
+fn test_generated_secret_text_validates_utf8_byte_bounds_and_keeps_debug_redacted() {
+    let maximum = 1_048_576usize;
+    let cases = [
+        String::new(),
+        constants_str::X.repeat(maximum),
+        '\u{00e9}'.to_string().repeat(524_288usize),
+        constants_str::X.repeat(maximum + 1usize),
+        '\u{00e9}'.to_string().repeat(524_288usize + 1usize),
+    ];
+    assert!(cases.into_iter().all(|value| {
+        let byte_length = value.len();
+        match pg_types_text_misc::generate_pg_types_mod::StringAsNonNullTextSecret::try_from(value)
+        {
+            Ok(secret) => {
+                let borrowed =
+                    pg_types_text_misc::generate_pg_types_mod::StringAsNonNullTextSecretRef::from(
+                        &secret,
+                    );
+                byte_length <= maximum
+                    && secret.as_ref().len() == byte_length
+                    && borrowed.as_ref() == secret.as_ref()
+                    && format!("{secret:?}") == constants_str::REDACTED_ALT_3
+                    && format!("{borrowed:?}") == constants_str::REDACTED_ALT_3
+            }
+            Err(error) => {
+                byte_length > maximum
+                    && error.to_string().contains(&byte_length.to_string())
+                    && error.to_string().contains(&maximum.to_string())
+            }
+        }
+    }));
+}
+
+fn assert_generated_time_form_precision_and_validation<Origin>()
+where
+    Origin: frontend_contract::form_value_contract::FormValueContract + serde::Serialize,
+{
+    let valid = [
+        (
+            format!("{:02}:{:02}", 12u32, 34u32),
+            format!("{:02}:{:02}:{:02}", 12u32, 34u32, 0u32),
+            0u32,
+        ),
+        (
+            format!("{:02}:{:02}:{:02}", 12u32, 34u32, 56u32),
+            format!("{:02}:{:02}:{:02}", 12u32, 34u32, 56u32),
+            0u32,
+        ),
+        (
+            format!("{:02}:{:02}:{:02}.", 12u32, 34u32, 56u32),
+            format!("{:02}:{:02}:{:02}", 12u32, 34u32, 56u32),
+            0u32,
+        ),
+        (
+            format!("{:02}:{:02}:{:02}.{:01}", 12u32, 34u32, 56u32, 1u32),
+            format!("{:02}:{:02}:{:02}.{:01}", 12u32, 34u32, 56u32, 1u32),
+            100_000u32,
+        ),
+        (
+            format!("{:02}:{:02}:{:02}.{:06}", 12u32, 34u32, 56u32, 1u32),
+            format!("{:02}:{:02}:{:02}.{:06}", 12u32, 34u32, 56u32, 1u32),
+            1u32,
+        ),
+        (
+            format!("{:02}:{:02}:{:02}.{:06}", 12u32, 34u32, 56u32, 120_000u32),
+            format!("{:02}:{:02}:{:02}.{:02}", 12u32, 34u32, 56u32, 12u32),
+            120_000u32,
+        ),
+    ];
+    assert!(valid.iter().all(|(input, expected, microsecond)| {
+        Origin::parse_form_value(frontend_contract::form_value_ref::FormValueRef::from(
+            input.as_str(),
+        ))
+        .is_ok_and(|value| {
+            let correct_wire = serde_json::to_value(&value).is_ok_and(|wire| {
+                wire.get(constants_str::MICRO)
+                    .or_else(|| wire.get(constants_str::MICROSECOND))
+                    .and_then(serde_json::Value::as_u64)
+                    == Some(u64::from(*microsecond))
+            });
+            correct_wire
+                && value
+                    .format_form_value()
+                    .is_ok_and(|formatted| formatted.as_ref() == expected.as_str())
+        })
+    }));
+    let invalid = [
+        format!("{}", 12u32),
+        format!("{}:", 12u32),
+        format!(":{}", 34u32),
+        format!("{}:{}:", 12u32, 34u32),
+        format!("{}:{}:{}:{}", 12u32, 34u32, 56u32, 0u32),
+        format!("{}:{}:{}.{:07}", 12u32, 34u32, 56u32, 1u32),
+        format!("{}:{}:{}.{}", 12u32, 34u32, 56u32, 'x'),
+        format!("{}:{}:{}", 24u32, 0u32, 0u32),
+        format!("{}:{}:{}", 0u32, 60u32, 0u32),
+        format!("{}:{}:{}", 0u32, 0u32, 61u32),
+        format!("-{}:{}:{}", 1u32, 0u32, 0u32),
+        format!("{}:{}:{}", u64::MAX, 0u32, 0u32),
+    ];
+    assert!(invalid.iter().all(|input| {
+        Origin::parse_form_value(frontend_contract::form_value_ref::FormValueRef::from(
+            input.as_str(),
+        ))
+        .is_err_and(|error| !error.to_string().is_empty())
+    }));
+}
+#[test]
+fn test_generated_time_form_precision_and_invalid_inputs() {
+    assert_generated_time_form_precision_and_validation::<
+        pg_types_chrono_net::generate_pg_types_mod::SqlxTypesChronoNaiveTimeAsNonNullTimeOrigin,
+    >();
+    assert_generated_time_form_precision_and_validation::<pg_types_chrono_net::generate_pg_types_mod::OptionalSqlxTypesChronoNaiveTimeAsNullableTimeOrigin>();
+    assert_generated_time_form_precision_and_validation::<
+        pg_types_text_misc::generate_pg_types_mod::SqlxTypesTimeTimeAsNonNullTimeOrigin,
+    >();
+    assert_generated_time_form_precision_and_validation::<
+        pg_types_text_misc::generate_pg_types_mod::OptionalSqlxTypesTimeTimeAsNullableTimeOrigin,
+    >();
+}

@@ -71,6 +71,108 @@ fn test_crud() {
         .expect(constants_str::DIAGNOSTIC_5FFB690C),
         server_admin_contract::admin_page_total::AdminPageTotal::from(1u64),
     );
+    let users_html = crate::render_users::render_users(
+        &users,
+        &server_admin_contract::admin_table_query::AdminTableQuery::default(),
+        &admin,
+        &branding,
+    );
+    assert!(!users_html.as_ref().contains(
+        server_admin_contract::admin_frontend_path::AdminFrontendPath::UsersCreate.get()
+    ));
+    assert!(users.items().first().is_some_and(|user| {
+        users_html.as_ref().contains(
+            server_admin_contract::admin_route_path::AdminRoutePath::user_update_path(user.id())
+                .as_ref(),
+        )
+    }));
+    let roles_html = crate::render_roles::render_roles(
+        &roles,
+        &server_admin_contract::admin_table_query::AdminTableQuery::default(),
+        &admin,
+        &branding,
+    );
+    assert!(!roles_html.as_ref().contains(
+        server_admin_contract::admin_frontend_path::AdminFrontendPath::RolesCreate.get()
+    ));
+    assert!(roles.items().first().is_some_and(|role| {
+        roles_html.as_ref().contains(
+            server_admin_contract::admin_route_path::AdminRoutePath::role_update_path(role.id())
+                .as_ref(),
+        )
+    }));
+    let create_rule_result = server_admin_contract::admin_rule_value::AdminRuleValue::try_from(
+        server_admin_contract::admin_rule::AdminRule::UsersCreate
+            .as_str()
+            .get()
+            .to_owned(),
+    );
+    assert_eq!(create_rule_result.as_ref().err(), None);
+    let Ok(create_rule) = create_rule_result else {
+        return;
+    };
+    let role_create_rule_result = server_admin_contract::admin_rule_value::AdminRuleValue::try_from(
+        server_admin_contract::admin_rule::AdminRule::RolesCreate
+            .as_str()
+            .get()
+            .to_owned(),
+    );
+    assert_eq!(role_create_rule_result.as_ref().err(), None);
+    let Ok(role_create_rule) = role_create_rule_result else {
+        return;
+    };
+    let create_rules_result =
+        server_admin_contract::admin_rule_values::AdminRuleValues::try_from(vec![
+            create_rule,
+            role_create_rule,
+        ]);
+    assert_eq!(create_rules_result.as_ref().err(), None);
+    let Ok(create_rules) = create_rules_result else {
+        return;
+    };
+    let create_roles_result =
+        server_admin_contract::admin_role_names::AdminRoleNames::try_from(Vec::new());
+    assert_eq!(create_roles_result.as_ref().err(), None);
+    let Ok(create_roles) = create_roles_result else {
+        return;
+    };
+    let create_admin = server_admin_contract::authenticated_admin::AuthenticatedAdmin::new(
+        admin.display_name().clone(),
+        *admin.id(),
+        admin.login().clone(),
+        create_rules,
+        create_roles,
+    );
+    let create_users_html = crate::render_users::render_users(
+        &users,
+        &server_admin_contract::admin_table_query::AdminTableQuery::default(),
+        &create_admin,
+        &branding,
+    );
+    assert!(create_users_html.as_ref().contains(
+        server_admin_contract::admin_frontend_path::AdminFrontendPath::UsersCreate.get()
+    ));
+    assert!(users.items().first().is_some_and(|user| {
+        !create_users_html.as_ref().contains(
+            server_admin_contract::admin_route_path::AdminRoutePath::user_update_path(user.id())
+                .as_ref(),
+        )
+    }));
+    let create_roles_html = crate::render_roles::render_roles(
+        &roles,
+        &server_admin_contract::admin_table_query::AdminTableQuery::default(),
+        &create_admin,
+        &branding,
+    );
+    assert!(create_roles_html.as_ref().contains(
+        server_admin_contract::admin_frontend_path::AdminFrontendPath::RolesCreate.get()
+    ));
+    assert!(roles.items().first().is_some_and(|role| {
+        !create_roles_html.as_ref().contains(
+            server_admin_contract::admin_route_path::AdminRoutePath::role_update_path(role.id())
+                .as_ref(),
+        )
+    }));
     let user_create = crate::render_user_create::render_user_create(&admin, &branding);
     assert!(
         !user_create

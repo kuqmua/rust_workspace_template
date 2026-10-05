@@ -244,4 +244,50 @@ mod tests {
             .is_err()
         }));
     }
+
+    #[test]
+    fn test_interval_length_schema_preserves_required_integer_fields() {
+        let schema = <crate::std_duration_range_length::StdDurationRangeLength as utoipa::PartialSchema>::schema();
+        assert!(matches!(
+            &schema,
+            utoipa::openapi::RefOr::T(utoipa::openapi::schema::Schema::Object(_))
+        ));
+        let utoipa::openapi::RefOr::T(utoipa::openapi::schema::Schema::Object(object)) = schema
+        else {
+            return;
+        };
+        assert_eq!(object.properties.len(), 2usize);
+        assert!(
+            object
+                .required
+                .iter()
+                .map(String::as_str)
+                .eq([constants_str::SECS, constants_str::NANOS])
+        );
+        assert!([constants_str::SECS, constants_str::NANOS].into_iter().all(|name| {
+            matches!(object.properties.get(name), Some(utoipa::openapi::RefOr::T(utoipa::openapi::schema::Schema::Object(property))) if property.schema_type == utoipa::openapi::schema::Type::Integer.into())
+        }));
+    }
+
+    #[test]
+    fn test_interval_length_type_metadata_and_one_element_default_preserve_contracts() {
+        let type_info = <crate::std_duration_range_length::StdDurationRangeLength as sqlx::Type<
+            sqlx::Postgres,
+        >>::type_info();
+        assert_eq!(
+            type_info,
+            <sqlx::postgres::types::PgInterval as sqlx::Type<sqlx::Postgres>>::type_info()
+        );
+        assert!(
+            <crate::std_duration_range_length::StdDurationRangeLength as sqlx::Type<
+                sqlx::Postgres,
+            >>::compatible(&type_info)
+        );
+        assert!(
+            !<crate::std_duration_range_length::StdDurationRangeLength as sqlx::Type<
+                sqlx::Postgres,
+            >>::compatible(&<i64 as sqlx::Type<sqlx::Postgres>>::type_info())
+        );
+        assert_eq!(<crate::std_duration_range_length::StdDurationRangeLength as crate::default_some_one_element::DefaultSomeOneElement>::default_some_one_element(), crate::std_duration_range_length::StdDurationRangeLength::default());
+    }
 }

@@ -74,6 +74,7 @@ test("test_user_read_link_opens_in_a_new_tab_without_changing_the_table", async 
   await row.getByRole("link", { name: "read", exact: true }).click({ modifiers: ["ControlOrMeta"] });
   const popup = await popupPromise;
   try {
+    await popup.bringToFront();
     await expect(popup).toHaveURL(`/admin/users/${id}/read`);
     await expect(popup.locator('section[data-page="user-read"]')).toContainText(login);
     await expect(page).toHaveURL(/\/admin\/users$/);

@@ -37,6 +37,36 @@ pub(crate) fn classify_pg_code(str: &str) -> crate::pg_error_kind::PgErrorKind {
 #[cfg(test)]
 mod tests {
     #[test]
+    fn test_postgres_data_and_constraint_codes_keep_distinct_error_kinds() {
+        assert!(
+            [
+                (
+                    constants_str::PG_SQLSTATE_STRING_DATA_RIGHT_TRUNCATION,
+                    crate::pg_error_kind::PgErrorKind::StringDataRightTruncation
+                ),
+                (
+                    constants_str::PG_SQLSTATE_NUMERIC_VALUE_OUT_OF_RANGE,
+                    crate::pg_error_kind::PgErrorKind::NumericValueOutOfRange
+                ),
+                (
+                    constants_str::PG_SQLSTATE_INVALID_TEXT_REPRESENTATION,
+                    crate::pg_error_kind::PgErrorKind::InvalidTextRepresentation
+                ),
+                (
+                    constants_str::PG_SQLSTATE_NOT_NULL_VIOLATION,
+                    crate::pg_error_kind::PgErrorKind::NotNullViolation
+                ),
+                (
+                    constants_str::PG_SQLSTATE_CHECK_VIOLATION,
+                    crate::pg_error_kind::PgErrorKind::CheckViolation
+                ),
+            ]
+            .into_iter()
+            .all(|(code, expected)| crate::classify_pg_code::classify_pg_code(code) == expected)
+        );
+    }
+
+    #[test]
     fn test_classifies_known_postgres_codes() {
         assert_eq!(
             crate::classify_pg_code::classify_pg_code(constants_str::PG_SQLSTATE_UNIQUE_VIOLATION),

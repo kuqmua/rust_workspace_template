@@ -5,9 +5,10 @@
   "version": "0.1.0",
   "scripts": {
     "screenshots": "BROWSER_ACCEPTANCE_SCREENSHOTS=1 playwright test tests/screenshots.spec.js",
-    "test": "playwright test",
+    "test": "npm run test:unit && playwright test",
     "test:swagger": "BROWSER_ACCEPTANCE_SWAGGER_ENABLED=true playwright test tests/test_swagger_enabled.spec.js",
-    "test:full": "BROWSER_ACCEPTANCE_FULL=1 playwright test"
+    "test:full": "BROWSER_ACCEPTANCE_FULL=1 playwright test",
+    "test:unit": "node --test tests/test_health_probe.mjs tests/test_shell_entrypoints.mjs"
   },
   "devDependencies": {
     "@playwright/test": "1.62.0"

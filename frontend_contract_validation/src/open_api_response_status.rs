@@ -17,3 +17,18 @@ impl TryFrom<u16> for OpenApiResponseStatus {
             .ok_or(frontend_contract::http_status_try_from_u16_error::HttpStatusTryFromU16Error::OutOfRange)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn test_openapi_response_status_accepts_exact_protocol_range() {
+        assert!((u16::MIN..=u16::MAX).all(|value| {
+            let result = crate::open_api_response_status::OpenApiResponseStatus::try_from(value);
+            if (100u16..=999u16).contains(&value) {
+                result.is_ok_and(|status| *status == value)
+            } else {
+                matches!(result, Err(frontend_contract::http_status_try_from_u16_error::HttpStatusTryFromU16Error::OutOfRange))
+            }
+        }));
+    }
+}

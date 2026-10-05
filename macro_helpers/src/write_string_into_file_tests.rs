@@ -340,4 +340,129 @@ mod tests {
         ));
         assert_eq!(unchanged.into_path(), written_path(unchanged_path));
     }
+    #[test]
+    fn test_atomic_file_writer_compares_complete_content_across_chunk_boundaries() {
+        [0usize, 8192usize, 8193usize, 16385usize].into_iter().fold((), |(), length| {
+            let base = crate::test_path::test_path(crate::test_path_stem::TestPathStem::new(constants_str::MACRO_HELPERS_WRITE_FILE_OUTCOME_CHANGED));
+            let path = crate::rs_file_path_tests::rs_file_path(&base);
+            let initial = constants_str::X.repeat(length);
+            assert!(matches!(std::fs::write(&path, initial.as_bytes()), Ok(())));
+            assert!(crate::try_write_string_into_file_with_outcome::try_write_string_into_file_with_outcome(&base, file_content(initial.as_str())).is_ok_and(|outcome| !bool::from(outcome.is_changed()) && outcome.path().as_ref() == path.as_ref()));
+            let changed = format!("{}{}", constants_str::X.repeat(length.saturating_sub(1usize)), constants_str::B);
+            assert_eq!(changed.len(), length.max(1usize));
+            assert!(crate::try_write_string_into_file_with_outcome::try_write_string_into_file_with_outcome(&base, file_content(changed.as_str())).is_ok_and(|outcome| bool::from(outcome.is_changed()) && outcome.path().as_ref() == path.as_ref()));
+            assert_content_and_cleanup(path.as_ref(), changed.as_str());
+        });
+    }
+
+    #[test]
+    fn test_atomic_file_writer_preserves_parent_file_on_metadata_failure() {
+        let base = crate::test_path::test_path(crate::test_path_stem::TestPathStem::new(
+            constants_str::MACRO_HELPERS_WRITE_FILE_OUTCOME_CHANGED,
+        ));
+        assert!(matches!(
+            std::fs::write(&base, constants_str::ABC_ALT_3),
+            Ok(())
+        ));
+        let destination = base.as_ref().join(constants_str::X);
+        let outcome =
+            crate::try_write_string_into_file_with_outcome::try_write_string_into_file_with_outcome(
+                &destination,
+                file_content(constants_str::ABC_ALT_3),
+            );
+        assert!(outcome.is_err_and(|error| error.kind() == std::io::ErrorKind::NotADirectory));
+        assert_content_and_cleanup(base.as_ref(), constants_str::ABC_ALT_3);
+    }
+
+    #[test]
+    fn test_cleanup_reports_directory_removal_failure_and_preserves_directory() {
+        let base = crate::test_path::test_path(crate::test_path_stem::TestPathStem::new(
+            constants_str::MACRO_HELPERS_WRITE_FILE_OUTCOME_CHANGED,
+        ));
+        assert!(matches!(std::fs::create_dir_all(&base), Ok(())));
+        let expected_error = std::fs::remove_file(&base).err();
+        assert!(expected_error.is_some());
+        let Some(error) = expected_error else {
+            return;
+        };
+        let expected = constants_str::PANIC_33EA4EA2.replacen(
+            constants_str::PANIC_PLACEHOLDER_81240055,
+            &error.to_string(),
+            1usize,
+        );
+        let observed = std::panic::catch_unwind(|| cleanup(base.as_ref()));
+        assert!(std::fs::metadata(&base).is_ok_and(|metadata| metadata.is_dir()));
+        assert!(matches!(std::fs::remove_dir(&base), Ok(())));
+        assert!(observed.as_ref().is_err_and(|payload| {
+            payload
+                .downcast_ref::<String>()
+                .is_some_and(|message| message == &expected)
+        }));
+    }
+    #[test]
+    fn test_atomic_file_writer_propagates_missing_parent_error_without_creating_directory() {
+        let base = crate::test_path::test_path(crate::test_path_stem::TestPathStem::new(
+            constants_str::MACRO_HELPERS_WRITE_FILE_OUTCOME_CHANGED,
+        ));
+        let destination = base.as_ref().join(constants_str::X);
+        let outcome =
+            crate::try_write_string_into_file_with_outcome::try_write_string_into_file_with_outcome(
+                &destination,
+                file_content(constants_str::ABC_ALT_3),
+            );
+        assert!(outcome.is_err_and(|error| error.kind() == std::io::ErrorKind::NotFound));
+        assert!(
+            std::fs::metadata(&base)
+                .is_err_and(|error| error.kind() == std::io::ErrorKind::NotFound)
+        );
+    }
+
+    #[test]
+    fn test_atomic_file_writer_preserves_directory_on_read_and_commit_errors() {
+        let base = crate::test_path::test_path(crate::test_path_stem::TestPathStem::new(
+            constants_str::MACRO_HELPERS_WRITE_FILE_OUTCOME_CHANGED,
+        ));
+        let path = crate::rs_file_path_tests::rs_file_path(&base);
+        assert!(matches!(std::fs::create_dir_all(&path), Ok(())));
+        let marker = path.as_ref().join(constants_str::X);
+        assert!(matches!(
+            std::fs::write(&marker, constants_str::ABC_ALT_3),
+            Ok(())
+        ));
+        let metadata_result = std::fs::metadata(&path);
+        assert!(
+            metadata_result
+                .as_ref()
+                .is_ok_and(std::fs::Metadata::is_dir)
+        );
+        let Ok(metadata) = metadata_result else {
+            return;
+        };
+        let length_result = usize::try_from(metadata.len());
+        assert!(
+            length_result
+                .as_ref()
+                .is_ok_and(|length| *length <= 16384usize)
+        );
+        let Ok(length) = length_result else {
+            return;
+        };
+        let content = constants_str::X.repeat(length);
+        let read_outcome =
+            crate::try_write_string_into_file_with_outcome::try_write_string_into_file_with_outcome(
+                &base,
+                file_content(content.as_str()),
+            );
+        assert!(read_outcome.is_err_and(|error| error.kind() == std::io::ErrorKind::IsADirectory));
+        let commit_outcome =
+            crate::try_write_string_into_file_with_outcome::try_write_string_into_file_with_outcome(
+                &base,
+                file_content(constants_str::EMPTY),
+            );
+        assert!(
+            commit_outcome.is_err_and(|error| error.kind() == std::io::ErrorKind::IsADirectory)
+        );
+        assert_content_and_cleanup(marker.as_path(), constants_str::ABC_ALT_3);
+        assert!(matches!(std::fs::remove_dir(&path), Ok(())));
+    }
 }

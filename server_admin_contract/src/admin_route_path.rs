@@ -336,4 +336,64 @@ mod tests {
             );
         }
     }
+
+    #[test]
+    fn test_admin_route_path_preserves_empty_and_ascii_byte_boundaries() {
+        assert!(
+            [0usize, 1usize, constants_usize::VALUE_8_192]
+                .into_iter()
+                .all(|length| {
+                    super::AdminRoutePath::try_from(constants_str::SLASH.repeat(length)).is_ok_and(
+                        |admin_route_path| {
+                            admin_route_path.as_ref().len() == length
+                                && admin_route_path.as_ref().bytes().all(|byte| byte == b'/')
+                        },
+                    )
+                })
+        );
+        assert!(
+            super::AdminRoutePath::try_from(
+                constants_str::SLASH.repeat(constants_usize::VALUE_8_192 + 1usize)
+            )
+            .is_err_and(|error| matches!(
+                error,
+                crate::admin_route_path_error::AdminRoutePathError::TooLong
+            ))
+        );
+    }
+
+    #[test]
+    fn test_admin_route_path_counts_utf8_bytes_and_preserves_null_text() {
+        let character_count = 2_048usize;
+        assert_eq!(
+            character_count * char::MAX.len_utf8(),
+            constants_usize::VALUE_8_192
+        );
+        assert!(
+            super::AdminRoutePath::try_from(char::MAX.to_string().repeat(character_count))
+                .is_ok_and(|admin_route_path| {
+                    admin_route_path.as_ref().len() == constants_usize::VALUE_8_192
+                        && admin_route_path.as_ref().chars().count() == character_count
+                        && admin_route_path
+                            .as_ref()
+                            .chars()
+                            .all(|character| character == char::MAX)
+                })
+        );
+        assert!(
+            super::AdminRoutePath::try_from(char::MAX.to_string().repeat(character_count + 1usize))
+                .is_err_and(|error| matches!(
+                    error,
+                    crate::admin_route_path_error::AdminRoutePathError::TooLong
+                ))
+        );
+        assert!(
+            super::AdminRoutePath::try_from(char::from(0u8).to_string()).is_ok_and(
+                |admin_route_path| admin_route_path
+                    .as_ref()
+                    .chars()
+                    .eq(std::iter::once(char::from(0u8)))
+            )
+        );
+    }
 }

@@ -1,6 +1,125 @@
 #[cfg(test)]
 mod tests {
     #[test]
+    fn test_database_url_rejects_case_insensitive_and_bare_query_overrides() {
+        let base = constants_str::POSTGRES_USER_SECRET_LOCALHOST_TEST;
+        [
+            constants_str::DATABASE_QUERY_HOST_KEY,
+            constants_str::DATABASE_QUERY_HOSTADDR_KEY,
+            constants_str::DATABASE_QUERY_DBNAME_KEY,
+        ]
+        .into_iter()
+        .fold((), |(), key| {
+            let uppercase = key.to_ascii_uppercase();
+            [
+                format!("{base}?{uppercase}"),
+                format!("{base}?{uppercase}={}", constants_str::X),
+                format!(
+                    "{base}?{}={}&{uppercase}=",
+                    constants_str::X,
+                    constants_str::X
+                ),
+            ]
+            .into_iter()
+            .fold((), |(), url| {
+                assert_eq!(
+                    crate::validate_test_database_url::validate_test_database_url(
+                        crate::url_ref::UrlRef::from(url.as_str()),
+                    ),
+                    Err(crate::url_error::UrlError::Malformed)
+                );
+            });
+        });
+    }
+    #[test]
+    fn test_database_url_rejects_malformed_scheme_authority_and_empty_database() {
+        let separator = constants_str::TEXT_ALT_10;
+        [
+            format!(
+                "{}{}{}{}{}",
+                constants_str::HTTP,
+                separator,
+                constants_str::LOCALHOST,
+                '/',
+                constants_str::TEST_ALT_3
+            ),
+            format!(
+                "{}{}{}",
+                constants_str::POSTGRES,
+                separator,
+                constants_str::LOCALHOST
+            ),
+            format!(
+                "{}{}{}{}",
+                constants_str::POSTGRES,
+                separator,
+                constants_str::LOCALHOST,
+                '/'
+            ),
+            format!(
+                "{}{}{}{}{}{}",
+                constants_str::POSTGRES,
+                separator,
+                '[',
+                constants_str::PATH_1,
+                '/',
+                constants_str::TEST_ALT_3
+            ),
+            format!(
+                "{}{}{}{}{}{}{}{}",
+                constants_str::POSTGRES,
+                separator,
+                '[',
+                constants_str::PATH_1,
+                ']',
+                constants_str::X,
+                '/',
+                constants_str::TEST_ALT_3
+            ),
+        ]
+        .into_iter()
+        .fold((), |(), url| {
+            assert_eq!(
+                crate::validate_test_database_url::validate_test_database_url(
+                    crate::url_ref::UrlRef::from(url.as_str())
+                ),
+                Err(crate::url_error::UrlError::Malformed)
+            );
+        });
+    }
+
+    #[test]
+    fn test_database_url_sanitized_target_preserves_exact_storage_boundary() {
+        let base = format!(
+            "{}{}{}{}",
+            constants_str::POSTGRES,
+            constants_str::TEXT_ALT_10,
+            constants_str::LOCALHOST,
+            '/'
+        );
+        let prefix = constants_str::TEST_ALT_4;
+        let maximum = format!(
+            "{}{}{}",
+            base,
+            prefix,
+            constants_str::X.repeat(constants_usize::VALUE_4_096 - base.len() - prefix.len())
+        );
+        assert_eq!(maximum.len(), constants_usize::VALUE_4_096);
+        assert!(
+            crate::validate_test_database_url::validate_test_database_url(
+                crate::url_ref::UrlRef::from(maximum.as_str())
+            )
+            .is_ok_and(|target| target.to_string() == maximum)
+        );
+        let oversized = format!("{}{}", maximum, constants_str::X);
+        assert_eq!(
+            crate::validate_test_database_url::validate_test_database_url(
+                crate::url_ref::UrlRef::from(oversized.as_str())
+            ),
+            Err(crate::url_error::UrlError::Malformed)
+        );
+    }
+    #[test]
     fn test_accepts_explicit_loopback_test_databases() {
         let all_accepted = [
             constants_str::POSTGRES_USER_SECRET_LOCALHOST_TEST,

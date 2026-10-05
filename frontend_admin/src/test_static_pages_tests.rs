@@ -146,6 +146,26 @@ fn test_static_pages() {
         constants_usize::TWO
     );
 
+    let mixed_roles_manage_html =
+        crate::render_role_manage::render_role_manage(&mixed_roles, &admin, &branding);
+    assert!(
+        mixed_roles_manage_html
+            .as_ref()
+            .contains(constants_str::ADMIN_UI_SYSTEM_ROLE)
+    );
+    assert!(
+        mixed_roles_manage_html
+            .as_ref()
+            .contains(constants_str::ADMIN_UI_CUSTOM_ROLE)
+    );
+    let banned_users_manage_html =
+        crate::render_user_manage::render_user_manage(&users, &admin, &branding);
+    assert!(
+        banned_users_manage_html
+            .as_ref()
+            .contains(constants_str::ADMIN_UI_BANNED)
+    );
+
     let sessions = server_admin_contract::admin_sessions_page::AdminSessionsPage::new(
         server_admin_contract::admin_session_views::AdminSessionViews::try_from(vec![
             server_admin_contract::admin_session_view::AdminSessionView::new(
@@ -191,6 +211,72 @@ fn test_static_pages() {
             .contains(constants_str::ADMIN_UI_EXPECT_VALUE_B86DD350)
     );
 
+    let valid_session_id_result =
+        server_admin_contract::admin_session_identifier::AdminSessionIdentifier::try_from(
+            String::from(constants_str::TEST_ACCESS_SESSION_ID),
+        );
+    assert_eq!(valid_session_id_result.as_ref().err(), None);
+    let Ok(valid_session_id) = valid_session_id_result else {
+        return;
+    };
+    let read_session_id_result =
+        server_admin_contract::admin_access_session_id::AdminAccessSessionId::try_from(
+            String::from(constants_str::TEST_ACCESS_SESSION_ID),
+        );
+    assert_eq!(read_session_id_result.as_ref().err(), None);
+    let Ok(read_session_id) = read_session_id_result else {
+        return;
+    };
+    let read_path = server_admin_contract::admin_route_path::AdminRoutePath::from(read_session_id);
+    assert!(!sessions_html.as_ref().contains(read_path.as_ref()));
+    assert!(!sessions.items().is_empty());
+    let Some(session_template) = sessions.items().first() else {
+        return;
+    };
+    let valid_sessions_result =
+        server_admin_contract::admin_session_views::AdminSessionViews::try_from(vec![
+            server_admin_contract::admin_session_view::AdminSessionView::new(
+                session_template.created_at().clone(),
+                session_template.expires_at().clone(),
+                valid_session_id,
+                server_admin_contract::admin_bool::AdminBool::from(false),
+            ),
+        ]);
+    assert_eq!(valid_sessions_result.as_ref().err(), None);
+    let Ok(valid_sessions) = valid_sessions_result else {
+        return;
+    };
+    let valid_sessions_page = server_admin_contract::admin_sessions_page::AdminSessionsPage::new(
+        valid_sessions,
+        server_admin_contract::admin_page_total::AdminPageTotal::from(constants_u64::ONE),
+    );
+    let valid_sessions_html = crate::render_admin_sessions_page::render_admin_sessions_page(
+        &valid_sessions_page,
+        &query,
+        &admin,
+        &branding,
+    );
+    assert!(valid_sessions_html.as_ref().contains(read_path.as_ref()));
+    assert!(
+        valid_sessions_html
+            .as_ref()
+            .contains(constants_str::TEST_ACCESS_SESSION_ID)
+    );
+    assert_eq!(
+        valid_sessions_html
+            .as_ref()
+            .matches(&session_template.created_at().to_string())
+            .count(),
+        constants_usize::ONE
+    );
+    assert_eq!(
+        valid_sessions_html
+            .as_ref()
+            .matches(&session_template.expires_at().to_string())
+            .count(),
+        constants_usize::ONE
+    );
+
     let profile_html =
         crate::render_admin_profile_page::render_admin_profile_page(&admin, &branding);
     assert!(
@@ -227,4 +313,64 @@ fn test_static_pages() {
             .as_ref()
             .contains(server_admin_contract::admin_html_action::AdminHtmlAction::SignOut.get())
     );
+}
+
+#[test]
+fn test_authenticated_version_page_preserves_version_paragraph_and_sign_out_action() {
+    let admin = crate::domain_types_ssr_tests::test_admin();
+    let branding = crate::domain_types_ssr_tests::test_branding();
+    let title = crate::admin_ssr_text::AdminSsrText::try_from(String::from(
+        constants_str::ADMIN_UI_VERSION,
+    ))
+    .unwrap_or_else(crate::admin_ssr_text::AdminSsrText::from);
+    let text = crate::admin_ssr_text::AdminSsrText::try_from(String::from(constants_str::X))
+        .unwrap_or_else(crate::admin_ssr_text::AdminSsrText::from);
+    let html = crate::render_text_page_with_access::render_text_page_with_access(
+        server_admin_contract::admin_page::AdminPage::Version,
+        title,
+        text,
+        &admin,
+        &branding,
+    );
+    assert!(
+        html.as_ref()
+            .contains(constants_str::ADMIN_VERSION_PARAGRAPH_FIXTURE)
+    );
+    assert!(
+        html.as_ref()
+            .contains(server_admin_contract::admin_html_action::AdminHtmlAction::SignOut.get())
+    );
+}
+
+#[test]
+fn test_authenticated_text_pages_preserve_openapi_class_selection_and_code_content() {
+    let admin = crate::domain_types_ssr_tests::test_admin();
+    let branding = crate::domain_types_ssr_tests::test_branding();
+    [
+        (server_admin_contract::admin_page::AdminPage::OpenApi, true),
+        (server_admin_contract::admin_page::AdminPage::Metrics, false),
+    ]
+    .into_iter()
+    .fold((), |(), (admin_page, openapi_class)| {
+        let title = crate::admin_ssr_text::AdminSsrText::try_from(String::from(constants_str::X))
+            .unwrap_or_else(crate::admin_ssr_text::AdminSsrText::from);
+        let text = crate::admin_ssr_text::AdminSsrText::try_from(String::from(
+            constants_str::VALUE_95ADE925,
+        ))
+        .unwrap_or_else(crate::admin_ssr_text::AdminSsrText::from);
+        let html = crate::render_text_page_with_access::render_text_page_with_access(
+            admin_page, title, text, &admin, &branding,
+        );
+        assert_eq!(
+            html.as_ref()
+                .contains(constants_str::ADMIN_OPENAPI_PAGE_CLASS_FIXTURE),
+            openapi_class
+        );
+        assert_eq!(
+            html.as_ref()
+                .contains(constants_str::ADMIN_OPENAPI_PAGE_CLASS_PREFIX_FIXTURE),
+            openapi_class
+        );
+        assert!(html.as_ref().contains(constants_str::VALUE_2A72E715));
+    });
 }

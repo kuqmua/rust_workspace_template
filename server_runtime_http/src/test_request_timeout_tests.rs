@@ -118,4 +118,21 @@ mod tests {
             Some(&http::HeaderValue::from_static(constants_str::VALUE_2))
         );
     }
+
+    #[test]
+    fn test_service_request_timeout_preserves_positive_duration_boundaries() {
+        assert!(
+            [
+                std::time::Duration::from_nanos(1u64),
+                std::time::Duration::new(1u64, 123_456_789u32),
+                std::time::Duration::new(u64::MAX, 0u32),
+                std::time::Duration::MAX,
+            ]
+            .into_iter()
+            .all(|duration| {
+                crate::request_timeout_duration::RequestTimeoutDuration::try_from(duration)
+                    .is_ok_and(|timeout| timeout.get() == duration)
+            })
+        );
+    }
 }

@@ -372,4 +372,53 @@ mod tests {
             Err(crate::outbound_host_allowlist_error::OutboundHostAllowlistError::InvalidHost)
         );
     }
+
+    #[test]
+    fn test_outbound_resolved_address_validation_rejects_empty_results_for_both_policies() {
+        assert!(
+            [
+                crate::outbound_host_policy::OutboundHostPolicy::AllowPrivate,
+                crate::outbound_host_policy::OutboundHostPolicy::RejectPrivate,
+            ]
+            .into_iter()
+            .all(|policy| matches!(
+                crate::validate_outbound_resolved_addresses::validate_outbound_resolved_addresses(
+                    policy,
+                    std::iter::empty(),
+                ),
+                Err(crate::outbound_url_error::OutboundUrlError::MissingResolvedAddress)
+            ))
+        );
+    }
+
+    #[test]
+    fn test_outbound_resolved_address_validation_preserves_iterator_short_circuiting() {
+        let public = crate::outbound_ip_addr::OutboundIpAddr::from(std::net::IpAddr::V4(
+            std::net::Ipv4Addr::new(8u8, 8u8, 8u8, 8u8),
+        ));
+        let private = crate::outbound_ip_addr::OutboundIpAddr::from(std::net::IpAddr::V4(
+            std::net::Ipv4Addr::LOCALHOST,
+        ));
+        assert!([
+            crate::outbound_host_policy::OutboundHostPolicy::AllowPrivate,
+            crate::outbound_host_policy::OutboundHostPolicy::RejectPrivate,
+        ].into_iter().all(|policy| {
+            (0usize..3usize).all(|forbidden_index| {
+                let mut addresses = (0usize..3usize).map(|index| {
+                    if index == forbidden_index { private } else { public }
+                });
+                let result = crate::validate_outbound_resolved_addresses::validate_outbound_resolved_addresses(policy, &mut addresses);
+                if policy == crate::outbound_host_policy::OutboundHostPolicy::AllowPrivate {
+                    result == Ok(()) && addresses.len() == 2usize
+                } else {
+                    matches!(result, Err(crate::outbound_url_error::OutboundUrlError::ForbiddenHost))
+                        && addresses.len() == 2usize - forbidden_index
+                }
+            }) && {
+                let mut addresses = [public; 3usize].into_iter();
+                let result = crate::validate_outbound_resolved_addresses::validate_outbound_resolved_addresses(policy, &mut addresses);
+                result == Ok(()) && addresses.len() == if policy == crate::outbound_host_policy::OutboundHostPolicy::AllowPrivate { 2usize } else { 0usize }
+            }
+        }));
+    }
 }

@@ -1,5 +1,47 @@
 #[cfg(test)]
 mod tests {
+    #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Debug, Eq, PartialEq)]
+    enum TestRoundTripDifferentValue {
+        Fixture,
+        RoundTrip,
+    }
+    impl serde::Serialize for TestRoundTripDifferentValue {
+        fn serialize<Serializer>(
+            &self,
+            serializer: Serializer,
+        ) -> Result<Serializer::Ok, Serializer::Error>
+        where
+            Serializer: serde::Serializer,
+        {
+            serializer.serialize_bool(false)
+        }
+    }
+    impl<'de> serde::Deserialize<'de> for TestRoundTripDifferentValue {
+        fn deserialize<Deserializer>(
+            deserializer: Deserializer,
+        ) -> Result<Self, Deserializer::Error>
+        where
+            Deserializer: serde::Deserializer<'de>,
+        {
+            let value = <bool as serde::Deserialize>::deserialize(deserializer)?;
+            Ok(if value {
+                Self::Fixture
+            } else {
+                Self::RoundTrip
+            })
+        }
+    }
+    #[test]
+    fn test_round_trip_rejects_successfully_deserialized_different_value() {
+        assert!(matches!(
+            crate::ensure_json_contract_round_trip::ensure_json_contract_round_trip::<
+                TestRoundTripDifferentValue,
+            >(crate::json_fixture_ref::JsonFixtureRef::from(
+                constants_str::TRUE
+            )),
+            Err(crate::contract_error::ContractError::ValueMismatch)
+        ));
+    }
     #[derive(
         proc_macro_optimal_memory_layout::OptimalMemoryLayout,
         Debug,

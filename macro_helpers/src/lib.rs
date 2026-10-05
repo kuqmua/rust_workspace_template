@@ -181,3 +181,12 @@ pub mod validate_production_manifest_example;
 
 #[cfg(test)]
 mod test_status_code_catalog;
+
+#[cfg(test)]
+mod test_macro_text_views;
+
+#[cfg(test)]
+mod test_macro_trait_emitters;
+
+#[cfg(test)]
+mod test_derive_builder;

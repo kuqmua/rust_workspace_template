@@ -233,4 +233,183 @@ mod tests {
             .contains(constants_str::SHARED_VALUES_COMPILE_ERROR)
         }));
     }
+    #[test]
+    fn test_serde_variant_generation_preserves_all_field_modes_and_location_override() {
+        let variant: syn::Variant = syn::parse_quote! {
+            Example {
+                #[error_field_to_err_string] rendered: ErrorValue,
+                #[error_field_to_err_string_serde] serialized: ErrorValue,
+                #[error_field_location] nested: ErrorValue,
+                #[error_field_vec_to_err_string] rendered_values: Vec<ErrorValue>,
+                #[error_field_vec_to_err_string_serde] serialized_values: Vec<ErrorValue>,
+                #[error_field_vec_location] nested_values: Vec<ErrorValue>,
+                #[error_field_hashmap_key_string_value_to_err_string] rendered_map: std::collections::HashMap<Key, ErrorValue>,
+                #[error_field_hashmap_key_string_value_to_err_string_serde] serialized_map: HashMap<Key, ErrorValue>,
+                #[error_field_hashmap_key_string_value_location] nested_map: HashMap<Key, ErrorValue>,
+                location: OriginalLocation,
+            }
+        };
+        let generated = crate::generate_serde_version_of_named_syn_variant::generate_serde_version_of_named_syn_variant(crate::syn_variant_ref::SynVariantRef::from(&variant));
+        let expected: syn::Variant = syn::parse_quote! {
+            Example {
+                rendered: String,
+                serialized: ErrorValue,
+                nested: ErrorValueWithSerde,
+                rendered_values: Vec<String>,
+                serialized_values: Vec<ErrorValue>,
+                nested_values: Vec<ErrorValueWithSerde>,
+                rendered_map: std::collections::HashMap<String, String>,
+                serialized_map: std::collections::HashMap<String, ErrorValue>,
+                nested_map: std::collections::HashMap<String, ErrorValueWithSerde>,
+                location: location_lib::location::Location,
+            }
+        };
+        let observed_result = syn::parse2::<syn::Variant>(generated.as_ref().clone());
+        assert!(observed_result.is_ok());
+        assert_eq!(observed_result.ok(), Some(expected));
+    }
+
+    #[test]
+    fn test_serde_variant_generation_preserves_exact_collection_diagnostics() {
+        [
+            (quote::quote!(#[error_field_vec_location] field: &Location), constants_str::COMPILE_ERROR_CE_024),
+            (quote::quote!(#[error_field_vec_location] field: std::vec::Vec<Location>), constants_str::COMPILE_ERROR_CE_024),
+            (quote::quote!(#[error_field_vec_location] field: Option<Location>), constants_str::MACRO_DIAGNOSTICS_EXPECTED_VEC_TYPE_ERROR),
+            (quote::quote!(#[error_field_vec_location] field: Vec), constants_str::MACRO_DIAGNOSTICS_EXPECTED_ANGLE_BRACKETED_ARGS_ERROR),
+            (quote::quote!(#[error_field_vec_location] field: Vec<Location, Other>), constants_str::MACRO_DIAGNOSTICS_EXPECTED_ANGLE_BRACKETED_ARGS_ERROR),
+            (quote::quote!(#[error_field_hashmap_key_string_value_to_err_string] field: &Map), constants_str::MACRO_DIAGNOSTICS_EXPECTED_HASH_MAP_C1_ERROR),
+            (quote::quote!(#[error_field_hashmap_key_string_value_to_err_string] field: HashMap), constants_str::MACRO_DIAGNOSTICS_EXPECTED_HASH_MAP_C1_ERROR),
+            (quote::quote!(#[error_field_hashmap_key_string_value_to_err_string_serde] field: Vec<Location>), constants_str::MACRO_DIAGNOSTICS_EXPECTED_HASH_MAP_E9_ERROR),
+            (quote::quote!(#[error_field_hashmap_key_string_value_location] field: HashMap<Key>), constants_str::MACRO_DIAGNOSTICS_EXPECTED_HASH_MAP_C8_ERROR),
+        ].into_iter().fold((), |(), (field, diagnostic)| {
+            let variant: syn::Variant = syn::parse_quote!(Example { #field });
+            let generated = crate::generate_serde_version_of_named_syn_variant::generate_serde_version_of_named_syn_variant(crate::syn_variant_ref::SynVariantRef::from(&variant));
+            let message = syn::LitStr::new(diagnostic, proc_macro2::Span::call_site());
+            assert_eq!(generated.to_string(), quote::quote!(Example { compile_error!(#message); }).to_string());
+        });
+    }
+
+    #[test]
+    fn test_serde_variant_generation_preserves_shape_and_field_attribute_diagnostics() {
+        let shape_message = syn::LitStr::new(
+            constants_str::MACRO_DIAGNOSTICS_EXPECTED_NAMED_VARIANT_FIELDS_ERROR,
+            proc_macro2::Span::call_site(),
+        );
+        [syn::parse_quote!(Example), syn::parse_quote!(Example(ErrorValue))].into_iter().fold((), |(), variant| {
+            let generated = crate::generate_serde_version_of_named_syn_variant::generate_serde_version_of_named_syn_variant(crate::syn_variant_ref::SynVariantRef::from(&variant));
+            assert_eq!(generated.to_string(), quote::quote!(compile_error!(#shape_message);).to_string());
+        });
+        [
+            (quote::quote!(field: ErrorValue), constants_str::OPT_ATTR_IS_NONE),
+            (quote::quote!(#[error_field_location] #[error_field_vec_location] field: ErrorValue), constants_str::TWO_OR_MORE_SUPPORTED_ATTRS),
+            (quote::quote!(#[error_field_location(unexpected)] field: ErrorValue), constants_str::SUPPORTED_LOCATION_FIELD_ATTR_MUST_NOT_HAVE_ARGUMENTS),
+        ].into_iter().fold((), |(), (field, diagnostic)| {
+            let variant: syn::Variant = syn::parse_quote!(Example { #field });
+            let generated = crate::generate_serde_version_of_named_syn_variant::generate_serde_version_of_named_syn_variant(crate::syn_variant_ref::SynVariantRef::from(&variant));
+            let message = syn::LitStr::new(&constants_str::COMPILE_ERROR_CE_010.replace(constants_str::COMPILE_ERROR_ERROR_PLACEHOLDER, diagnostic), proc_macro2::Span::call_site());
+            assert_eq!(generated.to_string(), quote::quote!(Example { compile_error!(#message); }).to_string());
+        });
+    }
+    #[test]
+    fn test_serde_variant_generation_rejects_missing_named_field_identifier() {
+        let mut variant: syn::Variant = syn::parse_quote! {
+            Example { #[error_field_location] field: ErrorValue }
+        };
+        assert!(matches!(variant.fields, syn::Fields::Named(_)));
+        let syn::Fields::Named(fields) = &mut variant.fields else {
+            return;
+        };
+        fields.named.iter_mut().fold((), |(), field| {
+            field.ident = None;
+        });
+        let generated = crate::generate_serde_version_of_named_syn_variant::generate_serde_version_of_named_syn_variant(crate::syn_variant_ref::SynVariantRef::from(&variant));
+        let message = syn::LitStr::new(
+            constants_str::MACRO_DIAGNOSTICS_EXPECTED_NAMED_FIELD_ERROR,
+            proc_macro2::Span::call_site(),
+        );
+        assert_eq!(
+            generated.to_string(),
+            quote::quote!(Example { compile_error!(#message); }).to_string()
+        );
+    }
+
+    #[test]
+    fn test_serde_variant_generation_rejects_empty_constructed_hash_map_path() {
+        let mut variant: syn::Variant = syn::parse_quote! {
+            Example { #[error_field_hashmap_key_string_value_to_err_string] field: HashMap<Key, ErrorValue> }
+        };
+        assert!(matches!(variant.fields, syn::Fields::Named(_)));
+        let syn::Fields::Named(fields) = &mut variant.fields else {
+            return;
+        };
+        fields.named.iter_mut().fold((), |(), field| {
+            assert!(matches!(field.ty, syn::Type::Path(_)));
+            if let syn::Type::Path(path) = &mut field.ty {
+                path.path.segments.clear();
+            }
+        });
+        let generated = crate::generate_serde_version_of_named_syn_variant::generate_serde_version_of_named_syn_variant(crate::syn_variant_ref::SynVariantRef::from(&variant));
+        let message = syn::LitStr::new(
+            constants_str::MACRO_DIAGNOSTICS_EXPECTED_HASH_MAP_C1_ERROR,
+            proc_macro2::Span::call_site(),
+        );
+        assert_eq!(
+            generated.to_string(),
+            quote::quote!(Example { compile_error!(#message); }).to_string()
+        );
+    }
+
+    #[test]
+    fn test_serde_variant_generation_preserves_constructed_type_lexical_errors() {
+        let malformed_tokens: proc_macro2::TokenStream = [
+            proc_macro2::TokenTree::Punct(proc_macro2::Punct::new(
+                '/',
+                proc_macro2::Spacing::Joint,
+            )),
+            proc_macro2::TokenTree::Punct(proc_macro2::Punct::new(
+                '*',
+                proc_macro2::Spacing::Alone,
+            )),
+        ]
+        .into_iter()
+        .collect();
+        let expected_error = format!(
+            "{}{}",
+            malformed_tokens,
+            naming::domain_types::WithSerdeUpperCamelCase
+        )
+        .parse::<proc_macro2::TokenStream>()
+        .err();
+        assert!(expected_error.is_some());
+        let Some(error) = expected_error else {
+            return;
+        };
+        let scalar_variant: syn::Variant = syn::parse_quote!(Example {
+            #[error_field_location]
+            field: ErrorValue
+        });
+        [
+            (scalar_variant, constants_str::COMPILE_ERROR_CE_005),
+            (syn::parse_quote!(Example { #[error_field_vec_location] field: Vec<ErrorValue> }), constants_str::COMPILE_ERROR_CE_007),
+            (syn::parse_quote!(Example { #[error_field_hashmap_key_string_value_location] field: HashMap<Key, ErrorValue> }), constants_str::COMPILE_ERROR_CE_020),
+        ].into_iter().fold((), |(), (mut variant, diagnostic)| {
+            assert!(matches!(variant.fields, syn::Fields::Named(_)));
+            let syn::Fields::Named(fields) = &mut variant.fields else { return; };
+            fields.named.iter_mut().fold((), |(), field| {
+                let malformed_type = syn::Type::Verbatim(malformed_tokens.clone());
+                if let syn::Type::Path(path) = &mut field.ty
+                    && let Some(segment) = path.path.segments.last_mut()
+                    && let syn::PathArguments::AngleBracketed(arguments) = &mut segment.arguments
+                    && let Some(argument) = arguments.args.last_mut()
+                {
+                    *argument = syn::GenericArgument::Type(malformed_type);
+                } else {
+                    field.ty = malformed_type;
+                }
+            });
+            let generated = crate::generate_serde_version_of_named_syn_variant::generate_serde_version_of_named_syn_variant(crate::syn_variant_ref::SynVariantRef::from(&variant));
+            let message = syn::LitStr::new(&diagnostic.replace(constants_str::COMPILE_ERROR_ERROR_PLACEHOLDER, &error.to_string()), proc_macro2::Span::call_site());
+            assert_eq!(generated.to_string(), quote::quote!(Example { compile_error!(#message); }).to_string());
+        });
+    }
 }

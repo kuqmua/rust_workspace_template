@@ -59,3 +59,36 @@ fn test_non_primary_key_read_ids_schema_matches_serialized_null_value() {
         );
     }
 }
+
+#[test]
+fn test_non_primary_key_read_ids_preserve_schema_name_and_postgres_type_metadata() {
+    assert_eq!(<crate::non_primary_key_pg_type_read_ids::NonPrimaryKeyPgTypeReadIds as utoipa::ToSchema>::name(), constants_str::NONPRIMARYKEYPGTYPEREADIDS);
+    let type_info =
+        <crate::non_primary_key_pg_type_read_ids::NonPrimaryKeyPgTypeReadIds as sqlx::Type<
+            sqlx::Postgres,
+        >>::type_info();
+    assert_eq!(type_info, <sqlx::types::Json<crate::non_primary_key_pg_type_read_ids::NonPrimaryKeyPgTypeReadIds> as sqlx::Type<sqlx::Postgres>>::type_info());
+    assert!(
+        <crate::non_primary_key_pg_type_read_ids::NonPrimaryKeyPgTypeReadIds as sqlx::Type<
+            sqlx::Postgres,
+        >>::compatible(&type_info)
+    );
+    assert!(
+        !<crate::non_primary_key_pg_type_read_ids::NonPrimaryKeyPgTypeReadIds as sqlx::Type<
+            sqlx::Postgres,
+        >>::compatible(&<i64 as sqlx::Type<sqlx::Postgres>>::type_info())
+    );
+}
+
+#[test]
+fn test_non_primary_key_read_ids_deserialization_preserves_null_and_rejects_invalid_values() {
+    let value = crate::non_primary_key_pg_type_read_ids::NonPrimaryKeyPgTypeReadIds::default();
+    let serialized_result = serde_json::to_value(&value);
+    assert!(serialized_result.is_ok());
+    let Ok(serialized) = serialized_result else {
+        return;
+    };
+    assert_eq!(serde_json::from_value::<crate::non_primary_key_pg_type_read_ids::NonPrimaryKeyPgTypeReadIds>(serialized).ok(), Some(value));
+    assert!(serde_json::from_value::<crate::non_primary_key_pg_type_read_ids::NonPrimaryKeyPgTypeReadIds>(serde_json::json!({ stringify!(value): false })).is_err_and(|error| error.is_data()));
+    assert!(serde_json::from_value::<crate::non_primary_key_pg_type_read_ids::NonPrimaryKeyPgTypeReadIds>(serde_json::Value::Null).is_err_and(|error| error.is_data()));
+}

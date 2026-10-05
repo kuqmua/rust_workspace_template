@@ -55,6 +55,53 @@ impl<'de, K: Ord + serde::Deserialize<'de>, V: serde::Deserialize<'de>, const MA
 #[cfg(test)]
 mod tests {
     #[test]
+    fn test_pg_bounded_map_zero_capacity_accepts_empty_and_rejects_one_entry() {
+        assert!(crate::pg_bounded_b_tree_map::PgBoundedBTreeMap::<u8, u8, 0>::try_from(
+            std::collections::BTreeMap::new(),
+        )
+        .is_ok_and(|value| {
+            value.get().is_empty()
+                && matches!(serde_json::to_value(&value), Ok(json) if json == serde_json::Value::Object(serde_json::Map::new()))
+                && matches!(serde_json::from_value::<crate::pg_bounded_b_tree_map::PgBoundedBTreeMap<u8, u8, 0>>(serde_json::Value::Object(serde_json::Map::new())), Ok(decoded) if decoded == value)
+        }));
+        assert_eq!(
+            crate::pg_bounded_b_tree_map::PgBoundedBTreeMap::<u8, u8, 0>::try_from(
+                std::iter::once((1u8, 10u8)).collect::<std::collections::BTreeMap<_, _>>(),
+            ),
+            Err(
+                crate::bounded_b_tree_map_error::BoundedBTreeMapError::TooLarge(
+                    crate::std_bounded_b_tree_map_len::StdBoundedBTreeMapLen::from(0usize),
+                )
+            ),
+        );
+    }
+
+    #[test]
+    fn test_pg_bounded_map_preserves_sorted_entries_and_reports_construction_limit() {
+        assert!(crate::pg_bounded_b_tree_map::PgBoundedBTreeMap::<u8, u8, 2>::try_from(
+            [(2u8, 20u8), (1u8, 10u8)].into_iter().collect::<std::collections::BTreeMap<_, _>>(),
+        )
+        .is_ok_and(|value| {
+            value.get().iter().eq([(1u8, 10u8), (2u8, 20u8)].iter().map(|(key, item)| (key, item)))
+                && serde_json::to_value(&value).is_ok_and(|json| {
+                    matches!(serde_json::from_value::<crate::pg_bounded_b_tree_map::PgBoundedBTreeMap<u8, u8, 2>>(json), Ok(decoded) if decoded == value)
+                })
+        }));
+        assert_eq!(
+            crate::pg_bounded_b_tree_map::PgBoundedBTreeMap::<u8, u8, 2>::try_from(
+                [(1u8, 10u8), (2u8, 20u8), (3u8, 30u8)]
+                    .into_iter()
+                    .collect::<std::collections::BTreeMap<_, _>>(),
+            ),
+            Err(
+                crate::bounded_b_tree_map_error::BoundedBTreeMapError::TooLarge(
+                    crate::std_bounded_b_tree_map_len::StdBoundedBTreeMapLen::from(2usize),
+                )
+            ),
+        );
+    }
+
+    #[test]
     fn test_deserialization_stops_above_limit() {
         let result = serde_json::from_str::<
             crate::pg_bounded_b_tree_map::PgBoundedBTreeMap<String, u8, 1>,

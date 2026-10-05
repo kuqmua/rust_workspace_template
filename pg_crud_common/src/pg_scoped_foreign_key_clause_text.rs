@@ -38,3 +38,29 @@ impl TryFrom<String> for PgScopedForeignKeyClauseText {
             })
     }
 }
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn test_scoped_foreign_key_text_preserves_exact_byte_limit_and_rejects_overflow() {
+        let maximum = crate::pg_crud_string_wrapper_max_len::PG_CRUD_STRING_WRAPPER_MAX_LEN;
+        assert!([String::new(), constants_str::X.repeat(maximum)]
+            .into_iter()
+            .all(|value| {
+                let length = value.len();
+                crate::pg_scoped_foreign_key_clause_text::PgScopedForeignKeyClauseText::try_from(value)
+                    .is_ok_and(|text| {
+                        let inner = text.into_inner();
+                        inner.as_str().len() == length
+                            && inner.as_str().bytes().all(|byte| Some(&byte) == constants_str::X.as_bytes().first())
+                    })
+            }));
+        assert!(matches!(
+            crate::pg_scoped_foreign_key_clause_text::PgScopedForeignKeyClauseText::try_from(
+                constants_str::X.repeat(maximum + 1),
+            ),
+            Err(crate::pg_crud_string_wrapper_try_from_string_error::PgCrudStringWrapperTryFromStringError::TooLong { len, max })
+                if len == maximum + 1 && max == maximum
+        ));
+    }
+}

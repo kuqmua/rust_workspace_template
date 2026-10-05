@@ -1646,3 +1646,155 @@ fn test_regex_filter_query_propagates_counter_overflow() {
         }))
     );
 }
+
+#[test]
+fn test_combined_incomplete_filter_fields_return_invalid_stored_value_for_every_table() {
+    assert!(server_admin_contract::admin_filter_field::AdminFilterField::try_from(
+        constants_str::LOGIN.to_owned(),
+    ).is_ok_and(|field| server_admin_contract::admin_filter_value::AdminFilterValue::try_from(
+        constants_str::ADMIN.to_owned(),
+    ).is_ok_and(|value| {
+        (1u8..16u8)
+            .filter(|mask| mask.count_ones() > 1u32 && mask & 3u8 != 3u8)
+            .all(|mask| {
+                let query = server_admin_contract::admin_data_table_filter_query::AdminDataTableFilterQuery::new(
+                    (mask & 1u8 != 0u8).then(|| field.clone()),
+                    (mask & 2u8 != 0u8).then_some(frontend_contract::filter_operation::FilterOperation::Eq),
+                    (mask & 4u8 != 0u8).then(|| value.clone()),
+                    (mask & 8u8 != 0u8).then(|| value.clone()),
+                );
+                server_admin_contract::admin_data_table::AdminDataTable::PG_ORDER
+                    .into_iter()
+                    .all(|table| matches!(
+                        crate::data_filter::data_filter(table, &query),
+                        Err(crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue)
+                    ))
+            })
+    })));
+}
+
+#[test]
+fn test_missing_and_invalid_filter_values_return_invalid_stored_value() {
+    assert!(
+        [
+            (
+                constants_str::LOGIN,
+                frontend_contract::filter_operation::FilterOperation::Eq,
+                None
+            ),
+            (
+                constants_str::LOGIN,
+                frontend_contract::filter_operation::FilterOperation::In,
+                None
+            ),
+            (
+                constants_str::LOGIN,
+                frontend_contract::filter_operation::FilterOperation::Regex,
+                None
+            ),
+            (
+                constants_str::IS_BANNED,
+                frontend_contract::filter_operation::FilterOperation::Eq,
+                Some(constants_str::UNKNOWN_ALT)
+            ),
+            (
+                constants_str::SQL_NAMES_ID,
+                frontend_contract::filter_operation::FilterOperation::Eq,
+                Some(constants_str::UNKNOWN_ALT)
+            ),
+        ]
+        .into_iter()
+        .all(|(field, operation, value)| {
+            let query = filter_query(field, operation, value, None);
+            matches!(
+                crate::data_filter::data_filter(
+                    server_admin_contract::admin_data_table::AdminDataTable::Users,
+                    query.filter(),
+                ),
+                Err(crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue)
+            )
+        })
+    );
+}
+
+#[test]
+fn test_timestamp_range_filters_reject_missing_and_invalid_bounds() {
+    let value = constants_str::VALUE_2026_07_13T12_30_00;
+    let end = constants_str::VALUE_2026_07_13T12_30_30;
+    assert!(
+        [
+            server_admin_contract::admin_data_table::AdminDataTable::Users,
+            server_admin_contract::admin_data_table::AdminDataTable::AuditLog,
+            server_admin_contract::admin_data_table::AdminDataTable::AccessSessions,
+        ]
+        .into_iter()
+        .all(|table| {
+            let valid_query = filter_query(
+                constants_str::CREATED_AT,
+                frontend_contract::filter_operation::FilterOperation::Between,
+                Some(value),
+                Some(end),
+            );
+            crate::data_filter::data_filter(table, valid_query.filter())
+                .is_ok_and(|filter| filter.is_some())
+                && [
+                    (None, None),
+                    (Some(value), None),
+                    (None, Some(end)),
+                    (Some(constants_str::UNKNOWN_ALT), Some(end)),
+                    (Some(value), Some(constants_str::UNKNOWN_ALT)),
+                ]
+                .into_iter()
+                .all(|(value, end)| {
+                    let query = filter_query(
+                        constants_str::CREATED_AT,
+                        frontend_contract::filter_operation::FilterOperation::Between,
+                        value,
+                        end,
+                    );
+                    matches!(
+                        crate::data_filter::data_filter(table, query.filter()),
+                        Err(
+                            crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue
+                        )
+                    )
+                })
+        })
+    );
+}
+
+#[test]
+fn test_timestamp_with_time_zone_tables_reject_current_timestamp_operations() {
+    assert!(
+        [
+            server_admin_contract::admin_data_table::AdminDataTable::Users,
+            server_admin_contract::admin_data_table::AdminDataTable::AuditLog,
+            server_admin_contract::admin_data_table::AdminDataTable::AccessSessions,
+        ]
+        .into_iter()
+        .all(|table| [
+            frontend_contract::filter_operation::FilterOperation::CurrentTimestamp,
+            frontend_contract::filter_operation::FilterOperation::GreaterThanCurrentTimestamp,
+        ]
+        .into_iter()
+        .all(|operation| {
+            [
+                (None, None),
+                (Some(constants_str::VALUE_2026_07_13T12_30_00), None),
+                (None, Some(constants_str::VALUE_2026_07_13T12_30_30)),
+                (
+                    Some(constants_str::VALUE_2026_07_13T12_30_00),
+                    Some(constants_str::VALUE_2026_07_13T12_30_30),
+                ),
+            ]
+            .into_iter()
+            .all(|(value, end)| {
+                let query = filter_query(constants_str::CREATED_AT, operation, value, end);
+                matches!(
+                    crate::data_filter::data_filter(table, query.filter()),
+                    Err(crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue)
+                )
+            })
+        }))
+    );
+}

@@ -123,4 +123,44 @@ mod tests {
             )) == expected
         }));
     }
+    #[test]
+    fn test_ansi_filter_handles_truncated_sequences_and_interrupted_osc_commands() {
+        [
+            (vec!['\u{1b}'], constants_str::EMPTY),
+            (vec!['\u{1b}', '[', '1'], constants_str::EMPTY),
+            (vec!['\u{1b}', ']', 'x'], constants_str::EMPTY),
+            (vec!['\u{1b}', ']', '\u{1b}'], constants_str::EMPTY),
+            (
+                vec!['\u{1b}', ']', 'x', '\u{1b}', 'x', '\u{7}', 'b'],
+                constants_str::B,
+            ),
+            (vec!['\u{1b}', 'Q', 'b'], constants_str::B),
+        ]
+        .into_iter()
+        .fold((), |(), (characters, expected)| {
+            let input = characters.into_iter().collect::<String>();
+            let mut filtered = super::ToolAnsiChars::from(
+                crate::tool_ansi_text_ref::ToolAnsiTextRef::from(input.as_str()),
+            );
+            let output = filtered.by_ref().collect::<String>();
+            assert_eq!(output, expected);
+            assert_eq!(filtered.next(), None);
+            assert_eq!(filtered.next(), None);
+        });
+    }
+
+    #[test]
+    fn test_ansi_filter_preserves_control_sequence_final_byte_boundaries() {
+        ['@', '~'].into_iter().fold((), |(), final_byte| {
+            let input = ['\u{1b}', '[', '?', '\u{e9}', final_byte, 'b']
+                .into_iter()
+                .collect::<String>();
+            assert_eq!(
+                String::from(super::ToolAnsiChars::from(
+                    crate::tool_ansi_text_ref::ToolAnsiTextRef::from(input.as_str())
+                )),
+                constants_str::B
+            );
+        });
+    }
 }

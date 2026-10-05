@@ -177,4 +177,93 @@ mod tests {
             Some(constants_str::OPT_ATTR_IS_NONE)
         );
     }
+    #[test]
+    fn test_location_field_catalog_preserves_names_token_views_and_parser_round_trips() {
+        [
+            (
+                super::LocationFieldAttr::ErrorFieldToErrString,
+                constants_str::ERROR_FIELD_TO_ERR_STRING,
+            ),
+            (
+                super::LocationFieldAttr::ErrorFieldToErrStringSerde,
+                constants_str::ERROR_FIELD_TO_ERR_STRING_SERDE,
+            ),
+            (
+                super::LocationFieldAttr::ErrorFieldLocation,
+                constants_str::ERROR_FIELD_LOCATION,
+            ),
+            (
+                super::LocationFieldAttr::ErrorFieldVecToErrString,
+                constants_str::ERROR_FIELD_VEC_TO_ERR_STRING,
+            ),
+            (
+                super::LocationFieldAttr::ErrorFieldVecToErrStringSerde,
+                constants_str::ERROR_FIELD_VEC_TO_ERR_STRING_SERDE,
+            ),
+            (
+                super::LocationFieldAttr::ErrorFieldVecLocation,
+                constants_str::ERROR_FIELD_VEC_LOCATION,
+            ),
+            (
+                super::LocationFieldAttr::ErrorFieldHashMapKeyStringValueToErrString,
+                constants_str::ERROR_FIELD_HASHMAP_KEY_STRING_VALUE_TO_ERR_STRING,
+            ),
+            (
+                super::LocationFieldAttr::ErrorFieldHashMapKeyStringValueToErrStringSerde,
+                constants_str::ERROR_FIELD_HASHMAP_KEY_STRING_VALUE_TO_ERR_STRING_SERDE,
+            ),
+            (
+                super::LocationFieldAttr::ErrorFieldHashMapKeyStringValueLocation,
+                constants_str::ERROR_FIELD_HASHMAP_KEY_STRING_VALUE_LOCATION,
+            ),
+        ]
+        .into_iter()
+        .fold((), |(), (mode, expected_name)| {
+            let name =
+                crate::attr_identifier_str::AttrIdentifierStr::attribute_identifier_string(&mode);
+            assert_eq!(name.as_ref(), expected_name);
+            assert!(
+                expected_name
+                    .parse::<super::LocationFieldAttr>()
+                    .is_ok_and(
+                        |parsed| std::mem::discriminant(&parsed) == std::mem::discriminant(&mode)
+                    )
+            );
+            let tokens = mode.to_attr_view_token_stream();
+            assert!(
+                syn::parse::Parser::parse2(syn::Attribute::parse_outer, tokens.as_ref().clone())
+                    .is_ok_and(|attributes| attributes.len() == 1usize
+                        && attributes
+                            .first()
+                            .is_some_and(|attribute| attribute.path().is_ident(expected_name)
+                                && matches!(attribute.meta, syn::Meta::Path(_))))
+            );
+            let field: syn::Field = syn::parse_quote!(#tokens value: ErrorValue);
+            assert!(
+                super::LocationFieldAttr::try_from(&field).is_ok_and(
+                    |parsed| std::mem::discriminant(&parsed) == std::mem::discriminant(&mode)
+                )
+            );
+        });
+    }
+
+    #[test]
+    fn test_location_field_attributes_preserve_qualified_marker_ignoring_and_error_precedence() {
+        let qualified: syn::Field =
+            syn::parse_quote!(#[module::error_field_location] value: Location);
+        [
+            (qualified, constants_str::OPT_ATTR_IS_NONE),
+            (syn::parse_quote!(#[error_field_location] #[error_field_location] value: Location), constants_str::TWO_OR_MORE_SUPPORTED_ATTRS),
+            (syn::parse_quote!(#[error_field_location] #[error_field_vec_location(unexpected)] value: Location), constants_str::SUPPORTED_LOCATION_FIELD_ATTR_MUST_NOT_HAVE_ARGUMENTS),
+            (syn::parse_quote!(#[error_field_location(unexpected)] #[error_field_location] #[error_field_vec_location] value: Location), constants_str::SUPPORTED_LOCATION_FIELD_ATTR_MUST_NOT_HAVE_ARGUMENTS),
+            (syn::parse_quote!(#[error_field_location] #[error_field_vec_location] #[error_field_location(unexpected)] value: Location), constants_str::TWO_OR_MORE_SUPPORTED_ATTRS),
+        ].into_iter().fold((), |(), (field, diagnostic)| {
+            assert_eq!(super::LocationFieldAttr::try_from(&field).err().as_deref(), Some(diagnostic));
+        });
+        let field: syn::Field = syn::parse_quote!(#[module::error_field_vec_location(unexpected)] #[unknown(unexpected)] #[error_field_location] value: Location);
+        assert!(matches!(
+            super::LocationFieldAttr::try_from(&field),
+            Ok(super::LocationFieldAttr::ErrorFieldLocation)
+        ));
+    }
 }

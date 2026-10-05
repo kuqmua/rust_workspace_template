@@ -92,6 +92,91 @@ pub fn build_date_sql_filter(
 #[cfg(test)]
 mod tests {
     #[test]
+    fn test_empty_date_filter_preserves_empty_sql_with_optional_alias() {
+        assert!(
+            crate::sql_identifier::SqlIdentifier::try_from(String::from(constants_str::X))
+                .is_ok_and(
+                    |identifier| [None, Some(&identifier)].into_iter().all(|alias| {
+                        crate::build_date_sql_filter::build_date_sql_filter(
+                            alias,
+                            crate::date_filter_bounds::DateFilterBounds::new(
+                                None, None, None, None,
+                            ),
+                            std::num::NonZeroU32::MAX.into(),
+                        )
+                        .is_ok_and(|filter| {
+                            filter.get_fragment().as_ref() == constants_str::EMPTY
+                                && filter.get_values().as_ref().is_empty()
+                        })
+                    })
+                )
+        );
+    }
+
+    #[test]
+    fn test_aliased_date_filter_preserves_all_columns_values_and_final_bind_index() {
+        assert!(
+            crate::sql_identifier::SqlIdentifier::try_from(String::from(constants_str::X))
+                .is_ok_and(|identifier| {
+                    let created_from = chrono::DateTime::<chrono::Utc>::MIN_UTC;
+                    let created_to = chrono::DateTime::<chrono::Utc>::UNIX_EPOCH;
+                    let updated_from = chrono::DateTime::<chrono::Utc>::MAX_UTC;
+                    let updated_to = chrono::DateTime::<chrono::Utc>::MIN_UTC;
+                    std::num::NonZeroU32::new(u32::MAX - 3).is_some_and(|start| {
+                        let render_expected_term = |column, comparator, bind_index| {
+                            format!(
+                                "{}.{} {}{}{}",
+                                identifier.as_ref(),
+                                column,
+                                comparator,
+                                constants_str::DOLLAR_SIGN,
+                                bind_index
+                            )
+                        };
+                        let expected = [
+                            render_expected_term(
+                                constants_str::CREATED_AT,
+                                constants_str::GREATER_OR_EQUAL,
+                                u32::MAX - 3,
+                            ),
+                            render_expected_term(
+                                constants_str::CREATED_AT,
+                                constants_str::LESS_OR_EQUAL,
+                                u32::MAX - 2,
+                            ),
+                            render_expected_term(
+                                constants_str::UPDATED_AT,
+                                constants_str::GREATER_OR_EQUAL,
+                                u32::MAX - 1,
+                            ),
+                            render_expected_term(
+                                constants_str::UPDATED_AT,
+                                constants_str::LESS_OR_EQUAL,
+                                u32::MAX,
+                            ),
+                        ]
+                        .join(constants_str::AND);
+                        crate::build_date_sql_filter::build_date_sql_filter(
+                            Some(&identifier),
+                            crate::date_filter_bounds::DateFilterBounds::new(
+                                Some((&created_from).into()),
+                                Some((&created_to).into()),
+                                Some((&updated_from).into()),
+                                Some((&updated_to).into()),
+                            ),
+                            start.into(),
+                        )
+                        .is_ok_and(|filter| {
+                            filter.get_fragment().as_ref() == expected
+                                && filter.get_values().as_ref()
+                                    == [created_from, created_to, updated_from, updated_to]
+                        })
+                    })
+                })
+        );
+    }
+
+    #[test]
     fn test_date_bounds_have_ordered_bind_indices_and_values() {
         let from = chrono::DateTime::parse_from_rfc3339(constants_str::TEST_DATE_SQL_FROM)
             .expect(constants_str::DIAGNOSTIC_69EE8323)

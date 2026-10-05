@@ -253,3 +253,43 @@ fn test_query_hidden_inputs_default_missing_client_direction_to_ascending() {
         server_admin_contract::admin_sort_direction::AdminSortDirection::default().as_ref()
     ));
 }
+
+#[test]
+fn test_filter_end_hidden_input_preserves_absence_empty_value_and_attribute_escaping() {
+    let escaped_result = server_admin_contract::admin_filter_value::AdminFilterValue::try_from(
+        String::from(constants_str::ADMIN_FILTER_ATTRIBUTE_ESCAPING_FIXTURE),
+    );
+    assert_eq!(escaped_result.as_ref().err(), None);
+    let Ok(escaped) = escaped_result else {
+        return;
+    };
+    let empty = server_admin_contract::admin_filter_value::AdminFilterValue::default();
+    assert!(
+        [
+            (None, None),
+            (
+                Some(&empty),
+                Some(constants_str::ADMIN_FILTER_END_EMPTY_ATTRIBUTE_FIXTURE),
+            ),
+            (
+                Some(&escaped),
+                Some(constants_str::ADMIN_FILTER_END_ESCAPED_ATTRIBUTE_FIXTURE),
+            ),
+        ]
+        .into_iter()
+        .all(|(end, expected)| {
+            let html = crate::admin_ssr_view_ext_tests::AdminSsrViewExt::render_admin_ssr(
+                crate::admin_filter_hidden_inputs::admin_filter_hidden_inputs(
+                    None, None, None, end,
+                ),
+            );
+            html.as_ref().contains(constants_str::VALUE_F37D548A) == expected.is_some()
+                && expected
+                    .is_none_or(|expected_attribute| html.as_ref().contains(expected_attribute))
+                && !html
+                    .as_ref()
+                    .contains(constants_str::ADMIN_FILTER_ATTRIBUTE_ESCAPING_FIXTURE)
+                && !html.as_ref().contains(constants_str::VALUE_D241380B)
+        })
+    );
+}

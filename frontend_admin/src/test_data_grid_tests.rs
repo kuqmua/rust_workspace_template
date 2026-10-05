@@ -554,3 +554,53 @@ fn test_admin_grid_renders_empty_columns_and_unmatched_cells_without_actions() {
             })
     );
 }
+
+#[test]
+fn test_column_filter_excludes_membership_for_checkboxes_and_preserves_text_operations() {
+    let field_result =
+        server_admin_contract::admin_text::AdminText::try_from(String::from(constants_str::LOGIN));
+    assert_eq!(field_result.as_ref().err(), None);
+    let Ok(field) = field_result else {
+        return;
+    };
+    let path = server_admin_contract::admin_data_table::AdminDataTable::Users.frontend_path();
+    let filters = [
+        server_admin_contract::admin_data_filter::AdminDataFilter::from(
+            frontend_contract::filter_operation::FilterOperation::Eq,
+        ),
+        server_admin_contract::admin_data_filter::AdminDataFilter::from(
+            frontend_contract::filter_operation::FilterOperation::In,
+        ),
+    ];
+    assert!(
+        [
+            (frontend_contract::input_kind::InputKind::Checkbox, false),
+            (frontend_contract::input_kind::InputKind::Text, true),
+        ]
+        .into_iter()
+        .all(|(input_kind, includes_membership)| {
+            let html = crate::admin_ssr_view_ext_tests::AdminSsrViewExt::render_admin_ssr(
+                crate::with_owner::with_owner(|| {
+                    crate::admin_column_filter::admin_column_filter(
+                        &path,
+                        &field,
+                        input_kind,
+                        &filters,
+                        None,
+                        None,
+                        None,
+                        None,
+                        server_admin_contract::admin_page_limit::AdminPageLimit::default(),
+                        None,
+                    )
+                }),
+            );
+            html.as_ref()
+                .contains(constants_str::ADMIN_FILTER_EQ_OPTION_VALUE_FIXTURE)
+                && html
+                    .as_ref()
+                    .contains(constants_str::ADMIN_FILTER_IN_OPTION_VALUE_FIXTURE)
+                    == includes_membership
+        })
+    );
+}

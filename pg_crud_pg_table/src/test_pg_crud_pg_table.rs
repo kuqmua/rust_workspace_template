@@ -214,3 +214,44 @@ fn test_idempotency_numeric_values_enforce_protocol_and_cleanup_ranges() {
     let _batch_error = crate::pg_table_idempotency_cleanup_batch_size::PgTableIdempotencyCleanupBatchSize::try_from(constants_i64::ZERO)
         .expect_err(constants_str::VALUE_DDCFA298);
 }
+
+#[test]
+fn test_idempotency_response_status_preserves_full_range_and_known_failure() {
+    assert!((100u16..1_000u16).all(|value| {
+        crate::pg_table_idempotency_response_status::PgTableIdempotencyResponseStatus::try_from(
+            value,
+        )
+        .is_ok_and(|status| u16::from(status) == value)
+    }));
+    [0u16, 99u16, 1_000u16, u16::MAX].into_iter().fold((), |(), value| {
+        assert_eq!(
+            crate::pg_table_idempotency_response_status::PgTableIdempotencyResponseStatus::try_from(value),
+            Err(crate::pg_table_idempotency_response_status_try_from_u16_error::PgTableIdempotencyResponseStatusTryFromU16Error::OutOfRange)
+        );
+    });
+    assert_eq!(u16::from(crate::pg_table_idempotency_response_status::PgTableIdempotencyResponseStatus::internal_server_error()), 500u16);
+}
+
+#[test]
+fn test_idempotency_cleanup_values_preserve_limits_and_distinct_zero_contracts() {
+    [i64::MIN, -constants_i64::ONE, constants_i64::ZERO].into_iter().fold((), |(), value| {
+        assert_eq!(
+            crate::pg_table_idempotency_cleanup_batch_size::PgTableIdempotencyCleanupBatchSize::try_from(value),
+            Err(crate::pg_table_idempotency_cleanup_value_try_from_i64_error::PgTableIdempotencyCleanupValueTryFromI64Error::NotPositive)
+        );
+    });
+    [i64::MIN, -constants_i64::ONE].into_iter().fold((), |(), value| {
+        assert_eq!(
+            crate::pg_table_idempotency_cleanup_retention_seconds::PgTableIdempotencyCleanupRetentionSeconds::try_from(value),
+            Err(crate::pg_table_idempotency_cleanup_value_try_from_i64_error::PgTableIdempotencyCleanupValueTryFromI64Error::Negative)
+        );
+    });
+    assert!([constants_i64::ONE, i64::MAX].into_iter().all(|value| {
+        crate::pg_table_idempotency_cleanup_batch_size::PgTableIdempotencyCleanupBatchSize::try_from(value)
+            .is_ok_and(|batch| batch.get().get() == value)
+    }));
+    assert!([constants_i64::ZERO, constants_i64::ONE, i64::MAX].into_iter().all(|value| {
+        crate::pg_table_idempotency_cleanup_retention_seconds::PgTableIdempotencyCleanupRetentionSeconds::try_from(value)
+            .is_ok_and(|retention| retention.get() == value)
+    }));
+}

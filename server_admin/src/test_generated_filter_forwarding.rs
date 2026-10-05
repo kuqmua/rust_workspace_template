@@ -150,3 +150,81 @@ fn test_generated_empty_filters_do_not_bind_query_arguments() {
             })
     );
 }
+
+#[test]
+fn test_every_generated_table_identifier_filter_preserves_wire_type_and_parse_errors() {
+    assert!(
+        crate::admin_generated_table::AdminGeneratedTable::ALL
+            .iter()
+            .all(|table| {
+                let uuid_identifier =
+                    *table == crate::admin_generated_table::AdminGeneratedTable::AccessSessions;
+                let value = if uuid_identifier {
+                    constants_str::VALUE_550E8400_E29B_41D4_A716_446655440000
+                } else {
+                    stringify!(7)
+                };
+                table
+                    .field_contracts()
+                    .as_ref()
+                    .iter()
+                    .any(|field| field.name().as_ref() == constants_str::SQL_NAMES_ID)
+                    && table
+                        .filter_value(
+                            frontend_contract::form_field_name_ref::FormFieldNameRef::from(
+                                constants_str::SQL_NAMES_ID,
+                            ),
+                            frontend_contract::form_value_ref::FormValueRef::from(value),
+                        )
+                        .is_some_and(|wire| {
+                            wire.is_ok_and(|wire| {
+                                serde_json::from_str::<serde_json::Value>(wire.as_ref()).is_ok_and(
+                                    |json| {
+                                        if uuid_identifier {
+                                            json.as_str() == Some(value)
+                                        } else {
+                                            json.as_i64() == Some(7i64)
+                                        }
+                                    },
+                                )
+                            })
+                        })
+                    && matches!(
+                        table.filter_value(
+                            frontend_contract::form_field_name_ref::FormFieldNameRef::from(
+                                constants_str::SQL_NAMES_ID
+                            ),
+                            frontend_contract::form_value_ref::FormValueRef::from(
+                                constants_str::UNKNOWN_ALT
+                            ),
+                        ),
+                        Some(Err(
+                            frontend_contract::form_value_error::FormValueError { .. }
+                        ))
+                    )
+            })
+    );
+}
+
+#[test]
+fn test_every_generated_table_unknown_field_and_route_return_no_contract() {
+    assert!(
+        crate::admin_generated_table::AdminGeneratedTable::ALL
+            .iter()
+            .all(|table| {
+                table
+                    .filter_value(
+                        frontend_contract::form_field_name_ref::FormFieldNameRef::from(
+                            constants_str::UNKNOWN_ALT,
+                        ),
+                        frontend_contract::form_value_ref::FormValueRef::from(constants_str::ADMIN),
+                    )
+                    .is_none()
+                    && table
+                        .route_contract(server_admin_core::std_admin_str_ref::StdAdminStrRef::from(
+                            constants_str::UNKNOWN_ALT,
+                        ))
+                        .is_none()
+            })
+    );
+}

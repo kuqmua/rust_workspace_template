@@ -111,4 +111,28 @@ mod tests {
             100u8
         );
     }
+
+    #[test]
+    fn test_resource_utilization_large_ratios_preserve_integer_floor_without_overflow() {
+        assert!([
+            (u64::MAX, u64::MAX, 100u8),
+            (u64::MAX - 1u64, u64::MAX, 99u8),
+            (9_223_372_036_854_775_807u64, u64::MAX, 49u8),
+            (9_223_372_036_854_775_808u64, u64::MAX, 50u8),
+            (184_467_440_737_095_516u64, u64::MAX, 0u8),
+            (184_467_440_737_095_517u64, u64::MAX, 1u8),
+            (u64::MAX, u64::MAX - 1u64, 100u8),
+        ].into_iter().all(|(used, maximum, percent)| {
+            let utilization = calculate(used, maximum);
+            let status = if percent == 99u8 || percent == 100u8 {
+                crate::resource_utilization_status::ResourceUtilizationStatus::RejectNonEssentialWrites
+            } else {
+                crate::resource_utilization_status::ResourceUtilizationStatus::Ok
+            };
+            utilization.percent().get() == percent
+                && utilization.status() == status
+                && utilization.used() == crate::resource_amount::ResourceAmount::from(used)
+                && utilization.maximum() == crate::resource_amount::ResourceAmount::from(maximum)
+        }));
+    }
 }

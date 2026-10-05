@@ -378,3 +378,81 @@ fn test_every_status_code_token_view_and_parser_match_declared_contract() {
         );
     });
 }
+
+#[test]
+fn test_status_attribute_selection_preserves_ignored_paths_and_error_precedence() {
+    [
+        (
+            quote::quote!(
+                #[http::not_found_404]
+                #[unknown(unexpected)]
+                Variant
+            ),
+            Err(crate::only_one_status_code_error::OnlyOneStatusCodeError::NotFound),
+        ),
+        (
+            quote::quote!(
+                #[http::not_found_404]
+                #[unknown(unexpected)]
+                #[not_found_404]
+                Variant
+            ),
+            Ok(crate::status_code::StatusCode::NotFound404),
+        ),
+        (
+            quote::quote!(
+                #[not_found_404]
+                #[http::internal_server_error_500]
+                #[unknown = Value]
+                Variant
+            ),
+            Ok(crate::status_code::StatusCode::NotFound404),
+        ),
+        (
+            quote::quote!(
+                #[not_found_404]
+                #[not_found_404]
+                Variant
+            ),
+            Err(crate::only_one_status_code_error::OnlyOneStatusCodeError::MoreThanOne),
+        ),
+        (
+            quote::quote!(
+                #[not_found_404]
+                #[internal_server_error_500(unexpected)]
+                Variant
+            ),
+            Err(crate::only_one_status_code_error::OnlyOneStatusCodeError::MalformedAttribute),
+        ),
+        (
+            quote::quote!(
+                #[not_found_404(unexpected)]
+                #[not_found_404]
+                #[internal_server_error_500]
+                Variant
+            ),
+            Err(crate::only_one_status_code_error::OnlyOneStatusCodeError::MalformedAttribute),
+        ),
+        (
+            quote::quote!(
+                #[not_found_404]
+                #[internal_server_error_500]
+                #[not_found_404(unexpected)]
+                Variant
+            ),
+            Err(crate::only_one_status_code_error::OnlyOneStatusCodeError::MoreThanOne),
+        ),
+    ]
+    .into_iter()
+    .fold((), |(), (tokens, expected)| {
+        let variant_result = syn::parse2::<syn::Variant>(tokens);
+        assert!(variant_result.is_ok());
+        let Ok(variant) = variant_result else {
+            return;
+        };
+        assert_eq!(
+            crate::only_one::only_one(crate::syn_variant_ref::SynVariantRef::from(&variant)),
+            expected
+        );
+    });
+}

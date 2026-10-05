@@ -85,6 +85,38 @@ impl crate::pg_range_length_sql::PgRangeLengthSql for PgNumericRangeLength {
 #[cfg(test)]
 mod tests {
     #[test]
+    fn test_numeric_range_schema_and_database_type_preserve_full_unsigned_domain() {
+        let type_info = <crate::pg_numeric_range_length::PgNumericRangeLength as sqlx::Type<
+            sqlx::Postgres,
+        >>::type_info();
+        assert_eq!(
+            type_info,
+            <sqlx::types::BigDecimal as sqlx::Type<sqlx::Postgres>>::type_info()
+        );
+        assert!(<crate::pg_numeric_range_length::PgNumericRangeLength as sqlx::Type<sqlx::Postgres>>::compatible(&type_info));
+        assert!(
+            [
+                <i64 as sqlx::Type<sqlx::Postgres>>::type_info(),
+                <String as sqlx::Type<sqlx::Postgres>>::type_info(),
+            ]
+            .into_iter()
+            .all(|incompatible| {
+                !<crate::pg_numeric_range_length::PgNumericRangeLength as sqlx::Type<
+                    sqlx::Postgres,
+                >>::compatible(&incompatible)
+            })
+        );
+        assert!(
+            matches!(<crate::pg_numeric_range_length::PgNumericRangeLength as utoipa::PartialSchema>::schema(),
+                utoipa::openapi::RefOr::T(utoipa::openapi::schema::Schema::Object(object))
+                    if object.schema_type == utoipa::openapi::schema::SchemaType::new(utoipa::openapi::schema::Type::Integer)
+                        && object.minimum == Some(utoipa::Number::Float(1.0f64))
+                        && object.maximum.is_none()
+            )
+        );
+    }
+
+    #[test]
     fn test_numeric_range_length_json_preserves_integer_boundaries() {
         assert!(
             [

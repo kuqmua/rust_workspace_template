@@ -13,3 +13,21 @@ impl axum::response::IntoResponse for AdminAssetsError {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn test_admin_asset_read_error_returns_internal_server_error() {
+        let error_text = to_err_string::error_text::ErrorText::try_from(String::from(
+            constants_str::SECRET_VALUE,
+        ))
+        .unwrap_or_else(to_err_string::error_text::ErrorText::from);
+        let response =
+            axum::response::IntoResponse::into_response(super::AdminAssetsError::Read(error_text));
+        assert_eq!(
+            response.status(),
+            axum::http::StatusCode::INTERNAL_SERVER_ERROR
+        );
+        assert!(response.headers().is_empty());
+    }
+}

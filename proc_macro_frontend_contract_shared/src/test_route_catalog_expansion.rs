@@ -558,3 +558,297 @@ fn test_typed_route_named_functions_use_literal_operation_or_struct_name() {
             && output.contains(quote::quote!(pub async fn #client<Transport>).to_string().as_str())
     }));
 }
+
+#[test]
+fn test_contract_macro_entrypoints_preserve_malformed_input_diagnostics() {
+    let input = quote::quote!(1);
+    let expected = syn::parse2::<syn::DeriveInput>(input.clone())
+        .err()
+        .map(|error| error.to_compile_error().to_string());
+    assert!(expected.is_some());
+    assert!(
+        [
+            crate::derive_contract_struct_api(input.clone()),
+            crate::derive_typed_route(input.clone()),
+            crate::derive_route_catalog(input.clone()),
+            crate::derive_page_catalog(input.clone()),
+            crate::derive_route_family(input),
+        ]
+        .into_iter()
+        .all(|output| expected
+            .as_deref()
+            .is_some_and(|diagnostic| output.to_string() == diagnostic))
+    );
+}
+
+#[test]
+fn test_openapi_macro_preserves_function_and_metadata_parse_errors() {
+    let invalid_function = quote::quote!(1);
+    let invalid_metadata = quote::quote!(,);
+    let expected_function = syn::parse2::<syn::ItemFn>(invalid_function.clone())
+        .err()
+        .map(|error| error.to_compile_error().to_string());
+    let expected_metadata = syn::parse::Parser::parse2(
+        syn::punctuated::Punctuated::<syn::Meta, syn::Token![,]>::parse_terminated,
+        invalid_metadata.clone(),
+    )
+    .err()
+    .map(|error| error.to_compile_error().to_string());
+    assert!(expected_function.is_some());
+    assert!(expected_metadata.is_some());
+    assert!(expected_function.is_some_and(|diagnostic| {
+        crate::route_openapi(quote::quote!(), invalid_function).to_string() == diagnostic
+    }));
+    assert!(expected_metadata.is_some_and(|diagnostic| {
+        crate::route_openapi(
+            invalid_metadata,
+            quote::quote!(
+                async fn endpoint() {}
+            ),
+        )
+        .to_string()
+            == diagnostic
+    }));
+}
+
+#[test]
+fn test_registry_entrypoints_preserve_visibility_and_separator_diagnostics() {
+    let invalid_visibility = quote::quote!(pub(in));
+    let expected_visibility = syn::parse2::<syn::Visibility>(invalid_visibility.clone())
+        .err()
+        .map(|error| error.to_compile_error().to_string());
+    let expected_separator = syn::parse2::<syn::Token![;]>(quote::quote!(,))
+        .err()
+        .map(|error| error.to_compile_error().to_string());
+    assert!(expected_visibility.is_some());
+    assert!(expected_separator.is_some());
+    assert!(
+        [
+            (
+                crate::endpoint_registry(invalid_visibility.clone()),
+                &expected_visibility
+            ),
+            (
+                crate::route_registry(quote::quote!(#[openapi()] #invalid_visibility)),
+                &expected_visibility
+            ),
+            (
+                crate::endpoint_registry(quote::quote!(pub,)),
+                &expected_separator
+            ),
+            (
+                crate::route_registry(quote::quote!(#[openapi()] pub ,)),
+                &expected_separator
+            ),
+        ]
+        .into_iter()
+        .all(|(output, expected)| expected
+            .as_deref()
+            .is_some_and(|diagnostic| output.to_string() == diagnostic))
+    );
+}
+
+#[test]
+fn test_registry_entrypoints_preserve_inner_argument_diagnostics() {
+    let invalid_arguments = quote::quote!(,);
+    let expected_endpoint = syn::parse2::<crate::endpoint_registry_args::EndpointRegistryArgs>(
+        invalid_arguments.clone(),
+    )
+    .err()
+    .map(|error| error.to_compile_error().to_string());
+    let expected_route =
+        syn::parse2::<crate::route_registry_args::RouteRegistryArgs>(invalid_arguments.clone())
+            .err()
+            .map(|error| error.to_compile_error().to_string());
+    assert!(expected_endpoint.is_some());
+    assert!(expected_route.is_some());
+    assert!(expected_endpoint.is_some_and(|diagnostic| {
+        crate::endpoint_registry(quote::quote!(pub; #invalid_arguments)).to_string() == diagnostic
+    }));
+    assert!(expected_route.is_some_and(|diagnostic| {
+        crate::route_registry(quote::quote!(#[openapi()] pub; #invalid_arguments)).to_string()
+            == diagnostic
+    }));
+}
+
+#[test]
+fn test_catalog_entrypoints_preserve_nested_attribute_diagnostics() {
+    let invalid_arguments = quote::quote!(,);
+    assert!(
+        [
+            (
+                crate::derive_typed_route(quote::quote!(
+                    #[typed_route(#invalid_arguments)]
+                    struct Route;
+                )),
+                syn::parse2::<crate::typed_route_args::TypedRouteArgs>(invalid_arguments.clone())
+                    .map(|_args| ())
+            ),
+            (
+                crate::derive_route_catalog(quote::quote!(
+                    #[route_catalog(#invalid_arguments)]
+                    enum Catalog {
+                        First,
+                    }
+                )),
+                syn::parse2::<crate::route_catalog_args::RouteCatalogArgs>(
+                    invalid_arguments.clone()
+                )
+                .map(|_args| ())
+            ),
+            (
+                crate::derive_route_catalog(quote::quote!(
+                    #[route_catalog(body_limit = Limit, family = Family)]
+                    enum Catalog {
+                        #[route_catalog_route(#invalid_arguments)]
+                        First,
+                    }
+                )),
+                syn::parse2::<crate::route_catalog_route_args::RouteCatalogRouteArgs>(
+                    invalid_arguments.clone()
+                )
+                .map(|_args| ())
+            ),
+            (
+                crate::derive_page_catalog(quote::quote!(
+                    #[page_catalog(#invalid_arguments)]
+                    enum Catalog {
+                        First,
+                    }
+                )),
+                syn::parse2::<crate::page_catalog_args::PageCatalogArgs>(invalid_arguments)
+                    .map(|_args| ())
+            ),
+        ]
+        .into_iter()
+        .all(|(output, expected)| expected
+            .is_err_and(|error| output.to_string() == error.to_compile_error().to_string()))
+    );
+}
+
+#[test]
+fn test_openapi_delegate_preserves_ordered_metadata() {
+    let metadata = quote::quote!(responses(Response), security(Auth));
+    let output = crate::route_openapi(
+        quote::quote!(
+            responses(Response),
+            delegate = implementation,
+            security(Auth)
+        ),
+        quote::quote!(
+            async fn endpoint() -> Result<Response, Error> {}
+        ),
+    );
+    assert!(syn::parse2::<syn::ItemFn>(output).is_ok_and(|function| {
+        function
+            .attrs
+            .first()
+            .is_some_and(|attribute| match &attribute.meta {
+                syn::Meta::List(list) => {
+                    let expected_path = syn::LitStr::new(
+                        ['/', '_', '_']
+                            .into_iter()
+                            .chain(constants_str::TYPED_ROUTE.chars())
+                            .chain(std::iter::once('_'))
+                            .chain(function.sig.ident.to_string().chars())
+                            .collect::<String>()
+                            .as_str(),
+                        proc_macro2::Span::call_site(),
+                    );
+                    list.path == syn::parse_quote!(utoipa::path)
+                        && list.tokens.to_string()
+                            == quote::quote!(get, path = #expected_path, #metadata).to_string()
+                }
+                syn::Meta::Path(_) | syn::Meta::NameValue(_) => false,
+            })
+            && quote::ToTokens::to_token_stream(&function.block).to_string()
+                == quote::quote!({ implementation().await.map_err(Error::from) }).to_string()
+    }));
+}
+
+#[test]
+fn test_contract_slice_accessor_preserves_value_and_type_syntax_errors() {
+    let expected_equals = syn::parse2::<syn::Token![=]>(quote::quote!(,))
+        .err()
+        .map(|error| error.to_compile_error().to_string());
+    let expected_type = syn::parse2::<syn::Type>(quote::quote!(,))
+        .err()
+        .map(|error| error.to_compile_error().to_string());
+    assert!(expected_equals.is_some());
+    assert!(expected_type.is_some());
+    assert!(
+        [
+            (
+                quote::quote!(
+                    struct Request {
+                        #[contract_struct_api(slice)]
+                        value: Values,
+                    }
+                ),
+                &expected_equals
+            ),
+            (
+                quote::quote!(
+                    struct Request {
+                        #[contract_struct_api(slice = ,)]
+                        value: Values,
+                    }
+                ),
+                &expected_type
+            ),
+        ]
+        .into_iter()
+        .all(
+            |(input, expected)| expected.as_deref().is_some_and(|diagnostic| {
+                crate::derive_contract_struct_api(input).to_string() == diagnostic
+            })
+        )
+    );
+}
+
+#[test]
+fn test_route_registry_preserves_malformed_outer_attribute_diagnostic() {
+    let input = quote::quote!(#[openapi = ]);
+    let expected = syn::parse::Parser::parse2(syn::Attribute::parse_outer, input.clone())
+        .err()
+        .map(|error| error.to_compile_error().to_string());
+    assert!(expected.is_some());
+    assert!(
+        expected.is_some_and(|diagnostic| crate::route_registry(input).to_string() == diagnostic)
+    );
+}
+
+#[test]
+fn test_openapi_without_delegate_preserves_original_function_and_metadata() {
+    let input = quote::quote!(
+        #[allow(dead_code)]
+        pub async fn endpoint(value: Value) -> Response {
+            response(value)
+        }
+    );
+    let output = crate::route_openapi(
+        quote::quote!(responses(Response), security(Auth)),
+        input.clone(),
+    );
+    assert!(
+        syn::parse2::<syn::ItemFn>(output).is_ok_and(|mut function| {
+            let attribute = function.attrs.remove(0usize);
+            attribute.path() == &syn::parse_quote!(utoipa::path)
+                && attribute
+                    .parse_args_with(
+                        syn::punctuated::Punctuated::<syn::Meta, syn::Token![,]>::parse_terminated,
+                    )
+                    .is_ok_and(|arguments| {
+                        arguments
+                            .into_iter()
+                            .skip(2usize)
+                            .map(|argument| quote::quote!(#argument).to_string())
+                            .eq([
+                                quote::quote!(responses(Response)).to_string(),
+                                quote::quote!(security(Auth)).to_string(),
+                            ])
+                    })
+                && quote::quote!(#function).to_string() == input.to_string()
+        })
+    );
+}

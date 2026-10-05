@@ -158,4 +158,170 @@ mod tests {
             Err(crate::cursor_decode_error::CursorDecodeError::InvalidSignature)
         );
     }
+
+    #[test]
+    fn test_cursor_decoding_distinguishes_malformed_structure_and_signatures() {
+        [
+            constants_str::X.to_owned(),
+            [constants_str::CURSOR_VERSION_V1, constants_str::X].join(constants_str::DOT),
+            [constants_str::X, constants_str::X, constants_str::X].join(constants_str::DOT),
+            [
+                constants_str::CURSOR_VERSION_V1,
+                constants_str::X,
+                constants_str::X,
+                constants_str::X,
+            ]
+            .join(constants_str::DOT),
+        ]
+        .into_iter()
+        .fold((), |(), text| {
+            let cursor_result = crate::signed_cursor::SignedCursor::try_from(text);
+            assert!(cursor_result.is_ok());
+            let Ok(cursor) = cursor_result else {
+                return;
+            };
+            assert_eq!(
+                codec().decode(&cursor),
+                Err(crate::cursor_decode_error::CursorDecodeError::InvalidFormat)
+            );
+        });
+        [constants_str::X.to_owned(), '!'.to_string(), String::new()]
+            .into_iter()
+            .fold((), |(), signature| {
+                let text = [
+                    constants_str::CURSOR_VERSION_V1,
+                    constants_str::X,
+                    signature.as_str(),
+                ]
+                .join(constants_str::DOT);
+                let cursor_result = crate::signed_cursor::SignedCursor::try_from(text);
+                assert!(cursor_result.is_ok());
+                let Ok(cursor) = cursor_result else {
+                    return;
+                };
+                assert_eq!(
+                    codec().decode(&cursor),
+                    Err(crate::cursor_decode_error::CursorDecodeError::InvalidSignature)
+                );
+            });
+    }
+
+    #[test]
+    fn test_authenticated_cursor_payload_rejects_invalid_base64_utf8_and_empty_text() {
+        let signed_payload = |encoded_payload| {
+            let signed_text =
+                [constants_str::CURSOR_VERSION_V1, encoded_payload].join(constants_str::DOT);
+            let mac_result =
+                <hmac::Hmac<sha2::Sha256> as hmac::KeyInit>::new_from_slice(&[7u8; 32usize]);
+            assert!(mac_result.is_ok());
+            let Ok(mut mac) = mac_result else {
+                return None;
+            };
+            hmac::Mac::update(&mut mac, signed_text.as_bytes());
+            let signature = base64::Engine::encode(
+                &base64::engine::general_purpose::URL_SAFE_NO_PAD,
+                hmac::Mac::finalize(mac).into_bytes(),
+            );
+            let cursor_result = crate::signed_cursor::SignedCursor::try_from(
+                [signed_text.as_str(), signature.as_str()].join(constants_str::DOT),
+            );
+            assert!(cursor_result.is_ok());
+            cursor_result.ok()
+        };
+        let invalid_base64 = '!'.to_string();
+        let invalid_utf8 =
+            base64::Engine::encode(&base64::engine::general_purpose::URL_SAFE_NO_PAD, [255u8]);
+        [
+            invalid_base64.as_str(),
+            invalid_utf8.as_str(),
+            constants_str::EMPTY,
+        ]
+        .into_iter()
+        .fold((), |(), encoded_payload| {
+            assert_eq!(
+                signed_payload(encoded_payload).map(|cursor| codec().decode(&cursor)),
+                Some(Err(
+                    crate::cursor_decode_error::CursorDecodeError::InvalidPayload
+                ))
+            );
+        });
+    }
+
+    #[test]
+    fn test_cursor_length_limits_preserve_exact_boundary_and_storage_limit() {
+        let codec_with_limit = |maximum_length| {
+            let key_result =
+                crate::cursor_signing_key::CursorSigningKey::try_from(vec![7u8; 32usize]);
+            assert!(key_result.is_ok());
+            let Ok(key) = key_result else {
+                return None;
+            };
+            let maximum_result =
+                crate::cursor_maximum_length::CursorMaximumLength::try_from(maximum_length);
+            assert!(
+                maximum_result
+                    .as_ref()
+                    .is_ok_and(|maximum| maximum.get_inner().get() == maximum_length)
+            );
+            let Ok(maximum) = maximum_result else {
+                return None;
+            };
+            Some(crate::cursor_codec::CursorCodec::new(key, maximum))
+        };
+        let payload_result =
+            crate::cursor_payload::CursorPayload::try_from(constants_str::X.to_owned());
+        assert!(payload_result.is_ok());
+        let Ok(payload) = payload_result else {
+            return;
+        };
+        let cursor_result = codec().encode(&payload);
+        assert!(cursor_result.is_ok());
+        let Ok(cursor) = cursor_result else {
+            return;
+        };
+        let encoded_length = cursor.as_ref().len();
+        let exact_result = codec_with_limit(encoded_length);
+        assert!(exact_result.is_some());
+        let Some(exact) = exact_result else {
+            return;
+        };
+        assert!(
+            exact
+                .encode(&payload)
+                .is_ok_and(|encoded| encoded == cursor)
+        );
+        assert!(
+            exact
+                .decode(&cursor)
+                .is_ok_and(|decoded| decoded == payload)
+        );
+        let smaller_result = codec_with_limit(encoded_length.saturating_sub(1usize));
+        assert!(smaller_result.is_some());
+        let Some(smaller) = smaller_result else {
+            return;
+        };
+        assert_eq!(
+            smaller.encode(&payload),
+            Err(crate::cursor_encode_error::CursorEncodeError::MaximumLengthExceeded)
+        );
+        assert_eq!(
+            smaller.decode(&cursor),
+            Err(crate::cursor_decode_error::CursorDecodeError::MaximumLengthExceeded)
+        );
+        let larger_result = codec_with_limit(100_000usize);
+        assert!(larger_result.is_some());
+        let Some(larger) = larger_result else {
+            return;
+        };
+        let large_payload_result =
+            crate::cursor_payload::CursorPayload::try_from(constants_str::X.repeat(65_536usize));
+        assert!(large_payload_result.is_ok());
+        let Ok(large_payload) = large_payload_result else {
+            return;
+        };
+        assert_eq!(
+            larger.encode(&large_payload),
+            Err(crate::cursor_encode_error::CursorEncodeError::MaximumLengthExceeded)
+        );
+    }
 }

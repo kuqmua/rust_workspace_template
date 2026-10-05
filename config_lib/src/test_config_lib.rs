@@ -423,3 +423,211 @@ fn test_parse_required_env_var_rejects_oversized_value_before_parsing() {
     );
     assert!(!parse_called);
 }
+
+#[test]
+fn test_config_field_descriptor_preserves_parser_results_and_metadata() {
+    assert!(
+        [
+            crate::config_field_sensitivity::ConfigFieldSensitivity::Public,
+            crate::config_field_sensitivity::ConfigFieldSensitivity::Secret,
+        ]
+        .into_iter()
+        .all(|config_field_sensitivity| {
+            let descriptor = crate::config_field_descriptor::ConfigFieldDescriptor::new(
+                crate::env_var_name_ref::EnvVarNameRef::from(constants_str::FIELD),
+                crate::config_field_example_ref::ConfigFieldExampleRef::from(constants_str::X),
+                |std_env_var_ok: crate::std_env_var_ok::StdEnvVarOk| {
+                    if std_env_var_ok.as_str() == constants_str::X {
+                        crate::config_example_validity::ConfigExampleValidity::Valid
+                    } else {
+                        crate::config_example_validity::ConfigExampleValidity::Invalid
+                    }
+                },
+                crate::config_field_requirement::ConfigFieldRequirement::Required,
+                crate::config_rust_type_name::ConfigRustTypeName::from(constants_str::X),
+                config_field_sensitivity,
+            );
+            assert_eq!(descriptor.env_name().as_ref(), constants_str::FIELD);
+            assert_eq!(descriptor.example().as_ref(), constants_str::X);
+            assert_eq!(
+                descriptor.requirement(),
+                crate::config_field_requirement::ConfigFieldRequirement::Required
+            );
+            assert_eq!(descriptor.rust_type_name().as_ref(), constants_str::X);
+            assert_eq!(descriptor.sensitivity(), config_field_sensitivity);
+            assert!(
+                crate::std_env_var_ok::StdEnvVarOk::try_from(constants_str::X.to_owned())
+                    .is_ok_and(|std_env_var_ok| descriptor.validate_example(std_env_var_ok)
+                        == crate::config_example_validity::ConfigExampleValidity::Valid)
+            );
+            assert!(
+                crate::std_env_var_ok::StdEnvVarOk::try_from(constants_str::VALUE_1.to_owned())
+                    .is_ok_and(|std_env_var_ok| descriptor.validate_example(std_env_var_ok)
+                        == crate::config_example_validity::ConfigExampleValidity::Invalid)
+            );
+            let debug = format!("{descriptor:?}");
+            debug.starts_with(constants_str::CONFIG_FIELD_DESCRIPTOR)
+                && [
+                    constants_str::ENV_NAME,
+                    constants_str::EXAMPLE,
+                    constants_str::REQUIRED,
+                    constants_str::RUST_TYPE_NAME,
+                    constants_str::SENSITIVITY,
+                ]
+                .into_iter()
+                .all(|field| debug.contains(field))
+                && debug.ends_with('}')
+        })
+    );
+}
+
+#[test]
+fn test_config_string_wrappers_preserve_limits_and_error_diagnostics() {
+    let maximum = crate::config_lib_string_wrapper_max_len::CONFIG_LIB_STRING_WRAPPER_MAX_LEN;
+    assert!(
+        crate::env_var_name::EnvVarName::try_from(String::new())
+            .is_ok_and(|env_var_name| env_var_name.to_string().is_empty())
+    );
+    assert!(
+        crate::std_env_var_ok::StdEnvVarOk::try_from(String::new())
+            .is_ok_and(|std_env_var_ok| std_env_var_ok.is_empty())
+    );
+    assert!(
+        crate::env_var_name::EnvVarName::try_from(constants_str::X.repeat(maximum))
+            .is_ok_and(|env_var_name| env_var_name.to_string().len() == maximum)
+    );
+    assert!(
+        crate::std_env_var_ok::StdEnvVarOk::try_from(constants_str::X.repeat(maximum))
+            .is_ok_and(|std_env_var_ok| std_env_var_ok.len() == maximum)
+    );
+    let error = crate::config_lib_string_wrapper_try_from_string_error::ConfigLibStringWrapperTryFromStringError::TooLong {
+        len: maximum + 1usize,
+        max: maximum,
+    };
+    assert_eq!(
+        crate::env_var_name::EnvVarName::try_from(constants_str::X.repeat(maximum + 1usize)),
+        Err(error)
+    );
+    assert_eq!(
+        crate::std_env_var_ok::StdEnvVarOk::try_from(constants_str::X.repeat(maximum + 1usize)),
+        Err(error)
+    );
+    let error_text = error.to_string();
+    assert_eq!(
+        crate::env_var_name::EnvVarName::from(error).to_string(),
+        error_text
+    );
+    assert_eq!(
+        crate::std_env_var_ok::StdEnvVarOk::from(error).as_str(),
+        error_text
+    );
+}
+
+#[test]
+fn test_content_security_policy_preserves_trimming_and_byte_boundaries() {
+    let padded = [' ', '\t', 'x', ' ', '\r', '\n']
+        .into_iter()
+        .collect::<String>();
+    assert!(
+        crate::content_security_policy::ContentSecurityPolicy::try_from(padded).is_ok_and(
+            |content_security_policy| content_security_policy.as_ref() == constants_str::X
+        )
+    );
+    assert_eq!(
+        crate::content_security_policy::ContentSecurityPolicy::try_from(String::new()),
+        Err(crate::content_security_policy_error::ContentSecurityPolicyError::Empty)
+    );
+    assert_eq!(
+        crate::content_security_policy::ContentSecurityPolicy::try_from(
+            ['x', '\r', 'x'].into_iter().collect::<String>()
+        ),
+        Err(crate::content_security_policy_error::ContentSecurityPolicyError::Invalid)
+    );
+    assert_eq!(
+        crate::content_security_policy::ContentSecurityPolicy::try_from(
+            ['x', '\n', 'x'].into_iter().collect::<String>()
+        ),
+        Err(crate::content_security_policy_error::ContentSecurityPolicyError::Invalid)
+    );
+    assert!(
+        crate::content_security_policy::ContentSecurityPolicy::try_from(
+            constants_str::X.repeat(4_096usize)
+        )
+        .is_ok_and(|content_security_policy| content_security_policy.as_ref().len() == 4_096usize)
+    );
+    assert_eq!(
+        crate::content_security_policy::ContentSecurityPolicy::try_from(
+            constants_str::X.repeat(4_097usize)
+        ),
+        Err(crate::content_security_policy_error::ContentSecurityPolicyError::Invalid)
+    );
+    let multibyte_character = '\u{00e9}'.to_string();
+    assert!(
+        crate::content_security_policy::ContentSecurityPolicy::try_from(
+            multibyte_character.repeat(2_048usize)
+        )
+        .is_ok_and(|content_security_policy| content_security_policy.as_ref().len() == 4_096usize)
+    );
+    assert_eq!(
+        crate::content_security_policy::ContentSecurityPolicy::try_from(
+            multibyte_character.repeat(2_049usize)
+        ),
+        Err(crate::content_security_policy_error::ContentSecurityPolicyError::Invalid)
+    );
+    assert!(crate::std_env_var_ok::StdEnvVarOk::try_from(constants_str::X.to_owned())
+        .is_ok_and(|std_env_var_ok| <crate::content_security_policy::ContentSecurityPolicy as crate::try_from_std_env_var_ok::TryFromStdEnvVarOk>::try_from_std_env_var_ok(std_env_var_ok)
+            .is_ok_and(|content_security_policy| content_security_policy.as_ref() == constants_str::X)));
+    assert!(crate::std_env_var_ok::StdEnvVarOk::try_from(constants_str::NEWLINE.to_owned())
+        .is_ok_and(|std_env_var_ok| <crate::content_security_policy::ContentSecurityPolicy as crate::try_from_std_env_var_ok::TryFromStdEnvVarOk>::try_from_std_env_var_ok(std_env_var_ok)
+            == Err(crate::content_security_policy_error::ContentSecurityPolicyError::Empty)));
+    assert!(crate::std_env_var_ok::StdEnvVarOk::try_from(['x', '\n', 'x'].into_iter().collect::<String>())
+        .is_ok_and(|std_env_var_ok| <crate::content_security_policy::ContentSecurityPolicy as crate::try_from_std_env_var_ok::TryFromStdEnvVarOk>::try_from_std_env_var_ok(std_env_var_ok)
+            == Err(crate::content_security_policy_error::ContentSecurityPolicyError::Invalid)));
+}
+
+#[test]
+fn test_password_hash_concurrency_preserves_positive_values_and_parse_diagnostics() {
+    let parse_concurrency = |std_env_var_ok| {
+        <crate::admin_password_hash_concurrency::AdminPasswordHashConcurrency as crate::try_from_std_env_var_ok::TryFromStdEnvVarOk>::try_from_std_env_var_ok(std_env_var_ok)
+    };
+    assert!(
+        [
+            (constants_str::VALUE_1.to_owned(), 1usize),
+            (['+', '1'].into_iter().collect::<String>(), 1usize),
+            (
+                std::num::NonZeroUsize::MAX.to_string(),
+                std::num::NonZeroUsize::MAX.get()
+            ),
+        ]
+        .into_iter()
+        .all(
+            |(text, expected)| crate::std_env_var_ok::StdEnvVarOk::try_from(text)
+                .is_ok_and(|std_env_var_ok| parse_concurrency(std_env_var_ok)
+                    .is_ok_and(|concurrency| concurrency.get() == expected))
+        )
+    );
+    assert!(crate::std_env_var_ok::StdEnvVarOk::try_from(constants_str::VALUE_0.to_owned())
+        .is_ok_and(|std_env_var_ok| parse_concurrency(std_env_var_ok).is_err_and(|error| matches!(error,
+            crate::try_from_std_env_var_ok_admin_password_hash_concurrency_error::TryFromStdEnvVarOkAdminPasswordHashConcurrencyError::IsZero))));
+    let mut overflow = std::num::NonZeroUsize::MAX.to_string();
+    overflow.push('0');
+    assert!([
+        constants_str::X.to_owned(),
+        String::new(),
+        ['-', '1'].into_iter().collect::<String>(),
+        [' ', '1'].into_iter().collect::<String>(),
+        overflow,
+    ].into_iter().all(|text| {
+        let expected = text.parse::<usize>().err().map(|error| format!("{error:?}"));
+        assert!(expected.is_some());
+        crate::std_env_var_ok::StdEnvVarOk::try_from(text).is_ok_and(|std_env_var_ok| {
+            parse_concurrency(std_env_var_ok).is_err_and(|error| {
+                let crate::try_from_std_env_var_ok_admin_password_hash_concurrency_error::TryFromStdEnvVarOkAdminPasswordHashConcurrencyError::Parse { admin_positive_usize_parsing } = error else {
+                    return false;
+                };
+                let observed = format!("{admin_positive_usize_parsing:?}");
+                expected.as_deref().is_some_and(|diagnostic| observed == diagnostic)
+            })
+        })
+    }));
+}

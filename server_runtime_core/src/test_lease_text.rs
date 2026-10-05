@@ -54,3 +54,26 @@ fn test_lease_text_boundaries_and_error_precedence_are_shared_by_id_and_key() {
         );
     });
 }
+
+#[test]
+fn test_lease_stale_timeout_rejects_zero_and_preserves_positive_duration_boundaries() {
+    assert!(matches!(
+        crate::lease_stale_timeout_duration::LeaseStaleTimeoutDuration::try_from(
+            std::time::Duration::ZERO
+        ),
+        Err(crate::std_lease_stale_timeout_error::StdLeaseStaleTimeoutError::Zero)
+    ));
+    assert!(
+        [
+            std::time::Duration::from_nanos(1u64),
+            std::time::Duration::new(1u64, 123_456_789u32),
+            std::time::Duration::new(u64::MAX, 0u32),
+            std::time::Duration::MAX,
+        ]
+        .into_iter()
+        .all(|duration| {
+            crate::lease_stale_timeout_duration::LeaseStaleTimeoutDuration::try_from(duration)
+                .is_ok_and(|timeout| *timeout == duration)
+        })
+    );
+}
