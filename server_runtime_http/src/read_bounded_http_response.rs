@@ -44,11 +44,16 @@ pub async fn read_bounded_http_response(
 
 #[cfg(test)]
 mod tests {
+    fn response_read_semaphore_fixture()
+    -> crate::bounded_read_concurrency_arc_semaphore::BoundedReadConcurrencyArcSemaphore {
+        crate::bounded_read_concurrency_arc_semaphore::BoundedReadConcurrencyArcSemaphore::new(
+            crate::bounded_read_concurrency_maximum_non_zero_usize::BoundedReadConcurrencyMaximumNonZeroUsize::from(std::num::NonZeroUsize::MIN),
+        )
+    }
+
     #[tokio::test]
     async fn test_response_reads_release_permit_after_success_and_size_errors() {
-        let bounded_read_concurrency_arc_semaphore = crate::bounded_read_concurrency_arc_semaphore::BoundedReadConcurrencyArcSemaphore::new(
-            crate::bounded_read_concurrency_maximum_non_zero_usize::BoundedReadConcurrencyMaximumNonZeroUsize::from(std::num::NonZeroUsize::MIN),
-        );
+        let bounded_read_concurrency_arc_semaphore = response_read_semaphore_fixture();
         let read = async |bounded_read_maximum_bytes: crate::bounded_read_maximum_bytes::BoundedReadMaximumBytes,
                           bounded_read_observed_bytes: Option<crate::bounded_read_observed_bytes::BoundedReadObservedBytes>| {
             let mut response = http::Response::new(constants_str::ABCD_ALT);
@@ -88,5 +93,63 @@ mod tests {
             )
             .await
         );
+    }
+
+    #[tokio::test]
+    async fn test_closed_response_read_limiter_precedes_payload_size_validation() {
+        let limiter = response_read_semaphore_fixture();
+        limiter.clone().into_inner().close();
+        let result = crate::read_bounded_http_response::read_bounded_http_response(
+            crate::reqwest_response::ReqwestResponse::from(reqwest::Response::from(
+                http::Response::new(constants_str::X),
+            )),
+            crate::bounded_read_maximum_bytes::BoundedReadMaximumBytes::from(0usize),
+            limiter,
+        )
+        .await;
+        assert!(matches!(
+            result,
+            Err(crate::bounded_read_error::BoundedReadError::LimiterClosed)
+        ));
+    }
+
+    #[tokio::test]
+    async fn test_cancelled_response_read_waiter_does_not_consume_released_permit() {
+        let limiter = response_read_semaphore_fixture();
+        let permit = match limiter.clone().into_inner().acquire_owned().await {
+            Ok(permit) => permit,
+            Err(error) => {
+                assert_eq!(error.to_string(), constants_str::EMPTY);
+                return;
+            }
+        };
+        let mut waiting_read = Box::pin(
+            crate::read_bounded_http_response::read_bounded_http_response(
+                crate::reqwest_response::ReqwestResponse::from(reqwest::Response::from(
+                    http::Response::new(constants_str::X),
+                )),
+                crate::bounded_read_maximum_bytes::BoundedReadMaximumBytes::from(1usize),
+                limiter.clone(),
+            ),
+        );
+        let pending = std::future::poll_fn(|context| {
+            std::task::Poll::Ready(waiting_read.as_mut().poll(context).is_pending())
+        })
+        .await;
+        assert!(pending);
+        drop(waiting_read);
+        assert_eq!(limiter.clone().into_inner().available_permits(), 0usize);
+        drop(permit);
+        assert_eq!(limiter.clone().into_inner().available_permits(), 1usize);
+        let result = crate::read_bounded_http_response::read_bounded_http_response(
+            crate::reqwest_response::ReqwestResponse::from(reqwest::Response::from(
+                http::Response::new(constants_str::X),
+            )),
+            crate::bounded_read_maximum_bytes::BoundedReadMaximumBytes::from(1usize),
+            limiter.clone(),
+        )
+        .await;
+        assert!(result.is_ok_and(|bytes| bytes.into_inner() == constants_str::X.as_bytes()));
+        assert_eq!(limiter.into_inner().available_permits(), 1usize);
     }
 }

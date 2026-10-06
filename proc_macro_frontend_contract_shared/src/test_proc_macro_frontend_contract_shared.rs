@@ -428,6 +428,21 @@ fn test_endpoint_registry_generates_router_for_each_binding() {
         matches!(function.vis, syn::Visibility::Public(_))
             && function.sig.inputs.is_empty()
             && function.block.stmts.len() == 4usize
+            && function.block.stmts.iter().skip(1usize).take(2usize).zip([
+                (quote::quote!(First), quote::quote!(first)),
+                (quote::quote!(Second), quote::quote!(second)),
+            ]).all(|(statement, (contract, endpoint))| {
+                let text = quote::quote!(#statement).to_string();
+                text.contains(quote::quote!(
+                    frontend_contract::route_registration_contract::RouteRegistrationContract::registration_path(#contract)
+                ).to_string().as_str())
+                    && text.contains(quote::quote!(
+                        frontend_contract::route_method_router::route_method_router(
+                            frontend_contract::route_registration_contract::RouteRegistrationContract::registration_method(#contract),
+                            #endpoint,
+                        )
+                    ).to_string().as_str())
+            })
     }));
 }
 

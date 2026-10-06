@@ -59,11 +59,17 @@ fn test_idempotency_text_types_enforce_boundaries_and_protocol_shape() {
 }
 
 #[test]
-fn test_generated_idempotency_keys_are_valid_and_distinct() {
-    let first = crate::new_pg_table_idempotency_key::new_pg_table_idempotency_key()
-        .expect(constants_str::DIAGNOSTIC_2C2E015B);
-    let second = crate::new_pg_table_idempotency_key::new_pg_table_idempotency_key()
-        .expect(constants_str::DIAGNOSTIC_632ACE74);
+fn test_fixed_uuid_idempotency_keys_preserve_content_and_are_distinct() {
+    let first_uuid = uuid::Uuid::from_u128(0x00112233_4455_4677_8899_aabbccddeeffu128);
+    let second_uuid = uuid::Uuid::from_u128(0x00112233_4455_4677_8899_aabbccddeefeu128);
+    let first =
+        crate::pg_table_idempotency_key::PgTableIdempotencyKey::try_from(first_uuid.to_string())
+            .expect(constants_str::DIAGNOSTIC_2C2E015B);
+    let second =
+        crate::pg_table_idempotency_key::PgTableIdempotencyKey::try_from(second_uuid.to_string())
+            .expect(constants_str::DIAGNOSTIC_632ACE74);
+    assert_eq!(first.as_ref(), first_uuid.to_string());
+    assert_eq!(second.as_ref(), second_uuid.to_string());
     assert_ne!(first, second);
     assert!(!first.as_ref().is_empty());
     assert!(

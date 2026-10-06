@@ -301,6 +301,20 @@ mod tests {
         let guard = super::remove_dir_on_drop::RemoveDirOnDrop::new(path.clone());
         drop(guard);
         assert!(!path.exists());
+        assert!(!dir.path().exists());
+    }
+    #[test]
+    fn test_remove_dir_on_drop_preserves_parent_with_sibling_directory() {
+        let dir = TmpDirPathBuf::new();
+        let path = dir.path().join(constants_str::CRATE_DIR);
+        let sibling = dir.path().join(constants_str::MISSING_DIR);
+        assert!(matches!(std::fs::create_dir_all(&path), Ok(())));
+        assert!(matches!(std::fs::create_dir_all(&sibling), Ok(())));
+        let guard = super::remove_dir_on_drop::RemoveDirOnDrop::new(path.clone());
+        drop(guard);
+        assert!(!path.exists());
+        assert!(dir.path().is_dir());
+        assert!(sibling.is_dir());
     }
     #[test]
     fn test_remove_dir_all_if_exists_accepts_missing_dir() {

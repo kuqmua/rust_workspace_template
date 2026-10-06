@@ -290,4 +290,135 @@ mod tests {
             crate::lease_heartbeat::LeaseHeartbeat::Accepted
         );
     }
+
+    #[tokio::test(start_paused = true)]
+    async fn test_cloned_registry_release_reclaims_shared_key_and_capacity() {
+        let registry = super::LeaseRegistry::new();
+        let shared_registry = registry.clone();
+        let first_id = id(constants_str::TEST_LEASE_ID_ONE);
+        assert_eq!(
+            registry
+                .reserve(
+                    first_id.clone(),
+                    lease_key(constants_str::TEST_LEASE_KEY_ONE),
+                    maximum()
+                )
+                .await,
+            crate::lease_reservation::LeaseReservation::Reserved,
+        );
+        assert_eq!(
+            shared_registry.heartbeat(&first_id).await,
+            crate::lease_heartbeat::LeaseHeartbeat::Accepted,
+        );
+        assert_eq!(
+            shared_registry.release(&first_id).await,
+            crate::lease_heartbeat::LeaseHeartbeat::Accepted,
+        );
+        assert_eq!(
+            registry.heartbeat(&first_id).await,
+            crate::lease_heartbeat::LeaseHeartbeat::Missing,
+        );
+        assert_eq!(
+            registry.release(&first_id).await,
+            crate::lease_heartbeat::LeaseHeartbeat::Missing,
+        );
+        let replacement_id = id(constants_str::TEST_LEASE_ID_TWO);
+        assert_eq!(
+            shared_registry
+                .reserve(
+                    replacement_id.clone(),
+                    lease_key(constants_str::TEST_LEASE_KEY_ONE),
+                    maximum()
+                )
+                .await,
+            crate::lease_reservation::LeaseReservation::Reserved,
+        );
+        assert_eq!(
+            registry
+                .reserve(
+                    first_id,
+                    lease_key(constants_str::TEST_LEASE_KEY_ONE),
+                    maximum()
+                )
+                .await,
+            crate::lease_reservation::LeaseReservation::Existing(replacement_id),
+        );
+    }
+
+    #[tokio::test(start_paused = true)]
+    async fn test_occupied_key_reservation_preserves_both_existing_leases() {
+        let registry = super::LeaseRegistry::new();
+        let capacity =
+            crate::lease_registry_maximum_non_zero_usize::LeaseRegistryMaximumNonZeroUsize::from(
+                std::num::NonZeroUsize::MIN.saturating_add(1usize),
+            );
+        let first_id = id(constants_str::TEST_LEASE_ID_ONE);
+        let second_id = id(constants_str::TEST_LEASE_ID_TWO);
+        assert_eq!(
+            registry
+                .reserve(
+                    first_id.clone(),
+                    lease_key(constants_str::TEST_LEASE_KEY_ONE),
+                    capacity
+                )
+                .await,
+            crate::lease_reservation::LeaseReservation::Reserved,
+        );
+        assert_eq!(
+            registry
+                .reserve(
+                    second_id.clone(),
+                    lease_key(constants_str::TEST_LEASE_KEY_TWO),
+                    capacity
+                )
+                .await,
+            crate::lease_reservation::LeaseReservation::Reserved,
+        );
+        assert_eq!(
+            registry
+                .reserve(
+                    first_id.clone(),
+                    lease_key(constants_str::TEST_LEASE_KEY_TWO),
+                    capacity
+                )
+                .await,
+            crate::lease_reservation::LeaseReservation::Existing(second_id.clone()),
+        );
+        assert_eq!(
+            registry
+                .reserve(
+                    second_id.clone(),
+                    lease_key(constants_str::TEST_LEASE_KEY_ONE),
+                    capacity
+                )
+                .await,
+            crate::lease_reservation::LeaseReservation::Existing(first_id.clone()),
+        );
+        assert_eq!(
+            registry.heartbeat(&first_id).await,
+            crate::lease_heartbeat::LeaseHeartbeat::Accepted
+        );
+        assert_eq!(
+            registry.heartbeat(&second_id).await,
+            crate::lease_heartbeat::LeaseHeartbeat::Accepted
+        );
+        assert_eq!(
+            registry.release(&first_id).await,
+            crate::lease_heartbeat::LeaseHeartbeat::Accepted
+        );
+        assert_eq!(
+            registry
+                .reserve(
+                    first_id,
+                    lease_key(constants_str::TEST_LEASE_KEY_TWO),
+                    capacity
+                )
+                .await,
+            crate::lease_reservation::LeaseReservation::Existing(second_id.clone()),
+        );
+        assert_eq!(
+            registry.release(&second_id).await,
+            crate::lease_heartbeat::LeaseHeartbeat::Accepted
+        );
+    }
 }

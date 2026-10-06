@@ -272,4 +272,21 @@ mod tests {
             )
         ));
     }
+
+    #[tokio::test]
+    async fn test_diagnostic_read_reports_errors_after_capture_limit_is_reached() {
+        let input = constants_str::X.repeat(4097usize);
+        let reader = tokio::io::AsyncReadExt::chain(input.as_bytes(), ErrorReader);
+        let result = crate::read_child_diagnostic::read_child_diagnostic(
+            reader,
+            crate::child_diagnostic_maximum_non_zero_usize::ChildDiagnosticMaximumNonZeroUsize::from(
+                std::num::NonZeroUsize::MIN,
+            ),
+        ).await;
+        assert!(result.is_err_and(|error| matches!(
+            error,
+            crate::child_process_error::ChildProcessError::DiagnosticIo(source)
+                if source.to_string() == constants_str::VALUE_0DEDD057
+        )));
+    }
 }

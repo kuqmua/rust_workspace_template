@@ -561,16 +561,23 @@ mod tests {
     }
     #[test]
     fn test_direct_inner_accessors_are_generated() {
-        let text = GetInnerValueRef::from(constants_str::ABC_ALT_3).get();
-        let flag = GetInnerBool::from(true).get();
-        assert_eq!(text, constants_str::ABC_ALT_3);
-        assert!(std::hint::black_box(flag));
+        let text = String::from(constants_str::ABC_ALT_3);
+        let get_inner_value_ref = GetInnerValueRef::from(text.as_str());
+        assert_eq!(get_inner_value_ref.get(), constants_str::ABC_ALT_3);
+        assert!(std::ptr::eq(get_inner_value_ref.get(), text.as_str()));
+        assert!(
+            [false, true]
+                .into_iter()
+                .all(|value| GetInnerBool::from(value).get() == value)
+        );
     }
     #[test]
     fn test_borrowed_inner_accessor_is_generated() {
-        let value = BorrowedGetInnerBool::from(true);
         let get: fn(&BorrowedGetInnerBool) -> &bool = BorrowedGetInnerBool::get;
-        assert!(*get(&value));
+        assert!([false, true].into_iter().all(|value| {
+            let borrowed_get_inner_bool = BorrowedGetInnerBool::from(value);
+            *get(&borrowed_get_inner_bool) == value
+        }));
     }
     #[test]
     fn test_vec_accessors_are_generated() {
@@ -742,9 +749,15 @@ mod tests {
     }
     #[test]
     fn test_reference_inner_impls_are_generated() {
-        let inner = ReferentValue(constants_str::LEFT, constants_str::RIGHT);
+        let left = String::from(constants_str::LEFT);
+        let right = String::from(constants_str::RIGHT);
+        let inner = ReferentValue(left.as_str(), right.as_str());
         let v = ReferentValueRef::from(&inner);
         assert_eq!(AsRef::<ReferentValue<'_>>::as_ref(&v), &inner);
+        assert!(std::ptr::eq(
+            AsRef::<ReferentValue<'_>>::as_ref(&v),
+            std::ptr::from_ref(&inner)
+        ));
     }
     #[test]
     fn test_borrow_impls_are_generated() {
@@ -777,6 +790,10 @@ mod tests {
         let borrowed = SliceValueRef::from(bytes.as_slice());
         assert_eq!(AsRef::<[u8]>::as_ref(&owned), bytes.as_slice());
         assert_eq!(AsRef::<[u8]>::as_ref(&borrowed), bytes.as_slice());
+        assert!(std::ptr::eq(
+            AsRef::<[u8]>::as_ref(&borrowed),
+            bytes.as_slice()
+        ));
     }
     #[test]
     fn test_transparent_debug_forwards_inner_format() {

@@ -130,6 +130,125 @@ fn test_encode_format_display_is_stable() {
 }
 
 #[test]
+fn test_encode_format_defaults_and_deserialization_preserve_wire_names() {
+    assert_eq!(
+        crate::encode_format::EncodeFormat::default(),
+        crate::encode_format::EncodeFormat::Base64
+    );
+    assert_eq!(
+        <crate::encode_format::EncodeFormat as pg_crud_common::default_some_one_element::DefaultSomeOneElement>::default_some_one_element(),
+        crate::encode_format::EncodeFormat::Base64
+    );
+    [
+        (
+            stringify!(Base64),
+            crate::encode_format::EncodeFormat::Base64,
+        ),
+        (
+            stringify!(Escape),
+            crate::encode_format::EncodeFormat::Escape,
+        ),
+        (stringify!(Hex), crate::encode_format::EncodeFormat::Hex),
+    ]
+    .into_iter()
+    .fold((), |(), (wire_name, encode_format)| {
+        assert_eq!(
+            <crate::encode_format::EncodeFormat as serde::Deserialize>::deserialize(
+                serde::de::value::StrDeserializer::<serde::de::value::Error>::new(wire_name)
+            ),
+            Ok(encode_format)
+        );
+    });
+    [
+        constants_str::EMPTY,
+        constants_str::BAD,
+        constants_str::VALUE_371A286D,
+        constants_str::VALUE_B3140286,
+        constants_str::VALUE_128DF13C,
+    ]
+    .into_iter()
+    .fold((), |(), wire_name| {
+        assert!(matches!(
+            <crate::encode_format::EncodeFormat as serde::Deserialize>::deserialize(
+                serde::de::value::StrDeserializer::<serde::de::value::Error>::new(wire_name)
+            ),
+            Err(serde::de::value::Error { .. })
+        ));
+    });
+}
+
+#[test]
+fn test_filter_enum_schemas_advertise_exact_wire_names() {
+    [
+        (
+            schemars::schema_for!(crate::encode_format::EncodeFormat),
+            <crate::encode_format::EncodeFormat as utoipa::PartialSchema>::schema(),
+            vec![Some(stringify!(Base64)), Some(stringify!(Escape)), Some(stringify!(Hex))],
+        ),
+        (
+            schemars::schema_for!(crate::regex_case::RegexCase),
+            <crate::regex_case::RegexCase as utoipa::PartialSchema>::schema(),
+            vec![Some(stringify!(Insensitive)), Some(stringify!(Sensitive))],
+        ),
+    ].into_iter().fold((), |(), (json_schema, openapi_schema, expected)| {
+        assert!(json_schema.as_value().get(stringify!(enum)).and_then(|value| value.as_array())
+            .is_some_and(|variants| variants.iter().map(|value| value.as_str()).eq(expected.iter().copied())));
+        assert!(matches!(openapi_schema,
+            utoipa::openapi::RefOr::T(utoipa::openapi::schema::Schema::Object(object))
+            if object.enum_values.as_ref().is_some_and(|variants| variants.iter().map(|value| value.as_str()).eq(expected.iter().copied()))
+        ));
+    });
+}
+
+#[test]
+fn test_regex_case_default_and_deserialization_preserve_wire_names() {
+    assert_eq!(
+        <crate::regex_case::RegexCase as pg_crud_common::default_some_one_element::DefaultSomeOneElement>::default_some_one_element(),
+        crate::regex_case::RegexCase::Sensitive
+    );
+    [
+        (
+            stringify!(Insensitive),
+            crate::regex_case::RegexCase::Insensitive,
+            constants_str::ASTERISK_ALT,
+        ),
+        (
+            stringify!(Sensitive),
+            crate::regex_case::RegexCase::Sensitive,
+            constants_str::TEXT_ALT_15,
+        ),
+    ]
+    .into_iter()
+    .fold((), |(), (wire_name, regex_case, syntax)| {
+        assert_eq!(
+            <crate::regex_case::RegexCase as serde::Deserialize>::deserialize(
+                serde::de::value::StrDeserializer::<serde::de::value::Error>::new(wire_name)
+            ),
+            Ok(regex_case)
+        );
+        assert_eq!(regex_case.postgreql_syntax().as_ref(), syntax);
+        assert!(matches!(
+            <crate::regex_case::RegexCase as serde::Deserialize>::deserialize(
+                serde::de::value::StringDeserializer::<serde::de::value::Error>::new(
+                    wire_name.to_lowercase()
+                )
+            ),
+            Err(serde::de::value::Error { .. })
+        ));
+    });
+    [constants_str::EMPTY, constants_str::BAD]
+        .into_iter()
+        .fold((), |(), wire_name| {
+            assert!(matches!(
+                <crate::regex_case::RegexCase as serde::Deserialize>::deserialize(
+                    serde::de::value::StrDeserializer::<serde::de::value::Error>::new(wire_name)
+                ),
+                Err(serde::de::value::Error { .. })
+            ));
+        });
+}
+
+#[test]
 fn test_regex_regex_eq_compares_pattern_content() {
     let left = crate::regex_regex::RegexRegex::try_from(String::from(constants_str::D_PLUS))
         .expect(constants_str::DIAGNOSTIC_8342AD27);

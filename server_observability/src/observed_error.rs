@@ -107,6 +107,38 @@ mod tests {
         );
         assert_eq!(observed.location().line(), expected_line);
         assert!(!observed.backtrace().to_string().is_empty());
-        assert!(!observed.span_trace().to_string().is_empty());
+        assert_eq!(
+            observed.span_trace().to_string(),
+            constants_str::HTTP_SPAN_UNAVAILABLE
+        );
+        assert_eq!(observed.to_string(), constants_str::VALUE_31572E02);
+        assert!(std::error::Error::source(&observed).is_some_and(|source| {
+            source.is::<InfrastructureTestError>()
+                && source.to_string() == constants_str::VALUE_31572E02
+        }));
+    }
+
+    #[test]
+    fn test_capture_retains_active_span_metadata_after_scope_exit() {
+        let observed = tracing::subscriber::with_default(tracing_subscriber::registry(), || {
+            let span = tracing::info_span!(constants_str::WORKSPACE_SCAFFOLD_NOTIFICATION_SERVICE);
+            span.in_scope(|| {
+                super::ObservedError::capture(
+                    InfrastructureTestError::Failed,
+                    crate::observed_error_code::ObservedErrorCode::from(
+                        constants_str::VALUE_D99F528C,
+                    ),
+                )
+            })
+        });
+        let span_trace = observed.span_trace().to_string();
+        assert_ne!(span_trace, constants_str::HTTP_SPAN_UNAVAILABLE);
+        assert!(span_trace.contains(constants_str::WORKSPACE_SCAFFOLD_NOTIFICATION_SERVICE));
+        assert_eq!(observed.location().file(), file!());
+        assert_eq!(observed.to_string(), constants_str::VALUE_31572E02);
+        assert!(
+            std::error::Error::source(&observed)
+                .is_some_and(<dyn std::error::Error>::is::<InfrastructureTestError>)
+        );
     }
 }

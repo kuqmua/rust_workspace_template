@@ -113,6 +113,27 @@ mod tests {
     }
 
     #[test]
+    fn test_percentage_conversion_covers_all_byte_values_and_known_maximum() {
+        assert!((u8::MIN..=100u8).all(|value| {
+            crate::resource_utilization_percent::ResourceUtilizationPercent::try_from(value)
+                .is_ok_and(|resource_utilization_percent| {
+                    resource_utilization_percent.get() == value
+                })
+        }));
+        assert!((101u8..=u8::MAX).all(|value| {
+            crate::resource_utilization_percent::ResourceUtilizationPercent::try_from(value)
+                .is_err_and(|error| error == crate::resource_utilization_percent_try_from_u8_error::ResourceUtilizationPercentTryFromU8Error::OutOfRange)
+        }));
+        assert_eq!(
+            crate::resource_utilization_percent::ResourceUtilizationPercent::from(
+                crate::resource_utilization_known_percent::ResourceUtilizationKnownPercent::Max
+            )
+            .get(),
+            100u8
+        );
+    }
+
+    #[test]
     fn test_resource_utilization_large_ratios_preserve_integer_floor_without_overflow() {
         assert!([
             (u64::MAX, u64::MAX, 100u8),

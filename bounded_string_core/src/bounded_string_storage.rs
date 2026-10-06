@@ -263,4 +263,59 @@ mod tests {
         quote::ToTokens::to_tokens(&value, &mut tokens);
         assert_eq!(tokens.to_string(), expected);
     }
+
+    #[test]
+    fn test_core_storage_failed_byte_append_preserves_value() {
+        let mut value = super::BoundedStringStorage::<0usize, 3usize, false>::default();
+        assert_eq!(value.try_push('\u{00e9}'), Ok(()));
+        assert_eq!(value.try_push_str(constants_str::X), Ok(()));
+        let expected = ['\u{00e9}', 'x'].into_iter().collect::<String>();
+        assert_eq!(
+            value.try_push('\u{03b2}'),
+            Err(
+                crate::bounded_string_storage_error::BoundedStringStorageError::AboveMaximum {
+                    actual_length: 5usize,
+                    maximum_length: 3usize,
+                }
+            )
+        );
+        assert_eq!(value.as_string(), &expected);
+        assert_eq!(value.try_push_str(constants_str::EMPTY), Ok(()));
+        assert_eq!(value.len(), 3usize);
+        assert_eq!(value.into_string(), expected);
+    }
+
+    #[test]
+    fn test_core_storage_character_append_counts_unicode_scalars() {
+        let mut value = super::BoundedStringStorage::<0usize, 2usize, true>::default();
+        assert_eq!(value.try_push('\u{00e9}'), Ok(()));
+        assert_eq!(value.try_push('\u{03b2}'), Ok(()));
+        assert_eq!(value.len(), 2usize);
+        assert_eq!(
+            value.try_push_str(constants_str::X),
+            Err(
+                crate::bounded_string_storage_error::BoundedStringStorageError::AboveMaximum {
+                    actual_length: 3usize,
+                    maximum_length: 2usize,
+                }
+            )
+        );
+        assert!(value.as_str().chars().eq(['\u{00e9}', '\u{03b2}']));
+    }
+
+    #[test]
+    fn test_core_storage_byte_truncation_handles_split_and_zero_boundaries() {
+        let text = ['\u{00e9}', '\u{03b2}'].into_iter().collect::<String>();
+        let split = super::BoundedStringStorage::<0usize, 3usize, false>::from_truncated(text);
+        assert_eq!(split.len(), 2usize);
+        assert!(split.as_str().chars().eq(['\u{00e9}']));
+        let empty = super::BoundedStringStorage::<0usize, 0usize, false>::from_truncated(
+            '\u{00e9}'.to_string(),
+        );
+        assert!(empty.is_empty());
+        let exact = super::BoundedStringStorage::<0usize, 2usize, false>::from_truncated(
+            '\u{00e9}'.to_string(),
+        );
+        assert!(exact.as_str().chars().eq(['\u{00e9}']));
+    }
 }

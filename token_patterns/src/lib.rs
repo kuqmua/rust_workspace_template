@@ -227,6 +227,50 @@ mod tests {
         );
     }
     #[test]
+    fn test_cross_crate_default_trait_patterns_keep_module_and_call_paths() {
+        assert_tokens_eq(
+            super::PgCrudCommonDefaultSomeOneElement,
+            quote::quote! {pg_crud_common::default_some_one_element::DefaultSomeOneElement},
+        );
+        assert_tokens_eq(
+            super::PgCrudCommonDefaultSomeOneElementCall,
+            quote::quote! {pg_crud_common::default_some_one_element::DefaultSomeOneElement::default_some_one_element()},
+        );
+        assert_tokens_eq(
+            super::CrateAllEnumVariantsArrayDefaultSomeOneElementCall,
+            quote::quote! {crate::AllEnumVariantsArrayDefaultSomeOneElement::all_variants_default_some_one_element()},
+        );
+        assert_tokens_eq(
+            super::PgCrudCommonAllEnumVariantsArrayDefaultSomeOneElementCall,
+            quote::quote! {pg_crud_common::all_enum_variants_array_default_some_one_element::AllEnumVariantsArrayDefaultSomeOneElement::all_variants_default_some_one_element()},
+        );
+    }
+
+    #[test]
+    fn test_maximum_page_size_patterns_select_matching_traits_and_methods() {
+        assert_tokens_eq(
+            super::CrateDefaultSomeOneElementMaxPageSize,
+            quote::quote! {crate::DefaultSomeOneElementMaxPageSize},
+        );
+        assert_tokens_eq(
+            super::CrateDefaultSomeOneElementMaxPageSizeCall,
+            quote::quote! {crate::DefaultSomeOneElementMaxPageSize::default_some_one_element_max_page_size()},
+        );
+        assert_tokens_eq(
+            super::PgCrudCommonDefaultSomeOneElementMaxPageSizeCall,
+            quote::quote! {pg_crud_common::default_some_one_element_max_page_size::DefaultSomeOneElementMaxPageSize::default_some_one_element_max_page_size()},
+        );
+        assert_tokens_eq(
+            super::CrateAllEnumVariantsArrayDefaultSomeOneElementCallWithMaxPageSize,
+            quote::quote! {crate::AllEnumVariantsArrayDefaultSomeOneElementMaxPageSize::all_variants_default_some_one_element_max_page_size()},
+        );
+        assert_tokens_eq(
+            super::PgCrudCommonAllEnumVariantsArrayDefaultSomeOneElementCallWithMaxPageSize,
+            quote::quote! {pg_crud_common::all_enum_variants_array_default_some_one_element_max_page_size::AllEnumVariantsArrayDefaultSomeOneElementMaxPageSize::all_variants_default_some_one_element_max_page_size()},
+        );
+    }
+
+    #[test]
     fn test_token_pattern_batch_struct_outputs_expected_tokens() {
         assert_tokens_eq(super::Bool, quote::quote! {bool});
     }

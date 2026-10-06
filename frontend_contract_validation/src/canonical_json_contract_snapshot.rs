@@ -110,4 +110,37 @@ mod tests {
                 ) if actual_length.get() == maximum + constants_usize::ONE && maximum_length.get() == maximum
             )));
     }
+
+    #[test]
+    fn test_snapshot_dynamic_keys_replace_each_value_kind_and_preserve_siblings() {
+        let payload = serde_json::json!({
+            constants_str::TEST_JSON_STATUS: 401i32,
+            constants_str::ITEMS: [
+                {constants_str::TEST_JSON_REQUEST_ID: null},
+                {constants_str::TEST_JSON_REQUEST_ID: 42i32},
+                {constants_str::TEST_JSON_REQUEST_ID: [constants_str::TEST_JSON_FIRST]},
+                {constants_str::TEST_JSON_REQUEST_ID: {constants_str::TEST_JSON_STATUS: false}},
+            ],
+        });
+        let expected = serde_json::json!({
+            constants_str::TEST_JSON_STATUS: 401i32,
+            constants_str::ITEMS: [
+                {constants_str::TEST_JSON_REQUEST_ID: constants_str::JSON_SNAPSHOT_DYNAMIC_VALUE},
+                {constants_str::TEST_JSON_REQUEST_ID: constants_str::JSON_SNAPSHOT_DYNAMIC_VALUE},
+                {constants_str::TEST_JSON_REQUEST_ID: constants_str::JSON_SNAPSHOT_DYNAMIC_VALUE},
+                {constants_str::TEST_JSON_REQUEST_ID: constants_str::JSON_SNAPSHOT_DYNAMIC_VALUE},
+            ],
+        });
+        let result = crate::canonical_json_contract_snapshot::canonical_json_contract_snapshot(
+            &payload,
+            &[
+                constants_str::TEST_JSON_REQUEST_ID.into(),
+                constants_str::TEST_JSON_REQUEST_ID.into(),
+            ],
+        );
+        assert!(result.is_ok_and(|snapshot| {
+            serde_json::from_str::<serde_json::Value>(snapshot.as_ref())
+                .is_ok_and(|decoded| decoded == expected)
+        }));
+    }
 }

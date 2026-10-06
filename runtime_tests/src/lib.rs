@@ -155,6 +155,48 @@ fn route_url(
 #[cfg(test)]
 mod tests {
     #[test]
+    fn test_route_url_enforces_combined_length_after_valid_base_url() {
+        let contract_str = common_routes::common_route::CommonRoute::HealthLive.path();
+        let prefix = format!("{}{}", constants_str::VALUE_D30A576C, contract_str);
+        assert!(
+            [0usize, 1usize, contract_str.as_ref().len()]
+                .into_iter()
+                .all(|extra_length| {
+                    let base_length =
+                        constants_usize::VALUE_8_192 - contract_str.as_ref().len() + extra_length;
+                    let base_text = format!(
+                        "{}{}",
+                        prefix,
+                        constants_str::X.repeat(base_length - prefix.len()),
+                    );
+                    crate::service_base_url::ServiceBaseUrl::try_from(base_text).is_ok_and(
+                        |base_url| {
+                            let result = super::route_url(&base_url, contract_str);
+                            if extra_length == 0usize {
+                                result.is_ok_and(|runtime_test_url| {
+                                    assert_eq!(
+                                        runtime_test_url.as_ref().len(),
+                                        constants_usize::VALUE_8_192,
+                                    );
+                                    assert_eq!(
+                                        runtime_test_url.as_ref(),
+                                        format!("{}{}", base_url.as_ref(), contract_str),
+                                    );
+                                    true
+                                })
+                            } else {
+                                result
+                                    == Err(
+                                        crate::service_base_url_error::ServiceBaseUrlError::Length,
+                                    )
+                            }
+                        },
+                    )
+                }),
+        );
+    }
+
+    #[test]
     fn test_route_url_uses_contract_path() {
         let base_url = crate::service_base_url::ServiceBaseUrl::try_from(String::from(
             constants_str::VALUE_FF79C6DD,

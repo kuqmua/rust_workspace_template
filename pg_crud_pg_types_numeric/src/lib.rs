@@ -25,3 +25,6 @@ mod test_generated_read_query_part_overflow;
 #[cfg(feature = "test-utils")]
 #[cfg(test)]
 mod test_generated_comparison_cases;
+
+#[cfg(test)]
+mod test_generated_equality_filter_sql_and_nullable_counters;

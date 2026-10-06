@@ -15,6 +15,115 @@ mod tests {
             .map_err(server_runtime_http::serve_io_error::ServeIoError::from)
     }
 
+    #[tokio::test]
+    #[ignore = "provisions a local HTTP listener and client to verify truncated body errors"]
+    async fn test_truncated_response_preserves_http_error_and_releases_permit() {
+        let listener_result = create_test_http_listener().await;
+        assert!(listener_result.is_ok());
+        let Ok(tokio_tcp_listener) = listener_result else {
+            return;
+        };
+        let listener = tokio_tcp_listener.into_inner();
+        let address_result = listener.local_addr();
+        assert!(address_result.is_ok());
+        let Ok(address) = address_result else {
+            return;
+        };
+        let client_result = reqwest::Client::builder().no_proxy().build();
+        assert!(client_result.is_ok());
+        let Ok(client) = client_result else {
+            return;
+        };
+        let server = tokio::spawn(async move {
+            let accepted = listener.accept().await;
+            assert!(accepted.is_ok());
+            let Ok((connection, _)) = accepted else {
+                return;
+            };
+            let mut reader =
+                tokio::io::BufReader::new(tokio::io::AsyncReadExt::take(connection, 4096u64));
+            let mut line = Vec::new();
+            loop {
+                line.clear();
+                let read =
+                    tokio::io::AsyncBufReadExt::read_until(&mut reader, b'\n', &mut line).await;
+                assert!(read.as_ref().is_ok_and(|bytes| *bytes > 0usize));
+                if !read.is_ok_and(|bytes| bytes > 0usize) {
+                    return;
+                }
+                if line == b"\r\n" {
+                    break;
+                }
+            }
+            let mut write_connection = reader.into_inner().into_inner();
+            let written = tokio::io::AsyncWriteExt::write_all(
+                &mut write_connection,
+                constants_str::TEST_TRUNCATED_HTTP_RESPONSE.as_bytes(),
+            )
+            .await;
+            assert!(matches!(written, Ok(())));
+        });
+        let response_result = client
+            .get(format!(
+                "{}:{}",
+                constants_str::HTTP_LOCALHOST,
+                address.port()
+            ))
+            .send()
+            .await;
+        let server_result = server.await;
+        assert!(matches!(server_result, Ok(())));
+        assert!(response_result.is_ok());
+        let Ok(response) = response_result else {
+            return;
+        };
+        let limiter = server_runtime_http::bounded_read_concurrency_arc_semaphore::BoundedReadConcurrencyArcSemaphore::new(server_runtime_http::bounded_read_concurrency_maximum_non_zero_usize::BoundedReadConcurrencyMaximumNonZeroUsize::from(std::num::NonZeroUsize::MIN));
+        let result = server_runtime_http::read_bounded_http_response::read_bounded_http_response(
+            server_runtime_http::reqwest_response::ReqwestResponse::from(response),
+            server_runtime_http::bounded_read_maximum_bytes::BoundedReadMaximumBytes::from(4usize),
+            limiter.clone(),
+        )
+        .await;
+        assert!(matches!(
+            &result,
+            Err(server_runtime_http::bounded_read_error::BoundedReadError::Http { .. })
+        ));
+        assert!(
+            result
+                .as_ref()
+                .err()
+                .is_some_and(|error| std::error::Error::source(error).is_some())
+        );
+        assert_eq!(limiter.into_inner().available_permits(), 1usize);
+    }
+
+    #[tokio::test(start_paused = true)]
+    #[ignore = "provisions a local TCP listener; verifies idle graceful shutdown without external services"]
+    async fn test_graceful_shutdown_without_connections_completes_successfully() {
+        let listener_result = create_test_http_listener().await;
+        assert!(listener_result.is_ok());
+        let Ok(tokio_tcp_listener) = listener_result else {
+            return;
+        };
+        let timeout_result =
+            server_runtime_http::request_timeout_duration::RequestTimeoutDuration::try_from(
+                std::time::Duration::from_secs(2u64),
+            );
+        assert_ne!(timeout_result, Err(server_runtime_http::std_request_timeout_try_from_duration_error::StdRequestTimeoutTryFromDurationError::Zero));
+        let Ok(request_timeout_duration) = timeout_result else {
+            return;
+        };
+        let result =
+            server_runtime_http::serve_with_graceful_shutdown::serve_with_graceful_shutdown(
+                tokio_tcp_listener,
+                server_runtime_http::axum_router::AxumRouter::from(axum::Router::new()),
+                std::future::ready(()),
+                request_timeout_duration,
+            )
+            .await;
+        assert!(matches!(result, Ok(())));
+    }
+
     #[tokio::test(start_paused = true)]
     #[ignore = "provisions a local HTTP listener and client; run through workspace_test_runner database"]
     async fn test_graceful_shutdown_deadline_reports_pending_request() {
@@ -288,28 +397,39 @@ mod tests {
             ),
         )
         .expect(constants_str::DIAGNOSTIC_8DED9D63);
-        let request_builder: reqwest::RequestBuilder =
-            server_runtime_http::outbound_trace_context::OutboundTraceContext::new(
-                trace_parent,
-                Some(trace_state),
-                Some(request_id),
-            )
-            .apply(
-                reqwest::Client::from(client)
-                    .get(constants_str::HTTPS_EXAMPLE_COM)
-                    .into(),
-            )
-            .into();
-        let request = request_builder
-            .build()
-            .expect(constants_str::DIAGNOSTIC_1574578F);
-        assert_eq!(
-            request.headers()[constants_str::TRACESTATE],
-            constants_str::TRACESTATE_TEST_VALUE
-        );
-        assert_eq!(
-            request.headers()[constants_str::X_REQUEST_ID],
-            constants_str::REQUEST_ID_TEST_VALUE
-        );
+        let reqwest_client = reqwest::Client::from(client);
+        [(false, false), (false, true), (true, false), (true, true)]
+            .into_iter()
+            .fold((), |(), (include_state, include_request_id)| {
+                let request_builder: reqwest::RequestBuilder =
+                    server_runtime_http::outbound_trace_context::OutboundTraceContext::new(
+                        trace_parent.clone(),
+                        include_state.then(|| trace_state.clone()),
+                        include_request_id.then(|| request_id.clone()),
+                    )
+                    .apply(reqwest_client.get(constants_str::HTTPS_EXAMPLE_COM).into())
+                    .into();
+                let request = request_builder
+                    .build()
+                    .expect(constants_str::DIAGNOSTIC_1574578F);
+                assert_eq!(
+                    request.headers()[constants_str::TRACEPARENT],
+                    constants_str::TRACEPARENT_TEST_VALUE
+                );
+                assert_eq!(
+                    request
+                        .headers()
+                        .get(constants_str::TRACESTATE)
+                        .map(reqwest::header::HeaderValue::as_bytes),
+                    include_state.then_some(constants_str::TRACESTATE_TEST_VALUE.as_bytes()),
+                );
+                assert_eq!(
+                    request
+                        .headers()
+                        .get(constants_str::X_REQUEST_ID)
+                        .map(reqwest::header::HeaderValue::as_bytes),
+                    include_request_id.then_some(constants_str::REQUEST_ID_TEST_VALUE.as_bytes()),
+                );
+            });
     }
 }

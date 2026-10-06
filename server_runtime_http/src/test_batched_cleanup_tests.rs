@@ -1,5 +1,40 @@
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn test_dropping_cleanup_with_pending_callback_prevents_further_calls() {
+        let cleanup_calls = std::cell::Cell::new(0u64);
+        let continuation_calls = std::cell::Cell::new(0u64);
+        let pending_without_reentry = {
+            let mut cleanup = std::pin::pin!(crate::run_batched_cleanup::run_batched_cleanup(
+                crate::cleanup_batch_size::CleanupBatchSize::from(std::num::NonZeroU64::MIN),
+                async |cleanup_batch_size: crate::cleanup_batch_size::CleanupBatchSize| {
+                    assert_eq!(cleanup_batch_size.get(), 1u64);
+                    cleanup_calls.set(cleanup_calls.get().saturating_add(1u64));
+                    std::future::pending::<
+                        Result<crate::cleanup_rows::CleanupRows, std::convert::Infallible>,
+                    >()
+                    .await
+                },
+                || {
+                    continuation_calls.set(continuation_calls.get().saturating_add(1u64));
+                    crate::cleanup_continuation::CleanupContinuation::Continue
+                },
+            ));
+            assert_eq!(cleanup_calls.get(), 0u64);
+            assert_eq!(continuation_calls.get(), 0u64);
+            let mut context = std::task::Context::from_waker(std::task::Waker::noop());
+            (0u8..2u8).all(|_| {
+                let poll = Future::poll(cleanup.as_mut(), &mut context);
+                assert_eq!(cleanup_calls.get(), 1u64);
+                assert_eq!(continuation_calls.get(), 1u64);
+                poll.is_pending()
+            })
+        };
+        assert!(pending_without_reentry);
+        assert_eq!(cleanup_calls.get(), 1u64);
+        assert_eq!(continuation_calls.get(), 1u64);
+    }
+
     #[tokio::test]
     async fn test_cleanup_empty_first_batch_and_saturating_row_totals() {
         let run = async |cleanup_rows: crate::cleanup_rows::CleanupRows| {

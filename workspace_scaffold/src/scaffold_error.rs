@@ -36,3 +36,30 @@ impl From<std::io::Error> for ScaffoldError {
         Self::Io(crate::scaffold_io_error::ScaffoldIoError::from(value))
     }
 }
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn test_scaffold_io_error_conversion_preserves_variant_diagnostic_and_source() {
+        [
+            std::io::ErrorKind::NotFound,
+            std::io::ErrorKind::PermissionDenied,
+            std::io::ErrorKind::Other,
+        ]
+        .into_iter()
+        .fold((), |(), error_kind| {
+            let native_error = std::io::Error::from(error_kind);
+            let native_display = native_error.to_string();
+            let native_debug = format!("{native_error:?}");
+            let error = crate::scaffold_error::ScaffoldError::from(native_error);
+            assert!(error.to_string().ends_with(&native_display));
+            assert!(format!("{error:?}").contains(&native_debug));
+            assert!(std::error::Error::source(&error).is_some_and(|source| {
+                source
+                    .downcast_ref::<crate::scaffold_io_error::ScaffoldIoError>()
+                    .is_some()
+            }));
+            assert!(matches!(error, crate::scaffold_error::ScaffoldError::Io(_)));
+        });
+    }
+}

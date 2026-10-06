@@ -378,8 +378,19 @@ mod tests {
                     crate::std_frontend_os_string::StdFrontendOsString::from(search_path);
                 Ok::<_, crate::frontend_preparation_error::FrontendPreparationError>(environment)
             };
-            make_environment()?.prepare().await?;
+            let target_command = workspace.join(constants_str::FRONTEND_RUSTUP_PROGRAM);
+            tokio::fs::remove_file(&target_command).await.map_err(file_error)?;
+            tokio::fs::symlink(constants_str::TEST_FALSE_EXECUTABLE_PATH, &target_command).await.map_err(file_error)?;
+            let failed_target = make_environment()?.prepare().await;
+            assert!(matches!(failed_target, Err(crate::frontend_preparation_error::FrontendPreparationError::Failed {
+                frontend_build_step: crate::frontend_build_step::FrontendBuildStep::WasmTarget,
+                ..
+            })));
             let stamp = frontend_directory.join(constants_str::FRONTEND_DEPENDENCY_STAMP);
+            assert!(matches!(tokio::fs::try_exists(&stamp).await, Ok(false)));
+            tokio::fs::remove_file(&target_command).await.map_err(file_error)?;
+            tokio::fs::symlink(constants_str::TEST_TRUE_EXECUTABLE_PATH, &target_command).await.map_err(file_error)?;
+            make_environment()?.prepare().await?;
             let initial_stamp = crate::read_bounded_file_async::read_bounded_file_async(
                 crate::runtime_path_ref::RuntimePathRef::from(stamp.as_path()),
                 crate::bounded_read_maximum_bytes::BoundedReadMaximumBytes::from(128usize),

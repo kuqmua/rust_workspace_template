@@ -98,6 +98,38 @@ mod tests {
     }
 
     #[test]
+    fn test_notification_message_preserves_ascii_and_unicode_byte_boundaries() {
+        assert!([
+            constants_str::X.repeat(4_096usize),
+            '\u{00e9}'.to_string().repeat(2_048usize),
+        ].into_iter().all(|input| {
+            let length = input.len();
+            let pointer = input.as_ptr();
+            let decoded = <crate::notification_message::NotificationMessage as serde::Deserialize>::deserialize(
+                serde::de::value::StringDeserializer::<serde::de::value::Error>::new(input.clone()),
+            );
+            decoded.is_ok_and(|notification_message| notification_message.as_ref() == input)
+                && crate::notification_message::NotificationMessage::try_from(input).is_ok_and(|notification_message| {
+                    notification_message.as_ref().len() == length
+                        && notification_message.as_ref().as_ptr() == pointer
+                })
+        }));
+        let oversized = '\u{00e9}'.to_string().repeat(2_049usize);
+        let decoded =
+            <crate::notification_message::NotificationMessage as serde::Deserialize>::deserialize(
+                serde::de::value::StringDeserializer::<serde::de::value::Error>::new(
+                    oversized.clone(),
+                ),
+            );
+        assert!(decoded.is_err_and(|error| error.to_string().contains(
+            crate::notification_message_try_from_string_error::NotificationMessageTryFromStringError::TooLong.to_string().as_str()
+        )));
+        assert!(matches!(crate::notification_message::NotificationMessage::try_from(oversized),
+            Err(crate::notification_message_try_from_string_error::NotificationMessageTryFromStringError::TooLong)
+        ));
+    }
+
+    #[test]
     fn test_notification_message_deserialization_enforces_bounds() {
         let _empty_error =
             <crate::notification_message::NotificationMessage as serde::Deserialize>::deserialize(

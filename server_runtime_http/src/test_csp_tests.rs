@@ -1,6 +1,46 @@
 #[cfg(test)]
 mod tests {
     #[test]
+    fn test_csp_token_storage_zero_and_utf8_limits_preserve_validation_order() {
+        assert_eq!(
+            crate::http_csp_token_text::HttpCspTokenText::<0usize>::try_from(String::new()),
+            Err(crate::http_csp_token_error::HttpCspTokenError::Empty)
+        );
+        assert_eq!(
+            crate::http_csp_token_text::HttpCspTokenText::<0usize>::try_from(
+                constants_str::X.to_owned()
+            ),
+            Err(crate::http_csp_token_error::HttpCspTokenError::TooLong)
+        );
+        assert_eq!(
+            crate::http_csp_token_text::HttpCspTokenText::<1usize>::try_from(
+                '\u{00e9}'.to_string()
+            ),
+            Err(crate::http_csp_token_error::HttpCspTokenError::TooLong)
+        );
+        let input = '\u{00e9}'.to_string();
+        let pointer = input.as_ptr();
+        assert!(
+            crate::http_csp_token_text::HttpCspTokenText::<2usize>::try_from(input).is_ok_and(
+                |http_csp_token_text| {
+                    http_csp_token_text.as_str().len() == 2usize
+                        && http_csp_token_text.as_str().as_ptr() == pointer
+                        && http_csp_token_text
+                            .as_str()
+                            .chars()
+                            .eq(std::iter::once('\u{00e9}'))
+                }
+            )
+        );
+        assert!(
+            crate::http_csp_token_text::HttpCspTokenText::<1usize>::try_from('\0'.to_string())
+                .is_ok_and(|http_csp_token_text| {
+                    http_csp_token_text.as_str().as_bytes() == [0u8]
+                })
+        );
+    }
+
+    #[test]
     fn test_csp_directive_printable_ascii_character_rules() {
         assert!((32u8..=126u8).all(|byte| {
             let text = char::from(byte).to_string();
@@ -78,6 +118,41 @@ mod tests {
             ),
             Err(crate::http_csp_token_error::HttpCspTokenError::TooLong)
         );
+    }
+
+    #[test]
+    fn test_csp_builder_preserves_multiple_value_order_and_directive_separators() {
+        let name = crate::http_csp_directive_name::HttpCspDirectiveName::try_from(
+            constants_str::TEST_DEFAULT_SRC.to_owned(),
+        );
+        assert!(name.is_ok_and(|http_csp_directive_name| {
+            let values = [constants_str::TEST_CSP_SELF, constants_str::X].map(|value| {
+                crate::http_csp_directive_value::HttpCspDirectiveValue::try_from(value.to_owned())
+            });
+            let [Ok(first_value), Ok(second_value)] = values else {
+                return false;
+            };
+            let expected = [
+                constants_str::TEST_DEFAULT_SRC,
+                constants_str::SPACE,
+                constants_str::TEST_CSP_SELF,
+                constants_str::SPACE,
+                constants_str::X,
+                constants_str::HTTP_CSP_DIRECTIVE_SEPARATOR,
+                constants_str::TEST_DEFAULT_SRC,
+            ]
+            .concat();
+            let mut builder = crate::http_csp_builder::HttpCspBuilder::default();
+            builder
+                .try_add(&http_csp_directive_name, &[first_value, second_value])
+                .is_ok()
+                && builder.try_add(&http_csp_directive_name, &[]).is_ok()
+                && builder
+                    .try_build()
+                    .is_ok_and(|http_content_security_policy| {
+                        http_content_security_policy.as_bytes() == expected.as_bytes()
+                    })
+        }));
     }
 
     #[test]

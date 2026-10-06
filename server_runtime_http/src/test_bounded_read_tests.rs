@@ -87,13 +87,21 @@ mod tests {
     }
     #[test]
     fn test_invalid_utf8_is_not_lossily_converted() {
-        let result = crate::bounded_text::BoundedText::try_from(
-            crate::bounded_bytes::BoundedBytes::from(vec![0xffu8]),
-        );
-        assert!(matches!(
-            result,
-            Err(crate::bounded_read_error::BoundedReadError::Utf8 { .. })
-        ));
+        assert!([vec![0xffu8], vec![b'x', 0xffu8], vec![0xc3u8], vec![0xc3u8, b'(']]
+            .into_iter().all(|bytes| {
+                String::from_utf8(bytes.clone()).is_err_and(|expected| {
+                    crate::bounded_text::BoundedText::try_from(
+                        crate::bounded_bytes::BoundedBytes::from(bytes),
+                    ).is_err_and(|error| {
+                        matches!(error, crate::bounded_read_error::BoundedReadError::Utf8 { .. })
+                            && std::error::Error::source(&error).is_some_and(|source| {
+                                source.is::<crate::bounded_read_from_utf8_error::BoundedReadFromUtf8Error>()
+                                    && source.to_string() == expected.to_string()
+                                    && format!("{source:?}") == format!("{:?}", crate::bounded_read_from_utf8_error::BoundedReadFromUtf8Error::from(expected))
+                            })
+                    })
+                })
+            }));
     }
     #[test]
     fn test_only_not_found_is_classified_as_missing() {

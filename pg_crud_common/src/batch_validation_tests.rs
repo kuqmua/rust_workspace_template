@@ -180,4 +180,29 @@ mod tests {
         assert_eq!(report.processed_item_count().get(), 0usize);
         assert!(!report.stopped_early().get());
     }
+
+    #[test]
+    fn test_batch_report_ownership_transfer_preserves_records_and_invalid_allocation() {
+        let report = validate_batch_fixture(
+            vec![3i32, -1i32, 1i32, 3i32, -2i32, 2i32],
+            4,
+            crate::batch_duplicate_policy::BatchDuplicatePolicy::Reject,
+        );
+        let invalid_items_pointer = report.invalid_items().as_ptr();
+        assert_eq!(report.invalid_item_count().get(), 3usize);
+        let (records_by_key, invalid_items) = report.into_parts();
+        assert_eq!(invalid_items.get_inner().as_ptr(), invalid_items_pointer);
+        assert_eq!(
+            invalid_items.get_inner().as_slice(),
+            &[
+                (1usize, constants_str::TEST_NEGATIVE),
+                (3usize, constants_str::TEST_DUPLICATE),
+                (4usize, constants_str::TEST_NEGATIVE),
+            ],
+        );
+        assert_eq!(
+            records_by_key.as_ref(),
+            &std::collections::BTreeMap::from([(1i32, 1i32), (2i32, 2i32), (3i32, 3i32)]),
+        );
+    }
 }

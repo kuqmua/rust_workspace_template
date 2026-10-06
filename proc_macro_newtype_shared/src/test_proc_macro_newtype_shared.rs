@@ -348,11 +348,23 @@ fn test_as_ref_inner_requires_shared_reference_storage() {
             )
         ]
         .into_iter()
-        .all(|input| proc_macro2::TokenStream::from(crate::as_ref_inner(
-            crate::proc_macro_input_token_stream::ProcMacroInputTokenStream::from(input)
-        ))
-        .to_string()
-        .contains(constants_str::MACRO_DIAGNOSTICS_AS_REF_INNER_SHARED_REF_ERROR))
+        .all(|input| {
+            let parsed_input: syn::DeriveInput = syn::parse_quote!(#input);
+            crate::tuple_struct_one_field_ty(
+                crate::newtype_syn_derive_input_ref::NewtypeSynDeriveInputRef::from(&parsed_input),
+            )
+            .is_ok_and(|inner_type| {
+                let expected = syn::Error::new_spanned(
+                    inner_type.as_ref(),
+                    constants_str::MACRO_DIAGNOSTICS_AS_REF_INNER_SHARED_REF_ERROR,
+                )
+                .into_compile_error();
+                let output = proc_macro2::TokenStream::from(crate::as_ref_inner(
+                    crate::proc_macro_input_token_stream::ProcMacroInputTokenStream::from(input),
+                ));
+                output.to_string() == expected.to_string()
+            })
+        })
     );
 }
 

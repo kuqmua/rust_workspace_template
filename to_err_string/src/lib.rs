@@ -5,4 +5,6 @@ pub mod error_text;
 pub mod error_text_max_len;
 pub mod static_str_to_owned;
 pub mod static_str_to_owned_input;
+#[cfg(test)]
+mod test_error_text_conversion_helpers;
 pub mod to_err_string;

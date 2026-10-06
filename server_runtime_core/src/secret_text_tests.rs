@@ -1,5 +1,73 @@
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn test_unicode_secret_text_preserves_byte_limits_whitespace_policy_and_redaction() {
+        assert!(
+            [
+                '\u{e9}'.to_string().repeat(8usize),
+                '\u{e9}'.to_string().repeat(4_096usize),
+            ]
+            .into_iter()
+            .all(|value| {
+                let pointer = value.as_ptr();
+                let length = value.len();
+                crate::secret_text_ref::SecretTextRef::try_from(value.as_str()).is_ok()
+                    && crate::bounded_secret_text::BoundedSecretText::try_from(value).is_ok_and(
+                        |bounded_secret_text| {
+                            bounded_secret_text.as_str().as_ptr() == pointer
+                                && bounded_secret_text.as_str().len() == length
+                                && bounded_secret_text
+                                    .as_str()
+                                    .chars()
+                                    .all(|character| character == '\u{e9}')
+                                && format!("{bounded_secret_text}") == constants_str::REDACTED_ALT_3
+                                && format!("{bounded_secret_text:?}")
+                                    == constants_str::REDACTED_ALT_3
+                                && format!("{bounded_secret_text:#?}")
+                                    == constants_str::REDACTED_ALT_3
+                        },
+                    )
+            })
+        );
+        [
+            (
+                format!(
+                    "{}{}",
+                    '\u{e9}'.to_string().repeat(7usize),
+                    constants_str::X
+                ),
+                crate::bounded_secret_text_error::BoundedSecretTextError::InvalidLength,
+            ),
+            (
+                format!(
+                    "{}{}",
+                    '\u{e9}'.to_string().repeat(4_096usize),
+                    constants_str::X
+                ),
+                crate::bounded_secret_text_error::BoundedSecretTextError::InvalidLength,
+            ),
+            (
+                format!("{}{}", '\u{a0}', constants_str::TEST_SECRET_TEXT),
+                crate::bounded_secret_text_error::BoundedSecretTextError::SurroundingWhitespace,
+            ),
+            (
+                format!("{}{}", constants_str::TEST_SECRET_TEXT, '\u{a0}'),
+                crate::bounded_secret_text_error::BoundedSecretTextError::SurroundingWhitespace,
+            ),
+        ]
+        .into_iter()
+        .fold((), |(), (value, expected)| {
+            assert_eq!(
+                crate::secret_text_ref::SecretTextRef::try_from(value.as_str()).map(|_secret| ()),
+                Err(expected),
+            );
+            assert_eq!(
+                crate::bounded_secret_text::BoundedSecretText::try_from(value).map(|_secret| ()),
+                Err(expected),
+            );
+        });
+    }
+
     fn bounded_secret(str: &str) -> crate::bounded_secret_text::BoundedSecretText {
         crate::bounded_secret_text::BoundedSecretText::try_from(str.to_owned())
             .expect(constants_str::DIAGNOSTIC_2C20F43D)

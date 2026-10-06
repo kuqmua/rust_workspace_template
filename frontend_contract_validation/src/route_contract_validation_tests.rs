@@ -198,4 +198,81 @@ mod tests {
             })
         }));
     }
+
+    #[test]
+    fn test_route_metadata_difference_matrix_preserves_exact_values_and_order() {
+        let expected = route_validation_metadata(
+            frontend_contract::route_method::RouteMethod::Get,
+            constants_str::ROUTE_READ,
+            constants_str::ROUTE,
+        );
+        [false, true]
+            .into_iter()
+            .flat_map(|method_differs| {
+                [false, true]
+                    .into_iter()
+                    .map(move |operation_differs| (method_differs, operation_differs))
+            })
+            .flat_map(|(method_differs, operation_differs)| {
+                [false, true]
+                    .into_iter()
+                    .map(move |path_differs| (method_differs, operation_differs, path_differs))
+            })
+            .for_each(|(method_differs, operation_differs, path_differs)| {
+                let observed = route_validation_metadata(
+                    if method_differs {
+                        frontend_contract::route_method::RouteMethod::Post
+                    } else {
+                        frontend_contract::route_method::RouteMethod::Get
+                    },
+                    if operation_differs {
+                        constants_str::ADMIN_ALT
+                    } else {
+                        constants_str::ROUTE_READ
+                    },
+                    if path_differs {
+                        constants_str::NOT_AN_API_ROUTE
+                    } else {
+                        constants_str::ROUTE
+                    },
+                );
+                let differences = [
+                    method_differs.then_some(
+                        crate::route_contract_mismatch::RouteContractMismatch::Method {
+                            expected: expected.method(),
+                            observed: observed.method(),
+                        },
+                    ),
+                    operation_differs.then_some(
+                        crate::route_contract_mismatch::RouteContractMismatch::OpenApiOperationId {
+                            expected: expected.openapi_operation_id(),
+                            observed: observed.openapi_operation_id(),
+                        },
+                    ),
+                    path_differs.then_some(
+                        crate::route_contract_mismatch::RouteContractMismatch::Path {
+                            expected: expected.path(),
+                            observed: observed.path(),
+                        },
+                    ),
+                ];
+                let result =
+                    crate::validate_route_contract_metadata::validate_route_contract_metadata(
+                        expected, observed,
+                    );
+                let expected_result = if method_differs || operation_differs || path_differs {
+                    Err(
+                        crate::route_contract_mismatches::RouteContractMismatches::from(
+                            bounded_types::bounded_vec::BoundedVec::from_max_iter(
+                                differences.into_iter().flatten(),
+                            ),
+                        ),
+                    )
+                } else {
+                    Ok(())
+                };
+                assert_eq!(result, expected_result);
+                assert_eq!(crate::validate_typed_route_contract::validate_typed_route_contract::<ReadRoute>(observed), expected_result);
+            });
+    }
 }

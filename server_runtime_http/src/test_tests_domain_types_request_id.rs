@@ -55,13 +55,20 @@ fn test_validates_string_and_header_boundaries() {
         ),
         Err(crate::request_id_try_from_string_error::RequestIdTryFromStringError::Invalid)
     );
-    assert!(matches!(
-        crate::request_id::RequestId::try_from(
-            &http::HeaderValue::from_bytes(&[0xffu8])
-                .expect(constants_str::DIAGNOSTIC_DCB3F9A8)
-        ),
-        Err(crate::request_id_try_from_http_header_value_error::RequestIdTryFromHttpHeaderValueError::ToStr(_))
-    ));
+    assert!([vec![0xffu8], vec![b'x', 0xffu8], vec![0xc3u8], vec![0xc3u8, 0xa9u8]]
+        .into_iter().all(|bytes| {
+            let header = http::HeaderValue::from_bytes(&bytes)
+                .expect(constants_str::DIAGNOSTIC_DCB3F9A8);
+            header.to_str().is_err_and(|expected| {
+                crate::request_id::RequestId::try_from(&header).is_err_and(|error| match error {
+                    crate::request_id_try_from_http_header_value_error::RequestIdTryFromHttpHeaderValueError::ToStr(source) => {
+                        source.to_string() == expected.to_string()
+                            && format!("{source:?}") == format!("{:?}", crate::http_header_to_str_error::HttpHeaderToStrError::from(expected))
+                    }
+                    crate::request_id_try_from_http_header_value_error::RequestIdTryFromHttpHeaderValueError::Invalid(_) => false,
+                })
+            })
+        }));
     assert_eq!(
         http::HeaderValue::try_from(&request_id).expect(constants_str::DIAGNOSTIC_B0A0854A),
         http::HeaderValue::from_str(maximum.as_str()).expect(constants_str::DIAGNOSTIC_07132954)
@@ -173,4 +180,56 @@ async fn test_request_id_layer_replaces_conflicting_error_response_headers() {
     );
     let body = axum::body::to_bytes(response.into_body(), 4usize).await;
     assert!(body.is_ok_and(|bytes| bytes.as_ref() == constants_str::ABCD_ALT.as_bytes()));
+}
+
+#[tokio::test]
+async fn test_request_id_header_precedence_preserves_valid_correlation_fallback() {
+    let check_precedence = async |header_value, expected_header_value| {
+        let router = axum::Router::from(crate::request_id_layer::RequestIdLayer::default().apply(
+            crate::axum_router::AxumRouter::from(axum::Router::new().route(
+                constants_str::SLASH,
+                axum::routing::get(async || http::StatusCode::OK),
+            )),
+        ));
+        let mut request = axum::extract::Request::new(axum::body::Body::empty());
+        let _previous_primary = request.headers_mut().insert(
+            http::HeaderName::from_static(constants_str::HTTP_HEADER_NAMES_X_REQUEST_ID),
+            header_value,
+        );
+        let _previous_correlation = request.headers_mut().insert(
+            http::HeaderName::from_static(constants_str::RUNTIME_CORRELATION_ID_HEADER_NAME),
+            http::HeaderValue::from_static(constants_str::X),
+        );
+        let result = tower::ServiceExt::oneshot(router, request).await;
+        assert!(result.is_ok());
+        let Ok(response) = result;
+        assert_eq!(response.status(), http::StatusCode::OK);
+        assert_eq!(
+            response
+                .headers()
+                .get(constants_str::HTTP_HEADER_NAMES_X_REQUEST_ID),
+            Some(&expected_header_value)
+        );
+        assert_eq!(
+            response
+                .headers()
+                .get(constants_str::RUNTIME_CORRELATION_ID_HEADER_NAME),
+            Some(&expected_header_value)
+        );
+    };
+    check_precedence(
+        http::HeaderValue::from_static(constants_str::EXISTING_REQUEST_ID),
+        http::HeaderValue::from_static(constants_str::EXISTING_REQUEST_ID),
+    )
+    .await;
+    check_precedence(
+        http::HeaderValue::from_static(constants_str::EMPTY),
+        http::HeaderValue::from_static(constants_str::X),
+    )
+    .await;
+    let opaque_result = http::HeaderValue::from_bytes(&[u8::MAX]);
+    assert!(opaque_result.is_ok());
+    if let Ok(opaque) = opaque_result {
+        check_precedence(opaque, http::HeaderValue::from_static(constants_str::X)).await;
+    }
 }

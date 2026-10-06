@@ -76,3 +76,86 @@ fn test_pagination_error_priority_and_json_preserve_integer_validation() {
         ).is_err()
     }));
 }
+
+#[test]
+fn test_pagination_defaults_preserve_policy_limit_and_maximum_page_size() {
+    let standard = <crate::pagination_starts_with_zero::PaginationStartsWithZero as crate::default_some_one_element::DefaultSomeOneElement>::default_some_one_element();
+    assert_eq!(
+        standard,
+        crate::pagination_starts_with_zero::PaginationStartsWithZero::default()
+    );
+    assert_eq!(standard.start().get(), 0i64);
+    assert_eq!(standard.end().get(), 5i64);
+    let maximum = <crate::pagination_starts_with_zero::PaginationStartsWithZero as crate::default_some_one_element_max_page_size::DefaultSomeOneElementMaxPageSize>::default_some_one_element_max_page_size();
+    assert_eq!(maximum.start().get(), 0i64);
+    assert_eq!(maximum.end().get(), i64::from(i32::MAX));
+    assert!([standard, maximum].into_iter().all(|pagination| {
+        serde_json::to_value(pagination).is_ok_and(|json| {
+            json == serde_json::json!({(stringify!(limit)): pagination.end().get(), (stringify!(offset)): 0i64})
+        })
+    }));
+}
+
+#[test]
+fn test_validated_pagination_query_preserves_placeholder_progress_and_overflow() {
+    let pagination = crate::pagination_starts_with_zero::PaginationStartsWithZero::default();
+    assert!([false, true].into_iter().all(|operator| {
+        [0u64, 7u64, u64::MAX - 2u64, u64::MAX - 1u64, u64::MAX]
+            .into_iter()
+            .all(|initial| {
+                let mut increment = crate::query_part_increment::QueryPartIncrement::from(initial);
+                let result = crate::pg_type_where_filter::PgTypeWhereFilter::query_part(
+                    &pagination,
+                    &mut increment,
+                    crate::sql_column_ref::SqlColumnRef::from(&constants_str::SQL_NAMES_ID),
+                    crate::add_operator::AddOperator::from(operator),
+                );
+                if let Some(expected) = initial.checked_add(2u64) {
+                    result.is_ok_and(|part| {
+                        part.as_ref()
+                            == format!(
+                                "{} ${} {} ${expected}",
+                                constants_str::LIMIT,
+                                initial + 1u64,
+                                constants_str::OFFSET_ALT
+                            )
+                    }) && increment.get() == expected
+                } else {
+                    matches!(
+                        result,
+                        Err(crate::query_part_error::QueryPartError::CheckedAdd { .. })
+                    ) && increment.get() == u64::MAX
+                }
+            })
+    }));
+}
+
+#[test]
+fn test_validated_pagination_binding_preserves_existing_query_arguments() {
+    assert!([false, true].into_iter().all(|has_existing_argument| {
+        let initial = sqlx::query(constants_str::EMPTY);
+        let query = if has_existing_argument {
+            initial.bind(17i64)
+        } else {
+            initial
+        };
+        let pagination = crate::pagination_starts_with_zero::PaginationStartsWithZero::default();
+        crate::pg_type_where_filter::PgTypeWhereFilter::query_bind(
+            pagination,
+            crate::sqlx_postgres_query::SqlxPostgresQuery::from(query),
+        )
+        .is_ok_and(|bound| {
+            let mut sqlx_query = bound.into_inner();
+            sqlx::Execute::take_arguments(&mut sqlx_query).is_ok_and(|arguments| {
+                arguments.is_some_and(|values| {
+                    sqlx::Arguments::len(&values)
+                        == if has_existing_argument {
+                            3usize
+                        } else {
+                            2usize
+                        }
+                })
+            })
+        })
+    }));
+}

@@ -79,5 +79,35 @@ mod tests {
         .to_html();
         assert!(html.contains(constants_str::VALUE_34E9C590));
         assert!(!html.contains(constants_str::VALUE_3D094196));
+        let assigned_roles = server_admin_contract::admin_role_ids::AdminRoleIds::try_from(
+            page.roles()
+                .iter()
+                .rev()
+                .map(server_admin_contract::admin_role_summary::AdminRoleSummary::id)
+                .collect::<Vec<_>>(),
+        );
+        assert_eq!(assigned_roles.as_ref().err(), None);
+        let Ok(assigned_roles) = assigned_roles else {
+            return;
+        };
+        assert!(page.items().first().is_some_and(|user| {
+            let multiple_roles_user =
+                server_admin_contract::admin_user_summary::AdminUserSummary::new(
+                    user.display_name().clone(),
+                    user.id(),
+                    user.is_banned(),
+                    user.login().clone(),
+                    assigned_roles,
+                );
+            let multiple_roles_html =
+                crate::admin_user_roles::admin_user_roles(&multiple_roles_user, &page).to_html();
+            let expected = format!(
+                "{}{}{}",
+                constants_str::VALUE_3D094196,
+                constants_str::COMMA_SPACE,
+                constants_str::VALUE_1553CC62
+            );
+            multiple_roles_html.contains(expected.as_str())
+        }));
     }
 }

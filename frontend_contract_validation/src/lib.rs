@@ -35,3 +35,8 @@ pub mod validate_openapi_operations;
 pub mod validate_openapi_schema_references;
 pub mod validate_route_contract_metadata;
 pub mod validate_typed_route_contract;
+
+#[cfg(test)]
+mod test_nullable_payload;
+#[cfg(test)]
+mod test_operation_security;

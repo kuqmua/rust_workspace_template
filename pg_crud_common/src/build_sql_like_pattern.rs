@@ -47,6 +47,51 @@ pub fn build_sql_like_pattern(
 #[cfg(test)]
 mod tests {
     #[test]
+    fn test_escaped_patterns_enforce_output_limit_after_wildcard_expansion() {
+        assert!(
+            [
+                crate::sql_like_match_mode::SqlLikeMatchMode::Contains,
+                crate::sql_like_match_mode::SqlLikeMatchMode::StartsWith,
+                crate::sql_like_match_mode::SqlLikeMatchMode::EndsWith,
+            ]
+            .into_iter()
+            .all(|sql_like_match_mode| {
+                let wildcard_count = if sql_like_match_mode
+                    == crate::sql_like_match_mode::SqlLikeMatchMode::Contains
+                {
+                    2usize
+                } else {
+                    1usize
+                };
+                ['%', '_', '\\'].into_iter().all(|reserved_symbol| {
+                    let mut input = reserved_symbol.to_string().repeat(
+                        (crate::pg_crud_string_wrapper_max_len::PG_CRUD_STRING_WRAPPER_MAX_LEN
+                            - wildcard_count)
+                            .div_euclid(2usize),
+                    );
+                    if wildcard_count == 1usize {
+                        input.push_str(constants_str::X);
+                    }
+                    let accepted = crate::build_sql_like_pattern::build_sql_like_pattern(
+                        crate::sql_like_input_ref::SqlLikeInputRef::from(input.as_str()),
+                        sql_like_match_mode,
+                    )
+                    .is_ok_and(|sql_like_pattern| {
+                        sql_like_pattern.as_ref().len()
+                            == crate::pg_crud_string_wrapper_max_len::PG_CRUD_STRING_WRAPPER_MAX_LEN
+                    });
+                    input.push_str(constants_str::X);
+                    accepted
+                        && crate::build_sql_like_pattern::build_sql_like_pattern(
+                            crate::sql_like_input_ref::SqlLikeInputRef::from(input.as_str()),
+                            sql_like_match_mode,
+                        ) == Err(crate::sql_like_pattern_error::SqlLikePatternError::TooLong)
+                })
+            })
+        );
+    }
+
+    #[test]
     fn test_match_modes_place_wildcards_at_the_requested_edges() {
         assert!(matches!(
             crate::build_sql_like_pattern::build_sql_like_pattern(

@@ -157,6 +157,12 @@ async fn test_acquire_permit_distinguishes_available_timeout_and_closed() {
     drop(timeout);
     drop(permit);
     semaphore.close();
+    let expected = semaphore
+        .acquire()
+        .await
+        .err()
+        .map(|error| error.to_string());
+    assert!(expected.is_some());
     let closed = crate::acquire_permit::acquire_permit(
         crate::arc_tokio_semaphore::ArcTokioSemaphore::from(semaphore),
         crate::permit_wait_timeout_duration::PermitWaitTimeoutDuration::from(
@@ -165,10 +171,15 @@ async fn test_acquire_permit_distinguishes_available_timeout_and_closed() {
         retry_after,
     )
     .await;
-    assert!(matches!(
-        closed,
-        Err(crate::acquire_permit_error::AcquirePermitError::Closed(_))
-    ));
+    assert!(closed.as_ref().is_err_and(|error| {
+        matches!(
+            error,
+            crate::acquire_permit_error::AcquirePermitError::Closed(_)
+        ) && std::error::Error::source(error).is_some_and(|source| {
+            source.is::<crate::tokio_acquire_error::TokioAcquireError>()
+                && Some(source.to_string()) == expected
+        })
+    }));
     drop(closed);
     assert_eq!(
         http::HeaderValue::try_from(retry_after).expect(constants_str::DIAGNOSTIC_CB2A239C),
@@ -194,7 +205,14 @@ fn test_concurrency_limit_wrappers_validate_boundaries_and_try_acquire() {
         .expect(constants_str::DIAGNOSTIC_626040D0);
     assert!(semaphore.try_acquire().is_none());
     drop(permit);
-    assert!(semaphore.try_acquire().is_some());
+    assert!(
+        semaphore
+            .try_acquire()
+            .is_some_and(|tokio_owned_semaphore_permit| {
+                tokio_owned_semaphore_permit.forget();
+                semaphore.try_acquire().is_none()
+            })
+    );
 }
 
 #[test]

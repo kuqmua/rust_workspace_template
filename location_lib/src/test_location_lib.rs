@@ -177,7 +177,39 @@ fn test_coordinates_and_nanoseconds_reject_zero_based_or_overflowing_values() {
         .expect_err(constants_str::VALUE_3AF5C47B);
     let _column_error = crate::location_column::LocationColumn::try_from(constants_u32::ZERO)
         .expect_err(constants_str::VALUE_B0E3542F);
-    let _nanos_error =
-        crate::std_time_duration_nanos::StdTimeDurationNanos::try_from(1_000_000_000u32)
-            .expect_err(constants_str::VALUE_EB22AFCB);
+    assert!([0u32, 1u32, 999_999_999u32].into_iter().all(|value| {
+        crate::std_time_duration_nanos::StdTimeDurationNanos::try_from(value)
+            .is_ok_and(|std_time_duration_nanos| *std_time_duration_nanos == value)
+    }));
+    assert!([1_000_000_000u32, u32::MAX].into_iter().all(|value| matches!(
+        crate::std_time_duration_nanos::StdTimeDurationNanos::try_from(value),
+        Err(crate::std_time_duration_nanos_try_from_u32_error::StdTimeDurationNanosTryFromU32Error::OutOfRange)
+    )));
+}
+
+#[test]
+fn test_location_coordinates_validate_deserialization_and_preserve_extreme_values() {
+    assert_eq!(
+        crate::location_line::LocationLine::first().to_string(),
+        1u32.to_string()
+    );
+    assert_eq!(
+        crate::location_column::LocationColumn::first().to_string(),
+        1u32.to_string()
+    );
+    assert!([0u32, 1u32, u32::MAX].into_iter().all(|value| {
+        let deserializer = || serde::de::value::U32Deserializer::<serde::de::value::Error>::new(value);
+        [
+            crate::location_line::LocationLine::try_from(value).map(|location_line| location_line.to_string()).map_err(|error| error.to_string()),
+            crate::location_column::LocationColumn::try_from(value).map(|location_column| location_column.to_string()).map_err(|error| error.to_string()),
+            <crate::location_line::LocationLine as serde::Deserialize>::deserialize(deserializer()).map(|location_line| location_line.to_string()).map_err(|error| error.to_string()),
+            <crate::location_column::LocationColumn as serde::Deserialize>::deserialize(deserializer()).map(|location_column| location_column.to_string()).map_err(|error| error.to_string()),
+        ].into_iter().all(|result| {
+            if value == 0u32 {
+                result.is_err_and(|error| error == crate::location_coordinate_try_from_u32_error::LocationCoordinateTryFromU32Error::OutOfRange.to_string())
+            } else {
+                result.is_ok_and(|text| text == value.to_string())
+            }
+        })
+    }));
 }

@@ -303,4 +303,7 @@ pub mod window_total_presence;
 mod test_pagination_base_query;
 
 #[cfg(test)]
+mod test_run_list_total_source_matrix;
+
+#[cfg(test)]
 mod test_schema_text_collections;

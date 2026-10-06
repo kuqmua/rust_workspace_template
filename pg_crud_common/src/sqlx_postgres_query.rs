@@ -24,3 +24,21 @@ impl std::fmt::Debug for SqlxPostgresQuery<'_> {
             .finish()
     }
 }
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn test_postgres_query_debug_hides_sql_and_bound_values() {
+        let sqlx_postgres_query = crate::sqlx_postgres_query::SqlxPostgresQuery::from(
+            sqlx::query(constants_str::TEST_READ_QUERY_BASE).bind(constants_str::TEST_SECRET_TEXT),
+        );
+        assert_eq!(
+            format!("{sqlx_postgres_query:?}"),
+            constants_str::SQLXPOSTGRESQUERY,
+        );
+        assert_eq!(
+            format!("{sqlx_postgres_query:#?}"),
+            constants_str::SQLXPOSTGRESQUERY,
+        );
+    }
+}

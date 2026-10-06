@@ -196,6 +196,28 @@ mod tests {
         );
     }
     #[test]
+    fn test_replace_missing_header_reports_diagnostic_and_expectation_identifiers() {
+        let result = std::panic::catch_unwind(|| {
+            let mut headers = axum::http::HeaderMap::new();
+            crate::replace_header_name::replace_header_name(
+                &mut headers,
+                constants_str::X_COMMIT,
+                axum::http::HeaderName::from_static(
+                    constants_str::ROUTE_VALIDATORS_COMMIT_HEADER_NAME,
+                ),
+                constants_str::VALUE_348C0E57,
+            );
+        });
+        assert!(result.err().is_some_and(|payload| {
+            payload.downcast_ref::<String>().is_some_and(|message| {
+                message
+                    .starts_with(constants_str::ROUTE_VALIDATORS_REPLACE_HEADER_MISSING_SRC_ER_ID)
+                    && message.contains(constants_str::VALUE_348C0E57)
+            })
+        }));
+    }
+
+    #[test]
     fn test_replace_header_name_moves_value_to_new_key() {
         let mut headers = crate::make_headers_with_entry::make_headers_with_entry(
             constants_str::X_COMMIT,

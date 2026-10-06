@@ -6,6 +6,8 @@
 
 pub(crate) mod proc_macro2_generate_token_pattern_input;
 pub(crate) mod proc_macro2_generate_token_pattern_output;
+#[cfg(test)]
+mod test_token_pattern_boundaries;
 
 fn generate_token_pattern(
     proc_macro2_generate_token_pattern_input: proc_macro2_generate_token_pattern_input::ProcMacro2GenerateTokenPatternInput,

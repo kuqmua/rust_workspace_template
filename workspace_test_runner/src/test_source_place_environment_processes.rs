@@ -96,6 +96,9 @@ fn test_source_place_environment_processes_preserve_dotenv_environment_and_defau
     oversized_dotenv.push_str(
         &constants_str::X.repeat(constants_usize::VALUE_1_048_576 + constants_usize::ONE),
     );
+    let mut maximum_unknown_dotenv =
+        String::from(constants_str::SOURCE_PLACE_TEST_DOTENV_ASSIGNMENT_PREFIX);
+    maximum_unknown_dotenv.push_str(&constants_str::X.repeat(constants_usize::VALUE_1_048_576));
     let outcomes_result = [
         (
             Some(constants_str::SRC_ALT),
@@ -123,6 +126,7 @@ fn test_source_place_environment_processes_preserve_dotenv_environment_and_defau
             String::from(constants_str::SOURCE_PLACE_TEST_DOTENV_MALFORMED),
             constants_str::SRC_ALT,
         ),
+        (None, maximum_unknown_dotenv, constants_str::GITHUB_ALT),
         (None, oversized_dotenv, constants_str::GITHUB_ALT),
     ]
     .into_iter()

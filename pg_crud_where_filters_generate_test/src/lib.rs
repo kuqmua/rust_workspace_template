@@ -140,6 +140,44 @@ mod tests {
         .expect(constants_str::DIAGNOSTIC_509F61F8);
         assert_eq!(fragment.as_ref(), constants_str::VALUE_BA922EFF);
         assert_eq!(parameter_index, 5u64);
+        assert!([
+            pg_crud_common::operator::Operator::And,
+            pg_crud_common::operator::Operator::AndNot,
+            pg_crud_common::operator::Operator::Or,
+            pg_crud_common::operator::Operator::OrNot,
+        ].into_iter().all(|operator| {
+            [false, true].into_iter().all(|add_operator| {
+                [0u64, 4u64, u64::MAX].into_iter().all(|initial_index| {
+                    where_filters::domain_types::PgTypeWhereTextSearch::try_new(
+                        operator,
+                        where_filters::domain_types::TextSearchMode::Contains,
+                        constants_str::LITERAL_PERCENT_VALUE.to_owned(),
+                    ).is_ok_and(|pg_type_where_text_search| {
+                        let mut increment = pg_crud_common::query_part_increment::QueryPartIncrement::from(initial_index);
+                        let result = pg_crud_common::pg_type_where_filter::PgTypeWhereFilter::query_part(
+                            &pg_type_where_text_search,
+                            &mut increment,
+                            pg_crud_common::sql_column_ref::SqlColumnRef::from(&column),
+                            pg_crud_common::add_operator::AddOperator::from(add_operator),
+                        );
+                        match initial_index.checked_add(1u64) {
+                            Some(expected_index) => increment.get() == expected_index && result.is_ok_and(|query_part_fragment| {
+                                let prefix = operator.to_query_part(pg_crud_common::add_operator::AddOperator::from(add_operator));
+                                query_part_fragment.as_ref().strip_prefix(prefix.as_ref()).is_some_and(|text| {
+                                    let mut actual = text.split_whitespace();
+                                    let mut expected = constants_str::VALUE_BA922EFF.split_whitespace().skip(1usize);
+                                    actual.next() == expected.next()
+                                        && actual.next() == expected.next()
+                                        && actual.next().and_then(|part| part.strip_prefix('$')).and_then(|part| part.parse::<u64>().ok()) == Some(expected_index)
+                                        && actual.eq(expected.skip(1usize))
+                                })
+                            }),
+                            None => increment.get() == initial_index && matches!(result, Err(pg_crud_common::query_part_error::QueryPartError::CheckedAdd { .. })),
+                        }
+                    })
+                })
+            })
+        }));
     }
     #[test]
     fn test_strict_range_filters_use_strict_postgres_operators() {
@@ -176,6 +214,65 @@ mod tests {
                 .as_ref()
                 .contains(constants_str::PG_CRUD_STRICTLY_RIGHT_SQL_OPERATOR)
         }));
+    }
+    #[test]
+    fn test_range_relationship_filters_preserve_operator_and_placeholder_order() {
+        let column = constants_str::DISPLAY_NAME.to_owned();
+        let mut parameter_index = 0u64;
+        assert!([
+            (
+                <where_filters::domain_types::PgTypeWhereFindRangesWithinGivenRange<i32> as pg_crud_common::pg_type_where_filter::PgTypeWhereFilter>::query_part(
+                    &where_filters::domain_types::PgTypeWhereFindRangesWithinGivenRange::new(pg_crud_common::operator::Operator::And, 1i32),
+                    &mut parameter_index,
+                    pg_crud_common::sql_column_ref::SqlColumnRef::from(&column),
+                    pg_crud_common::add_operator::AddOperator::from(false),
+                ),
+                constants_str::PG_CRUD_WITHIN_SQL_OPERATOR,
+                1u64,
+            ),
+            (
+                <where_filters::domain_types::PgTypeWhereFindRangesThatFullyContainTheGivenRange<i32> as pg_crud_common::pg_type_where_filter::PgTypeWhereFilter>::query_part(
+                    &where_filters::domain_types::PgTypeWhereFindRangesThatFullyContainTheGivenRange::new(pg_crud_common::operator::Operator::And, 1i32),
+                    &mut parameter_index,
+                    pg_crud_common::sql_column_ref::SqlColumnRef::from(&column),
+                    pg_crud_common::add_operator::AddOperator::from(false),
+                ),
+                constants_str::PG_CRUD_CONTAINS_SQL_OPERATOR,
+                2u64,
+            ),
+            (
+                <where_filters::domain_types::PgTypeWhereOverlapWithRange<i32> as pg_crud_common::pg_type_where_filter::PgTypeWhereFilter>::query_part(
+                    &where_filters::domain_types::PgTypeWhereOverlapWithRange::new(pg_crud_common::operator::Operator::And, 1i32),
+                    &mut parameter_index,
+                    pg_crud_common::sql_column_ref::SqlColumnRef::from(&column),
+                    pg_crud_common::add_operator::AddOperator::from(false),
+                ),
+                constants_str::PG_CRUD_OVERLAPS_SQL_OPERATOR,
+                3u64,
+            ),
+            (
+                <where_filters::domain_types::PgTypeWhereAdjacentWithRange<i32> as pg_crud_common::pg_type_where_filter::PgTypeWhereFilter>::query_part(
+                    &where_filters::domain_types::PgTypeWhereAdjacentWithRange::new(pg_crud_common::operator::Operator::And, 1i32),
+                    &mut parameter_index,
+                    pg_crud_common::sql_column_ref::SqlColumnRef::from(&column),
+                    pg_crud_common::add_operator::AddOperator::from(false),
+                ),
+                constants_str::PG_CRUD_ADJACENT_SQL_OPERATOR,
+                4u64,
+            ),
+        ].into_iter().all(|(result, operator, expected_index)| {
+            result.is_ok_and(|fragment| {
+                let mut parts = fragment.as_ref().split_whitespace();
+                parts.next().is_some_and(|part| part.strip_prefix('(') == Some(column.as_str()))
+                    && parts.next() == Some(operator)
+                    && parts.next().is_some_and(|part| {
+                        part.strip_suffix(')').and_then(|placeholder| placeholder.strip_prefix('$'))
+                            .and_then(|index| index.parse::<u64>().ok()) == Some(expected_index)
+                    })
+                    && parts.next().is_none()
+            })
+        }));
+        assert_eq!(parameter_index, 4u64);
     }
     #[test]
     fn test_range_bound_filters_check_inclusivity() {
@@ -306,6 +403,218 @@ mod tests {
         }));
         assert_eq!(integer_parameter_index, 1u64);
         assert_eq!(interval_parameter_index, 1u64);
+    }
+    #[test]
+    fn test_encoded_string_filter_formats_preserve_sql_and_overflow_counter() {
+        let column = constants_str::DISPLAY_NAME.to_owned();
+        let single_quote = char::from(39u8);
+        assert!([
+            (where_filters::encode_format::EncodeFormat::Base64, constants_str::VALUE_371A286D),
+            (where_filters::encode_format::EncodeFormat::Escape, constants_str::VALUE_B3140286),
+            (where_filters::encode_format::EncodeFormat::Hex, constants_str::VALUE_128DF13C),
+        ].into_iter().all(|(format, expected_format)| {
+            [0u64, 4u64, u64::MAX].into_iter().all(|initial_index| {
+                let filter = where_filters::domain_types::PgTypeWhereEqToEncodedStringRepresentation::new(
+                    pg_crud_common::operator::Operator::And, format, constants_str::TEST_SQL_INJECTION.to_owned(),
+                );
+                let mut increment = pg_crud_common::query_part_increment::QueryPartIncrement::from(initial_index);
+                let result = pg_crud_common::pg_type_where_filter::PgTypeWhereFilter::query_part(
+                    &filter, &mut increment, pg_crud_common::sql_column_ref::SqlColumnRef::from(&column),
+                    pg_crud_common::add_operator::AddOperator::from(false),
+                );
+                match initial_index.checked_add(1u64) {
+                    Some(expected_index) => increment.get() == expected_index && result.is_ok_and(|fragment| {
+                        let text = fragment.as_ref();
+                        let mut parts = text.split_whitespace();
+                        parts.next().and_then(|part| part.strip_prefix('(')).and_then(|part| part.split_once('(')).is_some_and(|(function, argument)| {
+                            function == stringify!(encode) && argument.strip_suffix(',') == Some(column.as_str())
+                        })
+                            && parts.next().and_then(|part| part.strip_prefix(single_quote)).and_then(|part| part.strip_suffix(')')).and_then(|part| part.strip_suffix(single_quote)) == Some(expected_format)
+                            && parts.next() == Some(constants_str::PG_CRUD_EQUALITY_SQL_OPERATOR)
+                            && parts.next().and_then(|part| part.strip_suffix(')')).and_then(|part| part.strip_prefix('$')).and_then(|part| part.parse::<u64>().ok()) == Some(expected_index)
+                            && parts.next().is_none()
+                            && !text.contains(constants_str::TEST_SQL_INJECTION)
+                    }),
+                    None => increment.get() == initial_index && matches!(result, Err(pg_crud_common::query_part_error::QueryPartError::CheckedAdd { .. })),
+                }
+            })
+        }));
+    }
+    #[test]
+    fn test_regex_filter_case_modes_preserve_sql_and_overflow_counter() {
+        let column = constants_str::DISPLAY_NAME.to_owned();
+        assert!([
+            (where_filters::regex_case::RegexCase::Sensitive, constants_str::TEXT_ALT_15),
+            (where_filters::regex_case::RegexCase::Insensitive, constants_str::ASTERISK_ALT),
+        ].into_iter().all(|(case, operator)| {
+            [0u64, 4u64, u64::MAX].into_iter().all(|initial_index| {
+                where_filters::regex_regex::RegexRegex::try_from(constants_str::A_Z_PLUS.to_owned()).is_ok_and(|pattern| {
+                    let filter = where_filters::domain_types::PgTypeWhereRegex::new(pg_crud_common::operator::Operator::And, case, pattern);
+                    let mut increment = pg_crud_common::query_part_increment::QueryPartIncrement::from(initial_index);
+                    let result = pg_crud_common::pg_type_where_filter::PgTypeWhereFilter::query_part(
+                        &filter, &mut increment, pg_crud_common::sql_column_ref::SqlColumnRef::from(&column),
+                        pg_crud_common::add_operator::AddOperator::from(false),
+                    );
+                    match initial_index.checked_add(1u64) {
+                        Some(expected_index) => increment.get() == expected_index && result.is_ok_and(|fragment| {
+                            let mut parts = fragment.as_ref().split_whitespace();
+                            parts.next().and_then(|part| part.strip_prefix('(')) == Some(column.as_str())
+                                && parts.next() == Some(operator)
+                                && parts.next().and_then(|part| part.strip_suffix(')')).and_then(|part| part.strip_prefix('$')).and_then(|part| part.parse::<u64>().ok()) == Some(expected_index)
+                                && parts.next().is_none()
+                        }),
+                        None => increment.get() == initial_index && matches!(result, Err(pg_crud_common::query_part_error::QueryPartError::CheckedAdd { .. })),
+                    }
+                })
+            })
+        }));
+    }
+    #[test]
+    fn test_scalar_comparison_filters_preserve_sql_and_overflow_counter() {
+        let column = constants_str::DISPLAY_NAME.to_owned();
+        assert!([0u64, 4u64, u64::MAX].into_iter().all(|initial_index| {
+            let mut greater_increment = pg_crud_common::query_part_increment::QueryPartIncrement::from(initial_index);
+            let mut before_increment = pg_crud_common::query_part_increment::QueryPartIncrement::from(initial_index);
+            let valid = [
+                (
+                    <where_filters::domain_types::PgTypeWhereGreaterThan<i32> as pg_crud_common::pg_type_where_filter::PgTypeWhereFilter>::query_part(
+                        &where_filters::domain_types::PgTypeWhereGreaterThan::new(pg_crud_common::operator::Operator::And, 1i32),
+                        &mut greater_increment,
+                        pg_crud_common::sql_column_ref::SqlColumnRef::from(&column),
+                        pg_crud_common::add_operator::AddOperator::from(false),
+                    ),
+                    constants_str::TEXT_ALT_11,
+                ),
+                (
+                    <where_filters::domain_types::PgTypeWhereBefore<i32> as pg_crud_common::pg_type_where_filter::PgTypeWhereFilter>::query_part(
+                        &where_filters::domain_types::PgTypeWhereBefore::new(pg_crud_common::operator::Operator::And, 1i32),
+                        &mut before_increment,
+                        pg_crud_common::sql_column_ref::SqlColumnRef::from(&column),
+                        pg_crud_common::add_operator::AddOperator::from(false),
+                    ),
+                    constants_str::PG_CRUD_BEFORE_SQL_OPERATOR,
+                ),
+            ].into_iter().all(|(result, operator)| match initial_index.checked_add(1u64) {
+                Some(expected_index) => result.is_ok_and(|fragment| {
+                    let mut parts = fragment.as_ref().split_whitespace();
+                    parts.next().and_then(|part| part.strip_prefix('(')) == Some(column.as_str())
+                        && parts.next() == Some(operator)
+                        && parts.next().and_then(|part| part.strip_suffix(')')).and_then(|part| part.strip_prefix('$')).and_then(|part| part.parse::<u64>().ok()) == Some(expected_index)
+                        && parts.next().is_none()
+                }),
+                None => matches!(result, Err(pg_crud_common::query_part_error::QueryPartError::CheckedAdd { .. })),
+            });
+            valid && [greater_increment, before_increment].into_iter().all(|increment| {
+                increment.get() == initial_index.checked_add(1u64).unwrap_or(initial_index)
+            })
+        }));
+    }
+    #[test]
+    fn test_generated_between_filter_preserves_sql_and_partial_overflow() {
+        let column = constants_str::DISPLAY_NAME.to_owned();
+        assert!([0u64, 4u64, u64::MAX - 1u64, u64::MAX].into_iter().all(|initial_index| {
+            where_filters::between::Between::try_new(1i32, 2i32).is_ok_and(|between| {
+                let filter = where_filters::domain_types::PgTypeWhereBetween::new(pg_crud_common::operator::Operator::And, between);
+                let mut increment = pg_crud_common::query_part_increment::QueryPartIncrement::from(initial_index);
+                let result = pg_crud_common::pg_type_where_filter::PgTypeWhereFilter::query_part(
+                    &filter, &mut increment, pg_crud_common::sql_column_ref::SqlColumnRef::from(&column),
+                    pg_crud_common::add_operator::AddOperator::from(false),
+                );
+                match initial_index.checked_add(2u64) {
+                    Some(final_index) => increment.get() == final_index && result.is_ok_and(|fragment| {
+                        let text = fragment.as_ref();
+                        text.split_whitespace().next().and_then(|part| part.strip_prefix('(')) == Some(column.as_str())
+                            && text.split_whitespace().count() == 5usize
+                            && text.split_whitespace().nth(1usize) == Some(constants_str::ADMIN_FILTER_OPERATION_BETWEEN)
+                            && text.split_whitespace().nth(2usize).and_then(|part| part.strip_prefix('$')).and_then(|part| part.parse::<u64>().ok()) == initial_index.checked_add(1u64)
+                            && text.split_whitespace().nth(3usize) == Some(constants_str::AND.trim())
+                            && text.split_whitespace().nth(4usize).and_then(|part| part.strip_suffix(')')).and_then(|part| part.strip_prefix('$')).and_then(|part| part.parse::<u64>().ok()) == Some(final_index)
+                    }),
+                    None => increment.get() == u64::MAX && matches!(result, Err(pg_crud_common::query_part_error::QueryPartError::CheckedAdd { .. })),
+                }
+            })
+        }));
+    }
+    #[test]
+    fn test_generated_in_filter_preserves_list_sql_and_partial_overflow() {
+        let column = constants_str::DISPLAY_NAME.to_owned();
+        assert!([0u64, 4u64, u64::MAX - 1u64, u64::MAX].into_iter().all(|initial_index| {
+            where_filters::pg_type_not_empty_unique_vec::PgTypeNotEmptyUniqueVec::try_from(vec![1i32, 2i32, 3i32]).is_ok_and(|values| {
+                let filter = where_filters::domain_types::PgTypeWhereIn::new(pg_crud_common::operator::Operator::And, values);
+                let mut increment = pg_crud_common::query_part_increment::QueryPartIncrement::from(initial_index);
+                let result = pg_crud_common::pg_type_where_filter::PgTypeWhereFilter::query_part(
+                    &filter, &mut increment, pg_crud_common::sql_column_ref::SqlColumnRef::from(&column),
+                    pg_crud_common::add_operator::AddOperator::from(false),
+                );
+                match initial_index.checked_add(3u64) {
+                    Some(final_index) => increment.get() == final_index && result.is_ok_and(|fragment| {
+                        let text = fragment.as_ref();
+                        text.split_whitespace().next().and_then(|part| part.strip_prefix('(')) == Some(column.as_str())
+                            && text.split_whitespace().count() == 3usize
+                            && text.split_whitespace().nth(1usize) == Some(constants_str::ADMIN_FILTER_OPERATION_IN)
+                            && text.split_whitespace().nth(2usize).and_then(|part| part.strip_prefix('(')).and_then(|part| part.strip_suffix(')')).and_then(|part| part.strip_suffix(')')).is_some_and(|list| {
+                                let mut placeholders = list.split(',');
+                                [1u64, 2u64, 3u64].into_iter().all(|offset| {
+                                    placeholders.next().and_then(|part| part.strip_prefix('$')).and_then(|part| part.parse::<u64>().ok()) == initial_index.checked_add(offset)
+                                }) && placeholders.next().is_none()
+                            })
+                    }),
+                    None => increment.get() == u64::MAX && matches!(result, Err(pg_crud_common::query_part_error::QueryPartError::CheckedAdd { .. })),
+                }
+            })
+        }));
+    }
+    #[test]
+    fn test_date_and_timestamp_filters_preserve_sql_and_parameter_counter() {
+        let column = constants_str::DISPLAY_NAME.to_owned();
+        assert!([0u64, 17u64].into_iter().all(|initial_index| {
+            let mut parameter_index = initial_index;
+            [
+                (
+                    <where_filters::domain_types::PgTypeWhereCurrentDate as pg_crud_common::pg_type_where_filter::PgTypeWhereFilter>::query_part(
+                        &where_filters::domain_types::PgTypeWhereCurrentDate::new(pg_crud_common::operator::Operator::And),
+                        &mut parameter_index,
+                        pg_crud_common::sql_column_ref::SqlColumnRef::from(&column),
+                        pg_crud_common::add_operator::AddOperator::from(false),
+                    ),
+                    constants_str::CURRENT_DATE,
+                ),
+                (
+                    <where_filters::domain_types::PgTypeWhereGreaterThanCurrentDate as pg_crud_common::pg_type_where_filter::PgTypeWhereFilter>::query_part(
+                        &where_filters::domain_types::PgTypeWhereGreaterThanCurrentDate::new(pg_crud_common::operator::Operator::And),
+                        &mut parameter_index,
+                        pg_crud_common::sql_column_ref::SqlColumnRef::from(&column),
+                        pg_crud_common::add_operator::AddOperator::from(false),
+                    ),
+                    constants_str::CURRENT_DATE_ALT,
+                ),
+                (
+                    <where_filters::domain_types::PgTypeWhereCurrentTimestamp as pg_crud_common::pg_type_where_filter::PgTypeWhereFilter>::query_part(
+                        &where_filters::domain_types::PgTypeWhereCurrentTimestamp::new(pg_crud_common::operator::Operator::And),
+                        &mut parameter_index,
+                        pg_crud_common::sql_column_ref::SqlColumnRef::from(&column),
+                        pg_crud_common::add_operator::AddOperator::from(false),
+                    ),
+                    constants_str::CURRENT_TIMESTAMP,
+                ),
+                (
+                    <where_filters::domain_types::PgTypeWhereGreaterThanCurrentTimestamp as pg_crud_common::pg_type_where_filter::PgTypeWhereFilter>::query_part(
+                        &where_filters::domain_types::PgTypeWhereGreaterThanCurrentTimestamp::new(pg_crud_common::operator::Operator::And),
+                        &mut parameter_index,
+                        pg_crud_common::sql_column_ref::SqlColumnRef::from(&column),
+                        pg_crud_common::add_operator::AddOperator::from(false),
+                    ),
+                    constants_str::CURRENT_TIMESTAMP_ALT,
+                ),
+            ].into_iter().all(|(result, syntax)| {
+                result.is_ok_and(|fragment| {
+                    fragment.as_ref().strip_prefix('(')
+                        .and_then(|text| text.strip_prefix(column.as_str()))
+                        .and_then(|text| text.strip_suffix(')'))
+                        .is_some_and(|text| text.trim_start() == syntax)
+                })
+            }) && parameter_index == initial_index
+        }));
     }
     #[test]
     fn test_current_time_filters_use_time_without_time_zone() {

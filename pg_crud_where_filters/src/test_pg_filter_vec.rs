@@ -1,4 +1,90 @@
 #[test]
+fn test_filter_vector_binding_preserves_existing_arguments_and_empty_vectors() {
+    assert!([false, true].into_iter().all(|has_existing_argument| {
+        let initial = sqlx::query(constants_str::EMPTY);
+        let query = if has_existing_argument {
+            initial.bind(17i32)
+        } else {
+            initial
+        };
+        crate::pg_filter_vec::PgFilterVec::<i32, 0>::default()
+            .query_bind(pg_crud_common::sqlx_postgres_query::SqlxPostgresQuery::from(query))
+            .and_then(|sqlx_postgres_query| {
+                crate::pg_filter_vec::PgFilterVec::from([1i32, 2i32, 3i32])
+                    .query_bind(sqlx_postgres_query)
+            })
+            .is_ok_and(|bound| {
+                let mut sqlx_query = bound.into_inner();
+                sqlx::Execute::take_arguments(&mut sqlx_query).is_ok_and(|arguments| {
+                    arguments.is_some_and(|pg_arguments| {
+                        sqlx::Arguments::len(&pg_arguments)
+                            == if has_existing_argument {
+                                4usize
+                            } else {
+                                3usize
+                            }
+                    })
+                })
+            })
+    }));
+}
+
+#[test]
+fn test_filter_vector_binding_retains_encoding_error_source() {
+    #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
+    struct FilterVectorFailureEncoder;
+
+    impl sqlx::Type<sqlx::Postgres> for FilterVectorFailureEncoder {
+        fn type_info() -> sqlx::postgres::PgTypeInfo {
+            <i32 as sqlx::Type<sqlx::Postgres>>::type_info()
+        }
+    }
+
+    impl sqlx::Encode<'_, sqlx::Postgres> for FilterVectorFailureEncoder {
+        fn encode_by_ref(
+            &self,
+            _pg_argument_buffer: &mut sqlx::postgres::PgArgumentBuffer,
+        ) -> Result<sqlx::encode::IsNull, sqlx::error::BoxDynError> {
+            Err(Box::new(std::io::Error::from(
+                std::io::ErrorKind::InvalidData,
+            )))
+        }
+    }
+
+    assert!(
+        crate::pg_filter_vec::PgFilterVec::from([FilterVectorFailureEncoder])
+            .query_bind(
+                pg_crud_common::sqlx_postgres_query::SqlxPostgresQuery::from(sqlx::query(
+                    constants_str::EMPTY
+                ),)
+            )
+            .is_err_and(|error| {
+                std::error::Error::source(&error)
+                    .and_then(std::error::Error::source)
+                    .and_then(|source| source.downcast_ref::<std::io::Error>())
+                    .is_some_and(|source| source.kind() == std::io::ErrorKind::InvalidData)
+            })
+    );
+}
+
+#[test]
+fn test_filter_vector_length_diagnostics_report_observed_and_expected_counts() {
+    assert!([0usize, 1usize, 3usize].into_iter().all(|count| {
+        crate::pg_filter_vec::PgFilterVec::<i32, 2>::try_from(vec![1i32; count]).is_err_and(
+            |error| {
+                let diagnostic = error.to_string();
+                [
+                    format!("{}: {count}", stringify!(wrong_len)),
+                    format!("{}: {}", stringify!(expected), 2usize),
+                ]
+                .into_iter()
+                .all(|expected_line| diagnostic.lines().any(|line| line == expected_line))
+            },
+        )
+    }));
+}
+
+#[test]
 fn test_filter_vec_conversion_requires_exact_length() {
     assert!(
         crate::pg_filter_vec::PgFilterVec::<i32, 2>::try_from(vec![1i32, 2i32])

@@ -65,14 +65,27 @@ mod tests {
 
     #[test]
     fn test_failed_cleanup_retains_non_io_operation_error() {
-        let cleanup = crate::file_storage_io_error::FileStorageIoError::from(std::io::Error::from(
-            std::io::ErrorKind::PermissionDenied,
-        ));
-        let combined = super::FileStorageError::Symlink.with_failed_cleanup(cleanup);
-        assert!(matches!(
-            &combined,
-            super::FileStorageError::AtomicReplaceAndCleanup { replace, .. }
-                if replace.to_string() == super::FileStorageError::Symlink.to_string()
-        ));
+        [
+            super::FileStorageError::Symlink,
+            super::FileStorageError::DestinationExists,
+            super::FileStorageError::SourceNotRegular,
+            super::FileStorageError::StagingEntryExists,
+        ]
+        .into_iter()
+        .fold((), |(), operation| {
+            let expected = operation.to_string();
+            let cleanup_error = crate::file_storage_io_error::FileStorageIoError::from(
+                std::io::Error::from(std::io::ErrorKind::PermissionDenied),
+            );
+            let combined = operation.with_failed_cleanup(cleanup_error);
+            assert!(matches!(
+                &combined,
+                super::FileStorageError::AtomicReplaceAndCleanup { replace, cleanup }
+                    if replace.to_string() == expected
+                        && cleanup.to_string()
+                            == std::io::Error::from(std::io::ErrorKind::PermissionDenied).to_string()
+            ));
+            assert!(std::error::Error::source(&combined).is_some());
+        });
     }
 }

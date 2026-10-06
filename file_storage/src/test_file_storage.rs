@@ -826,6 +826,47 @@ async fn test_staged_upload_delete_and_rollback_preserve_transaction_boundaries(
         tokio::fs::rename(&root_path, &displaced_root).await,
         Ok(())
     ));
+    assert!(
+        [
+            storage.stage_upload(&operation_id, &bytes).await,
+            storage.commit_upload(&operation_id, &relative_path).await,
+            storage.rollback_upload(&operation_id).await,
+            storage.stage_delete(&operation_id, &relative_path).await,
+            storage.rollback_delete(&operation_id, &relative_path).await,
+            storage.commit_delete(&operation_id).await,
+            storage
+                .atomic_replace(
+                    &operation_id,
+                    &relative_path,
+                    &bytes,
+                    crate::atomic_replace_durability::AtomicReplaceDurability::Flush,
+                )
+                .await,
+            storage
+                .atomic_replace(
+                    &operation_id,
+                    &relative_path,
+                    &bytes,
+                    crate::atomic_replace_durability::AtomicReplaceDurability::SyncAll,
+                )
+                .await,
+        ]
+        .into_iter()
+        .all(|result| result.is_err_and(|error| {
+            matches!(&error, crate::file_storage_error::FileStorageError::Io(_))
+                && std::error::Error::source(&error).is_some()
+        }))
+    );
+    assert!(
+        tokio::fs::symlink_metadata(&root_path)
+            .await
+            .is_err_and(|error| error.kind() == std::io::ErrorKind::NotFound)
+    );
+    assert!(
+        tokio::fs::read(displaced_root.join(relative_path.as_ref()))
+            .await
+            .is_ok_and(|preserved_bytes| preserved_bytes == [4u8, 5u8])
+    );
     assert!(matches!(tokio::fs::write(&root_path, [7u8]).await, Ok(())));
     assert!(matches!(
         storage.rollback_upload(&operation_id).await,

@@ -286,3 +286,100 @@ fn test_runner_summary_recovers_after_utf8_overflow_and_accepts_empty_append() {
         })
     );
 }
+
+fn fixture_domain_conversion_error<Value>()
+-> Option<crate::admin_fixture_conversion_error::AdminFixtureConversionError>
+where
+    Value: TryFrom<String>,
+    Value::Error: Into<crate::admin_fixture_conversion_error::AdminFixtureConversionError>,
+{
+    crate::create_admin_fixture_string::create_admin_fixture_string::<Value>(
+        constants_str::X.repeat(8193usize),
+    )
+    .err()
+    .filter(|error| {
+        std::error::Error::source(error)
+            .is_some_and(|source| source.to_string() == error.to_string())
+    })
+}
+
+#[test]
+fn test_fixture_admin_audit_timestamp_conversion_preserves_domain_error_source() {
+    assert!(matches!(
+        fixture_domain_conversion_error::<
+            server_admin_contract::admin_audit_timestamp::AdminAuditTimestamp,
+        >(),
+        Some(crate::admin_fixture_conversion_error::AdminFixtureConversionError::AuditTimestamp(_))
+    ));
+}
+
+#[test]
+fn test_fixture_admin_display_name_conversion_preserves_domain_error_source() {
+    assert!(matches!(
+        fixture_domain_conversion_error::<
+            server_admin_contract::admin_display_name::AdminDisplayName,
+        >(),
+        Some(crate::admin_fixture_conversion_error::AdminFixtureConversionError::DisplayName(_))
+    ));
+}
+
+#[test]
+fn test_fixture_admin_role_name_conversion_preserves_domain_error_source() {
+    assert!(matches!(
+        fixture_domain_conversion_error::<server_admin_contract::admin_role_name::AdminRoleName>(),
+        Some(crate::admin_fixture_conversion_error::AdminFixtureConversionError::RoleName(_))
+    ));
+}
+
+#[test]
+fn test_fixture_admin_role_timestamp_conversion_preserves_domain_error_source() {
+    assert!(matches!(
+        fixture_domain_conversion_error::<
+            server_admin_contract::admin_role_timestamp::AdminRoleTimestamp,
+        >(),
+        Some(crate::admin_fixture_conversion_error::AdminFixtureConversionError::RoleTimestamp(_))
+    ));
+}
+
+#[test]
+fn test_fixture_admin_rule_value_conversion_preserves_domain_error_source() {
+    assert!(matches!(
+        fixture_domain_conversion_error::<server_admin_contract::admin_rule_value::AdminRuleValue>(
+        ),
+        Some(crate::admin_fixture_conversion_error::AdminFixtureConversionError::RuleValue(_))
+    ));
+}
+
+#[test]
+fn test_fixture_admin_session_identifier_conversion_preserves_domain_error_source() {
+    assert!(matches!(
+        fixture_domain_conversion_error::<
+            server_admin_contract::admin_session_identifier::AdminSessionIdentifier,
+        >(),
+        Some(
+            crate::admin_fixture_conversion_error::AdminFixtureConversionError::SessionIdentifier(
+                _
+            )
+        )
+    ));
+}
+
+#[test]
+fn test_fixture_admin_session_timestamp_conversion_preserves_domain_error_source() {
+    assert!(matches!(
+        fixture_domain_conversion_error::<
+            server_admin_contract::admin_session_timestamp::AdminSessionTimestamp,
+        >(),
+        Some(
+            crate::admin_fixture_conversion_error::AdminFixtureConversionError::SessionTimestamp(_)
+        )
+    ));
+}
+
+#[test]
+fn test_fixture_admin_text_conversion_preserves_domain_error_source() {
+    assert!(matches!(
+        fixture_domain_conversion_error::<server_admin_contract::admin_text::AdminText>(),
+        Some(crate::admin_fixture_conversion_error::AdminFixtureConversionError::Text(_))
+    ));
+}

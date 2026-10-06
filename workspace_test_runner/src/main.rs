@@ -170,10 +170,9 @@ fn main() {
                     match macro_helpers::validate_test_database_url::validate_test_database_url(
                         macro_helpers::url_ref::UrlRef::from(database_url.as_str()),
                     ) {
-                        Ok(_target) => run_commands(commands_ref::CommandsRef::from(&[(
-                            constants_str::WORKSPACE_TEST_RUNNER_CARGO,
-                            &constants_str::WORKSPACE_TEST_RUNNER_CARGO_TEST_DATABASE_ARGS[..],
-                        )])),
+                        Ok(_target) => run_commands(commands_ref::CommandsRef::from(
+                            &constants_str::WORKSPACE_TEST_RUNNER_DATABASE_COMMANDS,
+                        )),
                         Err(error) => {
                             macro_helpers::tool_console_stream::ToolConsoleStream::write_or_exit(macro_helpers::tool_console_stream::ToolConsoleStream::StandardError, macro_helpers::std_fmt_arguments::StdFmtArguments::from(format_args!("{}{}", format_args!("{}{}", constants_str::RUNNER_CLI_TEXT_E7B425B0, error), constants_str::NEWLINE)));
                             Err(())

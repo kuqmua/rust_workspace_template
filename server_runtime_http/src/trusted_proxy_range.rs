@@ -109,7 +109,14 @@ mod tests {
         assert!([String::new(), constants_str::X.to_owned(), 256u16.to_string(), '/'.to_string()]
             .into_iter().all(|prefix| {
                 let text = format!("{address}/{prefix}");
-                matches!(crate::trusted_proxy_range::TrustedProxyRange::try_from(text), Err(crate::trusted_proxy_range_parse_error::TrustedProxyRangeParseError::InvalidPrefix { .. }))
+                let expected = prefix.parse::<u8>().err().map(|error| error.to_string());
+                crate::trusted_proxy_range::TrustedProxyRange::try_from(text).is_err_and(|error| {
+                    matches!(error, crate::trusted_proxy_range_parse_error::TrustedProxyRangeParseError::InvalidPrefix { .. })
+                        && std::error::Error::source(&error).is_some_and(|source| {
+                            source.is::<crate::parse_int_error::ParseIntError>()
+                                && Some(source.to_string()) == expected
+                        })
+                })
             }));
         assert!([
             format!("{}/{}", std::net::Ipv4Addr::LOCALHOST, 33u8),
@@ -118,6 +125,17 @@ mod tests {
             matches!(crate::trusted_proxy_range::TrustedProxyRange::try_from(text), Err(crate::trusted_proxy_range_parse_error::TrustedProxyRangeParseError::PrefixExceedsAddressWidth))
         }));
         let invalid_address = format!("{}/{}", constants_str::X, 24u8);
-        assert!(matches!(crate::trusted_proxy_range::TrustedProxyRange::try_from(invalid_address), Err(crate::trusted_proxy_range_parse_error::TrustedProxyRangeParseError::InvalidAddress { .. })));
+        let expected = constants_str::X
+            .parse::<std::net::IpAddr>()
+            .err()
+            .map(|error| error.to_string());
+        assert!(crate::trusted_proxy_range::TrustedProxyRange::try_from(invalid_address)
+            .is_err_and(|error| {
+                matches!(error, crate::trusted_proxy_range_parse_error::TrustedProxyRangeParseError::InvalidAddress { .. })
+                    && std::error::Error::source(&error).is_some_and(|source| {
+                        source.is::<crate::client_addr_parse_error::ClientAddrParseError>()
+                            && Some(source.to_string()) == expected
+                    })
+            }));
     }
 }

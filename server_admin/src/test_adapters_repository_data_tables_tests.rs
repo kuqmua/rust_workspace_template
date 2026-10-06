@@ -708,6 +708,28 @@ fn test_every_read_table_filter_column_and_operation_builds_a_typed_predicate() 
 }
 
 #[test]
+fn test_admin_data_columns_without_generated_fields_preserve_plain_catalog_columns() {
+    let table = server_admin_contract::admin_data_table::AdminDataTable::Users;
+    assert!(
+        crate::admin_data_columns::admin_data_columns(table, None).is_ok_and(|columns| {
+            let names = table.spec().columns();
+            let expected_names = names.get().split(',').collect::<Vec<_>>();
+            assert_eq!(columns.as_slice().len(), expected_names.len());
+            columns
+                .as_slice()
+                .iter()
+                .zip(expected_names)
+                .all(|(column, expected_name)| {
+                    column.name().as_ref() == expected_name
+                        && column.label().as_ref() == expected_name
+                        && column.input_kind() == frontend_contract::input_kind::InputKind::Text
+                        && column.filters().is_empty()
+                })
+        })
+    );
+}
+
+#[test]
 fn test_generated_table_fields_supply_client_column_metadata() {
     let columns = (|| -> Result<
         server_admin_contract::admin_data_columns::AdminDataColumns,
@@ -759,6 +781,18 @@ fn test_generated_table_fields_supply_client_column_metadata() {
             .map_err(|_error| crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue)
     })()
     .expect(constants_str::DIAGNOSTIC_F3C897AF);
+    let table = server_admin_contract::admin_data_table::AdminDataTable::Users;
+    assert!(
+        crate::admin_data_columns::admin_data_columns(
+            table,
+            crate::admin_generated_table::AdminGeneratedTable::for_data_table(table),
+        )
+        .is_ok_and(|actual_columns| {
+            serde_json::to_value(actual_columns).is_ok_and(|actual| {
+                serde_json::to_value(&columns).is_ok_and(|expected| actual == expected)
+            })
+        })
+    );
     let id = columns
         .as_slice()
         .iter()

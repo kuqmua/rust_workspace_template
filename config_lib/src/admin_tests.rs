@@ -1,6 +1,54 @@
 #[cfg(test)]
 mod tests {
     #[test]
+    fn test_admin_boolean_environment_values_preserve_strict_parsing_and_errors() {
+        let parse_flags = |std_env_var_ok: crate::std_env_var_ok::StdEnvVarOk| {
+            [
+                <crate::admin_cookie_secure::AdminCookieSecure as crate::try_from_std_env_var_ok::TryFromStdEnvVarOk>::try_from_std_env_var_ok(std_env_var_ok.clone()).map(|admin_cookie_secure| *admin_cookie_secure),
+                <crate::admin_swagger_enabled::AdminSwaggerEnabled as crate::try_from_std_env_var_ok::TryFromStdEnvVarOk>::try_from_std_env_var_ok(std_env_var_ok).map(|admin_swagger_enabled| *admin_swagger_enabled),
+            ]
+        };
+        [
+            (constants_str::TRUE.to_owned(), Some(true)),
+            (constants_str::FALSE.to_owned(), Some(false)),
+            (constants_str::TRUE.to_ascii_uppercase(), None),
+            (
+                format!("{}{}", constants_str::SPACE, constants_str::TRUE),
+                None,
+            ),
+            (
+                format!("{}{}", constants_str::FALSE, constants_str::SPACE),
+                None,
+            ),
+            (constants_str::VALUE_1.to_owned(), None),
+            (constants_str::VALUE_0.to_owned(), None),
+            (constants_str::EMPTY.to_owned(), None),
+            (constants_str::X.to_owned(), None),
+        ]
+        .into_iter()
+        .fold((), |(), (text, expected)| {
+            assert!(
+                crate::std_env_var_ok::StdEnvVarOk::try_from(text.clone()).is_ok_and(
+                    |std_env_var_ok| {
+                        parse_flags(std_env_var_ok).into_iter().all(|result| {
+                            match (result, expected) {
+                                (Ok(actual), Some(expected_flag)) => actual == expected_flag,
+                                (Err(error), None) => {
+                                    text.parse::<bool>().err().is_some_and(|source| {
+                                        error.to_string() == source.to_string()
+                                            && format!("{error:?}") == format!("{source:?}")
+                                    })
+                                }
+                                (Ok(_), None) | (Err(_), Some(_)) => false,
+                            }
+                        })
+                    }
+                )
+            );
+        });
+    }
+
+    #[test]
     fn test_positive_values_and_token_text_preserve_validation() {
         let ttl = <crate::admin_access_token_ttl_seconds::AdminAccessTokenTtlSeconds as crate::try_from_std_env_var_ok::TryFromStdEnvVarOk>::try_from_std_env_var_ok(
             crate::std_env_var_ok::StdEnvVarOk::try_from(String::from(constants_str::VALUE_1)).expect(constants_str::DIAGNOSTIC_F39B6C2A),

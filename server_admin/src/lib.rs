@@ -348,6 +348,8 @@ pub mod test_adapters_repository_data_tables_tests;
 #[cfg(test)]
 pub mod test_adapters_repository_roles_tests;
 #[cfg(test)]
+mod test_admin_error_response_body;
+#[cfg(test)]
 pub mod test_admin_service_tests;
 #[cfg(test)]
 pub mod test_application_html_tests;
@@ -359,6 +361,14 @@ pub mod test_domain_types_generated_tables_tests;
 mod test_generated_data_table_view;
 #[cfg(test)]
 pub mod test_maintenance_tests;
+#[cfg(test)]
+mod test_opaque_token_clone;
+#[cfg(test)]
+mod test_openapi_operation_replacement;
+#[cfg(test)]
+mod test_route_method_router_behavior;
+#[cfg(test)]
+mod test_session_context_normalization;
 #[cfg(test)]
 pub mod test_shared_tests;
 #[cfg(test)]

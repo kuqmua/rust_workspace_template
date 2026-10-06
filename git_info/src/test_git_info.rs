@@ -113,6 +113,19 @@ fn expected_git_commit_link(commit_id_src: impl AsRef<str>) -> String {
 fn test_owned_git_values_and_generated_links_enforce_length_limit() {
     let oversized = constants_str::X
         .repeat(crate::git_info_string_max_len::GIT_INFO_STRING_MAX_LEN + constants_usize::ONE);
+    let expected =
+        crate::git_info_string_try_from_string_error::GitInfoStringTryFromStringError::TooLong {
+            len: oversized.len(),
+            max: crate::git_info_string_max_len::GIT_INFO_STRING_MAX_LEN,
+        };
+    assert_eq!(
+        crate::git_commit_id::GitCommitId::try_from(oversized.clone()),
+        Err(expected)
+    );
+    assert_eq!(
+        crate::git_commit_link::GitCommitLink::try_from(oversized.clone()),
+        Err(expected)
+    );
     let Err(_commit_id_error) = crate::git_commit_id_cow::GitCommitIdCow::try_from(
         std::borrow::Cow::Owned(oversized.clone()),
     ) else {
@@ -525,4 +538,60 @@ fn test_commit_link_length_boundary_returns_original_length_error() {
             Err(crate::git_info_string_try_from_string_error::GitInfoStringTryFromStringError::TooLong {len, max}) => length > maximum_commit && len == length + crate::base_git_commit_link_len::BASE_GIT_COMMIT_LINK_LEN && max == crate::git_info_string_max_len::GIT_INFO_STRING_MAX_LEN,
         }
     }));
+}
+
+#[test]
+fn test_git_length_error_fallbacks_preserve_diagnostic_text_and_owned_storage() {
+    let error =
+        crate::git_info_string_try_from_string_error::GitInfoStringTryFromStringError::TooLong {
+            len: 7usize,
+            max: 3usize,
+        };
+    assert_eq!(
+        error.to_string(),
+        constants_str::TEST_GIT_STRING_LENGTH_ERROR
+    );
+    let commit = crate::git_commit_id::GitCommitId::from(error);
+    let link = crate::git_commit_link::GitCommitLink::from(error);
+    assert_eq!(commit.as_ref(), constants_str::TEST_GIT_STRING_LENGTH_ERROR);
+    assert_eq!(link.as_ref(), constants_str::TEST_GIT_STRING_LENGTH_ERROR);
+    [
+        std::borrow::Cow::from(crate::git_commit_id_cow::GitCommitIdCow::from(error)),
+        std::borrow::Cow::from(crate::git_commit_link_cow::GitCommitLinkCow::from(error)),
+    ]
+    .into_iter()
+    .fold((), |(), fallback| {
+        assert!(matches!(fallback, std::borrow::Cow::Owned(text)
+            if text == constants_str::TEST_GIT_STRING_LENGTH_ERROR));
+    });
+}
+
+#[test]
+fn test_owned_commit_link_and_deserialization_enforce_byte_limit() {
+    let maximum = crate::git_info_string_max_len::GIT_INFO_STRING_MAX_LEN;
+    [
+        constants_str::EMPTY.to_owned(),
+        constants_str::X.repeat(maximum),
+        constants_str::X.repeat(maximum + constants_usize::ONE),
+        '\u{00e9}'.to_string().repeat(maximum),
+    ]
+    .into_iter()
+    .fold((), |(), text| {
+        let parsed = crate::git_commit_link_cow::GitCommitLinkCow::try_from(text.clone());
+        let deserializer = serde::de::value::StringDeserializer::<serde::de::value::Error>::new(text.clone());
+        let decoded = <crate::git_commit_link_cow::GitCommitLinkCow as serde::Deserialize>::deserialize(deserializer);
+        if text.len() <= maximum {
+            assert!(parsed.is_ok_and(|link| link.as_ref() == text
+                && matches!(std::borrow::Cow::from(link), std::borrow::Cow::Owned(value) if value == text)));
+            assert!(decoded.is_ok_and(|link| link.as_ref() == text
+                && matches!(std::borrow::Cow::from(link), std::borrow::Cow::Owned(value) if value == text)));
+        } else {
+            let expected = crate::git_info_string_try_from_string_error::GitInfoStringTryFromStringError::TooLong {
+                len: text.len(),
+                max: maximum,
+            };
+            assert_eq!(parsed, Err(expected));
+            assert!(decoded.is_err_and(|error| error.to_string().contains(expected.to_string().as_str())));
+        }
+    });
 }

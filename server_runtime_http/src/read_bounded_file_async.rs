@@ -43,6 +43,21 @@ pub async fn read_bounded_file_async(
 
 #[cfg(test)]
 mod tests {
+    #[cfg(target_os = "linux")]
+    #[tokio::test]
+    async fn test_async_bounded_reader_accepts_empty_input_with_zero_limit() {
+        assert!(
+            crate::read_bounded_file_async::read_bounded_file_async(
+                crate::runtime_path_ref::RuntimePathRef::from(std::path::Path::new(
+                    constants_str::TEST_EMPTY_DEVICE_PATH,
+                )),
+                crate::bounded_read_maximum_bytes::BoundedReadMaximumBytes::from(0usize),
+            )
+            .await
+            .is_ok_and(|bounded_bytes| bounded_bytes.into_inner().is_empty())
+        );
+    }
+
     #[tokio::test]
     async fn test_async_bounded_file_read_preserves_directory_and_invalid_parent_errors() {
         let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));

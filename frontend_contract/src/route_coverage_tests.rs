@@ -216,4 +216,51 @@ mod tests {
                 })
         }));
     }
+
+    #[test]
+    fn test_missing_route_test_category_matrix_ignores_evidence_order_and_duplicates() {
+        let capabilities = crate::route_test_capabilities::RouteTestCapabilities::new(
+            crate::route_database_usage::RouteDatabaseUsage::Database,
+            crate::route_json_body_usage::RouteJsonBodyUsage::JsonBody,
+            crate::route_response_kind::RouteResponseKind::Streaming,
+        );
+        let categories = [
+            (
+                1u8,
+                crate::route_test_category::RouteTestCategory::FixtureHook,
+            ),
+            (2u8, crate::route_test_category::RouteTestCategory::Metadata),
+            (
+                4u8,
+                crate::route_test_category::RouteTestCategory::DatabaseFixture,
+            ),
+            (
+                8u8,
+                crate::route_test_category::RouteTestCategory::JsonRoundTrip,
+            ),
+            (
+                16u8,
+                crate::route_test_category::RouteTestCategory::StreamingResponse,
+            ),
+        ];
+        (0u8..32u8).for_each(|mask| {
+            let mut available = categories
+                .iter()
+                .rev()
+                .filter(|(bit, _category)| mask & bit != 0u8)
+                .map(|(_bit, category)| *category)
+                .collect::<Vec<_>>();
+            available.extend_from_within(..);
+            let expected = categories
+                .iter()
+                .filter(|(bit, _category)| mask & bit == 0u8)
+                .map(|(_bit, category)| *category)
+                .collect::<Vec<_>>();
+            let missing = crate::missing_required_test_categories::missing_required_test_categories(
+                capabilities,
+                &available,
+            );
+            assert_eq!(missing.as_ref(), expected.as_slice());
+        });
+    }
 }

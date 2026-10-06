@@ -893,3 +893,40 @@ fn test_form_value_error_preserves_bounded_text_and_defaults_for_oversized_diagn
         crate::form_value_error::FormValueError::default()
     );
 }
+
+#[test]
+fn test_parameterized_route_path_preserves_exact_byte_limits_and_owned_content() {
+    assert!(
+        String::from(crate::parameterized_route_path::ParameterizedRoutePath::default()).is_empty()
+    );
+    assert!(
+        [
+            (String::new(), 'x'),
+            (constants_str::X.to_owned(), 'x'),
+            (constants_str::X.repeat(8_192usize), 'x'),
+            ('\u{00e9}'.to_string().repeat(4_096usize), '\u{00e9}'),
+        ]
+        .into_iter()
+        .all(|(input, character)| {
+            let length = input.len();
+            let pointer = input.as_ptr();
+            crate::parameterized_route_path::ParameterizedRoutePath::try_from(input).is_ok_and(
+                |parameterized_route_path| {
+                    let output = String::from(parameterized_route_path);
+                    output.len() == length
+                        && output.as_ptr() == pointer
+                        && output.chars().all(|value| value == character)
+                },
+            )
+        })
+    );
+    assert!([
+        constants_str::X.repeat(8_193usize),
+        '\u{00e9}'.to_string().repeat(4_097usize),
+    ]
+    .into_iter()
+    .all(|input| matches!(
+        crate::parameterized_route_path::ParameterizedRoutePath::try_from(input),
+        Err(crate::parameterized_route_path_try_from_string_error::ParameterizedRoutePathTryFromStringError::TooLong)
+    )));
+}

@@ -1,6 +1,34 @@
 #[cfg(test)]
 mod tests {
     #[test]
+    fn test_multipart_bytes_preserve_owned_payload_at_exact_limit_and_report_overflow() {
+        let maximum = constants_usize::VALUE_16_777_216;
+        [0usize, 1usize, maximum - 1usize, maximum]
+            .into_iter()
+            .fold((), |(), length| {
+                let input = (u8::MIN..=u8::MAX).cycle().take(length).collect::<Vec<_>>();
+                let pointer = input.as_ptr();
+                assert!(
+                    crate::multipart_bytes::MultipartBytes::try_from(input).is_ok_and(
+                        |multipart_bytes| multipart_bytes.as_ref().len() == length
+                            && multipart_bytes.as_ref().as_ptr() == pointer
+                            && multipart_bytes
+                                .as_ref()
+                                .iter()
+                                .copied()
+                                .eq((u8::MIN..=u8::MAX).cycle().take(length))
+                    )
+                );
+            });
+        assert_eq!(
+            crate::multipart_bytes::MultipartBytes::try_from(vec![0u8; maximum + 1usize]),
+            Err(crate::multipart_value_error::MultipartValueError::TooLong {
+                actual: crate::multipart_value_length::MultipartValueLength::from(maximum + 1usize)
+            })
+        );
+    }
+
+    #[test]
     fn test_multipart_name_length_errors_precede_content_errors() {
         assert!(['\0', '\n', '/', '\\'].into_iter().all(|character| {
             let field = character.to_string().repeat(257usize);
@@ -395,5 +423,47 @@ mod tests {
             )),
             Err(crate::multipart_value_error::MultipartValueError::PathComponent)
         );
+    }
+
+    #[test]
+    fn test_mixed_multipart_part_limit_precedes_payload_limit_for_both_part_kinds() {
+        let bytes_result = crate::multipart_bytes::MultipartBytes::try_from(Vec::new());
+        assert!(bytes_result.is_ok());
+        let Ok(bytes) = bytes_result else {
+            return;
+        };
+        let empty_bytes_part =
+            crate::multipart_bytes_part::MultipartBytesPart::new(field_name(), bytes);
+        let empty_text_part = text_part(constants_str::EMPTY);
+        let maximum = crate::multipart_payload_maximum::MultipartPayloadMaximum::from(0usize);
+        let full_result = (0usize..16usize).try_fold(
+            crate::multipart_upload_request::MultipartUploadRequest::new(),
+            |request, _index| {
+                let request_with_text = request.with_text_part(empty_text_part.clone(), maximum)?;
+                request_with_text.with_bytes_part(empty_bytes_part.clone(), maximum)
+            },
+        );
+        assert!(
+            full_result
+                .as_ref()
+                .is_ok_and(|request| request.text_parts().len() == 16usize
+                    && request.bytes_parts().len() == 16usize)
+        );
+        let Ok(full_request) = full_result else {
+            return;
+        };
+        assert_eq!(
+            full_request
+                .clone()
+                .with_text_part(text_part(constants_str::X), maximum),
+            Err(crate::multipart_request_error::MultipartRequestError::TooManyParts),
+        );
+        let nonempty_bytes = crate::multipart_bytes::MultipartBytes::try_from(vec![1u8]);
+        assert!(nonempty_bytes.is_ok_and(|multipart_bytes| {
+            full_request.with_bytes_part(
+                crate::multipart_bytes_part::MultipartBytesPart::new(field_name(), multipart_bytes),
+                maximum,
+            ) == Err(crate::multipart_request_error::MultipartRequestError::TooManyParts)
+        }));
     }
 }

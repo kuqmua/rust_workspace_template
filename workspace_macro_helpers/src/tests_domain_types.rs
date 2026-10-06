@@ -1,6 +1,148 @@
 #[cfg(test)]
 mod tests {
     #[test]
+    fn test_first_identifier_parser_preserves_nested_groups_and_outer_remainder() {
+        let transparent =
+            |proc_macro2_macro_tokens: crate::proc_macro2_macro_tokens::ProcMacro2MacroTokens| {
+                proc_macro2::TokenTree::Group(proc_macro2::Group::new(
+                    proc_macro2::Delimiter::None,
+                    proc_macro2_macro_tokens.into_inner(),
+                ))
+            };
+        let inner = transparent(quote::quote! { inner ignored }.into());
+        let middle = transparent(quote::quote! { #inner discarded }.into());
+        let outer = transparent(quote::quote! { #middle ignored }.into());
+        let empty_group = transparent(proc_macro2::TokenStream::new().into());
+        let unicode_name = '\u{00e9}'.to_string();
+        let unicode_identifier =
+            proc_macro2::Ident::new(unicode_name.as_str(), proc_macro2::Span::call_site());
+        let oversized_name =
+            constants_str::X.repeat(crate::first_ident_max_len::FIRST_IDENT_MAX_LEN + 1usize);
+        let oversized_identifier =
+            proc_macro2::Ident::new(oversized_name.as_str(), proc_macro2::Span::call_site());
+        [
+            (quote::quote! { #oversized_identifier }, None),
+            (
+                quote::quote! { #unicode_identifier },
+                Some(unicode_name.as_str()),
+            ),
+            (quote::quote! { value }, Some(stringify!(value))),
+            (quote::quote! { r#type }, Some(stringify!(r#type))),
+            (quote::quote! { #outer }, Some(stringify!(inner))),
+            (quote::quote! { #empty_group }, None),
+            (quote::quote! { (value) }, None),
+            (quote::quote! { [value] }, None),
+            (quote::quote! { { value } }, None),
+            (quote::quote! { + }, None),
+            (quote::quote! { 1 }, None),
+        ]
+        .into_iter()
+        .fold((), |(), (first, expected)| {
+            let mut tokens = quote::quote! { #first following }.into_iter();
+            assert_eq!(
+                crate::parse_first_identifier::parse_first_identifier(&mut tokens)
+                    .map(|first_identifier| first_identifier.to_string()),
+                expected.map(str::to_owned)
+            );
+            assert_eq!(
+                crate::parse_first_identifier::parse_first_identifier(&mut tokens)
+                    .map(|first_identifier| first_identifier.to_string()),
+                Some(stringify!(following).to_owned())
+            );
+            assert!(crate::parse_first_identifier::parse_first_identifier(&mut tokens).is_none());
+        });
+        let mut empty = proc_macro2::TokenStream::new().into_iter();
+        assert!(crate::parse_first_identifier::parse_first_identifier(&mut empty).is_none());
+    }
+
+    #[test]
+    fn test_indexed_identifier_selection_preserves_parts_and_out_of_range_results() {
+        let parts =
+            crate::proc_macro2_top_level_comma_parts::ProcMacro2TopLevelCommaParts::try_from(vec![
+                quote::quote! { first trailing },
+                proc_macro2::TokenStream::new(),
+                quote::quote! { + rejected },
+                quote::quote! { r#type },
+            ]);
+        assert!(parts.is_ok());
+        if let Ok(proc_macro2_top_level_comma_parts) = parts {
+            let original = proc_macro2_top_level_comma_parts
+                .iter()
+                .map(ToString::to_string)
+                .collect::<Vec<_>>();
+            [
+                Some(stringify!(first)),
+                None,
+                None,
+                Some(stringify!(r#type)),
+                None,
+            ]
+            .into_iter()
+            .enumerate()
+            .fold((), |(), (index, expected)| {
+                let part_index = crate::part_index::PartIndex::from(index);
+                assert_eq!(
+                    crate::first_identifier_at::first_identifier_at(
+                        &proc_macro2_top_level_comma_parts,
+                        part_index
+                    )
+                    .map(|first_identifier| first_identifier.to_string()),
+                    expected.map(str::to_owned)
+                );
+                assert_eq!(
+                    crate::part_at::part_at(&proc_macro2_top_level_comma_parts, part_index)
+                        .is_some(),
+                    index < original.len()
+                );
+            });
+            assert!(
+                proc_macro2_top_level_comma_parts
+                    .iter()
+                    .map(ToString::to_string)
+                    .eq(original)
+            );
+        }
+    }
+
+    #[test]
+    fn test_first_identifier_text_byte_limits_preserve_content_and_error_fallback() {
+        let maximum = crate::first_ident_max_len::FIRST_IDENT_MAX_LEN;
+        [
+            constants_str::EMPTY,
+            stringify!(r#type),
+            constants_str::NON_ASCII_U_E9,
+            constants_str::TEST_TEXT_WITH_NUL,
+        ]
+        .into_iter()
+        .fold((), |(), text| {
+            assert!(
+                crate::first_identifier::FirstIdentifier::try_from(text.to_owned())
+                    .is_ok_and(|first_identifier| first_identifier.to_string() == text)
+            );
+        });
+        let mut exact = constants_str::X.repeat(maximum - '\u{00e9}'.len_utf8());
+        exact.push('\u{00e9}');
+        assert!(
+            crate::first_identifier::FirstIdentifier::try_from(exact).is_ok_and(
+                |first_identifier| {
+                    let output = first_identifier.to_string();
+                    output.len() == maximum && output.ends_with('\u{00e9}')
+                }
+            )
+        );
+        let oversized_length = maximum + '\u{00e9}'.len_utf8();
+        let mut oversized = constants_str::X.repeat(maximum);
+        oversized.push('\u{00e9}');
+        let observed_length = oversized_length.to_string();
+        let expected_maximum = maximum.to_string();
+        assert!(crate::first_identifier::FirstIdentifier::try_from(oversized).is_err_and(|error| {
+            error == crate::first_identifierifier_try_from_string_error::FirstIdentifierifierTryFromStringError::from(oversized_length)
+                && error.to_string().split_ascii_whitespace().eq([stringify!(first), stringify!(identifier), stringify!(length), observed_length.as_str(), stringify!(exceeds), stringify!(maximum), expected_maximum.as_str()])
+                && crate::first_identifier::FirstIdentifier::from(error).to_string() == error.to_string()
+        }));
+    }
+
+    #[test]
     fn test_comma_parts_constructor_enforces_exact_collection_limit() {
         let validate = |part_index: crate::part_index::PartIndex| {
             crate::proc_macro2_top_level_comma_parts::ProcMacro2TopLevelCommaParts::try_from(
@@ -163,16 +305,39 @@ mod tests {
         );
         assert!(matches!(
             crate::syn_struct_shape_ref::SynStructShapeRef::try_from(&named),
-            Ok(crate::syn_struct_shape_ref::SynStructShapeRef::Named(_))
+            Ok(crate::syn_struct_shape_ref::SynStructShapeRef::Named(view))
+            if matches!(&named.data, syn::Data::Struct(data)
+                if matches!(&data.fields, syn::Fields::Named(fields)
+                    if std::ptr::eq(view.get(), fields)
+                        && std::ptr::eq(&raw const *view, fields)
+                        && view.named.len() == 1usize
+                        && view.named.first().and_then(|field| field.ident.as_ref()).is_some_and(|identifier| identifier == stringify!(value))))
         ));
         assert!(matches!(
             crate::syn_struct_shape_ref::SynStructShapeRef::try_from(&tuple),
-            Ok(crate::syn_struct_shape_ref::SynStructShapeRef::Tuple(_))
+            Ok(crate::syn_struct_shape_ref::SynStructShapeRef::Tuple(view))
+            if matches!(&tuple.data, syn::Data::Struct(data)
+                if matches!(&data.fields, syn::Fields::Unnamed(fields)
+                    if std::ptr::eq(view.get(), fields)
+                        && std::ptr::eq(&raw const *view, fields)
+                        && view.unnamed.len() == 1usize
+                        && view.unnamed.first().is_some_and(|field| field.ident.is_none())))
         ));
         assert!(matches!(
             crate::syn_struct_shape_ref::SynStructShapeRef::try_from(&unit),
             Ok(crate::syn_struct_shape_ref::SynStructShapeRef::Unit)
         ));
+        [
+            syn::parse_quote! { enum ShapeRejectionFixture { Value } },
+            syn::parse_quote! { union ShapeUnionRejectionFixture { value: u8 } },
+        ]
+        .into_iter()
+        .fold((), |(), derive_input| {
+            assert!(
+                crate::syn_struct_shape_ref::SynStructShapeRef::try_from(&derive_input)
+                    .is_err_and(|error| error.to_string() == constants_str::EXPECTED_A_STRUCT)
+            );
+        });
     }
     #[test]
     fn test_split_top_level_commas_keeps_generic_type_commas_inside_part() {

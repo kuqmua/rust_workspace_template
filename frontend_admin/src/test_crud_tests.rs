@@ -35,7 +35,7 @@ fn test_crud() {
         server_admin_contract::admin_user_summaries::AdminUserSummaries::try_from(vec![
             server_admin_contract::admin_user_summary::AdminUserSummary::new(
                 server_admin_contract::admin_display_name::AdminDisplayName::try_from(
-                    String::from(constants_str::VALUE_4A66448F),
+                    String::from(constants_str::ADMIN_DOCUMENT_UNSAFE_TITLE_FIXTURE),
                 )
                 .expect(constants_str::VALUE_7AB6D7B3),
                 server_admin_contract::admin_user_id::AdminUserId::try_from(2i64)
@@ -77,6 +77,32 @@ fn test_crud() {
         &admin,
         &branding,
     );
+    let false_cell =
+        constants_str::VALUE_AB48587B.replace(constants_str::TRUE, constants_str::FALSE);
+    assert!(
+        constants_str::ADMIN_DOCUMENT_ESCAPED_TITLE_FIXTURE
+            .split_once('>')
+            .and_then(|(_, content)| content.rsplit_once('<'))
+            .is_some_and(|(escaped, _)| {
+                users_html.as_ref().contains(
+                    constants_str::VALUE_AB48587B
+                        .replace(constants_str::TRUE, escaped)
+                        .as_str(),
+                )
+            })
+    );
+    assert!(
+        !users_html
+            .as_ref()
+            .contains(constants_str::ADMIN_DOCUMENT_UNSAFE_TITLE_FIXTURE)
+    );
+    assert!(
+        !users_html
+            .as_ref()
+            .contains(constants_str::ADMIN_DOCUMENT_UNSAFE_SCRIPT_TAG)
+    );
+    assert!(users_html.as_ref().contains(false_cell.as_str()));
+    assert!(!users_html.as_ref().contains(constants_str::VALUE_AB48587B));
     assert!(!users_html.as_ref().contains(
         server_admin_contract::admin_frontend_path::AdminFrontendPath::UsersCreate.get()
     ));
@@ -92,6 +118,8 @@ fn test_crud() {
         &admin,
         &branding,
     );
+    assert!(roles_html.as_ref().contains(false_cell.as_str()));
+    assert!(!roles_html.as_ref().contains(constants_str::VALUE_AB48587B));
     assert!(!roles_html.as_ref().contains(
         server_admin_contract::admin_frontend_path::AdminFrontendPath::RolesCreate.get()
     ));

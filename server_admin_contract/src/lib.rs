@@ -331,7 +331,11 @@ mod test_migrated_query_contract;
 pub mod admin_path_uses_table_query;
 
 #[cfg(test)]
+mod test_admin_identity_wire;
+#[cfg(test)]
 mod test_admin_where_many_failures;
+#[cfg(test)]
+mod test_bounded_admin_text_wire;
 
 #[cfg(test)]
 mod test_admin_role_timestamp_wire;

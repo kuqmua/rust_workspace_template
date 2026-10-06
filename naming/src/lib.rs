@@ -7,3 +7,8 @@ pub mod parameter;
 pub mod swagger_url_path_prefix;
 pub mod swagger_url_path_self_quotes_str;
 pub mod swagger_url_path_self_quotes_token_stream;
+#[cfg(test)]
+mod test_swagger_path_token_error;
+
+#[cfg(test)]
+mod test_hash_map_naming;

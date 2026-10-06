@@ -290,6 +290,73 @@ fn test_btree_map_replacement_is_allowed_at_capacity() {
 }
 
 #[test]
+fn test_hash_map_borrowed_iteration_preserves_keys_and_mutates_every_value() {
+    let original = std::collections::HashMap::from([(1u8, 10u8), (2u8, 20u8), (3u8, 30u8)]);
+    let result = crate::bounded_hash_map::BoundedHashMap::<u8, u8, 3>::try_from(original);
+    assert!(result.is_ok());
+    let Ok(mut values) = result else {
+        return;
+    };
+    assert_eq!(values.len().get(), 3usize);
+    assert_eq!(values.iter().count(), 3usize);
+    assert_eq!((&values).into_iter().count(), 3usize);
+    assert!(values.iter().all(|(key, value)| *value == *key * 10u8));
+    assert!(
+        (&values)
+            .into_iter()
+            .all(|(key, value)| *value == *key * 10u8)
+    );
+    assert!(values.iter_mut().all(|(key, value)| {
+        *value += *key;
+        *value == *key * 11u8
+    }));
+    assert!((&mut values).into_iter().all(|(key, value)| {
+        *value += *key;
+        *value == *key * 12u8
+    }));
+    assert_eq!(
+        values.as_map(),
+        &std::collections::HashMap::from([(1u8, 12u8), (2u8, 24u8), (3u8, 36u8)])
+    );
+    assert_eq!(values.get(&4u8), None);
+    assert_eq!(values.get_mut(&4u8), None);
+    assert_eq!(values.remove(&4u8), None);
+    assert_eq!(
+        values.try_insert(4u8, 48u8),
+        Err(crate::bounded_value_error::BoundedValueError::AboveMax {
+            actual: crate::bounded_len::BoundedLen::from(4usize),
+            max: crate::bounded_len::BoundedLen::from(3usize),
+        })
+    );
+    assert_eq!(values.len().get(), 3usize);
+    assert_eq!(
+        values.into_inner(),
+        std::collections::HashMap::from([(1u8, 12u8), (2u8, 24u8), (3u8, 36u8)])
+    );
+}
+
+#[test]
+fn test_zero_capacity_hash_map_rejects_insertion_and_keeps_all_views_empty() {
+    let mut values = crate::bounded_hash_map::BoundedHashMap::<u8, u8, 0>::from([]);
+    assert_eq!(
+        values.try_insert(1u8, 2u8),
+        Err(crate::bounded_value_error::BoundedValueError::AboveMax {
+            actual: crate::bounded_len::BoundedLen::from(1usize),
+            max: crate::bounded_len::BoundedLen::from(0usize),
+        })
+    );
+    assert_eq!(values.get(&1u8), None);
+    assert_eq!(values.get_mut(&1u8), None);
+    assert_eq!(values.remove(&1u8), None);
+    assert_eq!(values.len().get(), 0usize);
+    assert!(values.as_map().is_empty());
+    assert_eq!(values.iter().count(), 0usize);
+    assert_eq!(values.iter_mut().count(), 0usize);
+    assert_eq!((&values).into_iter().count(), 0usize);
+    assert_eq!((&mut values).into_iter().count(), 0usize);
+}
+
+#[test]
 fn test_hash_map_capacity_mutation_and_removal_are_enforced() {
     let mut values = crate::bounded_hash_map::BoundedHashMap::<u8, u8, 1>::default();
     assert_eq!(
@@ -987,4 +1054,29 @@ fn test_bounded_string_deref_and_non_string_deserialization_preserve_contracts()
     .map(|error| error.to_string());
     assert!(expected.is_some());
     assert_eq!(actual, expected);
+}
+
+#[test]
+fn test_bounded_maps_reject_scalar_deserialization_with_map_expectation() {
+    [false, true].into_iter().fold((), |(), text_input| {
+        let input = || {
+            if text_input {
+                TestDeserializerValue::Text(constants_str::UNKNOWN)
+            } else {
+                TestDeserializerValue::Number(1u8)
+            }
+        };
+        let unexpected = if text_input {
+            serde::de::Unexpected::Str(constants_str::UNKNOWN)
+        } else {
+            serde::de::Unexpected::Unsigned(1u64)
+        };
+        let visitor = crate::bounded_b_tree_map_visitor_phantom_data::BoundedBTreeMapVisitorPhantomData::<u8, u8, 2>::from(std::marker::PhantomData);
+        let expected = <serde::de::value::Error as serde::de::Error>::invalid_type(unexpected, &visitor).to_string();
+        assert!(expected.contains(&2usize.to_string()));
+        let tree = <crate::bounded_b_tree_map::BoundedBTreeMap<u8, u8, 2> as serde::Deserialize>::deserialize(input());
+        let hash = <crate::bounded_hash_map::BoundedHashMap<u8, u8, 2> as serde::Deserialize>::deserialize(input());
+        assert!(tree.is_err_and(|error| error.to_string() == expected));
+        assert!(hash.is_err_and(|error| error.to_string() == expected));
+    });
 }

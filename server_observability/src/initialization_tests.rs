@@ -64,4 +64,31 @@ mod tests {
         drop(guard);
         assert!(exporter.is_shutdown_called());
     }
+
+    #[test]
+    fn test_guard_handles_already_shutdown_provider_on_shutdown_and_drop() {
+        [false, true].into_iter().fold((), |(), drop_guard| {
+            let exporter = opentelemetry_sdk::trace::InMemorySpanExporterBuilder::new().build();
+            let tracer_provider = opentelemetry_sdk::trace::SdkTracerProvider::builder()
+                .with_simple_exporter(exporter.clone())
+                .build();
+            tracer_provider
+                .shutdown()
+                .expect(constants_str::DIAGNOSTIC_67AA7433);
+            let guard = crate::observability_guard::ObservabilityGuard::from(Some(
+                crate::opentelemetry_sdk_tracer_provider::OpentelemetrySdkTracerProvider::from(
+                    tracer_provider,
+                ),
+            ));
+            if drop_guard {
+                drop(guard);
+            } else {
+                let expected_error = crate::opentelemetry_sdk_observability_shutdown_error::OpentelemetrySdkObservabilityShutdownError::from(
+                    opentelemetry_sdk::error::OTelSdkError::AlreadyShutdown,
+                );
+                assert!(guard.shutdown().is_err_and(|error| error.to_string() == expected_error.to_string()));
+            }
+            assert!(exporter.is_shutdown_called());
+        });
+    }
 }

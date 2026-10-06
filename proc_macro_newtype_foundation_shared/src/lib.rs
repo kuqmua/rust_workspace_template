@@ -136,3 +136,6 @@ pub fn foundation_to_tokens(token_stream: proc_macro2::TokenStream) -> proc_macr
     })()
     .unwrap_or_else(syn::Error::into_compile_error)
 }
+
+#[cfg(test)]
+mod test_foundation_diagnostics;

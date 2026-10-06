@@ -1,4 +1,24 @@
 #[test]
+fn test_equality_operator_preserves_distinct_sql_fragments() {
+    [
+        (
+            crate::eq_operator::EqOperator::Eq,
+            constants_str::PG_CRUD_EQUALITY_SQL_OPERATOR,
+        ),
+        (
+            crate::eq_operator::EqOperator::IsNull,
+            constants_str::IS_NULL,
+        ),
+    ]
+    .into_iter()
+    .fold((), |(), (eq_operator, expected)| {
+        let query = eq_operator.to_query_str();
+        assert_eq!(query.as_ref(), expected);
+        assert_eq!(query.to_string(), expected);
+    });
+}
+
+#[test]
 fn test_to_query_part_includes_operator_when_requested() {
     assert_eq!(
         crate::operator::Operator::And

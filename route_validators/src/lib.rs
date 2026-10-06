@@ -104,6 +104,8 @@ pub mod test_poll_count;
 #[cfg(test)]
 pub mod test_poll_limit_reached;
 #[cfg(test)]
+mod test_result_expectation_failures;
+#[cfg(test)]
 pub mod validate_commit_header;
 #[cfg(test)]
 pub mod validate_commit_header_value;

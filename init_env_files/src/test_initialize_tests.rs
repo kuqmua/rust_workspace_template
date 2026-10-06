@@ -131,3 +131,153 @@ fn test_non_string_workspace_member_is_rejected() {
         Err(crate::initialize_error::InitializeError::InvalidMemberType)
     ));
 }
+
+#[test]
+fn test_environment_key_preserves_byte_limits_and_owned_storage() {
+    assert!(
+        [
+            constants_str::X.to_owned(),
+            constants_str::X.repeat(1_024usize),
+            '\u{00e9}'.to_string().repeat(512usize),
+        ]
+        .into_iter()
+        .all(|input| {
+            let length = input.len();
+            let pointer = input.as_ptr();
+            crate::env_key::EnvKey::try_from(input).is_ok_and(|env_key| {
+                env_key.as_ref().len() == length && env_key.as_ref().as_ptr() == pointer
+            })
+        })
+    );
+    assert!(
+        [
+            String::new(),
+            constants_str::X.repeat(1_025usize),
+            '\u{00e9}'.to_string().repeat(513usize),
+        ]
+        .into_iter()
+        .all(|input| matches!(
+            crate::env_key::EnvKey::try_from(input),
+            Err(crate::init_string_error::InitStringError::Invalid)
+        ))
+    );
+}
+
+#[test]
+fn test_environment_key_parser_filters_lines_preserves_order_and_propagates_errors() {
+    let parser_input = [
+        ' ', 'x', ' ', '=', '1', '=', '2', '\n', '#', 'x', '=', '3', '\n', 'a', '\n', 'x', '=',
+        '4', '\n', '\t', 'y', '=', '5', '\n', ' ', '\n',
+    ]
+    .into_iter()
+    .collect::<String>();
+    assert!(
+        crate::environment_keys::environment_keys(crate::env_content_ref::EnvContentRef::from(
+            parser_input.as_str()
+        ))
+        .is_ok_and(|env_keys| {
+            let keys = env_keys.as_ref().as_slice();
+            keys.len() == 3usize
+                && keys
+                    .iter()
+                    .zip(['x', 'x', 'y'])
+                    .all(|(env_key, expected)| env_key.as_ref().chars().eq([expected]))
+        })
+    );
+    assert!(
+        crate::environment_keys::environment_keys(crate::env_content_ref::EnvContentRef::from(
+            constants_str::EMPTY
+        ))
+        .is_ok_and(|env_keys| env_keys.as_ref().is_empty())
+    );
+    let mut oversized_key = constants_str::X.repeat(1_025usize);
+    oversized_key.push('=');
+    assert!(
+        [
+            [' ', '=', 'x'].into_iter().collect::<String>(),
+            oversized_key,
+        ]
+        .into_iter()
+        .all(|input| matches!(
+            crate::environment_keys::environment_keys(crate::env_content_ref::EnvContentRef::from(
+                input.as_str()
+            )),
+            Err(crate::init_string_error::InitStringError::Invalid)
+        ))
+    );
+}
+
+#[test]
+fn test_workspace_member_text_and_toml_path_boundaries() {
+    assert!(
+        [
+            constants_str::SERVICE.to_owned(),
+            constants_str::X.repeat(4_096usize),
+            '\u{00e9}'.to_string().repeat(2_048usize),
+        ]
+        .into_iter()
+        .all(|input| {
+            let length = input.len();
+            let pointer = input.as_ptr();
+            crate::workspace_member::WorkspaceMember::try_from(input).is_ok_and(
+                |workspace_member| {
+                    workspace_member.as_ref().len() == length
+                        && workspace_member.as_ref().as_ptr() == pointer
+                },
+            )
+        })
+    );
+    assert!(
+        [
+            String::new(),
+            constants_str::X.repeat(4_097usize),
+            '\u{00e9}'.to_string().repeat(2_049usize),
+        ]
+        .into_iter()
+        .all(|input| {
+            let value = toml::Value::String(input);
+            matches!(
+                crate::workspace_member::WorkspaceMember::try_from(
+                    crate::toml_member_value::TomlMemberValue::from(&value)
+                ),
+                Err(crate::initialize_error::InitializeError::String(
+                    crate::init_string_error::InitStringError::Invalid
+                ))
+            )
+        })
+    );
+    assert!(
+        [
+            constants_str::SLASH.to_owned(),
+            constants_str::TEST_PATH_TRAVERSAL.to_owned(),
+            '.'.to_string(),
+        ]
+        .into_iter()
+        .all(|input| {
+            let value = toml::Value::String(input);
+            matches!(
+                crate::workspace_member::WorkspaceMember::try_from(
+                    crate::toml_member_value::TomlMemberValue::from(&value)
+                ),
+                Err(crate::initialize_error::InitializeError::InvalidMember { .. })
+            )
+        })
+    );
+    let nested = [
+        constants_str::SERVICE,
+        constants_str::SLASH,
+        constants_str::X,
+    ]
+    .concat();
+    let value = toml::Value::String(nested);
+    assert!(
+        crate::workspace_member::WorkspaceMember::try_from(
+            crate::toml_member_value::TomlMemberValue::from(&value)
+        )
+        .is_ok_and(|workspace_member| {
+            value
+                .as_str()
+                .is_some_and(|text| workspace_member.as_ref() == text)
+        })
+    );
+}

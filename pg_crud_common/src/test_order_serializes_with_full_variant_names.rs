@@ -1,4 +1,16 @@
 #[test]
+fn test_order_default_helpers_preserve_ascending_variant() {
+    assert_eq!(
+        crate::order::Order::default(),
+        crate::order::Order::Ascending
+    );
+    assert_eq!(
+        <crate::order::Order as crate::default_some_one_element::DefaultSomeOneElement>::default_some_one_element(),
+        crate::order::Order::Ascending,
+    );
+}
+
+#[test]
 fn test_order_deserialization_and_parsing_use_full_variant_names() {
     assert!([
         (crate::order::Order::Ascending, stringify!(ascending), stringify!(Asc)),

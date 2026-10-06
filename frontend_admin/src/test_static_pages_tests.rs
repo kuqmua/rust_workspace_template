@@ -142,6 +142,24 @@ fn test_static_pages() {
     let mixed_roles_html =
         crate::render_roles::render_roles(&mixed_roles, &query, &update_admin, &branding);
     assert_eq!(
+        mixed_roles_html
+            .as_ref()
+            .matches(constants_str::VALUE_AB48587B)
+            .count(),
+        constants_usize::ONE
+    );
+    assert_eq!(
+        mixed_roles_html
+            .as_ref()
+            .matches(
+                constants_str::VALUE_AB48587B
+                    .replace(constants_str::TRUE, constants_str::FALSE)
+                    .as_str()
+            )
+            .count(),
+        constants_usize::ONE
+    );
+    assert_eq!(
         mixed_roles_html.as_ref().matches(path.as_ref()).count(),
         constants_usize::TWO
     );

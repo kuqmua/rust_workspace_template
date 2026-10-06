@@ -140,43 +140,66 @@ mod tests {
     #[tokio::test]
     #[ignore = "requires head executable on PATH; run in a provisioned process environment"]
     async fn test_dropping_child_supervisor_closes_pending_child_output() {
-        let child_result = tokio::process::Command::new(constants_str::HEAD)
-            .stdin(std::process::Stdio::piped())
-            .stdout(std::process::Stdio::piped())
-            .stderr(std::process::Stdio::piped())
-            .spawn();
-        assert!(child_result.is_ok());
-        let Ok(mut child) = child_result else {
-            return;
-        };
-        let stdin = child.stdin.take();
-        let stdout_option = child.stdout.take();
-        let supervisor = server_runtime_http::child_process_supervisor::ChildProcessSupervisor::new(
+        let check_drop = async |request_timeout_duration: Option<
+            server_runtime_http::request_timeout_duration::RequestTimeoutDuration,
+        >| {
+            let child_result = tokio::process::Command::new(constants_str::HEAD)
+                .stdin(std::process::Stdio::piped())
+                .stdout(std::process::Stdio::piped())
+                .stderr(std::process::Stdio::piped())
+                .spawn();
+            assert!(child_result.is_ok());
+            let Ok(mut child) = child_result else {
+                return;
+            };
+            let stdin = child.stdin.take();
+            let stdout_option = child.stdout.take();
+            let supervisor = server_runtime_http::child_process_supervisor::ChildProcessSupervisor::new(
             server_runtime_http::tokio_child_process::TokioChildProcess::from(child),
             server_runtime_http::child_diagnostic_maximum_non_zero_usize::ChildDiagnosticMaximumNonZeroUsize::from(std::num::NonZeroUsize::MIN),
         );
-        assert!(stdin.is_some());
-        assert!(stdout_option.is_some());
-        let Some(mut stdout) = stdout_option else {
-            return;
+            assert!(stdin.is_some());
+            assert!(stdout_option.is_some());
+            let Some(mut stdout) = stdout_option else {
+                return;
+            };
+            if let Some(timeout) = request_timeout_duration {
+                let mut shutdown = Box::pin(supervisor.shutdown(timeout));
+                let pending = std::future::poll_fn(|context| {
+                    std::task::Poll::Ready(shutdown.as_mut().poll(context).is_pending())
+                })
+                .await;
+                assert!(pending);
+                drop(shutdown);
+            } else {
+                drop(supervisor);
+            }
+            let mut buffer = [0u8; 1usize];
+            let read_result = tokio::time::timeout(
+                std::time::Duration::from_secs(60u64),
+                tokio::io::AsyncReadExt::read(&mut stdout, &mut buffer),
+            )
+            .await;
+            drop(stdin);
+            assert!(read_result.is_ok());
+            let Ok(completed_read) = read_result else {
+                return;
+            };
+            assert!(completed_read.is_ok());
+            let Ok(read) = completed_read else {
+                return;
+            };
+            assert_eq!(read, 0usize);
         };
-        drop(supervisor);
-        let mut buffer = [0u8; 1usize];
-        let read_result = tokio::time::timeout(
-            std::time::Duration::from_secs(60u64),
-            tokio::io::AsyncReadExt::read(&mut stdout, &mut buffer),
-        )
-        .await;
-        drop(stdin);
-        assert!(read_result.is_ok());
-        let Ok(completed_read) = read_result else {
-            return;
-        };
-        assert!(completed_read.is_ok());
-        let Ok(read) = completed_read else {
-            return;
-        };
-        assert_eq!(read, 0usize);
+        check_drop(None).await;
+        let timeout_result =
+            server_runtime_http::request_timeout_duration::RequestTimeoutDuration::try_from(
+                std::time::Duration::from_secs(60u64),
+            );
+        assert_ne!(timeout_result, Err(server_runtime_http::std_request_timeout_try_from_duration_error::StdRequestTimeoutTryFromDurationError::Zero));
+        if let Ok(timeout) = timeout_result {
+            check_drop(Some(timeout)).await;
+        }
     }
     #[tokio::test]
     #[ignore = "requires true and false executables on PATH; run in a provisioned process environment"]

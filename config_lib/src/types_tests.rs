@@ -37,11 +37,27 @@ mod tests {
             crate::config_lib_string_wrapper_max_len::CONFIG_LIB_STRING_WRAPPER_MAX_LEN
                 .saturating_add(constants_usize::ONE),
         );
-        let Err(_error) =
-            crate::env_var_result_var_error::EnvVarResultVarError::try_from(Ok(value))
+        let Err(error) = crate::env_var_result_var_error::EnvVarResultVarError::try_from(Ok(value))
         else {
             std::panic::panic_any(constants_str::PANIC_3EE39BCB);
         };
+        assert_eq!(
+            error,
+            crate::config_lib_string_wrapper_try_from_string_error::ConfigLibStringWrapperTryFromStringError::TooLong {
+                len: crate::config_lib_string_wrapper_max_len::CONFIG_LIB_STRING_WRAPPER_MAX_LEN
+                    .saturating_add(constants_usize::ONE),
+                max: crate::config_lib_string_wrapper_max_len::CONFIG_LIB_STRING_WRAPPER_MAX_LEN,
+            }
+        );
+        let env_parse_error = crate::env_parse_error::EnvParseError::from(error);
+        assert!(std::error::Error::source(&env_parse_error).is_some_and(|source| {
+            source.downcast_ref::<crate::config_lib_string_wrapper_try_from_string_error::ConfigLibStringWrapperTryFromStringError>()
+                == Some(&error)
+        }));
+        assert!(matches!(
+            env_parse_error,
+            crate::env_parse_error::EnvParseError::ValueTooLong { source } if source == error
+        ));
     }
     fn assert_parse_display_roundtrip_variants<T>()
     where
@@ -180,6 +196,43 @@ mod tests {
             |v| Ok(v.as_ref().to_owned()),
         );
         assert_eq!(parsed, Ok(String::from(constants_str::SRC_ALT)));
+    }
+    #[test]
+    fn test_environment_read_errors_preserve_source_and_skip_parser() {
+        [
+            std::env::VarError::NotPresent,
+            std::env::VarError::NotUnicode(std::ffi::OsString::from(constants_str::BAD)),
+        ]
+        .into_iter()
+        .fold((), |(), var_error| {
+            let expected_diagnostic = var_error.to_string();
+            let parser_invoked = std::cell::Cell::new(false);
+            let parsed = crate::parse_from_env_var_with_tests::parse_from_env_var_with(
+                env_result(Err(var_error)),
+                crate::parse_env_var_name_ref::ParseEnvVarNameRef::from(
+                    constants_str::ENV_NAMES_SOURCE_PLACE_TYPE,
+                ),
+                |_env_var_value_ref| {
+                    parser_invoked.set(true);
+                    Ok(())
+                },
+            );
+            assert!(!parser_invoked.get());
+            assert!(parsed.is_err_and(|env_parse_error| {
+                assert!(
+                    std::error::Error::source(&env_parse_error).is_some_and(|source| {
+                        source.is::<crate::env_var_error::EnvVarError>()
+                            && source.to_string() == expected_diagnostic
+                    })
+                );
+                matches!(
+                    env_parse_error,
+                    crate::env_parse_error::EnvParseError::Read { name, source }
+                        if name.to_string() == constants_str::ENV_NAMES_SOURCE_PLACE_TYPE
+                            && source.to_string() == expected_diagnostic
+                )
+            }));
+        });
     }
     #[test]
     fn test_parse_from_env_var_from_str_parses_bool_when_input_is_valid() {

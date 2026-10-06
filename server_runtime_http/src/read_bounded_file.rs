@@ -42,6 +42,20 @@ pub fn read_bounded_file(
 
 #[cfg(test)]
 mod tests {
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn test_sync_bounded_reader_accepts_empty_input_with_zero_limit() {
+        assert!(
+            crate::read_bounded_file::read_bounded_file(
+                crate::runtime_path_ref::RuntimePathRef::from(std::path::Path::new(
+                    constants_str::TEST_EMPTY_DEVICE_PATH,
+                )),
+                crate::bounded_read_maximum_bytes::BoundedReadMaximumBytes::from(0usize),
+            )
+            .is_ok_and(|bounded_bytes| bounded_bytes.into_inner().is_empty())
+        );
+    }
+
     #[test]
     fn test_bounded_file_read_preserves_directory_and_invalid_parent_io_errors() {
         let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));

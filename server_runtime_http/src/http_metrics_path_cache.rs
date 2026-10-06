@@ -62,3 +62,39 @@ impl From<crate::http_metrics_path_cache_maximum::HttpMetricsPathCacheMaximum>
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn test_metrics_cache_recovers_poisoned_lock_without_losing_capacity_or_labels() {
+        let cache = crate::http_metrics_path_cache::HttpMetricsPathCache::from(
+            crate::http_metrics_path_cache_maximum::HttpMetricsPathCacheMaximum::from(
+                std::num::NonZeroUsize::MIN,
+            ),
+        );
+        let outcome = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            if let Ok(write_entries) = cache.entries.write() {
+                assert!(write_entries.is_empty());
+                std::panic::panic_any(());
+            }
+        }));
+        assert!(outcome.is_err());
+        assert!(
+            [
+                (constants_str::ROOT, constants_str::ROOT),
+                (constants_str::ROOT, constants_str::ROOT),
+                (
+                    constants_str::V1,
+                    constants_str::HTTP_METRICS_UNMATCHED_PATH
+                ),
+            ]
+            .into_iter()
+            .all(|(path, expected)| {
+                cache
+                    .label(crate::http_metrics_path_text_ref::HttpMetricsPathTextRef::from(path))
+                    .as_str()
+                    == expected
+            })
+        );
+    }
+}

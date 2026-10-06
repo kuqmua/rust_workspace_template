@@ -84,3 +84,88 @@ fn test_check_status_maps_success_and_failure() {
         )
     );
 }
+
+#[test]
+fn test_health_check_status_classifies_only_ok_and_preserves_response_status() {
+    [
+        (axum::http::StatusCode::OK, true),
+        (axum::http::StatusCode::NO_CONTENT, false),
+        (axum::http::StatusCode::TEMPORARY_REDIRECT, false),
+        (axum::http::StatusCode::BAD_REQUEST, false),
+        (axum::http::StatusCode::SERVICE_UNAVAILABLE, false),
+    ]
+    .into_iter()
+    .fold((), |(), (status_code, succeeded)| {
+        let axum_health_check_status =
+            crate::axum_health_check_status::AxumHealthCheckStatus::from(status_code);
+        assert_eq!(bool::from(axum_health_check_status.is_ok()), succeeded);
+        let response = axum::response::IntoResponse::into_response(axum_health_check_status);
+        assert_eq!(response.status(), status_code);
+    });
+}
+
+#[test]
+fn test_health_status_wire_names_are_exact_and_unknown_values_are_rejected() {
+    [
+        (
+            crate::health_status::HealthStatus::Degraded,
+            stringify!(degraded),
+        ),
+        (crate::health_status::HealthStatus::Error, stringify!(error)),
+        (crate::health_status::HealthStatus::Ok, stringify!(ok)),
+    ]
+    .into_iter()
+    .fold((), |(), (health_status, wire_name)| {
+        assert!(
+            serde_json::to_value(health_status)
+                .is_ok_and(|value| value.as_str() == Some(wire_name))
+        );
+        assert_eq!(
+            serde_json::from_value::<crate::health_status::HealthStatus>(
+                serde_json::Value::String(wire_name.to_owned()),
+            )
+            .ok(),
+            Some(health_status)
+        );
+    });
+    assert!(
+        serde_json::from_value::<crate::health_status::HealthStatus>(serde_json::Value::String(
+            constants_str::X.to_owned()
+        ),)
+        .is_err_and(|error| error.is_data())
+    );
+}
+
+#[test]
+fn test_health_component_kind_wire_names_are_exact_and_unknown_values_are_rejected() {
+    [
+        (
+            crate::health_component_kind::HealthComponentKind::DatabaseConnectivity,
+            stringify!(database_connectivity),
+        ),
+        (
+            crate::health_component_kind::HealthComponentKind::ServiceAvailability,
+            stringify!(service_availability),
+        ),
+    ]
+    .into_iter()
+    .fold((), |(), (health_component_kind, wire_name)| {
+        assert!(
+            serde_json::to_value(health_component_kind)
+                .is_ok_and(|value| value.as_str() == Some(wire_name))
+        );
+        assert_eq!(
+            serde_json::from_value::<crate::health_component_kind::HealthComponentKind>(
+                serde_json::Value::String(wire_name.to_owned()),
+            )
+            .ok(),
+            Some(health_component_kind)
+        );
+    });
+    assert!(
+        serde_json::from_value::<crate::health_component_kind::HealthComponentKind>(
+            serde_json::Value::String(constants_str::X.to_owned()),
+        )
+        .is_err_and(|error| error.is_data())
+    );
+}

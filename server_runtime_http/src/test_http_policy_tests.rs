@@ -1,6 +1,55 @@
 #[cfg(test)]
 mod tests {
     #[test]
+    fn test_bearer_authorization_distinguishes_missing_headers_and_invalid_schemes() {
+        let cases = [
+            None,
+            Some(String::new()),
+            Some(constants_str::BEARER.to_owned()),
+            Some(format!("{}{}", constants_str::BEARER, constants_str::SPACE)),
+            Some(format!(
+                "{}{}{}",
+                constants_str::X,
+                constants_str::SPACE,
+                constants_str::SECRET,
+            )),
+            Some(format!(
+                "{}{}{}{}",
+                constants_str::BEARER,
+                constants_str::X,
+                constants_str::SPACE,
+                constants_str::SECRET,
+            )),
+            Some(format!(
+                "{}{}{}{}",
+                constants_str::SPACE,
+                constants_str::BEARER,
+                constants_str::SPACE,
+                constants_str::SECRET,
+            )),
+            Some(
+                constants_str::BEARER
+                    .chars()
+                    .chain(std::iter::once('\t'))
+                    .chain(constants_str::SECRET.chars())
+                    .collect::<String>(),
+            ),
+        ];
+        assert!(cases.into_iter().all(|header| {
+            let expected = if header.is_some() {
+                crate::bearer_authorization_resolution::BearerAuthorizationResolution::Invalid
+            } else {
+                crate::bearer_authorization_resolution::BearerAuthorizationResolution::Missing
+            };
+            crate::resolve_bearer_authorization::resolve_bearer_authorization(
+                crate::http_authorization_header_text_ref::HttpAuthorizationHeaderTextRef::from(
+                    header.as_deref(),
+                ),
+            ) == expected
+        }));
+    }
+
+    #[test]
     fn test_bearer_header_size_limit_includes_scheme_and_spacing() {
         assert!([1usize, 2usize, 3usize].into_iter().all(|spaces| {
             [4095usize, 4096usize, 4097usize].into_iter().all(|total_length| {

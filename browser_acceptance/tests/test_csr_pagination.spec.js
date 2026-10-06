@@ -2,6 +2,10 @@ import { expect, test } from "@playwright/test";
 import { signInAdministratorWithPasswordReset } from "./support/admin.js";
 
 [
+  `filter_field=${"x".repeat(64)}`,
+  `filter_operation=${"x".repeat(64)}`,
+  `filter_value=${"x".repeat(4097)}`,
+  `filter_end=${"x".repeat(4097)}`,
   "limit=0",
   "limit=101",
   "limit=invalid",
@@ -21,7 +25,7 @@ import { signInAdministratorWithPasswordReset } from "./support/admin.js";
   "filter_field=id&filter_operation=eq&filter_value=1&filter_value=2",
   "filter_field=id&filter_operation=between&filter_value=1&filter_end=2&filter_end=3"
 ].forEach(query => {
-  test(`test_csr_query_rejects_${query}`, async ({ page }) => {
+  test(`test_csr_query_rejects_${query.length > 128 ? `${query.split("=")[0]}_exceeds_text_limit` : query}`, async ({ page }) => {
     await signInAdministratorWithPasswordReset(page);
     await expect(page.locator('[data-renderer="csr"]')).toBeVisible();
     await page.addInitScript(query => {

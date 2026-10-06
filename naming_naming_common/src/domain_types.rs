@@ -172,14 +172,19 @@ mod tests {
     #[test]
     fn test_fallible_case_conversion_reports_expansion_and_tokens_emit_compile_error() {
         let input = constants_str::HELLOWORLD_ALT.repeat(104_858usize);
+        let result = super::AsRefStrToSnakeCaseStr::try_case(&input);
         assert!(matches!(
-            super::AsRefStrToSnakeCaseStr::try_case(&input),
+            &result,
             Err(crate::case_string::CaseStringTryFromStringError::TooLong { .. })
         ));
-        assert!(
-            super::AsRefStrToSnakeCaseTokenStream::case_or_panic(&input)
-                .to_string()
-                .contains(constants_str::VALUE_2EDAC0BF)
+        let Err(error) = result else {
+            return;
+        };
+        let message = error.to_string();
+        assert_eq!(super::AsRefStrToSnakeCaseStr::case(&input), message);
+        assert_eq!(
+            super::AsRefStrToSnakeCaseTokenStream::case_or_panic(&input).to_string(),
+            quote::quote! {compile_error!(#message);}.to_string(),
         );
     }
 }

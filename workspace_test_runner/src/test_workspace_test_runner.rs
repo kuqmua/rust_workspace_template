@@ -330,6 +330,83 @@ fn test_database_mode_runs_the_workspace_ignored_suite() {
     );
 }
 #[test]
+fn test_database_mode_isolates_each_observability_fixture_without_omitting_it() {
+    assert_eq!(
+        constants_str::WORKSPACE_TEST_RUNNER_DATABASE_COMMANDS.len(),
+        3usize
+    );
+    assert!(
+        [
+            (
+                constants_str::WORKSPACE_TEST_RUNNER_EXPORTER_TEST_TARGET,
+                constants_str::WORKSPACE_TEST_RUNNER_EXPORTER_TEST_FILTER
+            ),
+            (
+                constants_str::WORKSPACE_TEST_RUNNER_SUBSCRIBER_TEST_TARGET,
+                constants_str::WORKSPACE_TEST_RUNNER_SUBSCRIBER_TEST_FILTER
+            ),
+        ]
+        .into_iter()
+        .all(|(target, filter)| {
+            assert_eq!(
+                constants_str::WORKSPACE_TEST_RUNNER_CARGO_TEST_DATABASE_ARGS
+                    .windows(2)
+                    .filter(|arguments| {
+                        *arguments == [constants_str::MIGRATED_SKIP_ARGUMENT, filter]
+                    })
+                    .count(),
+                1usize
+            );
+            constants_str::WORKSPACE_TEST_RUNNER_DATABASE_COMMANDS
+                .iter()
+                .filter(|(program, args)| {
+                    *program == constants_str::SHARED_VALUES_ENV
+                        && args.windows(2).any(|arguments| {
+                            arguments
+                                == [
+                                    constants_str::WORKSPACE_TEST_RUNNER_TEST_TARGET_ARGUMENT,
+                                    target,
+                                ]
+                        })
+                        && args.last() == Some(&filter)
+                        && args.contains(&constants_str::SHARED_VALUES_IGNORED)
+                        && args.contains(&constants_str::SOURCE_PLACE_TEST_EXACT_ARGUMENT)
+                        && args.windows(2).any(|arguments| {
+                            arguments == [constants_str::P, stringify!(server_observability)]
+                        })
+                })
+                .count()
+                == 1usize
+        })
+    );
+    assert!(
+        constants_str::WORKSPACE_TEST_RUNNER_EXPORTER_TEST_ARGS
+            .iter()
+            .any(|argument| {
+                argument.split_once('=').is_some_and(|(key, value)| {
+                    key == stringify!(OTEL_EXPORTER_OTLP_TRACES_COMPRESSION)
+                        && value == stringify!(unsupported)
+                })
+            })
+    );
+    assert!(
+        [
+            stringify!(OTEL_EXPORTER_OTLP_ENDPOINT),
+            stringify!(OTEL_EXPORTER_OTLP_TRACES_ENDPOINT)
+        ]
+        .into_iter()
+        .all(|key| {
+            constants_str::WORKSPACE_TEST_RUNNER_SUBSCRIBER_TEST_ARGS
+                .iter()
+                .any(|argument| {
+                    argument
+                        .split_once('=')
+                        .is_some_and(|(actual_key, value)| actual_key == key && value.is_empty())
+                })
+        })
+    );
+}
+#[test]
 fn test_tests_mode_leaves_ignored_suite_to_database_mode() {
     assert!(
         constants_str::WORKSPACE_TEST_RUNNER_CARGO_TEST_COMMANDS

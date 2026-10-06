@@ -1,3 +1,8 @@
+#[cfg(test)]
+mod test_encoded_filter_wire_contract;
+#[cfg(test)]
+mod test_regex_filter_wire_contract;
+
 proc_macro_generate_pg_types::generate_pg_types!({
     "pg_table_cols_write_into_file": "False",
     "whole_write_into_file": "False",

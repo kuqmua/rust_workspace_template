@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { signInInitialAdministrator, signOutIfAuthenticated } from "./support/admin.js";
+import { observeBrowserErrors, signInInitialAdministrator, signOutIfAuthenticated } from "./support/admin.js";
 import { dataTablePages, tablePages } from "./support/pages.js";
 
 test.beforeEach(async ({ page }) => {
@@ -121,4 +121,36 @@ test("test_empty_values_remain_accessible_and_do_not_reuse_previous_content", as
   expect(await dialog.locator(".table-cell-content").textContent()).toBe("");
   await dialog.getByRole("button", { name: "close", exact: true }).click();
   await expect(preview).toBeFocused();
+});
+
+
+test("test_viewer_fallback_title_and_detached_trigger_close_without_errors", async ({ page }) => {
+  const errors = observeBrowserErrors(page);
+  await page.goto("/admin/users");
+  const preview = page.locator('td[data-label="display_name"] .table-cell-preview').first();
+  await expect(preview).toBeVisible();
+  await page.evaluate(() => {
+    [document, document.body].forEach(target => {
+      target.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    });
+  });
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  const value = await preview.textContent();
+  await preview.evaluate(element => {
+    delete element.closest("td").dataset.label;
+    element.title = "display_name";
+    const nested = document.createElement("span");
+    nested.textContent = element.textContent;
+    element.replaceChildren(nested);
+  });
+  const fallbackPreview = page.locator('.table-cell-preview[title="display_name"]').first();
+  await fallbackPreview.locator("span").click();
+  const dialog = page.getByRole("dialog", { name: "display_name", exact: true });
+  await expect(dialog).toBeVisible();
+  await expect(dialog.locator(".table-cell-content")).toHaveText(value);
+  await fallbackPreview.evaluate(element => element.remove());
+  await dialog.getByRole("button", { name: "close", exact: true }).click();
+  await expect(page.locator(".table-cell-dialog")).toHaveCount(0);
+  expect(errors.pageErrors).toEqual([]);
+  expect(errors.consoleErrors).toEqual([]);
 });

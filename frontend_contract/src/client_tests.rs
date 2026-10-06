@@ -834,6 +834,57 @@ mod tests {
         );
     }
     #[test]
+    fn test_typed_send_oversized_static_path_preserves_encode_error_before_transport() {
+        #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Copy, Debug)]
+        struct TestOversizedStaticTypedClientRoute;
+        impl crate::typed_route::TypedRoute for TestOversizedStaticTypedClientRoute {
+            type Request = NoBody;
+            type Response = NoBody;
+            type Transport = crate::public_transport::PublicTransport;
+
+            fn metadata() -> crate::route_metadata::RouteMetadata {
+                let path = match const { std::str::from_utf8(&[b'x'; 8_193usize]) } {
+                    Ok(path) => path,
+                    Err(error) => std::panic::panic_any(error),
+                };
+                crate::route_metadata::RouteMetadata::new(
+                    crate::route_method::RouteMethod::Get,
+                    crate::contract_str::ContractStr::from(constants_str::ROUTE),
+                    crate::contract_str::ContractStr::from(path),
+                )
+            }
+        }
+        let transport = TestTransport {
+            expected: ExpectedRequest::BodyLen(
+                transport_path(constants_str::EMPTY),
+                constants_usize::ONE,
+            ),
+            response: Ok(response(
+                Vec::new(),
+                crate::success_status::SuccessStatus::Code200.transport_status(),
+            )),
+        };
+        let client =
+            crate::typed_client::TypedClient::new(transport, transport_path(constants_str::EMPTY));
+        let result =
+            futures::executor::block_on(client.send::<TestOversizedStaticTypedClientRoute>(NoBody));
+        assert!(
+            crate::transport_path::TransportPath::try_from(
+                <TestOversizedStaticTypedClientRoute as crate::typed_route::TypedRoute>::metadata()
+                    .path()
+                    .as_ref()
+                    .to_owned(),
+            )
+            .is_err_and(|error| {
+                result
+                    == Err(crate::client_error::ClientError::Encode(
+                        crate::create_form_value_error::create_form_value_error(error),
+                    ))
+            })
+        );
+    }
+
+    #[test]
     fn test_send_contract_oversized_static_path_preserves_encode_error_before_transport() {
         let oversized_path = const { std::str::from_utf8(&[b'x'; 8_193usize]) };
         assert!(oversized_path.is_ok_and(|path| {

@@ -65,6 +65,14 @@ fn test_pagination_base_binding_appends_two_arguments_to_existing_query() {
         } else {
             initial
         };
+        let expected_initial = sqlx::query(constants_str::EMPTY);
+        let expected_base = if has_existing_argument {
+            expected_initial.bind(17i64)
+        } else {
+            expected_initial
+        };
+        let mut expected_query = expected_base.bind(i64::MAX).bind(i64::MIN);
+        let expected_arguments_result = sqlx::Execute::take_arguments(&mut expected_query);
         let pagination = crate::pagination_base::PaginationBase::new_unchecked(
             crate::pagination_limit::PaginationLimit::from(i64::MAX),
             crate::pagination_offset::PaginationOffset::from(i64::MIN),
@@ -83,6 +91,15 @@ fn test_pagination_base_binding_appends_two_arguments_to_existing_query() {
                         } else {
                             2usize
                         }
+                        && expected_arguments_result.as_ref().is_ok_and(
+                            |expected_arguments_option| {
+                                expected_arguments_option
+                                    .as_ref()
+                                    .is_some_and(|expected_values| {
+                                        format!("{values:?}") == format!("{expected_values:?}")
+                                    })
+                            },
+                        )
                 })
             })
         })

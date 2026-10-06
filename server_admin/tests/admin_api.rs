@@ -3693,6 +3693,39 @@ mod test_generated_descriptor_validation {
     }
 
     #[tokio::test]
+    #[ignore = "requires PostgreSQL; run through workspace_test_runner database"]
+    async fn test_postgres_inspection_returns_empty_snapshots_for_absent_names() {
+        let fixture = crate::admin_html_test_fixture().await;
+        let pool_ref =
+            pg_crud_common::sqlx_pg_catalog_pool_ref::SqlxPgCatalogPoolRef::from(&fixture.pool.0);
+        let catalog = pg_crud_common::inspect_postgres_catalog::inspect_postgres_catalog(
+            pool_ref,
+            pg_crud_common::db_schema_name_ref::DbSchemaNameRef::from(constants_str::EMPTY),
+        )
+        .await;
+        assert!(catalog.is_ok_and(|db_catalog_snapshot| db_catalog_snapshot
+            == pg_crud_common::db_catalog_snapshot::DbCatalogSnapshot::new(
+                pg_crud_common::db_object_snapshots::DbObjectSnapshots::default()
+            )));
+        let expected_table = pg_crud_common::db_table_snapshot::DbTableSnapshot::new(
+            pg_crud_common::db_column_snapshots::DbColumnSnapshots::default(),
+            pg_crud_common::db_object_snapshots::DbObjectSnapshots::default(),
+        );
+        assert!([
+            pg_crud_common::inspect_postgres_table::inspect_postgres_table(
+                pool_ref,
+                pg_crud_common::db_schema_name_ref::DbSchemaNameRef::from(constants_str::EMPTY),
+                pg_crud_common::db_table_name_ref::DbTableNameRef::from(constants_str::RULES_TABLE),
+            ).await,
+            pg_crud_common::inspect_postgres_table::inspect_postgres_table(
+                pool_ref,
+                pg_crud_common::db_schema_name_ref::DbSchemaNameRef::from(constants_str::PUBLIC),
+                pg_crud_common::db_table_name_ref::DbTableNameRef::from(constants_str::EMPTY),
+            ).await,
+        ].into_iter().all(|result| result.is_ok_and(|db_table_snapshot| db_table_snapshot == expected_table)));
+    }
+
+    #[tokio::test]
     #[ignore = "constructs a closed PostgreSQL pool; run through workspace_test_runner database"]
     async fn test_extended_table_validation_preserves_catalog_pool_failure() {
         let pool_result = closed_descriptor_pool_fixture().await;
@@ -3801,7 +3834,29 @@ mod test_generated_descriptor_validation {
                 pg_crud_common::db_schema_name_ref::DbSchemaNameRef::from(constants_str::PUBLIC),
             )
             .await;
-        assert!(result.is_err_and(|error| matches!(error, pg_crud_common::db_schema_conformance_error::DbSchemaConformanceError::Inspection(sqlx_db_schema_inspection_error) if sqlx_db_schema_inspection_error.to_string() == sqlx::Error::PoolClosed.to_string())));
+        assert!(
+            [
+                result,
+                pg_crud_common::inspect_postgres_table::inspect_postgres_table(
+                    pg_crud_common::sqlx_pg_catalog_pool_ref::SqlxPgCatalogPoolRef::from(&pool.0),
+                    pg_crud_common::db_schema_name_ref::DbSchemaNameRef::from(constants_str::PUBLIC),
+                    pg_crud_common::db_table_name_ref::DbTableNameRef::from(constants_str::RULES_TABLE),
+                )
+                .await
+                .map(|_snapshot| ()),
+                pg_crud_common::inspect_postgres_catalog::inspect_postgres_catalog(
+                    pg_crud_common::sqlx_pg_catalog_pool_ref::SqlxPgCatalogPoolRef::from(&pool.0),
+                    pg_crud_common::db_schema_name_ref::DbSchemaNameRef::from(constants_str::PUBLIC),
+                )
+                .await
+                .map(|_snapshot| ()),
+            ]
+            .into_iter()
+            .all(|operation_result| operation_result.is_err_and(|error| matches!(error,
+                pg_crud_common::db_schema_conformance_error::DbSchemaConformanceError::Inspection(sqlx_db_schema_inspection_error)
+                    if sqlx_db_schema_inspection_error.to_string() == sqlx::Error::PoolClosed.to_string()
+            )))
+        );
     }
 }
 
@@ -5608,22 +5663,58 @@ mod test_maintenance {
                 .execute(&fresh_pool)
                 .await
                 .expect(constants_str::DIAGNOSTIC_55615D60);
-        let _altered_foreign_key = sqlx::raw_sql(
-            constants_str::ADMIN_TEST_ALTER_ACCESS_SESSIONS_FOREIGN_KEY_TO_RESTRICT_SQL,
-        )
-        .execute(&fresh_pool)
-        .await
-        .expect(constants_str::DIAGNOSTIC_00ADA03F);
-        assert!(matches!(
-            server_admin::validate_catalog_schema::validate_catalog_schema(
+        let validate_delete_action = async |db_foreign_key_delete_action: pg_crud_common::db_foreign_key_delete_action::DbForeignKeyDeleteAction| {
+            let statement = match db_foreign_key_delete_action {
+                pg_crud_common::db_foreign_key_delete_action::DbForeignKeyDeleteAction::NoAction => constants_str::ADMIN_TEST_ALTER_ACCESS_SESSIONS_FOREIGN_KEY_TO_NO_ACTION_SQL,
+                pg_crud_common::db_foreign_key_delete_action::DbForeignKeyDeleteAction::Restrict => constants_str::ADMIN_TEST_ALTER_ACCESS_SESSIONS_FOREIGN_KEY_TO_RESTRICT_SQL,
+                pg_crud_common::db_foreign_key_delete_action::DbForeignKeyDeleteAction::Cascade => constants_str::ADMIN_TEST_ALTER_ACCESS_SESSIONS_FOREIGN_KEY_TO_CASCADE_SQL,
+                pg_crud_common::db_foreign_key_delete_action::DbForeignKeyDeleteAction::SetNull => constants_str::ADMIN_TEST_ALTER_ACCESS_SESSIONS_FOREIGN_KEY_TO_SET_NULL_SQL,
+                pg_crud_common::db_foreign_key_delete_action::DbForeignKeyDeleteAction::SetDefault => constants_str::ADMIN_TEST_ALTER_ACCESS_SESSIONS_FOREIGN_KEY_TO_SET_DEFAULT_SQL,
+            };
+            assert!(sqlx::raw_sql(statement).execute(&fresh_pool).await.is_ok_and(|pg_query_result| pg_query_result.rows_affected() == 0u64));
+            let result = server_admin::validate_catalog_schema::validate_catalog_schema(
                 pg_crud_common::sqlx_pg_catalog_pool_ref::SqlxPgCatalogPoolRef::from(&fresh_pool),
-                pg_crud_common::db_schema_name_ref::DbSchemaNameRef::from(
-                    constants_str::ADMIN_MIGRATION_FRESH_TEST,
-                ),
-            )
-            .await,
-            Err(pg_crud_common::db_schema_conformance_error::DbSchemaConformanceError::KeyContractMismatch { .. })
-        ));
+                pg_crud_common::db_schema_name_ref::DbSchemaNameRef::from(constants_str::ADMIN_MIGRATION_FRESH_TEST),
+            ).await;
+            if db_foreign_key_delete_action == pg_crud_common::db_foreign_key_delete_action::DbForeignKeyDeleteAction::Cascade {
+                assert!(matches!(result, Ok(())));
+            } else {
+                assert!(matches!(&result, Err(pg_crud_common::db_schema_conformance_error::DbSchemaConformanceError::KeyContractMismatch { .. })));
+                let Err(pg_crud_common::db_schema_conformance_error::DbSchemaConformanceError::KeyContractMismatch { expected, observed }) = result else { return; };
+                let foreign_key_action = |db_key_contract_snapshot: &pg_crud_common::db_key_contract_snapshot::DbKeyContractSnapshot| match db_key_contract_snapshot {
+                    pg_crud_common::db_key_contract_snapshot::DbKeyContractSnapshot::ForeignKey { columns, on_delete, .. }
+                        if columns.len() == 1usize && columns.first().is_some_and(|column| column.as_ref() == constants_str::USER_ID) => Some(*on_delete),
+                    pg_crud_common::db_key_contract_snapshot::DbKeyContractSnapshot::ForeignKey { .. }
+                    | pg_crud_common::db_key_contract_snapshot::DbKeyContractSnapshot::PrimaryKey(_)
+                    | pg_crud_common::db_key_contract_snapshot::DbKeyContractSnapshot::Unique(_) => None,
+                };
+                let expected_action = expected.iter().find_map(foreign_key_action);
+                let observed_action = observed.iter().find_map(foreign_key_action);
+                assert_eq!(expected_action, Some(pg_crud_common::db_foreign_key_delete_action::DbForeignKeyDeleteAction::Cascade));
+                assert_eq!(observed_action, Some(db_foreign_key_delete_action));
+                assert_eq!(expected.len(), observed.len());
+            }
+        };
+        validate_delete_action(
+            pg_crud_common::db_foreign_key_delete_action::DbForeignKeyDeleteAction::NoAction,
+        )
+        .await;
+        validate_delete_action(
+            pg_crud_common::db_foreign_key_delete_action::DbForeignKeyDeleteAction::Restrict,
+        )
+        .await;
+        validate_delete_action(
+            pg_crud_common::db_foreign_key_delete_action::DbForeignKeyDeleteAction::SetNull,
+        )
+        .await;
+        validate_delete_action(
+            pg_crud_common::db_foreign_key_delete_action::DbForeignKeyDeleteAction::SetDefault,
+        )
+        .await;
+        validate_delete_action(
+            pg_crud_common::db_foreign_key_delete_action::DbForeignKeyDeleteAction::Cascade,
+        )
+        .await;
         fresh_pool.close().await;
         let _drop_after =
             sqlx::raw_sql(constants_str::DROP_SCHEMA_ADMIN_MIGRATION_FRESH_TEST_CASCADE)

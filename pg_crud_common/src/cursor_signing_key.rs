@@ -54,4 +54,29 @@ mod tests {
             Err(crate::cursor_signing_key_error::CursorSigningKeyError::InvalidLength)
         );
     }
+    #[test]
+    fn test_signing_key_boundaries_preserve_bytes_and_redact_debug() {
+        assert!(crate::cursor_signing_key::CursorSigningKey::try_from(vec![0u8; 32usize]).is_ok_and(|reference| {
+            let regular = format!("{reference:?}");
+            let alternate = format!("{reference:#?}");
+            regular.starts_with(std::any::type_name::<crate::cursor_signing_key::CursorSigningKey>())
+                && [32usize, super::super::cursor_signing_key_maximum_length::CURSOR_SIGNING_KEY_MAXIMUM_LENGTH].into_iter().all(|length| {
+                    [193u8, 251u8].into_iter().all(|byte| {
+                        let input = vec![byte; length];
+                        let pointer = input.as_ptr();
+                        crate::cursor_signing_key::CursorSigningKey::try_from(input).is_ok_and(|cursor_signing_key| {
+                            let cloned = cursor_signing_key.clone();
+                            format!("{cursor_signing_key:?}") == regular
+                                && format!("{cursor_signing_key:#?}") == alternate
+                                && format!("{cloned:?}") == regular
+                                && format!("{cloned:#?}") == alternate
+                                && cursor_signing_key.get_inner().as_slice().as_ptr() == pointer
+                                && cursor_signing_key.get_inner().as_slice().len() == length
+                                && cursor_signing_key.get_inner().as_slice().iter().all(|value| *value == byte)
+                                && cloned.get_inner().as_slice() == cursor_signing_key.get_inner().as_slice()
+                        })
+                    })
+                })
+        }));
+    }
 }
