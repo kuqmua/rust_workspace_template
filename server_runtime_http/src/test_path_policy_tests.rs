@@ -115,4 +115,96 @@ mod tests {
             constants_str::TEST_NORMALIZED_IDENTIFIER_PATH
         );
     }
+    #[test]
+    fn test_identifier_normalization_preserves_non_identifiers_and_separator_shape() {
+        let normalized_number = format!("/{}", constants_str::HTTP_NORMALIZED_IDENTIFIER_SEGMENT);
+        let uuid_v4 = uuid::Uuid::from_u128(0xabcdefab_cdef_4abc_8def_abcdefabcdefu128);
+        let uuid_v3 = uuid::Uuid::from_u128(0xabcdefab_cdef_3abc_8def_abcdefabcdefu128);
+        assert!(
+            [
+                (String::new(), None),
+                (constants_str::ROOT.to_owned(), None),
+                (constants_str::X.to_owned(), None),
+                (
+                    format!("/{}", '1'.to_string().repeat(19usize)),
+                    Some(normalized_number)
+                ),
+                (format!("/{}", '1'.to_string().repeat(20usize)), None),
+                (['/', '-', '1'].into_iter().collect::<String>(), None),
+                (format!("/{}1", constants_str::X), None),
+                (format!("/{uuid_v3}"), None),
+                (
+                    format!("/{uuid_v4}"),
+                    Some(format!("/{}", constants_str::HTTP_NORMALIZED_UUID_SEGMENT))
+                ),
+                (
+                    format!("/{}", uuid_v4.simple()),
+                    Some(format!("/{}", constants_str::HTTP_NORMALIZED_UUID_SEGMENT))
+                ),
+                (
+                    format!("/{}", uuid_v4.to_string().to_ascii_uppercase()),
+                    Some(format!("/{}", constants_str::HTTP_NORMALIZED_UUID_SEGMENT))
+                ),
+                (
+                    ['/', '/', '1', '/', '/'].into_iter().collect::<String>(),
+                    Some(format!(
+                        "//{}//",
+                        constants_str::HTTP_NORMALIZED_IDENTIFIER_SEGMENT
+                    ))
+                ),
+            ]
+            .into_iter()
+            .all(|(path, expected)| {
+                match (
+                    crate::normalize_identifier_path::normalize_identifier_path(
+                        crate::http_request_path_ref::HttpRequestPathRef::from(path.as_str()),
+                    ),
+                    expected,
+                ) {
+                    (Some(normalized), Some(text)) => normalized.as_ref() == text,
+                    (None, None) => true,
+                    (Some(_), None) | (None, Some(_)) => false,
+                }
+            })
+        );
+    }
+
+    #[test]
+    fn test_identifier_normalization_checks_input_and_expanded_output_byte_limits() {
+        assert!([8191usize, 8192usize, 8193usize].into_iter().all(|length| {
+            let mut path = ['/', '1', '2', '3', '/'].into_iter().collect::<String>();
+            path.push_str(&constants_str::X.repeat(length - 5usize));
+            let result = crate::normalize_identifier_path::normalize_identifier_path(
+                crate::http_request_path_ref::HttpRequestPathRef::from(path.as_str()),
+            );
+            if length > 8192usize {
+                result.is_none()
+            } else {
+                result.is_some_and(|normalized| {
+                    normalized.as_ref()
+                        == format!(
+                            "/{}/{}",
+                            constants_str::HTTP_NORMALIZED_IDENTIFIER_SEGMENT,
+                            constants_str::X.repeat(length - 5usize)
+                        )
+                })
+            }
+        }));
+        let segment = ['/', '1'].into_iter().collect::<String>();
+        assert!([2048usize, 2049usize].into_iter().all(|count| {
+            let input = segment.repeat(count);
+            let result = crate::normalize_identifier_path::normalize_identifier_path(
+                crate::http_request_path_ref::HttpRequestPathRef::from(input.as_str()),
+            );
+            if count == 2048usize {
+                result.is_some_and(|normalized| {
+                    normalized.as_ref()
+                        == format!("/{}", constants_str::HTTP_NORMALIZED_IDENTIFIER_SEGMENT)
+                            .repeat(count)
+                })
+            } else {
+                result.is_none()
+            }
+        }));
+    }
 }

@@ -354,6 +354,8 @@ pub mod test_lifecycle_tests;
 #[cfg(test)]
 pub mod test_metrics_layer_tests;
 #[cfg(test)]
+pub mod test_metrics_recording_tests;
+#[cfg(test)]
 pub mod test_multipart_tests;
 #[cfg(test)]
 pub mod test_notification_tests;

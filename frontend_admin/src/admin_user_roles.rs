@@ -109,5 +109,17 @@ mod tests {
             );
             multiple_roles_html.contains(expected.as_str())
         }));
+        assert!(server_admin_contract::admin_role_id::AdminRoleId::try_from(3i64).is_ok_and(|unmatched_role| {
+            let empty = leptos::view! { <crate::table_cell::TableCell data_label=stringify!(roles)>{constants_str::EMPTY}</crate::table_cell::TableCell> }.to_html();
+            [Vec::new(), vec![unmatched_role], vec![assigned_role, unmatched_role]].into_iter().enumerate().all(|(index, identifiers)| {
+                server_admin_contract::admin_role_ids::AdminRoleIds::try_from(identifiers).is_ok_and(|admin_role_ids| {
+                    page.items().first().is_some_and(|user| {
+                        let selected = server_admin_contract::admin_user_summary::AdminUserSummary::new(user.display_name().clone(), user.id(), user.is_banned(), user.login().clone(), admin_role_ids);
+                        let rendered = crate::admin_user_roles::admin_user_roles(&selected, &page).to_html();
+                        rendered == if index == 2usize { html.as_str() } else { empty.as_str() }
+                    })
+                })
+            })
+        }));
     }
 }

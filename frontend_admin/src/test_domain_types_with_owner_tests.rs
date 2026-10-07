@@ -419,12 +419,25 @@ fn test_table_primitives_preserve_structure_and_class_merging() {
         </crate::table_wrapper::TableWrapper>
     });
 
-    assert!(html.contains(constants_str::VALUE_846B8D6B));
-    assert!(html.contains(constants_str::VALUE_6A98499E));
-    assert!(html.contains(constants_str::VALUE_31819FEE));
-    assert!(html.contains(constants_str::VALUE_8886AF1E));
-    assert!(html.contains(constants_str::VALUE_737E03AE));
-    assert!(html.contains(constants_str::VALUE_8925FFE7));
+    let markers = [
+        constants_str::VALUE_846B8D6B,
+        constants_str::VALUE_6A98499E,
+        constants_str::VALUE_737E03AE,
+        constants_str::VALUE_31819FEE,
+        constants_str::VALUE_8886AF1E,
+        constants_str::VALUE_8925FFE7,
+    ];
+    assert!(
+        markers
+            .into_iter()
+            .all(|marker| html.matches(marker).count() == 1usize)
+    );
+    let positions = markers.map(|marker| html.find(marker));
+    assert!(
+        positions
+            .windows(2usize)
+            .all(|pair| { matches!(pair, [Some(left), Some(right)] if left < right) })
+    );
     assert_eq!(html.matches(constants_str::VALUE_38C2F107).count(), 3);
     assert!(html.contains(constants_str::VALUE_80DFAFAE));
 }
@@ -494,6 +507,40 @@ fn test_table_actions_render_read_and_revoke_in_one_row() {
     );
     assert_eq!(html.matches(constants_str::VALUE_24B9818D).count(), 2);
     assert!(html.contains(constants_str::ADMIN_BUTTON_CLOSE));
+    let revoke_only = render_owned_view(leptos::view! {
+        <crate::admin_table_actions::AdminTableActions read_action=None command_for=constants_str::ROOT.to_owned()>
+            <span>{constants_str::ADMIN_BUTTON_CANCEL}</span>
+        </crate::admin_table_actions::AdminTableActions>
+    });
+    assert!(!revoke_only.contains(constants_str::PG_CRUD_READ_RULE_ACTION));
+    assert_eq!(
+        revoke_only
+            .matches(concat!('<', stringify!(button), ' '))
+            .count(),
+        1usize
+    );
+    assert_eq!(
+        revoke_only
+            .matches(constants_str::ADMIN_BUTTON_REVOKE_SESSION)
+            .count(),
+        2usize
+    );
+    assert_eq!(
+        revoke_only
+            .matches(constants_str::ADMIN_BUTTON_CANCEL)
+            .count(),
+        1usize
+    );
+    assert!(
+        revoke_only
+            .split('"')
+            .zip(revoke_only.split('"').skip(1usize))
+            .any(|(name, value)| {
+                name.strip_suffix('=').is_some_and(|prefix| {
+                    prefix.split_ascii_whitespace().last() == Some(stringify!(commandfor))
+                }) && value == constants_str::ROOT
+            })
+    );
 }
 
 #[test]
@@ -557,4 +604,38 @@ fn test_checkbox_default_and_explicit_required_flags_preserve_native_input_attri
                 }) == (option == Some(true))
         })
     }));
+}
+
+#[test]
+fn test_read_action_selects_record_link_or_fallback_dialog() {
+    assert!(server_admin_contract::admin_user_id::AdminUserId::try_from(constants_i64::ONE)
+        .is_ok_and(|admin_user_id| {
+            let record = server_admin_contract::admin_route_path::AdminRoutePath::from(admin_user_id);
+            server_admin_contract::admin_route_path::AdminRoutePath::try_from(constants_str::ROOT.to_owned())
+                .is_ok_and(|fallback| {
+                    [record, fallback].into_iter().enumerate().all(|(index, read_path)| {
+                        let expected_path = read_path.to_string();
+                        let expected_dialog = format!("{}-{expected_path}", constants_str::PG_CRUD_READ_RULE_ACTION);
+                        let html = render_owned_view(leptos::view! {
+                            <crate::admin_read_action::AdminReadAction read_path=read_path><span>{constants_str::X}</span></crate::admin_read_action::AdminReadAction>
+                        });
+                        let expected_child = render_owned_view(leptos::view! { <span>{constants_str::X}</span> });
+                        html.matches(expected_child.as_str()).count() == index
+                            && html.matches(concat!('<', stringify!(dialog), ' ')).count() == index
+                            && [
+                                (stringify!(href), expected_path.as_str(), index == 0usize),
+                                (stringify!(id), expected_dialog.as_str(), index == 1usize),
+                                (stringify!(commandfor), expected_dialog.as_str(), index == 1usize),
+                                (stringify!(command), concat!(stringify!(show), '-', stringify!(modal)), index == 1usize),
+                                (stringify!(command), constants_str::ADMIN_BUTTON_CLOSE, index == 1usize),
+                                (concat!(stringify!(aria), '-', stringify!(label)), constants_str::PG_CRUD_READ_RULE_ACTION, true),
+                            ].into_iter().all(|(attribute, expected, present)| {
+                                html.split('"').zip(html.split('"').skip(1usize)).any(|(name, value)| {
+                                    name.strip_suffix('=').is_some_and(|prefix|
+                                        prefix.split_ascii_whitespace().last() == Some(attribute)) && value == expected
+                                }) == present
+                            })
+                    })
+                })
+        }));
 }

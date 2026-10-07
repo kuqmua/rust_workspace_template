@@ -38,6 +38,38 @@ fn test_settings_page_uses_centered_layout_container() {
         crate::render_admin_settings_page::render_admin_settings_page(&settings, &admin, &branding);
     assert!(html.as_ref().contains(constants_str::VALUE_073C0D6E));
     assert!(html.as_ref().contains(constants_str::VALUE_2BEB20BD));
+    assert_eq!(
+        html.as_ref()
+            .matches(constants_str::ADMIN_UI_SETTINGS_ARE_READ_ONLY_FOR_THIS_ACCOUNT)
+            .count(),
+        1usize
+    );
+    assert!(
+        !html.as_ref().contains(
+            server_admin_contract::admin_html_action::AdminHtmlAction::SettingsUpdate.get()
+        )
+    );
+    assert!(
+        !html
+            .as_ref()
+            .contains(constants_str::ADMIN_BUTTON_SAVE_SETTINGS)
+    );
+    assert!(
+        server_admin_contract::admin_setting::AdminSetting::ALL
+            .into_iter()
+            .all(|admin_setting| {
+                let name = admin_setting.spec().name();
+                !html
+                    .as_ref()
+                    .split('"')
+                    .zip(html.as_ref().split('"').skip(1usize))
+                    .any(|(attribute, value)| {
+                        attribute.strip_suffix('=').is_some_and(|prefix| {
+                            prefix.split_ascii_whitespace().last() == Some(stringify!(name))
+                        }) && value == name.as_ref()
+                    })
+            })
+    );
 }
 
 #[test]
@@ -119,6 +151,20 @@ fn test_editable_settings_render_every_input_kind_from_the_contract_catalog() {
     let html =
         crate::render_admin_settings_page::render_admin_settings_page(&settings, &admin, &branding);
 
+    assert!(
+        !html
+            .as_ref()
+            .contains(constants_str::ADMIN_UI_SETTINGS_ARE_READ_ONLY_FOR_THIS_ACCOUNT)
+    );
+    assert!(
+        html.as_ref().contains(
+            server_admin_contract::admin_html_action::AdminHtmlAction::SettingsUpdate.get()
+        )
+    );
+    assert!(
+        html.as_ref()
+            .contains(constants_str::ADMIN_BUTTON_SAVE_SETTINGS)
+    );
     assert!(html.as_ref().contains(constants_str::VALUE_58BBA249));
     assert!(html.as_ref().contains(constants_str::VALUE_4951C9D3));
     assert!(html.as_ref().contains(constants_str::VALUE_3F96A519));

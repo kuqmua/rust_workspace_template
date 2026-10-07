@@ -289,4 +289,18 @@ mod tests {
                 if source.to_string() == constants_str::VALUE_0DEDD057
         )));
     }
+    #[tokio::test]
+    async fn test_diagnostic_capture_preserves_cross_buffer_prefix_and_drains_reader() {
+        let input = (0u8..=u8::MAX).cycle().take(8193usize).collect::<Vec<_>>();
+        let mut reader = input.as_slice();
+        let maximum = crate::child_diagnostic_maximum_non_zero_usize::ChildDiagnosticMaximumNonZeroUsize::from(
+            std::num::NonZeroUsize::MIN.saturating_add(4096usize),
+        );
+        let result =
+            crate::read_child_diagnostic::read_child_diagnostic(&mut reader, maximum).await;
+        assert!(
+            result.is_ok_and(|diagnostic| { Some(diagnostic.as_ref()) == input.get(..4097usize) })
+        );
+        assert!(reader.is_empty());
+    }
 }

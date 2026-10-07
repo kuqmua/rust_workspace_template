@@ -279,3 +279,40 @@ fn test_crud() {
             .contains(server_admin_contract::admin_html_action::AdminHtmlAction::RoleDelete.get())
     );
 }
+
+#[test]
+fn test_role_management_respects_independent_permissions_and_system_roles() {
+    let base = crate::domain_types_ssr_tests::test_admin();
+    let branding = crate::domain_types_ssr_tests::test_branding();
+    assert!((0usize..4usize).all(|mask| {
+        let rules = [
+            server_admin_contract::admin_rule::AdminRule::RolesUpdate,
+            server_admin_contract::admin_rule::AdminRule::RolesDelete,
+        ].into_iter().enumerate().filter(|(index, _rule)| mask & (1usize << index) != 0usize)
+            .map(|(_index, rule)| server_admin_contract::admin_rule_value::AdminRuleValue::try_from(rule.as_str().get().to_owned()))
+            .collect::<Result<Vec<_>, _>>();
+        rules.is_ok_and(|values| server_admin_contract::admin_rule_values::AdminRuleValues::try_from(values).is_ok_and(|admin_rule_values| {
+            let Ok(admin_role_names) = server_admin_contract::admin_role_names::AdminRoleNames::try_from(base.roles().to_vec()) else { return false; };
+            let admin = server_admin_contract::authenticated_admin::AuthenticatedAdmin::new(base.display_name().clone(), *base.id(), base.login().clone(), admin_rule_values, admin_role_names);
+            [false, true].into_iter().all(|is_system| {
+                server_admin_contract::admin_role_id::AdminRoleId::try_from(constants_i64::ONE).is_ok_and(|admin_role_id| {
+                    server_admin_contract::admin_role_name::AdminRoleName::try_from(constants_str::X.to_owned()).is_ok_and(|admin_role_name| {
+                        let role = server_admin_contract::admin_role_summary::AdminRoleSummary::new(admin_role_id, server_admin_contract::admin_bool::AdminBool::from(is_system), admin_role_name, server_admin_contract::admin_role_timestamp::AdminRoleTimestamp::default(), server_admin_contract::admin_role_timestamp::AdminRoleTimestamp::default());
+                        server_admin_contract::admin_role_summaries::AdminRoleSummaries::try_from(vec![role]).is_ok_and(|admin_role_summaries| {
+                            let page = server_admin_contract::admin_roles_page::AdminRolesPage::new(admin_role_summaries, server_admin_contract::admin_page_total::AdminPageTotal::from(1u64));
+                            let html = crate::render_role_manage::render_role_manage(&page, &admin, &branding);
+                            let has_action = |action| html.as_ref().split('"').zip(html.as_ref().split('"').skip(1usize)).any(|(name, value)| {
+                                name.strip_suffix('=').is_some_and(|prefix| prefix.split_ascii_whitespace().last() == Some(stringify!(action))) && value == action
+                            });
+                            assert_eq!(has_action(server_admin_contract::admin_html_action::AdminHtmlAction::RoleUpdate.get()), mask & 1usize != 0usize);
+                            assert_eq!(has_action(server_admin_contract::admin_html_action::AdminHtmlAction::RoleDelete.get()), mask & 2usize != 0usize && !is_system);
+                            assert_eq!(html.as_ref().matches(format!(">{}<", constants_str::ADMIN_UI_SYSTEM_ROLE).as_str()).count(), usize::from(is_system));
+                            assert_eq!(html.as_ref().matches(format!(">{}<", constants_str::ADMIN_UI_CUSTOM_ROLE).as_str()).count(), usize::from(!is_system));
+                            true
+                        })
+                    })
+                })
+            })
+        }))
+    }));
+}

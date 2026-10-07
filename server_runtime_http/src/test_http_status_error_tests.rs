@@ -68,4 +68,23 @@ mod tests {
             );
         });
     }
+    #[test]
+    fn test_success_status_range_and_adjacent_fallback_boundaries() {
+        assert!((200u16..=299u16).all(|value| {
+            http::StatusCode::from_u16(value).is_ok_and(|status| {
+                crate::classify_http_error_status::classify_http_error_status(status.into())
+                    == crate::http_error_class::HttpErrorClass::UnexpectedSuccess
+            })
+        }));
+        assert!(
+            [100u16, 199u16, 300u16, 399u16, 500u16, 599u16, 999u16]
+                .into_iter()
+                .all(|value| {
+                    http::StatusCode::from_u16(value).is_ok_and(|status| {
+                        crate::classify_http_error_status::classify_http_error_status(status.into())
+                            == crate::http_error_class::HttpErrorClass::Internal
+                    })
+                })
+        );
+    }
 }
