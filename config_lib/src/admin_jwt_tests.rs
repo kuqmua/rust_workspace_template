@@ -91,11 +91,42 @@ mod tests {
         let second = constants_str::TEST_JWT_SECRET_CHARACTER_B
             .repeat(crate::admin_jwt_secret_min_len::ADMIN_JWT_SECRET_MIN_LEN);
         let parsed = <crate::admin_jwt_secret::AdminJwtSecret as crate::try_from_std_env_var_ok::TryFromStdEnvVarOk>::try_from_std_env_var_ok(
-            crate::std_env_var_ok::StdEnvVarOk::try_from(format!("{first}, {second}"))
+            crate::std_env_var_ok::StdEnvVarOk::try_from(format!(" {first} , {second} "))
                 .expect(constants_str::DIAGNOSTIC_12FD7C6A),
         )
         .expect(constants_str::DIAGNOSTIC_2C18577D);
         assert_eq!(parsed.verification_secrets().len(), 2usize);
+        assert!(
+            parsed
+                .verification_secrets()
+                .iter()
+                .zip([first.as_str(), second.as_str()])
+                .all(|(key, expected)| {
+                    secrecy::ExposeSecret::expose_secret(key.as_ref()).as_ref() == expected
+                })
+        );
+        assert!(
+            parsed
+                .primary()
+                .zip(parsed.verification_secrets().first())
+                .is_some_and(|(primary, first_key)| std::ptr::eq(primary, first_key))
+        );
+        assert_eq!(
+            format!("{parsed:?}"),
+            format!(
+                "{}({:?})",
+                constants_str::ADMINJWTSECRET,
+                constants_str::REDACTED_ALT_3
+            )
+        );
+        assert_eq!(
+            format!("{parsed:#?}"),
+            format!(
+                "{}(\n    {:?},\n)",
+                constants_str::ADMINJWTSECRET,
+                constants_str::REDACTED_ALT_3
+            )
+        );
         assert_eq!(
             parsed
                 .primary()

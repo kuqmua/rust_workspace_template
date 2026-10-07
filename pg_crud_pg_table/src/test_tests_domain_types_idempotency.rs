@@ -274,3 +274,93 @@ fn test_idempotency_actor_and_key_preserve_text_and_shared_byte_limits() {
         );
     });
 }
+
+#[test]
+fn test_idempotency_replay_transfers_status_and_body_without_reallocating() {
+    assert!([
+        (Vec::new(), Some(constants_str::EMPTY)),
+        (constants_str::U_1F496.as_bytes().to_vec(), Some(constants_str::U_1F496)),
+        (vec![constants_u8::ZERO; constants_usize::VALUE_1_048_576], None),
+    ].into_iter().all(|(bytes, expected_text)| {
+        let pointer = bytes.as_ptr();
+        let length = bytes.len();
+        crate::pg_table_idempotency_body::PgTableIdempotencyBody::try_from(bytes).is_ok_and(|body| {
+            let replay = crate::pg_table_idempotency_replay::PgTableIdempotencyReplay::new(
+                body,
+                crate::pg_table_idempotency_response_status::PgTableIdempotencyResponseStatus::internal_server_error(),
+            );
+            let (status, transferred) = replay.into_parts();
+            u16::from(status) == 500u16
+                && transferred.as_ref().len() == length
+                && transferred.as_ref().as_ptr() == pointer
+                && expected_text.map_or_else(|| transferred.as_ref().iter().all(|byte| *byte == constants_u8::ZERO), |text| transferred.as_ref() == text.as_bytes())
+        })
+    }));
+}
+
+#[test]
+fn test_idempotency_request_retains_scope_and_empty_payload_digest() {
+    assert!(match (
+        crate::pg_table_idempotency_actor::PgTableIdempotencyActor::try_from(
+            constants_str::X.to_owned()
+        ),
+        crate::pg_table_idempotency_method::PgTableIdempotencyMethod::try_from(
+            constants_str::POST.to_owned()
+        ),
+        crate::pg_table_idempotency_route::PgTableIdempotencyRoute::try_from('/'.to_string()),
+        crate::pg_table_idempotency_key::PgTableIdempotencyKey::try_from(
+            constants_str::U_1F496.to_owned()
+        ),
+    ) {
+        (Ok(actor), Ok(method), Ok(route), Ok(key)) => {
+            let scope = crate::pg_table_idempotency_scope::PgTableIdempotencyScope::new(
+                actor, method, route, key,
+            );
+            let request = crate::pg_table_idempotency_request::PgTableIdempotencyRequest::new(
+                scope,
+                crate::pg_table_idempotency_body_ref::PgTableIdempotencyBodyRef::from(
+                    constants_str::EMPTY.as_bytes(),
+                ),
+            );
+            request.get_scope().get_actor().as_ref() == constants_str::X
+                && request.get_scope().get_method().as_ref() == constants_str::POST
+                && request
+                    .get_scope()
+                    .get_route()
+                    .as_ref()
+                    .chars()
+                    .eq(std::iter::once('/'))
+                && request.get_scope().get_key().as_ref() == constants_str::U_1F496
+                && request.get_request_hash().get()
+                    == [
+                        227u8, 176u8, 196u8, 66u8, 152u8, 252u8, 28u8, 20u8, 154u8, 251u8, 244u8,
+                        200u8, 153u8, 111u8, 185u8, 36u8, 39u8, 174u8, 65u8, 228u8, 100u8, 155u8,
+                        147u8, 76u8, 164u8, 149u8, 153u8, 27u8, 120u8, 82u8, 184u8, 85u8,
+                    ]
+        }
+        _ => false,
+    });
+}
+
+#[test]
+fn test_idempotency_sqlx_error_preserves_source_without_exposing_source_text() {
+    let wrapped = crate::sqlx_pg_table_idempotency_error::SqlxPgTableIdempotencyError::from(
+        sqlx::Error::Protocol(constants_str::U_1F496.to_owned()),
+    );
+    assert_eq!(
+        wrapped.to_string(),
+        constants_str::POSTGRESQL_IDEMPOTENCY_OPERATION_FAILED
+    );
+    assert_eq!(
+        to_err_string::to_err_string::ToErrString::to_err_string(&wrapped).as_ref(),
+        constants_str::POSTGRESQL_IDEMPOTENCY_OPERATION_FAILED
+    );
+    assert!(std::error::Error::source(&wrapped).is_some_and(|source| {
+        source.downcast_ref::<sqlx::Error>().is_some_and(
+            |error| matches!(error, sqlx::Error::Protocol(text) if text == constants_str::U_1F496),
+        )
+    }));
+    assert!(
+        matches!(sqlx::Error::from(wrapped), sqlx::Error::Protocol(text) if text == constants_str::U_1F496)
+    );
+}

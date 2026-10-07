@@ -400,39 +400,183 @@ mod tests {
     }
     #[test]
     fn test_admin_infrastructure_errors_map_to_internal_status() {
-        let errors = [
-            crate::admin_error::AdminError::from(sqlx::Error::RowNotFound),
-            crate::admin_error::AdminError::session(
-                crate::admin_session_error::AdminSessionError::SystemClock,
-            ),
-            crate::admin_error::AdminError::password_hash(
-                crate::admin_password_hash_error::AdminPasswordHashError::BoundedText(
-                    bounded_types::bounded_string_error::BoundedStringError::AboveMaximum {
-                        actual_length: 2usize.into(),
-                        maximum_length: 1usize.into(),
-                    },
-                ),
-            ),
-        ];
-        assert!(errors.into_iter().all(|error| error.route_error_status()
-            == frontend_contract::route_error_status::RouteErrorStatus::Internal));
-        assert!(
-            http::HeaderValue::from_bytes(constants_str::NEWLINE.as_bytes()).is_err_and(|source| {
-                crate::admin_error::AdminError::header(
-                    crate::http_admin_header_value_error::HttpAdminHeaderValueError::from(source),
-                )
-                .route_error_status()
-                    == frontend_contract::route_error_status::RouteErrorStatus::Internal
-            })
+        let database_source = sqlx::Error::RowNotFound;
+        let database_diagnostic = database_source.to_string();
+        let session_source = crate::admin_session_error::AdminSessionError::SystemClock;
+        let session_diagnostic = session_source.to_string();
+        let password_hash_source =
+            crate::admin_password_hash_error::AdminPasswordHashError::BoundedText(
+                bounded_types::bounded_string_error::BoundedStringError::AboveMaximum {
+                    actual_length: 2usize.into(),
+                    maximum_length: 1usize.into(),
+                },
+            );
+        let password_hash_diagnostic = password_hash_source.to_string();
+        let alternate_database_source = sqlx::Error::PoolClosed;
+        let alternate_database_diagnostic = alternate_database_source.to_string();
+        let alternate_session_source = crate::admin_session_error::AdminSessionError::SecretText(
+            crate::admin_secret_text_error::AdminSecretTextError::ContainsNul,
         );
+        let alternate_session_diagnostic = alternate_session_source.to_string();
+        let alternate_password_hash_source =
+            crate::admin_password_hash_error::AdminPasswordHashError::BoundedText(
+                bounded_types::bounded_string_error::BoundedStringError::AboveMaximum {
+                    actual_length: 7usize.into(),
+                    maximum_length: 4usize.into(),
+                },
+            );
+        let alternate_password_hash_diagnostic = alternate_password_hash_source.to_string();
+        [
+            (
+                crate::admin_error::AdminError::from(database_source),
+                constants_str::ADMIN_OBSERVED_ERROR_DATABASE,
+                database_diagnostic,
+            ),
+            (
+                crate::admin_error::AdminError::session(session_source),
+                constants_str::ADMIN_OBSERVED_ERROR_SESSION,
+                session_diagnostic,
+            ),
+            (
+                crate::admin_error::AdminError::password_hash(password_hash_source),
+                constants_str::ADMIN_OBSERVED_ERROR_PASSWORD_HASH,
+                password_hash_diagnostic,
+            ),
+            (
+                crate::admin_error::AdminError::from(alternate_database_source),
+                constants_str::ADMIN_OBSERVED_ERROR_DATABASE,
+                alternate_database_diagnostic,
+            ),
+            (
+                crate::admin_error::AdminError::session(alternate_session_source),
+                constants_str::ADMIN_OBSERVED_ERROR_SESSION,
+                alternate_session_diagnostic,
+            ),
+            (
+                crate::admin_error::AdminError::password_hash(alternate_password_hash_source),
+                constants_str::ADMIN_OBSERVED_ERROR_PASSWORD_HASH,
+                alternate_password_hash_diagnostic,
+            ),
+        ]
+        .into_iter()
+        .fold((), |(), (error, expected_code, expected_diagnostic)| {
+            assert_eq!(
+                error.route_error_status(),
+                frontend_contract::route_error_status::RouteErrorStatus::Internal
+            );
+            let (actual_code, actual_diagnostic) = match error {
+                crate::admin_error::AdminError::Pg(observed) => {
+                    (observed.error_code(), observed.source_ref().to_string())
+                }
+                crate::admin_error::AdminError::Session(observed) => {
+                    (observed.error_code(), observed.source_ref().to_string())
+                }
+                crate::admin_error::AdminError::PasswordHash(observed) => {
+                    (observed.error_code(), observed.source_ref().to_string())
+                }
+                unexpected @ (crate::admin_error::AdminError::Authentication
+                | crate::admin_error::AdminError::AuthenticationSecretText(_)
+                | crate::admin_error::AdminError::Authorization
+                | crate::admin_error::AdminError::Conflict
+                | crate::admin_error::AdminError::Csrf
+                | crate::admin_error::AdminError::CsrfSecretText(_)
+                | crate::admin_error::AdminError::RateLimited
+                | crate::admin_error::AdminError::Validation
+                | crate::admin_error::AdminError::ValidationCollection(_)
+                | crate::admin_error::AdminError::PasswordText(_)
+                | crate::admin_error::AdminError::PayloadTooLarge
+                | crate::admin_error::AdminError::SecretText(_)
+                | crate::admin_error::AdminError::MethodNotAllowed
+                | crate::admin_error::AdminError::Header(_)) => std::panic::panic_any(unexpected),
+            };
+            assert_eq!(
+                actual_code,
+                server_observability::observed_error_code::ObservedErrorCode::from(expected_code)
+            );
+            assert_eq!(actual_diagnostic, expected_diagnostic);
+        });
+        assert!(http::HeaderValue::from_bytes(constants_str::NEWLINE.as_bytes()).is_err_and(|source| {
+            let header_source = crate::http_admin_header_value_error::HttpAdminHeaderValueError::from(source);
+            let header_diagnostic = header_source.to_string();
+            let error = crate::admin_error::AdminError::header(header_source);
+            error.route_error_status() == frontend_contract::route_error_status::RouteErrorStatus::Internal
+                && matches!(error, crate::admin_error::AdminError::Header(observed)
+                    if observed.error_code() == server_observability::observed_error_code::ObservedErrorCode::from(constants_str::ADMIN_OBSERVED_ERROR_RESPONSE_HEADER)
+                        && observed.source_ref().to_string() == header_diagnostic)
+        }));
     }
     #[test]
     fn test_admin_typed_validation_errors_map_to_validation_status() {
-        let errors = [
-            crate::admin_error::AdminError::password_text(crate::admin_password_try_from_string_error::AdminPasswordTryFromStringError::InvalidLength),
-            crate::admin_error::AdminError::validation_collection(server_admin_contract::admin_collection_error::AdminCollectionError::TooLong(bounded_types::bounded_value_error::BoundedValueError::AboveMax { actual: 2usize.into(), max: 1usize.into() })),
-        ];
-        assert!(errors.into_iter().all(|error| error.route_error_status()
-            == frontend_contract::route_error_status::RouteErrorStatus::Validation));
+        let password_source = crate::admin_password_try_from_string_error::AdminPasswordTryFromStringError::InvalidLength;
+        let password_diagnostic = password_source.to_string();
+        let collection_source =
+            server_admin_contract::admin_collection_error::AdminCollectionError::TooLong(
+                bounded_types::bounded_value_error::BoundedValueError::AboveMax {
+                    actual: 2usize.into(),
+                    max: 1usize.into(),
+                },
+            );
+        let collection_diagnostic = format!("{collection_source:?}");
+        let alternate_collection_source =
+            server_admin_contract::admin_collection_error::AdminCollectionError::TooLong(
+                bounded_types::bounded_value_error::BoundedValueError::InvalidBounds {
+                    min: 2usize.into(),
+                    max: 1usize.into(),
+                },
+            );
+        let alternate_collection_diagnostic = format!("{alternate_collection_source:?}");
+        [
+            (
+                crate::admin_error::AdminError::password_text(password_source),
+                constants_str::ADMIN_OBSERVED_ERROR_PASSWORD_TEXT,
+                password_diagnostic,
+            ),
+            (
+                crate::admin_error::AdminError::validation_collection(collection_source),
+                constants_str::ADMIN_OBSERVED_ERROR_COLLECTION,
+                collection_diagnostic,
+            ),
+            (
+                crate::admin_error::AdminError::validation_collection(alternate_collection_source),
+                constants_str::ADMIN_OBSERVED_ERROR_COLLECTION,
+                alternate_collection_diagnostic,
+            ),
+        ]
+        .into_iter()
+        .fold((), |(), (error, expected_code, expected_diagnostic)| {
+            assert_eq!(
+                error.route_error_status(),
+                frontend_contract::route_error_status::RouteErrorStatus::Validation
+            );
+            let (actual_code, actual_diagnostic) = match error {
+                crate::admin_error::AdminError::PasswordText(observed) => {
+                    (observed.error_code(), observed.source_ref().to_string())
+                }
+                crate::admin_error::AdminError::ValidationCollection(observed) => (
+                    observed.error_code(),
+                    format!("{:?}", observed.source_ref()),
+                ),
+                unexpected @ (crate::admin_error::AdminError::Authentication
+                | crate::admin_error::AdminError::AuthenticationSecretText(_)
+                | crate::admin_error::AdminError::Authorization
+                | crate::admin_error::AdminError::Conflict
+                | crate::admin_error::AdminError::Csrf
+                | crate::admin_error::AdminError::CsrfSecretText(_)
+                | crate::admin_error::AdminError::RateLimited
+                | crate::admin_error::AdminError::Validation
+                | crate::admin_error::AdminError::Pg(_)
+                | crate::admin_error::AdminError::PasswordHash(_)
+                | crate::admin_error::AdminError::PayloadTooLarge
+                | crate::admin_error::AdminError::SecretText(_)
+                | crate::admin_error::AdminError::MethodNotAllowed
+                | crate::admin_error::AdminError::Session(_)
+                | crate::admin_error::AdminError::Header(_)) => std::panic::panic_any(unexpected),
+            };
+            assert_eq!(
+                actual_code,
+                server_observability::observed_error_code::ObservedErrorCode::from(expected_code)
+            );
+            assert_eq!(actual_diagnostic, expected_diagnostic);
+        });
     }
 }

@@ -595,3 +595,64 @@ fn test_owned_commit_link_and_deserialization_enforce_byte_limit() {
         }
     });
 }
+
+#[test]
+fn test_git_link_capacity_counts_unicode_bytes_and_preserves_link_text() {
+    let text = char::from(233u8).to_string().repeat(3usize);
+    assert_eq!(text.chars().count(), 3usize);
+    assert_eq!(text.len(), 6usize);
+    let expected = expected_git_commit_link(text.as_str());
+    assert_eq!(
+        crate::git_commit_link_capacity_value::git_commit_link_capacity_value(text.as_str()),
+        expected.len(),
+    );
+    let actual = test_git_value(crate::build_git_commit_link::build_git_commit_link(
+        text.as_str(),
+    ));
+    assert_eq!(actual.as_ref(), expected.as_str());
+}
+
+#[test]
+fn test_default_git_references_preserve_empty_commit_text() {
+    let commit = crate::git_commit_id_ref::GitCommitIdRef::default();
+    let info = crate::project_git_info::ProjectGitInfo::default();
+    assert_eq!(commit.as_ref(), constants_str::EMPTY);
+    assert_eq!(info.commit(), commit);
+    assert_eq!(info.as_ref(), constants_str::EMPTY);
+    assert_eq!(commit.to_string(), constants_str::EMPTY);
+}
+
+#[test]
+fn test_project_commit_comparison_preserves_exact_case_and_whitespace() {
+    let info = crate::project_git_info_value::project_git_info_value();
+    let commit = info.commit();
+    [
+        format!("{}{commit}", constants_str::SPACE),
+        format!("{commit}{}", constants_str::SPACE),
+        commit.as_ref().to_ascii_uppercase(),
+        commit.as_ref().to_ascii_lowercase(),
+    ]
+    .into_iter()
+    .fold((), |(), text| {
+        let expected = text.as_str() == commit.as_ref();
+        assert_eq!(
+            bool::from(crate::check_is_project_commit::check_is_project_commit(
+                text.as_str()
+            )),
+            expected,
+        );
+        assert_eq!(
+            crate::validate_project_commit::validate_project_commit(text.as_str()),
+            if expected {
+                Ok(())
+            } else {
+                Err(
+                    crate::validate_project_commit_error::ValidateProjectCommitError::from(
+                        crate::project_git_commit_link_ref_value::project_git_commit_link_ref_value(
+                        ),
+                    ),
+                )
+            },
+        );
+    });
+}

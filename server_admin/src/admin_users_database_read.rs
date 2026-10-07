@@ -58,3 +58,27 @@ impl std::fmt::Debug for AdminUsersDatabaseRead {
             .finish_non_exhaustive()
     }
 }
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn test_database_users_model_debug_omits_all_schema_fields() {
+        let model = crate::admin_users_database_read::AdminUsersDatabaseRead {
+            id: pg_types_numeric::generate_pg_types_mod::I64AsNonNullBigSerialInitializationByPg,
+            login: pg_types_text_misc::generate_pg_types_mod::StringAsNonNullText,
+            display_name: pg_types_text_misc::generate_pg_types_mod::StringAsNonNullText,
+            password_hash: pg_types_text_misc::generate_pg_types_mod::StringAsNonNullText,
+            is_banned: pg_types_numeric::generate_pg_types_mod::BoolAsNonNullBool,
+            must_change_password: pg_types_numeric::generate_pg_types_mod::BoolAsNonNullBool,
+            created_at: pg_types_chrono_net::generate_pg_types_mod::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsNonNullTimestampTz,
+            updated_at: pg_types_chrono_net::generate_pg_types_mod::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsNonNullTimestampTz,
+        };
+        let rendered = format!("{model:?}");
+        assert!(
+            constants_str::ADMINUSERS
+                .chars()
+                .chain([' ', '{', ' ', '.', '.', ' ', '}'])
+                .eq(rendered.chars())
+        );
+    }
+}

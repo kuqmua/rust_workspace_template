@@ -258,6 +258,26 @@ fn test_vec_rejects_below_minimum_and_invalid_bounds() {
 }
 
 #[test]
+fn test_zero_sized_vector_length_overflow_preserves_maximum_length() {
+    assert!(
+        crate::bounded_vec::BoundedVec::<(), 0, { usize::MAX }>::try_from(vec![(); usize::MAX],)
+            .is_ok_and(|mut bounded_vec| {
+                let maximum = crate::bounded_len::BoundedLen::from(usize::MAX);
+                bounded_vec.len() == maximum
+                    && bounded_vec.try_push(()).is_err_and(|error| {
+                        error
+                            == crate::bounded_value_error::BoundedValueError::AboveMax {
+                                actual: maximum,
+                                max: maximum,
+                            }
+                    })
+                    && bounded_vec.len() == maximum
+                    && bounded_vec.as_slice().len() == maximum.get()
+            })
+    );
+}
+
+#[test]
 fn test_max_vec_construction_preserves_order_and_supports_consuming_iteration() {
     let values =
         crate::bounded_vec::BoundedVec::<u8, 0, { usize::MAX }>::from_max_iter([3u8, 1u8, 2u8]);
@@ -463,19 +483,32 @@ fn test_vec_deserialization_reports_lower_and_invalid_bounds() {
         ),
     )
     .expect_err(constants_str::VALUE_DA49EE30);
-    assert!(
-        below_min
-            .to_string()
-            .contains(constants_str::VALUE_227386E2)
+    assert_eq!(
+        below_min.to_string(),
+        crate::bounded_value_error::BoundedValueError::BelowMin {
+            actual: crate::bounded_len::BoundedLen::from(0usize),
+            min: crate::bounded_len::BoundedLen::from(1usize),
+        }
+        .to_string()
     );
 
+    let consumed = std::cell::Cell::new(constants_usize::ZERO);
+    let values = std::iter::once(1u8).inspect(|_value| {
+        consumed.set(consumed.get().saturating_add(constants_usize::ONE));
+    });
     let invalid = <crate::bounded_vec::BoundedVec<u8, 2, 1> as serde::Deserialize>::deserialize(
-        serde::de::value::SeqDeserializer::<_, serde::de::value::Error>::new(
-            std::iter::empty::<u8>(),
-        ),
+        serde::de::value::SeqDeserializer::<_, serde::de::value::Error>::new(values),
     )
     .expect_err(constants_str::VALUE_D93AD2D2);
-    assert!(invalid.to_string().contains(constants_str::VALUE_DF55C59B));
+    assert_eq!(
+        invalid.to_string(),
+        crate::bounded_value_error::BoundedValueError::InvalidBounds {
+            min: crate::bounded_len::BoundedLen::from(2usize),
+            max: crate::bounded_len::BoundedLen::from(1usize),
+        }
+        .to_string()
+    );
+    assert_eq!(consumed.get(), constants_usize::ZERO);
 }
 
 #[test]
@@ -889,6 +922,48 @@ fn test_bounded_character_string_deserialization_preserves_validation_diagnostic
             crate::bounded_chars_string::BoundedCharsString<1usize, 2usize>,
         >(constants_str::VALUE_1)
         .is_err_and(|error| error.is_data())
+    );
+}
+
+#[test]
+fn test_bounded_character_string_multibyte_rejections_preserve_scalar_counts() {
+    let assert_rejection =
+        |str: &str, bounded_value_error: crate::bounded_value_error::BoundedValueError| {
+            assert_eq!(
+                crate::bounded_chars_string::BoundedCharsString::<2usize, 2usize>::validate_str(
+                    str
+                ),
+                Err(bounded_value_error)
+            );
+            assert_eq!(
+                crate::bounded_chars_string::BoundedCharsString::<2usize, 2usize>::try_from(
+                    str.to_owned()
+                ),
+                Err(bounded_value_error)
+            );
+            assert!(
+            <crate::bounded_chars_string::BoundedCharsString<2usize, 2usize> as serde::Deserialize>::deserialize(
+                serde::de::value::StrDeserializer::<serde::de::value::Error>::new(str),
+            ).is_err_and(|error| error.to_string() == bounded_value_error.to_string())
+        );
+        };
+    let minimum_text = '\u{00e9}'.to_string();
+    assert_rejection(
+        &minimum_text,
+        crate::bounded_value_error::BoundedValueError::BelowMin {
+            actual: crate::bounded_len::BoundedLen::from(1usize),
+            min: crate::bounded_len::BoundedLen::from(2usize),
+        },
+    );
+    let text = ['\u{00e9}', '\u{03b2}', '\u{1f600}']
+        .into_iter()
+        .collect::<String>();
+    assert_rejection(
+        &text,
+        crate::bounded_value_error::BoundedValueError::AboveMax {
+            actual: crate::bounded_len::BoundedLen::from(3usize),
+            max: crate::bounded_len::BoundedLen::from(2usize),
+        },
     );
 }
 

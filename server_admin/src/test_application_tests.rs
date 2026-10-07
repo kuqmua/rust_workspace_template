@@ -266,6 +266,24 @@ fn test_session_context_hash_is_bound_to_peer_and_user_agent() {
 }
 #[test]
 fn test_audit_resource_identifier_uses_target_identifier() {
+    [
+        uuid::Uuid::nil(),
+        uuid::Uuid::from_bytes([u8::MAX; 16usize]),
+        uuid::Uuid::from_bytes([
+            0u8, 1u8, 2u8, 3u8, 4u8, 5u8, 6u8, 7u8, 8u8, 9u8, 10u8, 11u8, 12u8, 13u8, 14u8, 15u8,
+        ]),
+    ]
+    .into_iter()
+    .fold((), |(), native_uuid| {
+        let identifier = crate::admin_audit_resource_id::AdminAuditResourceId::Session(
+            crate::admin_session_id::AdminSessionId::from(
+                server_admin_core::uuid_admin_value::UuidAdminValue::from(native_uuid),
+            ),
+        )
+        .value();
+        assert_eq!(identifier.as_ref(), &native_uuid.hyphenated().to_string());
+        assert_eq!(uuid::Uuid::parse_str(identifier.as_ref()), Ok(native_uuid));
+    });
     assert_eq!(
         crate::admin_audit_resource_id::AdminAuditResourceId::User(
             server_admin_core::admin_user_record_id::AdminUserRecordId::try_from(42i64)

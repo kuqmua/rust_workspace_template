@@ -256,6 +256,8 @@ pub mod test_domain_types_ssr_tests_navigation;
 pub mod test_domain_types_ssr_tests_settings;
 #[cfg(test)]
 pub mod test_domain_types_with_owner_tests;
+#[cfg(test)]
+mod test_settings_signal_isolation;
 #[cfg(all(not(target_arch = "wasm32"), test))]
 pub mod test_static_pages_tests;
 #[cfg(test)]
@@ -272,7 +274,7 @@ mod test_admin_ssr_html;
 #[cfg(test)]
 mod test_render_document;
 
-#[cfg(target_arch = "wasm32")]
+#[cfg(any(target_arch = "wasm32", test))]
 mod admin_branding_details;
 
 #[cfg(target_arch = "wasm32")]

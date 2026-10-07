@@ -27,10 +27,10 @@ fn test_runner_summary_rejects_overflow_without_changing_existing_text() {
 fn test_runner_report_result_preserves_all_command_failures() {
     let mut failures = crate::command_failures_vec_deque::CommandFailuresVecDeque::default();
     failures.push(runner_spawn_failure_fixture(
-        crate::command_index::CommandIndex::from(constants_usize::ZERO),
+        crate::command_index::CommandIndex::from(constants_usize::TWO),
     ));
     failures.push(runner_spawn_failure_fixture(
-        crate::command_index::CommandIndex::from(constants_usize::ONE),
+        crate::command_index::CommandIndex::from(constants_usize::ZERO),
     ));
     let result = crate::run_commands_error::RunCommandsError::from_report_result(failures, Ok(()));
     assert!(matches!(&result,
@@ -40,11 +40,11 @@ fn test_runner_report_result_preserves_all_command_failures() {
     if let Err(crate::run_commands_error::RunCommandsError::CommandsFailed { command_failures }) =
         result
     {
-        assert!(command_failures.iter().all(|failure| matches!(
+        assert!(command_failures.iter().zip([constants_usize::TWO, constants_usize::ZERO]).all(|(failure, expected_index)| matches!(
             failure,
             crate::command_failure::CommandFailure::Spawn {
-                execution_io_error: error, ..
-            } if error.kind() == std::io::ErrorKind::NotFound
+                command_index, execution_io_error: error,
+            } if usize::from(*command_index) == expected_index && error.kind() == std::io::ErrorKind::NotFound
         )));
     }
 }
@@ -52,6 +52,9 @@ fn test_runner_report_result_preserves_all_command_failures() {
 #[test]
 fn test_runner_report_failure_retains_command_context_and_io_source() {
     let mut failures = crate::command_failures_vec_deque::CommandFailuresVecDeque::default();
+    failures.push(runner_spawn_failure_fixture(
+        crate::command_index::CommandIndex::from(constants_usize::TWO),
+    ));
     failures.push(runner_spawn_failure_fixture(
         crate::command_index::CommandIndex::from(constants_usize::ZERO),
     ));
@@ -74,7 +77,11 @@ fn test_runner_report_failure_retains_command_context_and_io_source() {
             run_report_error: crate::run_report_error::RunReportError::WriteSummary {
                 execution_io_error: io_error,
             },
-        } if command_failures.len() == constants_usize::ONE && io_error.kind() == std::io::ErrorKind::PermissionDenied
+        } if command_failures.len() == constants_usize::TWO && io_error.kind() == std::io::ErrorKind::PermissionDenied
+            && command_failures.iter().zip([constants_usize::TWO, constants_usize::ZERO]).all(|(failure, expected_index)| matches!(failure,
+                crate::command_failure::CommandFailure::Spawn { command_index, execution_io_error }
+                    if usize::from(*command_index) == expected_index && execution_io_error.kind() == std::io::ErrorKind::NotFound
+            ))
     ));
 }
 
@@ -223,11 +230,11 @@ fn test_runner_fixture_conversion_retains_input_and_domain_validation_errors() {
 fn test_runner_output_failure_joins_command_failures_without_losing_sources() {
     let mut failures = crate::command_failures_vec_deque::CommandFailuresVecDeque::default();
     failures.push(runner_spawn_failure_fixture(
-        crate::command_index::CommandIndex::from(constants_usize::ZERO),
+        crate::command_index::CommandIndex::from(constants_usize::TWO),
     ));
     let mut output_failures = crate::command_failures_vec_deque::CommandFailuresVecDeque::default();
     output_failures.push(crate::command_failure::CommandFailure::WriteOutput {
-        command_index: crate::command_index::CommandIndex::from(constants_usize::ONE),
+        command_index: crate::command_index::CommandIndex::from(constants_usize::ZERO),
         tool_console_write_error:
             macro_helpers::tool_console_write_error::ToolConsoleWriteError::StandardOutput(
                 macro_helpers::std_tool_io_error::StdToolIoError::from(std::io::Error::from(
@@ -241,12 +248,18 @@ fn test_runner_output_failure_joins_command_failures_without_losing_sources() {
     let result = crate::run_commands_error::RunCommandsError::from_report_result(failures, Ok(()));
     assert!(matches!(result,
         Err(crate::run_commands_error::RunCommandsError::CommandsFailed { command_failures })
-        if command_failures.iter().any(|command_failure| matches!(command_failure,
-            crate::command_failure::CommandFailure::WriteOutput {
-                command_index,
-                tool_console_write_error: macro_helpers::tool_console_write_error::ToolConsoleWriteError::StandardOutput(std_tool_io_error),
-            } if usize::from(*command_index) == constants_usize::ONE && std_tool_io_error.kind() == std::io::ErrorKind::BrokenPipe
-        )) && command_failures.len() == constants_usize::TWO
+        if command_failures.len() == constants_usize::TWO
+            && command_failures.iter().enumerate().all(|(position, failure)| {
+                matches!((position, failure),
+                    (constants_usize::ZERO, crate::command_failure::CommandFailure::Spawn { command_index, execution_io_error })
+                        if usize::from(*command_index) == constants_usize::TWO && execution_io_error.kind() == std::io::ErrorKind::NotFound
+                ) || matches!((position, failure),
+                    (constants_usize::ONE, crate::command_failure::CommandFailure::WriteOutput {
+                        command_index,
+                        tool_console_write_error: macro_helpers::tool_console_write_error::ToolConsoleWriteError::StandardOutput(std_tool_io_error),
+                    }) if usize::from(*command_index) == constants_usize::ZERO && std_tool_io_error.kind() == std::io::ErrorKind::BrokenPipe
+                )
+            })
     ));
 }
 
@@ -382,4 +395,49 @@ fn test_fixture_admin_text_conversion_preserves_domain_error_source() {
         fixture_domain_conversion_error::<server_admin_contract::admin_text::AdminText>(),
         Some(crate::admin_fixture_conversion_error::AdminFixtureConversionError::Text(_))
     ));
+}
+
+#[test]
+fn test_fixture_conversion_preserves_exact_unicode_character_limit_and_empty_text() {
+    let unicode = char::from(233u8).to_string();
+    [constants_usize::ZERO, 8192usize]
+        .into_iter()
+        .fold((), |(), characters| {
+            let input = unicode.repeat(characters);
+            let expected_bytes = input.len();
+            let result = crate::create_admin_fixture_string::create_admin_fixture_string::<
+                server_admin_contract::admin_text::AdminText,
+            >(input);
+            assert!(result.is_ok_and(|text| {
+                let rendered = text.to_string();
+                rendered.len() == expected_bytes
+                    && rendered.chars().count() == characters
+                    && rendered
+                        .chars()
+                        .all(|character| character == char::from(233u8))
+            }));
+        });
+}
+
+#[test]
+fn test_fixture_conversion_separates_unicode_character_errors_from_input_byte_errors() {
+    let maximum = constants_usize::VALUE_1_048_576;
+    let unicode = char::from(233u8).to_string();
+    let input_characters = maximum.checked_div(unicode.len()).unwrap_or_default();
+    [8193usize, input_characters, input_characters.saturating_add(constants_usize::ONE)]
+        .into_iter().fold((), |(), characters| {
+            let input = unicode.repeat(characters);
+            let bytes = input.len();
+            let result = crate::create_admin_fixture_string::create_admin_fixture_string::<server_admin_contract::admin_text::AdminText>(input);
+            assert!(result.as_ref().is_err_and(|error| std::error::Error::source(error).is_some()));
+            if bytes <= maximum {
+                assert!(matches!(result, Err(crate::admin_fixture_conversion_error::AdminFixtureConversionError::Text(
+                    server_admin_contract::admin_text::AdminTextTryFromStringError::TooLong { len, max }
+                )) if len == characters && max == 8192usize));
+            } else {
+                assert!(matches!(result, Err(crate::admin_fixture_conversion_error::AdminFixtureConversionError::Input(
+                    crate::admin_fixture_string::AdminFixtureStringTryFromStringError::TooLong { len, max }
+                )) if len == bytes && max == maximum));
+            }
+        });
 }

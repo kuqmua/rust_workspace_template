@@ -6,6 +6,8 @@
 
 #[cfg(test)]
 mod test_accessor_generics;
+#[cfg(test)]
+mod test_accessor_rejection;
 
 pub fn generate_accessor_traits_for_struct_fields(
     token_stream: proc_macro2::TokenStream,

@@ -81,6 +81,38 @@ where
 #[cfg(test)]
 mod tests {
     #[test]
+    fn test_rejected_duplicate_reaches_limit_before_validating_next_record() {
+        let validation_count = std::cell::Cell::new(0usize);
+        let report = super::validate_batch_by_key(
+            [(2u8, 20u8), (2u8, 30u8), (1u8, 10u8)],
+            crate::batch_invalid_item_count::BatchInvalidItemCount::from(1usize),
+            crate::batch_duplicate_policy::BatchDuplicatePolicy::Reject,
+            |record| {
+                validation_count.set(validation_count.get() + 1usize);
+                Ok::<(u8, u8), u8>(record)
+            },
+            |record| record.0,
+            |item_index, error| (item_index, error),
+            |item_index, key| (item_index, *key),
+        );
+        assert_eq!(validation_count.get(), 2usize);
+        assert_eq!(report.records_by_key().as_ref().len(), 1usize);
+        assert_eq!(
+            report.records_by_key().as_ref().get(&2u8),
+            Some(&(2u8, 20u8))
+        );
+        assert_eq!(report.invalid_items(), [(1usize, 2u8)]);
+        assert_eq!(
+            report.processed_item_count(),
+            crate::batch_processed_item_count::BatchProcessedItemCount::from(2usize),
+        );
+        assert_eq!(
+            report.stopped_early(),
+            crate::batch_stopped_early::BatchStoppedEarly::from(true),
+        );
+    }
+
+    #[test]
     fn test_empty_batch_does_not_allocate_invalid_item_maximum() {
         let report = super::validate_batch_by_key(
             std::iter::empty::<u8>(),

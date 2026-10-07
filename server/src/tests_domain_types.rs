@@ -168,4 +168,111 @@ mod tests {
             std::str::from_utf8(b"info").expect(constants_str::VALUE_0EF05B85)
         );
     }
+
+    #[tokio::test]
+    async fn test_administrator_asset_router_preserves_head_method_and_missing_path_responses() {
+        let router =
+            axum::Router::from(frontend_admin::admin_frontend_routes::admin_frontend_routes());
+        let missing_path = format!(
+            "{}/{}",
+            server_admin_contract::admin_frontend_path::AdminFrontendPath::Assets.get(),
+            stringify!(test_missing_administrator_asset)
+        );
+        let missing_uri_result = missing_path.parse::<axum::http::Uri>();
+        assert!(missing_uri_result.is_ok());
+        let Ok(missing_uri) = missing_uri_result else {
+            return;
+        };
+        let request_response = async |method, uri| {
+            let mut request = axum::http::Request::new(axum::body::Body::empty());
+            *request.method_mut() = method;
+            *request.uri_mut() = uri;
+            tower::ServiceExt::oneshot(router.clone(), request).await
+        };
+        let (head_result, post_result, missing_result, outside_result) = tokio::join!(
+            request_response(
+                axum::http::Method::HEAD,
+                axum::http::Uri::from_static(constants_str::VALUE_688DB289)
+            ),
+            request_response(
+                axum::http::Method::POST,
+                axum::http::Uri::from_static(constants_str::VALUE_688DB289)
+            ),
+            request_response(axum::http::Method::GET, missing_uri),
+            request_response(
+                axum::http::Method::GET,
+                axum::http::Uri::from_static(
+                    server_admin_contract::admin_frontend_path::AdminFrontendPath::Users.get()
+                )
+            ),
+        );
+        assert!(head_result.as_ref().is_ok_and(|response| {
+            response.status() == axum::http::StatusCode::OK
+                && response
+                    .headers()
+                    .get(axum::http::header::CONTENT_TYPE)
+                    .and_then(|header| header.to_str().ok())
+                    .is_some_and(|header| header.contains(constants_str::TEXT_CSS))
+        }));
+        assert_eq!(
+            post_result.map(|response| response.status()),
+            Ok(axum::http::StatusCode::METHOD_NOT_ALLOWED)
+        );
+        assert_eq!(
+            missing_result.map(|response| response.status()),
+            Ok(axum::http::StatusCode::NOT_FOUND)
+        );
+        assert_eq!(
+            outside_result.map(|response| response.status()),
+            Ok(axum::http::StatusCode::NOT_FOUND)
+        );
+        let Ok(head_response) = head_result;
+        assert!(
+            axum::body::to_bytes(head_response.into_body(), 1usize)
+                .await
+                .is_ok_and(|body| body.is_empty())
+        );
+    }
+
+    #[test]
+    fn test_admin_metrics_render_error_returns_empty_internal_server_error() {
+        let response = axum::response::IntoResponse::into_response(
+            crate::admin_metrics_error::AdminMetricsError::Render(
+                server_runtime_http::metrics_response_body_error::MetricsResponseBodyError::TooLarge,
+            ),
+        );
+        assert_eq!(
+            response.status(),
+            axum::http::StatusCode::INTERNAL_SERVER_ERROR
+        );
+        assert_eq!(
+            axum::body::HttpBody::size_hint(response.body()).exact(),
+            Some(0u64)
+        );
+        assert!(
+            response
+                .headers()
+                .get(axum::http::header::CONTENT_TYPE)
+                .is_none()
+        );
+    }
+
+    #[tokio::test]
+    async fn test_admin_openapi_json_response_preserves_document_and_content_type() {
+        let document = crate::admin_open_api::admin_open_api().await;
+        let expected = document.0.to_json();
+        let response = axum::response::IntoResponse::into_response(document);
+        assert_eq!(response.status(), axum::http::StatusCode::OK);
+        assert_eq!(
+            response.headers().get(axum::http::header::CONTENT_TYPE),
+            Some(&axum::http::HeaderValue::from_static(
+                constants_str::APPLICATION_JSON
+            ))
+        );
+        let collected =
+            axum::body::to_bytes(response.into_body(), constants_usize::VALUE_8_388_608).await;
+        assert!(expected.is_ok_and(|expected_text| {
+            collected.is_ok_and(|body| body.as_ref() == expected_text.as_bytes())
+        }));
+    }
 }

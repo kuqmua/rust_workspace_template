@@ -28,18 +28,18 @@ mod tests {
     #[test]
     fn test_try_from_error_text_rejects_short_target() {
         let error = core_error_text_fixture();
-        assert!(matches!(
+        assert_eq!(
             super::try_from_error_text::<
                 crate::bounded_string_storage::BoundedStringStorage<0usize, 1usize, false>,
                 crate::bounded_string_storage_error::BoundedStringStorageError,
             >(error),
             Err(
                 crate::bounded_string_storage_error::BoundedStringStorageError::AboveMaximum {
+                    actual_length: error.to_string().len(),
                     maximum_length: 1usize,
-                    ..
                 }
             )
-        ));
+        );
     }
 
     #[test]
@@ -48,17 +48,17 @@ mod tests {
             actual_length: 1usize,
             minimum_length: 1_024usize,
         };
-        assert!(matches!(
+        assert_eq!(
             super::try_from_error_text::<
                 crate::bounded_string_storage::BoundedStringStorage<1_024usize, 2_048usize, false>,
                 crate::bounded_string_storage_error::BoundedStringStorageError,
             >(error),
             Err(
                 crate::bounded_string_storage_error::BoundedStringStorageError::BelowMinimum {
+                    actual_length: error.to_string().len(),
                     minimum_length: 1_024usize,
-                    ..
                 }
             )
-        ));
+        );
     }
 }

@@ -13,6 +13,12 @@ pub mod location_test_count;
 pub mod location_test_flag;
 pub mod location_test_text;
 pub mod serde_struct;
+#[cfg(test)]
+mod test_location_diagnostics;
+#[cfg(test)]
+mod test_location_error_conversions;
+#[cfg(test)]
+mod test_location_fixture_value;
 
 fn main() {
     let error = error_one::ErrorOne::Variant {

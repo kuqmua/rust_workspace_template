@@ -1,4 +1,54 @@
 #[test]
+fn test_uri_extractor_preserves_complete_uri_and_request_parts() {
+    let check_uri = |uri: axum::http::Uri| {
+        let mut request = axum::http::Request::new(());
+        *request.uri_mut() = uri.clone();
+        *request.method_mut() = axum::http::Method::POST;
+        *request.version_mut() = axum::http::Version::HTTP_2;
+        let _previous_header = request.headers_mut().insert(
+            axum::http::header::CONTENT_TYPE,
+            axum::http::HeaderValue::from_static(constants_str::APPLICATION_JSON),
+        );
+        let _previous_extension = request
+            .extensions_mut()
+            .insert(crate::health_database_available::HealthDatabaseAvailable::from(true));
+        let (mut parts, ()) = request.into_parts();
+        let result = {
+            let mut future = std::pin::pin!(
+            <crate::axum_http_uri::AxumHttpUri as axum::extract::FromRequestParts<()>>::from_request_parts(&mut parts, &())
+        );
+            let mut context = std::task::Context::from_waker(std::task::Waker::noop());
+            Future::poll(future.as_mut(), &mut context)
+        };
+        assert!(
+            matches!(&result, std::task::Poll::Ready(Ok(extracted)) if extracted.get() == &uri)
+        );
+        assert_eq!(parts.uri, uri);
+        assert_eq!(parts.method, axum::http::Method::POST);
+        assert_eq!(parts.version, axum::http::Version::HTTP_2);
+        assert_eq!(parts.headers.len(), constants_usize::ONE);
+        assert_eq!(
+            parts.headers.get(axum::http::header::CONTENT_TYPE),
+            Some(&axum::http::HeaderValue::from_static(
+                constants_str::APPLICATION_JSON
+            )),
+        );
+        assert!(
+            parts
+                .extensions
+                .get::<crate::health_database_available::HealthDatabaseAvailable>()
+                .is_some_and(|available| available.is_available())
+        );
+    };
+    check_uri(axum::http::Uri::from_static(
+        constants_str::MISSING_PATH_QUESTION_LIMIT_10,
+    ));
+    check_uri(axum::http::Uri::from_static(
+        constants_str::HTTPS_ADMIN_EXAMPLE_COM_PATH,
+    ));
+}
+
+#[test]
 fn test_common_routes_tests() {
     assert!(matches!(
         crate::health_report_response::health_report_response(
@@ -126,8 +176,8 @@ async fn test_unavailable_health_check_has_empty_response_body() {
     ));
 }
 
-#[test]
-fn test_commit_link_errors_return_internal_http_status() {
+#[tokio::test]
+async fn test_commit_link_errors_return_internal_http_status() {
     let error =
         git_info::git_info_string_try_from_string_error::GitInfoStringTryFromStringError::TooLong {
             len: constants_usize::ONE,
@@ -147,6 +197,34 @@ fn test_commit_link_errors_return_internal_http_status() {
         fallback_response.status(),
         axum::http::StatusCode::INTERNAL_SERVER_ERROR
     );
+    let expected_response = axum::response::IntoResponse::into_response(
+        frontend_contract::api_problem_error::ApiProblemError::Internal(
+            frontend_contract::api_problem_status::ApiProblemStatus::from(
+                frontend_contract::known_http_status::KnownHttpStatus::InternalServerError,
+            ),
+        ),
+    );
+    assert_eq!(git_response.headers(), expected_response.headers());
+    assert_eq!(fallback_response.headers(), expected_response.headers());
+    let (git_body, fallback_body, expected_body) = tokio::join!(
+        axum::body::to_bytes(git_response.into_body(), constants_usize::VALUE_1_048_576),
+        axum::body::to_bytes(
+            fallback_response.into_body(),
+            constants_usize::VALUE_1_048_576
+        ),
+        axum::body::to_bytes(
+            expected_response.into_body(),
+            constants_usize::VALUE_1_048_576
+        ),
+    );
+    assert!(git_body.is_ok() && fallback_body.is_ok() && expected_body.is_ok());
+    let (Ok(git_bytes), Ok(fallback_bytes), Ok(expected_bytes)) =
+        (git_body, fallback_body, expected_body)
+    else {
+        return;
+    };
+    assert_eq!(git_bytes, expected_bytes);
+    assert_eq!(fallback_bytes, expected_bytes);
     assert!(
         <crate::git_info_route::GitInfoRoute as frontend_contract::typed_route::TypedRoute>::metadata()
             .error_statuses()

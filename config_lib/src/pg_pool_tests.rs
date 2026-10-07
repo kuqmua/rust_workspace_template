@@ -56,6 +56,7 @@ mod tests {
             [
                 <crate::pg_pool_acquire_timeout_seconds::PgPoolAcquireTimeoutSeconds as crate::try_from_std_env_var_ok::TryFromStdEnvVarOk>::try_from_std_env_var_ok(std_env_var_ok.clone()).map(|seconds| (*seconds).get()),
                 <crate::pg_pool_idle_timeout_seconds::PgPoolIdleTimeoutSeconds as crate::try_from_std_env_var_ok::TryFromStdEnvVarOk>::try_from_std_env_var_ok(std_env_var_ok.clone()).map(|seconds| (*seconds).get()),
+                <crate::request_timeout_seconds::RequestTimeoutSeconds as crate::try_from_std_env_var_ok::TryFromStdEnvVarOk>::try_from_std_env_var_ok(std_env_var_ok.clone()).map(|seconds| (*seconds).get()),
                 <crate::pg_pool_max_lifetime_seconds::PgPoolMaxLifetimeSeconds as crate::try_from_std_env_var_ok::TryFromStdEnvVarOk>::try_from_std_env_var_ok(std_env_var_ok).map(|seconds| (*seconds).get()),
             ]
         };

@@ -397,9 +397,20 @@ fn test_admin_grid_requires_valid_identifier_and_permission_for_actions() {
                         else {
                             return false;
                         };
+                        let Ok(prefix_name) = server_admin_contract::admin_text::AdminText::try_from(
+                            constants_str::LOGIN.to_owned(),
+                        ) else {
+                            return false;
+                        };
                         let Ok(columns) =
                             server_admin_contract::admin_data_columns::AdminDataColumns::try_from(
                                 vec![
+                                    server_admin_contract::admin_data_column::AdminDataColumn::new(
+                                        filters.clone(),
+                                        frontend_contract::input_kind::InputKind::Text,
+                                        prefix_name.clone(),
+                                        prefix_name,
+                                    ),
                                     server_admin_contract::admin_data_column::AdminDataColumn::new(
                                         filters,
                                         frontend_contract::input_kind::InputKind::Number,
@@ -416,8 +427,16 @@ fn test_admin_grid_requires_valid_identifier_and_permission_for_actions() {
                         ) else {
                             return false;
                         };
+                        let Ok(prefix_text) = server_admin_contract::admin_text::AdminText::try_from(
+                            constants_str::TEST_FIRST.to_owned(),
+                        ) else {
+                            return false;
+                        };
                         let Ok(values) =
-                            server_admin_contract::admin_texts::AdminTexts::try_from(vec![text])
+                            server_admin_contract::admin_texts::AdminTexts::try_from(vec![
+                                prefix_text,
+                                text,
+                            ])
                         else {
                             return false;
                         };
@@ -602,5 +621,203 @@ fn test_column_filter_excludes_membership_for_checkboxes_and_preserves_text_oper
                     .contains(constants_str::ADMIN_FILTER_IN_OPTION_VALUE_FIXTURE)
                     == includes_membership
         })
+    );
+}
+
+#[test]
+fn test_column_filter_preserves_active_range_and_rejects_stale_operation_values() {
+    let setup = (
+        server_admin_contract::admin_text::AdminText::try_from(String::from(constants_str::LOGIN)),
+        server_admin_contract::admin_filter_field::AdminFilterField::try_from(String::from(
+            constants_str::LOGIN,
+        )),
+        server_admin_contract::admin_filter_field::AdminFilterField::try_from(String::from(
+            constants_str::SQL_NAMES_ID,
+        )),
+        server_admin_contract::admin_filter_value::AdminFilterValue::try_from(String::from(
+            constants_str::VALUE_2BD806C9,
+        )),
+        server_admin_contract::admin_filter_value::AdminFilterValue::try_from(String::from(
+            constants_str::VALUE_42,
+        )),
+    );
+    assert!(matches!(&setup, (Ok(_), Ok(_), Ok(_), Ok(_), Ok(_))));
+    let (Ok(column), Ok(field), Ok(other_field), Ok(value), Ok(end)) = setup else {
+        return;
+    };
+    let path = server_admin_contract::admin_data_table::AdminDataTable::Users.frontend_path();
+    let filters = [
+        server_admin_contract::admin_data_filter::AdminDataFilter::from(
+            frontend_contract::filter_operation::FilterOperation::Eq,
+        ),
+        server_admin_contract::admin_data_filter::AdminDataFilter::from(
+            frontend_contract::filter_operation::FilterOperation::Between,
+        ),
+    ];
+    let between = server_admin_contract::admin_filter_operation_key::AdminFilterOperationKey::from(
+        frontend_contract::filter_operation::FilterOperation::Between,
+    );
+    let regex = server_admin_contract::admin_filter_operation_key::AdminFilterOperationKey::from(
+        frontend_contract::filter_operation::FilterOperation::Regex,
+    );
+    let input_prefix = format!("{} ", stringify!(input));
+    let radio_name = format!("name=\"{}\"", stringify!(filter_operation));
+    let value_name = format!("name=\"{}\"", stringify!(filter_value));
+    let end_name = format!("name=\"{}\"", stringify!(filter_end));
+    let value_attribute = format!("{}=", stringify!(value));
+    let retained_value = format!("value=\"{}\"", constants_str::VALUE_2BD806C9);
+    assert!(
+        [
+            (&filters[..], None, Some(&between), false, false, 1usize),
+            (
+                &filters[..],
+                Some(&field),
+                Some(&between),
+                true,
+                true,
+                1usize
+            ),
+            (
+                &filters[..],
+                Some(&field),
+                Some(&regex),
+                true,
+                false,
+                1usize
+            ),
+            (
+                &filters[..],
+                Some(&other_field),
+                Some(&between),
+                false,
+                false,
+                1usize
+            ),
+            (&filters[..], Some(&field), None, true, false, 1usize),
+            (
+                &filters[..0usize],
+                Some(&field),
+                Some(&between),
+                true,
+                false,
+                0usize
+            ),
+        ]
+        .into_iter()
+        .all(
+            |(offered_filters, active_field, active_operation, active, range, controls)| {
+                let html = crate::admin_ssr_view_ext_tests::AdminSsrViewExt::render_admin_ssr(
+                    crate::with_owner::with_owner(|| {
+                        crate::admin_column_filter::admin_column_filter(
+                            &path,
+                            &column,
+                            frontend_contract::input_kind::InputKind::Text,
+                            offered_filters,
+                            active_field,
+                            active_operation,
+                            Some(&value),
+                            Some(&end),
+                            server_admin_contract::admin_page_limit::AdminPageLimit::default(),
+                            None,
+                        )
+                    }),
+                );
+                let inputs = html
+                    .as_ref()
+                    .split('<')
+                    .filter(|text| text.starts_with(input_prefix.as_str()))
+                    .filter_map(|text| text.split_once('>').map(|(tag, _tail)| tag));
+                let selected_value = format!(
+                    "value=\"{}\"",
+                    if range {
+                        constants_str::ADMIN_FILTER_OPERATION_BETWEEN
+                    } else {
+                        constants_str::ADMIN_FILTER_OPERATION_EQ
+                    }
+                );
+                let checked = inputs
+                    .clone()
+                    .filter(|tag| {
+                        tag.contains(radio_name.as_str())
+                            && tag.split_ascii_whitespace().any(|attribute| {
+                                attribute
+                                    .split_once('=')
+                                    .map_or(attribute, |(name, _value)| name)
+                                    == stringify!(checked)
+                            })
+                    })
+                    .fold((0usize, true), |(count, valid), tag| {
+                        (
+                            count + 1usize,
+                            valid && tag.contains(selected_value.as_str()),
+                        )
+                    });
+                let matches = checked == (controls, true)
+                    && inputs
+                        .clone()
+                        .filter(|tag| tag.contains(value_name.as_str()))
+                        .count()
+                        == controls * 2usize
+                    && inputs
+                        .clone()
+                        .filter(|tag| {
+                            tag.contains(value_name.as_str())
+                                && tag.contains(retained_value.as_str())
+                        })
+                        .count()
+                        == usize::from(range)
+                    && inputs.filter(|tag| tag.contains(end_name.as_str())).fold(
+                        (0usize, true),
+                        |(count, valid), tag| {
+                            let disabled = tag.split_ascii_whitespace().any(|attribute| {
+                                attribute
+                                    .split_once('=')
+                                    .map_or(attribute, |(name, _value)| name)
+                                    == stringify!(disabled)
+                            });
+                            (
+                                count + 1usize,
+                                valid
+                                    && disabled != range
+                                    && if range {
+                                        tag.contains(
+                                            format!("value=\"{}\"", constants_str::VALUE_42)
+                                                .as_str(),
+                                        )
+                                    } else {
+                                        tag.split_ascii_whitespace()
+                                            .find_map(|attribute| {
+                                                attribute.strip_prefix(value_attribute.as_str())
+                                            })
+                                            .is_none_or(|attribute| {
+                                                attribute == format!("\"{}\"", constants_str::EMPTY)
+                                            })
+                                    },
+                            )
+                        },
+                    ) == (controls, true)
+                    && html.as_ref().contains(
+                        format!(
+                            "{}=\"{}\"",
+                            stringify!(data_filter_active).replace('_', constants_str::HYPHEN),
+                            active
+                        )
+                        .as_str(),
+                    )
+                    && html
+                        .as_ref()
+                        .matches(
+                            format!(
+                                "class=\"{}\"",
+                                stringify!(table_filter_clear).replace('_', constants_str::HYPHEN)
+                            )
+                            .as_str(),
+                        )
+                        .count()
+                        == usize::from(active);
+                assert!(matches, "{active} {range} {controls}");
+                matches
+            }
+        )
     );
 }

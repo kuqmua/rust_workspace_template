@@ -38,3 +38,56 @@ where
         )
     }
 }
+
+#[cfg(test)]
+mod tests {
+    #[tokio::test]
+    async fn test_peer_extractor_rejects_missing_and_untyped_connection_information() {
+        let (mut parts, ()) = http::Request::new(()).into_parts();
+        let result = <crate::admin_peer_addr::AdminPeerAddr as axum::extract::FromRequestParts<
+            (),
+        >>::from_request_parts(&mut parts, &())
+        .await;
+        assert!(matches!(
+            result,
+            Err(crate::admin_error::AdminError::Authentication)
+        ));
+        let address = std::net::SocketAddr::from(([192u8, 0u8, 2u8, 10u8], 443u16));
+        let previous = parts.extensions.insert(address);
+        assert_eq!(previous, None);
+        let untyped_connection_result = <crate::admin_peer_addr::AdminPeerAddr as axum::extract::FromRequestParts<
+            (),
+        >>::from_request_parts(&mut parts, &())
+        .await;
+        assert!(matches!(
+            untyped_connection_result,
+            Err(crate::admin_error::AdminError::Authentication)
+        ));
+        assert_eq!(
+            parts.extensions.get::<std::net::SocketAddr>(),
+            Some(&address)
+        );
+    }
+
+    #[test]
+    fn test_peer_extractor_preserves_ipv4_ipv6_ports_and_connection_extension() {
+        [
+            std::net::SocketAddr::from(([192u8, 0u8, 2u8, 10u8], 0u16)),
+            std::net::SocketAddr::from(([192u8, 0u8, 2u8, 10u8], u16::MAX)),
+            std::net::SocketAddr::from((
+                [0x2001u16, 0xdb8u16, 0u16, 0u16, 0u16, 0u16, 0u16, 1u16],
+                443u16,
+            )),
+        ].into_iter().fold((), |(), address| {
+            let (mut parts, ()) = http::Request::new(()).into_parts();
+            assert!(parts.extensions.insert(axum::extract::ConnectInfo(address)).is_none());
+            let result = {
+                let mut future = std::pin::pin!(<crate::admin_peer_addr::AdminPeerAddr as axum::extract::FromRequestParts<()>>::from_request_parts(&mut parts, &()));
+                let mut context = std::task::Context::from_waker(std::task::Waker::noop());
+                Future::poll(future.as_mut(), &mut context)
+            };
+            assert!(matches!(result, std::task::Poll::Ready(Ok(peer)) if peer.socket_addr() == server_admin_core::admin_socket_addr::AdminSocketAddr::from(address)));
+            assert_eq!(parts.extensions.get::<axum::extract::ConnectInfo<std::net::SocketAddr>>().map(|connection| connection.0), Some(address));
+        });
+    }
+}

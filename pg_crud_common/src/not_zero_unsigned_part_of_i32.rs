@@ -115,6 +115,20 @@ impl crate::pg_range_length_sql::PgRangeLengthSql for NotZeroUnsignedPartOfI32 {
 #[cfg(test)]
 mod tests {
     #[test]
+    fn test_nonzero_integer_bounded_text_preserves_positive_boundaries() {
+        assert!(
+            [1i32, i32::from(u16::MAX), i32::MAX]
+                .into_iter()
+                .all(|integer| {
+                    super::NotZeroUnsignedPartOfI32::try_from(integer).is_ok_and(|value| {
+                        to_err_string::to_err_string::ToErrString::to_err_string(&value).as_ref()
+                            == integer.to_string()
+                    })
+                })
+        );
+    }
+
+    #[test]
     fn test_nonzero_integer_json_and_wire_encoding_preserve_positive_boundaries() {
         assert!([(1i32, [0u8, 0u8, 0u8, 1u8]), (i32::MAX, [0x7fu8, 0xffu8, 0xffu8, 0xffu8])]
             .into_iter()

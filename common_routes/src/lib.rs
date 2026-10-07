@@ -67,6 +67,8 @@ pub mod readiness_report;
 #[cfg(test)]
 pub mod test_common_routes_tests;
 #[cfg(test)]
+mod test_common_wire_boundaries;
+#[cfg(test)]
 pub mod test_tests_domain_types;
 #[cfg(test)]
 pub mod test_tests_domain_types_health;

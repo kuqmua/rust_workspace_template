@@ -293,3 +293,122 @@ fn test_filter_end_hidden_input_preserves_absence_empty_value_and_attribute_esca
         })
     );
 }
+
+#[test]
+fn test_pagination_query_preserves_custom_query_range_filter_and_limit_override() {
+    let setup = (
+        server_admin_contract::admin_table_search::AdminTableSearch::try_from(String::from(
+            constants_str::VALUE_2BD806C9,
+        )),
+        server_admin_contract::admin_table_sort_key::AdminTableSortKey::try_from(String::from(
+            constants_str::LOGIN,
+        )),
+        server_admin_contract::admin_filter_field::AdminFilterField::try_from(String::from(
+            constants_str::LOGIN,
+        )),
+        server_admin_contract::admin_filter_value::AdminFilterValue::try_from(String::from(
+            constants_str::VALUE_2BD806C9,
+        )),
+        server_admin_contract::admin_filter_value::AdminFilterValue::try_from(String::from(
+            constants_str::ADMIN_FILTER_ATTRIBUTE_ESCAPING_FIXTURE,
+        )),
+        server_admin_contract::admin_page_limit::AdminPageLimit::try_from(7u16),
+        server_admin_contract::admin_page_limit::AdminPageLimit::try_from(100u16),
+    );
+    assert!(matches!(
+        &setup,
+        (Ok(_), Ok(_), Ok(_), Ok(_), Ok(_), Ok(_), Ok(_))
+    ));
+    let (Ok(search), Ok(sort), Ok(field), Ok(value), Ok(end), Ok(limit), Ok(override_limit)) =
+        setup
+    else {
+        return;
+    };
+    let offset = server_admin_contract::admin_page_offset::AdminPageOffset::from(11u32);
+    let query = server_admin_contract::admin_table_query::AdminTableQuery::new(
+        search,
+        sort,
+        offset,
+        limit,
+        server_admin_contract::admin_sort_direction::AdminSortDirection::Descending,
+    );
+    let filter =
+        server_admin_contract::admin_data_table_filter_query::AdminDataTableFilterQuery::new(
+            Some(field),
+            Some(frontend_contract::filter_operation::FilterOperation::Between),
+            Some(value),
+            Some(end),
+        );
+    let pagination = crate::admin_pagination_query::AdminPaginationQuery::Ssr {
+        admin_table_query: &query,
+        admin_data_table_filter_query: Some(&filter),
+    };
+    assert!(
+        [None, Some(override_limit)]
+            .into_iter()
+            .all(|admin_page_limit| {
+                let html = crate::admin_ssr_view_ext_tests::AdminSsrViewExt::render_admin_ssr(
+                    pagination.hidden_inputs(admin_page_limit),
+                );
+                [
+                    (stringify!(search), constants_str::VALUE_2BD806C9),
+                    (stringify!(sort), constants_str::LOGIN),
+                    (constants_str::DIRECTION, stringify!(descending)),
+                    (stringify!(filter_field), constants_str::LOGIN),
+                    (
+                        stringify!(filter_operation),
+                        constants_str::ADMIN_FILTER_OPERATION_BETWEEN,
+                    ),
+                    (stringify!(filter_value), constants_str::VALUE_2BD806C9),
+                ]
+                .into_iter()
+                .all(|(name, expected_value)| {
+                    html.as_ref()
+                        .matches(format!("name=\"{name}\" value=\"{expected_value}\"").as_str())
+                        .count()
+                        == 1usize
+                }) && html
+                    .as_ref()
+                    .matches(constants_str::ADMIN_FILTER_END_ESCAPED_ATTRIBUTE_FIXTURE)
+                    .count()
+                    == 1usize
+                    && html
+                        .as_ref()
+                        .matches(format!("name=\"{}\"", constants_str::LIMIT).as_str())
+                        .count()
+                        == usize::from(admin_page_limit.is_some())
+                    && admin_page_limit.is_none_or(|override_value| {
+                        html.as_ref().contains(
+                            format!(
+                                "name=\"{}\" value=\"{}\"",
+                                constants_str::LIMIT,
+                                u16::from(override_value)
+                            )
+                            .as_str(),
+                        )
+                    })
+                    && pagination.limit() == limit
+                    && pagination.offset() == offset
+            })
+    );
+}
+
+#[test]
+fn test_query_hidden_inputs_preserve_present_client_direction_without_defaulting() {
+    assert!([
+        constants_str::EMPTY,
+        server_admin_contract::admin_sort_direction::AdminSortDirection::Descending.as_ref(),
+        constants_str::LOGIN,
+    ].into_iter().all(|text| {
+        server_admin_contract::admin_text::AdminText::try_from(String::from(text)).is_ok_and(|direction| {
+            let html = crate::admin_ssr_view_ext_tests::AdminSsrViewExt::render_admin_ssr(
+                crate::admin_table_query_hidden_inputs::admin_table_query_hidden_inputs(
+                    &server_admin_contract::admin_table_search::AdminTableSearch::default(),
+                    &server_admin_contract::admin_table_sort_key::AdminTableSortKey::default(),
+                    &crate::admin_table_query_direction::AdminTableQueryDirection::Csr(Some(direction)),
+                ),
+            );
+            html.as_ref().matches(format!("name=\"{}\" value=\"{text}\"", constants_str::DIRECTION).as_str()).count() == 1usize
+        })
+    }));
+}

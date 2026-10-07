@@ -7517,6 +7517,100 @@ mod test_schema {
         )
         .await
         .expect(constants_str::DIAGNOSTIC_7A31CF02);
+        let check_model_preparation = async |std_admin_api_test_str_ref: Option<
+            crate::StdAdminApiTestStrRef<'_>,
+        >| {
+            let (access_sessions_result, audit_log_result, cleanup_status_result, login_attempts_result, permission_actions_result, permission_resource_actions_result, permission_resources_result, rate_limits_result, refresh_tokens_result, role_rules_result, roles_result, rules_result, system_settings_result, user_roles_result, users_database_read_result) = tokio::join!(
+                server_admin::admin_access_sessions::AdminAccessSessions::prep_pg(&pool.0),
+                server_admin::admin_audit_log::AdminAuditLog::prep_pg(&pool.0),
+                server_admin::admin_cleanup_status::AdminCleanupStatus::prep_pg(&pool.0),
+                server_admin::admin_login_attempts::AdminLoginAttempts::prep_pg(&pool.0),
+                server_admin::admin_permission_actions::AdminPermissionActions::prep_pg(&pool.0),
+                server_admin::admin_permission_resource_actions::AdminPermissionResourceActions::prep_pg(&pool.0),
+                server_admin::admin_permission_resources::AdminPermissionResources::prep_pg(&pool.0),
+                server_admin::admin_rate_limits::AdminRateLimits::prep_pg(&pool.0),
+                server_admin::admin_refresh_tokens::AdminRefreshTokens::prep_pg(&pool.0),
+                server_admin::admin_role_rules::AdminRoleRules::prep_pg(&pool.0),
+                server_admin::admin_roles::AdminRoles::prep_pg(&pool.0),
+                server_admin::admin_rules::AdminRules::prep_pg(&pool.0),
+                server_admin::admin_system_settings::AdminSystemSettings::prep_pg(&pool.0),
+                server_admin::admin_user_roles::AdminUserRoles::prep_pg(&pool.0),
+                server_admin::admin_users_database_read::AdminUsersDatabaseRead::prep_pg(&pool.0),
+            );
+            let diagnostics = [
+                access_sessions_result
+                    .as_ref()
+                    .err()
+                    .map(ToString::to_string),
+                audit_log_result.as_ref().err().map(ToString::to_string),
+                cleanup_status_result
+                    .as_ref()
+                    .err()
+                    .map(ToString::to_string),
+                login_attempts_result
+                    .as_ref()
+                    .err()
+                    .map(ToString::to_string),
+                permission_actions_result
+                    .as_ref()
+                    .err()
+                    .map(ToString::to_string),
+                permission_resource_actions_result
+                    .as_ref()
+                    .err()
+                    .map(ToString::to_string),
+                permission_resources_result
+                    .as_ref()
+                    .err()
+                    .map(ToString::to_string),
+                rate_limits_result.as_ref().err().map(ToString::to_string),
+                refresh_tokens_result
+                    .as_ref()
+                    .err()
+                    .map(ToString::to_string),
+                role_rules_result.as_ref().err().map(ToString::to_string),
+                roles_result.as_ref().err().map(ToString::to_string),
+                rules_result.as_ref().err().map(ToString::to_string),
+                system_settings_result
+                    .as_ref()
+                    .err()
+                    .map(ToString::to_string),
+                user_roles_result.as_ref().err().map(ToString::to_string),
+                users_database_read_result
+                    .as_ref()
+                    .err()
+                    .map(ToString::to_string),
+            ];
+            if let Some(expected_diagnostic) = std_admin_api_test_str_ref {
+                assert!(
+                    diagnostics.iter().all(|diagnostic| {
+                        diagnostic
+                            .as_ref()
+                            .is_some_and(|text| text.contains(expected_diagnostic.0))
+                    }),
+                    "{diagnostics:?}"
+                );
+            } else {
+                assert!(diagnostics.iter().all(Option::is_none), "{diagnostics:?}");
+                let validated = server_admin::validate_catalog_schema::validate_catalog_schema(
+                    pg_crud_common::sqlx_pg_catalog_pool_ref::SqlxPgCatalogPoolRef::from(&pool.0),
+                    pg_crud_common::db_schema_name_ref::DbSchemaNameRef::from(
+                        constants_str::PUBLIC,
+                    ),
+                )
+                .await;
+                assert_eq!(validated.as_ref().err().map(ToString::to_string), None);
+            }
+        };
+        check_model_preparation(None).await;
+        check_model_preparation(None).await;
+        assert!(matches!(admin_db_test_lock.rollback().await, Ok(())));
+        pool.0.close().await;
+        let pool_closed_diagnostic = sqlx::Error::PoolClosed.to_string();
+        check_model_preparation(Some(crate::StdAdminApiTestStrRef::from(
+            pool_closed_diagnostic.as_str(),
+        )))
+        .await;
     }
     #[tokio::test]
     #[ignore = "requires PostgreSQL; run through workspace_test_runner database"]
@@ -9175,9 +9269,8 @@ async fn admin_html_test_fixture_with_password_change(
     )
     .expect(constants_str::DIAGNOSTIC_EC39B61D);
     let router = AxumAdminApiTestRouter::from(axum::Router::from(
-        server_admin::html_routes_with_swagger::html_routes_with_swagger(
+        server_admin::admin_auth_html_routes::admin_auth_html_routes(
             server_admin::shared_admin_auth_service_state_arc::SharedAdminAuthServiceStateArc::from_state(state),
-            server_admin::admin_html_swagger_enabled::AdminHtmlSwaggerEnabled::from(true),
         ),
     ));
     let correct_password = serde_json::from_str::<String>(constants_str::CORRECT_PASSWORD)

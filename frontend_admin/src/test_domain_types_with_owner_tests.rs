@@ -8,6 +8,138 @@ where
 }
 
 #[test]
+fn test_sidebar_preserves_accessible_navigation_and_each_nested_item_once() {
+    let html = render_owned_view(leptos::view! {
+        <crate::admin_sidebar::AdminSidebar>
+            <crate::admin_sidebar_item::AdminSidebarItem><span>{constants_str::ROOT}</span></crate::admin_sidebar_item::AdminSidebarItem>
+            <crate::admin_sidebar_item::AdminSidebarItem><span>{constants_str::LOGIN}</span></crate::admin_sidebar_item::AdminSidebarItem>
+        </crate::admin_sidebar::AdminSidebar>
+    });
+    assert!(html.contains(constants_str::ADMIN_BUTTON_NAVIGATION));
+    assert!(html.contains(constants_str::ADMIN_UI_ADMIN_SECTIONS));
+    assert!(html.contains(stringify!(NavigationMenu)));
+    assert_eq!(
+        html.matches(concat!('<', stringify!(nav), ' ')).count(),
+        1usize
+    );
+    assert_eq!(
+        html.matches(concat!('<', stringify!(ul), ' ')).count(),
+        1usize
+    );
+    assert!(
+        [constants_str::ROOT, constants_str::LOGIN]
+            .into_iter()
+            .all(|text| {
+                let expected = render_owned_view(leptos::view! { <li><span>{text}</span></li> });
+                html.matches(expected.as_str()).count() == 1usize
+            })
+    );
+}
+
+#[test]
+fn test_table_action_trigger_preserves_accessibility_and_branch_attributes() {
+    assert!(server_admin_contract::admin_route_path::AdminRoutePath::try_from(
+        server_admin_contract::admin_frontend_path::AdminFrontendPath::Users.get().to_owned(),
+    ).is_ok_and(|admin_route_path| {
+        let expected_href = admin_route_path.to_string();
+        let link = render_owned_view(leptos::view! {
+            <crate::admin_table_action_trigger::AdminTableActionTrigger label=constants_str::ADMIN dialog_id=constants_str::ROOT.to_owned() href=admin_route_path><span>{constants_str::X}</span></crate::admin_table_action_trigger::AdminTableActionTrigger>
+        });
+        let button = render_owned_view(leptos::view! {
+            <crate::admin_table_action_trigger::AdminTableActionTrigger label=constants_str::ADMIN dialog_id=constants_str::ROOT.to_owned()><span>{constants_str::X}</span></crate::admin_table_action_trigger::AdminTableActionTrigger>
+        });
+        [link, button].into_iter().enumerate().all(|(index, html)| {
+            let expected_child = render_owned_view(leptos::view! { <span>{constants_str::X}</span> });
+            html.matches(expected_child.as_str()).count() == 1usize
+                && crate::admin_button_variant::AdminButtonVariant::Secondary.class().split_ascii_whitespace().take(2usize).all(|word|
+                    html.split_ascii_whitespace().any(|rendered| rendered == word))
+                && [
+                    (concat!(stringify!(aria), '-', stringify!(label)), constants_str::ADMIN, true),
+                    (stringify!(title), constants_str::ADMIN, true),
+                    (stringify!(href), expected_href.as_str(), index == 0usize),
+                    (stringify!(commandfor), constants_str::ROOT, index == 1usize),
+                    (stringify!(command), concat!(stringify!(show), '-', stringify!(modal)), index == 1usize),
+                    (stringify!(type), stringify!(button), index == 1usize),
+                ].into_iter().all(|(attribute, expected, present)| {
+                    let matched = html.split('"').zip(html.split('"').skip(1usize)).any(|(name, value)| {
+                        name.strip_suffix('=').is_some_and(|prefix|
+                            prefix.split_ascii_whitespace().last() == Some(attribute)) && value == expected
+                    });
+                    matched == present
+                })
+        })
+    }));
+}
+
+#[test]
+fn test_branding_details_pair_labels_and_values_for_every_optional_combination() {
+    assert!((0usize..16usize).all(|mask| {
+        let main_logo = (mask & 1usize != 0usize).then_some(constants_str::ADMIN_DEFAULT_MAIN_LOGO);
+        let primary_color = (mask & 2usize != 0usize).then_some(constants_str::PRIMARY_COLOR_DEFAULT);
+        let support_url = (mask & 4usize != 0usize).then_some(constants_str::ADMIN_DEFAULT_SUPPORT_URL);
+        let tab_title = (mask & 8usize != 0usize).then_some(constants_str::ADMIN);
+        let default_route = server_admin_contract::admin_frontend_path::AdminFrontendPath::Users.get();
+        leptos::serde_json::from_value::<server_admin_contract::admin_branding_view::AdminBrandingView>(leptos::serde_json::json!({
+            (stringify!(default_admin_route)): default_route,
+            (stringify!(main_logo)): main_logo,
+            (stringify!(primary_color)): primary_color,
+            (stringify!(site_name)): constants_str::X,
+            (stringify!(support_url)): support_url,
+            (stringify!(tab_title)): tab_title,
+        })).is_ok_and(|admin_branding_view| {
+            let html = render_owned_view(leptos::view! {
+                <crate::admin_branding_details::AdminBrandingDetails admin_branding_view=admin_branding_view />
+            });
+            [
+                (constants_str::ADMIN_UI_SITE_NAME, constants_str::X),
+                (constants_str::ADMIN_UI_TAB_TITLE, tab_title.unwrap_or(constants_str::EMPTY)),
+                (constants_str::ADMIN_UI_MAIN_LOGO_URL, main_logo.unwrap_or(constants_str::EMPTY)),
+                (constants_str::ADMIN_UI_PRIMARY_COLOR, primary_color.unwrap_or(constants_str::EMPTY)),
+                (constants_str::ADMIN_UI_SUPPORT_URL, support_url.unwrap_or(constants_str::EMPTY)),
+                (constants_str::VALUE_ACD40F02, default_route),
+            ].into_iter().all(|(label, text)| {
+                let expected = render_owned_view(leptos::view! {
+                    <span>{label.to_owned()}</span><span>{text.to_owned()}</span>
+                });
+                html.matches(expected.as_str()).count() == 1usize
+            })
+        })
+    }));
+}
+
+#[test]
+fn test_card_title_optional_class_preserves_children() {
+    let plain = render_owned_view(leptos::view! {
+        <crate::admin_card_title::AdminCardTitle><span>{constants_str::ADMIN}</span></crate::admin_card_title::AdminCardTitle>
+    });
+    let styled = render_owned_view(leptos::view! {
+        <crate::admin_card_title::AdminCardTitle option=constants_str::ROOT><span>{constants_str::ADMIN}</span></crate::admin_card_title::AdminCardTitle>
+    });
+    assert!(
+        [&plain, &styled]
+            .into_iter()
+            .all(|html| html.contains(stringify!(CardTitle))
+                && html.matches(constants_str::ADMIN).count() == 1usize)
+    );
+    assert!(!plain.contains(constants_str::ROOT));
+    assert!(styled.split('"').any(|attribute| {
+        attribute
+            .split_ascii_whitespace()
+            .any(|word| word == constants_str::ROOT)
+    }));
+}
+
+#[test]
+fn test_card_description_preserves_nested_children() {
+    let html = render_owned_view(leptos::view! {
+        <crate::admin_card_description::AdminCardDescription><span>{constants_str::ADMIN}</span></crate::admin_card_description::AdminCardDescription>
+    });
+    assert!(html.contains(stringify!(CardDescription)));
+    assert_eq!(html.matches(constants_str::ADMIN).count(), 1usize);
+    assert!(html.contains(stringify!(span)));
+}
+
+#[test]
 fn test_owned_singlestage_context_renders_without_an_external_owner() {
     let html = render_owned_view(crate::with_owner::with_owner(|| {
         leptos::view! { <singlestage::Popover>"Owned popover"</singlestage::Popover> }
@@ -76,6 +208,43 @@ fn test_primitives_render_semantic_accessible_markup() {
     assert!(html.contains(constants_str::VALUE_F8CB664C));
     assert!(html.contains(constants_str::ADMIN_UI_LOADING));
     assert!(html.contains(constants_str::VALUE_706A5FC3));
+}
+
+#[test]
+fn test_button_callback_preserves_server_markup_without_running_during_render() {
+    let callback_count = std::sync::Arc::new(std::sync::atomic::AtomicUsize::new(0usize));
+    let render_button = |bool| {
+        render_owned_view(crate::with_owner::with_owner(|| {
+            let callback_count = std::sync::Arc::clone(&callback_count);
+            let callback = leptos::prelude::Callback::new(move |_event| {
+                let _previous =
+                    callback_count.fetch_add(1usize, std::sync::atomic::Ordering::Relaxed);
+            });
+            if bool {
+                leptos::view! {
+                <crate::admin_button::AdminButton
+                    admin_button_variant=crate::admin_button_variant::AdminButtonVariant::Danger
+                    bool=true
+                    form=constants_str::LOGIN.to_owned()
+                    on_click=callback
+                >{constants_str::ADMIN_BUTTON_SAVE_CHANGES}</crate::admin_button::AdminButton>
+                }
+            } else {
+                leptos::view! {
+                    <crate::admin_button::AdminButton
+                        admin_button_variant=crate::admin_button_variant::AdminButtonVariant::Danger
+                        bool=true
+                        form=constants_str::LOGIN.to_owned()
+                    >{constants_str::ADMIN_BUTTON_SAVE_CHANGES}</crate::admin_button::AdminButton>
+                }
+            }
+        }))
+    };
+    assert_eq!(render_button(true), render_button(false));
+    assert_eq!(
+        callback_count.load(std::sync::atomic::Ordering::Relaxed),
+        0usize
+    );
 }
 
 #[test]
@@ -341,4 +510,51 @@ fn test_numeric_input_preserves_optional_minimum_and_maximum_attributes() {
     }));
     assert!(html.contains(constants_str::VALUE_3901EFC3));
     assert!(html.contains(constants_str::ADMIN_INPUT_MAXIMUM_TEN_ATTRIBUTE_FIXTURE));
+}
+
+#[test]
+fn test_button_links_preserve_typed_destinations_and_child_text_as_anchors() {
+    assert!([
+        (
+            server_admin_contract::admin_frontend_path::AdminFrontendPath::UsersCreate,
+            crate::admin_button_variant::AdminButtonVariant::Primary,
+            constants_str::PG_CRUD_CREATE_RULE_ACTION,
+        ),
+        (
+            server_admin_contract::admin_frontend_path::AdminFrontendPath::Roles,
+            crate::admin_button_variant::AdminButtonVariant::Secondary,
+            constants_str::ADMIN_BUTTON_BACK_TO_ROLES,
+        ),
+    ].into_iter().all(|(admin_frontend_path, admin_button_variant, text)| {
+        let route = admin_frontend_path.get();
+        let html = render_owned_view(leptos::view! {
+            <crate::admin_button_link::AdminButtonLink str=route admin_button_variant=admin_button_variant>{text}</crate::admin_button_link::AdminButtonLink>
+        });
+        html.contains(format!("href=\"{route}\"").as_str())
+            && html.contains(text)
+            && html.ends_with(constants_str::VALUE_ECD5B806)
+    }));
+}
+
+#[test]
+fn test_checkbox_default_and_explicit_required_flags_preserve_native_input_attributes() {
+    assert!([None, Some(false), Some(true)].into_iter().all(|option| {
+        let html = option.map_or_else(
+            || render_owned_view(leptos::view! {
+                <crate::admin_checkbox::AdminCheckbox name=stringify!(confirmation) value=constants_str::TRUE />
+            }),
+            |bool| render_owned_view(leptos::view! {
+                <crate::admin_checkbox::AdminCheckbox name=stringify!(confirmation) value=constants_str::TRUE bool=bool />
+            }),
+        );
+        let prefix = format!("<{}", stringify!(input));
+        html.split('>').find(|text| text.starts_with(prefix.as_str())).is_some_and(|input| {
+            input.contains(constants_str::VALUE_7A05DAEA)
+                && input.contains(constants_str::VALUE_97F214A2)
+                && input.contains(format!("type=\"{}\"", stringify!(checkbox)).as_str())
+                && input.split_ascii_whitespace().any(|attribute| {
+                    attribute.split_once('=').map_or(attribute, |(name, _value)| name) == constants_str::REQUIRED
+                }) == (option == Some(true))
+        })
+    }));
 }

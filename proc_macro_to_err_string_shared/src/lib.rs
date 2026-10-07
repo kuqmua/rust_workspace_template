@@ -4,6 +4,9 @@
     reason = "shared proc-macro implementations preserve original entrypoint conversion points while returning proc_macro2 streams to one-entrypoint facade crates; every result is consumed immediately by its facade"
 )]
 
+#[cfg(test)]
+mod test_error_string_generation;
+
 pub fn impl_to_err_string_with(token_stream: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
     let Some((types_raw, closure)) = workspace_macro_helpers::split_fat_arrow::split_fat_arrow(
         workspace_macro_helpers::proc_macro2_macro_tokens::ProcMacro2MacroTokens::from_into(

@@ -51,6 +51,29 @@ impl<'de, T: serde::Deserialize<'de> + PartialEq, const MIN: usize, const MAX: u
 #[cfg(test)]
 mod tests {
     #[test]
+    fn test_unique_collection_wrong_json_type_reports_expected_sequence() {
+        assert!(
+            [
+                serde_json::Value::Null,
+                serde_json::Value::Bool(true),
+                serde_json::Value::from(1u8),
+                serde_json::Value::from(constants_str::X),
+                serde_json::Value::Object(serde_json::Map::new()),
+            ]
+            .into_iter()
+            .all(|json| {
+                serde_json::from_value::<super::BoundedUniqueVec<u8, 1usize, 3usize>>(json)
+                    .is_err_and(|error| {
+                        error.is_data()
+                            && error
+                                .to_string()
+                                .contains(constants_str::BOUNDED_UNIQUE_VEC_EXPECTING)
+                    })
+            })
+        );
+    }
+
+    #[test]
     fn test_unique_collection_conversion_and_deserialization_preserve_boundary_values() {
         assert!(
             [

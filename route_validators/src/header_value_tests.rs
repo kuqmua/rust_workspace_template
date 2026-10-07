@@ -158,4 +158,101 @@ mod tests {
         assert_eq!(actual, Err(TestError::ToStr));
         assert!(!parse_called);
     }
+    #[test]
+    fn test_present_header_preserves_borrow_and_skips_error_callbacks() {
+        let headers = make_test_headers_static(constants_str::ABC_ALT_3);
+        let missing_calls = std::cell::Cell::new(constants_usize::ZERO);
+        let conversion_calls = std::cell::Cell::new(constants_usize::ZERO);
+        let parse_calls = std::cell::Cell::new(constants_usize::ZERO);
+        let raw = crate::required_header_value::required_header_value(
+            crate::axum_headers_ref::AxumHeadersRef::from(&headers),
+            TEST_HEADER_NAME,
+            || {
+                missing_calls.set(missing_calls.get().saturating_add(constants_usize::ONE));
+                TestError::NoHeader
+            },
+        );
+        assert!(raw.is_ok_and(|axum_header_value_ref| {
+            headers.get(TEST_HEADER_NAME).is_some_and(|header_value| {
+                std::ptr::eq(
+                    <&axum::http::HeaderValue>::from(axum_header_value_ref),
+                    header_value,
+                )
+            })
+        }));
+        let parsed = crate::required_header_str_parsed::required_header_str_parsed(
+            crate::axum_headers_ref::AxumHeadersRef::from(&headers),
+            TEST_HEADER_NAME,
+            || {
+                missing_calls.set(missing_calls.get().saturating_add(constants_usize::ONE));
+                TestError::NoHeader
+            },
+            |_to_str_error| {
+                conversion_calls.set(conversion_calls.get().saturating_add(constants_usize::ONE));
+                TestError::ToStr
+            },
+            |header_str_ref| {
+                parse_calls.set(parse_calls.get().saturating_add(constants_usize::ONE));
+                Ok(header_str_ref)
+            },
+        );
+        assert!(parsed.is_ok_and(|header_str_ref| {
+            headers.get(TEST_HEADER_NAME).is_some_and(|header_value| {
+                header_value.to_str().is_ok_and(|text| {
+                    std::ptr::eq(header_str_ref.as_ref(), text)
+                        && header_str_ref.as_ref() == constants_str::ABC_ALT_3
+                })
+            })
+        }));
+        assert_eq!(missing_calls.get(), constants_usize::ZERO);
+        assert_eq!(conversion_calls.get(), constants_usize::ZERO);
+        assert_eq!(parse_calls.get(), constants_usize::ONE);
+    }
+
+    #[test]
+    fn test_header_failures_call_only_the_selected_error_callback() {
+        [
+            (
+                crate::axum_test_headers::AxumTestHeaders::from(axum::http::HeaderMap::new()),
+                TestError::NoHeader,
+            ),
+            (
+                make_test_headers(crate::non_utf8_header_value::non_utf8_header_value()),
+                TestError::ToStr,
+            ),
+        ]
+        .into_iter()
+        .fold((), |(), (headers, expected)| {
+            let missing_calls = std::cell::Cell::new(constants_usize::ZERO);
+            let conversion_calls = std::cell::Cell::new(constants_usize::ZERO);
+            let parse_calls = std::cell::Cell::new(constants_usize::ZERO);
+            let actual = crate::required_header_str_parsed::required_header_str_parsed(
+                crate::axum_headers_ref::AxumHeadersRef::from(&headers),
+                TEST_HEADER_NAME,
+                || {
+                    missing_calls.set(missing_calls.get().saturating_add(constants_usize::ONE));
+                    TestError::NoHeader
+                },
+                |_to_str_error| {
+                    conversion_calls
+                        .set(conversion_calls.get().saturating_add(constants_usize::ONE));
+                    TestError::ToStr
+                },
+                |_header_str_ref| {
+                    parse_calls.set(parse_calls.get().saturating_add(constants_usize::ONE));
+                    Ok(true)
+                },
+            );
+            assert_eq!(
+                missing_calls.get(),
+                usize::from(expected == TestError::NoHeader)
+            );
+            assert_eq!(
+                conversion_calls.get(),
+                usize::from(expected == TestError::ToStr)
+            );
+            assert_eq!(parse_calls.get(), constants_usize::ZERO);
+            assert_eq!(actual, Err(expected));
+        });
+    }
 }

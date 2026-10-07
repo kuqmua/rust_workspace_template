@@ -196,16 +196,30 @@ impl<const MINIMUM_LENGTH: usize, const MAXIMUM_LENGTH: usize, const COUNT_CHARS
 mod tests {
     #[test]
     fn test_try_from_enforces_byte_bounds() {
-        let _below =
+        let below =
             crate::bounded_string_storage::BoundedStringStorage::<1usize, 2usize, false>::try_from(
                 String::new(),
             )
             .expect_err(constants_str::DIAGNOSTIC_90DF28FB);
-        let _above =
+        let above =
             crate::bounded_string_storage::BoundedStringStorage::<1usize, 2usize, false>::try_from(
                 ['a', 'b', 'c'].into_iter().collect::<String>(),
             )
             .expect_err(constants_str::DIAGNOSTIC_170980BA);
+        assert_eq!(
+            below,
+            crate::bounded_string_storage_error::BoundedStringStorageError::BelowMinimum {
+                actual_length: 0usize,
+                minimum_length: 1usize,
+            }
+        );
+        assert_eq!(
+            above,
+            crate::bounded_string_storage_error::BoundedStringStorageError::AboveMaximum {
+                actual_length: 3usize,
+                maximum_length: 2usize,
+            }
+        );
     }
 
     #[test]
@@ -219,6 +233,33 @@ mod tests {
             )
             .expect(constants_str::DIAGNOSTIC_B61A0E23);
         assert_eq!(value.len(), 2usize);
+    }
+
+    #[test]
+    fn test_core_storage_character_validation_reports_scalar_lengths() {
+        let below =
+            super::BoundedStringStorage::<2usize, 2usize, true>::try_from('\u{00e9}'.to_string());
+        assert_eq!(
+            below,
+            Err(
+                crate::bounded_string_storage_error::BoundedStringStorageError::BelowMinimum {
+                    actual_length: 1usize,
+                    minimum_length: 2usize,
+                }
+            )
+        );
+        let text = ['\u{00e9}', '\u{03b2}', '\u{1f600}']
+            .into_iter()
+            .collect::<String>();
+        assert_eq!(
+            super::BoundedStringStorage::<2usize, 2usize, true>::try_from(text),
+            Err(
+                crate::bounded_string_storage_error::BoundedStringStorageError::AboveMaximum {
+                    actual_length: 3usize,
+                    maximum_length: 2usize,
+                }
+            )
+        );
     }
 
     #[test]

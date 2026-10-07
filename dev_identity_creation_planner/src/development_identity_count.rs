@@ -16,3 +16,20 @@ impl DevelopmentIdentityCount {
         self.0 = self.0.saturating_add(constants_usize::ONE);
     }
 }
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn test_development_identity_count_saturates_at_native_maximum() {
+        let maximum = std::num::NonZeroUsize::MAX.get();
+        [maximum.saturating_sub(constants_usize::ONE), maximum]
+            .into_iter()
+            .fold((), |(), value| {
+                let mut development_identity_count = super::DevelopmentIdentityCount::from(value);
+                development_identity_count.increment();
+                assert_eq!(usize::from(development_identity_count), maximum);
+                development_identity_count.increment();
+                assert_eq!(usize::from(development_identity_count), maximum);
+            });
+    }
+}

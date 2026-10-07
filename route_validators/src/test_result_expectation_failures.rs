@@ -162,3 +162,75 @@ fn test_error_variant_expectations_check_optional_status_and_reject_mismatches()
         })
     }));
 }
+
+#[test]
+fn test_error_mapping_checks_before_mapping_and_preserves_error_and_identifier() {
+    let checked = std::cell::Cell::new(false);
+    let mapped = crate::map_err::map_err::<(), _, _>(
+        Err(crate::test_expectation_id::TestExpectationId::from(
+            constants_str::X,
+        )),
+        constants_str::VALUE_8CE7A316,
+        |test_expectation_id| {
+            assert_eq!(test_expectation_id.get(), constants_str::X);
+            assert!(!checked.replace(true));
+        },
+        |test_expectation_id, expectation_id| {
+            assert!(checked.get());
+            assert_eq!(expectation_id, constants_str::VALUE_8CE7A316);
+            test_expectation_id
+        },
+    );
+    assert!(checked.get());
+    assert_eq!(mapped.get(), constants_str::X);
+}
+
+#[test]
+fn test_error_mapping_skips_mapper_when_check_panics() {
+    let mapped = std::cell::Cell::new(false);
+    let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+        crate::map_err::map_err::<(), _, _>(
+            Err(crate::test_expectation_id::TestExpectationId::from(
+                constants_str::X,
+            )),
+            constants_str::VALUE_8CE7A316,
+            |_test_expectation_id| {
+                crate::panic_unexpected_variant::panic_unexpected_variant(
+                    constants_str::VALUE_8CE7A316,
+                )
+            },
+            |test_expectation_id, _expectation_id| {
+                mapped.set(true);
+                test_expectation_id
+            },
+        )
+    }));
+    assert!(result.is_err());
+    assert!(!mapped.get());
+}
+
+#[test]
+fn test_borrowed_variant_rejection_preserves_exact_diagnostic_and_input() {
+    let value = crate::test_expectation_id::TestExpectationId::from(constants_str::X);
+    let result = std::panic::catch_unwind(|| {
+        crate::expect_variant_ref::expect_variant_ref(
+            &value,
+            |test_expectation_id| {
+                assert_eq!(test_expectation_id.get(), constants_str::X);
+                None::<crate::test_expectation_id::TestExpectationId>
+            },
+            constants_str::VALUE_8CE7A316,
+        )
+    });
+    let expected = constants_str::PANIC_4FE6F2E6.replacen(
+        constants_str::PANIC_PLACEHOLDER_D8C45567,
+        constants_str::VALUE_8CE7A316,
+        constants_usize::ONE,
+    );
+    assert!(
+        result
+            .err()
+            .is_some_and(|payload| { payload.downcast_ref::<String>() == Some(&expected) })
+    );
+    assert_eq!(value.get(), constants_str::X);
+}

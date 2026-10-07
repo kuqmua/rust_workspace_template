@@ -1,6 +1,216 @@
 #[cfg(test)]
 mod tests {
     #[test]
+    fn test_unique_option_set_builds_errors_only_for_duplicates_and_retains_entries() {
+        let mut values = crate::unique_option_b_tree_set::UniqueOptionBTreeSet::default();
+        let error_calls = std::cell::Cell::new(0usize);
+        assert!(values.is_empty().get());
+        assert!(!values.contains(1u8).get());
+        [
+            (1u8, 0usize, true),
+            (2u8, 0usize, true),
+            (1u8, 1usize, false),
+            (2u8, 2usize, false),
+        ]
+        .into_iter()
+        .fold((), |(), (value, expected_calls, inserted)| {
+            let result = values.try_insert_with(value, || {
+                error_calls.set(error_calls.get() + constants_usize::ONE);
+                syn::Error::new(proc_macro2::Span::call_site(), constants_str::DUPLICATE)
+            });
+            if inserted {
+                assert!(matches!(result, Ok(())));
+            } else {
+                assert!(result.is_err_and(|error| error.to_string() == constants_str::DUPLICATE));
+            }
+            assert_eq!(error_calls.get(), expected_calls);
+            assert!(!values.is_empty().get());
+            assert!(values.contains(value).get());
+            assert!(values.contains(1u8).get());
+            assert!(!values.contains(3u8).get());
+        });
+        assert!(values.contains(2u8).get());
+    }
+
+    #[test]
+    fn test_macro_tokens_parser_and_forwarding_preserve_transparent_groups() {
+        let transparent = proc_macro2::Group::new(
+            proc_macro2::Delimiter::None,
+            quote::quote! { nested => tokens },
+        );
+        [proc_macro2::TokenStream::new(), quote::quote! { #transparent [value, other] => remaining }]
+            .into_iter()
+            .fold((), |(), tokens| {
+                let expected = tokens.to_string();
+                let expected_count = tokens.clone().into_iter().count();
+                let forwarded = crate::proc_macro2_macro_tokens::ProcMacro2MacroTokens::from_into(tokens.clone());
+                assert_eq!(forwarded.len(), expected_count);
+                assert_eq!(forwarded.to_string(), expected);
+                assert!(syn::parse2::<crate::proc_macro2_macro_tokens::ProcMacro2MacroTokens>(tokens)
+                    .is_ok_and(|parsed| {
+                        parsed.len() == expected_count
+                            && parsed.to_string() == expected
+                            && (expected_count == 0usize
+                                || matches!(parsed.first(), Some(proc_macro2::TokenTree::Group(group))
+                                    if group.delimiter() == proc_macro2::Delimiter::None))
+                            && parsed.into_iter().collect::<proc_macro2::TokenStream>().to_string() == expected
+                    }));
+            });
+    }
+
+    #[test]
+    fn test_closure_parser_preserves_raw_identifier_and_complete_opaque_body() {
+        [
+            (
+                quote::quote! { |value| },
+                stringify!(value),
+                quote::quote! {},
+            ),
+            (
+                quote::quote! { |r#type| { nested(value, other) } following => remaining },
+                stringify!(r#type),
+                quote::quote! { { nested(value, other) } following => remaining },
+            ),
+            (
+                quote::quote! { |value| [left, right] (argument) + => },
+                stringify!(value),
+                quote::quote! { [left, right] (argument) + => },
+            ),
+        ]
+        .into_iter()
+        .fold((), |(), (tokens, expected_identifier, expected_body)| {
+            assert!(
+                crate::closure_identifier_and_body::closure_identifier_and_body(tokens)
+                    .is_some_and(|(first_identifier, body)| {
+                        first_identifier.to_string() == expected_identifier
+                            && body.to_string() == expected_body.to_string()
+                    })
+            );
+        });
+    }
+
+    #[test]
+    fn test_comma_parser_preserves_exact_limit_and_returns_empty_fallback_on_overflow() {
+        [
+            (crate::collection_max_len::COLLECTION_MAX_LEN, true),
+            (
+                crate::collection_max_len::COLLECTION_MAX_LEN + constants_usize::ONE,
+                false,
+            ),
+        ]
+        .into_iter()
+        .fold((), |(), (length, within_limit)| {
+            let tokens = std::iter::repeat_n(quote::quote! { value, }, length)
+                .flatten()
+                .collect::<proc_macro2::TokenStream>();
+            let parsed = syn::parse2::<
+                crate::proc_macro2_top_level_comma_parts::ProcMacro2TopLevelCommaParts,
+            >(tokens.clone());
+            let parts = crate::split_top_level_commas::split_top_level_commas(tokens);
+            if within_limit {
+                assert!(parsed.is_ok_and(|parsed_parts| {
+                    parsed_parts.len() == length
+                        && parsed_parts
+                            .iter()
+                            .map(ToString::to_string)
+                            .eq(std::iter::repeat_n(stringify!(value).to_owned(), length))
+                }));
+                assert_eq!(parts.len(), length);
+                assert!(
+                    parts
+                        .iter()
+                        .all(|part| part.to_string() == stringify!(value))
+                );
+            } else {
+                assert!(
+                    parsed.is_err_and(|error| error.to_string().contains(stringify!(e54c7219)))
+                );
+                assert!(parts.is_empty());
+            }
+        });
+    }
+
+    #[test]
+    fn test_fat_arrow_split_preserves_nested_tokens_and_uses_first_outer_arrow() {
+        [
+            (quote::quote! {}, None),
+            (quote::quote! { left = right }, None),
+            (quote::quote! { left > right }, None),
+            (quote::quote! { (left => right) }, None),
+            (quote::quote! { [left => right] }, None),
+            (quote::quote! { { left => right } }, None),
+            (
+                quote::quote! { => },
+                Some((quote::quote! {}, quote::quote! {})),
+            ),
+            (
+                quote::quote! { left => right => following },
+                Some((quote::quote! { left }, quote::quote! { right => following })),
+            ),
+            (
+                quote::quote! { (left => nested), [value] => { right => nested } },
+                Some((
+                    quote::quote! { (left => nested), [value] },
+                    quote::quote! { { right => nested } },
+                )),
+            ),
+        ]
+        .into_iter()
+        .fold((), |(), (tokens, expected)| {
+            assert_eq!(
+                crate::split_fat_arrow::split_fat_arrow(tokens)
+                    .map(|(before, after)| (before.to_string(), after.to_string())),
+                expected.map(|(before, after)| (before.to_string(), after.to_string()))
+            );
+        });
+    }
+
+    #[test]
+    fn test_comma_strip_consumes_exactly_one_token_even_when_separator_is_rejected() {
+        [
+            (quote::quote! {}, false, quote::quote! {}),
+            (quote::quote! { , }, true, quote::quote! {}),
+            (
+                quote::quote! { , following },
+                true,
+                quote::quote! { following },
+            ),
+            (
+                quote::quote! { ; following },
+                false,
+                quote::quote! { following },
+            ),
+            (
+                quote::quote! { value following },
+                false,
+                quote::quote! { following },
+            ),
+            (
+                quote::quote! { (,) following },
+                false,
+                quote::quote! { following },
+            ),
+            (
+                quote::quote! { , , following },
+                true,
+                quote::quote! { , following },
+            ),
+        ]
+        .into_iter()
+        .fold((), |(), (tokens, expected, remaining)| {
+            let mut iterator = tokens.into_iter();
+            assert_eq!(
+                crate::strip_first_comma::strip_first_comma(&mut iterator),
+                crate::first_comma_stripped::FirstCommaStripped::from(expected)
+            );
+            assert_eq!(
+                iterator.collect::<proc_macro2::TokenStream>().to_string(),
+                remaining.to_string()
+            );
+        });
+    }
+
+    #[test]
     fn test_first_identifier_parser_preserves_nested_groups_and_outer_remainder() {
         let transparent =
             |proc_macro2_macro_tokens: crate::proc_macro2_macro_tokens::ProcMacro2MacroTokens| {

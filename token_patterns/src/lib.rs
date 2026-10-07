@@ -211,6 +211,94 @@ mod tests {
     fn test_token_pattern_struct_outputs_expected_tokens() {
         assert_tokens_eq(super::SqlxAcquire, quote::quote! {sqlx::Acquire});
         assert_tokens_eq(
+            super::AxumExtractRejectionJsonRejection,
+            quote::quote! {axum::extract::rejection::JsonRejection},
+        );
+        assert_tokens_eq(
+            super::AxumResponseIntoResponse,
+            quote::quote! {axum::response::IntoResponse},
+        );
+        assert_tokens_eq(super::ReqwestError, quote::quote! {reqwest::Error});
+        assert_tokens_eq(
+            super::ReqwestHeaderHeaderMap,
+            quote::quote! {reqwest::header::HeaderMap},
+        );
+        assert_tokens_eq(super::HttpStatusCode, quote::quote! {http::StatusCode});
+        assert_tokens_eq(super::SqlxRow, quote::quote! {sqlx::Row});
+        assert_tokens_eq(super::SerdeSerialize, quote::quote! {serde::Serialize});
+        assert_tokens_eq(super::SerdeDeserialize, quote::quote! {serde::Deserialize});
+        assert_tokens_eq(super::UtoipaToSchema, quote::quote! {utoipa::ToSchema});
+        assert_tokens_eq(
+            super::SchemarsJsonSchema,
+            quote::quote! {schemars::JsonSchema},
+        );
+        assert_tokens_eq(
+            super::LocationLibLocation,
+            quote::quote! {location_lib::location::Location},
+        );
+        assert_tokens_eq(super::ThiserrorError, quote::quote! {thiserror::Error});
+        assert_tokens_eq(super::Char, quote::quote! {char});
+        assert_tokens_eq(super::RefStr, quote::quote! {&str});
+        assert_tokens_eq(super::StringTokenStream, quote::quote! {String});
+        assert_tokens_eq(
+            super::DeriveDebug,
+            quote::quote! {#[derive(Debug, OptimalMemoryLayout)]},
+        );
+        assert_tokens_eq(
+            super::DeriveDebugThiserrorLocation,
+            quote::quote! {#[derive(Debug, thiserror::Error, proc_macro_location_derive_location::Location, OptimalMemoryLayout)]},
+        );
+        assert_tokens_eq(
+            super::DeriveDebugUtoipaToSchema,
+            quote::quote! {#[derive(Debug, utoipa::ToSchema, OptimalMemoryLayout)]},
+        );
+        assert_tokens_eq(
+            super::DeriveDebugSerdeSerializeSerdeDeserialize,
+            quote::quote! {#[derive(Debug, serde::Serialize, serde::Deserialize, OptimalMemoryLayout)]},
+        );
+        assert_tokens_eq(
+            super::DeriveDebugSerdeSerializeSerdeDeserializeUtoipaToSchema,
+            quote::quote! {#[derive(Debug, serde::Serialize, serde::Deserialize, utoipa::ToSchema, OptimalMemoryLayout)]},
+        );
+        assert_tokens_eq(
+            super::StrSqlxColumnIndex,
+            quote::quote! {&'lt str: sqlx::ColumnIndex<R>,},
+        );
+        assert_tokens_eq(
+            super::SqlxDecodeDecodeDatabase,
+            quote::quote! {sqlx::decode::Decode<'lt, R::Database>},
+        );
+        assert_tokens_eq(
+            super::SqlxTypesTypeDatabase,
+            quote::quote! {sqlx::types::Type<R::Database>},
+        );
+        assert_tokens_eq(
+            super::LocationLibLocationLocation,
+            quote::quote! {location_lib::location::Location},
+        );
+        assert_tokens_eq(
+            super::LocationSnakeCaseDoubleDotSpaceLocationLibLocationLocation,
+            quote::quote! {location: location_lib::location::Location},
+        );
+        assert_tokens_eq(
+            super::CoreDefault,
+            quote::quote! {::core::default::Default::default()},
+        );
+        assert_tokens_eq(
+            super::SqlxTypesTimeTimeMidnight,
+            quote::quote! {sqlx::types::time::Time::MIDNIGHT},
+        );
+        assert_tokens_eq(
+            super::SqlxTypesTimeOffsetDateTimeUnixEpoch,
+            quote::quote! {sqlx::types::time::OffsetDateTime::UNIX_EPOCH},
+        );
+        assert_tokens_eq(super::Error0, quote::quote! {error_0});
+        assert_tokens_eq(super::Error1, quote::quote! {error_1});
+        assert_tokens_eq(super::Error2, quote::quote! {error_2});
+        assert_tokens_eq(super::Error3, quote::quote! {error_3});
+        assert_tokens_eq(super::MustUse, quote::quote! {#[must_use]});
+        assert_tokens_eq(super::NoneTokenStream, quote::quote! {None});
+        assert_tokens_eq(
             super::DeriveDebugCloneCopy,
             quote::quote! {#[derive(Debug, Clone, Copy, OptimalMemoryLayout)]},
         );
@@ -273,13 +361,54 @@ mod tests {
     #[test]
     fn test_token_pattern_batch_struct_outputs_expected_tokens() {
         assert_tokens_eq(super::Bool, quote::quote! {bool});
+        assert_tokens_eq(super::U8, quote::quote! {u8});
+        assert_tokens_eq(super::U16, quote::quote! {u16});
+        assert_tokens_eq(super::U32, quote::quote! {u32});
+        assert_tokens_eq(super::U64, quote::quote! {u64});
+        assert_tokens_eq(super::I8, quote::quote! {i8});
+        assert_tokens_eq(super::I16, quote::quote! {i16});
+        assert_tokens_eq(super::I32, quote::quote! {i32});
+        assert_tokens_eq(super::I64, quote::quote! {i64});
+        assert_tokens_eq(super::F32, quote::quote! {f32});
+        assert_tokens_eq(super::F64, quote::quote! {f64});
+        assert_tokens_eq(super::UuidUuid, quote::quote! {uuid::Uuid});
+        assert_tokens_eq(super::StdFmtDisplay, quote::quote! {std::fmt::Display});
     }
     #[test]
     fn test_token_stream_path_function_outputs_expected_tokens() {
         assert_tokens_eq(crate::pg_crud_common(), quote::quote! {pg_crud_common::});
+        assert_tokens_eq(crate::crate_path_token_stream(), quote::quote! {crate::});
+        assert_tokens_eq(
+            crate::default_some_one_element_upper_camel_case(),
+            quote::quote! {DefaultSomeOneElement},
+        );
+        assert_tokens_eq(
+            crate::all_variants_default_some_one_element_upper_camel_case(),
+            quote::quote! {AllEnumVariantsArrayDefaultSomeOneElement},
+        );
+        assert_tokens_eq(
+            crate::default_some_one_element_max_page_size_upper_camel_case(),
+            quote::quote! {DefaultSomeOneElementMaxPageSize},
+        );
+        assert_tokens_eq(
+            crate::all_variants_default_some_one_element_max_page_size_upper_camel_case(),
+            quote::quote! {AllEnumVariantsArrayDefaultSomeOneElementMaxPageSize},
+        );
     }
     #[test]
     fn test_path_helper_outputs_expected_tokens() {
+        assert_tokens_eq(
+            crate::path_default_some_one_element_max_page_size_call(),
+            quote::quote! {::default_some_one_element_max_page_size()},
+        );
+        assert_tokens_eq(
+            crate::path_all_variants_default_some_one_element_call(),
+            quote::quote! {::all_variants_default_some_one_element()},
+        );
+        assert_tokens_eq(
+            crate::path_all_variants_default_some_one_element_max_page_size_call(),
+            quote::quote! {::all_variants_default_some_one_element_max_page_size()},
+        );
         assert_tokens_eq(
             crate::path_default_some_one_element_call(),
             quote::quote! {::default_some_one_element()},

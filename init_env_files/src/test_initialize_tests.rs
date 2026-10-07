@@ -18,6 +18,30 @@ fn fixture() -> std::path::PathBuf {
     root
 }
 #[test]
+fn test_environment_write_failure_preserves_typed_io_source() {
+    let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join(constants_str::CARGO_TOML)
+        .join(constants_str::X);
+    let expected = std::fs::File::open(&path).err();
+    assert!(expected.is_some());
+    let result = crate::write_content::write_content(
+        crate::init_path_ref::InitPathRef::from(path.as_path()),
+        crate::env_content_ref::EnvContentRef::from(constants_str::X),
+    );
+    assert!(result.is_err_and(|error| {
+        matches!(
+            &error,
+            crate::initialize_error::InitializeError::WriteEnvironment { .. }
+        ) && std::error::Error::source(&error).is_some_and(|source| {
+            source.is::<crate::init_io_error::InitIoError>()
+                && expected
+                    .as_ref()
+                    .is_some_and(|expected_error| source.to_string() == expected_error.to_string())
+        })
+    }));
+}
+
+#[test]
 fn test_dry_run_apply_and_repeat_are_safe_and_idempotent() {
     let root = fixture();
     let dry = crate::initialize::initialize(

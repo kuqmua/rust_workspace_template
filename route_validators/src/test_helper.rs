@@ -32,6 +32,41 @@ mod tests {
         ));
     }
     #[test]
+    fn test_poll_limit_and_counter_preserve_native_boundaries() {
+        let limit = crate::max_block_on_polls::MAX_BLOCK_ON_POLLS;
+        [
+            (limit.saturating_sub(constants_usize::ONE), false),
+            (limit, true),
+            (limit.saturating_add(constants_usize::ONE), true),
+            (std::num::NonZeroUsize::MAX.get(), true),
+        ]
+        .into_iter()
+        .fold((), |(), (value, expected)| {
+            assert_eq!(
+                bool::from(
+                    crate::is_block_on_poll_limit_reached::is_block_on_poll_limit_reached(
+                        crate::test_poll_count::TestPollCount::from(value),
+                    )
+                ),
+                expected,
+            );
+        });
+        let maximum = std::num::NonZeroUsize::MAX.get();
+        [maximum.saturating_sub(constants_usize::ONE), maximum]
+            .into_iter()
+            .fold((), |(), value| {
+                let mut poll_count = crate::test_poll_count::TestPollCount::from(value);
+                crate::increment_block_on_poll_count::increment_block_on_poll_count(
+                    &mut poll_count,
+                );
+                assert_eq!(*poll_count, maximum);
+                crate::increment_block_on_poll_count::increment_block_on_poll_count(
+                    &mut poll_count,
+                );
+                assert_eq!(*poll_count, maximum);
+            });
+    }
+    #[test]
     fn test_poll_count_increment_helper_increments_once() {
         let mut poll_count = crate::test_poll_count::TestPollCount::from(constants_usize::ZERO);
         crate::increment_block_on_poll_count::increment_block_on_poll_count(&mut poll_count);
@@ -265,6 +300,58 @@ mod tests {
             Err(TestErr),
             constants_str::VALUE_773C5AF2,
             crate::axum_http_status_code::AxumHttpStatusCode::bad_request(),
+        );
+    }
+    #[test]
+    fn test_duplicate_header_insertion_panics_after_replacing_value() {
+        let mut headers = crate::make_headers_with_entry::make_headers_with_entry(
+            constants_str::ROUTE_VALIDATORS_COMMIT_HEADER_NAME,
+            axum::http::HeaderValue::from_static(constants_str::TEST_VALUES_WRONG_COMMIT),
+        );
+        let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            crate::insert_header_no_prev::insert_header_no_prev(
+                &mut headers,
+                constants_str::ROUTE_VALIDATORS_COMMIT_HEADER_NAME,
+                axum::http::HeaderValue::from_static(constants_str::X),
+            );
+        }));
+        assert!(result.is_err());
+        assert_eq!(headers.len(), constants_usize::ONE);
+        assert_eq!(
+            headers.get(constants_str::ROUTE_VALIDATORS_COMMIT_HEADER_NAME),
+            Some(&axum::http::HeaderValue::from_static(constants_str::X)),
+        );
+    }
+
+    #[test]
+    fn test_header_destination_collision_panics_after_moving_source_value() {
+        let mut headers = crate::make_headers_with_entry::make_headers_with_entry(
+            constants_str::X_COMMIT,
+            axum::http::HeaderValue::from_static(constants_str::TEST_VALUES_WRONG_COMMIT),
+        );
+        crate::insert_header_no_prev::insert_header_no_prev(
+            &mut headers,
+            constants_str::ROUTE_VALIDATORS_COMMIT_HEADER_NAME,
+            axum::http::HeaderValue::from_static(constants_str::X),
+        );
+        let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            crate::replace_header_name::replace_header_name(
+                &mut headers,
+                constants_str::X_COMMIT,
+                axum::http::HeaderName::from_static(
+                    constants_str::ROUTE_VALIDATORS_COMMIT_HEADER_NAME,
+                ),
+                constants_str::VALUE_348C0E57,
+            );
+        }));
+        assert!(result.is_err());
+        assert_eq!(headers.len(), constants_usize::ONE);
+        assert!(headers.get(constants_str::X_COMMIT).is_none());
+        assert_eq!(
+            headers.get(constants_str::ROUTE_VALIDATORS_COMMIT_HEADER_NAME),
+            Some(&axum::http::HeaderValue::from_static(
+                constants_str::TEST_VALUES_WRONG_COMMIT
+            )),
         );
     }
 }

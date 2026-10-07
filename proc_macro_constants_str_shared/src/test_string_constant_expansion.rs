@@ -5,6 +5,8 @@ fn test_string_constant_expansion_rejects_duplicate_names_and_unknown_fragments(
         (quote::quote! { fragments { Word = #word; Word = #word; } rust_fragments {} rust_constants {} constants {} }, stringify!(5bbbde57)),
         (quote::quote! { fragments {} rust_fragments {} rust_constants {} constants { First = []; First = []; } }, stringify!(ad857256)),
         (quote::quote! { fragments {} rust_fragments {} rust_constants {} constants { First = [Missing]; } }, stringify!(bb09ab55)),
+        (quote::quote! { fragments {} rust_fragments {} rust_constants { First = []; } constants { First = []; } }, stringify!(ad857256)),
+        (quote::quote! { fragments { Word = #word; } rust_fragments { Word = ["("]; } rust_constants {} constants {} }, stringify!(750ff794)),
     ].into_iter().all(|(input, expected)| crate::define_str_constants(input).to_string().contains(expected)));
 }
 
@@ -78,6 +80,10 @@ fn test_string_constant_expansion_validates_rust_fragment_definitions() {
         [
             (quote::quote! { Rust = []; }, stringify!(f9805250)),
             (quote::quote! { Rust = [Missing]; }, stringify!(38b81d16)),
+            (
+                quote::quote! { Rust = ["("]; Other = [Rust]; },
+                stringify!(38b81d16)
+            ),
             (quote::quote! { Rust = [#word]; }, stringify!(9cf0b14e)),
             (
                 quote::quote! { Rust = ["("]; Rust = [")"]; },

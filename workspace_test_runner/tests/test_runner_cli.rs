@@ -119,6 +119,32 @@ mod tests {
                         && path.as_str() == Some(metadata.path().as_ref())
                         && status.as_u64() == Some(u64::from(u16::from(metadata.success_status().transport_status())))
                 })));
+            assert!([
+                (
+                    <server_admin_contract::admin_sign_in_route::AdminSignInRoute as frontend_contract::typed_route::TypedRoute>::metadata().openapi_operation_id(),
+                    serde_json::to_value(<server_admin_contract::admin_sign_in_request::AdminSignInRequest as utoipa::PartialSchema>::schema()),
+                    serde_json::to_value(<server_admin_contract::admin_sign_in_response::AdminSignInResponse as utoipa::PartialSchema>::schema()),
+                ),
+                (
+                    <server_admin_contract::admin_sign_out_route::AdminSignOutRoute as frontend_contract::typed_route::TypedRoute>::metadata().openapi_operation_id(),
+                    Ok(serde_json::Value::Null),
+                    Ok(serde_json::Value::Null),
+                ),
+                (
+                    <server_admin_contract::admin_branding_route::AdminBrandingRoute as frontend_contract::typed_route::TypedRoute>::metadata().openapi_operation_id(),
+                    Ok(serde_json::Value::Null),
+                    serde_json::to_value(<server_admin_contract::admin_branding_view::AdminBrandingView as utoipa::PartialSchema>::schema()),
+                ),
+            ].into_iter().all(|(contract_str, expected_request, expected_response)| {
+                let (Ok(expected_request_schema), Ok(expected_response_schema)) = (expected_request, expected_response) else { return false; };
+                route_values.as_array().is_some_and(|routes| routes.iter().any(|route| {
+                    let Some(fields) = route.as_array() else { return false; };
+                    let [operation, _method, _path, _status, request_schema, response_schema] = fields.as_slice() else { return false; };
+                    operation.as_str() == Some(contract_str.as_ref())
+                        && *request_schema == expected_request_schema
+                        && *response_schema == expected_response_schema
+                }))
+            }));
             assert!(serde_json::to_value(server_admin_contract::admin_rule::AdminRule::ALL.into_iter().map(|rule| rule.as_str().as_ref().to_owned()).collect::<Vec<_>>())
                 .is_ok_and(|expected_rules| expected_rules == *rule_values));
             assert_eq!([
@@ -763,6 +789,49 @@ mod tests {
                         std::os::unix::fs::symlink(&fixture_path, directory.join(program))
                             .map_err(macro_helpers::std_tool_io_error::StdToolIoError::from)
                     })?;
+                    if failure_diagnostic.is_none()
+                        && std::path::Path::new(constants_str::WORKSPACE_TEST_RUNNER_MEMUSAGE_PATH)
+                            .is_file()
+                    {
+                        let cargo = directory.join(constants_str::WORKSPACE_TEST_RUNNER_CARGO);
+                        std::fs::remove_file(&cargo)
+                            .map_err(macro_helpers::std_tool_io_error::StdToolIoError::from)?;
+                        let summary_prefix = format!(
+                            "{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}",
+                            constants_str::MEMORY_USAGE_SUMMARY, constants_str::NEWLINE,
+                            constants_str::HEAP_TOTAL, 1usize, constants_str::SPACE,
+                            constants_str::HEAP_PEAK, 2usize, constants_str::SPACE,
+                            constants_str::STACK_PEAK, 3usize, constants_str::NEWLINE,
+                            constants_str::MALLOC, 4usize, constants_str::SPACE, 5usize,
+                            constants_str::SPACE, 6usize, constants_str::NEWLINE,
+                            constants_str::REALLOC, 7usize, constants_str::SPACE, 8usize,
+                            constants_str::SPACE, 9usize, constants_str::NEWLINE,
+                            constants_str::CALLOC, 10usize, constants_str::SPACE, 11usize,
+                        );
+                        let summary = format!(
+                            "{summary_prefix}{}{}{}{}{}{}{}",
+                            constants_str::SPACE, 12usize, constants_str::NEWLINE,
+                            constants_str::FREE, 13usize, constants_str::SPACE, 14usize,
+                        );
+                        let script = format!(
+                            "{}{}{}{}{}{}{}{}{}{}{}",
+                            constants_str::RUNNER_MEMORY_FIXTURE_SHELL_PREFIX,
+                            constants_str::RUNNER_MEMORY_FIXTURE_PRINTF_PREFIX,
+                            constants_str::RUNNER_MEMORY_FIXTURE_FIRST_ARGUMENT,
+                            constants_str::NEWLINE,
+                            constants_str::RUNNER_MEMORY_FIXTURE_PRINTF_PREFIX,
+                            constants_str::RUNNER_MEMORY_FIXTURE_QUOTE, constants_str::X, constants_str::NEWLINE,
+                            summary, constants_str::RUNNER_MEMORY_FIXTURE_QUOTE,
+                            constants_str::RUNNER_MEMORY_FIXTURE_STDERR_SUFFIX,
+                        );
+                        std::fs::write(&cargo, script)
+                            .map_err(macro_helpers::std_tool_io_error::StdToolIoError::from)?;
+                        std::fs::set_permissions(
+                            &cargo,
+                            <std::fs::Permissions as std::os::unix::fs::PermissionsExt>::from_mode(0o700u32),
+                        )
+                        .map_err(macro_helpers::std_tool_io_error::StdToolIoError::from)?;
+                    }
                     let generated_directory =
                         directory.join(constants_str::TARGET_MEASURE_GENERATE_PG_TABLE_WITH_TESTS);
                     match failure_diagnostic {
@@ -814,6 +883,38 @@ mod tests {
                             65_536usize,
                         ))
                         .map_err(macro_helpers::std_tool_io_error::StdToolIoError::from)?;
+                    if failure_diagnostic.is_none()
+                        && std::path::Path::new(constants_str::WORKSPACE_TEST_RUNNER_MEMUSAGE_PATH)
+                            .is_file()
+                    {
+                        let expected = [
+                            constants_str::RUNNER_OUTPUT_ALLOCATIONS_STATUS_OK_TOOL_LIBMEMUSAGE_HEAP_TOTAL_BYTES,
+                            constants_str::RUNNER_OUTPUT_HEAP_PEAK_BYTES,
+                            constants_str::RUNNER_OUTPUT_STACK_PEAK_BYTES,
+                            constants_str::RUNNER_OUTPUT_MALLOC_CALLS,
+                            constants_str::RUNNER_OUTPUT_MALLOC_BYTES,
+                            constants_str::RUNNER_OUTPUT_MALLOC_FAILED,
+                            constants_str::RUNNER_OUTPUT_REALLOC_CALLS,
+                            constants_str::RUNNER_OUTPUT_REALLOC_BYTES,
+                            constants_str::RUNNER_OUTPUT_REALLOC_FAILED,
+                            constants_str::RUNNER_OUTPUT_CALLOC_CALLS,
+                            constants_str::RUNNER_OUTPUT_CALLOC_BYTES,
+                            constants_str::RUNNER_OUTPUT_CALLOC_FAILED,
+                            constants_str::RUNNER_OUTPUT_FREE_CALLS,
+                            constants_str::RUNNER_OUTPUT_FREE_BYTES,
+                        ]
+                        .into_iter()
+                        .enumerate()
+                        .fold(
+                            format!("{}{}{}", constants_str::TEST_ALT_3, constants_str::RUNNER_MEASUREMENT_PREFIX, constants_str::CODE_STYLE),
+                            |text, (index, label)| format!("{text}{label}{}", index + 1usize),
+                        );
+                        if !std::str::from_utf8(output.stdout.as_slice())
+                            .is_ok_and(|stdout| stdout.lines().any(|line| line == expected))
+                        {
+                            return Ok(false);
+                        }
+                    }
                     let forwarded_stdout =
                         std::str::from_utf8(output.stdout.as_slice()).is_ok_and(|stdout| {
                             [constants_str::TEST_ALT_3, constants_str::CLIPPY]

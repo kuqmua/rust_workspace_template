@@ -341,6 +341,54 @@ fn test_disk_cache_budget_evicts_oldest_entries_first() {
 }
 
 #[test]
+fn test_disk_cache_unordered_entries_evict_exact_oldest_prefix_without_mutation() {
+    let path_results = [
+        constants_str::TEST_DISK_CACHE_OLD_PATH,
+        constants_str::TEST_DISK_CACHE_NEW_PATH,
+        constants_str::X,
+    ]
+    .map(|path| {
+        crate::storage_relative_path_buf::StorageRelativePathBuf::try_from(
+            std::path::PathBuf::from(path),
+        )
+    });
+    assert!(path_results.iter().all(Result::is_ok));
+    let [Ok(oldest_path), Ok(middle_path), Ok(newest_path)] = path_results else {
+        return;
+    };
+    let entries = [
+        crate::disk_cache_entry::DiskCacheEntry::new(
+            newest_path,
+            6u64.into(),
+            (std::time::UNIX_EPOCH + std::time::Duration::from_secs(2u64)).into(),
+        ),
+        crate::disk_cache_entry::DiskCacheEntry::new(
+            oldest_path.clone(),
+            2u64.into(),
+            std::time::UNIX_EPOCH.into(),
+        ),
+        crate::disk_cache_entry::DiskCacheEntry::new(
+            middle_path.clone(),
+            3u64.into(),
+            (std::time::UNIX_EPOCH + std::time::Duration::from_secs(1u64)).into(),
+        ),
+    ];
+    let original = entries.clone();
+    let expected_paths = [oldest_path, middle_path];
+    [10u64, 12u64].into_iter().fold((), |(), maximum| {
+        assert!(
+            crate::plan_disk_cache_eviction::plan_disk_cache_eviction(
+                &entries,
+                maximum.into(),
+                4u64.into()
+            )
+            .is_ok_and(|plan| plan.as_ref() == expected_paths.as_slice())
+        );
+        assert_eq!(entries, original);
+    });
+}
+
+#[test]
 fn test_disk_cache_budget_evicts_when_projected_size_overflows() {
     let result = crate::storage_relative_path_buf::StorageRelativePathBuf::try_from(
         std::path::PathBuf::from(constants_str::TEST_DISK_CACHE_OLD_PATH),
@@ -1094,6 +1142,7 @@ fn test_file_bytes_preserve_empty_and_exact_limit_and_reject_oversized_payloads(
                     Ok(std_file_bytes) => {
                         length <= maximum
                             && std_file_bytes.as_ref().len() == length
+                            && std_file_bytes.as_ref().iter().all(|byte| *byte == 7u8)
                             && std_file_bytes.as_ref().first().copied()
                                 == (length > 0usize).then_some(7u8)
                             && std_file_bytes.as_ref().last().copied()
@@ -1109,4 +1158,76 @@ fn test_file_bytes_preserve_empty_and_exact_limit_and_reject_oversized_payloads(
                 }
             })
     );
+}
+
+#[cfg(unix)]
+#[test]
+fn test_storage_paths_accept_exact_unicode_byte_bounds_and_preserve_native_values() {
+    let maximum = crate::domain_types::MAXIMUM_PATH_BYTES;
+    let scalar_count = maximum.checked_div(2usize);
+    assert!(scalar_count.is_some());
+    let Some(repetition_count) = scalar_count else {
+        return;
+    };
+    assert_eq!(repetition_count.checked_mul(2usize), Some(maximum));
+    let relative = std::path::PathBuf::from('\u{00e9}'.to_string().repeat(repetition_count));
+    assert_eq!(relative.as_os_str().as_encoded_bytes().len(), maximum);
+    assert!(
+        crate::storage_relative_path_buf::StorageRelativePathBuf::try_from(relative.clone())
+            .is_ok_and(|value| value.as_ref() == relative.as_path())
+    );
+    let absolute = std::path::PathBuf::from(format!(
+        "{}{}{}",
+        std::path::MAIN_SEPARATOR,
+        '\u{00e9}'
+            .to_string()
+            .repeat(repetition_count.saturating_sub(1usize)),
+        constants_str::X
+    ));
+    assert_eq!(absolute.as_os_str().as_encoded_bytes().len(), maximum);
+    assert!(
+        crate::file_storage_root_path_buf::FileStorageRootPathBuf::try_from(absolute.clone())
+            .is_ok_and(|value| value.as_ref() == absolute.as_path())
+    );
+    let mut oversized_relative = relative.into_os_string();
+    oversized_relative.push(constants_str::X);
+    assert_eq!(
+        crate::storage_relative_path_buf::StorageRelativePathBuf::try_from(
+            std::path::PathBuf::from(oversized_relative)
+        ),
+        Err(crate::file_storage_path_error::FileStoragePathError::PathTooLong)
+    );
+    let mut oversized_absolute = absolute.into_os_string();
+    oversized_absolute.push(constants_str::X);
+    assert_eq!(
+        crate::file_storage_root_path_buf::FileStorageRootPathBuf::try_from(
+            std::path::PathBuf::from(oversized_absolute)
+        ),
+        Err(crate::file_storage_path_error::FileStoragePathError::PathTooLong)
+    );
+}
+
+#[test]
+fn test_staging_cleanup_report_preserves_independent_counts_and_saturation() {
+    let mut report = crate::stale_staging_cleanup_report::StaleStagingCleanupReport::default();
+    assert_eq!(usize::from(report.removed()), 0usize);
+    assert_eq!(usize::from(report.scanned()), 0usize);
+    report.record_scanned();
+    assert_eq!(usize::from(report.removed()), 0usize);
+    assert_eq!(usize::from(report.scanned()), 1usize);
+    report.record_removed();
+    assert_eq!(usize::from(report.removed()), 1usize);
+    assert_eq!(usize::from(report.scanned()), 1usize);
+    let maximum = std::num::NonZeroUsize::MAX.get();
+    let mut saturated_report =
+        crate::stale_staging_cleanup_report::StaleStagingCleanupReport::from((
+            crate::std_stale_staging_entry_count::StdStaleStagingEntryCount::from(maximum),
+            crate::std_stale_staging_entry_count::StdStaleStagingEntryCount::from(1usize),
+        ));
+    saturated_report.record_removed();
+    assert_eq!(usize::from(saturated_report.removed()), maximum);
+    assert_eq!(usize::from(saturated_report.scanned()), 1usize);
+    saturated_report.record_scanned();
+    assert_eq!(usize::from(saturated_report.removed()), maximum);
+    assert_eq!(usize::from(saturated_report.scanned()), 2usize);
 }

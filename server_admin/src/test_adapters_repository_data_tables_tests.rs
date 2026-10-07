@@ -599,6 +599,38 @@ fn test_every_read_table_filter_column_and_operation_builds_a_typed_predicate() 
         .into_iter()
         .for_each(|admin_data_table| {
             let field_contracts = table_field_contracts(admin_data_table);
+            let validate_columns = |admin_data_columns: &server_admin_contract::admin_data_columns::AdminDataColumns| {
+                let names = admin_data_table.spec().columns();
+                assert_eq!(admin_data_columns.as_slice().len(), names.get().split(',').count());
+                admin_data_columns.as_slice().iter().zip(names.get().split(',')).for_each(|(column, name)| {
+                    let field = field_contracts.as_ref().iter().find(|field| field.name().as_ref() == name).unwrap_or_else(|| std::panic::panic_any(admin_data_table));
+                    assert_eq!(column.name().as_ref(), name);
+                    assert_eq!(column.label().as_ref(), field.label().as_ref());
+                    assert_eq!(column.input_kind(), field.type_contract().input_kind());
+                    if field.readable() == frontend_contract::field_capability::FieldCapability::Disabled {
+                        assert!(column.filters().is_empty());
+                    } else {
+                        assert_eq!(column.filters().len(), field.filters().len());
+                        column.filters().iter().zip(field.filters().iter()).for_each(|(filter, operation)| {
+                            assert_eq!(filter.operation(), *operation);
+                            assert_eq!(filter.value_shape(), operation.value_shape());
+                        });
+                    }
+                });
+            };
+            let columns = crate::admin_data_columns::admin_data_columns(admin_data_table, crate::admin_generated_table::AdminGeneratedTable::for_data_table(admin_data_table)).unwrap_or_else(|error| std::panic::panic_any(error));
+            validate_columns(&columns);
+            if matches!(admin_data_table,
+                server_admin_contract::admin_data_table::AdminDataTable::AccessSessions
+                | server_admin_contract::admin_data_table::AdminDataTable::AuditLog
+                | server_admin_contract::admin_data_table::AdminDataTable::CleanupStatus
+                | server_admin_contract::admin_data_table::AdminDataTable::LoginAttempts
+                | server_admin_contract::admin_data_table::AdminDataTable::RateLimits
+                | server_admin_contract::admin_data_table::AdminDataTable::RefreshTokens
+            ) {
+                let overridden_columns = crate::admin_data_columns::admin_data_columns(admin_data_table, Some(crate::admin_generated_table::AdminGeneratedTable::UsersDatabaseRead)).unwrap_or_else(|error| std::panic::panic_any(error));
+                validate_columns(&overridden_columns);
+            }
             admin_data_table
                 .spec()
                 .columns()
@@ -1517,23 +1549,38 @@ fn test_unknown_filter_field_is_rejected() {
 }
 
 #[test]
-fn test_scalar_and_regex_filters_reject_range_end_values() {
+fn test_text_filter_shapes_reject_unexpected_range_end_values() {
     let operations = [
         frontend_contract::filter_operation::FilterOperation::Eq,
         frontend_contract::filter_operation::FilterOperation::Regex,
+        frontend_contract::filter_operation::FilterOperation::In,
     ];
     assert!(operations.into_iter().all(|operation| {
+        let valid_query = filter_query(
+            constants_str::LOGIN,
+            operation,
+            Some(constants_str::VALUE_2BD806C9),
+            None,
+        );
+        let valid = crate::data_filter::data_filter(
+            server_admin_contract::admin_data_table::AdminDataTable::Users,
+            valid_query.filter(),
+        )
+        .is_ok_and(|filter| filter.is_some());
         let query = filter_query(
             constants_str::LOGIN,
             operation,
             Some(constants_str::VALUE_2BD806C9),
             Some(constants_str::VALUE_81B637D8),
         );
-        crate::data_filter::data_filter(
-            server_admin_contract::admin_data_table::AdminDataTable::Users,
-            query.filter(),
-        )
-        .is_err()
+        valid
+            && matches!(
+                crate::data_filter::data_filter(
+                    server_admin_contract::admin_data_table::AdminDataTable::Users,
+                    query.filter(),
+                ),
+                Err(crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue)
+            )
     }));
 }
 

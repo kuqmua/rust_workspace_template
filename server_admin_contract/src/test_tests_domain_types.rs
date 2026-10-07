@@ -1494,3 +1494,48 @@ fn test_user_update_paths_bind_the_selected_identifier() {
             assert_ne!(path, action);
         });
 }
+
+#[test]
+fn test_administrator_route_path_preserves_exact_byte_bounds_and_reports_overflow() {
+    let maximum = constants_usize::VALUE_8_192;
+    [
+        (0usize, constants_str::EMPTY),
+        (1usize, constants_str::EMPTY),
+        (maximum, constants_str::EMPTY),
+        (
+            maximum.saturating_sub(constants_str::U_1F496.len()),
+            constants_str::U_1F496,
+        ),
+    ]
+    .into_iter()
+    .fold((), |(), (prefix_length, suffix)| {
+        let prefix = constants_str::X.repeat(prefix_length);
+        let path =
+            crate::admin_route_path::AdminRoutePath::try_from([prefix.as_str(), suffix].concat())
+                .unwrap_or_else(|error| std::panic::panic_any(error));
+        assert_eq!(path.as_ref().strip_suffix(suffix), Some(prefix.as_str()));
+        assert_eq!(path.to_string(), path.as_ref());
+    });
+    [
+        (maximum.saturating_add(1usize), constants_str::EMPTY),
+        (
+            maximum
+                .saturating_sub(constants_str::U_1F496.len())
+                .saturating_add(1usize),
+            constants_str::U_1F496,
+        ),
+    ]
+    .into_iter()
+    .fold((), |(), (prefix_length, suffix)| {
+        assert_eq!(
+            crate::admin_route_path::AdminRoutePath::try_from(
+                [constants_str::X.repeat(prefix_length).as_str(), suffix].concat()
+            ),
+            Err(crate::admin_route_path_error::AdminRoutePathError::TooLong)
+        );
+    });
+    assert_eq!(
+        crate::admin_route_path::AdminRoutePath::default().as_ref(),
+        constants_str::EMPTY
+    );
+}

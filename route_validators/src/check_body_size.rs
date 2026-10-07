@@ -27,6 +27,40 @@ where
 }
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn test_body_read_failure_preserves_diagnostic_limit_and_unknown_size_hint() {
+        let expected = crate::poll_test_future::poll_test_future(axum::body::to_bytes(
+            axum::body::Body::new(crate::test_failing_http_body::TestFailingHttpBody),
+            8usize,
+        ))
+        .err()
+        .map(|native_error| {
+            to_err_string::to_err_string::ToErrString::to_err_string(
+                &crate::axum_body_size_error::AxumBodySizeError::from(native_error),
+            )
+        });
+        assert!(expected.is_some());
+        let result =
+            crate::poll_test_future::poll_test_future(crate::check_body_size::check_body_size(
+                crate::axum_body::AxumBody::from(axum::body::Body::new(
+                    crate::test_failing_http_body::TestFailingHttpBody,
+                )),
+                crate::body_size_limit_bytes::BodySizeLimitBytes::from(8usize),
+            ));
+        assert!(result.is_err_and(|body_size_error| {
+            let status = crate::axum_http_status_code_provider::AxumHttpStatusCodeProvider::axum_http_status_code(&body_size_error);
+            let crate::body_size_error::BodySizeError::ReachedMaximumSizeOfBody {
+                error,
+                maximum_size_of_body_limit_in_bytes,
+                size_hint,
+                ..
+            } = body_size_error;
+            status == crate::axum_http_status_code::AxumHttpStatusCode::payload_too_large()
+                && maximum_size_of_body_limit_in_bytes.value() == 8usize
+                && size_hint.upper().is_none()
+                && Some(to_err_string::to_err_string::ToErrString::to_err_string(&error)) == expected
+        }));
+    }
     fn expect_reached_max_size(
         body: axum::body::Body,
         usize: usize,

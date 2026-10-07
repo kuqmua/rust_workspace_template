@@ -58,4 +58,56 @@ mod tests {
             expected.as_str()
         );
     }
+
+    #[test]
+    fn test_core_record_identifiers_enforce_positive_integer_bounds() {
+        [i64::MIN, -1i64, 0i64, 1i64, 42i64, i64::MAX].into_iter().fold((), |(), value| {
+            let expected = if value > 0i64 { Ok(value) } else { Err(crate::admin_entity_id_try_from_i64_error::AdminEntityIdTryFromI64Error::Invalid) };
+            assert_eq!(crate::admin_user_record_id::AdminUserRecordId::try_from(value).map(|identifier| {
+                assert_eq!(identifier.value().get(), value);
+                assert_eq!(identifier.to_string(), value.to_string());
+                identifier.get()
+            }), expected);
+            assert_eq!(crate::admin_role_record_id::AdminRoleRecordId::try_from(value).map(|identifier| {
+                assert_eq!(identifier.value().get(), value);
+                identifier.get()
+            }), expected);
+        });
+    }
+
+    #[test]
+    fn test_core_record_identifier_deserialization_preserves_validation_and_native_type_errors() {
+        fn assert_core_record_identifier_native_wire_errors<Factory, Deserializer>(factory: Factory)
+        where
+            Factory: Fn() -> Deserializer,
+            Deserializer: serde::Deserializer<'static, Error = serde::de::value::Error>,
+        {
+            let expected = <i64 as serde::Deserialize>::deserialize(factory())
+                .map_err(|error| error.to_string());
+            assert!(expected.as_ref().is_err_and(|error| !error.is_empty()));
+            assert_eq!(<crate::admin_user_record_id::AdminUserRecordId as serde::Deserialize>::deserialize(factory()).map(crate::admin_user_record_id::AdminUserRecordId::get).map_err(|error| error.to_string()), expected);
+            assert_eq!(<crate::admin_role_record_id::AdminRoleRecordId as serde::Deserialize>::deserialize(factory()).map(crate::admin_role_record_id::AdminRoleRecordId::get).map_err(|error| error.to_string()), expected);
+        }
+        [i64::MIN, -1i64, 0i64, 1i64, 42i64, i64::MAX].into_iter().fold((), |(), value| {
+            let deserialize_value = || serde::de::value::I64Deserializer::<serde::de::value::Error>::new(value);
+            let expected = if value > 0i64 { Ok(value) } else { Err(crate::admin_entity_id_try_from_i64_error::AdminEntityIdTryFromI64Error::Invalid.to_string()) };
+            assert_eq!(<crate::admin_user_record_id::AdminUserRecordId as serde::Deserialize>::deserialize(deserialize_value()).map(crate::admin_user_record_id::AdminUserRecordId::get).map_err(|error| error.to_string()), expected);
+            assert_eq!(<crate::admin_role_record_id::AdminRoleRecordId as serde::Deserialize>::deserialize(deserialize_value()).map(crate::admin_role_record_id::AdminRoleRecordId::get).map_err(|error| error.to_string()), expected);
+        });
+        assert_core_record_identifier_native_wire_errors(|| {
+            serde::de::value::BoolDeserializer::new(false)
+        });
+        assert_core_record_identifier_native_wire_errors(|| {
+            serde::de::value::U64Deserializer::new(u64::MAX)
+        });
+        assert_core_record_identifier_native_wire_errors(|| {
+            serde::de::value::F64Deserializer::new(1.0f64)
+        });
+        assert_core_record_identifier_native_wire_errors(|| {
+            serde::de::value::StrDeserializer::new(constants_str::VALUE_1)
+        });
+        assert_core_record_identifier_native_wire_errors(|| {
+            serde::de::value::UnitDeserializer::new()
+        });
+    }
 }

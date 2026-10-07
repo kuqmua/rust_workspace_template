@@ -308,7 +308,7 @@ async fn test_create_notification_persists_through_http_route() {
         .expect(constants_str::DIAGNOSTIC_F8D2AB0B);
     let response = tower::ServiceExt::oneshot(
         crate::build_notification_router::build_notification_router(
-            state(pool),
+            state(pool.clone()),
             crate::notification_body_maximum_bytes::NotificationBodyMaximumBytes::from(
                 notification_service_contract::notification_api_body_max_bytes::NOTIFICATION_API_BODY_MAX_BYTES,
             ),
@@ -330,4 +330,131 @@ async fn test_create_notification_persists_through_http_route() {
             uuid::Uuid::nil()
         )
     );
+    let stored_message =
+        sqlx::query_scalar::<_, String>(constants_str::NOTIFICATION_SERVICE_READ_MESSAGE_BY_ID_SQL)
+            .bind(uuid::Uuid::from(created.id()))
+            .fetch_one(&pool)
+            .await;
+    assert!(
+        stored_message
+            .is_ok_and(|stored_text| stored_text == constants_str::INTEGRATION_NOTIFICATION_MESSAGE)
+    );
+    let health_router = crate::build_notification_router::build_notification_router(
+        state(pool.clone()),
+        crate::notification_body_maximum_bytes::NotificationBodyMaximumBytes::from(
+            notification_service_contract::notification_api_body_max_bytes::NOTIFICATION_API_BODY_MAX_BYTES,
+        ),
+    ).into_inner();
+    let health_response_matches =
+        async |contract_str: frontend_contract::contract_str::ContractStr,
+               health_status: common_routes::health_status::HealthStatus,
+               health_report: Option<common_routes::health_report::HealthReport>| {
+            let Ok(health_request) =
+                http::Request::get(contract_str.as_ref()).body(axum::body::Body::empty())
+            else {
+                return false;
+            };
+            let Ok(health_response) =
+                tower::ServiceExt::oneshot(health_router.clone(), health_request).await;
+            let expected_status = if health_status == common_routes::health_status::HealthStatus::Ok
+            {
+                http::StatusCode::OK
+            } else {
+                http::StatusCode::SERVICE_UNAVAILABLE
+            };
+            if health_response.status() != expected_status {
+                return false;
+            }
+            if health_report.is_some()
+                && health_response.headers().get(http::header::CONTENT_TYPE)
+                    != Some(&http::HeaderValue::from_static(
+                        constants_str::APPLICATION_JSON,
+                    ))
+            {
+                return false;
+            }
+            let collected = axum::body::to_bytes(health_response.into_body(), 16_384usize).await;
+            collected.is_ok_and(|bytes| {
+                health_report.map_or_else(
+                    || bytes.is_empty(),
+                    |expected_report| {
+                        serde_json::from_slice::<common_routes::health_report::HealthReport>(
+                            bytes.as_ref(),
+                        )
+                        .is_ok_and(|decoded| decoded == expected_report)
+                    },
+                )
+            })
+        };
+    let healthy_responses = tokio::join!(
+        health_response_matches(
+            frontend_contract::typed_route_path::typed_route_path::<
+                common_routes::health_route::HealthRoute,
+            >(),
+            common_routes::health_status::HealthStatus::Ok,
+            Some(common_routes::health_report::HealthReport::readiness(
+                common_routes::health_database_available::HealthDatabaseAvailable::from(true)
+            ))
+        ),
+        health_response_matches(
+            frontend_contract::typed_route_path::typed_route_path::<
+                common_routes::health_ready_route::HealthReadyRoute,
+            >(),
+            common_routes::health_status::HealthStatus::Ok,
+            Some(common_routes::health_report::HealthReport::readiness(
+                common_routes::health_database_available::HealthDatabaseAvailable::from(true)
+            ))
+        ),
+        health_response_matches(
+            frontend_contract::typed_route_path::typed_route_path::<
+                common_routes::health_check_route::HealthCheckRoute,
+            >(),
+            common_routes::health_status::HealthStatus::Ok,
+            None
+        ),
+        health_response_matches(
+            frontend_contract::typed_route_path::typed_route_path::<
+                common_routes::health_live_route::HealthLiveRoute,
+            >(),
+            common_routes::health_status::HealthStatus::Ok,
+            Some(common_routes::health_report::HealthReport::liveness())
+        ),
+    );
+    assert_eq!(healthy_responses, (true, true, true, true));
+    pool.close().await;
+    let closed_responses = tokio::join!(
+        health_response_matches(
+            frontend_contract::typed_route_path::typed_route_path::<
+                common_routes::health_route::HealthRoute,
+            >(),
+            common_routes::health_status::HealthStatus::Degraded,
+            Some(common_routes::health_report::HealthReport::readiness(
+                common_routes::health_database_available::HealthDatabaseAvailable::from(false)
+            ))
+        ),
+        health_response_matches(
+            frontend_contract::typed_route_path::typed_route_path::<
+                common_routes::health_ready_route::HealthReadyRoute,
+            >(),
+            common_routes::health_status::HealthStatus::Degraded,
+            Some(common_routes::health_report::HealthReport::readiness(
+                common_routes::health_database_available::HealthDatabaseAvailable::from(false)
+            ))
+        ),
+        health_response_matches(
+            frontend_contract::typed_route_path::typed_route_path::<
+                common_routes::health_check_route::HealthCheckRoute,
+            >(),
+            common_routes::health_status::HealthStatus::Degraded,
+            None
+        ),
+        health_response_matches(
+            frontend_contract::typed_route_path::typed_route_path::<
+                common_routes::health_live_route::HealthLiveRoute,
+            >(),
+            common_routes::health_status::HealthStatus::Ok,
+            Some(common_routes::health_report::HealthReport::liveness())
+        ),
+    );
+    assert_eq!(closed_responses, (true, true, true, true));
 }

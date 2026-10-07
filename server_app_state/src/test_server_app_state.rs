@@ -84,6 +84,61 @@ fn make_structure(
 async fn test_cfg_accessors_forward_to_inner_config() {
     let git_info = make_git_info();
     let structure = make_structure(git_info);
+    let bulk_item_budget = server_runtime_core::bulk_item_resource_budget_provider::BulkItemResourceBudgetProvider::bulk_item_resource_budget(&structure);
+    let idempotency_response_budget = server_runtime_core::idempotency_response_resource_budget_provider::IdempotencyResponseResourceBudgetProvider::idempotency_response_resource_budget(&structure);
+    let bulk_item_reservation = bulk_item_budget
+        .reserve(server_runtime_core::resource_budget_amount::ResourceBudgetAmount::from(128usize))
+        .unwrap_or_else(|error| std::panic::panic_any(error));
+    assert_eq!(*server_runtime_core::bulk_item_resource_budget_provider::BulkItemResourceBudgetProvider::bulk_item_resource_budget(&structure).reserved(), 128usize);
+    assert_eq!(*idempotency_response_budget.reserved(), 0usize);
+    let idempotency_response_reservation = idempotency_response_budget
+        .reserve(
+            server_runtime_core::resource_budget_amount::ResourceBudgetAmount::from(
+                constants_usize::VALUE_1_048_576,
+            ),
+        )
+        .unwrap_or_else(|error| std::panic::panic_any(error));
+    assert_eq!(*server_runtime_core::idempotency_response_resource_budget_provider::IdempotencyResponseResourceBudgetProvider::idempotency_response_resource_budget(&structure).reserved(), constants_usize::VALUE_1_048_576);
+    [bulk_item_budget, idempotency_response_budget].into_iter().fold((), |(), resource_budget| {
+        assert!(resource_budget.reserve(server_runtime_core::resource_budget_amount::ResourceBudgetAmount::from(1usize)).is_err_and(|error| error == server_runtime_core::resource_budget_reserve_error::ResourceBudgetReserveError::Exhausted));
+    });
+    drop(bulk_item_reservation);
+    assert_eq!(*bulk_item_budget.reserved(), 0usize);
+    assert_eq!(
+        *idempotency_response_budget.reserved(),
+        constants_usize::VALUE_1_048_576
+    );
+    drop(idempotency_response_reservation);
+    assert_eq!(*idempotency_response_budget.reserved(), 0usize);
+    assert!(
+        !config_lib::admin_cookie_secure::AdminCookieSecureProvider::admin_cookie_secure(
+            &structure
+        )
+    );
+    assert_eq!(
+        config_lib::admin_token_audience::AdminTokenAudienceProvider::admin_token_audience(
+            &structure
+        )
+        .as_str(),
+        constants_str::TEST_AUDIENCE
+    );
+    assert_eq!(
+        config_lib::admin_token_issuer::AdminTokenIssuerProvider::admin_token_issuer(&structure)
+            .as_str(),
+        constants_str::TEST_ISSUER
+    );
+    let secrets =
+        config_lib::admin_jwt_secret::AdminJwtSecretProvider::admin_jwt_secret(&structure);
+    assert_eq!(secrets.len().get(), 1usize);
+    assert!(std::ptr::eq(
+        secrets,
+        config_lib::admin_jwt_secret::AdminJwtSecretProvider::admin_jwt_secret(&structure)
+    ));
+    assert!(
+        secrets
+            .iter()
+            .all(|secret| format!("{secret:?}") == constants_str::REDACTED_ALT_3)
+    );
     assert_eq!(
         config_lib::domain_types::SourcePlaceTypeProvider::source_place_type(&structure),
         &config_lib::source_place_type::SourcePlaceType::Github

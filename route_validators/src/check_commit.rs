@@ -318,6 +318,57 @@ mod tests {
         check_commit_enabled_ok(&headers, constants_str::BB6C239E);
     }
     #[test]
+    fn test_duplicate_commit_headers_preserve_first_value_and_disabled_validation() {
+        let project = axum::http::HeaderValue::from_str(
+            git_info::project_git_info_value::project_git_info_value()
+                .commit()
+                .as_ref(),
+        )
+        .unwrap_or_else(|error| std::panic::panic_any(error));
+        let wrong = axum::http::HeaderValue::from_static(constants_str::TEST_VALUES_WRONG_COMMIT);
+        let non_utf8 =
+            axum::http::HeaderValue::from(crate::non_utf8_header_value::non_utf8_header_value());
+        [
+            ([project.clone(), wrong.clone()], 0u8),
+            ([wrong, project.clone()], 1u8),
+            ([project.clone(), non_utf8.clone()], 0u8),
+            ([non_utf8, project], 2u8),
+        ]
+        .into_iter()
+        .fold((), |(), ([first, second], expected_kind)| {
+            let mut headers = make_headers_with_commit_header_value(first);
+            assert!(headers.append(crate::commit_header_name::COMMIT_HEADER_NAME, second));
+            assert_eq!(
+                headers
+                    .get_all(crate::commit_header_name::COMMIT_HEADER_NAME)
+                    .iter()
+                    .count(),
+                2usize
+            );
+            let result = check_commit_enabled(&headers);
+            assert!(match expected_kind {
+                0u8 => matches!(result, Ok(())),
+                1u8 => matches!(
+                    result,
+                    Err(crate::commit_error::CommitError::CommitNotEq { .. })
+                ),
+                2u8 => matches!(
+                    result,
+                    Err(crate::commit_error::CommitError::CommitToStrConversion { .. })
+                ),
+                unexpected => std::panic::panic_any(unexpected),
+            });
+            assert!(matches!(
+                crate::check_commit::check_commit(
+                    crate::enable_api_git_commit_check::EnableApiGitCommitCheck::from(false),
+                    crate::axum_headers_ref::AxumHeadersRef::from(&*headers),
+                ),
+                Ok(())
+            ));
+        });
+    }
+
+    #[test]
     fn test_check_commit_returns_ok_for_matching_commit() {
         let headers = make_headers_with_project_commit();
         check_commit_enabled_ok(&headers, constants_str::C95E27D1);

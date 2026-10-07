@@ -54,35 +54,6 @@ pub fn errors_with_location(
     }
 }
 
-#[cfg(test)]
-fn add_location_fields(
-    syn_item_enum_mut_ref: syn_item_enum_mut_ref::SynItemEnumMutRef<'_>,
-) -> syn::Result<()> {
-    let item_ref = syn_item_enum_mut_ref.into_inner();
-    item_ref.variants.iter_mut().try_for_each(|variant| {
-        let syn::Fields::Named(fields) = &mut variant.fields else {
-            return Err(syn::Error::new_spanned(
-                variant,
-                constants_str::ERRORS_WITH_LOCATION_SUPPORTS_ONLY_VARIANTS_WITH_NAMED_FIELDS,
-            ));
-        };
-        if fields.named.iter().any(|field| {
-            field
-                .ident
-                .as_ref()
-                .is_some_and(|identifier| identifier == constants_str::LOCATION_ALT)
-        }) {
-            return Err(syn::Error::new_spanned(
-                variant,
-                constants_str::ERRORS_WITH_LOCATION_VARIANT_ALREADY_HAS_A_LOCATION_FIELD,
-            ));
-        }
-        fields
-            .named
-            .push(syn::parse_quote! { location: location_lib::location::Location });
-        Ok(())
-    })
-}
 pub fn derive_location(token_stream: proc_macro2::TokenStream) -> proc_macro2::TokenStream {
     #[derive(
         Debug, Clone, Copy, PartialEq, Eq, proc_macro_optimal_memory_layout::OptimalMemoryLayout,
@@ -578,18 +549,17 @@ pub fn derive_location(token_stream: proc_macro2::TokenStream) -> proc_macro2::T
 mod tests {
     #[test]
     fn test_adds_location_to_every_named_variant() {
-        let mut item: syn::ItemEnum = syn::parse_quote! {
-            enum SampleError {
-                First { value: String },
-                Second {},
-            }
-        };
-        super::add_location_fields(super::syn_item_enum_mut_ref::SynItemEnumMutRef::from(
-            &mut item,
-        ))
-        .expect(constants_str::DIAGNOSTIC_74C1509E);
+        let generated = crate::errors_with_location(
+            proc_macro2::TokenStream::new(),
+            quote::quote! {
+                enum SampleError {
+                    First { value: String },
+                    Second {},
+                }
+            },
+        );
         assert_eq!(
-            quote::quote! {#item}.to_string(),
+            generated.to_string(),
             quote::quote! {
                 enum SampleError {
                     First { value: String, location: location_lib::location::Location },
@@ -599,32 +569,67 @@ mod tests {
             .to_string()
         );
     }
+
     #[test]
-    fn test_rejects_existing_location_field() {
-        let mut item: syn::ItemEnum = syn::parse_quote! {
-            enum SampleError { First { location: location_lib::location::Location } }
-        };
-        let error = super::add_location_fields(
-            super::syn_item_enum_mut_ref::SynItemEnumMutRef::from(&mut item),
-        )
-        .expect_err(constants_str::VALUE_371082FA);
+    fn test_location_attribute_rejects_arguments_before_invalid_input() {
+        let message = constants_str::ERRORS_WITH_LOCATION_DOES_NOT_ACCEPT_ARGUMENTS;
+        let generated = crate::errors_with_location(
+            quote::quote! { true },
+            quote::quote! { struct SampleError; },
+        );
         assert_eq!(
-            error.to_string(),
-            constants_str::ERRORS_WITH_LOCATION_VARIANT_ALREADY_HAS_A_LOCATION_FIELD
+            generated.to_string(),
+            quote::quote! { ::core::compile_error! { #message } }.to_string()
         );
     }
+
+    #[test]
+    fn test_location_attribute_preserves_input_parser_diagnostics() {
+        [
+            quote::quote! {},
+            quote::quote! { struct SampleError; },
+            quote::quote! { enum },
+        ]
+        .into_iter()
+        .fold((), |(), input| {
+            let expected = syn::parse2::<syn::ItemEnum>(input.clone())
+                .expect_err(constants_str::VALUE_371082FA)
+                .into_compile_error();
+            assert_eq!(
+                crate::errors_with_location(proc_macro2::TokenStream::new(), input).to_string(),
+                expected.to_string()
+            );
+        });
+    }
+
+    #[test]
+    fn test_rejects_existing_location_field() {
+        let message = constants_str::ERRORS_WITH_LOCATION_VARIANT_ALREADY_HAS_A_LOCATION_FIELD;
+        [
+            quote::quote! { enum SampleError { First { location: location_lib::location::Location } } },
+            quote::quote! { enum SampleError { First {}, Second { location: location_lib::location::Location } } },
+        ].into_iter().fold((), |(), input| {
+            assert_eq!(
+                crate::errors_with_location(proc_macro2::TokenStream::new(), input).to_string(),
+                quote::quote! { ::core::compile_error! { #message } }.to_string()
+            );
+        });
+    }
+
     #[test]
     fn test_rejects_unnamed_variant() {
-        let mut item: syn::ItemEnum = syn::parse_quote! {
-            enum SampleError { First(String) }
-        };
-        let error = super::add_location_fields(
-            super::syn_item_enum_mut_ref::SynItemEnumMutRef::from(&mut item),
-        )
-        .expect_err(constants_str::VALUE_982F4D17);
-        assert_eq!(
-            error.to_string(),
-            constants_str::ERRORS_WITH_LOCATION_SUPPORTS_ONLY_VARIANTS_WITH_NAMED_FIELDS
-        );
+        let message = constants_str::ERRORS_WITH_LOCATION_SUPPORTS_ONLY_VARIANTS_WITH_NAMED_FIELDS;
+        [
+            quote::quote! { enum SampleError { First(String) } },
+            quote::quote! { enum SampleError { First } },
+            quote::quote! { enum SampleError { First {}, Second(String) } },
+        ]
+        .into_iter()
+        .fold((), |(), input| {
+            assert_eq!(
+                crate::errors_with_location(proc_macro2::TokenStream::new(), input).to_string(),
+                quote::quote! { ::core::compile_error! { #message } }.to_string()
+            );
+        });
     }
 }

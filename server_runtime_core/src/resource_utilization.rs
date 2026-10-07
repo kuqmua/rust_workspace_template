@@ -46,7 +46,15 @@ mod tests {
             crate::resource_utilization_status::ResourceUtilizationStatus::Warning
         );
         assert_eq!(
+            calculate(84u64, 100u64).status(),
+            crate::resource_utilization_status::ResourceUtilizationStatus::Warning
+        );
+        assert_eq!(
             calculate(85u64, 100u64).status(),
+            crate::resource_utilization_status::ResourceUtilizationStatus::Critical
+        );
+        assert_eq!(
+            calculate(94u64, 100u64).status(),
             crate::resource_utilization_status::ResourceUtilizationStatus::Critical
         );
         assert_eq!(

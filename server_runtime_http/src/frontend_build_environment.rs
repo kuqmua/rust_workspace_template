@@ -222,6 +222,58 @@ mod tests {
         ));
     }
 
+    #[cfg(unix)]
+    #[tokio::test]
+    async fn test_frontend_preparation_rejects_existing_node_path_with_path_separator() {
+        let node_directory = std::env::temp_dir().join(format!(
+            "{}{}{}",
+            stringify!(test_frontend_preparation_rejects_existing_node_path_with_path_separator),
+            constants_str::DOUBLE_COLON,
+            std::process::id()
+        ));
+        tokio::fs::create_dir(&node_directory)
+            .await
+            .unwrap_or_else(|error| std::panic::panic_any(error));
+        let outcome = async {
+            tokio::fs::write(
+                node_directory.join(constants_str::FRONTEND_NODE_PROGRAM),
+                [],
+            )
+            .await
+            .map_err(crate::service_runtime_io_error::ServiceRuntimeIoError::from)?;
+            let expected = std::env::join_paths([node_directory.as_path()]);
+            let frontend_build_environment =
+                crate::frontend_build_environment::FrontendBuildEnvironment {
+                    workspace_directory: crate::std_frontend_path_buf::StdFrontendPathBuf::from(
+                        node_directory.join(constants_str::CARGO_TOML),
+                    ),
+                    node_directory: Some(crate::std_frontend_path_buf::StdFrontendPathBuf::from(
+                        node_directory.clone(),
+                    )),
+                    search_path: crate::std_frontend_os_string::StdFrontendOsString::from(
+                        std::ffi::OsString::default(),
+                    ),
+                };
+            let actual = frontend_build_environment.prepare().await;
+            Ok::<_, crate::service_runtime_io_error::ServiceRuntimeIoError>((expected, actual))
+        }
+        .await;
+        tokio::fs::remove_dir_all(&node_directory)
+            .await
+            .unwrap_or_else(|error| std::panic::panic_any(error));
+        let (expected, actual) = outcome.unwrap_or_else(|error| std::panic::panic_any(error));
+        assert!(
+            expected
+                .as_ref()
+                .is_err_and(|error| !error.to_string().is_empty())
+        );
+        assert!(actual.is_err_and(|error| {
+            std::error::Error::source(&error).is_some()
+                && matches!(error, crate::frontend_preparation_error::FrontendPreparationError::Environment(source)
+                    if Some(source.to_string()) == expected.err().map(|native_error| native_error.to_string()))
+        }));
+    }
+
     #[tokio::test]
     async fn test_frontend_preparation_without_local_node_reports_first_command_failure() {
         let workspace =
@@ -460,9 +512,9 @@ mod tests {
             let oversized_stamp = make_environment()?.prepare().await;
             assert!(matches!(oversized_stamp, Err(crate::frontend_preparation_error::FrontendPreparationError::Read(crate::bounded_read_error::BoundedReadError::ExceedsMaximum { maximum_bytes })) if maximum_bytes.get() == 128usize));
             tokio::fs::remove_file(&stamp).await.map_err(file_error)?;
-            tokio::fs::create_dir(&stamp).await.map_err(file_error)?;
+            tokio::fs::symlink(frontend_directory.join(constants_str::FRONTEND_PACKAGE_MANIFEST).join(constants_str::X), &stamp).await.map_err(file_error)?;
             let unreadable_stamp = make_environment()?.prepare().await;
-            assert!(unreadable_stamp.is_err_and(|error| matches!(error, crate::frontend_preparation_error::FrontendPreparationError::Read(crate::bounded_read_error::BoundedReadError::Io { .. })) && std::error::Error::source(&error).is_some()));
+            assert!(unreadable_stamp.is_err_and(|error| std::error::Error::source(&error).is_some() && matches!(error, crate::frontend_preparation_error::FrontendPreparationError::Read(crate::bounded_read_error::BoundedReadError::Io { source }) if source.kind() == std::io::ErrorKind::NotADirectory)));
             tokio::fs::write(frontend_directory.join(constants_str::FRONTEND_PACKAGE_MANIFEST), [u8::MAX]).await.map_err(file_error)?;
             let invalid_manifest = make_environment()?.prepare().await;
             assert!(matches!(invalid_manifest, Err(crate::frontend_preparation_error::FrontendPreparationError::Read(crate::bounded_read_error::BoundedReadError::Utf8 { .. }))));
@@ -478,7 +530,7 @@ mod tests {
             tokio::fs::write(frontend_directory.join(constants_str::FRONTEND_PACKAGE_LOCK), constants_str::FRONTEND_DEPENDENCY_FIXTURE_ONE).await.map_err(file_error)?;
             tokio::fs::remove_file(workspace.join(constants_str::FRONTEND_NPM_PROGRAM)).await.map_err(file_error)?;
             tokio::fs::symlink(constants_str::TEST_TRUE_EXECUTABLE_PATH, workspace.join(constants_str::FRONTEND_NPM_PROGRAM)).await.map_err(file_error)?;
-            tokio::fs::remove_dir(&stamp).await.map_err(file_error)?;
+            tokio::fs::remove_file(&stamp).await.map_err(file_error)?;
             tokio::fs::symlink(workspace.join(constants_str::CARGO_TOML).join(constants_str::X), &stamp).await.map_err(file_error)?;
             let failed_stamp_write = make_environment()?.prepare().await;
             assert!(failed_stamp_write.is_err_and(|error| matches!(error, crate::frontend_preparation_error::FrontendPreparationError::File(_)) && std::error::Error::source(&error).is_some()));

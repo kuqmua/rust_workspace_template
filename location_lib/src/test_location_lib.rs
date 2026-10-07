@@ -127,6 +127,15 @@ fn test_fmt_datetime_returns_fallback_for_overflowed_duration() {
 #[test]
 fn test_datetime_with_tz_returns_expected_epoch_time_for_zero_duration() {
     let location = test_location(std::time::Duration::from_secs(0), None);
+    assert_eq!(
+        format!(
+            "{}",
+            DatetimeFmt {
+                location: &location
+            }
+        ),
+        constants_str::VALUE_BA5B49F1
+    );
     let date_time = location
         .datetime_with_tz()
         .expect(constants_str::DIAGNOSTIC_F5C41DD8);
@@ -212,4 +221,287 @@ fn test_location_coordinates_validate_deserialization_and_preserve_extreme_value
             }
         })
     }));
+}
+
+#[test]
+fn test_location_duration_deserialization_preserves_normalization_and_rejects_overflow() {
+    fn duration_wire_error_matches_native<Factory, Deserializer>(factory: Factory)
+    where
+        Factory: Fn() -> Deserializer,
+        Deserializer: serde::Deserializer<'static>,
+    {
+        let native_result = <std::time::Duration as serde::Deserialize>::deserialize(factory())
+            .map_err(|error| error.to_string());
+        let wrapper_result =
+            <crate::location_duration::LocationDuration as serde::Deserialize>::deserialize(
+                factory(),
+            )
+            .map(std::time::Duration::from)
+            .map_err(|error| error.to_string());
+        assert!(native_result.as_ref().is_err_and(|error| !error.is_empty()));
+        assert_eq!(wrapper_result, native_result);
+    }
+
+    [
+        (0u64, 0u64, std::time::Duration::ZERO),
+        (
+            0u64,
+            999_999_999u64,
+            std::time::Duration::new(0u64, 999_999_999u32),
+        ),
+        (1u64, 1_000_000_000u64, std::time::Duration::from_secs(2u64)),
+        (
+            0u64,
+            u64::from(u32::MAX),
+            std::time::Duration::new(4u64, 294_967_295u32),
+        ),
+        (u64::MAX, 999_999_999u64, std::time::Duration::MAX),
+    ]
+    .into_iter()
+    .fold((), |(), (seconds, nanoseconds, expected)| {
+        let actual =
+            <crate::location_duration::LocationDuration as serde::Deserialize>::deserialize(
+                serde::de::value::MapDeserializer::<_, serde::de::value::Error>::new(
+                    [
+                        (constants_str::SECS, seconds),
+                        (constants_str::NANOS, nanoseconds),
+                    ]
+                    .into_iter(),
+                ),
+            )
+            .unwrap_or_else(|error| std::panic::panic_any(error));
+        assert_eq!(std::time::Duration::from(actual), expected);
+        assert_eq!(
+            crate::location_duration::LocationDuration::from(expected),
+            actual
+        );
+    });
+    [
+        (u64::MAX, 1_000_000_000u64),
+        (0u64, u64::from(u32::MAX).saturating_add(1u64)),
+        (0u64, u64::MAX),
+    ]
+    .into_iter()
+    .fold((), |(), (seconds, nanoseconds)| {
+        duration_wire_error_matches_native(|| {
+            serde::de::value::MapDeserializer::<_, serde::de::value::Error>::new(
+                [
+                    (constants_str::SECS, seconds),
+                    (constants_str::NANOS, nanoseconds),
+                ]
+                .into_iter(),
+            )
+        });
+    });
+    [constants_str::SECS, constants_str::NANOS]
+        .into_iter()
+        .fold((), |(), field| {
+            duration_wire_error_matches_native(|| {
+                serde::de::value::MapDeserializer::<_, serde::de::value::Error>::new(
+                    [(field, 0u64)].into_iter(),
+                )
+            });
+            duration_wire_error_matches_native(|| {
+                serde::de::value::MapDeserializer::<_, serde::de::value::Error>::new(
+                    [
+                        (constants_str::SECS, 0u64),
+                        (constants_str::NANOS, 0u64),
+                        (field, 0u64),
+                    ]
+                    .into_iter(),
+                )
+            });
+        });
+    duration_wire_error_matches_native(|| {
+        serde::de::value::MapDeserializer::<_, serde::de::value::Error>::new(
+            [(constants_str::SECS, -1i64), (constants_str::NANOS, 0i64)].into_iter(),
+        )
+    });
+    duration_wire_error_matches_native(|| {
+        serde::de::value::StrDeserializer::<serde::de::value::Error>::new(constants_str::X)
+    });
+}
+
+#[test]
+fn test_location_text_wire_boundaries_preserve_unicode_byte_limits() {
+    fn location_text_wire_boundaries<Text, const MAXIMUM: usize>()
+    where
+        Text: serde::de::DeserializeOwned + TryFrom<String> + AsRef<str>,
+        <Text as TryFrom<String>>::Error: Send + 'static,
+    {
+        [
+            constants_str::EMPTY.to_owned(),
+            constants_str::X.to_owned(),
+            constants_str::X.repeat(MAXIMUM),
+            [
+                constants_str::X
+                    .repeat(MAXIMUM.saturating_sub(constants_str::U_1F496.len()))
+                    .as_str(),
+                constants_str::U_1F496,
+            ]
+            .concat(),
+        ]
+        .into_iter()
+        .fold((), |(), raw_value| {
+            let parsed = Text::deserialize(serde::de::value::StrDeserializer::<
+                serde::de::value::Error,
+            >::new(&raw_value))
+            .unwrap_or_else(|error| std::panic::panic_any(error));
+            assert_eq!(parsed.as_ref(), raw_value.as_str());
+            let validated =
+                Text::try_from(raw_value).unwrap_or_else(|error| std::panic::panic_any(error));
+            assert_eq!(validated.as_ref(), parsed.as_ref());
+        });
+        [
+            constants_str::X.repeat(MAXIMUM.saturating_add(1usize)),
+            [
+                constants_str::X
+                    .repeat(
+                        MAXIMUM
+                            .saturating_sub(constants_str::U_1F496.len())
+                            .saturating_add(1usize),
+                    )
+                    .as_str(),
+                constants_str::U_1F496,
+            ]
+            .concat(),
+        ]
+        .into_iter()
+        .fold((), |(), raw_value| {
+            assert!(
+                Text::deserialize(
+                    serde::de::value::StrDeserializer::<serde::de::value::Error>::new(&raw_value)
+                )
+                .is_err()
+            );
+            assert!(Text::try_from(raw_value).is_err());
+        });
+        assert!(
+            Text::deserialize(
+                serde::de::value::BoolDeserializer::<serde::de::value::Error>::new(false)
+            )
+            .is_err()
+        );
+        assert!(
+            Text::deserialize(
+                serde::de::value::U64Deserializer::<serde::de::value::Error>::new(0u64)
+            )
+            .is_err()
+        );
+        assert!(
+            Text::deserialize(serde::de::value::SeqDeserializer::<
+                _,
+                serde::de::value::Error,
+            >::new(std::iter::empty::<u8>()))
+            .is_err()
+        );
+    }
+    location_text_wire_boundaries::<
+        crate::location_file::LocationFile,
+        { crate::domain_types::LOC_FILE_MAX_LEN },
+    >();
+    location_text_wire_boundaries::<
+        crate::location_commit::LocationCommit,
+        { crate::domain_types::LOC_COMMIT_MAX_LEN },
+    >();
+}
+
+#[test]
+fn test_location_file_truncation_preserves_complete_unicode_characters() {
+    let maximum = crate::domain_types::LOC_FILE_MAX_LEN;
+    let split_character_prefix = constants_str::X.repeat(maximum.saturating_sub(1usize));
+    let split_character_input = [split_character_prefix.as_str(), constants_str::U_1F496].concat();
+    let split_character_file = crate::location_file::LocationFile::from(
+        crate::location_file_ref::LocationFileRef::from(split_character_input.as_str()),
+    );
+    assert_eq!(
+        split_character_file.as_ref(),
+        split_character_prefix.as_str()
+    );
+    let complete_character_prefix = [
+        constants_str::X
+            .repeat(maximum.saturating_sub(constants_str::U_1F496.len()))
+            .as_str(),
+        constants_str::U_1F496,
+    ]
+    .concat();
+    let complete_character_input = [complete_character_prefix.as_str(), constants_str::X].concat();
+    let complete_character_file = crate::location_file::LocationFile::from(
+        crate::location_file_ref::LocationFileRef::from(complete_character_input.as_str()),
+    );
+    assert_eq!(
+        complete_character_file.as_ref(),
+        complete_character_prefix.as_str()
+    );
+    assert_eq!(complete_character_file.as_ref().len(), maximum);
+}
+
+#[cfg(target_os = "linux")]
+#[test]
+fn test_location_datetime_outside_chrono_range_preserves_native_failure_behavior() {
+    let duration = std::time::Duration::from_secs(10_000_000_000_000u64);
+    let epoch = std::time::UNIX_EPOCH.checked_add(duration);
+    assert!(epoch.is_some());
+    let location = test_location(duration, None);
+    assert!(
+        [
+            std::panic::catch_unwind(|| epoch.map(chrono::DateTime::<chrono::Utc>::from).is_some()),
+            std::panic::catch_unwind(|| location.datetime_with_tz().is_some()),
+            std::panic::catch_unwind(|| !format!(
+                "{}",
+                DatetimeFmt {
+                    location: &location
+                }
+            )
+            .is_empty()),
+        ]
+        .into_iter()
+        .all(|result| result.is_err_and(|panic_payload| {
+            panic_payload
+                .downcast_ref::<&str>()
+                .is_some_and(|text| !text.is_empty())
+                || panic_payload
+                    .downcast_ref::<String>()
+                    .is_some_and(|text| !text.is_empty())
+        }))
+    );
+}
+
+#[cfg(target_os = "linux")]
+#[test]
+fn test_location_datetime_maximum_utc_preserves_timestamp_and_offset_formatting() {
+    let maximum_utc = chrono::DateTime::<chrono::Utc>::MAX_UTC;
+    let seconds =
+        u64::try_from(maximum_utc.timestamp()).unwrap_or_else(|error| std::panic::panic_any(error));
+    let location = test_location(
+        std::time::Duration::new(seconds, maximum_utc.timestamp_subsec_nanos()),
+        None,
+    );
+    let converted = location.datetime_with_tz();
+    assert!(converted.is_some());
+    let converted_datetime = converted
+        .unwrap_or_else(|| std::panic::panic_any(constants_str::LOCATION_INCORRECT_DATETIME_MSG));
+    let native_datetime = chrono::DateTime::<chrono::FixedOffset>::from(converted_datetime);
+    assert_eq!(native_datetime.timestamp(), maximum_utc.timestamp());
+    assert_eq!(
+        native_datetime.timestamp_subsec_nanos(),
+        maximum_utc.timestamp_subsec_nanos()
+    );
+    let expected_offset =
+        chrono::FixedOffset::east_opt(crate::domain_types::LOC_DISPLAY_UTC_OFFSET_SECS)
+            .unwrap_or_else(|| {
+                std::panic::panic_any(constants_str::LOCATION_INCORRECT_DATETIME_MSG)
+            });
+    assert_eq!(
+        format!(
+            "{}",
+            DatetimeFmt {
+                location: &location
+            }
+        ),
+        maximum_utc
+            .with_timezone(&expected_offset)
+            .format(constants_str::VALUE_34A18516)
+            .to_string()
+    );
 }

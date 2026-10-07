@@ -398,10 +398,20 @@ mod tests {
     fn test_timestamp_filter_fraction_padding_and_precision_preserve_wire_values() {
         assert!(
             [
+                (vec![], Some(0u64)),
+                (vec!['.'], Some(0u64)),
+                (vec!['.', '1'], Some(100_000u64)),
+                (vec!['.', '1', '2'], Some(120_000u64)),
                 (vec!['.', '1', '2', '3'], Some(123_000u64)),
+                (vec!['.', '1', '2', '3', '4'], Some(123_400u64)),
+                (vec!['.', '1', '2', '3', '4', '5'], Some(123_450u64)),
                 (vec!['.', '1', '2', '3', '4', '5', '6'], Some(123_456u64)),
+                (vec!['.', '0', '0', '0', '0', '0', '0'], Some(0u64)),
+                (vec!['.', '9', '9', '9', '9', '9', '9'], Some(999_999u64)),
                 (vec!['.', '1', '2', '3', '4', '5', '6', '7'], None),
                 (vec!['.', 'x'], None),
+                (vec!['.', '\u{0661}'], None),
+                (vec!['.', '1', '.'], None),
             ]
             .into_iter()
             .all(|(suffix, expected_microsecond)| {
@@ -409,24 +419,33 @@ mod tests {
                     .chars()
                     .chain(suffix)
                     .collect::<String>();
-                let result = super::parse_timestamp_filter_wire_json(
-                    crate::form_value_ref::FormValueRef::from(input.as_str()),
+                [
                     crate::value_format::ValueFormat::Timestamp,
-                );
-                if let Some(expected) = expected_microsecond {
-                    result.is_ok_and(|wire| {
-                        serde_json::from_str::<serde_json::Value>(wire.as_ref()).is_ok_and(|json| {
-                            json.get(constants_str::PG_CRUD_PG_TIME)
-                                .and_then(|time| time.get(constants_str::MICRO))
-                                .and_then(serde_json::Value::as_u64)
-                                == Some(expected)
+                    crate::value_format::ValueFormat::TimestampTz,
+                ]
+                .into_iter()
+                .all(|value_format| {
+                    let result = super::parse_timestamp_filter_wire_json(
+                        crate::form_value_ref::FormValueRef::from(input.as_str()),
+                        value_format,
+                    );
+                    if let Some(expected) = expected_microsecond {
+                        result.is_ok_and(|wire| {
+                            serde_json::from_str::<serde_json::Value>(wire.as_ref()).is_ok_and(
+                                |json| {
+                                    json.get(constants_str::PG_CRUD_PG_TIME)
+                                        .and_then(|time| time.get(constants_str::MICRO))
+                                        .and_then(serde_json::Value::as_u64)
+                                        == Some(expected)
+                                },
+                            )
                         })
-                    })
-                } else {
-                    result.is_err_and(|error| {
-                        error.to_string() == constants_str::INVALID_FILTER_SPECIFICATION
-                    })
-                }
+                    } else {
+                        result.is_err_and(|error| {
+                            error.to_string() == constants_str::INVALID_FILTER_SPECIFICATION
+                        })
+                    }
+                })
             })
         );
     }

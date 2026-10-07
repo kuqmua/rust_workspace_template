@@ -57,3 +57,32 @@ fn test_admin_ssr_text_preserves_byte_boundaries_and_error_fallback() {
         error.to_string()
     );
 }
+#[test]
+fn test_admin_error_message_preserves_display_and_underlying_byte_validation() {
+    assert!(
+        crate::admin_ssr_error_message::AdminSsrErrorMessage::try_from(String::new())
+            .is_ok_and(|admin_ssr_error_message| admin_ssr_error_message.to_string().is_empty())
+    );
+    assert!(
+        [constants_str::X, constants_str::NON_ASCII_U_E9]
+            .into_iter()
+            .all(|suffix| {
+                let mut input =
+                    constants_str::X.repeat(constants_usize::VALUE_1_048_576 - suffix.len());
+                input.push_str(suffix);
+                let preserved =
+                    crate::admin_ssr_error_message::AdminSsrErrorMessage::try_from(input.clone())
+                        .is_ok_and(|admin_ssr_error_message| {
+                            admin_ssr_error_message.to_string() == input
+                        });
+                input.push_str(constants_str::X);
+                let expected = to_err_string::error_text::ErrorTextTryFromStringError::TooLong {
+                    len: input.len(),
+                    max: constants_usize::VALUE_1_048_576,
+                };
+                preserved
+                    && crate::admin_ssr_error_message::AdminSsrErrorMessage::try_from(input)
+                        .is_err_and(|error| error == expected)
+            })
+    );
+}

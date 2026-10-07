@@ -32,8 +32,19 @@ fn test_field_providers_accept_raw_identifiers() {
             r#type: FixtureValue,
         }
     });
-    assert!(matches!(syn::parse2::<syn::File>(generated), Ok(file)
-        if file.items.len() == 2usize));
+    let expected = quote::quote! {
+        impl app_state::TypeProvider for RawFieldFixture {
+            fn r#type(&self) -> &FixtureValue {
+                &self.r#type
+            }
+        }
+        impl app_state::TypeProvider for &RawFieldFixture {
+            fn r#type(&self) -> &FixtureValue {
+                &self.r#type
+            }
+        }
+    };
+    assert_eq!(generated.to_string(), expected.to_string());
 }
 #[test]
 fn test_provider_forwarding_does_not_shadow_field_type() {
@@ -59,5 +70,97 @@ fn test_oversized_case_conversion_emits_compile_error() {
         generated
             .to_string()
             .contains(constants_str::VALUE_2EDAC0BF)
+    );
+}
+
+#[test]
+fn test_provider_declaration_and_reference_forwarding_preserve_accessor_body() {
+    let generated = crate::generate_accessor_trait(quote::quote! {
+        struct AccessorBodyFixture(FixtureValue);
+    });
+    let expected = quote::quote! {
+        pub trait AccessorBodyFixtureProvider {
+            fn accessor_body_fixture(&self) -> &FixtureValue;
+        }
+        impl<AccessorBodyFixture0: ?Sized> AccessorBodyFixtureProvider for &AccessorBodyFixture0
+        where AccessorBodyFixture0: AccessorBodyFixtureProvider
+        {
+            fn accessor_body_fixture(&self) -> &FixtureValue {
+                <AccessorBodyFixture0 as AccessorBodyFixtureProvider>::accessor_body_fixture(*self)
+            }
+        }
+    };
+    assert_eq!(generated.to_string(), expected.to_string());
+}
+
+#[test]
+fn test_accessor_provider_rejects_nonstruct_and_nontuple_shapes() {
+    assert!(
+        [
+            (
+                quote::quote! { enum RejectedAccessorEnum { Value } },
+                constants_str::PANIC_CD6BBC4E
+            ),
+            (
+                quote::quote! { union RejectedAccessorUnion { value: u8 } },
+                constants_str::PANIC_CD6BBC4E
+            ),
+            (
+                quote::quote! { struct RejectedAccessorNamed { value: u8 } },
+                constants_str::PANIC_577CB86A
+            ),
+            (
+                quote::quote! { struct RejectedAccessorUnit; },
+                constants_str::PANIC_577CB86A
+            ),
+        ]
+        .into_iter()
+        .all(|(token_stream, diagnostic)| {
+            std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+                crate::generate_accessor_trait(token_stream)
+            }))
+            .is_err_and(|error| {
+                error
+                    .downcast_ref::<&str>()
+                    .is_some_and(|message| *message == diagnostic)
+            })
+        })
+    );
+}
+
+#[test]
+fn test_field_provider_rejects_nonstruct_shapes_and_unnamed_fields() {
+    assert!(
+        [
+            quote::quote! { enum RejectedFieldProviderEnum { Value } },
+            quote::quote! { union RejectedFieldProviderUnion { value: u8 } },
+        ]
+        .into_iter()
+        .all(|token_stream| {
+            std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+                crate::generate_accessor_traits_for_struct_fields(token_stream)
+            }))
+            .is_err_and(|error| {
+                error
+                    .downcast_ref::<&str>()
+                    .is_some_and(|message| *message == constants_str::PANIC_15CD72A2)
+            })
+        })
+    );
+    let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+        crate::generate_accessor_traits_for_struct_fields(quote::quote! {
+            struct RejectedUnnamedFieldProvider(u8);
+        })
+    }));
+    assert!(result.is_err_and(|error| {
+        error
+            .downcast_ref::<String>()
+            .is_some_and(|message| message.starts_with(constants_str::DIAGNOSTIC_E5C23C45))
+    }));
+    assert!(
+        crate::generate_accessor_traits_for_struct_fields(quote::quote! {
+            struct EmptyFieldProviderFixture;
+        })
+        .is_empty()
     );
 }

@@ -112,4 +112,47 @@ mod tests {
         assert_eq!(u64::from(overflow.start()), u64::from(u32::MAX) + 1u64);
         assert_eq!(u64::from(overflow.end()), u64::from(u32::MAX) + 100u64);
     }
+    #[test]
+    fn test_page_range_clamps_previous_offsets_and_preserves_near_maximum_progress() {
+        assert!(
+            [
+                (1u32, 20u16, 41u64, 2u64, 21u64, 0u32, 21u32, false),
+                (19u32, 20u16, 41u64, 20u64, 39u64, 0u32, 39u32, false),
+                (20u32, 20u16, 40u64, 21u64, 40u64, 0u32, 40u32, true),
+                (20u32, 20u16, 41u64, 21u64, 40u64, 0u32, 40u32, false),
+                (
+                    u32::MAX - 1u32,
+                    1u16,
+                    u64::MAX,
+                    u64::from(u32::MAX),
+                    u64::from(u32::MAX),
+                    u32::MAX - 2u32,
+                    u32::MAX,
+                    false
+                ),
+                (
+                    u32::MAX - 1u32,
+                    2u16,
+                    u64::MAX,
+                    u64::from(u32::MAX),
+                    u64::from(u32::MAX) + 1u64,
+                    u32::MAX - 3u32,
+                    u32::MAX,
+                    false
+                ),
+            ]
+            .into_iter()
+            .all(
+                |(offset, limit, total, start, end, previous, next, next_disabled)| {
+                    let value = page_range(offset, limit, total);
+                    u64::from(value.start()) == start
+                        && u64::from(value.end()) == end
+                        && u32::from(value.previous_offset()) == previous
+                        && u32::from(value.next_offset()) == next
+                        && !bool::from(value.previous_disabled())
+                        && bool::from(value.next_disabled()) == next_disabled
+                }
+            )
+        );
+    }
 }

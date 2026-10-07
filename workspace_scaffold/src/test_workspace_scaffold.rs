@@ -518,54 +518,128 @@ fn test_deployment_sync_repairs_stale_projection_and_preserves_all_other_files()
             )
         };
         synchronize(false)?;
-        let ci_path = root.join(constants_str::CODE_STYLE_CI_WORKFLOW_PATH);
-        let ci = crate::template_fs_read_bounded_text::template_fs_read_bounded_text(
-            crate::scaffold_path_ref::ScaffoldPathRef::from(ci_path.as_path()),
-        )?;
-        let (prefix, generated_suffix) = ci
-            .as_ref()
-            .split_once(constants_str::VALUE_48916059)
-            .ok_or(crate::scaffold_error::ScaffoldError::Marker)?;
-        let (_generated, suffix) = generated_suffix
-            .split_once(constants_str::VALUE_37E65562)
-            .ok_or(crate::scaffold_error::ScaffoldError::Marker)?;
-        write(
-            ci_path.as_path(),
-            format!(
-                "{prefix}{}{}{}{suffix}",
-                constants_str::VALUE_48916059,
-                constants_str::X,
-                constants_str::VALUE_37E65562
-            )
-            .as_str(),
-        );
-        assert!(matches!(
-            synchronize(false),
-            Err(crate::scaffold_error::ScaffoldError::GeneratedDeployment)
-        ));
-        synchronize(true)?;
-        synchronize(false)?;
-        assert!(
-            [constants_str::VALUE_48916059, constants_str::VALUE_37E65562]
-                .into_iter()
-                .all(|marker| {
-                    [false, true].into_iter().all(|duplicate| {
-                        let replacement = if duplicate {
-                            format!("{marker}{marker}")
-                        } else {
-                            constants_str::X.to_owned()
-                        };
-                        let malformed = ci.as_ref().replace(marker, replacement.as_str());
-                        write(ci_path.as_path(), malformed.as_str());
-                        let rejected = [false, true].into_iter().all(|write_enabled| {
-                            let result = synchronize(write_enabled);
-                            assert_scaffold_file_content(ci_path.as_path(), malformed.as_str());
-                            matches!(result, Err(crate::scaffold_error::ScaffoldError::Marker))
-                        });
-                        write(ci_path.as_path(), ci.as_ref());
-                        rejected
+        let projection_paths = [
+            root.join(constants_str::CODE_STYLE_CI_WORKFLOW_PATH),
+            root.join(constants_str::VALUE_87DB21A9),
+        ]
+        .into_iter()
+        .chain(entries.get_inner().as_slice().iter().flat_map(|entry| {
+            [
+                root.join(entry.get_compose_file().as_ref()),
+                root.join(entry.get_kubernetes_manifest().as_ref()),
+            ]
+        }))
+        .collect::<std::collections::BTreeSet<_>>();
+        let begin_prefix = constants_str::VALUE_48916059
+            .split_whitespace()
+            .take(3usize)
+            .collect::<Vec<_>>()
+            .join(constants_str::SPACE);
+        let end_prefix = constants_str::VALUE_37E65562
+            .split_whitespace()
+            .take(3usize)
+            .collect::<Vec<_>>()
+            .join(constants_str::SPACE);
+        let assert_contents = |changed_path: &std::path::Path, changed_text: &str| {
+            originals.iter().fold((), |(), (path, text)| {
+                assert_scaffold_file_content(
+                    path.as_path(),
+                    if path.as_path() == changed_path {
+                        changed_text
+                    } else {
+                        text.as_ref()
+                    },
+                );
+            });
+        };
+        let block_count = originals
+            .iter()
+            .filter(|(path, _text)| projection_paths.contains(path))
+            .try_fold(constants_usize::ZERO, |count, (path, text)| {
+                let markers = text
+                    .as_ref()
+                    .lines()
+                    .filter(|line| line.trim_start().starts_with(begin_prefix.as_str()))
+                    .map(|line| {
+                        (
+                            format!("{line}{}", constants_str::NEWLINE),
+                            format!(
+                                "{}{}",
+                                line.replacen(
+                                    begin_prefix.as_str(),
+                                    end_prefix.as_str(),
+                                    constants_usize::ONE
+                                ),
+                                constants_str::NEWLINE
+                            ),
+                        )
                     })
-                })
+                    .collect::<Vec<_>>();
+                assert!(!markers.is_empty());
+                markers.iter().try_for_each(|(begin, end)| {
+                    let (prefix, generated_suffix) = text
+                        .as_ref()
+                        .split_once(begin.as_str())
+                        .ok_or(crate::scaffold_error::ScaffoldError::Marker)?;
+                    let (_generated, suffix) = generated_suffix
+                        .split_once(end.as_str())
+                        .ok_or(crate::scaffold_error::ScaffoldError::Marker)?;
+                    let stale = format!("{prefix}{begin}{}{end}{suffix}", constants_str::X);
+                    write(path.as_path(), stale.as_str());
+                    assert!(matches!(
+                        synchronize(false),
+                        Err(crate::scaffold_error::ScaffoldError::GeneratedDeployment)
+                    ));
+                    assert_contents(path.as_path(), stale.as_str());
+                    synchronize(true)?;
+                    synchronize(false)?;
+                    assert_contents(path.as_path(), text.as_ref());
+                    assert!([begin.as_str(), end.as_str()].into_iter().all(|marker| {
+                        [false, true].into_iter().all(|duplicate| {
+                            let replacement = if duplicate {
+                                format!("{marker}{marker}")
+                            } else {
+                                constants_str::X.to_owned()
+                            };
+                            let malformed = text.as_ref().replace(marker, replacement.as_str());
+                            write(path.as_path(), malformed.as_str());
+                            let rejected = [false, true].into_iter().all(|write_enabled| {
+                                let result = synchronize(write_enabled);
+                                assert_contents(path.as_path(), malformed.as_str());
+                                matches!(result, Err(crate::scaffold_error::ScaffoldError::Marker))
+                            });
+                            write(path.as_path(), text.as_ref());
+                            rejected
+                        })
+                    }));
+                    Ok::<(), crate::scaffold_error::ScaffoldError>(())
+                })?;
+                std::fs::remove_file(path.as_path())?;
+                assert!([false, true].into_iter().all(|write_enabled| {
+                    let result = synchronize(write_enabled);
+                    assert!(!path.exists());
+                    originals
+                        .iter()
+                        .filter(|(other_path, _text)| other_path != path)
+                        .fold((), |(), (other_path, original)| {
+                            assert_scaffold_file_content(other_path.as_path(), original.as_ref());
+                        });
+                    matches!(result, Err(crate::scaffold_error::ScaffoldError::Read(
+                        server_runtime_http::bounded_read_error::BoundedReadError::Io { source },
+                    )) if source.kind() == std::io::ErrorKind::NotFound)
+                }));
+                write(path.as_path(), text.as_ref());
+                synchronize(false)?;
+                Ok::<_, crate::scaffold_error::ScaffoldError>(count.saturating_add(markers.len()))
+            })?;
+        assert_eq!(
+            block_count,
+            entries
+                .get_inner()
+                .as_slice()
+                .len()
+                .saturating_mul(10usize)
+                .saturating_add(2usize)
         );
         let fixture_catalog_path = root.join(constants_str::VALUE_C1590960);
         std::fs::remove_file(fixture_catalog_path.as_path())?;
@@ -616,4 +690,1116 @@ fn test_deployment_sync_repairs_stale_projection_and_preserves_all_other_files()
         Ok(())
     })();
     assert!(matches!(result, Ok(())));
+}
+
+#[test]
+fn test_project_name_validation_rejects_each_lexical_violation() {
+    [
+        String::from(constants_str::EMPTY),
+        String::from(constants_str::SPACE),
+        constants_str::X.to_ascii_uppercase(),
+        format!("{}{}", constants_str::UNDERSCORE, constants_str::X),
+        format!("{}{}", constants_str::X, constants_str::UNDERSCORE),
+        format!(
+            "{}{}{}",
+            constants_str::X,
+            constants_str::WORKSPACE_SCAFFOLD_DOUBLE_UNDERSCORE,
+            constants_str::X
+        ),
+        format!(
+            "{}{}{}",
+            constants_str::X,
+            constants_str::HYPHEN,
+            constants_str::X
+        ),
+        format!("{}{}", constants_str::X, char::from(233u8)),
+    ]
+    .into_iter()
+    .fold((), |(), text| {
+        assert!(matches!(
+            crate::naming_validate_project_name::naming_validate_project_name(
+                crate::project_name_ref::ProjectNameRef::from(text.as_str()),
+            ),
+            Err(crate::scaffold_error::ScaffoldError::ProjectName)
+        ));
+    });
+}
+
+#[test]
+fn test_project_name_validation_accepts_exact_text_limit_and_digit_suffix() {
+    [
+        constants_str::X.repeat(constants_usize::VALUE_16_777_216),
+        format!(
+            "{}{}{}",
+            constants_str::X,
+            constants_str::UNDERSCORE,
+            constants_usize::ONE
+        ),
+    ]
+    .into_iter()
+    .fold((), |(), text| {
+        assert!(matches!(
+            crate::naming_validate_project_name::naming_validate_project_name(
+                crate::project_name_ref::ProjectNameRef::from(text.as_str()),
+            ),
+            Ok(())
+        ));
+    });
+}
+
+#[test]
+fn test_repository_url_validation_preserves_delimiter_and_scheme_rules() {
+    [char::from(63u8), char::from(35u8)]
+        .into_iter()
+        .fold((), |(), delimiter| {
+            let hostless = format!(
+                "{}{delimiter}{}",
+                constants_str::HTTPS_SCHEME_PREFIX,
+                constants_str::X
+            );
+            let with_host = format!(
+                "{}{}{delimiter}{}",
+                constants_str::HTTPS_SCHEME_PREFIX,
+                constants_str::X,
+                constants_str::X
+            );
+            assert!(matches!(
+                crate::naming_validate_repository_url::naming_validate_repository_url(
+                    crate::repository_url_ref::RepositoryUrlRef::from(hostless.as_str()),
+                ),
+                Err(crate::scaffold_error::ScaffoldError::RepositoryUrl)
+            ));
+            assert!(matches!(
+                crate::naming_validate_repository_url::naming_validate_repository_url(
+                    crate::repository_url_ref::RepositoryUrlRef::from(with_host.as_str()),
+                ),
+                Ok(())
+            ));
+        });
+    [
+        format!(
+            "{}{}{}",
+            constants_str::HTTPS_SCHEME_PREFIX,
+            constants_str::X,
+            constants_str::SLASH
+        ),
+        format!(
+            "{}{}",
+            constants_str::HTTPS_SCHEME_PREFIX.to_ascii_uppercase(),
+            constants_str::X
+        ),
+    ]
+    .into_iter()
+    .fold((), |(), text| {
+        assert!(matches!(
+            crate::naming_validate_repository_url::naming_validate_repository_url(
+                crate::repository_url_ref::RepositoryUrlRef::from(text.as_str()),
+            ),
+            Err(crate::scaffold_error::ScaffoldError::RepositoryUrl)
+        ));
+    });
+    let shallow_host = format!(
+        "{}{}",
+        constants_str::HTTPS_SCHEME_PREFIX,
+        constants_str::SPACE
+    );
+    assert!(matches!(
+        crate::naming_validate_repository_url::naming_validate_repository_url(
+            crate::repository_url_ref::RepositoryUrlRef::from(shallow_host.as_str()),
+        ),
+        Ok(())
+    ));
+}
+
+#[test]
+fn test_template_skip_matches_all_registered_directory_components_exactly() {
+    [
+        constants_str::GIT,
+        constants_str::TARGET,
+        constants_str::WORKSPACE_SCAFFOLD_NODE_MODULES,
+    ]
+    .into_iter()
+    .fold((), |(), directory| {
+        let skipped = std::path::PathBuf::from(constants_str::X)
+            .join(directory)
+            .join(constants_str::JSON);
+        assert!(bool::from(
+            crate::template_fs_should_skip::template_fs_should_skip(
+                crate::scaffold_path_ref::ScaffoldPathRef::from(skipped.as_path()),
+            )
+        ));
+        [
+            format!("{}{directory}", constants_str::X),
+            format!("{directory}{}", constants_str::X),
+        ]
+        .into_iter()
+        .fold((), |(), near_name| {
+            let retained = std::path::PathBuf::from(constants_str::X).join(near_name);
+            assert!(!bool::from(
+                crate::template_fs_should_skip::template_fs_should_skip(
+                    crate::scaffold_path_ref::ScaffoldPathRef::from(retained.as_path()),
+                )
+            ));
+        });
+    });
+}
+
+#[test]
+fn test_template_replacements_choose_earliest_position_then_catalog_order() {
+    let path = std::env::temp_dir().join(stringify!(
+        test_template_replacements_choose_earliest_position_then_catalog_order
+    ));
+    let overlapping = format!("{}{}", constants_str::X, constants_str::X);
+    [
+        (
+            overlapping.clone(),
+            vec![
+                (constants_str::X, constants_str::JSON.to_owned()),
+                (overlapping.as_str(), constants_str::TRUE.to_owned()),
+            ],
+            format!("{}{}", constants_str::JSON, constants_str::JSON),
+        ),
+        (
+            overlapping.clone(),
+            vec![
+                (overlapping.as_str(), constants_str::TRUE.to_owned()),
+                (constants_str::X, constants_str::JSON.to_owned()),
+            ],
+            constants_str::TRUE.to_owned(),
+        ),
+        (
+            format!("{}{}", constants_str::X, constants_str::JSON),
+            vec![
+                (constants_str::JSON, constants_str::TRUE.to_owned()),
+                (constants_str::X, constants_str::SPACE.to_owned()),
+            ],
+            format!("{}{}", constants_str::SPACE, constants_str::TRUE),
+        ),
+        (
+            overlapping.clone(),
+            vec![(constants_str::X, constants_str::EMPTY.to_owned())],
+            constants_str::EMPTY.to_owned(),
+        ),
+    ]
+    .into_iter()
+    .fold((), |(), (source, replacements, expected)| {
+        write(&path, &source);
+        assert!(matches!(
+            crate::template_fs_replace_file::template_fs_replace_file(
+                crate::scaffold_path_ref::ScaffoldPathRef::from(path.as_path()),
+                crate::replacements_ref::ReplacementsRef::from(replacements.as_slice()),
+            ),
+            Ok(())
+        ));
+        assert_scaffold_file_content(&path, &expected);
+    });
+    assert!(matches!(std::fs::remove_file(path), Ok(())));
+}
+
+#[test]
+fn test_template_replacement_preserves_binary_bytes_before_pattern_validation() {
+    let path = std::env::temp_dir().join(stringify!(
+        test_template_replacement_preserves_binary_bytes_before_pattern_validation
+    ));
+    let source = [0xffu8, 120u8, 0u8, 0xfeu8];
+    assert!(matches!(std::fs::write(&path, source), Ok(())));
+    [
+        Vec::new(),
+        vec![(constants_str::X, constants_str::JSON.to_owned())],
+        vec![(constants_str::EMPTY, constants_str::JSON.to_owned())],
+    ]
+    .into_iter()
+    .fold((), |(), replacements| {
+        assert!(matches!(
+            crate::template_fs_replace_file::template_fs_replace_file(
+                crate::scaffold_path_ref::ScaffoldPathRef::from(path.as_path()),
+                crate::replacements_ref::ReplacementsRef::from(replacements.as_slice()),
+            ),
+            Ok(())
+        ));
+        assert!(std::fs::read(&path).is_ok_and(|content| content == source));
+    });
+    assert!(matches!(std::fs::remove_file(path), Ok(())));
+}
+
+#[test]
+fn test_marker_insertion_changes_only_first_unmatched_occurrence() {
+    let path = std::env::temp_dir().join(stringify!(
+        test_marker_insertion_changes_only_first_unmatched_occurrence
+    ));
+    let source = format!(
+        "{}{}{}",
+        constants_str::X,
+        constants_str::SPACE,
+        constants_str::X
+    );
+    write(&path, &source);
+    assert!(matches!(
+        crate::template_fs_insert_once::template_fs_insert_once(
+            crate::scaffold_path_ref::ScaffoldPathRef::from(path.as_path()),
+            crate::scaffold_text_ref::ScaffoldTextRef::from(constants_str::X),
+            crate::scaffold_text_ref::ScaffoldTextRef::from(constants_str::JSON),
+        ),
+        Ok(())
+    ));
+    assert_scaffold_file_content(
+        &path,
+        &format!(
+            "{}{}{}",
+            constants_str::JSON,
+            constants_str::SPACE,
+            constants_str::X
+        ),
+    );
+    assert!(matches!(std::fs::remove_file(path), Ok(())));
+}
+
+#[test]
+fn test_marker_insertion_errors_preserve_original_file() {
+    let path = std::env::temp_dir().join(stringify!(
+        test_marker_insertion_errors_preserve_original_file
+    ));
+    [
+        (constants_str::EMPTY, constants_str::JSON),
+        (constants_str::X, constants_str::EMPTY),
+        (constants_str::JSON, constants_str::TRUE),
+    ]
+    .into_iter()
+    .fold((), |(), (marker, replacement)| {
+        write(&path, constants_str::X);
+        assert!(matches!(
+            crate::template_fs_insert_once::template_fs_insert_once(
+                crate::scaffold_path_ref::ScaffoldPathRef::from(path.as_path()),
+                crate::scaffold_text_ref::ScaffoldTextRef::from(marker),
+                crate::scaffold_text_ref::ScaffoldTextRef::from(replacement),
+            ),
+            Err(crate::scaffold_error::ScaffoldError::Marker)
+        ));
+        assert_scaffold_file_content(&path, constants_str::X);
+    });
+    assert!(matches!(std::fs::remove_file(path), Ok(())));
+}
+
+#[test]
+fn test_generated_marker_errors_preserve_file_in_check_and_write_modes() {
+    let path = std::env::temp_dir().join(stringify!(
+        test_generated_marker_errors_preserve_file_in_check_and_write_modes
+    ));
+    [
+        (
+            constants_str::EMPTY,
+            constants_str::TRUE,
+            format!("{}{}", constants_str::JSON, constants_str::TRUE),
+        ),
+        (
+            constants_str::JSON,
+            constants_str::EMPTY,
+            format!("{}{}", constants_str::JSON, constants_str::TRUE),
+        ),
+        (
+            constants_str::JSON,
+            constants_str::TRUE,
+            constants_str::X.to_owned(),
+        ),
+        (
+            constants_str::JSON,
+            constants_str::TRUE,
+            format!("{}{}", constants_str::TRUE, constants_str::JSON),
+        ),
+        (
+            constants_str::JSON,
+            constants_str::TRUE,
+            format!(
+                "{}{}{}",
+                constants_str::JSON,
+                constants_str::TRUE,
+                constants_str::TRUE
+            ),
+        ),
+    ]
+    .into_iter()
+    .fold((), |(), (begin, end, source)| {
+        [false, true].into_iter().fold((), |(), should_write| {
+            write(&path, &source);
+            assert!(matches!(
+                crate::synchronize_generated_file::synchronize_generated_file(
+                    crate::scaffold_path_ref::ScaffoldPathRef::from(path.as_path()),
+                    crate::scaffold_text_ref::ScaffoldTextRef::from(begin),
+                    crate::scaffold_text_ref::ScaffoldTextRef::from(end),
+                    crate::scaffold_text_ref::ScaffoldTextRef::from(constants_str::SPACE),
+                    crate::should_write::ShouldWrite::from(should_write),
+                ),
+                Err(crate::scaffold_error::ScaffoldError::Marker)
+            ));
+            assert_scaffold_file_content(&path, &source);
+        });
+    });
+    assert!(matches!(std::fs::remove_file(path), Ok(())));
+}
+
+#[test]
+fn test_scaffold_file_reader_enforces_exact_byte_limit_and_utf8() {
+    let path = std::env::temp_dir().join(stringify!(
+        test_scaffold_file_reader_enforces_exact_byte_limit_and_utf8
+    ));
+    let maximum = constants_usize::VALUE_16_777_216;
+    [constants_usize::ZERO, maximum, maximum.saturating_add(constants_usize::ONE)]
+        .into_iter()
+        .fold((), |(), length| {
+            let source = constants_str::X.repeat(length);
+            write(&path, &source);
+            let result = crate::template_fs_read_bounded_text::template_fs_read_bounded_text(
+                crate::scaffold_path_ref::ScaffoldPathRef::from(path.as_path()),
+            );
+            if length <= maximum {
+                assert!(result.is_ok_and(|text| text.as_ref() == source));
+            } else {
+                assert!(matches!(result,
+                    Err(server_runtime_http::bounded_read_error::BoundedReadError::ExceedsMaximum { maximum_bytes })
+                        if maximum_bytes == server_runtime_http::bounded_read_maximum_bytes::BoundedReadMaximumBytes::from(maximum)
+                ));
+            }
+        });
+    assert!(matches!(std::fs::write(&path, [0xffu8]), Ok(())));
+    assert!(matches!(
+        crate::template_fs_read_bounded_text::template_fs_read_bounded_text(
+            crate::scaffold_path_ref::ScaffoldPathRef::from(path.as_path()),
+        ),
+        Err(server_runtime_http::bounded_read_error::BoundedReadError::Utf8 { .. })
+    ));
+    assert!(std::fs::read(&path).is_ok_and(|content| content == [0xffu8]));
+    assert!(matches!(std::fs::remove_file(path), Ok(())));
+}
+
+#[test]
+fn test_catalog_requires_each_field_in_intermediate_and_final_service_blocks() {
+    let fixture = constants_str::VALUE_D4291B4A;
+    [
+        constants_str::CRATE,
+        constants_str::VALUE_DB669AF6,
+        constants_str::VALUE_739ED940,
+        constants_str::VALUE_254DB0FB,
+        constants_str::VALUE_6105D6CC,
+        constants_str::VALUE_94ABCB2D,
+        constants_str::VALUE_F8D397A3,
+        constants_str::VALUE_20E49707,
+        constants_str::RELEASE,
+    ]
+    .into_iter()
+    .fold((), |(), key| {
+        [false, true].into_iter().fold((), |(), final_block| {
+            let matches_key = |line: &&str| {
+                line.split_once('=')
+                    .is_some_and(|(name, _value)| name.trim() == key)
+            };
+            let omitted = if final_block {
+                fixture.lines().rfind(matches_key)
+            } else {
+                fixture.lines().find(matches_key)
+            };
+            assert!(omitted.is_some());
+            let Some(original_line) = omitted else {
+                return;
+            };
+            let catalog =
+                fixture.replacen(original_line, constants_str::EMPTY, constants_usize::ONE);
+            assert!(matches!(
+                crate::service_catalog_parse::service_catalog_parse(
+                    crate::scaffold_text_ref::ScaffoldTextRef::from(catalog.as_str()),
+                ),
+                Err(crate::scaffold_error::ScaffoldError::Catalog)
+            ));
+        });
+    });
+}
+
+#[test]
+fn test_catalog_port_bounds_preserve_native_values_and_reject_overflow() {
+    [1u16, u16::MAX].into_iter().fold((), |(), port| {
+        let replacement = format!(
+            "{} = {port}{}",
+            constants_str::VALUE_F8D397A3,
+            constants_str::NEWLINE
+        );
+        let catalog = constants_str::VALUE_D4291B4A.replacen(
+            constants_str::WORKSPACE_SCAFFOLD_PORT_8080_LINE,
+            &replacement,
+            constants_usize::ONE,
+        );
+        assert!(
+            crate::service_catalog_parse::service_catalog_parse(
+                crate::scaffold_text_ref::ScaffoldTextRef::from(catalog.as_str()),
+            )
+            .is_ok_and(|entries| {
+                entries
+                    .get_inner()
+                    .as_slice()
+                    .first()
+                    .is_some_and(|entry| entry.get_port().get() == port)
+            })
+        );
+    });
+    let overflow = format!(
+        "{} = {}{}{}",
+        constants_str::VALUE_F8D397A3,
+        u16::MAX,
+        constants_usize::ZERO,
+        constants_str::NEWLINE
+    );
+    let catalog = constants_str::VALUE_D4291B4A.replacen(
+        constants_str::WORKSPACE_SCAFFOLD_PORT_8080_LINE,
+        &overflow,
+        constants_usize::ONE,
+    );
+    assert!(matches!(
+        crate::service_catalog_parse::service_catalog_parse(
+            crate::scaffold_text_ref::ScaffoldTextRef::from(catalog.as_str()),
+        ),
+        Err(crate::scaffold_error::ScaffoldError::Catalog)
+    ));
+}
+
+#[test]
+fn test_catalog_ignores_comments_and_whitespace_and_preserves_release_flags() {
+    let comment = format!(
+        "{}{}{}{}",
+        constants_str::SPACE,
+        char::from(35u8),
+        constants_str::X,
+        constants_str::NEWLINE
+    );
+    assert!(matches!(
+        crate::service_catalog_parse::service_catalog_parse(
+            crate::scaffold_text_ref::ScaffoldTextRef::from(comment.as_str()),
+        ),
+        Err(crate::scaffold_error::ScaffoldError::Catalog)
+    ));
+    let catalog = constants_str::VALUE_D4291B4A
+        .lines()
+        .fold(comment, |mut output, line| {
+            output.push_str(constants_str::SPACE);
+            output.push_str(line);
+            output.push_str(constants_str::SPACE);
+            output.push_str(constants_str::NEWLINE);
+            output.push_str(constants_str::NEWLINE);
+            output
+        });
+    assert!(
+        crate::service_catalog_parse::service_catalog_parse(
+            crate::scaffold_text_ref::ScaffoldTextRef::from(catalog.as_str()),
+        )
+        .is_ok_and(|entries| {
+            let values = entries.get_inner().as_slice();
+            values.len() == 2usize
+                && values
+                    .first()
+                    .is_some_and(|entry| bool::from(*entry.get_release()))
+                && values
+                    .last()
+                    .is_some_and(|entry| !bool::from(*entry.get_release()))
+        })
+    );
+}
+
+#[test]
+fn test_catalog_string_decodes_all_short_and_unicode_escapes_exactly() {
+    let decode = |encoded: &str| {
+        crate::service_catalog_string_value::service_catalog_string_value(
+            crate::scaffold_text_ref::ScaffoldTextRef::from(encoded),
+            crate::scaffold_text_ref::ScaffoldTextRef::from(constants_str::CRATE),
+        )
+    };
+    [
+        (34u8, 34u8),
+        (92u8, 92u8),
+        (98u8, 8u8),
+        (116u8, 9u8),
+        (110u8, 10u8),
+        (102u8, 12u8),
+        (114u8, 13u8),
+    ]
+    .into_iter()
+    .fold((), |(), (escape, expected)| {
+        let encoded = format!("{} = \"\\{}\"", constants_str::CRATE, char::from(escape));
+        assert!(decode(&encoded).is_ok_and(|value| {
+            value.is_some_and(|text| text.as_ref() == char::from(expected).to_string())
+        }));
+    });
+    [
+        (
+            format!("{} = \"\\u{:04X}\"", constants_str::CRATE, 233u32),
+            char::from(233u8).to_string(),
+        ),
+        (
+            format!("{} = \"\\U{:08X}\"", constants_str::CRATE, 0x1f600u32),
+            '\u{1f600}'.to_string(),
+        ),
+        (
+            format!("{} = \"{}\"", constants_str::CRATE, char::from(9u8)),
+            char::from(9u8).to_string(),
+        ),
+        (
+            format!("{} = \"\"", constants_str::CRATE),
+            constants_str::EMPTY.to_owned(),
+        ),
+    ]
+    .into_iter()
+    .fold((), |(), (encoded, expected)| {
+        assert!(
+            decode(&encoded)
+                .is_ok_and(|value| { value.is_some_and(|text| text.as_ref() == expected) })
+        );
+    });
+}
+
+#[test]
+fn test_catalog_string_rejects_malformed_escapes_quotes_and_controls() {
+    [
+        format!("{} = \"\\\"", constants_str::CRATE),
+        format!(
+            "{} = \"\\u{}\"",
+            constants_str::CRATE,
+            constants_str::X.repeat(4usize)
+        ),
+        format!("{} = \"\\u{:04X}\"", constants_str::CRATE, 0xd800u32),
+        format!("{} = \"\\U{:08X}\"", constants_str::CRATE, 0x0011_0000u32),
+        format!("{} = \"\\u{}\"", constants_str::CRATE, constants_usize::ONE),
+        format!("{} = \"\\U{}\"", constants_str::CRATE, constants_usize::ONE),
+        format!(
+            "{} = \"{}\"{}\"",
+            constants_str::CRATE,
+            constants_str::X,
+            constants_str::X
+        ),
+        format!("{} = \"{}\"", constants_str::CRATE, char::from(10u8)),
+        format!("{} = {}", constants_str::CRATE, constants_str::X),
+        format!("{} = \"{}", constants_str::CRATE, constants_str::X),
+    ]
+    .into_iter()
+    .fold((), |(), encoded| {
+        assert!(matches!(
+            crate::service_catalog_string_value::service_catalog_string_value(
+                crate::scaffold_text_ref::ScaffoldTextRef::from(encoded.as_str()),
+                crate::scaffold_text_ref::ScaffoldTextRef::from(constants_str::CRATE),
+            ),
+            Err(crate::scaffold_error::ScaffoldError::Catalog)
+        ));
+    });
+}
+
+#[test]
+fn test_catalog_string_nonmatching_keys_and_missing_assignments_return_none() {
+    [
+        constants_str::JSON.to_owned(),
+        constants_str::CRATE.to_owned(),
+        format!(
+            "{}{} = \"{}\"",
+            constants_str::CRATE,
+            constants_str::X,
+            constants_str::X
+        ),
+    ]
+    .into_iter()
+    .fold((), |(), encoded| {
+        assert!(
+            crate::service_catalog_string_value::service_catalog_string_value(
+                crate::scaffold_text_ref::ScaffoldTextRef::from(encoded.as_str()),
+                crate::scaffold_text_ref::ScaffoldTextRef::from(constants_str::CRATE),
+            )
+            .is_ok_and(|value| value.is_none())
+        );
+    });
+}
+
+#[test]
+fn test_release_renderer_returns_empty_for_empty_and_disabled_catalogs() {
+    let empty =
+        crate::service_catalog_render_release_entries::service_catalog_render_release_entries(
+            crate::service_catalog_entries_ref::ServiceCatalogEntriesRef::from(&[][..]),
+        );
+    assert_eq!(empty.as_ref(), constants_str::EMPTY);
+    let catalog = constants_str::VALUE_D4291B4A.replace(
+        &format!("{} = {}", constants_str::RELEASE, constants_str::TRUE),
+        &format!("{} = {}", constants_str::RELEASE, constants_str::FALSE),
+    );
+    let parsed = crate::service_catalog_parse::service_catalog_parse(
+        crate::scaffold_text_ref::ScaffoldTextRef::from(catalog.as_str()),
+    );
+    assert!(parsed.is_ok());
+    let Ok(entries) = parsed else {
+        return;
+    };
+    assert_eq!(entries.get_inner().as_slice().len(), 2usize);
+    let rendered =
+        crate::service_catalog_render_release_entries::service_catalog_render_release_entries(
+            crate::service_catalog_entries_ref::ServiceCatalogEntriesRef::from(
+                entries.get_inner().as_slice(),
+            ),
+        );
+    assert_eq!(rendered.as_ref(), constants_str::EMPTY);
+}
+
+#[test]
+fn test_release_renderer_preserves_multiple_enabled_entry_order() {
+    let catalog = constants_str::VALUE_D4291B4A.replace(
+        &format!("{} = {}", constants_str::RELEASE, constants_str::FALSE),
+        &format!("{} = {}", constants_str::RELEASE, constants_str::TRUE),
+    );
+    let parsed = crate::service_catalog_parse::service_catalog_parse(
+        crate::scaffold_text_ref::ScaffoldTextRef::from(catalog.as_str()),
+    );
+    assert!(parsed.is_ok());
+    let Ok(entries) = parsed else {
+        return;
+    };
+    let values = entries.get_inner().as_slice();
+    assert_eq!(values.len(), 2usize);
+    let Some(last) = values.last() else {
+        return;
+    };
+    let expected = format!(
+        "{}{}{}{}{}{}",
+        constants_str::VALUE_CF9A8E24,
+        constants_str::WORKSPACE_SCAFFOLD_MATRIX_NAME_INDENT,
+        last.get_image().as_ref(),
+        constants_str::WORKSPACE_SCAFFOLD_MATRIX_DOCKERFILE_INDENT,
+        last.get_dockerfile().as_ref(),
+        constants_str::NEWLINE
+    );
+    let rendered =
+        crate::service_catalog_render_release_entries::service_catalog_render_release_entries(
+            crate::service_catalog_entries_ref::ServiceCatalogEntriesRef::from(values),
+        );
+    assert_eq!(rendered.as_ref(), expected.as_str());
+    assert!(values.iter().all(|entry| bool::from(*entry.get_release())));
+}
+
+#[test]
+fn test_release_renderer_preserves_error_text_fallback_for_oversized_output() {
+    let maximum = constants_usize::VALUE_16_777_216;
+    let original = constants_str::VALUE_D4291B4A.lines().find(|line| {
+        line.split_once('=')
+            .is_some_and(|(key, _value)| key.trim() == constants_str::VALUE_6105D6CC)
+    });
+    assert!(original.is_some());
+    let Some(image_line) = original else {
+        return;
+    };
+    let image = constants_str::X.repeat(maximum);
+    let catalog = constants_str::VALUE_D4291B4A.replacen(
+        image_line,
+        &format!("{} = \"{image}\"", constants_str::VALUE_6105D6CC),
+        constants_usize::ONE,
+    );
+    let parsed = crate::service_catalog_parse::service_catalog_parse(
+        crate::scaffold_text_ref::ScaffoldTextRef::from(catalog.as_str()),
+    );
+    assert!(parsed.is_ok());
+    let Ok(entries) = parsed else {
+        return;
+    };
+    let output_length = maximum
+        .saturating_add(constants_str::WORKSPACE_SCAFFOLD_MATRIX_NAME_INDENT.len())
+        .saturating_add(constants_str::WORKSPACE_SCAFFOLD_MATRIX_DOCKERFILE_INDENT.len())
+        .saturating_add(constants_str::VALUE_DD2C0EB6.len())
+        .saturating_add(constants_str::NEWLINE.len());
+    let rejected =
+        crate::scaffold_text::ScaffoldText::try_from(constants_str::X.repeat(output_length));
+    assert!(rejected.is_err());
+    let Err(length_error) = rejected else {
+        return;
+    };
+    let expected = crate::scaffold_text::ScaffoldText::from(length_error);
+    let rendered =
+        crate::service_catalog_render_release_entries::service_catalog_render_release_entries(
+            crate::service_catalog_entries_ref::ServiceCatalogEntriesRef::from(
+                entries.get_inner().as_slice(),
+            ),
+        );
+    assert_eq!(rendered.as_ref(), expected.as_ref());
+    assert!(!rendered.as_ref().is_empty());
+    assert!(rendered.as_ref().len() < maximum);
+}
+
+#[test]
+fn test_service_text_wrappers_preserve_empty_unicode_and_exact_byte_bounds() {
+    let maximum = constants_usize::VALUE_16_777_216;
+    let unicode = char::from(233u8).to_string();
+    [
+        String::new(),
+        format!(
+            "{}{}{}{}",
+            constants_str::SPACE,
+            unicode,
+            char::from(0u8),
+            constants_str::SPACE
+        ),
+        constants_str::X.repeat(maximum),
+        unicode.repeat(maximum.checked_div(unicode.len()).unwrap_or_default()),
+    ]
+    .into_iter()
+    .fold((), |(), text| {
+        assert!(
+            [
+                crate::service_crate::ServiceCrate::try_from(text.clone())
+                    .is_ok_and(|value| value.as_ref() == text.as_str()),
+                crate::service_compose_name::ServiceComposeName::try_from(text.clone())
+                    .is_ok_and(|value| value.as_ref() == text.as_str()),
+                crate::service_compose_file::ServiceComposeFile::try_from(text.clone())
+                    .is_ok_and(|value| value.as_ref() == text.as_str()),
+                crate::service_dockerfile::ServiceDockerfile::try_from(text.clone())
+                    .is_ok_and(|value| value.as_ref() == text.as_str()),
+                crate::service_image::ServiceImage::try_from(text.clone())
+                    .is_ok_and(|value| value.as_ref() == text.as_str()),
+                crate::service_kubernetes_manifest::ServiceKubernetesManifest::try_from(
+                    text.clone()
+                )
+                .is_ok_and(|value| value.as_ref() == text.as_str()),
+                crate::service_socket_env::ServiceSocketEnv::try_from(text.clone())
+                    .is_ok_and(|value| value.as_ref() == text.as_str()),
+            ]
+            .into_iter()
+            .all(|preserved| preserved)
+        );
+    });
+}
+
+#[test]
+fn test_service_text_wrappers_reject_oversized_ascii_and_unicode_with_exact_lengths() {
+    let maximum = constants_usize::VALUE_16_777_216;
+    let unicode = char::from(233u8).to_string();
+    [
+        constants_str::X.repeat(maximum.saturating_add(constants_usize::ONE)),
+        format!("{}{}", unicode.repeat(maximum.checked_div(unicode.len()).unwrap_or_default()), unicode),
+    ]
+    .into_iter()
+    .fold((), |(), text| {
+        assert!([
+            matches!(
+                crate::service_crate::ServiceCrate::try_from(text.clone()),
+                Err(crate::service_crate::ServiceCrateTryFromStringError::TooLong { len, max })
+                    if len == text.len() && max == maximum
+            ),
+            matches!(
+                crate::service_compose_name::ServiceComposeName::try_from(text.clone()),
+                Err(crate::service_compose_name::ServiceComposeNameTryFromStringError::TooLong { len, max })
+                    if len == text.len() && max == maximum
+            ),
+            matches!(
+                crate::service_compose_file::ServiceComposeFile::try_from(text.clone()),
+                Err(crate::service_compose_file::ServiceComposeFileTryFromStringError::TooLong { len, max })
+                    if len == text.len() && max == maximum
+            ),
+            matches!(
+                crate::service_dockerfile::ServiceDockerfile::try_from(text.clone()),
+                Err(crate::service_dockerfile::ServiceDockerfileTryFromStringError::TooLong { len, max })
+                    if len == text.len() && max == maximum
+            ),
+            matches!(
+                crate::service_image::ServiceImage::try_from(text.clone()),
+                Err(crate::service_image::ServiceImageTryFromStringError::TooLong { len, max })
+                    if len == text.len() && max == maximum
+            ),
+            matches!(
+                crate::service_kubernetes_manifest::ServiceKubernetesManifest::try_from(text.clone()),
+                Err(crate::service_kubernetes_manifest::ServiceKubernetesManifestTryFromStringError::TooLong { len, max })
+                    if len == text.len() && max == maximum
+            ),
+            matches!(
+                crate::service_socket_env::ServiceSocketEnv::try_from(text.clone()),
+                Err(crate::service_socket_env::ServiceSocketEnvTryFromStringError::TooLong { len, max })
+                    if len == text.len() && max == maximum
+            ),
+        ].into_iter().all(|rejected| rejected));
+    });
+}
+
+#[cfg(unix)]
+#[test]
+fn test_template_copy_rejects_regular_and_dangling_source_root_symlinks_before_writes() {
+    let root = std::env::temp_dir().join(stringify!(
+        test_template_copy_rejects_regular_and_dangling_source_root_symlinks_before_writes
+    ));
+    let directory = root.join(constants_str::X);
+    let source_file = directory.join(constants_str::CARGO_TOML);
+    write(source_file.as_path(), constants_str::X);
+    let file = root.join(constants_str::TRUE);
+    write(file.as_path(), constants_str::X);
+    let missing = root.join(constants_str::FALSE);
+    let link = root.join(constants_str::ENV_EXAMPLE);
+    let absent_parent = root.join(constants_str::TARGET);
+    let absent_destination = absent_parent.join(constants_str::X);
+    let existing_destination = root.join(constants_str::JSON);
+    let existing_file = existing_destination.join(constants_str::CARGO_TOML);
+    write(existing_file.as_path(), constants_str::JSON);
+    let replacements = [(constants_str::X, constants_str::TRUE.to_owned())];
+    [directory.as_path(), file.as_path(), missing.as_path()]
+        .into_iter()
+        .fold((), |(), target| {
+            assert!(matches!(
+                std::os::unix::fs::symlink(target, link.as_path()),
+                Ok(())
+            ));
+            [absent_destination.as_path(), existing_destination.as_path()]
+                .into_iter()
+                .fold((), |(), destination| {
+                    assert!(matches!(
+                        crate::template_fs_copy_template_tree::template_fs_copy_template_tree(
+                            crate::scaffold_path_ref::ScaffoldPathRef::from(link.as_path()),
+                            crate::scaffold_path_ref::ScaffoldPathRef::from(destination),
+                            crate::replacements_ref::ReplacementsRef::from(replacements.as_slice()),
+                        ),
+                        Err(crate::scaffold_error::ScaffoldError::Catalog)
+                    ));
+                    assert!(!absent_parent.exists());
+                    assert_scaffold_file_content(existing_file.as_path(), constants_str::JSON);
+                    assert_scaffold_file_content(source_file.as_path(), constants_str::X);
+                    assert_scaffold_file_content(file.as_path(), constants_str::X);
+                    assert!(!missing.exists());
+                });
+            assert!(matches!(std::fs::remove_file(link.as_path()), Ok(())));
+        });
+    assert!(matches!(std::fs::remove_dir_all(root), Ok(())));
+}
+
+#[test]
+fn test_template_copy_io_failures_preserve_source_and_destination_creation_order() {
+    let root = std::env::temp_dir().join(stringify!(
+        test_template_copy_io_failures_preserve_source_and_destination_creation_order
+    ));
+    let directory = root.join(constants_str::X);
+    let source_file = directory.join(constants_str::CARGO_TOML);
+    write(source_file.as_path(), constants_str::X);
+    let missing = root.join(constants_str::FALSE);
+    let destination = root.join(constants_str::TARGET);
+    let blocked = root.join(constants_str::JSON);
+    write(blocked.as_path(), constants_str::JSON);
+    [
+        (missing.as_path(), destination.as_path()),
+        (source_file.as_path(), destination.as_path()),
+        (directory.as_path(), blocked.as_path()),
+    ]
+    .into_iter()
+    .enumerate()
+    .fold((), |(), (index, (source, output))| {
+        let result = crate::template_fs_copy_template_tree::template_fs_copy_template_tree(
+            crate::scaffold_path_ref::ScaffoldPathRef::from(source),
+            crate::scaffold_path_ref::ScaffoldPathRef::from(output),
+            crate::replacements_ref::ReplacementsRef::from(&[][..]),
+        );
+        assert!(matches!(
+            result,
+            Err(crate::scaffold_error::ScaffoldError::Io(_))
+        ));
+        if index == constants_usize::ZERO {
+            assert!(!destination.exists());
+        } else {
+            assert!(destination.is_dir());
+            assert!(
+                std::fs::read_dir(destination.as_path())
+                    .is_ok_and(|mut entries| entries.next().is_none())
+            );
+        }
+        assert_scaffold_file_content(source_file.as_path(), constants_str::X);
+        assert_scaffold_file_content(blocked.as_path(), constants_str::JSON);
+        assert!(!missing.exists());
+    });
+    assert!(matches!(std::fs::remove_dir_all(root), Ok(())));
+}
+
+#[test]
+fn test_template_copy_propagates_direct_and_nested_file_copy_errors_without_changes() {
+    let root = std::env::temp_dir().join(stringify!(
+        test_template_copy_propagates_direct_and_nested_file_copy_errors_without_changes
+    ));
+    [false, true].into_iter().fold((), |(), nested| {
+        let source = root.join(nested.to_string()).join(constants_str::X);
+        let destination = root.join(nested.to_string()).join(constants_str::TARGET);
+        let relative = if nested {
+            std::path::PathBuf::from(constants_str::JSON).join(constants_str::CARGO_TOML)
+        } else {
+            std::path::PathBuf::from(constants_str::CARGO_TOML)
+        };
+        let source_file = source.join(relative.as_path());
+        let blocked_directory = destination.join(relative.as_path());
+        let preserved_file = blocked_directory.join(constants_str::ENV_EXAMPLE);
+        write(source_file.as_path(), constants_str::X);
+        write(preserved_file.as_path(), constants_str::TRUE);
+        let replacements = [(constants_str::X, constants_str::JSON.to_owned())];
+        let result = crate::template_fs_copy_template_tree::template_fs_copy_template_tree(
+            crate::scaffold_path_ref::ScaffoldPathRef::from(source.as_path()),
+            crate::scaffold_path_ref::ScaffoldPathRef::from(destination.as_path()),
+            crate::replacements_ref::ReplacementsRef::from(replacements.as_slice()),
+        );
+        assert!(matches!(
+            result,
+            Err(crate::scaffold_error::ScaffoldError::Io(_))
+        ));
+        assert!(blocked_directory.is_dir());
+        assert_scaffold_file_content(source_file.as_path(), constants_str::X);
+        assert_scaffold_file_content(preserved_file.as_path(), constants_str::TRUE);
+    });
+    assert!(matches!(std::fs::remove_dir_all(root), Ok(())));
+}
+
+#[test]
+fn test_template_copy_propagates_direct_and_nested_replacement_errors_after_copy() {
+    let root = std::env::temp_dir().join(stringify!(
+        test_template_copy_propagates_direct_and_nested_replacement_errors_after_copy
+    ));
+    [false, true].into_iter().fold((), |(), nested| {
+        let source = root.join(nested.to_string()).join(constants_str::X);
+        let destination = root.join(nested.to_string()).join(constants_str::TARGET);
+        let relative = if nested {
+            std::path::PathBuf::from(constants_str::JSON).join(constants_str::CARGO_TOML)
+        } else {
+            std::path::PathBuf::from(constants_str::CARGO_TOML)
+        };
+        let source_file = source.join(relative.as_path());
+        let destination_file = destination.join(relative.as_path());
+        write(source_file.as_path(), constants_str::X);
+        write(destination_file.as_path(), constants_str::JSON);
+        let replacements = [(constants_str::EMPTY, constants_str::TRUE.to_owned())];
+        let result = crate::template_fs_copy_template_tree::template_fs_copy_template_tree(
+            crate::scaffold_path_ref::ScaffoldPathRef::from(source.as_path()),
+            crate::scaffold_path_ref::ScaffoldPathRef::from(destination.as_path()),
+            crate::replacements_ref::ReplacementsRef::from(replacements.as_slice()),
+        );
+        assert!(matches!(
+            result,
+            Err(crate::scaffold_error::ScaffoldError::Catalog)
+        ));
+        assert_scaffold_file_content(source_file.as_path(), constants_str::X);
+        assert_scaffold_file_content(destination_file.as_path(), constants_str::X);
+    });
+    assert!(matches!(std::fs::remove_dir_all(root), Ok(())));
+}
+
+#[test]
+fn test_template_copy_preserves_empty_directories_and_binary_bytes_without_pattern_validation() {
+    let root = std::env::temp_dir().join(stringify!(
+        test_template_copy_preserves_empty_directories_and_binary_bytes_without_pattern_validation
+    ));
+    let source = root.join(constants_str::X);
+    let destination = root.join(constants_str::TARGET);
+    let empty_source = source.join(constants_str::JSON);
+    let empty_destination = destination.join(constants_str::JSON);
+    assert!(matches!(
+        std::fs::create_dir_all(empty_source.as_path()),
+        Ok(())
+    ));
+    let replacements = [(constants_str::EMPTY, constants_str::TRUE.to_owned())];
+    let copy = || {
+        crate::template_fs_copy_template_tree::template_fs_copy_template_tree(
+            crate::scaffold_path_ref::ScaffoldPathRef::from(source.as_path()),
+            crate::scaffold_path_ref::ScaffoldPathRef::from(destination.as_path()),
+            crate::replacements_ref::ReplacementsRef::from(replacements.as_slice()),
+        )
+    };
+    assert!(matches!(copy(), Ok(())));
+    assert!(empty_destination.is_dir());
+    assert!(
+        std::fs::read_dir(empty_destination.as_path())
+            .is_ok_and(|mut entries| entries.next().is_none())
+    );
+    let source_file = source.join(constants_str::CARGO_TOML);
+    let destination_file = destination.join(constants_str::CARGO_TOML);
+    let bytes = [0xffu8, b'x', 0u8, 0xfeu8];
+    assert!(matches!(
+        std::fs::write(source_file.as_path(), bytes),
+        Ok(())
+    ));
+    assert!(matches!(copy(), Ok(())));
+    assert!(std::fs::read(source_file.as_path()).is_ok_and(|actual| actual.as_slice() == bytes));
+    assert!(
+        std::fs::read(destination_file.as_path()).is_ok_and(|actual| actual.as_slice() == bytes)
+    );
+    assert!(
+        std::fs::read_dir(empty_destination.as_path())
+            .is_ok_and(|mut entries| entries.next().is_none())
+    );
+    assert!(matches!(std::fs::remove_dir_all(root), Ok(())));
+}
+
+#[test]
+fn test_cargo_projection_maps_success_and_failed_exit_for_both_projection_modes() {
+    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join(constants_str::TARGET)
+        .join(stringify!(
+            test_cargo_projection_maps_success_and_failed_exit_for_both_projection_modes
+        ));
+    let sentinel = root.join(constants_str::ENV_EXAMPLE);
+    write(sentinel.as_path(), constants_str::JSON);
+    [
+        (crate::generated_projection::GeneratedProjection::CodeStyle, constants_str::UPDATE_CODE_STYLE_SNAPSHOTS),
+        (crate::generated_projection::GeneratedProjection::Config, constants_str::UPDATE_CONFIG_PROJECTIONS),
+    ]
+    .into_iter()
+    .fold((), |(), (projection, environment_name)| {
+        [false, true].into_iter().fold((), |(), write_enabled| {
+            let successful_arguments = [constants_str::VERSION];
+            let failed_arguments = [constants_str::VERSION, constants_str::VERSION];
+            [successful_arguments.as_slice(), failed_arguments.as_slice()]
+                .into_iter()
+                .enumerate()
+                .fold((), |(), (index, arguments)| {
+                    let result = crate::synchronize_cargo_owned_projection::synchronize_cargo_owned_projection(
+                        crate::scaffold_path_ref::ScaffoldPathRef::from(root.as_path()),
+                        crate::cargo_args_ref::CargoArgsRef::from(arguments),
+                        crate::update_env_name::UpdateEnvName::from(environment_name),
+                        projection,
+                        crate::should_write::ShouldWrite::from(write_enabled),
+                    );
+                    if index == constants_usize::ZERO {
+                        assert!(matches!(result, Ok(())));
+                    } else {
+                        assert!(matches!(
+                            (projection, result),
+                            (crate::generated_projection::GeneratedProjection::CodeStyle, Err(crate::scaffold_error::ScaffoldError::GeneratedCodeStyle))
+                                | (crate::generated_projection::GeneratedProjection::Config, Err(crate::scaffold_error::ScaffoldError::GeneratedConfig))
+                        ));
+                    }
+                    assert_scaffold_file_content(sentinel.as_path(), constants_str::JSON);
+                    assert!(std::fs::read_dir(root.as_path()).is_ok_and(|mut entries| entries.next().is_some_and(|entry| entry.is_ok()) && entries.next().is_none()));
+                });
+        });
+    });
+    assert!(matches!(std::fs::remove_dir_all(root), Ok(())));
+}
+
+#[test]
+fn test_cargo_projection_preserves_launch_errors_for_invalid_working_directories() {
+    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join(constants_str::TARGET)
+        .join(stringify!(
+            test_cargo_projection_preserves_launch_errors_for_invalid_working_directories
+        ));
+    let file = root.join(constants_str::TRUE);
+    write(file.as_path(), constants_str::JSON);
+    let missing = root.join(constants_str::FALSE);
+    let arguments = [constants_str::VERSION];
+    [
+        (crate::generated_projection::GeneratedProjection::CodeStyle, constants_str::UPDATE_CODE_STYLE_SNAPSHOTS),
+        (crate::generated_projection::GeneratedProjection::Config, constants_str::UPDATE_CONFIG_PROJECTIONS),
+    ]
+    .into_iter()
+    .fold((), |(), (projection, environment_name)| {
+        [false, true].into_iter().fold((), |(), write_enabled| {
+            [file.as_path(), missing.as_path()].into_iter().fold((), |(), directory| {
+                let result = crate::synchronize_cargo_owned_projection::synchronize_cargo_owned_projection(
+                    crate::scaffold_path_ref::ScaffoldPathRef::from(directory),
+                    crate::cargo_args_ref::CargoArgsRef::from(arguments.as_slice()),
+                    crate::update_env_name::UpdateEnvName::from(environment_name),
+                    projection,
+                    crate::should_write::ShouldWrite::from(write_enabled),
+                );
+                assert!(matches!(&result, Err(crate::scaffold_error::ScaffoldError::Io(_))));
+                assert!(result.is_err_and(|error| std::error::Error::source(&error)
+                    .is_some_and(|source| source.downcast_ref::<crate::scaffold_io_error::ScaffoldIoError>().is_some())));
+                assert_scaffold_file_content(file.as_path(), constants_str::JSON);
+                assert!(!missing.exists());
+            });
+        });
+    });
+    assert!(matches!(std::fs::remove_dir_all(root), Ok(())));
 }

@@ -159,6 +159,37 @@ fn test_generate_delete_many_query_string_preserves_filtered_batch_selector() {
     );
 }
 #[test]
+fn test_query_string_length_error_preserves_bounded_diagnostic_and_has_no_source() {
+    assert!(
+        [
+            (0usize, 0usize),
+            (
+                crate::pg_table_string_wrapper_max_len::PG_TABLE_STRING_WRAPPER_MAX_LEN
+                    + constants_usize::ONE,
+                crate::pg_table_string_wrapper_max_len::PG_TABLE_STRING_WRAPPER_MAX_LEN,
+            ),
+            (usize::MAX, usize::MAX),
+        ]
+        .into_iter()
+        .all(|(len, max)| {
+            let pg_table_string_wrapper_try_from_string_error =
+                crate::pg_table_string_wrapper_try_from_string_error::PgTableStringWrapperTryFromStringError::TooLong {
+                    len,
+                    max,
+                };
+            let error_text = to_err_string::to_err_string::ToErrString::to_err_string(
+                &pg_table_string_wrapper_try_from_string_error,
+            );
+            let display = pg_table_string_wrapper_try_from_string_error.to_string();
+            error_text.as_ref() == display
+                && display.contains(&len.to_string())
+                && display.contains(&max.to_string())
+                && std::error::Error::source(&pg_table_string_wrapper_try_from_string_error)
+                    .is_none()
+        })
+    );
+}
+#[test]
 fn test_query_builders_reject_oversized_sql() {
     let huge = constants_str::X
         .repeat(crate::pg_table_string_wrapper_max_len::PG_TABLE_STRING_WRAPPER_MAX_LEN);

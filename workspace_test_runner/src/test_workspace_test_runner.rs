@@ -432,3 +432,539 @@ fn test_database_mode_excludes_tests_requiring_a_deployed_application() {
                 ])
     );
 }
+
+#[test]
+fn test_ansi_adapters_bound_filtered_output_and_preserve_empty_unicode_and_limit_text() {
+    let maximum = constants_usize::VALUE_16_777_216;
+    [
+        String::new(),
+        char::from(233u8).to_string(),
+        constants_str::X.repeat(maximum),
+    ]
+    .into_iter()
+    .fold((), |(), expected| {
+        let input = format!(
+            "{}{}{}",
+            constants_str::WORKSPACE_TEST_RUNNER_ANSI_RED,
+            expected,
+            constants_str::WORKSPACE_TEST_RUNNER_ANSI_RESET
+        );
+        if expected.len() == maximum {
+            assert!(input.len() > maximum);
+        }
+        let command_text =
+            crate::strip_ansi::strip_ansi(macro_helpers::tool_ansi_chars::ToolAnsiChars::from(
+                macro_helpers::tool_ansi_text_ref::ToolAnsiTextRef::from(input.as_str()),
+            ));
+        let clean_text = crate::strip_ansi_codes::strip_ansi_codes(
+            macro_helpers::tool_ansi_chars::ToolAnsiChars::from(
+                macro_helpers::tool_ansi_text_ref::ToolAnsiTextRef::from(input.as_str()),
+            ),
+        );
+        assert_eq!(command_text.as_ref(), expected.as_str());
+        assert_eq!(clean_text.as_ref(), expected.as_str());
+    });
+}
+
+#[test]
+fn test_ansi_adapters_report_filtered_unicode_byte_lengths_in_overflow_fallbacks() {
+    let maximum = constants_usize::VALUE_16_777_216;
+    let unicode = char::from(233u8).to_string();
+    let text = unicode.repeat(
+        maximum
+            .checked_div(unicode.len())
+            .unwrap_or_default()
+            .saturating_add(constants_usize::ONE),
+    );
+    let input = format!(
+        "{}{}{}",
+        constants_str::WORKSPACE_TEST_RUNNER_ANSI_RED,
+        text,
+        constants_str::WORKSPACE_TEST_RUNNER_ANSI_RESET
+    );
+    assert_eq!(text.len(), maximum.saturating_add(2usize));
+    assert!(input.len() > text.len());
+    let command_text =
+        crate::strip_ansi::strip_ansi(macro_helpers::tool_ansi_chars::ToolAnsiChars::from(
+            macro_helpers::tool_ansi_text_ref::ToolAnsiTextRef::from(input.as_str()),
+        ));
+    let clean_text = crate::strip_ansi_codes::strip_ansi_codes(
+        macro_helpers::tool_ansi_chars::ToolAnsiChars::from(
+            macro_helpers::tool_ansi_text_ref::ToolAnsiTextRef::from(input.as_str()),
+        ),
+    );
+    assert_eq!(
+        command_text.as_ref(),
+        crate::command_text::CommandText::from(
+            crate::command_text::CommandTextTryFromStringError::TooLong {
+                len: text.len(),
+                max: maximum
+            },
+        )
+        .as_ref()
+    );
+    assert_eq!(
+        clean_text.as_ref(),
+        crate::clean_ansi_text::CleanAnsiText::from(
+            crate::clean_ansi_text::CleanAnsiTextTryFromStringError::TooLong {
+                len: text.len(),
+                max: maximum
+            },
+        )
+        .as_ref()
+    );
+}
+
+#[test]
+fn test_memusage_value_parsers_use_final_summary_even_when_empty() {
+    let preceding = format!(
+        "{}{}{}{}{}{}{}{}",
+        constants_str::MEMORY_USAGE_SUMMARY,
+        constants_str::NEWLINE,
+        constants_str::HEAP_TOTAL,
+        constants_str::VALUE_1,
+        constants_str::NEWLINE,
+        constants_str::MALLOC,
+        constants_str::VALUE_1,
+        constants_str::NEWLINE
+    );
+    [false, true].into_iter().fold((), |(), empty| {
+        let summary = if empty {
+            String::new()
+        } else {
+            format!(
+                "{}{}{}{}{}{}{}",
+                constants_str::NEWLINE,
+                constants_str::HEAP_TOTAL,
+                constants_str::VALUE_2,
+                constants_str::NEWLINE,
+                constants_str::MALLOC,
+                constants_str::VALUE_4,
+                constants_str::NEWLINE
+            )
+        };
+        let input = format!(
+            "{preceding}{}{summary}",
+            constants_str::MEMORY_USAGE_SUMMARY
+        );
+        assert!(
+            crate::clean_ansi_text::CleanAnsiText::try_from(input).is_ok_and(|text| {
+                crate::memusage_summary_text::memusage_summary_text(&text)
+                    .is_some_and(|value| value.get() == summary.as_str())
+                    && crate::memusage_program_text::memusage_program_text(&text).get()
+                        == preceding.as_str()
+                    && crate::memusage_heap_value::memusage_heap_value(
+                        &text,
+                        crate::memusage_key::MemusageKey::from(constants_str::HEAP_TOTAL),
+                    )
+                    .get()
+                        == if empty {
+                            constants_str::UNAVAILABLE
+                        } else {
+                            constants_str::VALUE_2
+                        }
+                    && crate::memusage_table_value::memusage_table_value(
+                        &text,
+                        crate::memusage_row_name::MemusageRowName::from(
+                            constants_str::VALUE_E3C52EBF,
+                        ),
+                        crate::memory_usage_column_index::MemoryUsageColumnIndex::from(
+                            constants_usize::ZERO,
+                        ),
+                    )
+                    .get()
+                        == if empty {
+                            constants_str::UNAVAILABLE
+                        } else {
+                            constants_str::VALUE_4
+                        }
+            })
+        );
+    });
+}
+
+#[test]
+fn test_memusage_parsers_keep_first_matching_row_including_malformed_matches() {
+    [
+        (
+            format!("{}{}", constants_str::HEAP_TOTAL, constants_str::VALUE_1),
+            format!("{}{}", constants_str::MALLOC, constants_str::VALUE_1),
+            constants_str::VALUE_1,
+        ),
+        (
+            constants_str::HEAP_TOTAL.to_owned(),
+            constants_str::VALUE_E3C52EBF.to_owned(),
+            constants_str::UNAVAILABLE,
+        ),
+        (
+            format!(
+                "{}{}{}",
+                constants_str::HEAP_TOTAL,
+                ',',
+                constants_str::SPACE
+            ),
+            format!("{}{}", constants_str::MALLOC, constants_str::SPACE),
+            constants_str::UNAVAILABLE,
+        ),
+    ]
+    .into_iter()
+    .fold((), |(), (first_heap, first_row, expected)| {
+        let input = [
+            constants_str::MEMORY_USAGE_SUMMARY.to_owned(),
+            first_heap,
+            first_row,
+            format!("{}{}", constants_str::HEAP_TOTAL, constants_str::VALUE_2),
+            format!("{}{}", constants_str::MALLOC, constants_str::VALUE_4),
+        ]
+        .join(constants_str::NEWLINE);
+        assert!(
+            crate::clean_ansi_text::CleanAnsiText::try_from(input).is_ok_and(|text| {
+                crate::memusage_heap_value::memusage_heap_value(
+                    &text,
+                    crate::memusage_key::MemusageKey::from(constants_str::HEAP_TOTAL),
+                )
+                .get()
+                    == expected
+                    && crate::memusage_table_value::memusage_table_value(
+                        &text,
+                        crate::memusage_row_name::MemusageRowName::from(
+                            constants_str::VALUE_E3C52EBF,
+                        ),
+                        crate::memory_usage_column_index::MemoryUsageColumnIndex::from(
+                            constants_usize::ZERO,
+                        ),
+                    )
+                    .get()
+                        == expected
+            })
+        );
+    });
+}
+
+#[test]
+fn test_memusage_heap_preserves_substring_and_comma_space_internal_tab_rules() {
+    let internal_tab = format!(
+        "{}{}{}",
+        constants_str::VALUE_1,
+        char::from(9u8),
+        constants_str::VALUE_2
+    );
+    [
+        (
+            format!(
+                "{0},{0},{1},{0}{2}",
+                constants_str::SPACE,
+                constants_str::VALUE_1,
+                constants_str::VALUE_2
+            ),
+            constants_str::VALUE_1,
+        ),
+        (
+            format!("{}{}{}", char::from(9u8), internal_tab, char::from(9u8)),
+            internal_tab.as_str(),
+        ),
+    ]
+    .into_iter()
+    .fold((), |(), (tail, expected)| {
+        let input = format!(
+            "{}{}{}{}{tail}",
+            constants_str::MEMORY_USAGE_SUMMARY,
+            constants_str::NEWLINE,
+            constants_str::X,
+            constants_str::HEAP_TOTAL
+        );
+        assert!(
+            crate::clean_ansi_text::CleanAnsiText::try_from(input).is_ok_and(|text| {
+                crate::memusage_heap_value::memusage_heap_value(
+                    &text,
+                    crate::memusage_key::MemusageKey::from(constants_str::HEAP_TOTAL),
+                )
+                .get()
+                    == expected
+            })
+        );
+    });
+}
+
+#[test]
+fn test_memusage_table_preserves_substring_first_pipe_and_whitespace_column_rules() {
+    let input = format!(
+        "{}{}{}{}{}|{}{}{}{}{}|{}",
+        constants_str::MEMORY_USAGE_SUMMARY,
+        constants_str::NEWLINE,
+        constants_str::X,
+        constants_str::VALUE_E3C52EBF,
+        constants_str::X,
+        constants_str::VALUE_1,
+        char::from(9u8),
+        constants_str::VALUE_2,
+        constants_str::SPACE,
+        constants_str::VALUE_4,
+        constants_str::JSON
+    );
+    assert!(
+        crate::clean_ansi_text::CleanAnsiText::try_from(input).is_ok_and(|text| {
+            [
+                (constants_usize::ZERO, constants_str::VALUE_1),
+                (constants_usize::ONE, constants_str::VALUE_2),
+                (2usize, constants_str::VALUE_4),
+                (3usize, constants_str::UNAVAILABLE),
+                (
+                    std::num::NonZeroUsize::MAX.get(),
+                    constants_str::UNAVAILABLE,
+                ),
+            ]
+            .into_iter()
+            .all(|(index, expected)| {
+                crate::memusage_table_value::memusage_table_value(
+                    &text,
+                    crate::memusage_row_name::MemusageRowName::from(constants_str::VALUE_E3C52EBF),
+                    crate::memory_usage_column_index::MemoryUsageColumnIndex::from(index),
+                )
+                .get()
+                    == expected
+            })
+        })
+    );
+}
+
+#[test]
+fn test_failed_name_parser_preserves_empty_unicode_and_whitespace_names_across_crlf_formats() {
+    let unicode = char::from(233u8).to_string();
+    let whitespace = format!(
+        "{}{}{}",
+        constants_str::SPACE,
+        constants_str::X,
+        char::from(9u8)
+    );
+    [constants_str::EMPTY, unicode.as_str(), whitespace.as_str()]
+        .into_iter()
+        .fold((), |(), expected| {
+            let cargo = format!(
+                "{}{}{}",
+                constants_str::TEST_ALT,
+                expected,
+                constants_str::FAILED_ALT
+            );
+            let nextest = format!(
+                "{}{}{}",
+                constants_str::FOUR_SPACES,
+                expected,
+                constants_str::FAILED
+            );
+            let input = format!(
+                "{cargo}{}{}{nextest}{}{}",
+                char::from(13u8),
+                constants_str::NEWLINE,
+                char::from(13u8),
+                constants_str::NEWLINE
+            );
+            let names = crate::failed_test_names::failed_test_names(
+                crate::text_ref::TextRef::from(input.as_str()),
+            );
+            assert!(
+                names
+                    .as_ref()
+                    .iter()
+                    .map(crate::command_text::CommandText::as_ref)
+                    .eq([expected])
+            );
+        });
+}
+
+#[test]
+fn test_failed_name_parser_preserves_exact_filtered_limit_and_discards_overflow_log() {
+    let maximum = constants_usize::VALUE_16_777_216;
+    let line = format!(
+        "{}{}{}{}",
+        constants_str::TEST_ALT,
+        constants_str::X,
+        constants_str::FAILED_ALT,
+        constants_str::NEWLINE
+    );
+    [false, true].into_iter().fold((), |(), overflow| {
+        let length = if overflow {
+            maximum.saturating_add(constants_usize::ONE)
+        } else {
+            maximum
+        };
+        let padding = constants_str::X.repeat(length.saturating_sub(line.len()));
+        let filtered = format!("{line}{padding}");
+        assert_eq!(filtered.len(), length);
+        let input = format!(
+            "{}{}{}",
+            constants_str::WORKSPACE_TEST_RUNNER_ANSI_RED,
+            filtered,
+            constants_str::WORKSPACE_TEST_RUNNER_ANSI_RESET
+        );
+        assert!(input.len() > maximum);
+        let names = crate::failed_test_names::failed_test_names(crate::text_ref::TextRef::from(
+            input.as_str(),
+        ));
+        if overflow {
+            assert!(names.as_ref().is_empty());
+        } else {
+            assert!(
+                names
+                    .as_ref()
+                    .iter()
+                    .map(crate::command_text::CommandText::as_ref)
+                    .eq([constants_str::X])
+            );
+        }
+    });
+}
+
+#[test]
+fn test_tool_discovery_tracks_file_creation_removal_and_directory_replacement() {
+    let name =
+        stringify!(test_tool_discovery_tracks_file_creation_removal_and_directory_replacement);
+    let tool_path = crate::tool_path::ToolPath::from(name);
+    let available = || crate::check_tool_available::check_tool_available(tool_path).get();
+    assert!(!available());
+    assert!(matches!(std::fs::write(name, constants_str::JSON), Ok(())));
+    assert!(available());
+    assert!(std::fs::read_to_string(name).is_ok_and(|text| text == constants_str::JSON));
+    assert!(matches!(std::fs::remove_file(name), Ok(())));
+    assert!(!available());
+    assert!(matches!(std::fs::create_dir_all(name), Ok(())));
+    assert!(!available());
+    assert!(matches!(std::fs::remove_dir_all(name), Ok(())));
+    assert!(!available());
+}
+
+#[test]
+fn test_generation_stage_callbacks_preserve_handoff_order_and_stop_after_errors() {
+    assert!([None, Some(0usize), Some(1usize), Some(2usize)]
+        .into_iter()
+        .all(|failed_stage| {
+            let calls = std::cell::Cell::new(crate::command_index::CommandIndex::from(0usize));
+            let advance = |command_index: crate::command_index::CommandIndex| {
+                let stage = usize::from(command_index);
+                assert_eq!(usize::from(calls.get()), stage);
+                calls.set(crate::command_index::CommandIndex::from(stage + 1usize));
+                if failed_stage == Some(stage) {
+                    Err(crate::summary_text_append_error::SummaryTextAppendError::CapacityExceeded)
+                } else {
+                    Ok(crate::command_index::CommandIndex::from(stage + 1usize))
+                }
+            };
+            let result = crate::measure_generation_stages::measure_generation_stages(
+                crate::command_index::CommandIndex::from(0usize),
+                advance,
+                advance,
+                advance,
+                |command_index: crate::command_index::CommandIndex| {
+                    assert_eq!(usize::from(command_index), 3usize);
+                    assert_eq!(usize::from(calls.get()), 3usize);
+                    calls.set(crate::command_index::CommandIndex::from(4usize));
+                    crate::command_index::CommandIndex::from(4usize)
+                },
+                |command_index: &crate::command_index::CommandIndex| {
+                    assert_eq!(usize::from(*command_index), 4usize);
+                    assert_eq!(usize::from(calls.get()), 4usize);
+                    calls.set(crate::command_index::CommandIndex::from(5usize));
+                    17usize
+                },
+            );
+            if let Some(stage) = failed_stage {
+                assert_eq!(usize::from(calls.get()), stage + 1usize);
+                matches!(result, Err(crate::summary_text_append_error::SummaryTextAppendError::CapacityExceeded))
+            } else {
+                assert_eq!(usize::from(calls.get()), 5usize);
+                result.is_ok_and(|measurement| *measurement.get_output_bytes() == 17usize)
+            }
+        }));
+}
+
+#[test]
+fn test_direct_generation_inspects_every_output_in_order_and_preserves_final_sizes() {
+    let generated = std::cell::Cell::new(crate::command_index::CommandIndex::from(0usize));
+    let inspected = std::cell::Cell::new(crate::command_index::CommandIndex::from(0usize));
+    let measurement = crate::measure_direct_generation::measure_direct_generation(
+        || {
+            assert_eq!(usize::from(generated.get()), usize::from(inspected.get()));
+            let command_index =
+                crate::command_index::CommandIndex::from(usize::from(generated.get()) + 1usize);
+            generated.set(command_index);
+            command_index
+        },
+        |command_index: &crate::command_index::CommandIndex| {
+            let index = usize::from(*command_index);
+            assert_eq!(index, usize::from(generated.get()));
+            assert_eq!(index, usize::from(inspected.get()) + 1usize);
+            inspected.set(*command_index);
+            crate::direct_generation_output_measurement::DirectGenerationOutputMeasurement::new(
+                index,
+                index + 1usize,
+            )
+        },
+    );
+    assert_eq!(
+        usize::from(generated.get()),
+        crate::domain_types::DIRECT_GENERATION_REPEAT_COUNT
+    );
+    assert_eq!(
+        usize::from(inspected.get()),
+        crate::domain_types::DIRECT_GENERATION_REPEAT_COUNT
+    );
+    assert_eq!(
+        *measurement.get_output_bytes(),
+        crate::domain_types::DIRECT_GENERATION_REPEAT_COUNT
+    );
+    assert_eq!(
+        *measurement.get_output_token_trees(),
+        crate::domain_types::DIRECT_GENERATION_REPEAT_COUNT + 1usize
+    );
+}
+
+#[test]
+fn test_program_array_conversion_preserves_empty_and_nonempty_borrowed_slices() {
+    let empty = [];
+    let single = [constants_str::EMPTY];
+    let multiple = [
+        constants_str::TEST_ALT_3,
+        constants_str::P,
+        constants_str::TESTS_ALT,
+    ];
+    assert!(
+        [
+            (
+                crate::program_args_ref::ProgramArgsRef::from(&empty),
+                empty.as_slice()
+            ),
+            (
+                crate::program_args_ref::ProgramArgsRef::from(&single),
+                single.as_slice()
+            ),
+            (
+                crate::program_args_ref::ProgramArgsRef::from(&multiple),
+                multiple.as_slice()
+            ),
+        ]
+        .into_iter()
+        .all(|(program_args_ref, expected)| {
+            program_args_ref.get() == expected && std::ptr::eq(program_args_ref.get(), expected)
+        })
+    );
+}
+
+#[test]
+fn test_generation_measurement_input_preserves_configurable_test_write_flag() {
+    assert!([stringify!(False), stringify!(True)].into_iter().all(|text| {
+        let input = crate::generate_pg_table_measure_input_token_stream::generate_pg_table_measure_input_token_stream(&text);
+        generate_pg_table_src::parse_generate_pg_table::parse_generate_pg_table(
+            macro_helpers::proc_macro2_token_stream_ref::ProcMacro2TokenStreamRef::from(input.as_ref()),
+        ).is_ok_and(|parsed| {
+            parsed.get_inner().attrs.iter().find(|attribute| {
+                attribute.path().segments.last().is_some_and(|segment| segment.ident == stringify!(generate_pg_table_config))
+            }).is_some_and(|attribute| {
+                attribute.meta.require_list().is_ok_and(|list| {
+                    serde_json::from_str::<serde_json::Value>(&list.tokens.to_string()).is_ok_and(|value| {
+                        value.get(stringify!(tests_write_into_file)).and_then(serde_json::Value::as_str) == Some(text)
+                    })
+                })
+            })
+        })
+    }));
+}

@@ -147,4 +147,53 @@ mod tests {
             )
             .expect_err(constants_str::VALUE_F2CF39E2);
     }
+
+    #[test]
+    fn test_notification_request_transfers_message_without_reallocating_text() {
+        assert!(
+            [constants_str::VALUE_B24D6D33, constants_str::U_1F496]
+                .into_iter()
+                .all(|text| {
+                    let input = String::from(text);
+                    let pointer = input.as_ptr();
+                    crate::notification_message::NotificationMessage::try_from(input).is_ok_and(
+                        |notification_message| {
+                            let request =
+                                crate::create_notification_request::CreateNotificationRequest::new(
+                                    notification_message,
+                                );
+                            let transferred = request.into_message();
+                            transferred.as_ref() == text && transferred.as_ref().as_ptr() == pointer
+                        },
+                    )
+                })
+        );
+    }
+
+    #[test]
+    fn test_notification_request_deserialization_revalidates_message_and_rejects_unknown_fields() {
+        assert!([
+            (constants_str::VALUE_B24D6D33.to_owned(), true),
+            (constants_str::U_1F496.to_owned(), true),
+            (constants_str::EMPTY.to_owned(), false),
+            (constants_str::X.repeat(4_097usize), false),
+        ].into_iter().all(|(text, accepted)| {
+            let decoded = <crate::create_notification_request::CreateNotificationRequest as serde::Deserialize>::deserialize(
+                serde::de::value::MapDeserializer::<_, serde::de::value::Error>::new([(stringify!(message), text.as_str())].into_iter()),
+            );
+            decoded.as_ref().is_ok() == accepted
+                && decoded.is_ok_and(|request| request.into_message().as_ref() == text) == accepted
+        }));
+        assert!(<crate::create_notification_request::CreateNotificationRequest as serde::Deserialize>::deserialize(
+            serde::de::value::MapDeserializer::<_, serde::de::value::Error>::new(
+                std::iter::once((stringify!(message), constants_str::VALUE_B24D6D33)).take(0usize),
+            ),
+        ).is_err_and(|error| error.to_string().contains(stringify!(message))));
+        assert!(<crate::create_notification_request::CreateNotificationRequest as serde::Deserialize>::deserialize(
+            serde::de::value::MapDeserializer::<_, serde::de::value::Error>::new([
+                (stringify!(message), constants_str::VALUE_B24D6D33),
+                (stringify!(unexpected), constants_str::VALUE_B24D6D33),
+            ].into_iter()),
+        ).is_err_and(|error| error.to_string().contains(stringify!(unexpected))));
+    }
 }

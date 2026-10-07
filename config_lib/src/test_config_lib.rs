@@ -21,6 +21,17 @@ fn test_service_mode_accepts_only_documented_values() {
         ),
         Err(crate::try_from_std_env_var_ok_service_mode_error::TryFromStdEnvVarOkServiceModeError::Unknown)
     );
+    assert_eq!(
+        crate::service_mode::ServiceMode::default(),
+        crate::service_mode::ServiceMode::Serve
+    );
+    [constants_str::SERVICE_MODE_MIGRATE, constants_str::SERVICE_MODE_SERVE].into_iter().fold((), |(), name| {
+        [name.to_ascii_uppercase(), format!("{}{}", constants_str::SPACE, name), format!("{}{}", name, constants_str::SPACE)]
+            .into_iter().fold((), |(), text| {
+                assert_eq!(parse_env::<crate::service_mode::ServiceMode>(&text), Err(crate::try_from_std_env_var_ok_service_mode_error::TryFromStdEnvVarOkServiceModeError::Unknown));
+            });
+    });
+    assert_eq!(parse_env::<crate::service_mode::ServiceMode>(constants_str::EMPTY), Err(crate::try_from_std_env_var_ok_service_mode_error::TryFromStdEnvVarOkServiceModeError::Unknown));
 }
 #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Debug, PartialEq, Eq)]
 enum ParseRequiredEnvVarTestError {
@@ -46,28 +57,69 @@ where
 }
 #[test]
 fn test_administrator_token_text_deserialization_uses_bounded_try_from() {
-    let issuer_deserializer = serde::de::value::StringDeserializer::<serde::de::value::Error>::new(
-        constants_str::TEST_JWT_SECRET_CHARACTER_A.repeat(257usize),
+    let unicode_text = format!(
+        "{}{}",
+        '\u{00e9}'.to_string().repeat(128usize),
+        constants_str::X
     );
-    let audience_deserializer =
-        serde::de::value::StringDeserializer::<serde::de::value::Error>::new(
-            constants_str::TEST_JWT_SECRET_CHARACTER_A.repeat(257usize),
-        );
-    let Err(_issuer_error) =
-        <crate::admin_token_issuer::AdminTokenIssuer as serde::Deserialize>::deserialize(
-            issuer_deserializer,
-        )
-    else {
-        std::panic::panic_any(constants_str::PANIC_B286DB7C);
-    };
-    let Err(_audience_error) =
-        <crate::admin_token_audience::AdminTokenAudience as serde::Deserialize>::deserialize(
-            audience_deserializer,
-        )
-    else {
-        std::panic::panic_any(constants_str::PANIC_70F1E49F);
-    };
+    [constants_str::TEST_JWT_SECRET_CHARACTER_A.repeat(257usize), unicode_text]
+        .into_iter().fold((), |(), text| {
+            let issuer_error = crate::admin_token_issuer::AdminTokenIssuerTryFromStringError::TooLong { len: 257usize, max: 256usize };
+            let audience_error = crate::admin_token_audience::AdminTokenAudienceTryFromStringError::TooLong { len: 257usize, max: 256usize };
+            assert_eq!(crate::admin_token_issuer::AdminTokenIssuer::try_from(text.clone()), Err(issuer_error));
+            assert_eq!(crate::admin_token_audience::AdminTokenAudience::try_from(text.clone()), Err(audience_error));
+            assert!(<crate::admin_token_issuer::AdminTokenIssuer as serde::Deserialize>::deserialize(
+                serde::de::value::StrDeserializer::<serde::de::value::Error>::new(&text),
+            ).is_err_and(|error| error.to_string() == issuer_error.to_string()));
+            assert!(<crate::admin_token_audience::AdminTokenAudience as serde::Deserialize>::deserialize(
+                serde::de::value::StrDeserializer::<serde::de::value::Error>::new(&text),
+            ).is_err_and(|error| error.to_string() == audience_error.to_string()));
+            assert!(parse_env::<crate::admin_token_issuer::AdminTokenIssuer>(&text).is_err_and(|error| error == crate::try_from_std_env_var_ok_admin_token_text_error::TryFromStdEnvVarOkAdminTokenTextError::TooLong));
+            assert!(parse_env::<crate::admin_token_audience::AdminTokenAudience>(&text).is_err_and(|error| error == crate::try_from_std_env_var_ok_admin_token_text_error::TryFromStdEnvVarOkAdminTokenTextError::TooLong));
+        });
 }
+
+#[test]
+fn test_administrator_token_deserialization_preserves_complete_unicode_text() {
+    [
+        String::new(),
+        constants_str::SPACE.to_owned(),
+        ['"', '\\', '\n', '\u{00e9}']
+            .into_iter()
+            .collect::<String>(),
+        '\u{00e9}'.to_string().repeat(128usize),
+    ]
+    .into_iter()
+    .fold((), |(), text| {
+        let issuer =
+            <crate::admin_token_issuer::AdminTokenIssuer as serde::Deserialize>::deserialize(
+                serde::de::value::StrDeserializer::<serde::de::value::Error>::new(&text),
+            );
+        let audience =
+            <crate::admin_token_audience::AdminTokenAudience as serde::Deserialize>::deserialize(
+                serde::de::value::StrDeserializer::<serde::de::value::Error>::new(&text),
+            );
+        assert!(issuer.is_ok() && audience.is_ok());
+        let (Ok(issuer_value), Ok(audience_value)) = (issuer, audience) else {
+            return;
+        };
+        assert_eq!(issuer_value.as_ref(), &text);
+        assert_eq!(audience_value.as_ref(), &text);
+        assert_eq!(issuer_value.as_bounded_string().as_str(), text);
+        assert_eq!(audience_value.as_bounded_string().as_str(), text);
+        if !text.is_empty() {
+            assert!(
+                parse_env::<crate::admin_token_issuer::AdminTokenIssuer>(&text)
+                    .is_ok_and(|parsed| parsed == issuer_value)
+            );
+            assert!(
+                parse_env::<crate::admin_token_audience::AdminTokenAudience>(&text)
+                    .is_ok_and(|parsed| parsed == audience_value)
+            );
+        }
+    });
+}
+
 #[test]
 fn test_cors_allow_origin_parsing_returns_value() {
     let value = parse_env::<crate::domain_types::CorsAllowOrigin>(constants_str::ASTERISK)
@@ -101,6 +153,48 @@ fn test_generated_non_empty_config_text_rejects_oversized_direct_string() {
     ));
 }
 #[test]
+fn test_trusted_proxy_text_preserves_content_and_unicode_byte_bounds() {
+    let maximum = crate::config_lib_string_wrapper_max_len::CONFIG_LIB_STRING_WRAPPER_MAX_LEN;
+    let character_count = maximum.checked_div(2usize);
+    assert!(character_count.is_some());
+    let Some(repetition_count) = character_count else {
+        return;
+    };
+    assert_eq!(repetition_count.checked_mul(2usize), Some(maximum));
+    [
+        constants_str::SPACE.to_owned(),
+        constants_str::VALUE_127_0_0_1.to_owned(),
+        '\u{00e9}'.to_string().repeat(repetition_count),
+    ]
+    .into_iter()
+    .fold((), |(), text| {
+        assert!(
+            crate::domain_types::TrustedProxyRangesText::try_from(text.clone())
+                .is_ok_and(|value| value.get_inner().as_str() == text)
+        );
+        assert!(
+            parse_env::<crate::domain_types::TrustedProxyRangesText>(&text)
+                .is_ok_and(|value| value.get_inner().as_str() == text)
+        );
+    });
+    let oversized = format!(
+        "{}{}",
+        '\u{00e9}'.to_string().repeat(repetition_count),
+        constants_str::X
+    );
+    assert!(
+        crate::domain_types::TrustedProxyRangesText::try_from(oversized).is_err_and(
+            |error| matches!(
+                error,
+                crate::domain_types::TryFromStdEnvVarOkTrustedProxyRangesTextError::TooLong
+            )
+        )
+    );
+    assert!(crate::domain_types::TrustedProxyRangesText::try_from(String::new()).is_err_and(|error| matches!(error, crate::domain_types::TryFromStdEnvVarOkTrustedProxyRangesTextError::IsEmpty { is_empty } if is_empty == constants_str::CONFIG_ENV_VALUE_IS_EMPTY_MSG)));
+    assert!(parse_env::<crate::domain_types::TrustedProxyRangesText>(constants_str::EMPTY).is_err_and(|error| matches!(error, crate::domain_types::TryFromStdEnvVarOkTrustedProxyRangesTextError::IsEmpty { is_empty } if is_empty == constants_str::CONFIG_ENV_VALUE_IS_EMPTY_MSG)));
+}
+
+#[test]
 fn test_database_url_parsing_returns_value_for_non_empty_input() {
     drop(
         parse_env::<crate::domain_types::DatabaseUrl>(constants_str::POSTGRES_DB)
@@ -114,6 +208,54 @@ fn test_database_url_parsing_returns_error_for_empty_string() {
         crate::domain_types::TryFromStdEnvVarOkDatabaseUrlError::IsEmpty { .. }
     );
 }
+#[test]
+fn test_secret_url_wrappers_preserve_exact_text_and_maximum_byte_length() {
+    let maximum = crate::config_lib_string_wrapper_max_len::CONFIG_LIB_STRING_WRAPPER_MAX_LEN;
+    let character_count = maximum.checked_div(2usize);
+    assert!(character_count.is_some());
+    let Some(repetition_count) = character_count else {
+        return;
+    };
+    assert_eq!(repetition_count.checked_mul(2usize), Some(maximum));
+    [
+        constants_str::POSTGRES_USERNAME_PASSWORD_LOCALHOST_TEST_QUESTION_SSLMODE_DISABLE
+            .to_owned(),
+        constants_str::MONGODB_DB.to_owned(),
+        constants_str::REDIS_DB.to_owned(),
+        '\u{00e9}'.to_string().repeat(repetition_count),
+    ]
+    .into_iter()
+    .fold((), |(), text| {
+        assert!(
+            parse_env::<crate::domain_types::DatabaseUrl>(&text).is_ok_and(|database_url| {
+                secrecy::ExposeSecret::expose_secret(database_url.get_inner()).as_ref() == &text
+                    && format!("{database_url:?}").contains(constants_str::REDACTED_ALT)
+                    && !format!("{database_url:?}").contains(&text)
+                    && format!("{database_url:#?}").contains(constants_str::REDACTED_ALT)
+                    && !format!("{database_url:#?}").contains(&text)
+            })
+        );
+        assert!(
+            parse_env::<crate::domain_types::MongoUrl>(&text).is_ok_and(|mongo_url| {
+                secrecy::ExposeSecret::expose_secret(mongo_url.get_inner()).as_ref() == &text
+                    && format!("{mongo_url:?}").contains(constants_str::REDACTED_ALT)
+                    && !format!("{mongo_url:?}").contains(&text)
+                    && format!("{mongo_url:#?}").contains(constants_str::REDACTED_ALT)
+                    && !format!("{mongo_url:#?}").contains(&text)
+            })
+        );
+        assert!(
+            parse_env::<crate::domain_types::RedisUrl>(&text).is_ok_and(|redis_url| {
+                secrecy::ExposeSecret::expose_secret(redis_url.get_inner()).as_ref() == &text
+                    && format!("{redis_url:?}").contains(constants_str::REDACTED_ALT)
+                    && !format!("{redis_url:?}").contains(&text)
+                    && format!("{redis_url:#?}").contains(constants_str::REDACTED_ALT)
+                    && !format!("{redis_url:#?}").contains(&text)
+            })
+        );
+    });
+}
+
 #[test]
 fn test_secret_url_debug_output_redacts_credentials() {
     let all_redacted = [
@@ -201,6 +343,10 @@ fn test_enable_api_git_commit_check_parsing_returns_bool() {
     let value = parse_env::<crate::domain_types::EnableApiGitCommitCheck>(constants_str::TRUE)
         .expect(constants_str::DIAGNOSTIC_EA443A2A);
     assert!(*value.get_inner());
+    assert!(
+        parse_env::<crate::domain_types::EnableApiGitCommitCheck>(constants_str::FALSE)
+            .is_ok_and(|disabled| !*disabled.get_inner())
+    );
 }
 #[test]
 fn test_enable_api_git_commit_check_parsing_returns_error_for_invalid_bool() {
@@ -209,6 +355,16 @@ fn test_enable_api_git_commit_check_parsing_returns_error_for_invalid_bool() {
         constants_str::TRUTHY,
         crate::domain_types::TryFromStdEnvVarOkEnableApiGitCommitCheckError::BoolParsing { .. }
     );
+    [constants_str::EMPTY.to_owned(), constants_str::VALUE_1.to_owned(), constants_str::VALUE_0.to_owned(), constants_str::TRUE.to_ascii_uppercase(), format!("{}{}", constants_str::SPACE, constants_str::TRUE), format!("{}{}", constants_str::FALSE, constants_str::SPACE)]
+        .into_iter().fold((), |(), text| {
+            let native = text.parse::<bool>();
+            assert!(native.is_err());
+            let Err(source) = native else { return; };
+            assert!(parse_env::<crate::domain_types::EnableApiGitCommitCheck>(&text).is_err_and(|error| {
+                let crate::domain_types::TryFromStdEnvVarOkEnableApiGitCommitCheckError::BoolParsing { bool_parsing } = error;
+                format!("{bool_parsing:?}") == format!("{source:?}")
+            }));
+        });
 }
 #[test]
 fn test_maximum_size_of_http_body_in_bytes_parsing_returns_usize() {
@@ -243,6 +399,36 @@ fn test_pg_pool_max_connections_parsing_returns_u32() {
     assert_eq!(*parsed, 10u32);
 }
 #[test]
+fn test_pool_maximum_connections_preserve_inclusive_bounds_and_zero_error() {
+    [1u32, u32::MAX].into_iter().fold((), |(), value| {
+        assert!(
+            crate::pg_pool_max_connections::PgPoolMaxConnections::try_from(value)
+                .is_ok_and(|maximum| *maximum == value)
+        );
+        assert!(
+            parse_env::<crate::pg_pool_max_connections::PgPoolMaxConnections>(&value.to_string())
+                .is_ok_and(|maximum| *maximum == value)
+        );
+    });
+    assert!(crate::pg_pool_max_connections::PgPoolMaxConnections::try_from(0u32).is_err_and(|error| error == crate::pg_pool_max_connections_try_from_u32_error::PgPoolMaxConnectionsTryFromU32Error::IsZero));
+    assert!(parse_env::<crate::pg_pool_max_connections::PgPoolMaxConnections>(constants_str::VALUE_0).is_err_and(|error| matches!(error, crate::try_from_std_env_var_ok_pg_pool_max_connections_error::TryFromStdEnvVarOkPgPoolMaxConnectionsError::PgPoolMaxConnections { pg_pool_max_connections } if pg_pool_max_connections == crate::pg_pool_max_connections_try_from_u32_error::PgPoolMaxConnectionsTryFromU32Error::IsZero)));
+}
+
+#[test]
+fn test_pool_maximum_connections_preserve_native_parse_diagnostics() {
+    [constants_str::EMPTY.to_owned(), constants_str::X.to_owned(), ['-', '1'].into_iter().collect::<String>(), [' ', '1'].into_iter().collect::<String>(), (u64::from(u32::MAX) + 1u64).to_string()]
+        .into_iter().fold((), |(), text| {
+            let expected = text.parse::<u32>();
+            assert!(expected.is_err());
+            let Err(source) = expected else { return; };
+            assert!(parse_env::<crate::pg_pool_max_connections::PgPoolMaxConnections>(&text).is_err_and(|error| {
+                let crate::try_from_std_env_var_ok_pg_pool_max_connections_error::TryFromStdEnvVarOkPgPoolMaxConnectionsError::U32Parsing { u32_parsing } = error else { return false; };
+                format!("{u32_parsing:?}") == format!("{source:?}")
+            }));
+        });
+}
+
+#[test]
 fn test_pg_pool_max_connections_parsing_returns_error_for_invalid_number() {
     proc_macro_config_lib_assert_parse_err_matches::assert_parse_err_matches!(
         crate::pg_pool_max_connections::PgPoolMaxConnections,
@@ -274,9 +460,26 @@ fn test_non_empty_string_parser_returns_value_for_non_empty_value() {
 }
 #[test]
 fn test_service_socket_address_parsing_returns_socket_addr() {
-    let _address =
+    let address =
         parse_env::<crate::domain_types::ServiceSocketAddress>(constants_str::VALUE_127_0_0_1_3000)
             .expect(constants_str::DIAGNOSTIC_A8B92BAC);
+    assert_eq!(
+        address.get_inner().to_string(),
+        constants_str::VALUE_127_0_0_1_3000
+    );
+    [0u16, u16::MAX].into_iter().fold((), |(), port| {
+        [
+            std::net::SocketAddr::from((std::net::Ipv4Addr::LOCALHOST, port)),
+            std::net::SocketAddr::from((std::net::Ipv6Addr::LOCALHOST, port)),
+        ]
+        .into_iter()
+        .fold((), |(), socket_addr| {
+            assert!(
+                parse_env::<crate::domain_types::ServiceSocketAddress>(&socket_addr.to_string())
+                    .is_ok_and(|parsed| *parsed.get_inner() == socket_addr)
+            );
+        });
+    });
 }
 #[test]
 fn test_service_socket_address_parsing_returns_error_for_invalid_addr() {
@@ -288,6 +491,16 @@ fn test_service_socket_address_parsing_returns_error_for_invalid_addr() {
             crate::domain_types::TryFromStdEnvVarOkServiceSocketAddressError::StdNetSocketAddr { .. }
         )
     ));
+    [constants_str::EMPTY.to_owned(), constants_str::VALUE_127_0_0_1.to_owned(), format!("{}:{}", constants_str::VALUE_127_0_0_1, u32::from(u16::MAX) + 1u32), format!("{}:{}", std::net::Ipv6Addr::LOCALHOST, 1u16)]
+        .into_iter().fold((), |(), text| {
+            let native = text.parse::<std::net::SocketAddr>();
+            assert!(native.is_err());
+            let Err(source) = native else { return; };
+            assert!(parse_env::<crate::domain_types::ServiceSocketAddress>(&text).is_err_and(|socket_error| {
+                let crate::domain_types::TryFromStdEnvVarOkServiceSocketAddressError::StdNetSocketAddr { std_net_socket_addr } = socket_error;
+                format!("{std_net_socket_addr:?}") == format!("{source:?}")
+            }));
+        });
 }
 #[test]
 fn test_timezone_parsing_returns_timezone_for_valid_offset() {
@@ -323,6 +536,47 @@ fn test_parse_east_fixed_offset_returns_error_for_out_of_range_seconds() {
         )
     );
 }
+#[test]
+fn test_timezone_signed_boundaries_preserve_offsets_and_native_conversion() {
+    [-86_399i32, -1i32, 0i32, 1i32, 86_399i32]
+        .into_iter()
+        .fold((), |(), seconds| {
+            let direct = crate::chrono_timezone::ChronoTimezone::try_from(
+                crate::timezone_seconds::TimezoneSeconds::from(seconds),
+            );
+            let native = chrono::FixedOffset::east_opt(seconds);
+            assert!(direct.is_ok() && native.is_some());
+            let (Ok(timezone), Some(fixed_offset)) = (direct, native) else {
+                return;
+            };
+            assert_eq!(timezone.local_minus_utc(), seconds);
+            assert_eq!(
+                crate::chrono_timezone::ChronoTimezone::try_from(fixed_offset),
+                Ok(timezone)
+            );
+            assert_eq!(
+                crate::parse_east_fixed_offset::parse_east_fixed_offset(
+                    crate::timezone_seconds::TimezoneSeconds::from(seconds)
+                ),
+                Ok(timezone)
+            );
+            assert!(
+                parse_env::<crate::chrono_timezone::ChronoTimezone>(&seconds.to_string())
+                    .is_ok_and(|parsed| parsed == timezone)
+            );
+        });
+}
+
+#[test]
+fn test_timezone_rejects_both_exclusive_limits_with_exact_offset_error() {
+    [-86_400i32, 86_400i32, i32::MIN, i32::MAX].into_iter().fold((), |(), seconds| {
+        let expected = crate::chrono_fixed_offset_error::ChronoFixedOffsetError::from(constants_str::CONFIG_TIMEZONE_NOT_EAST_MSG);
+        assert_eq!(crate::chrono_timezone::ChronoTimezone::try_from(crate::timezone_seconds::TimezoneSeconds::from(seconds)), Err(expected));
+        assert_eq!(crate::parse_east_fixed_offset::parse_east_fixed_offset(crate::timezone_seconds::TimezoneSeconds::from(seconds)), Err(expected));
+        assert!(parse_env::<crate::chrono_timezone::ChronoTimezone>(&seconds.to_string()).is_err_and(|error| matches!(error, crate::try_from_std_env_var_ok_timezone_error::TryFromStdEnvVarOkTimezoneError::ChronoFixedOffset { chrono_fixed_offset } if chrono_fixed_offset == expected)));
+    });
+}
+
 #[test]
 fn test_timezone_parsing_returns_offset_error_when_out_of_range() {
     let out_of_range = i32::MAX.to_string();

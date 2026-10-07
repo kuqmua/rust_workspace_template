@@ -21,6 +21,37 @@ mod tests {
             Ok(crate::tracing_format::TracingFormat::Text)
         );
         assert_eq!(
+            parse(&constants_str::TRACING_FORMAT_TEXT.to_ascii_uppercase()),
+            Ok(crate::tracing_format::TracingFormat::Text)
+        );
+        assert_eq!(
+            crate::tracing_format::TracingFormat::default(),
+            crate::tracing_format::TracingFormat::Text
+        );
+        [constants_str::JSON, constants_str::TRACING_FORMAT_TEXT]
+            .into_iter()
+            .fold((), |(), format| {
+                [
+                    format!("{}{format}", constants_str::SPACE),
+                    format!("{format}{}", constants_str::SPACE),
+                ]
+                .into_iter()
+                .fold((), |(), text| {
+                    assert_eq!(
+                        parse(&text),
+                        Err(crate::try_from_std_env_var_ok_tracing_format_error::TryFromStdEnvVarOkTracingFormatError::Unknown)
+                    );
+                });
+            });
+        [constants_str::EMPTY, constants_str::SPACE]
+            .into_iter()
+            .fold((), |(), text| {
+                assert_eq!(
+                    parse(text),
+                    Err(crate::try_from_std_env_var_ok_tracing_format_error::TryFromStdEnvVarOkTracingFormatError::Unknown)
+                );
+            });
+        assert_eq!(
             parse(constants_str::BAD),
             Err(crate::try_from_std_env_var_ok_tracing_format_error::TryFromStdEnvVarOkTracingFormatError::Unknown)
         );
@@ -78,6 +109,45 @@ mod tests {
     }
     #[test]
     fn test_tracing_level_display_is_stable() {
+        [
+            (
+                crate::tracing_level::TracingLevel::Trace,
+                constants_str::CONFIG_TRACING_TRACE,
+            ),
+            (
+                crate::tracing_level::TracingLevel::Debug,
+                constants_str::CONFIG_TRACING_DEBUG,
+            ),
+            (
+                crate::tracing_level::TracingLevel::Info,
+                constants_str::CONFIG_TRACING_INFO,
+            ),
+            (
+                crate::tracing_level::TracingLevel::Warn,
+                constants_str::CONFIG_TRACING_WARN,
+            ),
+            (
+                crate::tracing_level::TracingLevel::Error,
+                constants_str::CONFIG_TRACING_ERROR,
+            ),
+        ]
+        .into_iter()
+        .fold((), |(), (tracing_level, name)| {
+            assert_eq!(tracing_level.to_string(), name);
+            assert_eq!(
+                name.parse::<crate::tracing_level::TracingLevel>(),
+                Ok(tracing_level)
+            );
+            assert_eq!(
+                name.to_ascii_uppercase()
+                    .parse::<crate::tracing_level::TracingLevel>(),
+                Ok(tracing_level)
+            );
+        });
+        assert_eq!(
+            crate::tracing_level::TracingLevel::default(),
+            crate::tracing_level::TracingLevel::Error
+        );
         assert_parse_display_roundtrip_variants::<crate::tracing_level::TracingLevel>();
     }
     #[test]
@@ -256,6 +326,12 @@ mod tests {
         )
         .expect_err(constants_str::VALUE_7E4B3F19);
         assert!(error.to_string().contains(constants_str::VALUE_3461D5B9));
+        assert!(constants_str::X.parse::<bool>().is_err_and(|source| matches!(
+            &error,
+            crate::env_parse_error::EnvParseError::Parse { context, detail }
+                if *context == crate::parse_context_ref::ParseContextRef::from(constants_str::BOOL_PARSE)
+                    && detail.as_ref() == source.to_string()
+        )));
     }
     #[test]
     fn test_parse_source_place_type_from_env_var_wraps_missing_var_context() {
@@ -290,5 +366,11 @@ mod tests {
         )
         .expect_err(constants_str::VALUE_13FE8A6D);
         assert!(error.to_string().contains(constants_str::VALUE_3461D5B9));
+        assert!(constants_str::X.parse::<bool>().is_err_and(|source| matches!(
+            &error,
+            crate::env_parse_error::EnvParseError::Parse { context, detail }
+                if *context == crate::parse_context_ref::ParseContextRef::from(constants_str::BOOL_PARSE)
+                    && detail.as_ref() == source.to_string()
+        )));
     }
 }

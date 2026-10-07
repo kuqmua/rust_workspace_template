@@ -431,5 +431,62 @@ mod tests {
                     include_request_id.then_some(constants_str::REQUEST_ID_TEST_VALUE.as_bytes()),
                 );
             });
+        let preserved_builder: reqwest::RequestBuilder =
+            server_runtime_http::outbound_trace_context::OutboundTraceContext::new(
+                trace_parent,
+                None,
+                None,
+            )
+            .apply(
+                reqwest_client
+                    .post(constants_str::HTTPS_EXAMPLE_COM)
+                    .header(
+                        constants_str::TRACESTATE,
+                        constants_str::TRACESTATE_TEST_VALUE,
+                    )
+                    .header(
+                        constants_str::X_REQUEST_ID,
+                        constants_str::REQUEST_ID_TEST_VALUE,
+                    )
+                    .header(
+                        reqwest::header::CONTENT_TYPE,
+                        constants_str::APPLICATION_JSON,
+                    )
+                    .body(constants_str::INTEGRATION_NOTIFICATION_MESSAGE)
+                    .into(),
+            )
+            .into();
+        let preserved_result = preserved_builder.build();
+        assert!(preserved_result.is_ok_and(|preserved_request| {
+            preserved_request.method() == reqwest::Method::POST
+                && reqwest::Url::parse(constants_str::HTTPS_EXAMPLE_COM)
+                    .is_ok_and(|expected_url| preserved_request.url() == &expected_url)
+                && preserved_request
+                    .headers()
+                    .get(constants_str::TRACEPARENT)
+                    .is_some_and(|value| {
+                        value.as_bytes() == constants_str::TRACEPARENT_TEST_VALUE.as_bytes()
+                    })
+                && preserved_request
+                    .headers()
+                    .get(constants_str::TRACESTATE)
+                    .is_some_and(|value| {
+                        value.as_bytes() == constants_str::TRACESTATE_TEST_VALUE.as_bytes()
+                    })
+                && preserved_request
+                    .headers()
+                    .get(constants_str::X_REQUEST_ID)
+                    .is_some_and(|value| {
+                        value.as_bytes() == constants_str::REQUEST_ID_TEST_VALUE.as_bytes()
+                    })
+                && preserved_request
+                    .headers()
+                    .get(reqwest::header::CONTENT_TYPE)
+                    .is_some_and(|value| {
+                        value.as_bytes() == constants_str::APPLICATION_JSON.as_bytes()
+                    })
+                && preserved_request.body().and_then(reqwest::Body::as_bytes)
+                    == Some(constants_str::INTEGRATION_NOTIFICATION_MESSAGE.as_bytes())
+        }));
     }
 }

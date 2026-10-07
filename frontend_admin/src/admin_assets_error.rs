@@ -29,5 +29,9 @@ mod tests {
             axum::http::StatusCode::INTERNAL_SERVER_ERROR
         );
         assert!(response.headers().is_empty());
+        assert_eq!(
+            axum::body::HttpBody::size_hint(response.body()).exact(),
+            Some(0u64)
+        );
     }
 }

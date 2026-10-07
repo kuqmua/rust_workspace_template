@@ -96,6 +96,8 @@ pub mod required_header_value;
 #[cfg(test)]
 pub mod test_expectation_id;
 #[cfg(test)]
+mod test_failing_http_body;
+#[cfg(test)]
 pub(crate) mod test_helper;
 #[cfg(test)]
 pub mod test_panic_text;

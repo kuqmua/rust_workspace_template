@@ -30,12 +30,34 @@ mod tests {
     #[test]
     fn test_try_from_bounded_error_text_rejects_short_target() {
         let error = bounded_error_text_fixture();
-        assert!(matches!(
+        assert_eq!(
             super::try_from_bounded_error_text::<
                 crate::bounded_string::BoundedString<0usize, 1usize, false>,
                 crate::bounded_string_error::BoundedStringError,
             >(error),
-            Err(crate::bounded_string_error::BoundedStringError::AboveMaximum { .. })
-        ));
+            Err(
+                crate::bounded_string_error::BoundedStringError::AboveMaximum {
+                    actual_length: crate::bounded_len::BoundedLen::from(error.to_string().len()),
+                    maximum_length: crate::bounded_len::BoundedLen::from(1usize),
+                }
+            )
+        );
+    }
+
+    #[test]
+    fn test_try_from_bounded_error_text_preserves_lower_bound_rejection_lengths() {
+        let error = bounded_error_text_fixture();
+        assert_eq!(
+            super::try_from_bounded_error_text::<
+                crate::bounded_string::BoundedString<1_024usize, 2_048usize, false>,
+                crate::bounded_string_error::BoundedStringError,
+            >(error),
+            Err(
+                crate::bounded_string_error::BoundedStringError::BelowMinimum {
+                    actual_length: crate::bounded_len::BoundedLen::from(error.to_string().len()),
+                    minimum_length: crate::bounded_len::BoundedLen::from(1_024usize),
+                }
+            )
+        );
     }
 }

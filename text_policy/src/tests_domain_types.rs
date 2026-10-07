@@ -1,6 +1,68 @@
 #[cfg(test)]
 mod tests {
     #[test]
+    fn test_password_text_reference_preserves_borrowing_and_exact_debug_redaction() {
+        [
+            constants_str::EMPTY,
+            constants_str::NON_ASCII_U_E9,
+            constants_str::NEVER_PRINT_THIS_VALUE,
+        ]
+        .into_iter()
+        .fold((), |(), value| {
+            let password_text_ref = crate::password_text_ref::PasswordTextRef::from(value);
+            assert_eq!(
+                format!("{password_text_ref:?}"),
+                constants_str::REDACTED_ALT_3
+            );
+            assert_eq!(
+                format!("{password_text_ref:#?}"),
+                constants_str::REDACTED_ALT_3
+            );
+            let borrowed = <&str>::from(password_text_ref);
+            assert!(std::ptr::eq(borrowed, value));
+            assert_eq!(
+                format!("{password_text_ref:?}"),
+                constants_str::REDACTED_ALT_3
+            );
+        });
+    }
+
+    #[test]
+    fn test_https_url_requires_exact_lowercase_scheme_prefix() {
+        let valid = constants_str::HTTPS_ADMIN_EXAMPLE_COM;
+        let authority = valid.trim_start_matches(constants_str::HTTPS_SCHEME_PREFIX);
+        [authority.to_owned(), valid.to_uppercase(), String::new()]
+            .iter()
+            .fold((), |(), value| {
+                assert_eq!(
+                    crate::validate_https_url_text::validate_https_url_text(
+                        crate::https_url_text_ref::HttpsUrlTextRef::from(value.as_str()),
+                    ),
+                    Err(crate::https_url_text_error::HttpsUrlTextError::Invalid),
+                );
+            });
+    }
+
+    #[test]
+    fn test_https_url_rejects_unicode_whitespace_in_path_query_and_fragment() {
+        ['\u{00a0}', '\u{2003}', '\u{2028}', '\u{202f}', '\u{3000}']
+            .into_iter()
+            .fold((), |(), character| {
+                ['/', '?', '#'].into_iter().fold((), |(), delimiter| {
+                    let mut value = constants_str::HTTPS_ADMIN_EXAMPLE_COM.to_owned();
+                    value.push(delimiter);
+                    value.push(character);
+                    assert_eq!(
+                        crate::validate_https_url_text::validate_https_url_text(
+                            crate::https_url_text_ref::HttpsUrlTextRef::from(value.as_str()),
+                        ),
+                        Err(crate::https_url_text_error::HttpsUrlTextError::Invalid),
+                    );
+                });
+            });
+    }
+
+    #[test]
     fn test_https_url_validator_checks_authority_and_port() {
         let mut valid_port = constants_str::HTTPS_ADMIN_EXAMPLE_COM.to_owned();
         valid_port.push(':');

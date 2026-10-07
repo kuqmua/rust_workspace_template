@@ -5,6 +5,8 @@ mod tests {
         let parse_flags = |std_env_var_ok: crate::std_env_var_ok::StdEnvVarOk| {
             [
                 <crate::admin_cookie_secure::AdminCookieSecure as crate::try_from_std_env_var_ok::TryFromStdEnvVarOk>::try_from_std_env_var_ok(std_env_var_ok.clone()).map(|admin_cookie_secure| *admin_cookie_secure),
+                <crate::http_gzip_enabled::HttpGzipEnabled as crate::try_from_std_env_var_ok::TryFromStdEnvVarOk>::try_from_std_env_var_ok(std_env_var_ok.clone()).map(|http_gzip_enabled| *http_gzip_enabled),
+                <crate::production_mode::ProductionMode as crate::try_from_std_env_var_ok::TryFromStdEnvVarOk>::try_from_std_env_var_ok(std_env_var_ok.clone()).map(|production_mode| *production_mode),
                 <crate::admin_swagger_enabled::AdminSwaggerEnabled as crate::try_from_std_env_var_ok::TryFromStdEnvVarOk>::try_from_std_env_var_ok(std_env_var_ok).map(|admin_swagger_enabled| *admin_swagger_enabled),
             ]
         };
@@ -121,14 +123,18 @@ mod tests {
     }
     #[test]
     fn test_administrator_session_limit_validates_positive_and_invalid_input() {
+        let mut overflow = u64::MAX.to_string();
+        overflow.push('0');
         [
-            (constants_str::VALUE_1, Some(1usize), false),
-            (constants_str::VALUE_0, None, true),
-            (constants_str::VALUE_F1234D75, None, false),
+            (constants_str::VALUE_1.to_owned(), Some(1usize), false),
+            (constants_str::VALUE_0.to_owned(), None, true),
+            (constants_str::VALUE_F1234D75.to_owned(), None, false),
+            (std::num::NonZeroUsize::MAX.to_string(), Some(std::num::NonZeroUsize::MAX.get()), false),
+            (overflow, None, false),
         ]
         .into_iter()
         .fold((), |(), (value, expected, zero)| {
-            assert!(crate::std_env_var_ok::StdEnvVarOk::try_from(value.to_owned()).is_ok_and(|std_env_var_ok| {
+            assert!(crate::std_env_var_ok::StdEnvVarOk::try_from(value).is_ok_and(|std_env_var_ok| {
                 let parsed = <crate::admin_session_limit::AdminSessionLimit as crate::try_from_std_env_var_ok::TryFromStdEnvVarOk>::try_from_std_env_var_ok(std_env_var_ok);
                 match expected {
                     Some(positive) => parsed.is_ok_and(|limit| (*limit).get() == positive),
