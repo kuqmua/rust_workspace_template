@@ -274,4 +274,113 @@ mod tests {
             })
         }));
     }
+    #[test]
+    fn test_all_geojson_geometry_variants_validate_latitude_boundaries() {
+        assert!([
+            (-90.001f64, false), (-90.0f64, true), (0.0f64, true),
+            (90.0f64, true), (90.001f64, false),
+        ].into_iter().all(|(latitude, valid)| {
+            let point = serde_json::json!([0.0f64, latitude]);
+            let positions = serde_json::json!([[0.0f64, 0.0f64], point]);
+            let rings = serde_json::json!([positions]);
+            let polygons = serde_json::json!([rings]);
+            [
+                (constants_str::GEO_JSON_POINT, &point),
+                (constants_str::GEO_JSON_LINE_STRING, &positions),
+                (constants_str::GEO_JSON_MULTI_POINT, &positions),
+                (constants_str::GEO_JSON_MULTI_LINE_STRING, &rings),
+                (constants_str::GEO_JSON_POLYGON, &rings),
+                (constants_str::GEO_JSON_MULTI_POLYGON, &polygons),
+            ].into_iter().all(|(geometry_type, coordinates)| {
+                let result = document(&serde_json::json!({
+                    constants_str::GEO_JSON_TYPE: geometry_type,
+                    constants_str::GEO_JSON_COORDINATES: coordinates
+                }));
+                if valid {
+                    result.is_ok()
+                } else {
+                    matches!(result, Err(crate::geo_json_validation_error::GeoJsonValidationError::Coordinates))
+                }
+            })
+        }));
+    }
+
+    #[test]
+    fn test_geojson_coordinate_collections_reject_nested_empty_children() {
+        assert!(matches!(
+            document(&serde_json::json!({
+                constants_str::GEO_JSON_TYPE: constants_str::GEO_JSON_MULTI_POLYGON,
+                constants_str::GEO_JSON_COORDINATES: [[]]
+            })),
+            Err(crate::geo_json_validation_error::GeoJsonValidationError::Document)
+        ));
+        assert!(
+            [
+                (constants_str::GEO_JSON_MULTI_POINT, serde_json::json!([])),
+                (
+                    constants_str::GEO_JSON_MULTI_LINE_STRING,
+                    serde_json::json!([])
+                ),
+                (
+                    constants_str::GEO_JSON_MULTI_LINE_STRING,
+                    serde_json::json!([[]])
+                ),
+                (constants_str::GEO_JSON_POLYGON, serde_json::json!([[]])),
+                (
+                    constants_str::GEO_JSON_MULTI_POLYGON,
+                    serde_json::json!([[[]]])
+                ),
+                (
+                    constants_str::GEO_JSON_MULTI_LINE_STRING,
+                    serde_json::json!([[[0.0f64, 0.0f64]], []])
+                ),
+                (
+                    constants_str::GEO_JSON_POLYGON,
+                    serde_json::json!([[[0.0f64, 0.0f64]], []])
+                ),
+                (
+                    constants_str::GEO_JSON_MULTI_POLYGON,
+                    serde_json::json!([[[[0.0f64, 0.0f64]]], []])
+                ),
+            ]
+            .into_iter()
+            .all(|(geometry_type, coordinates)| {
+                matches!(
+                    document(&serde_json::json!({
+                        constants_str::GEO_JSON_TYPE: geometry_type,
+                        constants_str::GEO_JSON_COORDINATES: coordinates
+                    })),
+                    Err(crate::geo_json_validation_error::GeoJsonValidationError::Coordinates)
+                )
+            })
+        );
+    }
+
+    #[test]
+    fn test_geojson_nested_type_validation_preserves_shape_and_unsupported_errors() {
+        assert!([
+            (serde_json::json!({}), false),
+            (serde_json::json!({constants_str::GEO_JSON_TYPE: null}), false),
+            (serde_json::json!({constants_str::GEO_JSON_TYPE: constants_str::X}), true),
+            (serde_json::json!({constants_str::GEO_JSON_TYPE: constants_str::GEO_JSON_GEOMETRY_COLLECTION}), false),
+            (serde_json::json!({constants_str::GEO_JSON_TYPE: constants_str::GEO_JSON_FEATURE_COLLECTION, constants_str::GEO_JSON_FEATURES: {}}), false),
+        ].into_iter().all(|(invalid_child, unsupported)| {
+            [
+                serde_json::json!({constants_str::GEO_JSON_TYPE: constants_str::GEO_JSON_FEATURE, constants_str::GEO_JSON_GEOMETRY: invalid_child, constants_str::PROPERTIES: {}}),
+                serde_json::json!({constants_str::GEO_JSON_TYPE: constants_str::GEO_JSON_GEOMETRY_COLLECTION, constants_str::GEO_JSON_GEOMETRIES: [
+                    {constants_str::GEO_JSON_TYPE: constants_str::GEO_JSON_POINT, constants_str::GEO_JSON_COORDINATES: [0.0f64, 0.0f64]}, invalid_child
+                ]}),
+                serde_json::json!({constants_str::GEO_JSON_TYPE: constants_str::GEO_JSON_FEATURE_COLLECTION, constants_str::GEO_JSON_FEATURES: [
+                    {constants_str::GEO_JSON_TYPE: constants_str::GEO_JSON_FEATURE, constants_str::GEO_JSON_GEOMETRY: null, constants_str::PROPERTIES: {}},
+                    {constants_str::GEO_JSON_TYPE: constants_str::GEO_JSON_FEATURE, constants_str::GEO_JSON_GEOMETRY: invalid_child, constants_str::PROPERTIES: {}}
+                ]}),
+            ].iter().all(|value| {
+                if unsupported {
+                    matches!(document(value), Err(crate::geo_json_validation_error::GeoJsonValidationError::UnsupportedGeometry))
+                } else {
+                    matches!(document(value), Err(crate::geo_json_validation_error::GeoJsonValidationError::Document))
+                }
+            })
+        }));
+    }
 }

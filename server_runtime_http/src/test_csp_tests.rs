@@ -1,6 +1,56 @@
 #[cfg(test)]
 mod tests {
     #[test]
+    fn test_csp_builder_empty_and_opaque_utf8_final_header_bytes() {
+        assert!(
+            crate::http_csp_builder::HttpCspBuilder::default()
+                .try_build()
+                .is_ok_and(|policy| policy.as_bytes().is_empty())
+        );
+        let text = '\u{00e9}'.to_string();
+        assert!(
+            crate::http_csp_builder::HttpCspBuilder::try_from(text.clone()).is_ok_and(|builder| {
+                builder
+                    .try_build()
+                    .is_ok_and(|policy| policy.as_bytes() == text.as_bytes())
+            })
+        );
+        assert!(
+            crate::http_csp_directive_name::HttpCspDirectiveName::try_from(
+                constants_str::X.to_owned()
+            )
+            .is_ok_and(|name| {
+                crate::http_csp_directive_value::HttpCspDirectiveValue::try_from(text.clone())
+                    .is_ok_and(|value| {
+                        let mut builder = crate::http_csp_builder::HttpCspBuilder::default();
+                        let expected =
+                            [constants_str::X, constants_str::SPACE, text.as_str()].concat();
+                        builder.try_add(&name, &[value]) == Ok(())
+                            && builder
+                                .try_build()
+                                .is_ok_and(|policy| policy.as_bytes() == expected.as_bytes())
+                    })
+            })
+        );
+    }
+
+    #[test]
+    fn test_csp_builder_rejects_control_bytes_at_final_header_conversion() {
+        assert!(['\0', '\u{0001}', '\u{007f}'].into_iter().all(|character| {
+            let text = character.to_string();
+            let raw_rejected = crate::http_csp_builder::HttpCspBuilder::try_from(text.clone())
+                .is_ok_and(|builder| matches!(builder.try_build(), Err(crate::http_content_security_policy_error::HttpContentSecurityPolicyError::InvalidHeaderValue)));
+            raw_rejected && crate::http_csp_directive_name::HttpCspDirectiveName::try_from(constants_str::X.to_owned())
+                .is_ok_and(|name| crate::http_csp_directive_value::HttpCspDirectiveValue::try_from(text)
+                    .is_ok_and(|value| {
+                        let mut builder = crate::http_csp_builder::HttpCspBuilder::default();
+                        builder.try_add(&name, &[value]) == Ok(())
+                            && matches!(builder.try_build(), Err(crate::http_content_security_policy_error::HttpContentSecurityPolicyError::InvalidHeaderValue))
+                    }))
+        }));
+    }
+
+    #[test]
     fn test_csp_token_storage_zero_and_utf8_limits_preserve_validation_order() {
         assert_eq!(
             crate::http_csp_token_text::HttpCspTokenText::<0usize>::try_from(String::new()),

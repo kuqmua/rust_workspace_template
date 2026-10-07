@@ -90,9 +90,9 @@ mod tests {
     }
 
     #[tokio::test(start_paused = true)]
-    async fn test_timeout_response_contains_retry_after_without_text_round_trip() {
+    async fn test_timeout_response_preserves_json_contract_and_truncates_fractional_retry_delay() {
         let timeout = crate::request_timeout_duration::RequestTimeoutDuration::try_from(
-            std::time::Duration::from_secs(2u64),
+            std::time::Duration::new(2u64, 999_999_999u32),
         )
         .expect(constants_str::DIAGNOSTIC_B140EAD4);
         let router = axum::Router::from(
@@ -116,6 +116,23 @@ mod tests {
         assert_eq!(
             response.headers().get(http::header::RETRY_AFTER),
             Some(&http::HeaderValue::from_static(constants_str::VALUE_2))
+        );
+        assert_eq!(
+            response.headers().get(http::header::CONTENT_TYPE),
+            Some(&http::HeaderValue::from_static(
+                constants_str::APPLICATION_JSON
+            ))
+        );
+        let expected = serde_json::json!({
+            (constants_str::ERROR.to_ascii_lowercase()): constants_str::REQUEST_TIMEOUT
+        });
+        assert!(
+            axum::body::to_bytes(response.into_body(), expected.to_string().len())
+                .await
+                .is_ok_and(|bytes| {
+                    serde_json::from_slice::<serde_json::Value>(&bytes)
+                        .is_ok_and(|json| json == expected)
+                })
         );
     }
 

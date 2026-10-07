@@ -29,6 +29,21 @@ pub(crate) fn validate_frontend_node_version(
 #[cfg(test)]
 mod tests {
     #[test]
+    fn test_frontend_node_supported_major_without_dot_is_invalid() {
+        assert!([22u32, u32::MAX].into_iter().all(|major| {
+            let text = format!(" \tv{major}\n");
+            crate::bounded_text::BoundedText::try_from(text).is_ok_and(|bounded_text| {
+                matches!(
+                    crate::validate_frontend_node_version::validate_frontend_node_version(
+                        &bounded_text
+                    ),
+                    Err(crate::frontend_preparation_error::FrontendPreparationError::NodeVersion)
+                )
+            })
+        }));
+    }
+
+    #[test]
     fn test_frontend_node_major_version_parse_errors() {
         assert!([
             String::default(),

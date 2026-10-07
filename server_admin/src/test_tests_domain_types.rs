@@ -1,4 +1,161 @@
 #[test]
+fn test_authorization_rule_collection_exact_limit_preserves_order_and_rejects_overflow() {
+    let rules = [
+        server_admin_contract::admin_rule::AdminRule::MetricsRead,
+        server_admin_contract::admin_rule::AdminRule::UsersRead,
+    ];
+    assert!(
+        [0usize, 9999usize, 10000usize, 10001usize]
+            .into_iter()
+            .all(|count| {
+                let input = rules.into_iter().cycle().take(count).collect::<Vec<_>>();
+                let result = crate::admin_auth_rules::AdminAuthRules::try_from(input);
+                if count == 10001usize {
+                    matches!(
+                        result,
+                        Err(crate::admin_auth_collection_error::AdminAuthCollectionError::TooLarge)
+                    )
+                } else {
+                    result.is_ok_and(|stored| {
+                        stored.as_ref().len() == count
+                            && stored
+                                .as_ref()
+                                .iter()
+                                .zip(rules.into_iter().cycle())
+                                .all(|(actual, expected)| *actual == expected)
+                    })
+                }
+            })
+    );
+}
+
+#[test]
+fn test_authorization_role_collection_exact_limit_preserves_order_and_rejects_overflow() {
+    let names = [constants_str::USER, constants_str::LOGIN];
+    assert!([0usize, 9999usize, 10000usize, 10001usize].into_iter().all(|count| {
+        names.into_iter().cycle().take(count)
+            .map(|name| server_admin_contract::admin_role_name::AdminRoleName::try_from(name.to_owned()))
+            .collect::<Result<Vec<_>, _>>().is_ok_and(|input| {
+                let result = crate::runtime_admin_role_names::RuntimeAdminRoleNames::try_from(input);
+                if count == 10001usize {
+                    matches!(result, Err(crate::admin_auth_collection_error::AdminAuthCollectionError::TooLarge))
+                } else {
+                    result.is_ok_and(|stored| stored.as_ref().len() == count
+                        && stored.as_ref().iter().zip(names.into_iter().cycle()).all(|(actual, expected)| actual.as_ref() == expected))
+                }
+            })
+    }));
+}
+
+#[test]
+fn test_page_total_conversion_numeric_endpoints_preserve_distinct_error_domains() {
+    assert!(
+        [i64::MIN, -1i64, 0i64, 1i64, i64::MAX]
+            .into_iter()
+            .all(|value| {
+                let count = crate::admin_page_total_count::AdminPageTotalCount::from(value);
+                let repository_result = crate::repository_page_total::repository_page_total(count);
+                let application_result = crate::page_total::page_total(count);
+                if let Ok(expected) = u64::try_from(value) {
+                    repository_result.is_ok_and(|total| u64::from(total) == expected)
+                        && application_result.is_ok_and(|total| u64::from(total) == expected)
+                } else {
+                    matches!(
+                        repository_result,
+                        Err(
+                            crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue
+                        )
+                    ) && matches!(
+                        application_result,
+                        Err(crate::admin_error::AdminError::Validation)
+                    )
+                }
+            })
+    );
+}
+
+#[test]
+fn test_cleanup_report_total_includes_every_resource_and_saturates() {
+    assert!(
+        [
+            ([0u64; 6usize], 0u64),
+            ([u64::MAX; 6usize], u64::MAX),
+            ([u64::MAX - 1u64, 1u64, 1u64, 0u64, 0u64, 0u64], u64::MAX),
+        ]
+        .into_iter()
+        .chain((0usize..6usize).map(|position| {
+            (
+                std::array::from_fn(|index| if index == position { u64::MAX } else { 0u64 }),
+                u64::MAX,
+            )
+        }))
+        .all(|(values, expected)| {
+            let [
+                access_sessions,
+                audit_log,
+                idempotency,
+                login_attempts,
+                rate_limits,
+                refresh_tokens,
+            ] = values.map(crate::admin_cleanup_rows::AdminCleanupRows::from);
+            crate::admin_cleanup_report::AdminCleanupReport::new(
+                access_sessions,
+                audit_log,
+                idempotency,
+                login_attempts,
+                rate_limits,
+                refresh_tokens,
+            )
+            .total_rows()
+                == crate::admin_cleanup_rows::AdminCleanupRows::from(expected)
+        })
+    );
+}
+
+#[test]
+fn test_cleanup_configuration_numeric_endpoints_preserve_values() {
+    assert!([i64::MIN, -1i64, 0i64, 1i64, 9999i64, 10000i64, 10001i64, i64::MAX]
+        .into_iter().all(|value| {
+            let result = crate::admin_cleanup_batch_size::AdminCleanupBatchSize::try_from(value);
+            if (1i64..=10000i64).contains(&value) {
+                result.is_ok_and(|batch| *batch.get_inner() == value)
+            } else {
+                result == Err(crate::admin_cleanup_configuration_error::AdminCleanupConfigurationError::BatchSizeOutOfRange)
+            }
+        }));
+    assert!([i64::MIN, -1i64, 0i64, 1i64, i64::MAX].into_iter().all(|value| {
+        let result = crate::admin_cleanup_retention_seconds::AdminCleanupRetentionSeconds::try_from(value);
+        if value > 0i64 {
+            result.is_ok_and(|retention| retention.get() == value)
+        } else {
+            result == Err(crate::admin_cleanup_configuration_error::AdminCleanupConfigurationError::RetentionMustBePositive)
+        }
+    }));
+}
+
+#[test]
+fn test_cleanup_row_addition_preserves_values_and_saturates() {
+    assert!(
+        [
+            (0u64, 0u64, 0u64),
+            (0u64, u64::MAX, u64::MAX),
+            (u64::MAX, 0u64, u64::MAX),
+            (7u64, 11u64, 18u64),
+            (u64::MAX - 1u64, 1u64, u64::MAX),
+            (u64::MAX - 1u64, 2u64, u64::MAX),
+            (u64::MAX, u64::MAX, u64::MAX)
+        ]
+        .into_iter()
+        .all(|(left, right, expected)| {
+            let left_rows = crate::admin_cleanup_rows::AdminCleanupRows::from(left);
+            let right_rows = crate::admin_cleanup_rows::AdminCleanupRows::from(right);
+            *(left_rows + right_rows).get_inner() == expected
+                && *left_rows.saturating_add(right_rows).get_inner() == expected
+        })
+    );
+}
+
+#[test]
 fn test_cleanup_configuration_enforces_positive_bounded_values() {
     assert_eq!(
         crate::admin_cleanup_batch_size::AdminCleanupBatchSize::try_from(constants_i64::ZERO),

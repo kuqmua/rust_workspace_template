@@ -25,6 +25,54 @@ mod tests {
         .to_string()
     }
     #[test]
+    fn test_real_ip_duplicate_and_nontext_headers_fall_back_to_trusted_peer() {
+        assert!(http::HeaderValue::from_bytes(&[255u8]).is_ok_and(|binary| {
+            [false, true].into_iter().all(|duplicate| {
+                let mut headers = http::HeaderMap::new();
+                let _previous = headers.insert(
+                    constants_str::RUNTIME_REAL_IP_HEADER_NAME,
+                    if duplicate {
+                        http::HeaderValue::from_static(constants_str::VALUE_203_0_113_1)
+                    } else {
+                        binary.clone()
+                    },
+                );
+                if duplicate {
+                    let _appended = headers.append(
+                        constants_str::RUNTIME_REAL_IP_HEADER_NAME,
+                        http::HeaderValue::from_static(constants_str::VALUE_203_0_113_2),
+                    );
+                }
+                resolved(
+                    &headers,
+                    constants_str::VALUE_127_0_0_1_8080,
+                    vec![range(constants_str::VALUE_127_0_0_1_32)],
+                ) == constants_str::VALUE_127_0_0_1
+            })
+        }));
+    }
+
+    #[test]
+    fn test_all_trusted_forwarded_chain_resolves_first_address() {
+        let mut headers = http::HeaderMap::new();
+        let _previous = headers.insert(
+            constants_str::RUNTIME_FORWARDED_FOR_HEADER_NAME,
+            http::HeaderValue::from_static(constants_str::VALUE_203_0_113_7_10_0_0_8_10_0_0),
+        );
+        let mut first_range = constants_str::VALUE_203_0_113_7.to_owned();
+        first_range.push('/');
+        first_range.push_str(&32u8.to_string());
+        assert_eq!(
+            resolved(
+                &headers,
+                constants_str::VALUE_52553922,
+                vec![range(constants_str::VALUE_A34D80F7), range(&first_range)]
+            ),
+            constants_str::VALUE_203_0_113_7
+        );
+    }
+
+    #[test]
     fn test_proxy_ranges_match_ipv4_mapped_addresses() {
         let trusted_range = range(constants_str::VALUE_127_0_0_1_32);
         let mapped = std::net::Ipv4Addr::LOCALHOST.to_ipv6_mapped();
@@ -370,6 +418,58 @@ mod tests {
             constants_str::VALUE_EBB856CA
         );
     }
+    #[test]
+    fn test_forwarded_address_count_accepts_limit_and_rejects_overflow() {
+        assert!([31usize, 32usize, 33usize].into_iter().all(|count| {
+            let text =
+                vec![constants_str::VALUE_203_0_113_1; count].join(constants_str::COMMA_SPACE);
+            http::HeaderValue::from_str(&text).is_ok_and(|header| {
+                let mut headers = http::HeaderMap::new();
+                let _previous =
+                    headers.insert(constants_str::RUNTIME_FORWARDED_FOR_HEADER_NAME, header);
+                resolved(
+                    &headers,
+                    constants_str::VALUE_127_0_0_1_8080,
+                    vec![range(constants_str::VALUE_127_0_0_1_32)],
+                ) == if count == 33usize {
+                    constants_str::VALUE_127_0_0_1
+                } else {
+                    constants_str::VALUE_203_0_113_1
+                }
+            })
+        }));
+    }
+
+    #[test]
+    fn test_client_ip_header_byte_limits_apply_before_whitespace_trimming() {
+        assert!(
+            [
+                constants_str::RUNTIME_FORWARDED_FOR_HEADER_NAME,
+                constants_str::RUNTIME_REAL_IP_HEADER_NAME,
+            ]
+            .into_iter()
+            .all(|name| {
+                [4095usize, 4096usize, 4097usize].into_iter().all(|length| {
+                    let mut text = constants_str::VALUE_203_0_113_1.to_owned();
+                    text.push_str(&constants_str::SPACE.repeat(length - text.len()));
+                    http::HeaderValue::from_str(&text).is_ok_and(|header| {
+                        let mut headers = http::HeaderMap::new();
+                        let _previous = headers.insert(name, header);
+                        resolved(
+                            &headers,
+                            constants_str::VALUE_127_0_0_1_8080,
+                            vec![range(constants_str::VALUE_127_0_0_1_32)],
+                        ) == if length == 4097usize {
+                            constants_str::VALUE_127_0_0_1
+                        } else {
+                            constants_str::VALUE_203_0_113_1
+                        }
+                    })
+                })
+            })
+        );
+    }
+
     #[test]
     fn test_prefixes_are_validated() {
         assert!(matches!(

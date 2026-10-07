@@ -421,4 +421,69 @@ mod tests {
             }
         }));
     }
+    #[test]
+    fn test_outbound_ipv4_range_boundaries_match_native_mapped_and_nat64_forms() {
+        assert!(
+            [
+                ([0u8, 255, 255, 255], false),
+                ([1, 0, 0, 0], true),
+                ([100, 63, 255, 255], true),
+                ([100, 64, 0, 0], false),
+                ([100, 127, 255, 255], false),
+                ([100, 128, 0, 0], true),
+                ([192, 0, 0, 255], false),
+                ([192, 0, 1, 0], true),
+                ([192, 0, 2, 0], false),
+                ([192, 0, 3, 0], true),
+                ([198, 17, 255, 255], true),
+                ([198, 18, 0, 0], false),
+                ([198, 19, 255, 255], false),
+                ([198, 20, 0, 0], true),
+                ([198, 51, 99, 255], true),
+                ([198, 51, 100, 0], false),
+                ([198, 51, 101, 0], true),
+                ([203, 0, 112, 255], true),
+                ([203, 0, 113, 0], false),
+                ([203, 0, 114, 0], true),
+                ([223, 255, 255, 255], true),
+                ([224, 0, 0, 0], false),
+                ([240, 0, 0, 0], false),
+                ([255, 255, 255, 255], false),
+            ]
+            .into_iter()
+            .all(|(octets, allowed)| {
+                let ipv4 = std::net::Ipv4Addr::from(octets);
+                let [first, second, third, fourth] = octets;
+                let nat64 = std::net::Ipv6Addr::new(
+                    0x64u16,
+                    0xff9b,
+                    0,
+                    0,
+                    0,
+                    0,
+                    (u16::from(first) << 8u32) | u16::from(second),
+                    (u16::from(third) << 8u32) | u16::from(fourth),
+                );
+                [
+                    std::net::IpAddr::V4(ipv4),
+                    std::net::IpAddr::V6(ipv4.to_ipv6_mapped()),
+                    std::net::IpAddr::V6(nat64),
+                ]
+                .into_iter()
+                .all(|address| {
+                    let result = POLICY.validate_resolved_addresses(&[
+                        crate::outbound_ip_addr::OutboundIpAddr::from(address),
+                    ]);
+                    if allowed {
+                        result == Ok(())
+                    } else {
+                        matches!(
+                            result,
+                            Err(crate::outbound_url_error::OutboundUrlError::ForbiddenHost)
+                        )
+                    }
+                })
+            })
+        );
+    }
 }

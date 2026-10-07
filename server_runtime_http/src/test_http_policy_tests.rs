@@ -197,6 +197,113 @@ mod tests {
         );
     }
     #[test]
+    fn test_cookie_resolver_preserves_value_syntax_and_exact_name_matching() {
+        let embedded_value = format!("{}={}", constants_str::TEST_FIRST, constants_str::X);
+        let padded_value = format!(" {}", constants_str::TEST_FIRST);
+        assert!(
+            [
+                (
+                    format!("{}=", constants_str::TEST_COOKIE_NAME),
+                    crate::cookie_resolution::CookieResolution::Resolved(
+                        crate::http_cookie_value_ref::HttpCookieValueRef::from(
+                            constants_str::PG_CRUD_EMPTY_SQL_SUFFIX
+                        )
+                    ),
+                ),
+                (
+                    format!("{}={}", constants_str::TEST_COOKIE_NAME, embedded_value),
+                    crate::cookie_resolution::CookieResolution::Resolved(
+                        crate::http_cookie_value_ref::HttpCookieValueRef::from(
+                            embedded_value.as_str()
+                        )
+                    ),
+                ),
+                (
+                    format!(
+                        " {}={} ",
+                        constants_str::TEST_COOKIE_NAME,
+                        constants_str::TEST_FIRST
+                    ),
+                    crate::cookie_resolution::CookieResolution::Resolved(
+                        crate::http_cookie_value_ref::HttpCookieValueRef::from(
+                            constants_str::TEST_FIRST
+                        )
+                    ),
+                ),
+                (
+                    format!("{}={}", constants_str::TEST_COOKIE_NAME, padded_value),
+                    crate::cookie_resolution::CookieResolution::Resolved(
+                        crate::http_cookie_value_ref::HttpCookieValueRef::from(
+                            padded_value.as_str()
+                        )
+                    ),
+                ),
+                (
+                    format!(
+                        "{} ={}",
+                        constants_str::TEST_COOKIE_NAME,
+                        constants_str::TEST_FIRST
+                    ),
+                    crate::cookie_resolution::CookieResolution::Missing,
+                ),
+                (
+                    format!(
+                        "{}{}={}",
+                        constants_str::TEST_COOKIE_NAME,
+                        constants_str::X,
+                        constants_str::TEST_FIRST
+                    ),
+                    crate::cookie_resolution::CookieResolution::Missing,
+                ),
+                (
+                    format!(
+                        "{}={}",
+                        constants_str::TEST_COOKIE_NAME.to_ascii_uppercase(),
+                        constants_str::TEST_FIRST
+                    ),
+                    crate::cookie_resolution::CookieResolution::Missing,
+                ),
+                (
+                    format!(
+                        "{};{}={};{}={}",
+                        constants_str::X,
+                        constants_str::X,
+                        constants_str::X,
+                        constants_str::TEST_COOKIE_NAME,
+                        constants_str::TEST_FIRST
+                    ),
+                    crate::cookie_resolution::CookieResolution::Resolved(
+                        crate::http_cookie_value_ref::HttpCookieValueRef::from(
+                            constants_str::TEST_FIRST
+                        )
+                    ),
+                ),
+                (
+                    format!(
+                        "{}=;{}={}",
+                        constants_str::TEST_COOKIE_NAME,
+                        constants_str::TEST_COOKIE_NAME,
+                        constants_str::TEST_FIRST
+                    ),
+                    crate::cookie_resolution::CookieResolution::Invalid,
+                ),
+            ]
+            .into_iter()
+            .all(|(text, expected)| {
+                http::HeaderValue::from_str(&text).is_ok_and(|header| {
+                    let mut headers = http::HeaderMap::new();
+                    let _previous = headers.insert(http::header::COOKIE, header);
+                    crate::resolve_unique_cookie::resolve_unique_cookie(
+                        crate::http_cookie_headers_ref::HttpCookieHeadersRef::from(&headers),
+                        crate::http_cookie_name_ref::HttpCookieNameRef::from(
+                            constants_str::TEST_COOKIE_NAME,
+                        ),
+                    ) == expected
+                })
+            })
+        );
+    }
+    #[test]
     fn test_json_content_type_supports_charset() {
         assert_eq!(
             crate::classify_optional_json_content_type::classify_optional_json_content_type(

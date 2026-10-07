@@ -207,4 +207,41 @@ mod tests {
             }
         }));
     }
+    #[test]
+    fn test_proxy_prefix_matching_requires_exact_or_complete_segment_boundaries() {
+        assert!(
+            [
+                (constants_str::TEST_PROXY_PREFIX.to_owned(), true),
+                (constants_str::TEST_PROXY_USERS_PATH.to_owned(), true),
+                (
+                    format!(
+                        "{}/{}",
+                        constants_str::TEST_PROXY_USERS_PATH,
+                        constants_str::X
+                    ),
+                    true
+                ),
+                (
+                    format!("{}{}", constants_str::TEST_PROXY_PREFIX, constants_str::X),
+                    false
+                ),
+                (
+                    format!("{}/{}", constants_str::X, constants_str::TEST_PROXY_PREFIX),
+                    false
+                ),
+                (constants_str::X.to_owned(), false),
+            ]
+            .into_iter()
+            .all(|(text, expected)| {
+                crate::http_proxy_path::HttpProxyPath::try_from(text).is_ok_and(|path| {
+                    bool::from(crate::proxy_path_matches_prefix::proxy_path_matches_prefix(
+                        &path,
+                        crate::http_allowed_path_prefix_ref::HttpAllowedPathPrefixRef::from(
+                            constants_str::TEST_PROXY_PREFIX,
+                        ),
+                    )) == expected
+                })
+            })
+        );
+    }
 }

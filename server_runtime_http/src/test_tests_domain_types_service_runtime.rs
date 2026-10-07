@@ -327,3 +327,34 @@ async fn test_interval_skip_handles_remainders_above_u64_nanoseconds() {
     .expect(constants_str::DIAGNOSTIC_27887819);
     assert_interval_skip_cadence(interval).await;
 }
+
+#[test]
+fn test_run_interval_duration_rejects_zero_and_preserves_positive_precision() {
+    assert_eq!(
+        crate::run_interval_duration::RunIntervalDuration::try_from(std::time::Duration::ZERO),
+        Err(crate::std_run_interval_try_from_duration_error::StdRunIntervalTryFromDurationError::Zero),
+    );
+    assert!(
+        [
+            std::time::Duration::from_nanos(1u64),
+            std::time::Duration::new(1u64, 999_999_999u32),
+            std::time::Duration::MAX,
+        ]
+        .into_iter()
+        .all(|duration| {
+            crate::run_interval_duration::RunIntervalDuration::try_from(duration)
+                .is_ok_and(|interval| interval.get() == duration)
+        })
+    );
+}
+
+#[test]
+fn test_retry_after_header_preserves_full_nonzero_u64_range() {
+    assert!([1u64, u64::MAX - 1u64, u64::MAX].into_iter().all(|value| {
+        crate::retry_after_secs::RetryAfterSecs::try_from(value).is_ok_and(|retry| {
+            retry.get() == value
+                && http::HeaderValue::try_from(retry)
+                    .is_ok_and(|header| header.as_bytes() == value.to_string().as_bytes())
+        })
+    }));
+}

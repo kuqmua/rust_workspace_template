@@ -186,4 +186,59 @@ mod tests {
             )
         ));
     }
+    #[test]
+    fn test_origin_and_referer_matching_preserves_exact_authority_and_suffix_policy() {
+        let allowed = allowed_origins();
+        assert!([
+            http::header::ORIGIN,
+            http::header::REFERER,
+        ].into_iter().all(|name| {
+            [
+                (constants_str::HTTPS_ADMIN_EXAMPLE_COM.to_owned(), true),
+                (constants_str::HTTPS_ADMIN_EXAMPLE_COM.to_ascii_uppercase(), true),
+                (format!(" {} ", constants_str::HTTPS_ADMIN_EXAMPLE_COM), true),
+                (format!("{}{}", constants_str::HTTPS_ADMIN_EXAMPLE_COM, constants_str::X), false),
+                (format!("{}:{}", constants_str::HTTPS_ADMIN_EXAMPLE_COM, 444u16), false),
+                (constants_str::HTTPS_ADMIN_EXAMPLE_COM.replacen(constants_str::HTTPS, constants_str::HTTP, 1usize), false),
+                (format!("{}/{}", constants_str::HTTPS_ADMIN_EXAMPLE_COM, constants_str::X), name == http::header::REFERER),
+                (format!("{}?{}", constants_str::HTTPS_ADMIN_EXAMPLE_COM, constants_str::X), name == http::header::REFERER),
+                (format!("{}#{}", constants_str::HTTPS_ADMIN_EXAMPLE_COM, constants_str::X), name == http::header::REFERER),
+            ].into_iter().all(|(text, expected)| {
+                http::HeaderValue::from_str(&text).is_ok_and(|value| {
+                    let mut headers = http::HeaderMap::new();
+                    let _previous = headers.insert(&name, value);
+                    bool::from(crate::resolve_request_origin_allowed::resolve_request_origin_allowed(
+                        crate::http_origin_headers_ref::HttpOriginHeadersRef::from(&headers),
+                        &allowed,
+                    )) == expected
+                })
+            })
+        }));
+    }
+
+    #[test]
+    fn test_allowed_origin_list_boundaries_preserve_last_entry_matching() {
+        assert!([0usize, 1usize, 127usize, 128usize, 129usize].into_iter().all(|count| {
+            let values = (0usize..count).map(|index| {
+                if index + 1usize == count {
+                    constants_str::HTTPS_ADMIN_EXAMPLE_COM.to_owned()
+                } else {
+                    constants_str::HTTP_LOCALHOST.to_owned()
+                }
+            }).collect::<Vec<_>>();
+            let result = crate::allowed_origins::AllowedOrigins::try_from(values);
+            if count == 129usize {
+                result == Err(crate::allowed_origins_error::AllowedOriginsError::Invalid)
+            } else {
+                result.is_ok_and(|allowed| {
+                    let mut headers = http::HeaderMap::new();
+                    let _previous = headers.insert(http::header::ORIGIN, http::HeaderValue::from_static(constants_str::HTTPS_ADMIN_EXAMPLE_COM));
+                    bool::from(crate::resolve_request_origin_allowed::resolve_request_origin_allowed(
+                        crate::http_origin_headers_ref::HttpOriginHeadersRef::from(&headers),
+                        &allowed,
+                    )) == (count != 0usize)
+                })
+            }
+        }));
+    }
 }
