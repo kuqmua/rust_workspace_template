@@ -67,6 +67,34 @@ fn test_generated_write_error_guard_preserves_arguments_and_failure_body() {
     let syn::Expr::Block(receiver) = condition.receiver.as_ref() else {
         return;
     };
+    assert!(matches!(
+        receiver.block.stmts.first(),
+        Some(syn::Stmt::Item(syn::Item::Use(_)))
+    ));
+    let Some(syn::Stmt::Item(syn::Item::Use(item_use))) = receiver.block.stmts.first() else {
+        return;
+    };
+    assert!(matches!(&item_use.vis, syn::Visibility::Inherited));
+    assert!(item_use.leading_colon.is_none());
+    assert!(matches!(&item_use.tree, syn::UseTree::Path(_)));
+    let syn::UseTree::Path(standard_library) = &item_use.tree else {
+        return;
+    };
+    assert_eq!(standard_library.ident, stringify!(std));
+    assert!(matches!(
+        standard_library.tree.as_ref(),
+        syn::UseTree::Path(_)
+    ));
+    let syn::UseTree::Path(formatting) = standard_library.tree.as_ref() else {
+        return;
+    };
+    assert_eq!(formatting.ident, stringify!(fmt));
+    assert!(matches!(formatting.tree.as_ref(), syn::UseTree::Rename(_)));
+    let syn::UseTree::Rename(write_trait) = formatting.tree.as_ref() else {
+        return;
+    };
+    assert_eq!(write_trait.ident, stringify!(Write));
+    assert_eq!(write_trait.rename, stringify!(_));
     assert!(
         matches!(receiver.block.stmts.as_slice(), [syn::Stmt::Item(syn::Item::Use(_)), syn::Stmt::Expr(syn::Expr::Macro(statement), None)] if statement.mac.path == syn::parse_quote!(write) && statement.mac.tokens.to_string() == parameters.to_string())
     );

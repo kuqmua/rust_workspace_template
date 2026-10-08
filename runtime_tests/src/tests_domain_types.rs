@@ -87,4 +87,95 @@ mod tests {
             Err(crate::service_base_url_error::ServiceBaseUrlError::Suffix)
         );
     }
+    #[test]
+    fn test_service_base_url_preserves_utf8_limits_and_normalizes_after_length_validation() {
+        let maximum = constants_usize::VALUE_8_192;
+        let prefix = format!(
+            "{}{}/",
+            constants_str::HTTP_SCHEME_PREFIX,
+            constants_str::LOCALHOST
+        );
+        assert!([maximum - 1usize, maximum, maximum + 1usize].into_iter().all(|length| {
+            [constants_str::X, constants_str::NON_ASCII_U_E9].into_iter().all(|suffix| {
+                [false, true].into_iter().all(|trailing_slash| {
+                    let prefix_length = length - prefix.len() - suffix.len() - usize::from(trailing_slash);
+                    let mut text = format!("{prefix}{}{suffix}", constants_str::X.repeat(prefix_length));
+                    if trailing_slash { text.push('/'); }
+                    let pointer = text.as_ptr();
+                    let result = crate::service_base_url::ServiceBaseUrl::try_from(text);
+                    if length <= maximum {
+                        result.is_ok_and(|service_base_url| {
+                            service_base_url.as_ref().len() == length - usize::from(trailing_slash)
+                                && service_base_url.as_ref().as_ptr() == pointer
+                                && service_base_url.as_ref().starts_with(prefix.as_str())
+                                && service_base_url.as_ref().ends_with(suffix)
+                                && service_base_url.as_ref().as_bytes().iter().skip(prefix.len()).take(prefix_length).all(|byte| *byte == b'x')
+                        })
+                    } else { result == Err(crate::service_base_url_error::ServiceBaseUrlError::Length) }
+                })
+            })
+        }));
+    }
+
+    #[test]
+    fn test_service_base_url_classifies_host_suffix_and_pretrim_length_failures() {
+        let base = format!(
+            "{}{}",
+            constants_str::HTTP_SCHEME_PREFIX,
+            constants_str::LOCALHOST
+        );
+        [
+            (
+                String::new(),
+                crate::service_base_url_error::ServiceBaseUrlError::Scheme,
+            ),
+            (
+                '/'.to_string().repeat(8_192usize),
+                crate::service_base_url_error::ServiceBaseUrlError::Scheme,
+            ),
+            (
+                constants_str::VALUE_8C8DAC95.to_owned(),
+                crate::service_base_url_error::ServiceBaseUrlError::Scheme,
+            ),
+            (
+                constants_str::VALUE_66DFEEED.to_owned(),
+                crate::service_base_url_error::ServiceBaseUrlError::Scheme,
+            ),
+            (
+                constants_str::VALUE_8C8DAC95.to_ascii_uppercase(),
+                crate::service_base_url_error::ServiceBaseUrlError::Scheme,
+            ),
+            (
+                format!("{}?", constants_str::VALUE_8C8DAC95),
+                crate::service_base_url_error::ServiceBaseUrlError::Host,
+            ),
+            (
+                format!("{}#", constants_str::VALUE_66DFEEED),
+                crate::service_base_url_error::ServiceBaseUrlError::Host,
+            ),
+            (
+                format!("{base}?"),
+                crate::service_base_url_error::ServiceBaseUrlError::Suffix,
+            ),
+            (
+                format!("{base}#"),
+                crate::service_base_url_error::ServiceBaseUrlError::Suffix,
+            ),
+            (
+                format!("{base}?{}#{}", constants_str::X, constants_str::X),
+                crate::service_base_url_error::ServiceBaseUrlError::Suffix,
+            ),
+            (
+                format!("{base}{}", '/'.to_string().repeat(8_193usize - base.len())),
+                crate::service_base_url_error::ServiceBaseUrlError::Length,
+            ),
+        ]
+        .into_iter()
+        .fold((), |(), (text, expected)| {
+            assert_eq!(
+                crate::service_base_url::ServiceBaseUrl::try_from(text),
+                Err(expected)
+            );
+        });
+    }
 }

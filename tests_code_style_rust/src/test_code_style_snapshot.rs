@@ -586,3 +586,44 @@ fn test_module_classification_preserves_all_crate_root_declarations() {
             .get()
     );
 }
+#[test]
+fn test_source_lookup_rejects_non_root_inline_and_other_directory_declarations() {
+    let other_root = format!("{}/{}", constants_str::ROOT, constants_str::MAIN);
+    let source_files = [
+        test_snapshot_source(
+            crate::source_text_ref::SourceTextRef::from(constants_str::X),
+            <crate::syn_file::SynFile as From<syn::File>>::from(
+                syn::parse_quote! { mod test_widget; },
+            ),
+        ),
+        test_snapshot_source(
+            crate::source_text_ref::SourceTextRef::from(constants_str::LIB),
+            <crate::syn_file::SynFile as From<syn::File>>::from(
+                syn::parse_quote! { mod test_widget { struct Value; } },
+            ),
+        ),
+        test_snapshot_source(
+            crate::source_text_ref::SourceTextRef::from(other_root.as_str()),
+            <crate::syn_file::SynFile as From<syn::File>>::from(
+                syn::parse_quote! { #[cfg(test)] mod test_widget; },
+            ),
+        ),
+    ];
+    let source_files_ref =
+        crate::rs_source_files_ref::RsSourceFilesRef::from(source_files.as_slice());
+    let module_path = crate::path_ref::PathRef::from(std::path::Path::new(
+        constants_str::CODE_STYLE_EXTERNAL_TEST_FILE,
+    ));
+    assert!(
+        source_files_ref
+            .external_module_declaration(module_path)
+            .is_none()
+    );
+    assert!(!source_files_ref.is_test_module_path(module_path).get());
+    assert!(
+        source_files_ref
+            .module_names(module_path)
+            .as_slice()
+            .is_empty()
+    );
+}

@@ -60,6 +60,7 @@ fn test_generated_read_page_error_contracts() {
                     error.to_string() == constants_str::ADMIN_DIAGNOSTIC_STORED_ADMIN_VALUE_DOES_NOT_SATISFY_ITS_CONTRACT
                         && to_err_string::to_err_string::ToErrString::to_err_string(error).as_ref() == error.to_string()
                 )
+                && text.source().is_none()
                 && text.to_string() == constants_str::ADMIN_DIAGNOSTIC_STORED_ADMIN_VALUE_DOES_NOT_SATISFY_ITS_CONTRACT
                 && to_err_string::to_err_string::ToErrString::to_err_string(&text).as_ref() == text.to_string()
         )

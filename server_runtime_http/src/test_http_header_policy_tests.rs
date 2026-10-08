@@ -112,4 +112,25 @@ mod tests {
         .expect(constants_str::DIAGNOSTIC_F87AB266);
         assert_eq!(u64::try_from(value), Ok(u64::MAX));
     }
+
+    #[test]
+    fn test_attachment_unicode_filename_limits_count_bytes_and_preserve_encoded_payload() {
+        let encoded_character = ['%', 'C', '3', '%', 'A', '9']
+            .into_iter()
+            .collect::<String>();
+        assert!([2047usize, 2048usize, 2049usize].into_iter().all(|character_count| {
+            let text = '\u{e9}'.to_string().repeat(character_count);
+            let result = crate::build_attachment_content_disposition::build_attachment_content_disposition(
+                crate::http_attachment_file_name_ref::HttpAttachmentFileNameRef::from(text.as_str()),
+            );
+            if character_count > 2048usize {
+                matches!(result, Err(crate::http_content_disposition_error::HttpContentDispositionError::TooLong))
+            } else {
+                let fallback = '_'.to_string().repeat(character_count);
+                let encoded = encoded_character.repeat(character_count);
+                let expected = format!("{}{fallback}{}{encoded}", constants_str::CONTENT_DISPOSITION_ATTACHMENT_PREFIX, constants_str::CONTENT_DISPOSITION_UTF8_DELIMITER);
+                result.is_ok_and(|http_content_disposition| http::HeaderValue::from(http_content_disposition).as_bytes() == expected.as_bytes())
+            }
+        }));
+    }
 }

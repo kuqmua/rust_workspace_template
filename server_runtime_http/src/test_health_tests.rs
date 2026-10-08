@@ -87,4 +87,37 @@ mod tests {
             crate::health_component_status::HealthComponentStatus::Ok
         );
     }
+
+    #[test]
+    fn test_health_snapshots_serialize_exact_fields_and_snake_case_statuses() {
+        assert!(
+            [
+                (
+                    crate::health_component_status::HealthComponentStatus::Error,
+                    stringify!(error)
+                ),
+                (
+                    crate::health_component_status::HealthComponentStatus::Ok,
+                    stringify!(ok)
+                ),
+            ]
+            .into_iter()
+            .all(|(status, text)| {
+                let expected_readiness = serde_json::json!({
+                    (stringify!(database)): text,
+                    (stringify!(service)): stringify!(ok),
+                });
+                let expected_liveness = serde_json::json!({ (stringify!(service)): text });
+                serde_json::to_value(crate::health_snapshot::HealthSnapshot::new(
+                    status,
+                    crate::health_component_status::HealthComponentStatus::Ok,
+                ))
+                .is_ok_and(|value| value == expected_readiness)
+                    && serde_json::to_value(
+                        crate::service_liveness_snapshot::ServiceLivenessSnapshot::new(status),
+                    )
+                    .is_ok_and(|value| value == expected_liveness)
+            })
+        );
+    }
 }

@@ -375,3 +375,24 @@ async fn test_security_headers_preserve_response_and_apply_exact_api_cache_and_c
     check(constants_str::V1_TEST, true, false).await;
     check(constants_str::V1_TEST, true, true).await;
 }
+
+#[tokio::test]
+async fn test_security_headers_preserve_inner_service_errors_for_both_trust_policies() {
+    let check = async |forwarded_proto_trust: crate::forwarded_proto_trust::ForwardedProtoTrust| {
+        let inner = tower::service_fn(|_request: axum::extract::Request| {
+            std::future::ready(Err::<axum::response::Response, _>(crate::std_request_timeout_try_from_duration_error::StdRequestTimeoutTryFromDurationError::Zero))
+        });
+        let result = tower::ServiceExt::oneshot(
+            crate::security_headers_service::SecurityHeadersService::new(
+                None,
+                forwarded_proto_trust,
+                inner,
+            ),
+            axum::extract::Request::new(axum::body::Body::empty()),
+        )
+        .await;
+        assert!(matches!(result, Err(crate::std_request_timeout_try_from_duration_error::StdRequestTimeoutTryFromDurationError::Zero)));
+    };
+    check(crate::forwarded_proto_trust::ForwardedProtoTrust::Ignore).await;
+    check(crate::forwarded_proto_trust::ForwardedProtoTrust::Trust).await;
+}

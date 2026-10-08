@@ -466,4 +466,116 @@ mod tests {
             ) == Err(crate::multipart_request_error::MultipartRequestError::TooManyParts)
         }));
     }
+    #[test]
+    fn test_multipart_combined_budget_counts_utf8_bytes_for_both_insertion_orders() {
+        assert!([6usize, 7usize, 8usize].into_iter().all(|limit| {
+            [false, true].into_iter().all(|bytes_first| {
+                crate::multipart_bytes::MultipartBytes::try_from(vec![1u8, 2u8, 3u8]).is_ok_and(|bytes| {
+                    let binary = crate::multipart_bytes_part::MultipartBytesPart::new(field_name(), bytes);
+                    let text = text_part(constants_str::U_1F496);
+                    let maximum = crate::multipart_payload_maximum::MultipartPayloadMaximum::from(limit);
+                    let initial = crate::multipart_upload_request::MultipartUploadRequest::new();
+                    let result = if bytes_first {
+                        initial.with_bytes_part(binary, maximum).and_then(|request| request.with_text_part(text, maximum))
+                    } else {
+                        initial.with_text_part(text, maximum).and_then(|request| request.with_bytes_part(binary, maximum))
+                    };
+                    if limit < 7usize {
+                        result == Err(crate::multipart_request_error::MultipartRequestError::PayloadTooLarge)
+                    } else {
+                        result.is_ok_and(|request| {
+                            matches!(request.text_parts(), [part] if part.value().as_ref() == constants_str::U_1F496)
+                                && matches!(request.bytes_parts(), [part] if part.bytes().as_ref() == [1u8, 2u8, 3u8])
+                        })
+                    }
+                })
+            })
+        }));
+    }
+    #[test]
+    fn test_multipart_text_accepts_ascii_controls_except_nul() {
+        assert!((0u8..=127u8).all(|byte| {
+            let text = format!("{}{}", constants_str::X, char::from(byte));
+            let result = crate::multipart_text_value::MultipartTextValue::try_from(text.clone());
+            if byte == 0u8 {
+                result == Err(crate::multipart_value_error::MultipartValueError::Nul)
+            } else {
+                result.is_ok_and(|value| value.as_ref() == text)
+            }
+        }));
+    }
+    #[test]
+    fn test_multipart_text_preserves_utf8_byte_boundaries_and_length_error_precedence() {
+        assert!(
+            [32_767usize, 32_768usize, 32_769usize]
+                .into_iter()
+                .all(|count| {
+                    let text = '\u{e9}'.to_string().repeat(count);
+                    let length = text.len();
+                    let pointer = text.as_ptr();
+                    let result = crate::multipart_text_value::MultipartTextValue::try_from(text);
+                    if count <= 32_768usize {
+                        result.is_ok_and(|value| {
+                            value.as_ref().len() == length
+                                && value.as_ref().as_ptr() == pointer
+                                && value
+                                    .as_ref()
+                                    .chars()
+                                    .all(|character| character == '\u{e9}')
+                        })
+                    } else {
+                        result
+                            == Err(crate::multipart_value_error::MultipartValueError::TooLong {
+                                actual: crate::multipart_value_length::MultipartValueLength::from(
+                                    65_538usize,
+                                ),
+                            })
+                    }
+                })
+        );
+        assert!(
+            [
+                (
+                    65_536usize,
+                    crate::multipart_value_error::MultipartValueError::Nul
+                ),
+                (
+                    65_537usize,
+                    crate::multipart_value_error::MultipartValueError::TooLong {
+                        actual: crate::multipart_value_length::MultipartValueLength::from(
+                            65_537usize
+                        )
+                    }
+                ),
+            ]
+            .into_iter()
+            .all(|(length, expected)| {
+                let mut text = constants_str::X.repeat(length - 1usize);
+                text.push('\0');
+                crate::multipart_text_value::MultipartTextValue::try_from(text) == Err(expected)
+            })
+        );
+    }
+    #[test]
+    fn test_storage_relative_path_preserves_last_extension_and_dotfile_rules() {
+        assert!(match (
+            crate::storage_path_segment::StoragePathSegment::try_from(constants_str::X.to_owned()),
+            crate::storage_path_segment::StoragePathSegment::try_from('y'.to_string()),
+        ) {
+            (Ok(identifier), Ok(unique)) => [
+                (format!(".{}", constants_str::X), 'y'.to_string()),
+                (format!("{}.", constants_str::X), format!("{}.", 'y')),
+                (format!("{}.{}.{}", constants_str::X, constants_str::X, constants_str::TEST_FIRST), format!("{}.{}", 'y', constants_str::TEST_FIRST)),
+                (format!(".{}.{}", constants_str::X, constants_str::TEST_FIRST), format!("{}.{}", 'y', constants_str::TEST_FIRST)),
+                (format!("{}.{}", constants_str::X, constants_str::X.to_ascii_uppercase()), format!("{}.{}", 'y', constants_str::X.to_ascii_uppercase())),
+                (format!("{}.{}", constants_str::X, '\u{e9}'), format!("{}.{}", 'y', '\u{e9}')),
+            ].into_iter().all(|(name, stored_name)| {
+                crate::multipart_file_name::MultipartFileName::try_from(name).is_ok_and(|filename| {
+                    crate::identifier_file_storage_relative_path::identifier_file_storage_relative_path(&identifier, &unique, &filename).as_ref()
+                        == std::path::Path::new(constants_str::X).join(stored_name)
+                })
+            }),
+            (Err(_), _) | (_, Err(_)) => false,
+        });
+    }
 }

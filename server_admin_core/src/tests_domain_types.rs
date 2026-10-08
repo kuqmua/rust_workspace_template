@@ -110,4 +110,51 @@ mod tests {
             serde::de::value::UnitDeserializer::new()
         });
     }
+
+    #[test]
+    fn test_core_secret_text_preserves_utf8_byte_bounds_and_exact_redaction() {
+        [
+            String::new(),
+            '\u{00e9}'.to_string().repeat(4096usize),
+            char::MAX.to_string().repeat(2048usize),
+            constants_str::TEST_TEXT_WITH_NUL.to_owned(),
+        ]
+        .into_iter()
+        .fold((), |(), text| {
+            let result = crate::secrecy_admin_string::SecrecyAdminString::try_from(text.clone());
+            assert!(result.is_ok_and(|secret| {
+                secrecy::ExposeSecret::expose_secret(&secret)
+                    .as_ref()
+                    .as_str()
+                    == text
+                    && format!("{secret:?}") == constants_str::REDACTED_ALT_3
+            }));
+        });
+        [
+            format!(
+                "{}{}",
+                '\u{00e9}'.to_string().repeat(4096usize),
+                constants_str::X
+            ),
+            format!(
+                "{}{}",
+                char::MAX.to_string().repeat(2048usize),
+                constants_str::X
+            ),
+        ]
+        .into_iter()
+        .fold((), |(), text| {
+            assert_eq!(text.len(), 8193usize);
+            assert!(text.chars().count() < 8192usize);
+            assert!(matches!(
+                crate::secrecy_admin_string::SecrecyAdminString::try_from(text),
+                Err(
+                    crate::std_admin_string::StdAdminStringTryFromStringError::TooLong {
+                        len: 8193usize,
+                        max: 8192usize
+                    }
+                )
+            ));
+        });
+    }
 }

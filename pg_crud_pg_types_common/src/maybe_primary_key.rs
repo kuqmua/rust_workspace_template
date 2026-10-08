@@ -35,5 +35,12 @@ mod tests {
             .to_string(),
             constants_str::PRIMARY_KEY
         );
+        assert_eq!(
+            crate::maybe_primary_key::maybe_primary_key(
+                pg_crud_common::pg_is_primary_key::PgIsPrimaryKey::from(false)
+            )
+            .to_string(),
+            constants_str::PG_CRUD_EMPTY_SQL_SUFFIX
+        );
     }
 }

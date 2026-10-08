@@ -720,7 +720,19 @@ fn test_snake_identifier_preserves_byte_boundaries_and_error_diagnostics() {
             maximum_length.saturating_add(1usize),
         ),
     );
-    assert_eq!(rejected.to_string(), expected.to_string());
+    assert_eq!(
+        rejected.to_string(),
+        format!(
+            concat!(
+                stringify!(snake identifier length),
+                " {} ",
+                stringify!(exceeds maximum),
+                " {}"
+            ),
+            maximum_length + 1usize,
+            maximum_length
+        )
+    );
     assert_eq!(format!("{rejected:?}"), format!("{expected:?}"));
     let unicode_result = crate::snake_identifier::SnakeIdentifier::try_from(
         '\u{00e9}'.to_string().repeat(character_count),
@@ -740,12 +752,19 @@ fn test_snake_identifier_preserves_byte_boundaries_and_error_diagnostics() {
     let Err(unicode_overflow) = unicode_overflow_result else {
         return;
     };
-    let expected_unicode = crate::snake_identifierifier_try_from_string_error::SnakeIdentifierifierTryFromStringError::from(
-        crate::snake_identifierifier_len::SnakeIdentifierifierLen::from(
-            maximum_length.saturating_add(2usize),
-        ),
+    assert_eq!(
+        unicode_overflow.to_string(),
+        format!(
+            concat!(
+                stringify!(snake identifier length),
+                " {} ",
+                stringify!(exceeds maximum),
+                " {}"
+            ),
+            maximum_length + 2usize,
+            maximum_length
+        )
     );
-    assert_eq!(unicode_overflow.to_string(), expected_unicode.to_string());
 }
 
 #[test]
@@ -1669,4 +1688,120 @@ fn test_borrow_inner_rejects_owned_storage_with_exact_diagnostic() {
         }),
     ));
     assert_eq!(output.to_string(), expected.to_string());
+}
+
+#[test]
+fn test_newtype_attribute_membership_preserves_independent_options_and_modes() {
+    let options = [
+        crate::newtype_option::NewtypeOption::Accessor,
+        crate::newtype_option::NewtypeOption::AsMut,
+        crate::newtype_option::NewtypeOption::AsRef,
+        crate::newtype_option::NewtypeOption::AsRefInner,
+        crate::newtype_option::NewtypeOption::AsRefOwned,
+        crate::newtype_option::NewtypeOption::AsRefStr,
+        crate::newtype_option::NewtypeOption::AsRefTarget,
+        crate::newtype_option::NewtypeOption::AsSlice,
+        crate::newtype_option::NewtypeOption::BorrowInner,
+        crate::newtype_option::NewtypeOption::BorrowOwned,
+        crate::newtype_option::NewtypeOption::BorrowPath,
+        crate::newtype_option::NewtypeOption::BorrowStr,
+        crate::newtype_option::NewtypeOption::CloneInner,
+        crate::newtype_option::NewtypeOption::DebugRedacted,
+        crate::newtype_option::NewtypeOption::DebugTransparent,
+        crate::newtype_option::NewtypeOption::DefaultInner,
+        crate::newtype_option::NewtypeOption::DerefInner,
+        crate::newtype_option::NewtypeOption::DerefMutInner,
+        crate::newtype_option::NewtypeOption::DerefMutTarget,
+        crate::newtype_option::NewtypeOption::DerefTarget,
+        crate::newtype_option::NewtypeOption::Display,
+        crate::newtype_option::NewtypeOption::From,
+        crate::newtype_option::NewtypeOption::GetInner,
+        crate::newtype_option::NewtypeOption::IntoInner,
+        crate::newtype_option::NewtypeOption::IntoInnerFrom,
+        crate::newtype_option::NewtypeOption::IntoIterator,
+        crate::newtype_option::NewtypeOption::IntoVec,
+        crate::newtype_option::NewtypeOption::NotInner,
+        crate::newtype_option::NewtypeOption::PartialEqInner,
+        crate::newtype_option::NewtypeOption::Secret,
+        crate::newtype_option::NewtypeOption::ToTokens,
+    ];
+    let mut attributes = crate::newtype_attrs::NewtypeAttrs::default();
+    assert!(attributes.get_options().is_empty().get());
+    assert!(attributes.get_to_err_string_mode().is_none());
+    assert!(
+        options
+            .into_iter()
+            .all(|option| !attributes.contains(option).get())
+    );
+    assert!(options.into_iter().all(|selected| {
+        *attributes.get_options_mut() =
+            workspace_macro_helpers::unique_option_b_tree_set::UniqueOptionBTreeSet::from(
+                std::collections::BTreeSet::from([selected]),
+            );
+        options
+            .into_iter()
+            .all(|option| attributes.contains(option).get() == (option == selected))
+    }));
+    assert!(
+        [
+            crate::to_err_string_mode::ToErrStringMode::AsRefStr,
+            crate::to_err_string_mode::ToErrStringMode::Debug,
+            crate::to_err_string_mode::ToErrStringMode::Display,
+        ]
+        .into_iter()
+        .all(|mode| {
+            *attributes.get_to_err_string_mode_mut() = Some(mode);
+            attributes.get_to_err_string_mode() == Some(&mode)
+        })
+    );
+    *attributes.get_to_err_string_mode_mut() = None;
+    assert!(attributes.get_to_err_string_mode().is_none());
+}
+
+#[test]
+fn test_newtype_token_wrappers_preserve_owned_tokens_and_append_to_existing_output() {
+    assert!(
+        [
+            quote::quote!(),
+            quote::quote!(
+                struct Value<'value, Inner>(&'value Inner);
+            )
+        ]
+        .into_iter()
+        .all(|tokens| {
+            let expected = tokens.to_string();
+            let input = crate::proc_macro_input_token_stream::ProcMacroInputTokenStream::from(
+                tokens.clone(),
+            );
+            let input_preserved = input.into_inner().to_string() == expected;
+            let generated =
+                crate::proc_macro2_generated_token_stream::ProcMacro2GeneratedTokenStream::from(
+                    tokens.clone(),
+                );
+            let mut output = quote::quote!(prefix::);
+            quote::ToTokens::to_tokens(&generated, &mut output);
+            let expected_output = quote::quote!(prefix:: #tokens);
+            input_preserved
+                && output.to_string() == expected_output.to_string()
+                && proc_macro2::TokenStream::from(generated).to_string() == expected
+        })
+    );
+}
+
+#[test]
+fn test_newtype_derive_input_reference_preserves_borrowed_ast_identity() {
+    let input_result = syn::parse2::<syn::DeriveInput>(quote::quote!(
+        struct Value<Inner>(Inner);
+    ));
+    assert!(input_result.is_ok_and(|derive_input| {
+        let reference =
+            crate::newtype_syn_derive_input_ref::NewtypeSynDeriveInputRef::from(&derive_input);
+        std::ptr::eq(
+            std::ptr::from_ref(reference.as_ref()),
+            std::ptr::from_ref(&derive_input),
+        ) && std::ptr::eq(
+            std::ptr::from_ref(<&syn::DeriveInput>::from(reference)),
+            std::ptr::from_ref(&derive_input),
+        )
+    }));
 }

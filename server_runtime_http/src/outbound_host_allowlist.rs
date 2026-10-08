@@ -76,4 +76,47 @@ mod tests {
                     })
             }));
     }
+    #[test]
+    fn test_allowlist_matches_canonical_ipv6_independently_of_port_and_rejects_hostless_urls() {
+        let canonical = format!("[{}]", std::net::Ipv6Addr::LOCALHOST);
+        let allowed_result =
+            crate::outbound_allowed_host::OutboundAllowedHost::try_from(canonical.clone());
+        assert!(allowed_result.is_ok());
+        let Ok(allowed) = allowed_result else {
+            return;
+        };
+        let allowlist_result =
+            crate::outbound_host_allowlist::OutboundHostAllowlist::try_from(vec![allowed]);
+        assert!(allowlist_result.is_ok());
+        let Ok(allowlist) = allowlist_result else {
+            return;
+        };
+        assert!([80u16, 443u16, 65535u16].into_iter().all(|port| {
+            let text = format!(
+                "{}{canonical}:{port}/{}",
+                constants_str::HTTPS_SCHEME_PREFIX,
+                constants_str::X
+            );
+            reqwest::Url::parse(text.as_str()).is_ok_and(|url| {
+                allowlist.validate(&crate::reqwest_outbound_url::ReqwestOutboundUrl::from(url))
+                    == Ok(())
+            })
+        }));
+        let text = format!("{}:{}", constants_str::X, constants_str::X);
+        assert!(reqwest::Url::parse(text.as_str()).is_ok_and(|url| {
+            allowlist.validate(&crate::reqwest_outbound_url::ReqwestOutboundUrl::from(url))
+                == Err(
+                    crate::outbound_host_allowlist_error::OutboundHostAllowlistError::InvalidHost,
+                )
+        }));
+        let other = format!(
+            "{}[{}]",
+            constants_str::HTTPS_SCHEME_PREFIX,
+            std::net::Ipv6Addr::UNSPECIFIED
+        );
+        assert!(reqwest::Url::parse(other.as_str()).is_ok_and(|url| {
+            allowlist.validate(&crate::reqwest_outbound_url::ReqwestOutboundUrl::from(url))
+                == Err(crate::outbound_host_allowlist_error::OutboundHostAllowlistError::HostNotAllowed)
+        }));
+    }
 }

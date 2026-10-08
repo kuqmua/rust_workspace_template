@@ -307,6 +307,9 @@ fn test_data_table_query_accepts_default_and_search_only_payloads() {
 
 #[test]
 fn test_admin_collection_error_retains_bounded_length_source() {
+    let empty = crate::admin_bounded_vec::AdminBoundedVec::<crate::admin_rule::AdminRule>::from([]);
+    assert!(empty.as_slice().is_empty());
+    assert!(serde_json::to_value(empty).is_ok_and(|wire| wire == serde_json::json!([])));
     let maximum = crate::admin_collection_max_items::ADMIN_COLLECTION_MAX_ITEMS;
     let result = crate::admin_bounded_vec::AdminBoundedVec::try_from(vec![0u8; maximum + 1]);
     assert!(result.is_err());
@@ -1221,11 +1224,10 @@ fn test_role_read_selection_contains_every_roles_table_column() {
                         constants_str::UPDATED_AT,
                     ]
                     .into_iter()
-                    .all(|column| {
-                        columns.iter().any(|column_value| {
-                            column_value
-                                .as_object()
-                                .is_some_and(|object| object.contains_key(column))
+                    .enumerate()
+                    .all(|(position, column)| {
+                        columns.get(position).is_some_and(|column_value| {
+                            *column_value == serde_json::json!({(column): null})
                         })
                     })
             }))
@@ -1254,11 +1256,10 @@ fn test_rule_read_selection_contains_every_rules_table_column() {
                         constants_str::CREATED_AT,
                     ]
                     .into_iter()
-                    .all(|column| {
-                        columns.iter().any(|column_value| {
-                            column_value
-                                .as_object()
-                                .is_some_and(|object| object.contains_key(column))
+                    .enumerate()
+                    .all(|(position, column)| {
+                        columns.get(position).is_some_and(|column_value| {
+                            *column_value == serde_json::json!({(column): null})
                         })
                     })
             }))
@@ -1583,4 +1584,291 @@ fn test_admin_api_path_adapter_preserves_validated_text_at_all_byte_boundaries()
             })
         })
     );
+}
+
+#[test]
+fn test_data_filters_preserve_empty_and_ordered_round_trips() {
+    [
+        serde_json::json!([]),
+        serde_json::json!([
+            {(stringify!(operation)): frontend_contract::filter_operation::FilterOperation::Between, (stringify!(value_shape)): frontend_contract::filter_value_shape::FilterValueShape::Range},
+            {(stringify!(operation)): frontend_contract::filter_operation::FilterOperation::Eq, (stringify!(value_shape)): frontend_contract::filter_value_shape::FilterValueShape::Scalar},
+            {(stringify!(operation)): frontend_contract::filter_operation::FilterOperation::In, (stringify!(value_shape)): frontend_contract::filter_value_shape::FilterValueShape::List},
+            {(stringify!(operation)): frontend_contract::filter_operation::FilterOperation::Between, (stringify!(value_shape)): frontend_contract::filter_value_shape::FilterValueShape::Range},
+        ]),
+    ].into_iter().fold((), |(), expected| {
+        let filters_result = serde_json::from_value::<Vec<crate::admin_data_filter::AdminDataFilter>>(expected.clone());
+        assert!(filters_result.as_ref().err().is_none());
+        if let Ok(filters) = filters_result {
+            let admin_data_filters_result = crate::admin_data_filters::AdminDataFilters::try_from(filters);
+            assert!(admin_data_filters_result.as_ref().err().is_none());
+            if let Ok(admin_data_filters) = admin_data_filters_result {
+                assert!(serde_json::to_value(admin_data_filters.as_slice()).is_ok_and(|wire| wire == expected));
+                assert!(serde_json::to_value(&admin_data_filters).is_ok_and(|wire| wire == expected));
+            }
+        }
+        assert!(serde_json::from_value::<crate::admin_data_filters::AdminDataFilters>(expected.clone()).is_ok_and(|filters| {
+            serde_json::to_value(filters.as_slice()).is_ok_and(|wire| wire == expected)
+        }));
+    });
+}
+
+#[test]
+fn test_default_read_selections_preserve_exact_column_order_and_wire_shape() {
+    [
+        (serde_json::to_value(crate::admin_read_access_session_selection::AdminReadAccessSessionSelection::default()), serde_json::json!([{(stringify!(id)): null}, {(stringify!(user_id)): null}, {(stringify!(expires_at)): null}, {(stringify!(created_at)): null}, {(stringify!(revoked_at)): null}])),
+        (serde_json::to_value(crate::admin_read_audit_log_selection::AdminReadAuditLogSelection::default()), serde_json::json!([{(stringify!(id)): null}, {(stringify!(user_id)): null}, {(stringify!(user_login)): null}, {(stringify!(action)): null}, {(stringify!(resource)): null}, {(stringify!(resource_id)): null}, {(stringify!(request_id)): null}, {(stringify!(succeeded)): null}, {(stringify!(created_at)): null}])),
+        (serde_json::to_value(crate::admin_read_permission_action_selection::AdminReadPermissionActionSelection::default()), serde_json::json!([{(stringify!(id)): null}, {(stringify!(key)): null}])),
+        (serde_json::to_value(crate::admin_read_permission_resource_selection::AdminReadPermissionResourceSelection::default()), serde_json::json!([{(stringify!(id)): null}, {(stringify!(key)): null}])),
+        (serde_json::to_value(crate::admin_read_permission_resource_action_selection::AdminReadPermissionResourceActionSelection::default()), serde_json::json!([{(stringify!(id)): null}, {(stringify!(permission_resource_id)): null}, {(stringify!(permission_action_id)): null}])),
+        (serde_json::to_value(crate::admin_read_role_rule_selection::AdminReadRoleRuleSelection::default()), serde_json::json!([{(stringify!(id)): null}, {(stringify!(role_id)): null}, {(stringify!(rule_id)): null}, {(stringify!(created_at)): null}])),
+        (serde_json::to_value(crate::admin_read_system_settings_selection::AdminReadSystemSettingsSelection::default()), serde_json::json!([{(stringify!(id)): null}, {(stringify!(site_name)): null}, {(stringify!(tab_title)): null}, {(stringify!(main_logo)): null}, {(stringify!(primary_color)): null}, {(stringify!(default_admin_route)): null}, {(stringify!(organization_name)): null}, {(stringify!(organization_contacts)): null}, {(stringify!(support_url)): null}, {(stringify!(updated_at)): null}])),
+        (serde_json::to_value(crate::admin_read_user_selection::AdminReadUserSelection::default()), serde_json::json!([{(stringify!(id)): null}, {(stringify!(login)): null}, {(stringify!(display_name)): null}, {(stringify!(must_change_password)): null}, {(stringify!(is_banned)): null}, {(stringify!(created_at)): null}, {(stringify!(updated_at)): null}])),
+    ].into_iter().fold((), |(), (result, expected)| {
+        assert!(result.is_ok_and(|actual| actual == expected));
+    });
+}
+
+#[test]
+fn test_parameterized_admin_route_preserves_length_error_variant_and_source() {
+    #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
+    struct AdminParameterizedPathFailureRoute;
+
+    impl frontend_contract::typed_route::TypedRoute for AdminParameterizedPathFailureRoute {
+        type Request = <crate::admin_revoke_session_route::AdminRevokeSessionRoute as frontend_contract::typed_route::TypedRoute>::Request;
+        type Response = <crate::admin_revoke_session_route::AdminRevokeSessionRoute as frontend_contract::typed_route::TypedRoute>::Response;
+        type Transport = <crate::admin_revoke_session_route::AdminRevokeSessionRoute as frontend_contract::typed_route::TypedRoute>::Transport;
+
+        fn metadata() -> frontend_contract::route_metadata::RouteMetadata {
+            <crate::admin_revoke_session_route::AdminRevokeSessionRoute as frontend_contract::typed_route::TypedRoute>::metadata()
+        }
+    }
+
+    impl frontend_contract::parameterized_route::ParameterizedRoute
+        for AdminParameterizedPathFailureRoute
+    {
+        type Parameter = crate::admin_no_body::AdminNoBody;
+
+        fn path(parameter: &Self::Parameter) -> Result<frontend_contract::parameterized_route_path::ParameterizedRoutePath, frontend_contract::parameterized_route_path_try_from_string_error::ParameterizedRoutePathTryFromStringError>{
+            let _: &Self::Parameter = parameter;
+            Err(frontend_contract::parameterized_route_path_try_from_string_error::ParameterizedRoutePathTryFromStringError::TooLong)
+        }
+    }
+
+    let result = crate::admin_parameterized_route_path::admin_parameterized_route_path::<
+        AdminParameterizedPathFailureRoute,
+    >(&crate::admin_no_body::AdminNoBody);
+    assert_eq!(result, Err(crate::admin_route_path_error::AdminRoutePathError::ParameterizedPath(frontend_contract::parameterized_route_path_try_from_string_error::ParameterizedRoutePathTryFromStringError::TooLong)));
+    if let Err(admin_route_path_error) = result {
+        assert_eq!(std::error::Error::source(&admin_route_path_error).and_then(|source| source.downcast_ref::<frontend_contract::parameterized_route_path_try_from_string_error::ParameterizedRoutePathTryFromStringError>()), Some(&frontend_contract::parameterized_route_path_try_from_string_error::ParameterizedRoutePathTryFromStringError::TooLong));
+    }
+}
+
+#[test]
+fn test_admin_table_specifications_preserve_exact_columns_order_rule_and_route() {
+    [
+        (
+            crate::admin_data_table::AdminDataTable::AccessSessions,
+            crate::admin_route::AdminRoute::AccessSessionsTable,
+            constants_str::SERVER_ADMIN_DATA_SESSION_COLUMNS,
+            constants_str::SERVER_ADMIN_DATA_ORDER_CREATED_AT,
+            crate::admin_rule::AdminRule::AccessSessionsRead,
+        ),
+        (
+            crate::admin_data_table::AdminDataTable::AuditLog,
+            crate::admin_route::AdminRoute::AuditLog,
+            constants_str::SERVER_ADMIN_DATA_AUDIT_LOG_COLUMNS,
+            constants_str::SERVER_ADMIN_DATA_ORDER_CREATED_AT,
+            crate::admin_rule::AdminRule::AuditLogRead,
+        ),
+        (
+            crate::admin_data_table::AdminDataTable::CleanupStatus,
+            crate::admin_route::AdminRoute::CleanupStatusTable,
+            constants_str::SERVER_ADMIN_DATA_CLEANUP_STATUS_COLUMNS,
+            constants_str::SERVER_ADMIN_DATA_ORDER_CLEANUP_STATUS_ID,
+            crate::admin_rule::AdminRule::CleanupStatusRead,
+        ),
+        (
+            crate::admin_data_table::AdminDataTable::LoginAttempts,
+            crate::admin_route::AdminRoute::LoginAttemptsTable,
+            constants_str::SERVER_ADMIN_DATA_LOGIN_ATTEMPTS_COLUMNS,
+            constants_str::SERVER_ADMIN_DATA_ORDER_ATTEMPTED_AT,
+            crate::admin_rule::AdminRule::LoginAttemptsRead,
+        ),
+        (
+            crate::admin_data_table::AdminDataTable::PermissionActions,
+            crate::admin_route::AdminRoute::PermissionActions,
+            constants_str::SERVER_ADMIN_DATA_PERMISSION_ACTIONS_COLUMNS,
+            constants_str::SQL_NAMES_ID,
+            crate::admin_rule::AdminRule::PermissionActionsRead,
+        ),
+        (
+            crate::admin_data_table::AdminDataTable::PermissionResourceActions,
+            crate::admin_route::AdminRoute::PermissionResourceActions,
+            constants_str::SERVER_ADMIN_DATA_PERMISSION_RESOURCE_ACTIONS_COLUMNS,
+            constants_str::SQL_NAMES_ID,
+            crate::admin_rule::AdminRule::PermissionResourceActionsRead,
+        ),
+        (
+            crate::admin_data_table::AdminDataTable::PermissionResources,
+            crate::admin_route::AdminRoute::PermissionResources,
+            constants_str::SERVER_ADMIN_DATA_PERMISSION_RESOURCES_COLUMNS,
+            constants_str::SQL_NAMES_ID,
+            crate::admin_rule::AdminRule::PermissionResourcesRead,
+        ),
+        (
+            crate::admin_data_table::AdminDataTable::Rules,
+            crate::admin_route::AdminRoute::Rules,
+            constants_str::SERVER_ADMIN_DATA_RULES_COLUMNS,
+            constants_str::SQL_NAMES_ID,
+            crate::admin_rule::AdminRule::RulesRead,
+        ),
+        (
+            crate::admin_data_table::AdminDataTable::RateLimits,
+            crate::admin_route::AdminRoute::RateLimitsTable,
+            constants_str::SERVER_ADMIN_DATA_RATE_LIMITS_COLUMNS,
+            constants_str::SERVER_ADMIN_DATA_ORDER_RATE_LIMITS_ID,
+            crate::admin_rule::AdminRule::RateLimitsRead,
+        ),
+        (
+            crate::admin_data_table::AdminDataTable::RefreshTokens,
+            crate::admin_route::AdminRoute::RefreshTokensTable,
+            constants_str::SERVER_ADMIN_DATA_SESSION_COLUMNS,
+            constants_str::SERVER_ADMIN_DATA_ORDER_CREATED_AT,
+            crate::admin_rule::AdminRule::RefreshTokensRead,
+        ),
+        (
+            crate::admin_data_table::AdminDataTable::RoleRules,
+            crate::admin_route::AdminRoute::RoleRulesTable,
+            constants_str::SERVER_ADMIN_DATA_ROLE_RULES_COLUMNS,
+            constants_str::SQL_NAMES_ID,
+            crate::admin_rule::AdminRule::RoleRulesRead,
+        ),
+        (
+            crate::admin_data_table::AdminDataTable::Roles,
+            crate::admin_route::AdminRoute::Roles,
+            constants_str::SERVER_ADMIN_DATA_ROLES_COLUMNS,
+            constants_str::SQL_NAMES_ID,
+            crate::admin_rule::AdminRule::RolesRead,
+        ),
+        (
+            crate::admin_data_table::AdminDataTable::SystemSettings,
+            crate::admin_route::AdminRoute::SystemSettings,
+            constants_str::SERVER_ADMIN_DATA_SYSTEM_SETTINGS_COLUMNS,
+            constants_str::SQL_NAMES_ID,
+            crate::admin_rule::AdminRule::SystemSettingsRead,
+        ),
+        (
+            crate::admin_data_table::AdminDataTable::UserRoles,
+            crate::admin_route::AdminRoute::UserRolesTable,
+            constants_str::SERVER_ADMIN_DATA_USER_ROLES_COLUMNS,
+            constants_str::SQL_NAMES_ID,
+            crate::admin_rule::AdminRule::UserRolesRead,
+        ),
+        (
+            crate::admin_data_table::AdminDataTable::Users,
+            crate::admin_route::AdminRoute::Users,
+            constants_str::SERVER_ADMIN_DATA_USERS_COLUMNS,
+            constants_str::SQL_NAMES_ID,
+            crate::admin_rule::AdminRule::UsersRead,
+        ),
+    ]
+    .into_iter()
+    .fold((), |(), (table, route, columns, order, rule)| {
+        let spec = table.spec();
+        assert_eq!(table.api_route(), route);
+        assert_eq!(table.rule(), rule);
+        assert_eq!(spec.rule(), rule);
+        assert_eq!(spec.columns().get(), columns);
+        assert_eq!(spec.order().get(), order);
+        assert!(bool::from(spec.supports_filters()));
+    });
+}
+
+#[test]
+fn test_audit_details_validate_serialized_utf8_and_escaped_byte_boundaries() {
+    [
+        (serde_json::Value::Null, 4usize, true),
+        (serde_json::json!(true), 4usize, true),
+        (serde_json::json!(-1i64), 2usize, true),
+        (serde_json::json!([1i64, true]), 8usize, true),
+        (serde_json::json!({(constants_str::X): 1i64}), 7usize, true),
+        (
+            serde_json::json!(constants_str::X.repeat(4094usize)),
+            4096usize,
+            true,
+        ),
+        (
+            serde_json::json!(constants_str::X.repeat(4095usize)),
+            4097usize,
+            false,
+        ),
+        (
+            serde_json::json!('\u{00e9}'.to_string().repeat(2047usize)),
+            4096usize,
+            true,
+        ),
+        (
+            serde_json::json!(format!(
+                "{}{}",
+                '\u{00e9}'.to_string().repeat(2047usize),
+                constants_str::X
+            )),
+            4097usize,
+            false,
+        ),
+        (
+            serde_json::json!(format!(
+                "{}{}",
+                '\0'.to_string().repeat(682usize),
+                constants_str::X.repeat(2usize)
+            )),
+            4096usize,
+            true,
+        ),
+        (
+            serde_json::json!(format!(
+                "{}{}",
+                '\0'.to_string().repeat(682usize),
+                constants_str::X.repeat(3usize)
+            )),
+            4097usize,
+            false,
+        ),
+    ]
+    .into_iter()
+    .fold((), |(), (value, expected_bytes, accepted)| {
+        let result = crate::serde_json_admin_audit_details::SerdeJsonAdminAuditDetails::try_from(
+            value.clone(),
+        );
+        if accepted {
+            assert!(result.is_ok_and(|details| {
+                serde_json::to_value(&details).is_ok_and(|wire| wire == value)
+                    && details.as_ref() == &value
+            }));
+            assert!(
+                serde_json::from_value::<
+                    crate::serde_json_admin_audit_details::SerdeJsonAdminAuditDetails,
+                >(value.clone())
+                .is_ok_and(|details| details.as_ref() == &value)
+            );
+        } else {
+            assert_eq!(
+                result.err(),
+                Some(
+                    crate::admin_audit_details_too_large::AdminAuditDetailsTooLarge::from(
+                        crate::admin_audit_details_bytes::AdminAuditDetailsBytes::from(
+                            expected_bytes
+                        )
+                    )
+                )
+            );
+            assert!(
+                serde_json::from_value::<
+                    crate::serde_json_admin_audit_details::SerdeJsonAdminAuditDetails,
+                >(value)
+                .is_err_and(|error| error.is_data())
+            );
+        }
+    });
 }

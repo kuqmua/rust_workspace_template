@@ -196,4 +196,105 @@ mod tests {
             })
         }));
     }
+
+    #[test]
+    fn test_fallback_json_quality_accepts_exact_three_digit_fraction_domain() {
+        let resolve = |http_optional_accept_header_ref: crate::http_optional_accept_header_ref::HttpOptionalAcceptHeaderRef<'_>| {
+            fallback_mode_fixture(
+                crate::http_fallback_request_path_ref::HttpFallbackRequestPathRef::from(constants_str::TEST_SIGNIN_PATH),
+                crate::http_fallback_api_prefix_ref::HttpFallbackApiPrefixRef::from(constants_str::TEST_SERVICE_PREFIX),
+                http_optional_accept_header_ref,
+                crate::http_accept_header_maximum_bytes::HttpAcceptHeaderMaximumBytes::from(1024usize),
+            )
+        };
+        assert!((0u16..=999u16).all(|fraction| {
+            [(0u8, fraction != 0u16), (1u8, fraction == 0u16)].into_iter().all(|(integer, accepted)| {
+                let text = format!("{};{}={integer}.{fraction:03}", constants_str::APPLICATION_JSON, constants_str::HTTP_ACCEPT_QUALITY_PARAMETER);
+                http::HeaderValue::try_from(text.as_str()).is_ok_and(|header| {
+                    resolve(crate::http_optional_accept_header_ref::HttpOptionalAcceptHeaderRef::from(Some(&header)))
+                        == if accepted { crate::fallback_response_mode::FallbackResponseMode::MachineReadable }
+                        else { crate::fallback_response_mode::FallbackResponseMode::HumanReadable }
+                })
+            })
+        }));
+    }
+    #[test]
+    fn test_fallback_json_quality_rejects_malformed_values_and_every_disabling_duplicate() {
+        let resolve = |http_optional_accept_header_ref: crate::http_optional_accept_header_ref::HttpOptionalAcceptHeaderRef<'_>| {
+            fallback_mode_fixture(
+                crate::http_fallback_request_path_ref::HttpFallbackRequestPathRef::from(constants_str::TEST_SIGNIN_PATH),
+                crate::http_fallback_api_prefix_ref::HttpFallbackApiPrefixRef::from(constants_str::TEST_SERVICE_PREFIX),
+                http_optional_accept_header_ref,
+                crate::http_accept_header_maximum_bytes::HttpAcceptHeaderMaximumBytes::from(1024usize),
+            )
+        };
+        assert!(
+            [
+                (&[][..], false),
+                (&['0'][..], false),
+                (&['1'][..], true),
+                (&['0', '.'][..], false),
+                (&['.', '1'][..], false),
+                (&['0', '.', '1'][..], true),
+                (&['0', '.', '0', '1'][..], true),
+                (&['1', '.', '0'][..], true),
+                (&['1', '.', '0', '0'][..], true),
+                (&['0', '.', 'a'][..], false),
+                (&['0', '.', '1', 'a'][..], false),
+                (&['0', '.', '1', '.', '0'][..], false),
+                (&['0', '1'][..], false),
+                (&['+', '1'][..], false),
+                (&['-', '1'][..], false),
+                (&['0', '.', '1', ' ', '0'][..], false),
+            ]
+            .into_iter()
+            .all(|(characters, accepted)| {
+                let quality = characters.iter().collect::<String>();
+                let text = format!(
+                    "{}; {} = {} ",
+                    constants_str::APPLICATION_JSON.to_ascii_uppercase(),
+                    constants_str::HTTP_ACCEPT_QUALITY_PARAMETER.to_ascii_uppercase(),
+                    quality
+                );
+                http::HeaderValue::try_from(text.as_str()).is_ok_and(|header| {
+                    resolve(
+                        crate::http_optional_accept_header_ref::HttpOptionalAcceptHeaderRef::from(
+                            Some(&header),
+                        ),
+                    ) == if accepted {
+                        crate::fallback_response_mode::FallbackResponseMode::MachineReadable
+                    } else {
+                        crate::fallback_response_mode::FallbackResponseMode::HumanReadable
+                    }
+                })
+            })
+        );
+        assert!(
+            [
+                (constants_str::VALUE_0, constants_str::VALUE_1, false),
+                (constants_str::VALUE_1, constants_str::VALUE_0, false),
+                (constants_str::VALUE_1, constants_str::VALUE_1, true),
+            ]
+            .into_iter()
+            .all(|(first, second, accepted)| {
+                let text = format!(
+                    "{};{}={first};{}={second}",
+                    constants_str::APPLICATION_JSON,
+                    constants_str::HTTP_ACCEPT_QUALITY_PARAMETER,
+                    constants_str::HTTP_ACCEPT_QUALITY_PARAMETER
+                );
+                http::HeaderValue::try_from(text.as_str()).is_ok_and(|header| {
+                    resolve(
+                        crate::http_optional_accept_header_ref::HttpOptionalAcceptHeaderRef::from(
+                            Some(&header),
+                        ),
+                    ) == if accepted {
+                        crate::fallback_response_mode::FallbackResponseMode::MachineReadable
+                    } else {
+                        crate::fallback_response_mode::FallbackResponseMode::HumanReadable
+                    }
+                })
+            })
+        );
+    }
 }

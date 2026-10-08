@@ -54,3 +54,17 @@ fn test_unique_filter_deserialization_rejects_oversized_sequence() {
     );
     assert!(matches!(result, Err(serde::de::value::Error { .. })));
 }
+
+#[test]
+fn test_unique_filter_deserialization_reports_missing_inner_sequence() {
+    let input =
+        serde::de::value::SeqDeserializer::<_, serde::de::value::Error>::new(std::iter::empty::<
+            serde::de::value::SeqDeserializer<std::vec::IntoIter<i32>, serde::de::value::Error>,
+        >());
+    let result = <crate::pg_type_not_empty_unique_vec::PgTypeNotEmptyUniqueVec<i32> as serde::Deserialize>::deserialize(input);
+    let expected: serde::de::value::Error = serde::de::Error::invalid_length(
+        0usize,
+        &constants_str::PG_CRUD_PG_TYPE_NOT_EMPTY_UNIQUE_VEC_TUPLE_EXPECTING,
+    );
+    assert_eq!(result.map(|_values| ()), Err(expected));
+}

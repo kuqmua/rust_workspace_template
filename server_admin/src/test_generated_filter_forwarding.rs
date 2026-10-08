@@ -228,3 +228,32 @@ fn test_every_generated_table_unknown_field_and_route_return_no_contract() {
             })
     );
 }
+#[test]
+fn test_generated_table_read_routes_forward_exact_security_contracts() {
+    [
+        (crate::admin_generated_table::AdminGeneratedTable::AccessSessions, server_admin_contract::admin_rule::AdminRule::AccessSessionsRead, [crate::admin_access_sessions::AdminAccessSessions::read_route(), crate::admin_access_sessions::AdminAccessSessions::read_payload_example_route()]),
+        (crate::admin_generated_table::AdminGeneratedTable::AuditLog, server_admin_contract::admin_rule::AdminRule::AuditLogRead, [crate::admin_audit_log::AdminAuditLog::read_route(), crate::admin_audit_log::AdminAuditLog::read_payload_example_route()]),
+        (crate::admin_generated_table::AdminGeneratedTable::PermissionActions, server_admin_contract::admin_rule::AdminRule::PermissionActionsRead, [crate::admin_permission_actions::AdminPermissionActions::read_route(), crate::admin_permission_actions::AdminPermissionActions::read_payload_example_route()]),
+        (crate::admin_generated_table::AdminGeneratedTable::PermissionResourceActions, server_admin_contract::admin_rule::AdminRule::PermissionResourceActionsRead, [crate::admin_permission_resource_actions::AdminPermissionResourceActions::read_route(), crate::admin_permission_resource_actions::AdminPermissionResourceActions::read_payload_example_route()]),
+        (crate::admin_generated_table::AdminGeneratedTable::PermissionResources, server_admin_contract::admin_rule::AdminRule::PermissionResourcesRead, [crate::admin_permission_resources::AdminPermissionResources::read_route(), crate::admin_permission_resources::AdminPermissionResources::read_payload_example_route()]),
+        (crate::admin_generated_table::AdminGeneratedTable::Roles, server_admin_contract::admin_rule::AdminRule::RolesRead, [crate::admin_roles::AdminRoles::read_route(), crate::admin_roles::AdminRoles::read_payload_example_route()]),
+        (crate::admin_generated_table::AdminGeneratedTable::RoleRules, server_admin_contract::admin_rule::AdminRule::RoleRulesRead, [crate::admin_role_rules::AdminRoleRules::read_route(), crate::admin_role_rules::AdminRoleRules::read_payload_example_route()]),
+        (crate::admin_generated_table::AdminGeneratedTable::UsersDatabaseRead, server_admin_contract::admin_rule::AdminRule::UsersRead, [crate::admin_users_database_read::AdminUsersDatabaseRead::read_route(), crate::admin_users_database_read::AdminUsersDatabaseRead::read_payload_example_route()]),
+        (crate::admin_generated_table::AdminGeneratedTable::Rules, server_admin_contract::admin_rule::AdminRule::RulesRead, [crate::admin_rules::AdminRules::read_route(), crate::admin_rules::AdminRules::read_payload_example_route()]),
+        (crate::admin_generated_table::AdminGeneratedTable::SystemSettings, server_admin_contract::admin_rule::AdminRule::SystemSettingsRead, [crate::admin_system_settings::AdminSystemSettings::read_route(), crate::admin_system_settings::AdminSystemSettings::read_payload_example_route()]),
+        (crate::admin_generated_table::AdminGeneratedTable::UserRoles, server_admin_contract::admin_rule::AdminRule::UserRolesRead, [crate::admin_user_roles::AdminUserRoles::read_route(), crate::admin_user_roles::AdminUserRoles::read_payload_example_route()]),
+    ].into_iter().fold((), |(), (admin_generated_table, admin_rule, paths)| {
+        paths.into_iter().zip([
+            frontend_contract::route_method::RouteMethod::Post,
+            frontend_contract::route_method::RouteMethod::Get,
+        ]).fold((), |(), (path, route_method)| {
+            let contract = admin_generated_table.route_contract(server_admin_core::std_admin_str_ref::StdAdminStrRef::from(path.as_ref()));
+            assert!(contract.is_some());
+            if let Some(contract) = contract {
+                assert_eq!(contract.rule().map(server_admin_core::std_admin_str_ref::StdAdminStrRef::get), Some(admin_rule.as_str().get()));
+                assert!(!contract.mutates().get());
+                assert_eq!(contract.method(), route_method);
+            }
+        });
+    });
+}

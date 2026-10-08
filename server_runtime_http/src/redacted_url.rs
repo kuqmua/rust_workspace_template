@@ -93,4 +93,75 @@ mod tests {
                 .starts_with(constants_str::RTSP_SCHEME_PREFIX)
         );
     }
+    #[test]
+    fn test_redacted_url_storage_limits_apply_to_preserved_and_redacted_output() {
+        let maximum = constants_usize::VALUE_1_048_576;
+        assert!(
+            [maximum - 1usize, maximum, maximum + 1usize]
+                .into_iter()
+                .all(|length| {
+                    [false, true].into_iter().all(|credentials| {
+                        let prefix = if credentials {
+                            format!(
+                                "{}{}@{}/",
+                                constants_str::HTTP_SCHEME_PREFIX,
+                                constants_str::REDACTED_ALT,
+                                constants_str::LOCALHOST
+                            )
+                        } else {
+                            format!(
+                                "{}{}/",
+                                constants_str::HTTP_SCHEME_PREFIX,
+                                constants_str::LOCALHOST
+                            )
+                        };
+                        let suffix = constants_str::X.repeat(length - prefix.len());
+                        let input = if credentials {
+                            format!(
+                                "{}{}:{}@{}/{suffix}",
+                                constants_str::HTTP_SCHEME_PREFIX,
+                                constants_str::X,
+                                constants_str::SECRET,
+                                constants_str::LOCALHOST
+                            )
+                        } else {
+                            format!("{prefix}{suffix}")
+                        };
+                        let expected = if length <= maximum {
+                            format!("{prefix}{suffix}")
+                        } else {
+                            constants_str::REDACTED_ALT_3.to_owned()
+                        };
+                        let redacted =
+                            crate::redact_url_userinfo::redact_url_userinfo(input.as_str().into());
+                        redacted.as_ref() == expected
+                            && redacted.to_string() == expected
+                            && !format!("{redacted:?}").contains(constants_str::SECRET)
+                    })
+                })
+        );
+    }
+    #[test]
+    fn test_redaction_removes_oversized_credentials_before_output_length_validation() {
+        let input = format!(
+            "{}{}:{}{}@{}/{}",
+            constants_str::HTTP_SCHEME_PREFIX,
+            constants_str::X,
+            constants_str::SECRET,
+            constants_str::X.repeat(constants_usize::VALUE_1_048_576),
+            constants_str::LOCALHOST,
+            constants_str::X
+        );
+        let expected = format!(
+            "{}{}@{}/{}",
+            constants_str::HTTP_SCHEME_PREFIX,
+            constants_str::REDACTED_ALT,
+            constants_str::LOCALHOST,
+            constants_str::X
+        );
+        let redacted = crate::redact_url_userinfo::redact_url_userinfo(input.as_str().into());
+        assert_eq!(redacted.as_ref(), expected);
+        assert_eq!(redacted.to_string(), expected);
+        assert!(!format!("{redacted:?}").contains(constants_str::SECRET));
+    }
 }

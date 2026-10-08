@@ -8,8 +8,16 @@ fn test_query_part_write_error_emitter_preserves_import_and_location() {
                     location: proc_macro_location_bang::location!()
                 }
             };
+            let returned = crate::generate_return_err_query_part_error_write_into_buffer_token_stream::generate_return_err_query_part_error_write_into_buffer_token_stream(import);
+            let expected_return: syn::Block = syn::parse_quote! {
+                {
+                    return Err(#expected);
+                }
+            };
             syn::parse2::<syn::Expr>(proc_macro2::TokenStream::from(generated))
                 .is_ok_and(|expression| expression == expected)
+                && syn::parse2::<syn::Block>(quote::quote! { { #returned } })
+                    .is_ok_and(|block| block == expected_return)
         }));
 }
 
@@ -533,10 +541,71 @@ fn test_where_emitter_schema_selection_preserves_other_items() {
                         && path.segments.last().is_some_and(|segment|
                             segment.ident == stringify!(PartialSchema) || segment.ident == stringify!(ToSchema))))
                 };
+                let expected_variants: syn::ItemEnum = syn::parse_quote! {
+                    pub enum TestFilterWhere {
+                        Eq(where_filters::domain_types::PgTypeWhereEq<domain::Value>),
+                        Regex(where_filters::domain_types::PgTypeWhereRegex)
+                    }
+                };
+                let variant_contract = without_schema.items.iter().any(|item| {
+                    matches!(item, syn::Item::Enum(item_enum)
+                        if item_enum.ident == expected_variants.ident
+                        && item_enum.vis == expected_variants.vis
+                        && item_enum.generics == expected_variants.generics
+                        && item_enum.variants.iter().eq(expected_variants.variants.iter()))
+                });
+                let schema_name = syn::LitStr::new(stringify!(TestFilterWhere), proc_macro2::Span::call_site());
+                let expected_schema: syn::File = syn::parse_quote! {
+                    impl utoipa::PartialSchema for TestFilterWhere {
+                        fn schema() -> utoipa::openapi::RefOr<utoipa::openapi::schema::Schema> {
+                            utoipa::openapi::schema::Schema::from(
+                                utoipa::openapi::OneOfBuilder::new()
+                                    .item(utoipa::openapi::ObjectBuilder::new()
+                                        .property(stringify!(Eq), <where_filters::domain_types::PgTypeWhereEq<domain::Value> as utoipa::PartialSchema>::schema(),)
+                                        .required(stringify!(Eq)),)
+                                    .item(utoipa::openapi::ObjectBuilder::new()
+                                        .property(stringify!(Regex), <where_filters::domain_types::PgTypeWhereRegex as utoipa::PartialSchema>::schema(),)
+                                        .required(stringify!(Regex)),)
+                                    .build(),
+                            ).into()
+                        }
+                    }
+                    impl utoipa::ToSchema for TestFilterWhere {
+                        fn name() -> std::borrow::Cow<'static, str> {
+                            std::borrow::Cow::Borrowed(#schema_name)
+                        }
+                    }
+                };
+                let schema_contract = with_schema.items.iter().filter(|item| is_schema_impl(item))
+                    .eq(expected_schema.items.iter());
+                let expected_query_part: syn::Block = syn::parse_quote!({
+                    match &self {
+                        Self::Eq(v) => pg_crud_common::pg_type_where_filter::PgTypeWhereFilter::query_part(v, increment, column, add_operator,),
+                        Self::Regex(v) => pg_crud_common::pg_type_where_filter::PgTypeWhereFilter::query_part(v, increment, column, add_operator,)
+                    }
+                });
+                let expected_query_bind: syn::Block = syn::parse_quote!({
+                    match self {
+                        Self::Eq(v) => pg_crud_common::pg_type_where_filter::PgTypeWhereFilter::query_bind(v, query),
+                        Self::Regex(v) => pg_crud_common::pg_type_where_filter::PgTypeWhereFilter::query_bind(v, query)
+                    }
+                });
+                let forwarding_contract = without_schema.items.iter().any(|item| {
+                    matches!(item, syn::Item::Impl(item_impl)
+                        if item_impl.trait_.as_ref().is_some_and(|(path, _)| path == &syn::parse_quote!(pg_crud_common::pg_type_where_filter::PgTypeWhereFilter<'lt>))
+                        && item_impl.items.iter().filter_map(|impl_item| {
+                            if let syn::ImplItem::Fn(method) = impl_item { Some(method) } else { None }
+                        }).map(|method| (&method.sig.ident, &method.block))
+                        .eq([
+                            (&syn::Ident::new(stringify!(query_part), proc_macro2::Span::call_site()), &expected_query_part),
+                            (&syn::Ident::new(stringify!(query_bind), proc_macro2::Span::call_site()), &expected_query_bind),
+                        ]))
+                });
                 let with_count = with_schema.items.iter().filter(|item| is_schema_impl(item)).count();
                 let without_count = without_schema.items.iter().filter(|item| is_schema_impl(item)).count();
                 with_schema.items.retain(|item| !is_schema_impl(item));
-                with_count == 2usize && without_count == 0usize && with_schema == without_schema
+                variant_contract && schema_contract && forwarding_contract
+                    && with_count == 2usize && without_count == 0usize && with_schema == without_schema
             })
     }));
 }
@@ -803,6 +872,52 @@ fn test_common_default_adapters_preserve_paths_and_supplied_expressions() {
     ].into_iter().all(|(generated, expected)| {
         syn::parse2::<syn::ItemImpl>(proc_macro2::TokenStream::from(generated)).is_ok_and(|implementation| {
             syn::parse2::<syn::ItemImpl>(expected).is_ok_and(|expected_implementation| implementation == expected_implementation)
+        })
+    }));
+}
+
+#[test]
+fn test_module_emitter_preserves_visibility_name_and_ordered_contents() {
+    assert!([
+        Vec::new(),
+        vec![
+            quote::quote! { struct TestFirstModuleItem; },
+            quote::quote! { enum TestSecondModuleItem { First, Second } },
+        ],
+    ].into_iter().all(|items| {
+        let expected = syn::parse2::<syn::File>(quote::quote! { #(#items)* });
+        let token_streams = items.into_iter().map(
+            macro_helpers::proc_macro2_generated_rust_token_stream::ProcMacro2GeneratedRustTokenStream::from,
+        ).collect::<crate::proc_macro2_generated_rust_token_stream_vec::ProcMacro2GeneratedRustTokenStreamVec>();
+        let generated = crate::generate_mod_with_pub_use_token_stream::generate_mod_with_pub_use_token_stream(
+            &quote::quote! { test_generated_contents }, &token_streams,
+        );
+        syn::parse2::<syn::ItemMod>(proc_macro2::TokenStream::from(generated)).is_ok_and(|module| {
+            matches!(module.vis, syn::Visibility::Public(_))
+                && module.ident == stringify!(test_generated_contents)
+                && module.semi.is_none()
+                && module.content.is_some_and(|(_, contents)| {
+                    expected.is_ok_and(|expected_file| contents == expected_file.items)
+                })
+        })
+    }));
+}
+
+#[test]
+fn test_equality_operator_emitter_preserves_import_paths_signature_and_supplied_body() {
+    assert!([
+        (crate::import::Import::Crate, quote::quote! { crate }),
+        (crate::import::Import::PgCrudCommon, quote::quote! { pg_crud_common }),
+    ].into_iter().all(|(import, expected_import)| {
+        [quote::quote! { #expected_import::eq_operator::EqOperator::Eq }, quote::quote! { #expected_import::eq_operator::EqOperator::IsNull }].into_iter().all(|body| {
+            let identifier = quote::quote! { domain::TestEquality };
+            let generated = crate::impl_pg_type_eq_operator_for_identifier_token_stream::impl_pg_type_eq_operator_for_identifier_token_stream(&import, &identifier, &body);
+            let expected: syn::ItemImpl = syn::parse_quote! {
+                impl #expected_import::pg_type_eq_operator::PgTypeEqOperator for domain::TestEquality {
+                    fn operator(&self) -> #expected_import::eq_operator::EqOperator { #body }
+                }
+            };
+            syn::parse2::<syn::ItemImpl>(proc_macro2::TokenStream::from(generated)).is_ok_and(|implementation| implementation == expected)
         })
     }));
 }

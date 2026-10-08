@@ -358,3 +358,66 @@ fn test_retry_after_header_preserves_full_nonzero_u64_range() {
         })
     }));
 }
+
+#[tokio::test]
+async fn test_background_join_preserves_terminal_outcomes_and_cancellation_source() {
+    let [mut completed, mut shutdown, mut overflow] = [
+        crate::background_task_outcome::BackgroundTaskOutcome::Completed,
+        crate::background_task_outcome::BackgroundTaskOutcome::ShutdownRequested,
+        crate::background_task_outcome::BackgroundTaskOutcome::IntervalOverflow,
+    ]
+    .map(|background_task_outcome| {
+        crate::tokio_background_task_join::TokioBackgroundTaskJoin::from(tokio::spawn(
+            std::future::ready(background_task_outcome),
+        ))
+    });
+    assert!(matches!(
+        completed.join().await,
+        Ok(crate::background_task_outcome::BackgroundTaskOutcome::Completed)
+    ));
+    assert!(matches!(
+        shutdown.join().await,
+        Ok(crate::background_task_outcome::BackgroundTaskOutcome::ShutdownRequested)
+    ));
+    assert!(matches!(
+        overflow.join().await,
+        Err(crate::background_task_shutdown_error::BackgroundTaskShutdownError::IntervalOverflow)
+    ));
+    let mut cancelled =
+        crate::tokio_background_task_join::TokioBackgroundTaskJoin::from(tokio::spawn(
+            std::future::pending::<crate::background_task_outcome::BackgroundTaskOutcome>(),
+        ));
+    cancelled.abort();
+    assert!(cancelled.join().await.is_err_and(|error| {
+        matches!(
+            &error,
+            crate::background_task_shutdown_error::BackgroundTaskShutdownError::Join(_)
+        ) && std::error::Error::source(&error).is_some_and(
+            <dyn std::error::Error>::is::<crate::tokio_task_join_error::TokioTaskJoinError>,
+        )
+    }));
+}
+
+#[tokio::test(start_paused = true)]
+async fn test_queued_permit_cancellation_preserves_capacity_and_closed_try_acquire() {
+    let semaphore = std::sync::Arc::new(tokio::sync::Semaphore::new(1usize));
+    let arc_tokio_semaphore =
+        crate::arc_tokio_semaphore::ArcTokioSemaphore::from(std::sync::Arc::clone(&semaphore));
+    let retry_after_secs = crate::retry_after_secs::RetryAfterSecs::from(std::num::NonZeroU64::MIN);
+    let held = arc_tokio_semaphore.try_acquire();
+    assert!(held.is_some());
+    let mut queued = Box::pin(crate::acquire_permit::acquire_permit(
+        arc_tokio_semaphore.clone(),
+        crate::permit_wait_timeout_duration::PermitWaitTimeoutDuration::from(
+            std::time::Duration::from_secs(1u64),
+        ),
+        retry_after_secs,
+    ));
+    let mut context = std::task::Context::from_waker(std::task::Waker::noop());
+    assert!(Future::poll(queued.as_mut(), &mut context).is_pending());
+    drop(queued);
+    drop(held);
+    assert_eq!(semaphore.available_permits(), 1usize);
+    semaphore.close();
+    assert!(arc_tokio_semaphore.try_acquire().is_none());
+}

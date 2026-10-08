@@ -152,4 +152,31 @@ mod tests {
         assert!(result.is_ok_and(|bytes| bytes.into_inner() == constants_str::X.as_bytes()));
         assert_eq!(limiter.into_inner().available_permits(), 1usize);
     }
+    #[tokio::test]
+    async fn test_response_zero_limit_accepts_empty_body_and_releases_permits_after_rejection() {
+        let limiter = response_read_semaphore_fixture();
+        let maximum = crate::bounded_read_maximum_bytes::BoundedReadMaximumBytes::from(0usize);
+        let empty = crate::read_bounded_http_response::read_bounded_http_response(
+            crate::reqwest_response::ReqwestResponse::from(reqwest::Response::from(
+                http::Response::new(constants_str::EMPTY),
+            )),
+            maximum,
+            limiter.clone(),
+        )
+        .await;
+        assert!(empty.is_ok_and(|bytes| bytes.into_inner().is_empty()));
+        assert_eq!(limiter.clone().into_inner().available_permits(), 1usize);
+        let nonempty = crate::read_bounded_http_response::read_bounded_http_response(
+            crate::reqwest_response::ReqwestResponse::from(reqwest::Response::from(
+                http::Response::new(constants_str::X),
+            )),
+            maximum,
+            limiter.clone(),
+        )
+        .await;
+        assert!(
+            matches!(nonempty, Err(crate::bounded_read_error::BoundedReadError::ExceedsMaximum { maximum_bytes }) if maximum_bytes == maximum)
+        );
+        assert_eq!(limiter.into_inner().available_permits(), 1usize);
+    }
 }

@@ -293,3 +293,65 @@ fn test_settings_update_into_parts_preserves_values_and_clear_ownership() {
         })
     }));
 }
+
+#[test]
+fn test_optional_settings_preserve_order_duplicates_and_empty_wire() {
+    [
+        (Vec::new(), serde_json::json!([])),
+        (
+            vec![crate::admin_optional_setting::AdminOptionalSetting::MainLogo],
+            serde_json::json!([stringify!(main_logo)]),
+        ),
+        (
+            vec![
+                crate::admin_optional_setting::AdminOptionalSetting::MainLogo,
+                crate::admin_optional_setting::AdminOptionalSetting::TabTitle,
+                crate::admin_optional_setting::AdminOptionalSetting::MainLogo,
+                crate::admin_optional_setting::AdminOptionalSetting::PrimaryColor,
+            ],
+            serde_json::json!([
+                stringify!(main_logo),
+                stringify!(tab_title),
+                stringify!(main_logo),
+                stringify!(primary_color)
+            ]),
+        ),
+        (
+            vec![
+                crate::admin_optional_setting::AdminOptionalSetting::MainLogo,
+                crate::admin_optional_setting::AdminOptionalSetting::PrimaryColor,
+                crate::admin_optional_setting::AdminOptionalSetting::SupportUrl,
+                crate::admin_optional_setting::AdminOptionalSetting::OrganizationContacts,
+                crate::admin_optional_setting::AdminOptionalSetting::OrganizationName,
+                crate::admin_optional_setting::AdminOptionalSetting::TabTitle,
+            ],
+            serde_json::json!([
+                stringify!(main_logo),
+                stringify!(primary_color),
+                stringify!(support_url),
+                stringify!(organization_contacts),
+                stringify!(organization_name),
+                stringify!(tab_title)
+            ]),
+        ),
+    ]
+    .into_iter()
+    .fold((), |(), (values, expected)| {
+        assert!(
+            crate::admin_optional_settings::AdminOptionalSettings::try_from(values).is_ok_and(
+                |settings| {
+                    serde_json::to_value(settings.as_ref()).is_ok_and(|wire| wire == expected)
+                        && serde_json::to_value(settings).is_ok_and(|wire| wire == expected)
+                }
+            )
+        );
+        assert!(
+            serde_json::from_value::<crate::admin_optional_settings::AdminOptionalSettings>(
+                expected.clone()
+            )
+            .is_ok_and(|settings| {
+                serde_json::to_value(settings.as_ref()).is_ok_and(|wire| wire == expected)
+            })
+        );
+    });
+}

@@ -132,6 +132,58 @@ mod tests {
                 .as_str(),
         );
         assert_eq!(cfg.validate_for_startup(), Ok(()));
+        (0usize..8usize).fold((), |(), development_secret_position| {
+            let secrets = (0usize..8usize)
+                .map(|position| {
+                    if position == development_secret_position {
+                        constants_str::ADMIN_DEVELOPMENT_JWT_SECRET
+                    } else {
+                        constants_str::TEST_ONLY_ADMIN_JWT_SECRET_WITH_32_BYTES
+                    }
+                })
+                .collect::<Vec<_>>()
+                .join(constants_str::TEXT_ALT_7);
+            *cfg.get_admin_jwt_secret_mut() = server_config_test_env(secrets.as_str());
+            assert_eq!(
+                cfg.validate_for_startup(),
+                Err(crate::production_config_error::ProductionConfigError::DevelopmentJwtSecret)
+            );
+        });
+        *cfg.get_admin_jwt_secret_mut() =
+            server_config_test_env(constants_str::TEST_ONLY_ADMIN_JWT_SECRET_WITH_32_BYTES);
+        let insecure_origin = constants_str::HTTPS_EXAMPLE_COM.replacen(
+            constants_str::HTTPS_SCHEME_PREFIX,
+            constants_str::HTTP_SCHEME_PREFIX,
+            1usize,
+        );
+        [
+            (
+                format!(
+                    " {} , {} ",
+                    constants_str::HTTPS_EXAMPLE_COM.to_ascii_uppercase(),
+                    constants_str::HTTPS_EXAMPLE_COM
+                ),
+                true,
+            ),
+            (
+                format!("{},{}", constants_str::HTTPS_EXAMPLE_COM, insecure_origin),
+                false,
+            ),
+            (
+                format!("{},{}", insecure_origin, constants_str::HTTPS_EXAMPLE_COM),
+                false,
+            ),
+        ]
+        .into_iter()
+        .fold((), |(), (origins, secure)| {
+            *cfg.get_cors_allow_origin_mut() = server_config_test_env(origins.as_str());
+            let expected = if secure {
+                Ok(())
+            } else {
+                Err(crate::production_config_error::ProductionConfigError::CorsOriginInsecure)
+            };
+            assert_eq!(cfg.validate_for_startup(), expected);
+        });
         *cfg.get_cors_allow_origin_mut() = server_config_test_env(
             constants_str::HTTPS_EXAMPLE_COM
                 .replacen(

@@ -152,4 +152,55 @@ mod tests {
             })
         );
     }
+
+    #[test]
+    fn test_http_middleware_services_forward_ready_pending_and_error_readiness() {
+        #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Copy)]
+        enum TestHttpMiddlewareReadiness {
+            Failed,
+            Pending,
+            Ready,
+        }
+        #[derive(
+            proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+            proc_macro_newtype_from_inner::FromInner,
+        )]
+        struct TestHttpMiddlewareReadinessService(TestHttpMiddlewareReadiness);
+        impl tower::Service<axum::extract::Request> for TestHttpMiddlewareReadinessService {
+            type Error = crate::std_request_timeout_try_from_duration_error::StdRequestTimeoutTryFromDurationError;
+            type Future = std::future::Ready<Result<Self::Response, Self::Error>>;
+            type Response = axum::response::Response;
+            fn call(&mut self, _request: axum::extract::Request) -> Self::Future {
+                std::future::ready(Err(crate::std_request_timeout_try_from_duration_error::StdRequestTimeoutTryFromDurationError::Zero))
+            }
+            fn poll_ready(
+                &mut self,
+                _context: &mut std::task::Context<'_>,
+            ) -> std::task::Poll<Result<(), Self::Error>> {
+                match self.0 {
+                    TestHttpMiddlewareReadiness::Failed => std::task::Poll::Ready(Err(crate::std_request_timeout_try_from_duration_error::StdRequestTimeoutTryFromDurationError::Zero)),
+                    TestHttpMiddlewareReadiness::Pending => std::task::Poll::Pending,
+                    TestHttpMiddlewareReadiness::Ready => std::task::Poll::Ready(Ok(())),
+                }
+            }
+        }
+        assert!(crate::request_timeout_duration::RequestTimeoutDuration::try_from(std::time::Duration::from_secs(1u64)).is_ok_and(|timeout| {
+            [
+                (TestHttpMiddlewareReadiness::Failed, std::task::Poll::Ready(Err(crate::std_request_timeout_try_from_duration_error::StdRequestTimeoutTryFromDurationError::Zero))),
+                (TestHttpMiddlewareReadiness::Pending, std::task::Poll::Pending),
+                (TestHttpMiddlewareReadiness::Ready, std::task::Poll::Ready(Ok(()))),
+            ].into_iter().all(|(readiness, expected)| {
+                let mut service = crate::request_timeout_service::RequestTimeoutService::new(TestHttpMiddlewareReadinessService::from(readiness), timeout);
+                let mut context = std::task::Context::from_waker(std::task::Waker::noop());
+                let mut request_id_service = crate::request_id_service::RequestIdService::new(TestHttpMiddlewareReadinessService::from(readiness), None);
+                let paths = crate::shared_http_metrics_path_cache_arc::SharedHttpMetricsPathCacheArc::from(crate::http_metrics_path_cache::HttpMetricsPathCache::from(crate::http_metrics_path_cache_maximum::HttpMetricsPathCacheMaximum::from(std::num::NonZeroUsize::MIN)));
+                let mut metrics_service = crate::http_metrics_service::HttpMetricsService::new(TestHttpMiddlewareReadinessService::from(readiness), paths);
+                let mut security_service = crate::security_headers_service::SecurityHeadersService::new(None, crate::forwarded_proto_trust::ForwardedProtoTrust::Trust, TestHttpMiddlewareReadinessService::from(readiness));
+                tower::Service::poll_ready(&mut service, &mut context) == expected
+                    && tower::Service::poll_ready(&mut request_id_service, &mut context) == expected
+                    && tower::Service::poll_ready(&mut metrics_service, &mut context) == expected
+                    && tower::Service::poll_ready(&mut security_service, &mut context) == expected
+            })
+        }));
+    }
 }

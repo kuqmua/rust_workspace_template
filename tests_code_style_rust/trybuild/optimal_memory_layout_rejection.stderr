@@ -1,0 +1,33 @@
+error: 6e9230ab unsupported optimal_memory_layout attribute
+  --> trybuild/optimal_memory_layout_rejection.rs:16:25
+   |
+16 | #[optimal_memory_layout(unknown)]
+   |                         ^^^^^^^
+
+error[E0080]: evaluation panicked: In struct 'OptimalLayoutRejectedNamedFields' align_of field 'first' < align_of field 'second'. syn::Field 'second' must be placed before 'first' for better memory alignment
+ --> trybuild/optimal_memory_layout_rejection.rs:1:10
+  |
+1 | #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
+  |          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ evaluation of `OptimalLayoutRejectedNamedFields::_OPTIMAL_PACK_CHECK` failed here
+
+note: erroneous constant encountered
+ --> trybuild/optimal_memory_layout_rejection.rs:1:10
+  |
+1 | #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
+  |          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: this note originates in the derive macro `proc_macro_optimal_memory_layout::OptimalMemoryLayout` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0080]: evaluation panicked: In enum 'OptimalLayoutRejectedVariantFields' variant 'Value' align_of field 'first' < align_of field 'second'. syn::Field 'second' must be placed before 'first' for better memory alignment
+ --> trybuild/optimal_memory_layout_rejection.rs:7:10
+  |
+7 | #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
+  |          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ evaluation of `OptimalLayoutRejectedVariantFields::_OPTIMAL_PACK_CHECK` failed here
+
+note: erroneous constant encountered
+ --> trybuild/optimal_memory_layout_rejection.rs:7:10
+  |
+7 | #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
+  |          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: this note originates in the derive macro `proc_macro_optimal_memory_layout::OptimalMemoryLayout` (in Nightly builds, run with -Z macro-backtrace for more info)

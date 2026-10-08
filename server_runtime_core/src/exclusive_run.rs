@@ -40,13 +40,16 @@ impl Default for ExclusiveRun {
 mod tests {
     #[test]
     fn test_guard_prevents_overlap_and_releases_on_drop() {
-        let run = super::ExclusiveRun::new();
-        let guard = run.try_acquire().expect(constants_str::DIAGNOSTIC_9B776C85);
-        assert!(matches!(
-            run.try_acquire(),
-            Err(crate::exclusive_run_already_active::ExclusiveRunAlreadyActive::Active)
-        ));
-        drop(guard);
-        let _next_guard = run.try_acquire().expect(constants_str::DIAGNOSTIC_D43A617D);
+        [super::ExclusiveRun::new(), super::ExclusiveRun::default()]
+            .into_iter()
+            .fold((), |(), run| {
+                let guard = run.try_acquire().expect(constants_str::DIAGNOSTIC_9B776C85);
+                assert!(matches!(
+                    run.try_acquire(),
+                    Err(crate::exclusive_run_already_active::ExclusiveRunAlreadyActive::Active)
+                ));
+                drop(guard);
+                let _next_guard = run.try_acquire().expect(constants_str::DIAGNOSTIC_D43A617D);
+            });
     }
 }

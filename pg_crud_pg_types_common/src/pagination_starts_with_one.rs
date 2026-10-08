@@ -280,4 +280,38 @@ mod tests {
         assert_eq!(maximum.start().get(), constants_i64::ONE);
         assert_eq!(maximum.end().get(), i64::from(i32::MAX));
     }
+    #[test]
+    fn test_one_based_pagination_validation_preserves_error_payloads_and_precedence() {
+        assert!([(i64::MIN, i64::MIN), (-1i64, 0i64), (0i64, 0i64), (0i64, i64::MAX)].into_iter().all(|(limit, offset)| {
+            matches!(super::PaginationStartsWithOne::try_new(limit, offset), Err(crate::pagination_starts_with_one_try_new_error::PaginationStartsWithOneTryNewError::LimitIsLessThanOrEqToZero { limit: observed_limit, .. }) if observed_limit.get() == limit)
+        }));
+        assert!([(1i64, i64::MIN), (i64::MAX, -1i64), (1i64, 0i64)].into_iter().all(|(limit, offset)| {
+            matches!(super::PaginationStartsWithOne::try_new(limit, offset), Err(crate::pagination_starts_with_one_try_new_error::PaginationStartsWithOneTryNewError::OffsetIsLessThanOne { offset: observed_offset, .. }) if observed_offset.get() == offset)
+        }));
+        assert!([(i64::MAX, 1i64), (1i64, i64::MAX), (i64::MAX, i64::MAX)].into_iter().all(|(limit, offset)| {
+            matches!(super::PaginationStartsWithOne::try_new(limit, offset), Err(crate::pagination_starts_with_one_try_new_error::PaginationStartsWithOneTryNewError::OffsetPlusLimitIsIntOverflow { limit: observed_limit, offset: observed_offset, .. }) if observed_limit.get() == limit && observed_offset.get() == offset)
+        }));
+    }
+    #[test]
+    fn test_one_based_pagination_forwards_query_placeholders() {
+        let pagination_result = super::PaginationStartsWithOne::try_new(2i64, 3i64);
+        assert!(pagination_result.is_ok());
+        let Ok(pagination) = pagination_result else {
+            return;
+        };
+        let mut increment = pg_crud_common::query_part_increment::QueryPartIncrement::from(7u64);
+        let fragment = pg_crud_common::pg_type_where_filter::PgTypeWhereFilter::query_part(
+            &pagination,
+            &mut increment,
+            pg_crud_common::sql_column_ref::SqlColumnRef::from(&constants_str::SQL_NAMES_ID),
+            pg_crud_common::add_operator::AddOperator::from(true),
+        );
+        assert!(fragment.is_ok_and(|part| part.to_string()
+            == format!(
+                "{} $8 {} $9",
+                constants_str::LIMIT,
+                constants_str::OFFSET_ALT
+            )));
+        assert_eq!(increment.get(), 9u64);
+    }
 }

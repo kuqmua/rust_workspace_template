@@ -206,6 +206,12 @@ mod tests {
             quote::quote! {#actual}.to_string(),
             quote::quote! {#expected}.to_string()
         );
+        let mut accumulated = quote::quote! { existing_prefix:: };
+        quote::ToTokens::to_tokens(&actual, &mut accumulated);
+        assert_eq!(
+            accumulated.to_string(),
+            quote::quote! { existing_prefix::#expected }.to_string()
+        );
     }
     #[test]
     fn test_token_pattern_struct_outputs_expected_tokens() {
@@ -412,6 +418,42 @@ mod tests {
         assert_tokens_eq(
             crate::path_default_some_one_element_call(),
             quote::quote! {::default_some_one_element()},
+        );
+    }
+    #[test]
+    fn test_remaining_composite_trait_patterns_preserve_exact_module_paths() {
+        assert_tokens_eq(
+            super::CrateAllEnumVariantsArrayDefaultSomeOneElement,
+            quote::quote! { crate::AllEnumVariantsArrayDefaultSomeOneElement },
+        );
+        assert_tokens_eq(
+            super::PgCrudCommonAllEnumVariantsArrayDefaultSomeOneElement,
+            quote::quote! { pg_crud_common::all_enum_variants_array_default_some_one_element::AllEnumVariantsArrayDefaultSomeOneElement },
+        );
+        assert_tokens_eq(
+            super::PgCrudCommonDefaultSomeOneElementMaxPageSize,
+            quote::quote! { pg_crud_common::default_some_one_element_max_page_size::DefaultSomeOneElementMaxPageSize },
+        );
+        assert_tokens_eq(
+            super::CrateAllEnumVariantsArrayDefaultSomeOneElementMaxPageSize,
+            quote::quote! { crate::AllEnumVariantsArrayDefaultSomeOneElementMaxPageSize },
+        );
+        assert_tokens_eq(
+            super::PgCrudCommonAllEnumVariantsArrayDefaultSomeOneElementMaxPageSize,
+            quote::quote! { pg_crud_common::all_enum_variants_array_default_some_one_element_max_page_size::AllEnumVariantsArrayDefaultSomeOneElementMaxPageSize },
+        );
+    }
+    #[test]
+    fn test_token_attribute_patterns_preserve_predicate_and_specific_lint_reason() {
+        let predicate = format!("{}::{}", stringify!(Option), stringify!(is_none));
+        assert_tokens_eq(
+            super::FieldAttrSerdeSkipSerializingIfOptionalIsNone,
+            quote::quote! { #[serde(skip_serializing_if = #predicate)] },
+        );
+        let reason = stringify!(lib keeps declaration order aligned with generated layout or processing flow);
+        assert_tokens_eq(
+            super::AllowClippyArbitrarySrcItemOrdering,
+            quote::quote! { #[allow(clippy::arbitrary_source_item_ordering, reason = #reason)] },
         );
     }
 }

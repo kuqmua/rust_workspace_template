@@ -199,3 +199,108 @@ fn test_production_manifest_preserves_error_precedence_with_multiple_failures() 
             );
         });
 }
+
+#[test]
+fn test_manifest_image_count_preserves_threshold_and_ascii_indentation() {
+    let requirements = [
+        constants_str::PRODUCTION_MANIFEST_MODE,
+        constants_str::PRODUCTION_MANIFEST_COOKIE,
+        constants_str::PRODUCTION_MANIFEST_DEPLOYMENT,
+        constants_str::PRODUCTION_MANIFEST_NETWORK,
+        constants_str::PRODUCTION_MANIFEST_BUDGET,
+    ]
+    .join(constants_str::NEWLINE);
+    let image = [
+        constants_str::PRODUCTION_MANIFEST_IMAGE,
+        constants_str::X,
+        constants_str::PRODUCTION_MANIFEST_DIGEST,
+        constants_str::MIGRATION_60E05BD1,
+    ]
+    .concat();
+    [' ', '\t', '\r', '\u{000b}', '\u{000c}']
+        .into_iter()
+        .fold((), |(), indentation| {
+            (0usize..=3usize).fold((), |(), count| {
+                let line = [
+                    indentation.to_string(),
+                    image.clone(),
+                    constants_str::NEWLINE.to_owned(),
+                ]
+                .concat();
+                let manifest = [line.repeat(count), requirements.clone()].concat();
+                let result = crate::validate_production_manifest::validate_production_manifest(
+                    crate::string_file_content_ref::StringFileContentRef::from(manifest.as_str()),
+                );
+                let expected = if count < 2usize {
+                    Err(crate::production_manifest_error::ProductionManifestError::Images)
+                } else {
+                    Ok(())
+                };
+                assert_eq!(result, expected);
+            });
+        });
+}
+
+#[test]
+fn test_manifest_digest_preserves_lowercase_hex_and_rejects_exact_length_nonhex() {
+    [
+        ('0', true),
+        ('9', true),
+        ('a', true),
+        ('f', true),
+        ('g', false),
+        ('/', false),
+        ('\0', false),
+    ]
+    .into_iter()
+    .fold((), |(), (character, accepted)| {
+        let digest = character.to_string().repeat(64usize);
+        let manifest = constants_str::PRODUCTION_MANIFEST_VALID_TEST
+            .replace(constants_str::MIGRATION_60E05BD1, digest.as_str());
+        let expected = if accepted {
+            Ok(())
+        } else {
+            Err(crate::production_manifest_error::ProductionManifestError::Images)
+        };
+        assert_eq!(
+            crate::validate_production_manifest::validate_production_manifest(
+                crate::string_file_content_ref::StringFileContentRef::from(manifest.as_str()),
+            ),
+            expected,
+        );
+    });
+}
+
+#[test]
+fn test_manifest_placeholder_suffix_preserves_ascii_boundary_classification() {
+    [
+        ('a', true),
+        ('z', true),
+        ('-', true),
+        ('A', false),
+        ('0', false),
+        ('_', false),
+        ('\u{e9}', false),
+    ]
+    .into_iter()
+    .fold((), |(), (character, rejected)| {
+        let suffix = character.to_string();
+        let manifest = [
+            constants_str::PRODUCTION_MANIFEST_VALID_TEST,
+            constants_str::PRODUCTION_MANIFEST_REPLACE,
+            suffix.as_str(),
+        ]
+        .concat();
+        let expected = if rejected {
+            Err(crate::production_manifest_error::ProductionManifestError::Placeholder)
+        } else {
+            Ok(())
+        };
+        assert_eq!(
+            crate::validate_production_manifest::validate_production_manifest(
+                crate::string_file_content_ref::StringFileContentRef::from(manifest.as_str()),
+            ),
+            expected,
+        );
+    });
+}

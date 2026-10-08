@@ -47,20 +47,28 @@ fn test_location_error_conversions_preserve_all_field_adapters_and_empty_collect
         .fold((), |(), value| {
             let expected_location = location_fixture();
             let expected_text = crate::location_test_text::LocationTestText::from(value);
-            let another = crate::error_two::ErrorTwo::Another {
+            let original_another = crate::error_two::ErrorTwo::Another {
                 sdasdasd: crate::location_test_text::LocationTestText::from(value),
                 location: location_fixture(),
-            }.into_serde_version();
+            };
+            let expected_another_display = format!("{}: {value}\n{expected_location}", stringify!(sdasdasd));
+            assert_eq!(original_another.to_string(), expected_another_display);
+            let another = original_another.into_serde_version();
+            assert_eq!(another.to_string(), expected_another_display);
             assert!(matches!(another,
                 crate::error_two::ErrorTwoWithSerde::Another { sdasdasd, location }
                     if sdasdasd == expected_text && location == expected_location
             ));
-            let nested = crate::error_unnamed_one::ErrorUnnamedOne::Something(
+            let original_nested = crate::error_unnamed_one::ErrorUnnamedOne::Something(
                 crate::error_two::ErrorTwo::Variant {
                     error_field_display_with_serde_field: crate::location_test_text::LocationTestText::from(value),
                     location: location_fixture(),
                 },
-            ).into_serde_version();
+            );
+            let expected_nested_display = format!("{}: {value}\n{expected_location}", stringify!(error_field_display_with_serde_field));
+            assert_eq!(original_nested.to_string(), expected_nested_display);
+            let nested = original_nested.into_serde_version();
+            assert_eq!(nested.to_string(), expected_nested_display);
             assert!(matches!(nested,
                 crate::error_unnamed_one::ErrorUnnamedOneWithSerde::Something(
                     crate::error_two::ErrorTwoWithSerde::Variant { error_field_display_with_serde_field, location }

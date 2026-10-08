@@ -153,17 +153,24 @@ mod tests {
 
     #[tokio::test]
     async fn test_cancellation_stops_before_query() {
+        let cleanup_calls = std::cell::Cell::new(0u64);
         let report = crate::run_batched_cleanup::run_batched_cleanup(
             crate::cleanup_batch_size::CleanupBatchSize::try_from(3u64)
                 .expect(constants_str::DIAGNOSTIC_116FF79D),
-            async |_batch_size| {
-                Ok::<crate::cleanup_rows::CleanupRows, std::convert::Infallible>(3u64.into())
+            |_batch_size| {
+                cleanup_calls.set(cleanup_calls.get() + 1u64);
+                std::future::ready(Ok::<
+                    crate::cleanup_rows::CleanupRows,
+                    std::convert::Infallible,
+                >(3u64.into()))
             },
             || crate::cleanup_continuation::CleanupContinuation::Stop,
         )
         .await
         .expect(constants_str::DIAGNOSTIC_39247AA8);
+        assert_eq!(cleanup_calls.get(), 0u64);
         assert_eq!(u64::from(report.batches()), constants_u64::ZERO);
+        assert_eq!(u64::from(report.rows()), constants_u64::ZERO);
         assert_eq!(
             report.completion(),
             crate::cleanup_completion::CleanupCompletion::Stopped

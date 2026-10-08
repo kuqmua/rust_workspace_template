@@ -227,23 +227,338 @@ async fn test_html_form_auth_rejects_cookie_without_trusted_origin() {
         .expect(constants_str::DIAGNOSTIC_1C2A7F54);
     let state = crate::application_tests_helper::auth_state(pool, constants_str::HTTP_LOCALHOST)
         .expect(constants_str::DIAGNOSTIC_ADF9C06E);
-    let request = crate::admin_auth_request::AdminAuthRequest::new(
-        crate::http_admin_header_map::HttpAdminHeaderMap::from(headers),
-        crate::shared_admin_auth_service_state_arc::SharedAdminAuthServiceStateArc::from(
-            std::sync::Arc::new(state),
-        ),
-        crate::admin_peer_addr::AdminPeerAddr::from(
-            server_admin_core::admin_socket_addr::AdminSocketAddr::from(
-                constants_str::VALUE_127_0_0_1_43210
-                    .parse::<std::net::SocketAddr>()
-                    .expect(constants_str::DIAGNOSTIC_0CE8FF47),
-            ),
-        ),
+    let shared_state =
+        crate::shared_admin_auth_service_state_arc::SharedAdminAuthServiceStateArc::from_state(
+            state,
+        );
+    let layer =
+        crate::admin_generated_auth_layer::AdminGeneratedAuthLayer::from(shared_state.clone());
+    assert!(std::sync::Arc::ptr_eq(
+        layer.get_state().as_ref(),
+        shared_state.as_ref()
+    ));
+    let open_api_path = server_admin_contract::admin_route::AdminRoute::OpenApi
+        .contract()
+        .path();
+    let metrics_path = server_admin_contract::admin_route::AdminRoute::Metrics
+        .contract()
+        .path();
+    let cases = std::iter::once((
+        constants_str::SLASH,
+        http::Method::GET,
+        http::StatusCode::FORBIDDEN,
+    ))
+    .chain(
+        [
+            open_api_path.as_ref(),
+            server_admin_contract::admin_frontend_path::AdminFrontendPath::OpenApiDocument.get(),
+            metrics_path.as_ref(),
+            server_admin_contract::admin_frontend_path::AdminFrontendPath::Metrics.get(),
+        ]
+        .into_iter()
+        .flat_map(|path| {
+            [
+                http::Method::GET,
+                http::Method::POST,
+                http::Method::PUT,
+                http::Method::PATCH,
+                http::Method::DELETE,
+                http::Method::HEAD,
+                http::Method::OPTIONS,
+            ]
+            .into_iter()
+            .map(move |method| {
+                let status = if method == http::Method::GET {
+                    http::StatusCode::UNAUTHORIZED
+                } else {
+                    http::StatusCode::METHOD_NOT_ALLOWED
+                };
+                (path, method, status)
+            })
+        }),
+    );
+    futures::stream::StreamExt::fold(
+        futures::stream::iter(cases),
+        (),
+        |(), (path, method, status)| {
+            let mut service = tower::Layer::layer(
+                &layer,
+                tower::service_fn(|_request| {
+                    std::future::ready(Err::<axum::response::Response, http::StatusCode>(
+                        http::StatusCode::IM_A_TEAPOT,
+                    ))
+                }),
+            );
+            assert!(std::sync::Arc::ptr_eq(
+                service.get_state().as_ref(),
+                shared_state.as_ref()
+            ));
+            async move {
+                let mut context = std::task::Context::from_waker(std::task::Waker::noop());
+                assert!(matches!(
+                    tower::Service::poll_ready(&mut service, &mut context),
+                    std::task::Poll::Ready(Ok(()))
+                ));
+                let mut request = axum::extract::Request::new(axum::body::Body::empty());
+                let uri = path.parse::<http::Uri>();
+                assert!(uri.is_ok());
+                if let Ok(uri) = uri {
+                    *request.uri_mut() = uri;
+                    *request.method_mut() = method;
+                    assert!(
+                        tower::Service::call(&mut service, request)
+                            .await
+                            .is_ok_and(|response| response.status() == status)
+                    );
+                }
+            }
+        },
+    )
+    .await;
+    let (mut parts, ()) = http::Request::new(()).into_parts();
+    parts.headers = headers;
+    let missing_peer =
+        <crate::admin_auth_request::AdminAuthRequest as axum::extract::FromRequestParts<
+            crate::shared_admin_auth_service_state_arc::SharedAdminAuthServiceStateArc,
+        >>::from_request_parts(&mut parts, &shared_state)
+        .await;
+    assert!(matches!(
+        missing_peer,
+        Err(crate::admin_error::AdminError::Authentication)
+    ));
+    let peer = constants_str::VALUE_127_0_0_1_43210
+        .parse::<std::net::SocketAddr>()
+        .expect(constants_str::DIAGNOSTIC_0CE8FF47);
+    assert!(
+        parts
+            .extensions
+            .insert(axum::extract::ConnectInfo(peer))
+            .is_none()
+    );
+    let extracted =
+        <crate::admin_auth_request::AdminAuthRequest as axum::extract::FromRequestParts<
+            crate::shared_admin_auth_service_state_arc::SharedAdminAuthServiceStateArc,
+        >>::from_request_parts(&mut parts, &shared_state)
+        .await;
+    assert_eq!(
+        parts.headers.remove(http::header::COOKIE),
+        Some(http::HeaderValue::from_static(
+            constants_str::VALUE_BF7FDCFF
+        ))
+    );
+    let admin_peer_addr = crate::admin_peer_addr::AdminPeerAddr::from(
+        server_admin_core::admin_socket_addr::AdminSocketAddr::from(peer),
     );
     assert!(matches!(
-        crate::form_auth_impl::form_auth_impl(request),
-        Err(crate::admin_error::AdminError::Csrf)
+        crate::authorization_authenticate::authorization_authenticate(
+            shared_state.as_ref(),
+            crate::http_admin_header_map_ref::HttpAdminHeaderMapRef::from(&parts.headers),
+            admin_peer_addr,
+        )
+        .await,
+        Err(crate::admin_error::AdminError::Authentication)
     ));
+    let malformed_cookie = format!(
+        "{}={}",
+        constants_str::SERVER_ADMIN_ACCESS_COOKIE_NAME,
+        constants_str::X
+    );
+    let malformed_cookie_value = malformed_cookie.parse::<http::HeaderValue>();
+    assert!(malformed_cookie_value.is_ok());
+    if let Ok(malformed_cookie_value) = malformed_cookie_value {
+        let malformed_cookie_headers =
+            http::HeaderMap::from_iter([(http::header::COOKIE, malformed_cookie_value)]);
+        assert!(matches!(
+            crate::authorization_authenticate::authorization_authenticate(
+                shared_state.as_ref(),
+                crate::http_admin_header_map_ref::HttpAdminHeaderMapRef::from(
+                    &malformed_cookie_headers
+                ),
+                admin_peer_addr,
+            )
+            .await,
+            Err(crate::admin_error::AdminError::Authentication)
+        ));
+    }
+    assert!(extracted.is_ok_and(|request| {
+        assert!(std::sync::Arc::ptr_eq(
+            request.get_state().as_ref(),
+            shared_state.as_ref()
+        ));
+        assert_eq!(
+            request.get_peer().socket_addr(),
+            server_admin_core::admin_socket_addr::AdminSocketAddr::from(peer)
+        );
+        assert_eq!(request.get_headers().as_ref().len(), 1usize);
+        assert_eq!(
+            request.get_headers().as_ref().get(http::header::COOKIE),
+            Some(&http::HeaderValue::from_static(
+                constants_str::VALUE_BF7FDCFF
+            ))
+        );
+        matches!(
+            crate::form_auth_impl::form_auth_impl(request),
+            Err(crate::admin_error::AdminError::Csrf)
+        )
+    }));
+    assert!(
+        parts
+            .headers
+            .insert(
+                http::header::ORIGIN,
+                http::HeaderValue::from_static(constants_str::HTTP_LOCALHOST)
+            )
+            .is_none()
+    );
+    assert!(
+        parts
+            .headers
+            .insert(
+                http::header::COOKIE,
+                http::HeaderValue::from_static(constants_str::VALUE_BF7FDCFF)
+            )
+            .is_none()
+    );
+    assert!(
+        parts
+            .headers
+            .insert(
+                http::HeaderName::from_static(constants_str::X_CSRF_TOKEN_ALT),
+                http::HeaderValue::from_static(constants_str::X)
+            )
+            .is_none()
+    );
+    let trusted_origin =
+        <crate::admin_auth_request::AdminAuthRequest as axum::extract::FromRequestParts<
+            crate::shared_admin_auth_service_state_arc::SharedAdminAuthServiceStateArc,
+        >>::from_request_parts(&mut parts, &shared_state)
+        .await;
+    assert!(trusted_origin.is_ok_and(|request| {
+        crate::form_auth_impl::form_auth_impl(request).is_ok_and(|request| {
+            std::sync::Arc::ptr_eq(request.get_state().as_ref(), shared_state.as_ref())
+                && request.get_peer().socket_addr()
+                    == server_admin_core::admin_socket_addr::AdminSocketAddr::from(peer)
+                && request
+                    .get_headers()
+                    .as_ref()
+                    .get(http::HeaderName::from_static(
+                        constants_str::X_CSRF_TOKEN_ALT,
+                    ))
+                    == Some(&http::HeaderValue::from_static(
+                        constants_str::VALUE_3C469E9D,
+                    ))
+                && request.get_headers().as_ref().get(http::header::COOKIE)
+                    == Some(&http::HeaderValue::from_static(
+                        constants_str::VALUE_BF7FDCFF,
+                    ))
+                && request.get_headers().as_ref().get(http::header::ORIGIN)
+                    == Some(&http::HeaderValue::from_static(
+                        constants_str::HTTP_LOCALHOST,
+                    ))
+        })
+    }));
+    futures::StreamExt::fold(
+        futures::stream::iter([
+            (serde_json::json!({(stringify!(updates)): []}), true),
+            (serde_json::json!({(stringify!(updates)): [{(stringify!(filter)): {}, (stringify!(changes)): {(stringify!(name)): constants_str::X}}]}), true),
+            (serde_json::json!({(stringify!(updates)): [{(stringify!(filter)): {(stringify!(role_id)): 1i64}, (stringify!(changes)): {}}]}), true),
+            (serde_json::json!({(stringify!(updates)): [{(stringify!(filter)): {(stringify!(name)): constants_str::X}, (stringify!(changes)): {(stringify!(rules)): {(stringify!(expected_rule_ids)): [], (stringify!(rule_ids)): []}}}]}), true),
+            (serde_json::json!({(stringify!(updates)): [{(stringify!(filter)): {(stringify!(is_system)): false}, (stringify!(changes)): {(stringify!(rules)): {(stringify!(expected_rule_ids)): [], (stringify!(rule_ids)): []}}}]}), true),
+            (serde_json::json!({(stringify!(updates)): [{(stringify!(filter)): {(stringify!(role_id)): 1i64, (stringify!(name)): constants_str::X}, (stringify!(changes)): {(stringify!(rules)): {(stringify!(expected_rule_ids)): [], (stringify!(rule_ids)): []}}}]}), true),
+            (serde_json::json!({(stringify!(updates)): [{(stringify!(filter)): {(stringify!(role_id)): 1i64, (stringify!(is_system)): false}, (stringify!(changes)): {(stringify!(rules)): {(stringify!(expected_rule_ids)): [], (stringify!(rule_ids)): []}}}]}), true),
+            (serde_json::json!({(stringify!(updates)): [{(stringify!(filter)): {(stringify!(role_id)): 1i64}, (stringify!(changes)): {(stringify!(name)): constants_str::X}}, {(stringify!(filter)): {(stringify!(role_id)): 2i64}, (stringify!(changes)): {}}]}), true),
+            (serde_json::json!({(stringify!(updates)): [{(stringify!(filter)): {(stringify!(role_id)): 1i64}, (stringify!(changes)): {(stringify!(name)): constants_str::X}}]}), false),
+            (serde_json::json!({(stringify!(updates)): [{(stringify!(filter)): {(stringify!(role_id)): 1i64}, (stringify!(changes)): {(stringify!(rules)): {(stringify!(expected_rule_ids)): [], (stringify!(rule_ids)): []}}}]}), false),
+            (serde_json::json!({(stringify!(updates)): [{(stringify!(filter)): {(stringify!(role_id)): 1i64}, (stringify!(changes)): {(stringify!(name)): constants_str::X, (stringify!(rules)): {(stringify!(expected_rule_ids)): [], (stringify!(rule_ids)): []}}}]}), false),
+        ]),
+        (),
+        async |(), (wire, expected_validation)| {
+            let admin_update_roles_request_result = serde_json::from_value::<server_admin_contract::admin_update_roles_request::AdminUpdateRolesRequest>(wire);
+            assert!(admin_update_roles_request_result.as_ref().err().is_none());
+            if let Ok(admin_update_roles_request) = admin_update_roles_request_result {
+                let admin_auth_request = crate::admin_auth_request::AdminAuthRequest::new(
+                    crate::http_admin_header_map::HttpAdminHeaderMap::from(parts.headers.clone()),
+                    shared_state.clone(),
+                    admin_peer_addr,
+                );
+                let result = crate::role_mutations_update_many::role_mutations_update_many(
+                    admin_auth_request,
+                    crate::admin_role_update_slice::AdminRoleUpdateSlice::from(admin_update_roles_request.updates()),
+                ).await;
+                assert!(if expected_validation {
+                    matches!(result, Err(crate::admin_error::AdminError::Validation))
+                } else {
+                    matches!(result, Err(crate::admin_error::AdminError::Authentication))
+                });
+            }
+        },
+    ).await;
+
+    let admin_password_hasher = shared_state.as_ref().get_password_hasher();
+    let available_permits = admin_password_hasher
+        .get_semaphore()
+        .get_inner()
+        .available_permits();
+    let password = || {
+        crate::runtime_admin_password::RuntimeAdminPassword::try_from(
+            constants_str::CORRECT_PASSWORD_ALT.to_owned(),
+        )
+    };
+    let invalid_hash = || {
+        pg_types_text_misc::generate_pg_types_mod::StringAsNonNullTextSecret::try_from(
+            constants_str::X.to_owned(),
+        )
+        .map(crate::admin_password_hash::AdminPasswordHash::new)
+    };
+    let verification_password_result = password();
+    let invalid_hash_result = invalid_hash();
+    assert!(verification_password_result.as_ref().err().is_none());
+    assert!(invalid_hash_result.as_ref().err().is_none());
+    if let (Ok(runtime_admin_password), Ok(admin_password_hash)) =
+        (verification_password_result, invalid_hash_result)
+    {
+        assert!(matches!(
+            admin_password_hasher
+                .verify(runtime_admin_password, admin_password_hash)
+                .await,
+            Err(crate::admin_password_hash_error::AdminPasswordHashError::PasswordHash(_))
+        ));
+        assert_eq!(
+            admin_password_hasher
+                .get_semaphore()
+                .get_inner()
+                .available_permits(),
+            available_permits
+        );
+    }
+    admin_password_hasher.get_semaphore().get_inner().close();
+    assert!(matches!(
+        admin_password_hasher.acquire().await,
+        Err(crate::admin_password_hash_error::AdminPasswordHashError::SemaphoreClosed(_))
+    ));
+    let hashing_password_result = password();
+    assert!(hashing_password_result.as_ref().err().is_none());
+    if let Ok(runtime_admin_password) = hashing_password_result {
+        assert!(matches!(
+            admin_password_hasher.hash(runtime_admin_password).await,
+            Err(crate::admin_password_hash_error::AdminPasswordHashError::SemaphoreClosed(_))
+        ));
+    }
+    let closed_verification_password_result = password();
+    let closed_invalid_hash_result = invalid_hash();
+    assert!(closed_verification_password_result.as_ref().err().is_none());
+    assert!(closed_invalid_hash_result.as_ref().err().is_none());
+    if let (Ok(runtime_admin_password), Ok(admin_password_hash)) = (
+        closed_verification_password_result,
+        closed_invalid_hash_result,
+    ) {
+        assert!(matches!(
+            admin_password_hasher
+                .verify(runtime_admin_password, admin_password_hash)
+                .await,
+            Err(crate::admin_password_hash_error::AdminPasswordHashError::SemaphoreClosed(_))
+        ));
+    }
 }
 
 #[tokio::test]
@@ -345,4 +660,255 @@ fn test_selected_form_fields_reject_oversized_maps() {
     let Err(_error) = crate::std_admin_html_selected::StdAdminHtmlSelected::try_from(values) else {
         std::panic::panic_any(constants_str::PANIC_C86589E3);
     };
+}
+#[tokio::test]
+async fn test_admin_json_extractors_preserve_sign_in_contract_and_classify_rejections() {
+    let valid_json = serde_json::json!({
+        (stringify!(login)): constants_str::ADMIN_ALT,
+        (stringify!(password)): constants_str::X,
+    });
+    let mut unknown_field_json = valid_json.clone();
+    assert!(unknown_field_json.as_object_mut().is_some_and(|object| {
+        object
+            .insert(
+                stringify!(unknown).to_owned(),
+                serde_json::Value::Bool(true),
+            )
+            .is_none()
+    }));
+    let cases = [
+        (valid_json.to_string(), true, true),
+        (valid_json.to_string(), false, false),
+        (constants_str::X.to_owned(), true, false),
+        (serde_json::Value::Null.to_string(), true, false),
+        (serde_json::json!({}).to_string(), true, false),
+        (unknown_field_json.to_string(), true, false),
+        (
+            serde_json::json!({
+                (stringify!(login)): constants_str::ADMIN,
+                (stringify!(password)): constants_str::X,
+            })
+            .to_string(),
+            true,
+            false,
+        ),
+    ];
+    futures::stream::StreamExt::fold(futures::stream::iter(cases.into_iter().flat_map(|(text, content_type, valid)| {
+        [false, true].into_iter().map(move |generic| (text.clone(), content_type, valid, generic))
+    })), (), async move |(), (text, content_type, valid, generic)| {
+        let mut request = axum::extract::Request::new(axum::body::Body::from(text));
+        *request.method_mut() = http::Method::POST;
+        if content_type {
+            assert!(request.headers_mut().insert(http::header::CONTENT_TYPE,
+                http::HeaderValue::from_static(constants_str::APPLICATION_JSON)).is_none());
+        }
+        let extracted = if generic {
+            <crate::axum_admin_json::AxumAdminJson<server_admin_contract::admin_sign_in_request::AdminSignInRequest> as axum::extract::FromRequest<()>>::from_request(request, &()).await.map(crate::axum_admin_json::AxumAdminJson::into_inner)
+        } else {
+            <crate::admin_sign_in_json::AdminSignInJson as axum::extract::FromRequest<()>>::from_request(request, &()).await.map(crate::admin_sign_in_json::AdminSignInJson::into_inner)
+        };
+        if valid {
+            assert!(extracted.is_ok_and(|admin_sign_in_request| {
+                let (admin_login, admin_password) = admin_sign_in_request.into_parts();
+                admin_login.as_ref().as_str() == constants_str::ADMIN_ALT
+                    && admin_password.as_ref().as_str() == constants_str::X
+            }));
+        } else {
+            assert!(matches!(extracted, Err(crate::admin_error::AdminError::Validation)));
+        }
+    }).await;
+}
+#[tokio::test]
+async fn test_admin_form_extractor_preserves_get_query_and_classifies_rejections() {
+    let query_uri = format!("{}?{}", constants_str::SLASH, constants_str::VALUE_08400B3F);
+    let cases = [
+        (
+            http::Method::GET,
+            query_uri.as_str(),
+            constants_str::EMPTY,
+            None,
+            true,
+        ),
+        (
+            http::Method::GET,
+            constants_str::SLASH,
+            constants_str::VALUE_08400B3F,
+            None,
+            false,
+        ),
+        (
+            http::Method::POST,
+            constants_str::SLASH,
+            constants_str::VALUE_08400B3F,
+            None,
+            false,
+        ),
+        (
+            http::Method::POST,
+            constants_str::SLASH,
+            constants_str::VALUE_08400B3F,
+            Some(constants_str::APPLICATION_JSON),
+            false,
+        ),
+        (
+            http::Method::POST,
+            constants_str::SLASH,
+            constants_str::X,
+            Some(constants_str::APPLICATION_X_WWW_FORM_URLENCODED),
+            false,
+        ),
+        (
+            http::Method::POST,
+            constants_str::SLASH,
+            constants_str::EMPTY,
+            Some(constants_str::APPLICATION_X_WWW_FORM_URLENCODED),
+            false,
+        ),
+    ];
+    futures::stream::StreamExt::fold(
+        futures::stream::iter(cases),
+        (),
+        async move |(), (method, uri, text, content_type, valid)| {
+            let mut request = axum::extract::Request::new(axum::body::Body::from(text));
+            *request.method_mut() = method;
+            let parsed_uri = uri.parse::<http::Uri>();
+            assert!(parsed_uri.is_ok());
+            if let Ok(parsed_uri) = parsed_uri {
+                *request.uri_mut() = parsed_uri;
+                if let Some(content_type) = content_type {
+                    assert!(
+                        request
+                            .headers_mut()
+                            .insert(
+                                http::header::CONTENT_TYPE,
+                                http::HeaderValue::from_static(content_type)
+                            )
+                            .is_none()
+                    );
+                }
+                let extracted = <crate::axum_admin_form::AxumAdminForm<
+                    crate::user_roles_form::UserRolesForm,
+                > as axum::extract::FromRequest<()>>::from_request(
+                    request, &()
+                )
+                .await;
+                if valid {
+                    assert!(extracted.is_ok_and(|axum_admin_form| {
+                        let user_roles_form = axum_admin_form.into_inner();
+                        i64::from(*user_roles_form.get_user_id()) == 7i64
+                            && user_roles_form.get_expected_role_ids().as_str()
+                                == constants_str::VALUE_17F8AF97
+                            && user_roles_form.get_selected().len().get() == 2usize
+                    }));
+                } else {
+                    assert!(matches!(
+                        extracted,
+                        Err(crate::admin_error::AdminError::Validation)
+                    ));
+                }
+            }
+        },
+    )
+    .await;
+}
+#[tokio::test]
+async fn test_admin_body_extractors_classify_limit_before_deserialization() {
+    #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, Clone, Copy)]
+    enum AdminBodyLimitExtractorFixtureKind {
+        SignInJson,
+        GenericJson,
+        Form,
+    }
+    futures::stream::StreamExt::fold(futures::stream::iter([
+        AdminBodyLimitExtractorFixtureKind::SignInJson,
+        AdminBodyLimitExtractorFixtureKind::GenericJson,
+        AdminBodyLimitExtractorFixtureKind::Form,
+    ]), (), async move |(), admin_body_limit_extractor_fixture_kind| {
+        let admin_body_limit_extractor_fixture_kind_ref = &admin_body_limit_extractor_fixture_kind;
+        let service = tower::Layer::layer(&axum::extract::DefaultBodyLimit::max(0usize), tower::service_fn(async move |request| {
+            match *admin_body_limit_extractor_fixture_kind_ref {
+                AdminBodyLimitExtractorFixtureKind::SignInJson => {
+                    <crate::admin_sign_in_json::AdminSignInJson as axum::extract::FromRequest<()>>::from_request(request, &()).await.map(drop)
+                }
+                AdminBodyLimitExtractorFixtureKind::GenericJson => {
+                    <crate::axum_admin_json::AxumAdminJson<server_admin_contract::admin_sign_in_request::AdminSignInRequest> as axum::extract::FromRequest<()>>::from_request(request, &()).await.map(drop)
+                }
+                AdminBodyLimitExtractorFixtureKind::Form => {
+                    <crate::axum_admin_form::AxumAdminForm<crate::user_roles_form::UserRolesForm> as axum::extract::FromRequest<()>>::from_request(request, &()).await.map(drop)
+                }
+            }
+        }));
+        let mut request = axum::extract::Request::new(axum::body::Body::from(constants_str::X));
+        *request.method_mut() = http::Method::POST;
+        let content_type = match admin_body_limit_extractor_fixture_kind {
+            AdminBodyLimitExtractorFixtureKind::SignInJson | AdminBodyLimitExtractorFixtureKind::GenericJson => constants_str::APPLICATION_JSON,
+            AdminBodyLimitExtractorFixtureKind::Form => constants_str::APPLICATION_X_WWW_FORM_URLENCODED,
+        };
+        assert!(request.headers_mut().insert(http::header::CONTENT_TYPE,
+            http::HeaderValue::from_static(content_type)).is_none());
+        assert!(matches!(tower::ServiceExt::oneshot(service, request).await,
+            Err(crate::admin_error::AdminError::PayloadTooLarge)));
+    }).await;
+}
+
+#[tokio::test]
+async fn test_sign_in_errors_render_generic_html_without_internal_diagnostics() {
+    futures::StreamExt::fold(
+        futures::stream::iter([
+            (
+                crate::admin_error::AdminError::Authentication,
+                http::StatusCode::UNAUTHORIZED,
+            ),
+            (
+                crate::admin_error::AdminError::Authorization,
+                http::StatusCode::FORBIDDEN,
+            ),
+            (
+                crate::admin_error::AdminError::Csrf,
+                http::StatusCode::FORBIDDEN,
+            ),
+            (
+                crate::admin_error::AdminError::Conflict,
+                http::StatusCode::CONFLICT,
+            ),
+            (
+                crate::admin_error::AdminError::RateLimited,
+                http::StatusCode::TOO_MANY_REQUESTS,
+            ),
+            (
+                crate::admin_error::AdminError::Validation,
+                http::StatusCode::UNPROCESSABLE_ENTITY,
+            ),
+            (
+                crate::admin_error::AdminError::PayloadTooLarge,
+                http::StatusCode::PAYLOAD_TOO_LARGE,
+            ),
+            (
+                crate::admin_error::AdminError::MethodNotAllowed,
+                http::StatusCode::METHOD_NOT_ALLOWED,
+            ),
+        ]),
+        (),
+        async |(), (admin_error, expected_status)| {
+            let diagnostic = admin_error.to_string();
+            let response = crate::sign_in_error_response::sign_in_error_response(admin_error, None);
+            assert_eq!(response.status(), expected_status);
+            let body_result = axum::body::to_bytes(response.into_body(), 16_384usize).await;
+            assert!(body_result.is_ok());
+            if let Ok(body) = body_result {
+                let html_result = std::str::from_utf8(&body);
+                assert!(html_result.as_ref().err().is_none());
+                if let Ok(html) = html_result {
+                    assert!(html.contains(constants_str::SIGN_IN_FAILED));
+                    assert!(!html.contains(diagnostic.as_str()));
+                    assert!(html.contains(constants_str::ADMIN_UI_ADMINISTRATOR_SIGN_IN));
+                    assert!(html.contains(
+                        server_admin_contract::admin_html_action::AdminHtmlAction::SignIn.get()
+                    ));
+                    assert!(!html.contains(constants_str::VALUE_A8036BFC));
+                }
+            }
+        },
+    )
+    .await;
 }

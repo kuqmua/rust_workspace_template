@@ -632,4 +632,34 @@ mod tests {
             );
         });
     }
+    #[test]
+    fn test_location_attribute_preserves_enum_and_variant_metadata() {
+        let generated = crate::errors_with_location(
+            proc_macro2::TokenStream::new(),
+            quote::quote! {
+                #[derive(Debug)]
+                pub enum SampleError<Inner>
+                where Inner: Clone {
+                    #[doc = stringify!(First)]
+                    First { value: Inner },
+                    Second { value: Option<Inner> },
+                }
+            },
+        );
+        let expected = quote::quote! {
+            #[derive(Debug)]
+            pub enum SampleError<Inner>
+            where Inner: Clone {
+                #[doc = stringify!(First)]
+                First { value: Inner, location: location_lib::location::Location },
+                Second { value: Option<Inner>, location: location_lib::location::Location },
+            }
+        };
+        assert_eq!(generated.to_string(), expected.to_string());
+        assert!(
+            syn::parse2::<syn::ItemEnum>(generated).is_ok_and(|item| item.variants.len() == 2usize
+                && item.generics.params.len() == 1usize
+                && item.generics.where_clause.is_some())
+        );
+    }
 }

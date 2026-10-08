@@ -286,3 +286,104 @@ fn test_idempotency_cleanup_values_preserve_limits_and_distinct_zero_contracts()
             .is_ok_and(|retention| retention.get() == value)
     }));
 }
+
+#[test]
+fn test_optimistic_revision_preserves_queries_without_returning_and_targets_last_clause() {
+    assert!([0usize, 1usize, crate::pg_table_string_wrapper_max_len::PG_TABLE_STRING_WRAPPER_MAX_LEN].into_iter().all(|length| {
+        let text = constants_str::X.repeat(length);
+        crate::pg_table_query_string::PgTableQueryString::try_from(text.clone()).and_then(|query| {
+            crate::add_update_optimistic_revision_predicate::add_update_optimistic_revision_predicate(
+                query, sql(constants_str::REVISION), sql(constants_str::DOLLAR_3),
+            )
+        }).is_ok_and(|query| query.to_string() == text)
+    }));
+    let original = format!(
+        "{}{}{}{}{}",
+        constants_str::X,
+        constants_str::RETURNING,
+        constants_str::X,
+        constants_str::RETURNING,
+        constants_str::X
+    );
+    let expected = format!(
+        "{}{}{}{}{}{}{}{}{}",
+        constants_str::X,
+        constants_str::RETURNING,
+        constants_str::X,
+        constants_str::AND,
+        constants_str::REVISION,
+        constants_str::TEXT_ALT,
+        constants_str::DOLLAR_3,
+        constants_str::RETURNING,
+        constants_str::X
+    );
+    assert!(crate::pg_table_query_string::PgTableQueryString::try_from(original).and_then(|query| {
+        crate::add_update_optimistic_revision_predicate::add_update_optimistic_revision_predicate(
+            query, sql(constants_str::REVISION), sql(constants_str::DOLLAR_3),
+        )
+    }).is_ok_and(|query| query.to_string() == expected));
+}
+
+#[test]
+fn test_query_and_fragment_wrappers_preserve_exact_byte_limits_and_error_lengths() {
+    let maximum = crate::pg_table_string_wrapper_max_len::PG_TABLE_STRING_WRAPPER_MAX_LEN;
+    assert!([0usize, maximum - 1usize, maximum, maximum + 1usize].into_iter().all(|length| {
+        ['x', '\u{e9}'].into_iter().all(|character| {
+            let repetitions = if character.is_ascii() { length } else { length >> 1usize };
+            let mut text = character.to_string().repeat(repetitions);
+            text.push_str(&constants_str::X.repeat(length - text.len()));
+            [
+                crate::pg_table_query_string::PgTableQueryString::try_from(text.clone()).map(|query| query.to_string()),
+                crate::pg_table_query_part_fragment::PgTableQueryPartFragment::try_from(text.clone()).map(|fragment| fragment.to_string()),
+            ].into_iter().all(|result| {
+                if length <= maximum {
+                    result.is_ok_and(|preserved| preserved == text)
+                } else {
+                    matches!(result, Err(crate::pg_table_string_wrapper_try_from_string_error::PgTableStringWrapperTryFromStringError::TooLong { len, max }) if len == length && max == maximum)
+                }
+            })
+        })
+    }));
+}
+
+#[test]
+fn test_revision_preserves_numeric_boundaries_and_parse_error_kinds() {
+    assert!([0i64, 1i64, i64::MAX].into_iter().all(|value| {
+        let canonical = value.to_string();
+        [
+            canonical.clone(),
+            format!("+{canonical}"),
+            format!("0{canonical}"),
+        ]
+        .into_iter()
+        .all(|text| {
+            crate::pg_table_revision::PgTableRevision::try_from(text)
+                .is_ok_and(|revision| revision.to_string() == canonical)
+        })
+    }));
+    assert!(
+        crate::pg_table_revision::PgTableRevision::try_from(
+            ['-', '0'].into_iter().collect::<String>()
+        )
+        .is_ok_and(|revision| revision.to_string() == constants_str::VALUE_0)
+    );
+    assert!([i64::MIN, -1i64].into_iter().all(|value| {
+        matches!(crate::pg_table_revision::PgTableRevision::try_from(value.to_string()), Err(crate::pg_table_revision_try_from_string_error::PgTableRevisionTryFromStringError::Negative))
+    }));
+    assert!([
+        (String::new(), std::num::IntErrorKind::Empty),
+        (constants_str::X.to_owned(), std::num::IntErrorKind::InvalidDigit),
+        (format!(" {}", constants_str::VALUE_1), std::num::IntErrorKind::InvalidDigit),
+        ((i128::from(i64::MAX) + 1i128).to_string(), std::num::IntErrorKind::PosOverflow),
+        ((i128::from(i64::MIN) - 1i128).to_string(), std::num::IntErrorKind::NegOverflow),
+    ].into_iter().all(|(text, expected)| {
+        let result = crate::pg_table_revision::PgTableRevision::try_from(text);
+        match result {
+            Err(error @ crate::pg_table_revision_try_from_string_error::PgTableRevisionTryFromStringError::Invalid(_)) => {
+                std::error::Error::source(&error).is_some()
+                    && matches!(&error, crate::pg_table_revision_try_from_string_error::PgTableRevisionTryFromStringError::Invalid(crate::pg_table_revision_parse_int_error::PgTableRevisionParseIntError::Parse(source)) if source.kind() == &expected)
+            }
+            Ok(_) | Err(crate::pg_table_revision_try_from_string_error::PgTableRevisionTryFromStringError::Negative) => false,
+        }
+    }));
+}

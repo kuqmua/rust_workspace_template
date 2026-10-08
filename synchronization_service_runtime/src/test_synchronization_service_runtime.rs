@@ -30,11 +30,38 @@ fn test_synchronization_payload_enforces_maximum_byte_length() {
         std::panic::panic_any(constants_str::PANIC_5C80AADF);
     };
     assert_eq!(payload.as_ref().len(), 16 * 1024 * 1024);
-    let Err(_error) = crate::synchronization_payload::SynchronizationPayload::try_from(vec![
+    let Err(error) = crate::synchronization_payload::SynchronizationPayload::try_from(vec![
         0;
         16 * 1024 * 1024
             + 1
     ]) else {
         std::panic::panic_any(constants_str::PANIC_5E2A6145);
     };
+    assert_eq!(
+        error,
+        crate::synchronization_payload_too_large::SynchronizationPayloadTooLarge::TooLarge
+    );
+}
+
+#[test]
+fn test_synchronization_payload_preserves_empty_and_binary_content_without_reallocation() {
+    assert!(
+        [Vec::new(), (u8::MIN..=u8::MAX).collect::<Vec<_>>()]
+            .into_iter()
+            .all(|bytes| {
+                let pointer = bytes.as_ptr();
+                let length = bytes.len();
+                crate::synchronization_payload::SynchronizationPayload::try_from(bytes).is_ok_and(
+                    |payload| {
+                        payload.as_ref().len() == length
+                            && payload.as_ref().as_ptr() == pointer
+                            && payload
+                                .as_ref()
+                                .iter()
+                                .enumerate()
+                                .all(|(index, byte)| usize::from(*byte) == index)
+                    },
+                )
+            })
+    );
 }

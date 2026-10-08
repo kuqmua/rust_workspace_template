@@ -525,3 +525,211 @@ fn test_access_token_round_trip_checks_issuer_and_audience() {
         )
     );
 }
+
+#[test]
+fn test_admin_auth_ttl_values_preserve_nonzero_u64_boundaries() {
+    [
+        (
+            0u64,
+            Err(crate::admin_auth_positive_value_error::AdminAuthPositiveValueError::Zero),
+        ),
+        (1u64, Ok(1u64)),
+        (2u64, Ok(2u64)),
+        (u64::MAX, Ok(u64::MAX)),
+    ]
+    .into_iter()
+    .fold((), |(), (value, expected)| {
+        [
+            crate::std_admin_auth_ttl_seconds::StdAdminAuthTtlSeconds::try_from(value)
+                .map(std::num::NonZeroU64::from)
+                .map(std::num::NonZeroU64::get),
+            crate::std_admin_access_ttl_seconds::StdAdminAccessTtlSeconds::try_from(value).map(
+                |std_admin_access_ttl_seconds| {
+                    assert_eq!(std_admin_access_ttl_seconds.get(), value);
+                    std_admin_access_ttl_seconds.get_inner().get()
+                },
+            ),
+            crate::std_admin_refresh_ttl_seconds::StdAdminRefreshTtlSeconds::try_from(value).map(
+                |std_admin_refresh_ttl_seconds| {
+                    assert_eq!(std_admin_refresh_ttl_seconds.get(), value);
+                    std_admin_refresh_ttl_seconds.get_inner().get()
+                },
+            ),
+        ]
+        .into_iter()
+        .fold((), |(), result| assert_eq!(result, expected));
+    });
+}
+
+#[test]
+fn test_admin_session_limit_preserves_nonzero_usize_boundaries() {
+    [
+        (
+            0usize,
+            Err(crate::admin_auth_positive_value_error::AdminAuthPositiveValueError::Zero),
+        ),
+        (1usize, Ok(1usize)),
+        (2usize, Ok(2usize)),
+        (usize::MAX, Ok(usize::MAX)),
+    ]
+    .into_iter()
+    .fold((), |(), (value, expected)| {
+        assert_eq!(
+            crate::std_admin_session_limit::StdAdminSessionLimit::try_from(value).map(
+                |std_admin_session_limit| {
+                    assert_eq!(std_admin_session_limit.get(), value);
+                    std_admin_session_limit.get_inner().get()
+                }
+            ),
+            expected
+        );
+    });
+}
+
+#[test]
+fn test_admin_failure_threshold_preserves_signed_positive_boundaries() {
+    [
+        (
+            i64::MIN,
+            Err(crate::admin_auth_positive_value_error::AdminAuthPositiveValueError::Zero),
+        ),
+        (
+            -1i64,
+            Err(crate::admin_auth_positive_value_error::AdminAuthPositiveValueError::Zero),
+        ),
+        (
+            0i64,
+            Err(crate::admin_auth_positive_value_error::AdminAuthPositiveValueError::Zero),
+        ),
+        (1i64, Ok(1i64)),
+        (2i64, Ok(2i64)),
+        (i64::MAX, Ok(i64::MAX)),
+    ]
+    .into_iter()
+    .fold((), |(), (value, expected)| {
+        assert_eq!(
+            crate::std_admin_failure_threshold::StdAdminFailureThreshold::try_from(value).map(
+                |std_admin_failure_threshold| {
+                    assert_eq!(std_admin_failure_threshold.get(), value);
+                    std_admin_failure_threshold.get_inner().get()
+                }
+            ),
+            expected
+        );
+    });
+}
+
+#[test]
+fn test_admin_recent_login_failures_reach_exact_thresholds_without_overflow() {
+    [
+        (1i64, [false, false, false, true, true, true, true]),
+        (2i64, [false, false, false, false, true, true, true]),
+        (i64::MAX, [false, false, false, false, false, false, true]),
+    ].into_iter().fold((), |(), (threshold_value, expected)| {
+        let std_admin_failure_threshold_result = crate::std_admin_failure_threshold::StdAdminFailureThreshold::try_from(threshold_value);
+        assert!(std_admin_failure_threshold_result.as_ref().err().is_none());
+        if let Ok(std_admin_failure_threshold) = std_admin_failure_threshold_result {
+            [i64::MIN, -1i64, 0i64, 1i64, 2i64, i64::MAX - 1i64, i64::MAX]
+                .into_iter().zip(expected).fold((), |(), (count, expected)| {
+                    assert_eq!(crate::admin_recent_login_failure_count::AdminRecentLoginFailureCount::from(count)
+                        .reached(std_admin_failure_threshold).get(), expected);
+                });
+        }
+    });
+}
+
+#[test]
+fn test_admin_shared_semaphore_preserves_capacity_and_shared_permit_lifecycle() {
+    [1usize, 2usize, 7usize].into_iter().fold((), |(), capacity| {
+        let non_zero_usize = std::num::NonZeroUsize::new(capacity);
+        let capacity_u32_result = u32::try_from(capacity);
+        assert!(non_zero_usize.is_some());
+        assert!(capacity_u32_result.as_ref().err().is_none());
+        if let (Some(non_zero_usize), Ok(capacity_u32)) = (non_zero_usize, capacity_u32_result) {
+            let original = crate::admin_shared_semaphore_arc::AdminSharedSemaphoreArc::new(
+                crate::runtime_admin_password_hash_concurrency::RuntimeAdminPasswordHashConcurrency::from(non_zero_usize),
+            );
+            let cloned = original.clone();
+            assert!(std::sync::Arc::ptr_eq(original.get_inner(), cloned.get_inner()));
+            assert_eq!(original.get_inner().available_permits(), capacity);
+            assert!(cloned.get_inner().try_acquire_many(capacity_u32).is_ok_and(|permit| {
+                assert_eq!(original.get_inner().available_permits(), 0usize);
+                assert!(matches!(original.get_inner().try_acquire(), Err(tokio::sync::TryAcquireError::NoPermits)));
+                drop(permit);
+                original.get_inner().available_permits() == capacity
+            }));
+            original.get_inner().close();
+            assert!(cloned.get_inner().is_closed());
+            assert!(matches!(cloned.get_inner().try_acquire(), Err(tokio::sync::TryAcquireError::Closed)));
+        }
+    });
+}
+
+#[test]
+fn test_admin_access_token_preserves_byte_bounds_content_and_exact_redaction() {
+    [
+        (String::new(), 0usize, 0usize, 'x'),
+        (constants_str::X.to_owned(), 1usize, 1usize, 'x'),
+        (
+            constants_str::X.repeat(8_191usize),
+            8_191usize,
+            8_191usize,
+            'x',
+        ),
+        (
+            constants_str::X.repeat(8_192usize),
+            8_192usize,
+            8_192usize,
+            'x',
+        ),
+        (
+            '\u{00e9}'.to_string().repeat(4_096usize),
+            8_192usize,
+            4_096usize,
+            '\u{00e9}',
+        ),
+        (
+            char::MAX.to_string().repeat(2_048usize),
+            8_192usize,
+            2_048usize,
+            char::MAX,
+        ),
+    ]
+    .into_iter()
+    .fold(
+        (),
+        |(), (text, expected_bytes, expected_characters, expected_character)| {
+            assert!(
+                crate::std_admin_access_token::StdAdminAccessToken::try_from(text).is_ok_and(
+                    |access_token| {
+                        access_token.as_ref().as_str().len() == expected_bytes
+                            && access_token.as_ref().as_str().chars().count() == expected_characters
+                            && access_token
+                                .as_ref()
+                                .as_str()
+                                .chars()
+                                .all(|character| character == expected_character)
+                            && format!("{access_token:?}") == constants_str::REDACTED_ALT_3
+                    }
+                )
+            );
+        },
+    );
+    [
+        constants_str::X.repeat(8_193usize),
+        [char::MAX.to_string().repeat(2_048usize).as_str(), constants_str::X].concat(),
+    ].into_iter().fold((), |(), text| {
+        assert!(crate::std_admin_access_token::StdAdminAccessToken::try_from(text).is_err_and(|error| {
+            matches!(error, crate::std_admin_access_token::StdAdminAccessTokenTryFromStringError::TooLong { len: 8_193usize, max: 8_192usize })
+        }));
+    });
+    assert!(
+        crate::std_admin_access_token::StdAdminAccessToken::try_from(
+            constants_str::TEST_TEXT_WITH_NUL.to_owned()
+        )
+        .is_ok_and(|access_token| {
+            access_token.as_ref().as_str() == constants_str::TEST_TEXT_WITH_NUL
+                && format!("{access_token:?}") == constants_str::REDACTED_ALT_3
+        })
+    );
+}

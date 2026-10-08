@@ -288,3 +288,35 @@ fn test_regex_regex_preserves_oversized_pattern_length() {
                 == bounded_types::bounded_len::BoundedLen::from(constants_usize::VALUE_1_048_576)
     ));
 }
+
+#[test]
+fn test_regex_pattern_deserialization_validates_byte_limits_and_preserves_opaque_text() {
+    assert!(
+        [
+            (String::new(), true),
+            ('['.to_string(), true),
+            (constants_str::U_1F496.repeat(262_144usize), true),
+            (
+                format!(
+                    "{}{}",
+                    constants_str::U_1F496.repeat(262_144usize),
+                    constants_str::X
+                ),
+                false
+            ),
+        ]
+        .into_iter()
+        .all(|(text, accepted)| {
+            let direct = crate::regex_regex::RegexRegex::try_from(text.clone());
+            let decoded = <crate::regex_regex::RegexRegex as serde::Deserialize>::deserialize(
+                serde::de::value::StringDeserializer::<serde::de::value::Error>::new(text.clone()),
+            );
+            if accepted {
+                direct.is_ok_and(|pattern| pattern.to_string() == text)
+                    && decoded.is_ok_and(|pattern| pattern.to_string() == text)
+            } else {
+                direct.is_err() && decoded.is_err()
+            }
+        })
+    );
+}

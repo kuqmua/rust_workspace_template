@@ -278,4 +278,37 @@ mod tests {
                 if maximum_bytes.get() == constants_usize::VALUE_4_096
         ));
     }
+    #[test]
+    fn test_bounded_size_comparison_preserves_zero_exact_and_over_limit_results() {
+        assert!((0usize..=16usize).all(|maximum| {
+            (0usize..=16usize).all(|observed| {
+                let result = crate::ensure_size_within_limit::ensure_size_within_limit(
+                    crate::bounded_read_observed_bytes::BoundedReadObservedBytes::from(observed),
+                    crate::bounded_read_maximum_bytes::BoundedReadMaximumBytes::from(maximum),
+                );
+                if observed <= maximum {
+                    result.is_ok()
+                } else {
+                    matches!(result, Err(crate::bounded_read_error::BoundedReadError::ExceedsMaximum { maximum_bytes }) if maximum_bytes.get() == maximum)
+                }
+            })
+        }));
+    }
+    #[test]
+    fn test_bounded_json_length_error_mapping_preserves_reported_limit_and_domain_source() {
+        assert!([
+            (bounded_types::bounded_string_error::BoundedStringError::AboveMaximum {
+                actual_length: bounded_types::bounded_len::BoundedLen::from(17usize),
+                maximum_length: bounded_types::bounded_len::BoundedLen::from(16usize),
+            }, 16usize),
+            (bounded_types::bounded_string_error::BoundedStringError::BelowMinimum {
+                actual_length: bounded_types::bounded_len::BoundedLen::from(0usize),
+                minimum_length: bounded_types::bounded_len::BoundedLen::from(1usize),
+            }, 1usize),
+        ].into_iter().all(|(bounds, expected)| {
+            let error = crate::bounded_json_read_error::BoundedJsonReadError::from_string_bounds(bounds);
+            matches!(&error, crate::bounded_json_read_error::BoundedJsonReadError::Read(crate::bounded_read_error::BoundedReadError::ExceedsMaximum { maximum_bytes }) if maximum_bytes.get() == expected)
+                && std::error::Error::source(&error).is_some_and(<dyn std::error::Error>::is::<crate::bounded_read_error::BoundedReadError>)
+        }));
+    }
 }

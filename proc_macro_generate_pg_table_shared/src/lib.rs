@@ -83,3 +83,56 @@ pub fn derive_generate_pg_table(
     .parse::<proc_macro2::TokenStream>()
     .expect(constants_str::DIAGNOSTIC_6BFF799B)
 }
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn test_table_annotation_adapters_preserve_items_and_ignore_attributes() {
+        let token_stream = || {
+            proc_macro2::TokenStream::from(proc_macro2::TokenTree::Ident(proc_macro2::Ident::new(
+                constants_str::X,
+                proc_macro2::Span::call_site(),
+            )))
+        };
+        (0u8..11u8).fold((), |(), adapter| {
+            [proc_macro2::TokenStream::new(), token_stream()]
+                .into_iter()
+                .fold((), |(), attributes| {
+                    [
+                        proc_macro2::TokenStream::new(),
+                        token_stream(),
+                        proc_macro2::TokenStream::from(proc_macro2::TokenTree::Group(
+                            proc_macro2::Group::new(proc_macro2::Delimiter::Brace, token_stream()),
+                        )),
+                    ]
+                    .into_iter()
+                    .fold((), |(), item| {
+                        let output = match adapter {
+                            0u8 => {
+                                crate::generate_pg_table_config(attributes.clone(), item.clone())
+                            }
+                            1u8 => {
+                                crate::create_many_error_variants(attributes.clone(), item.clone())
+                            }
+                            2u8 => {
+                                crate::read_many_error_variants(attributes.clone(), item.clone())
+                            }
+                            3u8 => {
+                                crate::update_many_error_variants(attributes.clone(), item.clone())
+                            }
+                            4u8 => {
+                                crate::delete_many_error_variants(attributes.clone(), item.clone())
+                            }
+                            5u8 => crate::common_error_variants(attributes.clone(), item.clone()),
+                            6u8 => crate::create_many_logic(attributes.clone(), item.clone()),
+                            7u8 => crate::read_many_logic(attributes.clone(), item.clone()),
+                            8u8 => crate::update_many_logic(attributes.clone(), item.clone()),
+                            9u8 => crate::delete_many_logic(attributes.clone(), item.clone()),
+                            _ => crate::common_logic(attributes.clone(), item.clone()),
+                        };
+                        assert_eq!(output.to_string(), item.to_string());
+                    });
+                });
+        });
+    }
+}

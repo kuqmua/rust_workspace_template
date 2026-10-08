@@ -71,3 +71,37 @@ fn test_wire_enum_preserves_const_generics() {
         Err(ConstGenericWireFixtureTryFromStrError)
     ));
 }
+#[test]
+fn test_constructor_input_policy_rejects_invalid_shapes_and_attributes() {
+    let cases = trybuild::TestCases::new();
+    cases.compile_fail(format!(
+        "{}{}{}{}{}{}{}",
+        stringify!(trybuild),
+        constants_str::SLASH,
+        constants_str::CONSTRUCTOR_ATTRIBUTE,
+        constants_str::UNDERSCORE,
+        constants_str::ASTERISK,
+        constants_str::DOT,
+        constants_str::RS,
+    ));
+}
+#[test]
+fn test_optimal_memory_layout_input_policy_rejects_misalignment_and_unknown_attributes() {
+    let cases = trybuild::TestCases::new();
+    cases.compile_fail(format!(
+        "{}{}{}{}{}",
+        stringify!(trybuild),
+        constants_str::SLASH,
+        stringify!(optimal_memory_layout_rejection),
+        constants_str::DOT,
+        constants_str::RS,
+    ));
+    cases.pass(format!(
+        "{}{}{}{}{}",
+        stringify!(trybuild),
+        constants_str::SLASH,
+        stringify!(optimal_memory_layout_acceptance),
+        constants_str::DOT,
+        constants_str::RS,
+    ));
+}

@@ -457,3 +457,249 @@ fn test_open_api_contains_auth_and_user_security_contracts() {
             .all(|description| description == expected_body_limit_description)
     );
 }
+
+#[test]
+fn test_admin_openapi_security_schemes_preserve_wire_contracts() {
+    let document = utoipa::openapi::OpenApi::from(crate::admin_api_open_api::admin_api_open_api());
+    assert!(document.components.as_ref().is_some_and(|components| {
+        [
+            (constants_str::ADMIN_COOKIE, serde_json::json!({
+                (stringify!(type)): stringify!(apiKey),
+                (stringify!(in)): stringify!(cookie),
+                (stringify!(name)): constants_str::SERVER_ADMIN_ACCESS_COOKIE_NAME,
+                (stringify!(description)): constants_str::HTTPONLY_ADMINISTRATOR_ACCESS_TOKEN_COOKIE,
+            })),
+            (constants_str::ADMIN_CSRF, serde_json::json!({
+                (stringify!(type)): stringify!(apiKey),
+                (stringify!(in)): stringify!(header),
+                (stringify!(name)): constants_str::X_CSRF_TOKEN,
+                (stringify!(description)): constants_str::CSRF_TOKEN_BOUND_TO_THE_ADMINISTRATOR_ACCESS_SESSION,
+            })),
+        ].into_iter().all(|(name, expected)| {
+            components.security_schemes.get(name).is_some_and(|scheme| {
+                serde_json::to_value(scheme).is_ok_and(|actual| actual == expected)
+            })
+        })
+    }));
+}
+#[tokio::test]
+async fn test_admin_mutation_payload_examples_preserve_exact_wire_contracts() {
+    async fn test_assert_payload_example_wire_response<Error>(
+        result: Result<crate::axum_admin_response::AxumAdminResponse, Error>,
+        std_admin_string_result: Result<
+            server_admin_core::std_admin_string::StdAdminString,
+            server_admin_core::std_admin_string::StdAdminStringTryFromStringError,
+        >,
+    ) where
+        Error: std::error::Error,
+    {
+        assert!(result.is_ok());
+        assert!(std_admin_string_result.is_ok());
+        if let (Ok(axum_admin_response), Ok(std_admin_string)) = (result, std_admin_string_result) {
+            let response = axum::response::Response::from(axum_admin_response);
+            assert_eq!(response.status(), http::StatusCode::OK);
+            assert_eq!(
+                response.headers().get(http::header::CONTENT_TYPE),
+                Some(&http::HeaderValue::from_static(
+                    constants_str::APPLICATION_JSON
+                ))
+            );
+            let body = axum::body::to_bytes(response.into_body(), 16_384usize).await;
+            assert!(body.is_ok());
+            if let Ok(bytes) = body {
+                let value = serde_json::from_slice::<serde_json::Value>(bytes.as_ref());
+                let expected_json_value =
+                    serde_json::from_str::<serde_json::Value>(std_admin_string.as_ref().as_str());
+                assert!(value.is_ok());
+                assert!(expected_json_value.is_ok());
+                if let (Ok(value), Ok(expected_json_value)) = (value, expected_json_value) {
+                    assert_eq!(value, expected_json_value);
+                }
+            }
+        }
+    }
+    test_assert_payload_example_wire_response(
+        crate::api_create_roles_payload_example::api_create_roles_payload_example().await,
+        server_admin_core::std_admin_string::StdAdminString::try_from(
+            serde_json::json!([
+                {(stringify!(name)): constants_str::ADMIN_FIXTURE_ROLE_NAME}
+            ])
+            .to_string(),
+        ),
+    )
+    .await;
+    test_assert_payload_example_wire_response(
+        crate::api_update_roles_payload_example::api_update_roles_payload_example().await,
+        server_admin_core::std_admin_string::StdAdminString::try_from(
+            serde_json::json!({
+                (stringify!(updates)): [{
+                    (stringify!(changes)): {
+                        (stringify!(name)): constants_str::ADMIN_FIXTURE_ROLE_NAME,
+                        (stringify!(rules)): null,
+                    },
+                    (stringify!(filter)): {
+                        (stringify!(role_id)): 1i64,
+                        (stringify!(name)): null,
+                        (stringify!(is_system)): null,
+                    },
+                }],
+            })
+            .to_string(),
+        ),
+    )
+    .await;
+    test_assert_payload_example_wire_response(
+        crate::api_delete_roles_payload_example::api_delete_roles_payload_example().await,
+        server_admin_core::std_admin_string::StdAdminString::try_from(
+            serde_json::json!({
+                (stringify!(filter)): {
+                    (stringify!(role_id)): 1i64,
+                    (stringify!(name)): null,
+                    (stringify!(is_system)): null,
+                },
+            })
+            .to_string(),
+        ),
+    )
+    .await;
+    test_assert_payload_example_wire_response(
+        crate::api_create_user_payload_example::api_create_user_payload_example().await,
+        server_admin_core::std_admin_string::StdAdminString::try_from(
+            serde_json::json!([{
+                (stringify!(display_name)): constants_str::ADMIN_FIXTURE_ALPHA_DISPLAY_NAME,
+                (stringify!(login)): constants_str::ADMIN_FIXTURE_ALPHA_LOGIN,
+                (stringify!(password)): constants_str::TEST_STRONG_PASSWORD,
+                (stringify!(role_ids)): null,
+            }])
+            .to_string(),
+        ),
+    )
+    .await;
+    test_assert_payload_example_wire_response(
+        crate::api_update_users_payload_example::api_update_users_payload_example().await,
+        server_admin_core::std_admin_string::StdAdminString::try_from(
+            serde_json::json!({
+                (stringify!(updates)): [{
+                    (stringify!(changes)): {
+                        (stringify!(display_name)): null,
+                        (stringify!(login)): null,
+                        (stringify!(password)): null,
+                        (stringify!(expected_role_ids)): null,
+                        (stringify!(role_ids)): null,
+                        (stringify!(is_banned)): false,
+                    },
+                    (stringify!(filter)): {
+                        (stringify!(user_id)): 1i64,
+                        (stringify!(login)): null,
+                        (stringify!(display_name)): null,
+                        (stringify!(is_banned)): null,
+                    },
+                }],
+            })
+            .to_string(),
+        ),
+    )
+    .await;
+    test_assert_payload_example_wire_response(
+        crate::api_delete_users_payload_example::api_delete_users_payload_example().await,
+        server_admin_core::std_admin_string::StdAdminString::try_from(
+            serde_json::json!({
+                (stringify!(filter)): {
+                    (stringify!(user_id)): 1i64,
+                    (stringify!(login)): null,
+                    (stringify!(display_name)): null,
+                    (stringify!(is_banned)): null,
+                },
+            })
+            .to_string(),
+        ),
+    )
+    .await;
+}
+
+#[tokio::test]
+async fn test_shared_method_router_dispatches_exact_contract_methods() {
+    let accepted = futures::StreamExt::all(
+        futures::stream::iter([
+            (
+                frontend_contract::route_method::RouteMethod::Connect,
+                http::Method::CONNECT,
+            ),
+            (
+                frontend_contract::route_method::RouteMethod::Delete,
+                http::Method::DELETE,
+            ),
+            (
+                frontend_contract::route_method::RouteMethod::Get,
+                http::Method::GET,
+            ),
+            (
+                frontend_contract::route_method::RouteMethod::Head,
+                http::Method::HEAD,
+            ),
+            (
+                frontend_contract::route_method::RouteMethod::Options,
+                http::Method::OPTIONS,
+            ),
+            (
+                frontend_contract::route_method::RouteMethod::Patch,
+                http::Method::PATCH,
+            ),
+            (
+                frontend_contract::route_method::RouteMethod::Post,
+                http::Method::POST,
+            ),
+            (
+                frontend_contract::route_method::RouteMethod::Put,
+                http::Method::PUT,
+            ),
+            (
+                frontend_contract::route_method::RouteMethod::Trace,
+                http::Method::TRACE,
+            ),
+        ]),
+        async |(route_method, method)| {
+            let method_router = frontend_contract::route_method_router::route_method_router::<
+                (),
+                _,
+                _,
+            >(route_method, async || http::StatusCode::NO_CONTENT);
+            let router = axum::Router::new().route(
+                constants_str::SLASH,
+                axum::routing::MethodRouter::from(method_router),
+            );
+            let request_result = http::Request::builder()
+                .method(method)
+                .uri(constants_str::SLASH)
+                .body(axum::body::Body::empty());
+            assert!(request_result.as_ref().err().is_none());
+            if let Ok(request) = request_result {
+                let response = tower::ServiceExt::oneshot(router.clone(), request).await;
+                assert!(
+                    response
+                        .is_ok_and(|response| response.status() == http::StatusCode::NO_CONTENT)
+                );
+            }
+            let rejected_method =
+                if route_method == frontend_contract::route_method::RouteMethod::Post {
+                    http::Method::GET
+                } else {
+                    http::Method::POST
+                };
+            let rejected_request_result = http::Request::builder()
+                .method(rejected_method)
+                .uri(constants_str::SLASH)
+                .body(axum::body::Body::empty());
+            assert!(rejected_request_result.as_ref().err().is_none());
+            if let Ok(request) = rejected_request_result {
+                tower::ServiceExt::oneshot(router, request)
+                    .await
+                    .is_ok_and(|response| response.status() == http::StatusCode::METHOD_NOT_ALLOWED)
+            } else {
+                false
+            }
+        },
+    )
+    .await;
+    assert!(accepted);
+}

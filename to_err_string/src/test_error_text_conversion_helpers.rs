@@ -65,3 +65,51 @@ fn test_debug_error_text_limits_include_formatting_expansion() {
         expected
     );
 }
+
+#[test]
+fn test_error_text_containers_bound_formatted_output_and_preserve_reference_forwarding() {
+    let maximum = crate::error_text_max_len::ERROR_TEXT_MAX_LEN;
+    assert!(
+        [
+            0usize,
+            maximum - 8usize,
+            maximum - 7usize,
+            maximum - 6usize,
+            maximum - 5usize
+        ]
+        .into_iter()
+        .all(|length| {
+            let text = constants_str::X.repeat(length);
+            let option = Some(text.as_str());
+            let successful = Ok::<_, &str>(text.as_str());
+            let failed = Err::<&str, _>(text.as_str());
+            [
+                (
+                    crate::to_err_string::ToErrString::to_err_string(&option),
+                    format!("{option:?}"),
+                ),
+                (
+                    crate::to_err_string::ToErrString::to_err_string(&successful),
+                    format!("{successful:?}"),
+                ),
+                (
+                    crate::to_err_string::ToErrString::to_err_string(&failed),
+                    format!("{failed:?}"),
+                ),
+            ]
+            .into_iter()
+            .all(|(actual, formatted)| {
+                let expected = if formatted.len() <= maximum {
+                    formatted
+                } else {
+                    crate::error_text::ErrorTextTryFromStringError::TooLong {
+                        len: formatted.len(),
+                        max: maximum,
+                    }
+                    .to_string()
+                };
+                actual.as_ref() == expected
+            }) && crate::to_err_string::ToErrString::to_err_string(&&text).as_ref() == text
+        })
+    );
+}

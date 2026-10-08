@@ -446,17 +446,46 @@ mod tests {
     fn test_bool_enum_rejects_reversed_branch_keywords() {
         assert!(
             [
-                quote::quote! { InvalidBoolEnumFixture, true => value, true => other },
-                quote::quote! { InvalidBoolEnumFixture, false => value, false => other },
+                (
+                    quote::quote! { InvalidBoolEnumFixture, true => value, true => other },
+                    constants_str::COMPILE_ERROR_CE_046
+                ),
+                (
+                    quote::quote! { InvalidBoolEnumFixture, false => value, false => other },
+                    constants_str::COMPILE_ERROR_CE_047
+                ),
             ]
             .into_iter()
-            .all(|tokens| {
+            .all(|(tokens, message)| {
                 let generated = crate::generate_bool_enum_to_tokens::generate_bool_enum_to_tokens(
                     tokens.into(),
                 );
-                matches!(syn::parse2::<syn::File>(generated.into_inner()), Ok(file)
-                if matches!(file.items.as_slice(), [syn::Item::Macro(_)]))
+                let expected: syn::ItemMacro =
+                    syn::parse_quote! { ::core::compile_error! { #message } };
+                syn::parse2::<syn::ItemMacro>(generated.into_inner())
+                    .is_ok_and(|item| item == expected)
             })
+        );
+    }
+    #[test]
+    fn test_bool_enum_preserves_declaration_traits_and_exact_branch_expressions() {
+        let generated = crate::generate_bool_enum_to_tokens::generate_bool_enum_to_tokens(
+            quote::quote! { BoolEnumContractFixture, false => domain::false_tokens(), true => domain::true_tokens() }.into(),
+        );
+        let expected: syn::File = syn::parse_quote! {
+            #[derive(Debug, Clone, Copy, proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
+            pub enum BoolEnumContractFixture { False, True, }
+            impl quote::ToTokens for BoolEnumContractFixture {
+                fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
+                    match &self {
+                        Self::False => (domain::false_tokens()).to_tokens(tokens),
+                        Self::True => (domain::true_tokens()).to_tokens(tokens),
+                    }
+                }
+            }
+        };
+        assert!(
+            syn::parse2::<syn::File>(generated.into_inner()).is_ok_and(|file| file == expected)
         );
     }
     #[test]

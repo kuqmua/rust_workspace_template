@@ -1,0 +1,63 @@
+error: New can only be derived for structs
+ --> trybuild/constructor_rejection.rs:2:1
+  |
+2 | / enum ConstructorRejectedEnum {
+3 | |     Value,
+4 | | }
+  | |_^
+
+error: New requires a struct with named fields
+ --> trybuild/constructor_rejection.rs:6:65
+  |
+6 | #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout, proc_macro_new::New)]
+  |                                                                 ^^^^^^^^^^^^^^^^^^^
+  |
+  = note: this error originates in the derive macro `proc_macro_new::New` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: New requires a struct with named fields
+  --> trybuild/constructor_rejection.rs:10:32
+   |
+10 | struct ConstructorRejectedTuple(u8);
+   |                                ^^^^
+
+error: duplicate constructor order
+  --> trybuild/constructor_rejection.rs:14:30
+   |
+14 |     #[constructor(order = 0, order = 1)]
+   |                              ^^^^^
+
+error: duplicate constructor order
+  --> trybuild/constructor_rejection.rs:21:5
+   |
+21 |     #[constructor(order = 0)]
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: unsupported constructor attribute
+  --> trybuild/constructor_rejection.rs:27:19
+   |
+27 |     #[constructor(unknown = 0)]
+   |                   ^^^^^^^
+
+error: constructor order must be unique AND contiguous
+  --> trybuild/constructor_rejection.rs:34:5
+   |
+34 |     value: u8,
+   |     ^^^^^
+
+error: constructor order must be unique AND contiguous
+  --> trybuild/constructor_rejection.rs:42:5
+   |
+42 |     second: u8,
+   |     ^^^^^^
+
+error: expected integer literal
+  --> trybuild/constructor_rejection.rs:47:27
+   |
+47 |     #[constructor(order = false)]
+   |                           ^^^^^
+
+error: unexpected token
+  --> trybuild/constructor_rejection.rs:52:15
+   |
+52 | #[constructor(invalid)]
+   |               ^^^^^^^

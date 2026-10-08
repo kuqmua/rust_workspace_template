@@ -188,4 +188,87 @@ mod tests {
             crate::cookie_resolution::CookieResolution::Invalid
         );
     }
+
+    #[test]
+    fn test_cookie_builder_preserves_security_flag_matrix_and_age_conversion_boundaries() {
+        let name_result = crate::http_cookie_name::HttpCookieName::try_from(
+            constants_str::TEST_COOKIE_NAME.to_owned(),
+        );
+        let value_result = crate::http_cookie_value::HttpCookieValue::try_from(
+            constants_str::TEST_COOKIE_VALUE.to_owned(),
+        );
+        assert!(name_result.is_ok() && value_result.is_ok());
+        let (Ok(name), Ok(value)) = (name_result, value_result) else {
+            return;
+        };
+        assert!(
+            [
+                0u64,
+                60u64,
+                i64::MAX.unsigned_abs(),
+                i64::MAX.unsigned_abs() + 1u64,
+                u64::MAX
+            ]
+            .into_iter()
+            .all(|age| {
+                [
+                    (crate::http_cookie_access::HttpCookieAccess::HttpOnly, true),
+                    (
+                        crate::http_cookie_access::HttpCookieAccess::ScriptReadable,
+                        false,
+                    ),
+                ]
+                .into_iter()
+                .all(|(access, http_only)| {
+                    [
+                        (crate::http_cookie_secure::HttpCookieSecure::Disabled, false),
+                        (crate::http_cookie_secure::HttpCookieSecure::Enabled, true),
+                    ]
+                    .into_iter()
+                    .all(|(security, secure)| {
+                        let expected = [
+                            format!(
+                                "{}={}",
+                                constants_str::TEST_COOKIE_NAME,
+                                constants_str::TEST_COOKIE_VALUE
+                            ),
+                            format!("{}=/", stringify!(Path)),
+                            format!("{}-{}={age}", stringify!(Max), stringify!(Age)),
+                            format!("{}={}", stringify!(SameSite), stringify!(Strict)),
+                        ];
+                        crate::build_secure_strict_cookie::build_secure_strict_cookie(
+                            &name,
+                            &value,
+                            crate::std_cookie_max_age_seconds::StdCookieMaxAgeSeconds::from(age),
+                            access,
+                            security,
+                        )
+                        .is_ok_and(|header| {
+                            let header_value = http::HeaderValue::from(header);
+                            header_value.to_str().is_ok_and(|text| {
+                                expected.iter().all(|attribute| {
+                                    text.split(';')
+                                        .map(str::trim)
+                                        .any(|observed| observed == attribute)
+                                }) && text
+                                    .split(';')
+                                    .map(str::trim)
+                                    .any(|attribute| attribute == stringify!(HttpOnly))
+                                    == http_only
+                                    && text
+                                        .split(';')
+                                        .map(str::trim)
+                                        .any(|attribute| attribute == stringify!(Secure))
+                                        == secure
+                                    && text.split(';').count()
+                                        == expected.len()
+                                            + usize::from(http_only)
+                                            + usize::from(secure)
+                            })
+                        })
+                    })
+                })
+            })
+        );
+    }
 }

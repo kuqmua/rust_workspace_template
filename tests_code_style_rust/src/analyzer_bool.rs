@@ -13,3 +13,18 @@ impl AnalyzerBool {
         self.0 = true;
     }
 }
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn test_analyzer_bool_defaults_and_monotonic_set_true() {
+        assert!(!super::AnalyzerBool::default().get());
+        [false, true].into_iter().fold((), |(), value| {
+            let mut analyzer_bool = super::AnalyzerBool::from(value);
+            assert_eq!(analyzer_bool.get(), value);
+            analyzer_bool.set_true();
+            assert!(analyzer_bool.get());
+            analyzer_bool.set_true();
+            assert!(analyzer_bool.get());
+        });
+    }
+}

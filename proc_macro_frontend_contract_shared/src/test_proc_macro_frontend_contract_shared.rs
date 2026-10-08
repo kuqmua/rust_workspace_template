@@ -1531,3 +1531,352 @@ fn test_route_registry_syntax_failures_preserve_syn_diagnostics() {
         (quote::quote!(state = State, family = Family; (Auth, Csrf); schemas(); (Route, ,)), &endpoint),
     ].into_iter().all(|(tokens, expected)| syn::parse2::<crate::route_registry_args::RouteRegistryArgs>(tokens).is_err_and(|error| expected.as_deref().is_some_and(|diagnostic| error.to_string() == diagnostic))));
 }
+
+#[test]
+fn test_endpoint_registry_parser_preserves_complex_state_and_ordered_bindings() {
+    let parsed =
+        syn::parse2::<crate::endpoint_registry_args::EndpointRegistryArgs>(quote::quote! {
+            state = crate::State<Inner>;
+            (contract::first(Inner::VALUE), handlers::first::<Inner>),
+            (contract::second(), handlers::second),
+        });
+    assert!(parsed.is_ok_and(|args| {
+        quote::ToTokens::to_token_stream(args.get_state().as_ref()).to_string()
+            == quote::quote!(crate::State<Inner>).to_string()
+            && args.get_bindings().as_ref().len() == 2usize
+            && args
+                .get_bindings()
+                .as_ref()
+                .iter()
+                .zip([
+                    (
+                        quote::quote!(contract::first(Inner::VALUE)),
+                        quote::quote!(handlers::first::<Inner>),
+                    ),
+                    (
+                        quote::quote!(contract::second()),
+                        quote::quote!(handlers::second),
+                    ),
+                ])
+                .all(|(binding, (contract, endpoint))| {
+                    quote::ToTokens::to_token_stream(binding.get_contract().as_ref()).to_string()
+                        == contract.to_string()
+                        && quote::ToTokens::to_token_stream(binding.get_endpoint().as_ref())
+                            .to_string()
+                            == endpoint.to_string()
+                })
+    }));
+}
+
+#[test]
+fn test_route_registry_parser_preserves_security_schemas_and_complex_bindings() {
+    let parsed = syn::parse2::<crate::route_registry_args::RouteRegistryArgs>(quote::quote! {
+        state = crate::State<Inner>, family = crate::Family<Inner>;
+        (security::authenticated(Inner::VALUE), security::csrf());
+        schemas(Option<Inner>, [Inner; 2]);
+        (crate::First<Inner>, handlers::first::<Inner>),
+        (crate::Second, handlers::second),
+    });
+    assert!(parsed.is_ok_and(|args| {
+        quote::ToTokens::to_token_stream(args.get_state().as_ref()).to_string()
+            == quote::quote!(crate::State<Inner>).to_string()
+            && quote::ToTokens::to_token_stream(args.get_family().as_ref()).to_string()
+                == quote::quote!(crate::Family<Inner>).to_string()
+            && quote::ToTokens::to_token_stream(args.get_authenticated_security().as_ref())
+                .to_string()
+                == quote::quote!(security::authenticated(Inner::VALUE)).to_string()
+            && quote::ToTokens::to_token_stream(args.get_csrf_security().as_ref()).to_string()
+                == quote::quote!(security::csrf()).to_string()
+            && args.get_schemas().as_ref().len() == 2usize
+            && args
+                .get_schemas()
+                .as_ref()
+                .iter()
+                .zip([quote::quote!(Option<Inner>), quote::quote!([Inner; 2])])
+                .all(|(schema, expected)| {
+                    quote::ToTokens::to_token_stream(schema).to_string() == expected.to_string()
+                })
+            && args.get_bindings().as_ref().len() == 2usize
+            && args
+                .get_bindings()
+                .as_ref()
+                .iter()
+                .zip([
+                    (
+                        quote::quote!(crate::First<Inner>),
+                        quote::quote!(handlers::first::<Inner>),
+                    ),
+                    (
+                        quote::quote!(crate::Second),
+                        quote::quote!(handlers::second),
+                    ),
+                ])
+                .all(|(binding, (route, endpoint))| {
+                    quote::ToTokens::to_token_stream(binding.get_route().as_ref()).to_string()
+                        == route.to_string()
+                        && quote::ToTokens::to_token_stream(binding.get_endpoint().as_ref())
+                            .to_string()
+                            == endpoint.to_string()
+                })
+    }));
+}
+
+#[test]
+fn test_typed_route_parser_preserves_required_optional_and_distinct_error_fields() {
+    assert!(
+        [
+            (
+                quote::quote!(error_policy = policy::VALUE,),
+                true,
+                quote::quote!(policy::VALUE)
+            ),
+            (
+                quote::quote!(error_statuses = [statuses::BAD_REQUEST, statuses::CONFLICT],),
+                false,
+                quote::quote!([statuses::BAD_REQUEST, statuses::CONFLICT])
+            ),
+        ]
+        .into_iter()
+        .all(|(errors, policy, expected_errors)| {
+            [false, true].into_iter().all(|include_optional| {
+                let optional_fields = if include_optional {
+                    quote::quote! {
+                            error_response = crate::ErrorResponse<Inner>,
+                            mutation = mutation::VALUE,
+                            obligations = obligations::required(),
+                            path_parameter = crate::Parameter<Inner>,
+                            request_body = body::schema::<Inner>()
+                        ,
+                    }
+                } else {
+                    proc_macro2::TokenStream::new()
+                };
+                let parsed =
+                    syn::parse2::<crate::typed_route_args::TypedRouteArgs>(quote::quote! {
+                        #optional_fields #errors
+                            authentication = authentication::required(),
+                            method = methods::GET,
+                            openapi_operation_id = stringify!(endpoint),
+                            path = paths::VALUE,
+                            request = crate::Request<Inner>,
+                            response = crate::Response<Inner>,
+                            success_status = 200 + 1,
+                            transport = crate::Transport<Inner>
+                        ,
+                    });
+                parsed.is_ok_and(|args| {
+                    let errors_preserved = match args.get_errors() {
+                        crate::syn_typed_route_errors::SynTypedRouteErrors::Policy(value) => {
+                            policy
+                                && quote::ToTokens::to_token_stream(value.as_ref()).to_string()
+                                    == expected_errors.to_string()
+                        }
+                        crate::syn_typed_route_errors::SynTypedRouteErrors::Statuses(value) => {
+                            !policy
+                                && quote::ToTokens::to_token_stream(value.as_ref()).to_string()
+                                    == expected_errors.to_string()
+                        }
+                    };
+                    errors_preserved
+                        && [
+                            (
+                                quote::ToTokens::to_token_stream(
+                                    args.get_authentication().as_ref(),
+                                )
+                                .to_string(),
+                                quote::quote!(authentication::required()).to_string(),
+                            ),
+                            (
+                                quote::ToTokens::to_token_stream(args.get_method().as_ref())
+                                    .to_string(),
+                                quote::quote!(methods::GET).to_string(),
+                            ),
+                            (
+                                quote::ToTokens::to_token_stream(
+                                    args.get_openapi_operation_id().as_ref(),
+                                )
+                                .to_string(),
+                                quote::quote!(stringify!(endpoint)).to_string(),
+                            ),
+                            (
+                                quote::ToTokens::to_token_stream(args.get_path().as_ref())
+                                    .to_string(),
+                                quote::quote!(paths::VALUE).to_string(),
+                            ),
+                            (
+                                quote::ToTokens::to_token_stream(args.get_request().as_ref())
+                                    .to_string(),
+                                quote::quote!(crate::Request<Inner>).to_string(),
+                            ),
+                            (
+                                quote::ToTokens::to_token_stream(args.get_response().as_ref())
+                                    .to_string(),
+                                quote::quote!(crate::Response<Inner>).to_string(),
+                            ),
+                            (
+                                quote::ToTokens::to_token_stream(
+                                    args.get_success_status().as_ref(),
+                                )
+                                .to_string(),
+                                quote::quote!(200 + 1).to_string(),
+                            ),
+                            (
+                                quote::ToTokens::to_token_stream(args.get_transport().as_ref())
+                                    .to_string(),
+                                quote::quote!(crate::Transport<Inner>).to_string(),
+                            ),
+                        ]
+                        .into_iter()
+                        .all(|(actual, expected)| actual == expected)
+                        && [
+                            (
+                                args.get_error_response().map(|value| {
+                                    quote::ToTokens::to_token_stream(value.as_ref()).to_string()
+                                }),
+                                quote::quote!(crate::ErrorResponse<Inner>).to_string(),
+                            ),
+                            (
+                                args.get_mutation().map(|value| {
+                                    quote::ToTokens::to_token_stream(value.as_ref()).to_string()
+                                }),
+                                quote::quote!(mutation::VALUE).to_string(),
+                            ),
+                            (
+                                args.get_obligations().map(|value| {
+                                    quote::ToTokens::to_token_stream(value.as_ref()).to_string()
+                                }),
+                                quote::quote!(obligations::required()).to_string(),
+                            ),
+                            (
+                                args.get_path_parameter().map(|value| {
+                                    quote::ToTokens::to_token_stream(value.as_ref()).to_string()
+                                }),
+                                quote::quote!(crate::Parameter<Inner>).to_string(),
+                            ),
+                            (
+                                args.get_request_body().map(|value| {
+                                    quote::ToTokens::to_token_stream(value.as_ref()).to_string()
+                                }),
+                                quote::quote!(body::schema::<Inner>()).to_string(),
+                            ),
+                        ]
+                        .into_iter()
+                        .all(|(actual, expected)| actual == include_optional.then_some(expected))
+                })
+            })
+        })
+    );
+}
+
+#[test]
+fn test_page_catalog_parsers_preserve_reordered_types_and_page_expressions() {
+    let catalog = syn::parse2::<crate::page_catalog_args::PageCatalogArgs>(quote::quote! {
+        spec = crate::Spec<Inner>, path_ref = &'static crate::Path, inventory = Inventory,
+    });
+    assert!(catalog.is_ok_and(|args| {
+        [
+            (
+                quote::ToTokens::to_token_stream(args.get_spec().as_ref()).to_string(),
+                quote::quote!(crate::Spec<Inner>).to_string(),
+            ),
+            (
+                quote::ToTokens::to_token_stream(args.get_path_ref().as_ref()).to_string(),
+                quote::quote!(&'static crate::Path).to_string(),
+            ),
+            (
+                quote::ToTokens::to_token_stream(args.get_inventory().as_ref()).to_string(),
+                quote::quote!(Inventory).to_string(),
+            ),
+        ]
+        .into_iter()
+        .all(|(actual, expected)| actual == expected)
+    }));
+    let page = syn::parse2::<crate::page_catalog_page_args::PageCatalogPageArgs>(quote::quote! {
+        title = stringify!(Page), route = routes::VALUE, path = paths::build(),
+        metadata = metadata::build::<Inner>(), capability = capability::VALUE,
+    });
+    assert!(page.is_ok_and(|args| {
+        [
+            (
+                quote::ToTokens::to_token_stream(args.get_title().as_ref()).to_string(),
+                quote::quote!(stringify!(Page)).to_string(),
+            ),
+            (
+                quote::ToTokens::to_token_stream(args.get_route().as_ref()).to_string(),
+                quote::quote!(routes::VALUE).to_string(),
+            ),
+            (
+                quote::ToTokens::to_token_stream(args.get_path().as_ref()).to_string(),
+                quote::quote!(paths::build()).to_string(),
+            ),
+            (
+                quote::ToTokens::to_token_stream(args.get_metadata().as_ref()).to_string(),
+                quote::quote!(metadata::build::<Inner>()).to_string(),
+            ),
+            (
+                quote::ToTokens::to_token_stream(args.get_capability().as_ref()).to_string(),
+                quote::quote!(capability::VALUE).to_string(),
+            ),
+        ]
+        .into_iter()
+        .all(|(actual, expected)| actual == expected)
+    }));
+}
+
+#[test]
+fn test_route_catalog_parsers_preserve_family_limit_and_both_route_forms() {
+    let catalog = syn::parse2::<crate::route_catalog_args::RouteCatalogArgs>(quote::quote! {
+        body_limit = 128 * 2, family = Family,
+    });
+    assert!(catalog.is_ok_and(|args| {
+        quote::ToTokens::to_token_stream(args.get_family().as_ref()).to_string()
+            == quote::quote!(Family).to_string()
+            && quote::ToTokens::to_token_stream(args.get_body_limit().as_ref()).to_string()
+                == quote::quote!(128 * 2).to_string()
+    }));
+    let typed = syn::parse2::<crate::route_catalog_route_args::RouteCatalogRouteArgs>(
+        quote::quote!(crate::Route<Inner>),
+    );
+    assert!(typed.is_ok_and(|args| {
+        args.get_contract().is_none()
+            && args.get_path().is_none()
+            && !args.get_exclude_from_family().get()
+            && args.get_route().is_some_and(|route| {
+                quote::ToTokens::to_token_stream(route.as_ref()).to_string()
+                    == quote::quote!(crate::Route<Inner>).to_string()
+            })
+    }));
+    assert!(
+        [
+            (
+                quote::quote!(contract = contract::build(), path = paths::VALUE),
+                false
+            ),
+            (
+                quote::quote!(
+                    path = paths::VALUE,
+                    exclude_from_family,
+                    contract = contract::build(),
+                ),
+                true
+            ),
+        ]
+        .into_iter()
+        .all(|(tokens, excluded)| {
+            syn::parse2::<crate::route_catalog_route_args::RouteCatalogRouteArgs>(tokens).is_ok_and(
+                |args| {
+                    args.get_route().is_none()
+                        && args.get_exclude_from_family().get() == excluded
+                        && args.get_contract().is_some_and(|contract| {
+                            quote::ToTokens::to_token_stream(contract.as_ref()).to_string()
+                                == quote::quote!(contract::build()).to_string()
+                        })
+                        && args.get_path().is_some_and(|path| {
+                            quote::ToTokens::to_token_stream(path.as_ref()).to_string()
+                                == quote::quote!(paths::VALUE).to_string()
+                        })
+                },
+            )
+        })
+    );
+}

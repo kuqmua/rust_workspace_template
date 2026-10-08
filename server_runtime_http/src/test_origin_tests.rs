@@ -241,4 +241,54 @@ mod tests {
             }
         }));
     }
+
+    #[test]
+    fn test_configured_origin_rejects_malformed_schemes_authorities_and_suffixes() {
+        assert!(
+            [
+                constants_str::EMPTY.to_owned(),
+                constants_str::HTTPS.to_owned(),
+                format!(
+                    "{}{}{}",
+                    constants_str::X,
+                    constants_str::TEXT_ALT_10,
+                    constants_str::LOCALHOST
+                ),
+                format!("{}{}", constants_str::HTTPS, constants_str::TEXT_ALT_10),
+                format!("{}/", constants_str::HTTPS_ADMIN_EXAMPLE_COM),
+                format!(
+                    "{}?{}",
+                    constants_str::HTTPS_ADMIN_EXAMPLE_COM,
+                    constants_str::X
+                ),
+                format!(
+                    "{}#{}",
+                    constants_str::HTTPS_ADMIN_EXAMPLE_COM,
+                    constants_str::X
+                ),
+                format!(" {}", constants_str::HTTPS_ADMIN_EXAMPLE_COM),
+                format!("{} ", constants_str::HTTPS_ADMIN_EXAMPLE_COM),
+            ]
+            .into_iter()
+            .all(|text| {
+                crate::allowed_origin::AllowedOrigin::try_from(text)
+                    == Err(crate::allowed_origin_error::AllowedOriginError::Invalid)
+            })
+        );
+    }
+
+    #[test]
+    fn test_allowed_origin_list_rejects_invalid_entries_in_either_position() {
+        assert!([false, true].into_iter().all(|invalid_first| {
+            let valid = constants_str::HTTPS_ADMIN_EXAMPLE_COM.to_owned();
+            let invalid = constants_str::HTTPS_ADMIN_EXAMPLE_COM_PATH.to_owned();
+            let values = if invalid_first {
+                vec![invalid, valid]
+            } else {
+                vec![valid, invalid]
+            };
+            crate::allowed_origins::AllowedOrigins::try_from(values)
+                == Err(crate::allowed_origins_error::AllowedOriginsError::Invalid)
+        }));
+    }
 }

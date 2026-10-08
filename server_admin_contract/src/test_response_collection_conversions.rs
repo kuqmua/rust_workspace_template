@@ -276,4 +276,32 @@ fn test_response_collections_preserve_conversion_order_duplicates_and_bounds() {
         ),
         crate::admin_bool::AdminBool::from(true)
     );
+    let rule_value_results = [
+        crate::admin_rule::AdminRule::UsersRead,
+        crate::admin_rule::AdminRule::RolesRead,
+    ]
+    .map(|admin_rule| {
+        crate::admin_rule_value::AdminRuleValue::try_from(admin_rule.as_str().get().to_owned())
+    });
+    assert!(rule_value_results.iter().all(Result::is_ok));
+    if let [Ok(rule_value), Ok(second_rule_value)] = rule_value_results {
+        assert_eq!(
+            response_collection_matches::<_, crate::admin_rule_values::AdminRuleValues>(
+                &rule_value,
+                &second_rule_value
+            ),
+            crate::admin_bool::AdminBool::from(true)
+        );
+        let expected = serde_json::json!([&rule_value, &second_rule_value, &rule_value]);
+        assert!(
+            serde_json::from_value::<crate::admin_rule_values::AdminRuleValues>(expected.clone())
+                .is_ok_and(|values| serde_json::to_value(values.as_ref())
+                    .is_ok_and(|wire| wire == expected))
+        );
+        let oversized = serde_json::json!(vec![rule_value; 10_001usize]);
+        assert!(
+            serde_json::from_value::<crate::admin_rule_values::AdminRuleValues>(oversized)
+                .is_err_and(|error| error.is_data())
+        );
+    }
 }

@@ -199,3 +199,36 @@ fn test_migrated_settings_default_route_rejects_unknown_pages() {
         crate::admin_frontend_path::AdminFrontendPath::Users.get()
     );
 }
+
+#[test]
+fn test_table_query_path_predicate_rejects_unknown_and_adjacent_paths() {
+    [
+        constants_str::EMPTY,
+        constants_str::X,
+        constants_str::ROOT,
+        crate::admin_frontend_path::AdminFrontendPath::Root.get(),
+    ]
+    .into_iter()
+    .fold((), |(), path| {
+        assert!(!bool::from(
+            crate::admin_path_uses_table_query::admin_path_uses_table_query(
+                crate::admin_page_path_ref::AdminPagePathRef::from(path)
+            )
+        ));
+    });
+    crate::admin_data_table::AdminDataTable::ALL
+        .into_iter()
+        .fold((), |(), table| {
+            let path = table.frontend_path();
+            [constants_str::X, constants_str::SLASH]
+                .into_iter()
+                .fold((), |(), suffix| {
+                    let adjacent = format!("{path}{suffix}");
+                    assert!(!bool::from(
+                        crate::admin_path_uses_table_query::admin_path_uses_table_query(
+                            crate::admin_page_path_ref::AdminPagePathRef::from(adjacent.as_str())
+                        )
+                    ));
+                });
+        });
+}

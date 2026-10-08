@@ -31,3 +31,6 @@ mod test_generated_equality_filter_sql_and_nullable_counters;
 
 #[cfg(test)]
 mod test_between_json_contract;
+
+#[cfg(test)]
+mod test_one_based_pagination_binding;

@@ -12,9 +12,18 @@ mod tests {
             .would_remove_last()
             .get()
         };
-        assert!(would_remove(constants_i64::ONE, true));
-        assert!(would_remove(constants_i64::ZERO, true));
-        assert!(!would_remove(2i64, true));
-        assert!(!would_remove(constants_i64::ONE, false));
+        [
+            (i64::MIN, true),
+            (-1i64, true),
+            (0i64, true),
+            (1i64, true),
+            (2i64, false),
+            (i64::MAX, false),
+        ]
+        .into_iter()
+        .fold((), |(), (active_count, expected)| {
+            assert_eq!(would_remove(active_count, true), expected);
+            assert!(!would_remove(active_count, false));
+        });
     }
 }

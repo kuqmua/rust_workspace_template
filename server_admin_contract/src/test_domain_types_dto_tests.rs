@@ -311,3 +311,85 @@ fn test_user_summary_rejects_malformed_selected_field_values() {
             .is_err_and(|error| error.is_data())
     }));
 }
+
+#[test]
+fn test_authenticated_admin_page_access_preserves_exact_rule_requirements() {
+    [
+        None,
+        Some(crate::admin_rule::AdminRule::UsersRead),
+        Some(crate::admin_rule::AdminRule::RolesRead),
+        Some(crate::admin_rule::AdminRule::RulesRead),
+        Some(crate::admin_rule::AdminRule::SystemSettingsRead),
+        Some(crate::admin_rule::AdminRule::TablesRead),
+        Some(crate::admin_rule::AdminRule::MetricsRead),
+        Some(crate::admin_rule::AdminRule::OpenApiRead),
+        Some(crate::admin_rule::AdminRule::UsersUpdate),
+    ]
+    .into_iter()
+    .fold((), |(), granted| {
+        let rules = granted
+            .into_iter()
+            .flat_map(|rule| [rule, rule])
+            .collect::<Vec<_>>();
+        let result = serde_json::from_value::<crate::authenticated_admin::AuthenticatedAdmin>(
+            serde_json::json!({
+                (stringify!(display_name)): constants_str::ADMIN,
+                (stringify!(id)): 1i64,
+                (stringify!(login)): constants_str::ROOT,
+                (stringify!(rules)): rules,
+                (stringify!(roles)): [constants_str::LOGIN],
+            }),
+        );
+        assert!(result.as_ref().err().is_none());
+        if let Ok(administrator) = result {
+            let expected = [
+                (crate::admin_page::AdminPage::Health, None),
+                (crate::admin_page::AdminPage::Branding, None),
+                (
+                    crate::admin_page::AdminPage::Users,
+                    Some(crate::admin_rule::AdminRule::UsersRead),
+                ),
+                (
+                    crate::admin_page::AdminPage::Roles,
+                    Some(crate::admin_rule::AdminRule::RolesRead),
+                ),
+                (
+                    crate::admin_page::AdminPage::Rules,
+                    Some(crate::admin_rule::AdminRule::RulesRead),
+                ),
+                (
+                    crate::admin_page::AdminPage::Settings,
+                    Some(crate::admin_rule::AdminRule::SystemSettingsRead),
+                ),
+                (
+                    crate::admin_page::AdminPage::Tables,
+                    Some(crate::admin_rule::AdminRule::TablesRead),
+                ),
+                (crate::admin_page::AdminPage::Sessions, None),
+                (
+                    crate::admin_page::AdminPage::Metrics,
+                    Some(crate::admin_rule::AdminRule::MetricsRead),
+                ),
+                (crate::admin_page::AdminPage::Version, None),
+                (crate::admin_page::AdminPage::Profile, None),
+                (
+                    crate::admin_page::AdminPage::OpenApi,
+                    Some(crate::admin_rule::AdminRule::OpenApiRead),
+                ),
+            ];
+            assert_eq!(crate::admin_page::AdminPage::all().count(), expected.len());
+            assert!(
+                expected
+                    .into_iter()
+                    .all(|(page, required)| administrator.can_access(page)
+                        == crate::admin_bool::AdminBool::from(
+                            required.is_none_or(|rule| Some(rule) == granted)
+                        ))
+            );
+            assert_eq!(
+                administrator.rules().len(),
+                if granted.is_some() { 2usize } else { 0usize }
+            );
+        }
+    });
+}

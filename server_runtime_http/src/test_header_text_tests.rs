@@ -91,4 +91,18 @@ mod tests {
             Err(crate::http_header_text_maximum_bytes_error::HttpHeaderTextMaximumBytesError::Zero)
         );
     }
+
+    #[test]
+    fn test_header_maximum_positive_conversion_preserves_full_usize_domain_boundaries() {
+        assert!(
+            [1usize, 5usize, std::num::NonZeroUsize::MAX.get(),]
+                .into_iter()
+                .all(|value| {
+                    crate::http_header_text_maximum_bytes::HttpHeaderTextMaximumBytes::try_from(
+                        value,
+                    )
+                    .is_ok_and(|maximum| usize::from(maximum) == value)
+                })
+        );
+    }
 }

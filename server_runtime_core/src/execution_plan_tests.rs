@@ -20,9 +20,9 @@ mod tests {
         let report = crate::execute_plan::execute_plan(
             crate::execution_mode::ExecutionMode::DryRun,
             4u8,
-            async |_plan| {
+            |_plan| {
                 called.store(true, std::sync::atomic::Ordering::SeqCst);
-                Ok::<u8, std::convert::Infallible>(5u8)
+                std::future::ready(Ok::<u8, std::convert::Infallible>(5u8))
             },
         )
         .await;

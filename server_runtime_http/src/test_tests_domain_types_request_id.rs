@@ -233,3 +233,37 @@ async fn test_request_id_header_precedence_preserves_valid_correlation_fallback(
         check_precedence(opaque, http::HeaderValue::from_static(constants_str::X)).await;
     }
 }
+
+#[tokio::test]
+async fn test_request_id_service_replaces_inbound_extension_and_preserves_inner_error() {
+    let stale_result = crate::request_id::RequestId::try_from(constants_str::X.to_owned());
+    assert!(stale_result.is_ok());
+    let Ok(stale) = stale_result else {
+        return;
+    };
+    let inner = tower::service_fn(|request: axum::extract::Request| {
+        assert!(
+            request
+                .extensions()
+                .get::<crate::request_id::RequestId>()
+                .is_some_and(
+                    |request_id| request_id.to_string() == constants_str::EXISTING_REQUEST_ID
+                )
+        );
+        std::future::ready(Err::<axum::response::Response, _>(crate::std_request_timeout_try_from_duration_error::StdRequestTimeoutTryFromDurationError::Zero))
+    });
+    let mut request = axum::extract::Request::new(axum::body::Body::empty());
+    let previous = request.extensions_mut().insert(stale);
+    assert!(previous.is_none());
+    let previous_header = request.headers_mut().insert(
+        http::HeaderName::from_static(constants_str::HTTP_HEADER_NAMES_X_REQUEST_ID),
+        http::HeaderValue::from_static(constants_str::EXISTING_REQUEST_ID),
+    );
+    assert!(previous_header.is_none());
+    let result = tower::ServiceExt::oneshot(
+        crate::request_id_service::RequestIdService::new(inner, None),
+        request,
+    )
+    .await;
+    assert!(matches!(result, Err(crate::std_request_timeout_try_from_duration_error::StdRequestTimeoutTryFromDurationError::Zero)));
+}

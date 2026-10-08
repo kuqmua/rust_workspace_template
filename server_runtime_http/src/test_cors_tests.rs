@@ -137,4 +137,23 @@ mod tests {
             Err(crate::http_cors_allow_origin_header_values_error::HttpCorsAllowOriginHeaderValuesError::TooManyItems)
         ));
     }
+
+    #[test]
+    fn test_cors_error_precedence_preserves_byte_item_and_origin_validation_order() {
+        let resolve = |http_cors_allow_origin_text_ref: crate::http_cors_allow_origin_text_ref::HttpCorsAllowOriginTextRef<'_>| {
+            crate::parse_cors_allow_origin::parse_cors_allow_origin(
+                http_cors_allow_origin_text_ref,
+            )
+        };
+        let oversized = ','.to_string().repeat(65_537usize);
+        assert!(matches!(resolve(crate::http_cors_allow_origin_text_ref::HttpCorsAllowOriginTextRef::from(oversized.as_str())), Err(crate::http_cors_allow_origin_header_values_error::HttpCorsAllowOriginHeaderValuesError::TooLong)));
+        let excessive_items = ','.to_string().repeat(128usize);
+        assert!(matches!(resolve(crate::http_cors_allow_origin_text_ref::HttpCorsAllowOriginTextRef::from(excessive_items.as_str())), Err(crate::http_cors_allow_origin_header_values_error::HttpCorsAllowOriginHeaderValuesError::TooManyItems)));
+        assert!([
+            ','.to_string(),
+            format!(",{}", constants_str::HTTP_LOCALHOST),
+            format!("{},", constants_str::HTTP_LOCALHOST),
+            format!("{},,{}", constants_str::HTTP_LOCALHOST, constants_str::HTTPS_ADMIN_EXAMPLE_COM),
+        ].into_iter().all(|text| matches!(resolve(crate::http_cors_allow_origin_text_ref::HttpCorsAllowOriginTextRef::from(text.as_str())), Err(crate::http_cors_allow_origin_header_values_error::HttpCorsAllowOriginHeaderValuesError::InvalidOrigin))));
+    }
 }

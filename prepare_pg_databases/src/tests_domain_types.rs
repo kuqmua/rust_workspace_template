@@ -150,4 +150,51 @@ mod tests {
                 ]));
             });
     }
+    #[test]
+    fn test_migration_commands_preserve_distinct_typed_database_and_source_arguments() {
+        let inputs = [
+            (constants_str::X, constants_str::TEST_TEXT_WITH_NUL),
+            (constants_str::TEST_DATABASE_URL, constants_str::EMPTY),
+        ];
+        let commands = crate::migration_commands::migration_commands(inputs.into_iter().flat_map(
+            |(url, source)| {
+                let database_url_result =
+                    crate::database_url::DatabaseUrl::try_from(url.to_owned());
+                let migrations_source_result =
+                    crate::migrations_source::MigrationsSource::try_from(source.to_owned());
+                assert!(database_url_result.is_ok());
+                assert!(migrations_source_result.is_ok());
+                database_url_result
+                    .into_iter()
+                    .zip(migrations_source_result)
+                    .map(|(database_url, migrations_source)| {
+                        crate::database_preparation_spec::DatabasePreparationSpec::new(
+                            database_url,
+                            migrations_source,
+                        )
+                    })
+            },
+        ));
+        assert_eq!(commands.as_ref().len(), inputs.len());
+        assert!(
+            commands
+                .as_ref()
+                .iter()
+                .zip(inputs)
+                .all(|(command, (url, source))| {
+                    command.program().as_ref() == constants_str::SQLX
+                        && matches!(command.arguments().as_ref(), [
+                    crate::process_argument::ProcessArgument::Static(database_flag),
+                    crate::process_argument::ProcessArgument::DatabaseUrl(database_url),
+                    crate::process_argument::ProcessArgument::Static(source_flag),
+                    crate::process_argument::ProcessArgument::MigrationsSource(migrations_source),
+                    crate::process_argument::ProcessArgument::Static(run),
+                ] if database_flag.get() == constants_str::DATABASE_URL_FLAG
+                    && database_url.as_ref() == url
+                    && source_flag.get() == constants_str::SOURCE_FLAG
+                    && migrations_source.as_ref() == source
+                    && run.get() == constants_str::RUN)
+                })
+        );
+    }
 }

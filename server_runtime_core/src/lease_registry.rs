@@ -425,4 +425,35 @@ mod tests {
             crate::lease_heartbeat::LeaseHeartbeat::Accepted
         );
     }
+
+    #[tokio::test(start_paused = true)]
+    async fn test_duplicate_reservation_does_not_refresh_lease_heartbeat() {
+        let registry = super::LeaseRegistry::new();
+        let lease_id = id(constants_str::TEST_LEASE_ID_ONE);
+        let lease_key = lease_key(constants_str::TEST_LEASE_KEY_ONE);
+        let timeout = lease_registry_timeout_fixture();
+        assert_eq!(
+            registry
+                .reserve(lease_id.clone(), lease_key.clone(), maximum())
+                .await,
+            crate::lease_reservation::LeaseReservation::Reserved,
+        );
+        tokio::time::advance(std::time::Duration::from_secs(1u64)).await;
+        assert_eq!(
+            registry
+                .reserve(id(constants_str::TEST_LEASE_ID_TWO), lease_key, maximum())
+                .await,
+            crate::lease_reservation::LeaseReservation::Existing(lease_id.clone()),
+        );
+        assert!(registry.stale(timeout).await.as_ref().is_empty());
+        tokio::time::advance(std::time::Duration::from_nanos(1u64)).await;
+        assert_eq!(
+            registry.stale(timeout).await.as_ref(),
+            std::slice::from_ref(&lease_id)
+        );
+        assert_eq!(
+            registry.heartbeat(&lease_id).await,
+            crate::lease_heartbeat::LeaseHeartbeat::Missing
+        );
+    }
 }

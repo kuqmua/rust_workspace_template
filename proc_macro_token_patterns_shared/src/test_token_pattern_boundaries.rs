@@ -79,3 +79,42 @@ fn test_token_pattern_batch_ignores_other_tokens_and_preserves_output_and_error_
         .is_empty()
     );
 }
+
+#[test]
+fn test_token_pattern_valid_emitters_preserve_declarations_and_supplied_tokens() {
+    assert!([
+        (
+            crate::token_pattern(quote::quote! { TokenContractFixture, domain::Value<'static> }),
+            quote::quote! {
+                #[derive(Debug, Clone, Copy, proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
+                pub struct TokenContractFixture;
+                impl quote::ToTokens for TokenContractFixture {
+                    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
+                        crate::proc_macro2_tokens_mut::ProcMacro2TokensMut::from(&mut *tokens).append(quote::quote! { domain::Value<'static> });
+                    }
+                }
+            },
+        ),
+        (
+            crate::token_pattern_parts(quote::quote! { TokenPartsContractFixture, domain::First, quote::quote! { domain::Second } }),
+            quote::quote! {
+                #[derive(Debug, Clone, Copy, proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
+                pub struct TokenPartsContractFixture;
+                impl quote::ToTokens for TokenPartsContractFixture {
+                    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
+                        crate::proc_macro2_tokens_mut::ProcMacro2TokensMut::from(&mut *tokens).append(domain::First);
+                        crate::proc_macro2_tokens_mut::ProcMacro2TokensMut::from(&mut *tokens).append(quote::quote! { domain::Second });
+                    }
+                }
+            },
+        ),
+        (
+            crate::token_stream_path_function(quote::quote! { test_token_contract_fixture, domain::Value<'static> }),
+            quote::quote! {
+                fn test_token_contract_fixture() -> proc_macro2::TokenStream {
+                    quote::quote! { domain::Value<'static> }
+                }
+            },
+        ),
+    ].into_iter().all(|(actual, expected)| actual.to_string() == expected.to_string()));
+}

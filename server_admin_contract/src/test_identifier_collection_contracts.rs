@@ -86,6 +86,10 @@ fn test_administrator_identifier_integer_round_trips_preserve_positive_bounds() 
         )
     }
     assert_eq!(
+        identifier_integer_contract_matches::<crate::admin_audit_log_id::AdminAuditLogId>(),
+        crate::admin_bool::AdminBool::from(true)
+    );
+    assert_eq!(
         identifier_integer_contract_matches::<crate::admin_cleanup_status_id::AdminCleanupStatusId>(
         ),
         crate::admin_bool::AdminBool::from(true)
@@ -127,6 +131,18 @@ fn test_administrator_identifier_integer_round_trips_preserve_positive_bounds() 
     );
     assert_eq!(
         identifier_integer_contract_matches::<crate::admin_user_role_id::AdminUserRoleId>(),
+        crate::admin_bool::AdminBool::from(true)
+    );
+    assert_eq!(
+        identifier_integer_contract_matches::<crate::admin_role_id::AdminRoleId>(),
+        crate::admin_bool::AdminBool::from(true)
+    );
+    assert_eq!(
+        identifier_integer_contract_matches::<crate::admin_rule_id::AdminRuleId>(),
+        crate::admin_bool::AdminBool::from(true)
+    );
+    assert_eq!(
+        identifier_integer_contract_matches::<crate::admin_user_id::AdminUserId>(),
         crate::admin_bool::AdminBool::from(true)
     );
 }

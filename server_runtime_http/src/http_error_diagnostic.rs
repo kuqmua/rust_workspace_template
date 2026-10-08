@@ -164,4 +164,41 @@ mod tests {
             constants_str::VALUE_AF7C24A2
         );
     }
+    #[test]
+    fn test_http_diagnostic_preserves_nested_source_order_and_extracted_telemetry() {
+        let inner = server_observability::observed_error::ObservedError::capture(
+            std::io::Error::from(std::io::ErrorKind::NotFound),
+            server_observability::observed_error_code::ObservedErrorCode::from(constants_str::X),
+        );
+        let outer = server_observability::observed_error::ObservedError::capture(
+            inner,
+            server_observability::observed_error_code::ObservedErrorCode::from(
+                constants_str::VALUE_CF4DCEBB,
+            ),
+        );
+        let diagnostic = super::HttpErrorDiagnostic::from_observed(
+            crate::http_error_type::HttpErrorType::from(constants_str::VALUE_AF7C24A2),
+            &outer,
+        );
+        assert_eq!(
+            diagnostic.error_chain_text().to_string(),
+            format!(
+                "{}{}{}{}{}",
+                outer,
+                constants_str::HTTP_ERROR_CHAIN_SEPARATOR,
+                outer.source_ref(),
+                constants_str::HTTP_ERROR_CHAIN_SEPARATOR,
+                outer.source_ref().source_ref()
+            )
+        );
+        let telemetry = crate::http_error_telemetry::HttpErrorTelemetry::from(&diagnostic);
+        assert_eq!(
+            telemetry.error_type().to_string(),
+            constants_str::VALUE_AF7C24A2
+        );
+        assert_eq!(
+            telemetry.error_code().to_string(),
+            constants_str::VALUE_CF4DCEBB
+        );
+    }
 }
