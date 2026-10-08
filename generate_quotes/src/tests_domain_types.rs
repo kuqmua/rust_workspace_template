@@ -15,6 +15,20 @@ mod tests {
     ) {
         assert_eq!(proc_macro2_quoted_literal_token_stream.to_string(), str);
     }
+    fn assert_quote_error_diagnostic(
+        proc_macro2_quoted_literal_token_stream: &crate::proc_macro2_quoted_literal_token_stream::ProcMacro2QuotedLiteralTokenStream,
+        quote_panic_id: crate::quote_panic_id::QuotePanicId,
+        str: &str,
+    ) {
+        let mut message = String::from(<&str>::from(quote_panic_id));
+        message.push(':');
+        message.push(' ');
+        message.push_str(str);
+        assert_eq!(
+            proc_macro2_quoted_literal_token_stream.to_string(),
+            quote::quote! {compile_error!(#message);}.to_string()
+        );
+    }
     #[test]
     fn test_quote_str_helpers_return_expected_literals() {
         assert_quote_str(
@@ -177,31 +191,122 @@ mod tests {
             [
                 (
                     crate::double_quoted_token_stream::double_quoted_token_stream(&input),
-                    input.len() + 2usize
+                    input.len() + 2usize,
+                    constants_str::VALUE_0391AC99,
                 ),
                 (
                     crate::single_quotes_token_stream::single_quotes_token_stream(input.as_str()),
-                    input.len() + 2usize
+                    input.len() + 2usize,
+                    constants_str::EC1E77D5,
                 ),
                 (
                     crate::binary_double_quoted_token_stream::binary_double_quoted_token_stream(
                         &input
                     ),
-                    input.len() + 3usize
+                    input.len() + 3usize,
+                    constants_str::VALUE_5DC6F142,
                 ),
                 (
                     crate::binary_single_quotes_token_stream::binary_single_quotes_token_stream(
                         input.as_str()
                     ),
-                    input.len() + 3usize
+                    input.len() + 3usize,
+                    constants_str::VALUE_8BCE26E7,
                 ),
             ]
             .into_iter()
-            .all(|(tokens, expected_length)| {
-                let output = tokens.to_string();
-                output.contains(constants_str::VALUE_2EDAC0BF)
-                    && output.contains(expected_length.to_string().as_str())
+            .all(|(tokens, expected_length, panic_id)| {
+                let error = crate::quoted_literal::QuotedLiteralTryFromStringError::TooLong {
+                    len: expected_length,
+                    max: crate::quoted_literal_max_len::QUOTED_LITERAL_MAX_LEN,
+                };
+                assert_quote_error_diagnostic(
+                    &tokens,
+                    crate::quote_panic_id::QuotePanicId::from(panic_id),
+                    error.to_string().as_str(),
+                );
+                true
             })
+        );
+    }
+
+    #[test]
+    fn test_malformed_quote_tokens_preserve_parser_error_diagnostics() {
+        let input = '\\'.to_string();
+        assert!(
+            [
+                (
+                    crate::double_quoted_string::double_quoted_string(&input),
+                    crate::double_quoted_token_stream::double_quoted_token_stream(&input),
+                    constants_str::VALUE_0391AC99,
+                ),
+                (
+                    crate::single_quotes_str::single_quotes_str(input.as_str()),
+                    crate::single_quotes_token_stream::single_quotes_token_stream(input.as_str()),
+                    constants_str::EC1E77D5,
+                ),
+                (
+                    crate::binary_double_quoted_str::binary_double_quoted_str(&input),
+                    crate::binary_double_quoted_token_stream::binary_double_quoted_token_stream(
+                        &input,
+                    ),
+                    constants_str::VALUE_5DC6F142,
+                ),
+                (
+                    crate::binary_single_quotes_str::binary_single_quotes_str(input.as_str()),
+                    crate::binary_single_quotes_token_stream::binary_single_quotes_token_stream(
+                        input.as_str(),
+                    ),
+                    constants_str::VALUE_8BCE26E7,
+                ),
+            ]
+            .into_iter()
+            .all(|(result, tokens, panic_id)| {
+                result.is_ok_and(|quoted_literal| {
+                    quoted_literal
+                        .as_ref()
+                        .parse::<proc_macro2::TokenStream>()
+                        .is_err_and(|error| {
+                            assert_quote_error_diagnostic(
+                                &tokens,
+                                crate::quote_panic_id::QuotePanicId::from(panic_id),
+                                error.to_string().as_str(),
+                            );
+                            true
+                        })
+                })
+            })
+        );
+    }
+
+    #[test]
+    fn test_quote_token_helpers_preserve_valid_escape_sequences() {
+        let input = ['\\', 'n'].into_iter().collect::<String>();
+        assert!(
+            [
+                (
+                    crate::double_quoted_token_stream::double_quoted_token_stream(&input),
+                    proc_macro2::Literal::string(&'\n'.to_string()),
+                ),
+                (
+                    crate::single_quotes_token_stream::single_quotes_token_stream(input.as_str()),
+                    proc_macro2::Literal::character('\n'),
+                ),
+                (
+                    crate::binary_double_quoted_token_stream::binary_double_quoted_token_stream(
+                        &input,
+                    ),
+                    proc_macro2::Literal::byte_string(std::slice::from_ref(&b'\n')),
+                ),
+                (
+                    crate::binary_single_quotes_token_stream::binary_single_quotes_token_stream(
+                        input.as_str(),
+                    ),
+                    proc_macro2::Literal::byte_character(b'\n'),
+                ),
+            ]
+            .into_iter()
+            .all(|(tokens, literal)| tokens.to_string() == literal.to_string())
         );
     }
 }

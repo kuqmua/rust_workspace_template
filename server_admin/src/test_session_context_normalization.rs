@@ -1,4 +1,74 @@
 #[test]
+fn test_session_context_ignores_source_port_for_ipv4_ipv6_and_mapped_peers() {
+    let headers = http::HeaderMap::new();
+    assert!(
+        [
+            std::net::IpAddr::V4(std::net::Ipv4Addr::LOCALHOST),
+            std::net::IpAddr::V6(std::net::Ipv6Addr::LOCALHOST),
+            std::net::IpAddr::V6(std::net::Ipv4Addr::LOCALHOST.to_ipv6_mapped()),
+        ]
+        .into_iter()
+        .all(|address| {
+            let hash = |port| {
+                crate::authorization_session_context_hash::authorization_session_context_hash(
+                    crate::http_admin_header_map_ref::HttpAdminHeaderMapRef::from(&headers),
+                    crate::admin_peer_addr::AdminPeerAddr::from(
+                        server_admin_core::admin_socket_addr::AdminSocketAddr::from(
+                            std::net::SocketAddr::new(address, port),
+                        ),
+                    ),
+                )
+            };
+            hash(0u16).is_ok_and(|first| {
+                hash(u16::MAX)
+                    .is_ok_and(|second| first.expose().as_ref() == second.expose().as_ref())
+            })
+        })
+    );
+}
+
+#[test]
+fn test_session_context_uses_first_user_agent_even_when_later_value_is_valid() {
+    assert!(
+        http::HeaderValue::from_bytes(&[255u8]).is_ok_and(|nontext| {
+            [
+                http::HeaderValue::from_static(constants_str::ADMIN_CLIENT_1),
+                http::HeaderValue::from_static(constants_str::EMPTY),
+                nontext,
+            ]
+            .into_iter()
+            .all(|first_value| {
+                let mut headers = http::HeaderMap::new();
+                let _previous = headers.insert(http::header::USER_AGENT, first_value);
+                let peer = crate::admin_peer_addr::AdminPeerAddr::from(
+                    server_admin_core::admin_socket_addr::AdminSocketAddr::from(
+                        std::net::SocketAddr::from((std::net::Ipv6Addr::LOCALHOST, 443u16)),
+                    ),
+                );
+                let first =
+                    crate::authorization_session_context_hash::authorization_session_context_hash(
+                        crate::http_admin_header_map_ref::HttpAdminHeaderMapRef::from(&headers),
+                        peer,
+                    );
+                let _appended = headers.append(
+                    http::header::USER_AGENT,
+                    http::HeaderValue::from_static(constants_str::ADMIN_CLIENT_2),
+                );
+                first.is_ok_and(|original| {
+                    crate::authorization_session_context_hash::authorization_session_context_hash(
+                        crate::http_admin_header_map_ref::HttpAdminHeaderMapRef::from(&headers),
+                        peer,
+                    )
+                    .is_ok_and(|with_duplicate| {
+                        original.expose().as_ref() == with_duplicate.expose().as_ref()
+                    })
+                })
+            })
+        })
+    );
+}
+
+#[test]
 fn test_session_context_user_agent_normalization_preserves_limits_and_fallbacks() {
     let hash_context = |http_header_value| {
         let mut headers = http::HeaderMap::new();

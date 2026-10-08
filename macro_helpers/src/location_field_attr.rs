@@ -266,4 +266,28 @@ mod tests {
             Ok(super::LocationFieldAttr::ErrorFieldLocation)
         ));
     }
+
+    #[test]
+    fn test_location_field_marker_names_reject_noncanonical_spelling() {
+        let marker = constants_str::ERROR_FIELD_LOCATION;
+        assert!(
+            [
+                constants_str::EMPTY.to_owned(),
+                constants_str::X.to_owned(),
+                marker.to_ascii_uppercase(),
+                [' ', '\t'].into_iter().chain(marker.chars()).collect(),
+                marker.chars().chain(std::iter::once('\n')).collect(),
+                marker
+                    .chars()
+                    .chain(constants_str::PATH_SEPARATOR.chars())
+                    .collect(),
+                constants_str::PATH_SEPARATOR
+                    .chars()
+                    .chain(marker.chars())
+                    .collect(),
+            ]
+            .into_iter()
+            .all(|string| string.parse::<super::LocationFieldAttr>().is_err())
+        );
+    }
 }

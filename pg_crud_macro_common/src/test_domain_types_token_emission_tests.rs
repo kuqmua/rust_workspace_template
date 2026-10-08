@@ -496,6 +496,7 @@ fn test_import_trait_selections_preserve_root_and_snake_case_text() {
         let default = import.default_some_one_element();
         let maximum = import.default_some_one_element_max_page_size();
         import.sc_str().to_string() == expected_text
+            && import.to_path().to_string() == expected_text
             && quote::quote! { #all_variants }.to_string() == all_variants_path.to_string()
             && quote::quote! { #default }.to_string() == default_path.to_string()
             && quote::quote! { #maximum }.to_string() == maximum_path.to_string()
@@ -537,5 +538,271 @@ fn test_where_emitter_schema_selection_preserves_other_items() {
                 with_schema.items.retain(|item| !is_schema_impl(item));
                 with_count == 2usize && without_count == 0usize && with_schema == without_schema
             })
+    }));
+}
+
+#[test]
+fn test_generic_type_emitters_preserve_nested_types_and_import_roots() {
+    assert!([
+        (crate::import::Import::Crate, quote::quote!(crate)),
+        (crate::import::Import::PgCrudCommon, quote::quote!(pg_crud_common)),
+    ].into_iter().all(|(import, root)| {
+        [
+            quote::quote!(domain::Value<'value_lt, Option<Item>>),
+            quote::quote!(&'value_lt [domain::Value<3>]),
+            quote::quote!((domain::First, domain::Second)),
+        ].into_iter().all(|type_tokens| {
+            [
+                (crate::generate_vec_tokens_declaration_token_stream::generate_vec_tokens_declaration_token_stream(&type_tokens),
+                    syn::parse_quote!(Vec<#type_tokens>)),
+                (crate::generate_optional_type_declaration_token_stream::generate_optional_type_declaration_token_stream(&type_tokens),
+                    syn::parse_quote!(Option<#type_tokens>)),
+                (crate::generate_explicit_value_declaration_token_stream::generate_explicit_value_declaration_token_stream(&import, &type_tokens),
+                    syn::parse_quote!(#root::explicit_value::ExplicitValue<#type_tokens>)),
+            ].into_iter().all(|(generated, expected)| {
+                syn::parse2::<syn::Type>(proc_macro2::TokenStream::from(generated))
+                    .is_ok_and(|generated_type| generated_type == expected)
+            })
+        })
+    }));
+}
+
+#[test]
+fn test_explicit_value_initialization_preserves_root_and_expression_shape() {
+    assert!([
+        (crate::import::Import::Crate, quote::quote!(crate)),
+        (crate::import::Import::PgCrudCommon, quote::quote!(pg_crud_common)),
+    ].into_iter().all(|(import, root)| {
+        [
+            quote::quote!(value),
+            quote::quote!(state.values.next()?),
+            quote::quote!(|| factory.create()),
+        ].into_iter().all(|expression_tokens| {
+            let generated = crate::generate_explicit_value_initialization_token_stream::generate_explicit_value_initialization_token_stream(&import, &expression_tokens);
+            let expected: syn::Expr = syn::parse_quote!(#root::explicit_value::ExplicitValue::new(#expression_tokens));
+            syn::parse2::<syn::Expr>(proc_macro2::TokenStream::from(generated))
+                .is_ok_and(|expression| expression == expected)
+        })
+    }));
+}
+
+#[test]
+fn test_struct_diagnostic_literals_preserve_escaped_text_and_element_counts() {
+    [
+        (constants_str::EMPTY.to_owned(), constants_str::EMPTY.to_owned()),
+        (stringify!(Example).to_owned(), stringify!(Example).to_owned()),
+        (['\u{e9}', '\n'].into_iter().collect::<String>(), ['\u{e9}', '\n'].into_iter().collect::<String>()),
+        (['\\', 'n', '\\', '"', '\\', '\\', '\\', '0'].into_iter().collect::<String>(),
+            ['\n', '"', '\\', '\0'].into_iter().collect::<String>()),
+    ].into_iter().fold((), |(), (identifier, decoded_identifier)| {
+        let generated = crate::generate_struct_identifier_double_quoted_token_stream::generate_struct_identifier_double_quoted_token_stream(&identifier);
+        let expected = [constants_str::STRUCT, constants_str::SPACE, decoded_identifier.as_str()].concat();
+        assert!(syn::parse2::<syn::LitStr>(proc_macro2::TokenStream::from(generated))
+            .is_ok_and(|literal| literal.value() == expected));
+        [0usize, 1usize, std::num::NonZeroUsize::MAX.get()]
+            .into_iter().fold((), |(), count| {
+                let generated_count = crate::generate_struct_identifier_with_number_elements_double_quoted_token_stream::generate_struct_identifier_with_number_elements_double_quoted_token_stream(
+                    &identifier, crate::struct_elements_length::StructElementsLength::from(count),
+                );
+                let expected_count = constants_str::PG_CRUD_BETWEEN_EXPECTING
+                    .replace('2', &count.to_string())
+                    .replace(stringify!(Between), decoded_identifier.as_str());
+                assert!(syn::parse2::<syn::LitStr>(proc_macro2::TokenStream::from(generated_count))
+                    .is_ok_and(|literal| literal.value() == expected_count));
+            });
+    });
+}
+
+#[test]
+fn test_struct_diagnostic_literals_preserve_exact_malformed_quote_diagnostics() {
+    let identifier = '"'.to_string();
+    [
+        (crate::generate_struct_identifier_double_quoted_token_stream::generate_struct_identifier_double_quoted_token_stream(&identifier),
+            [constants_str::STRUCT, constants_str::SPACE, identifier.as_str()].concat()),
+        (crate::generate_struct_identifier_with_number_elements_double_quoted_token_stream::generate_struct_identifier_with_number_elements_double_quoted_token_stream(
+            &identifier, crate::struct_elements_length::StructElementsLength::from(0usize),
+        ), constants_str::PG_CRUD_BETWEEN_EXPECTING.replace('2', &0usize.to_string()).replace(stringify!(Between), identifier.as_str())),
+    ].into_iter().fold((), |(), (generated, source_text)| {
+        let quoted = generate_quotes::double_quoted_string::double_quoted_string(&source_text);
+        assert!(quoted.is_ok());
+        let diagnostic = quoted.ok().and_then(|quoted_literal| {
+            quoted_literal.as_ref().parse::<proc_macro2::TokenStream>().err()
+        }).map(|error| error.to_string());
+        assert!(diagnostic.is_some());
+        assert!(diagnostic.is_some_and(|error| {
+            let message = format!("{}: {error}", constants_str::VALUE_0391AC99);
+            generated.to_string() == quote::quote!(compile_error!(#message);).to_string()
+        }));
+    });
+}
+#[test]
+fn test_default_emitters_preserve_implementation_generics_and_type_arguments() {
+    let implementation_generics = quote::quote! { <'value, Value: Clone, const SIZE: usize> };
+    let identifier = quote::quote! { domain::TestDefaultValue };
+    let type_arguments = quote::quote! { <'value, Value, SIZE> };
+    let body = quote::quote! { Self::try_from(values()).unwrap_or_else(Self::fallback) };
+    [
+        (
+            crate::generate_impl_default_some_one_element_token_stream::generate_impl_default_some_one_element_token_stream(
+                &implementation_generics, &crate::import::Import::Crate, &identifier, &type_arguments, &body,
+            ),
+            quote::quote! {
+                impl <'value, Value: Clone, const SIZE: usize> crate::DefaultSomeOneElement for domain::TestDefaultValue<'value, Value, SIZE> {
+                    fn default_some_one_element() -> Self { #body }
+                }
+            },
+        ),
+        (
+            crate::generate_impl_default_some_one_element_max_page_size_token_stream::generate_impl_default_some_one_element_max_page_size_token_stream(
+                &implementation_generics, &crate::import::Import::PgCrudCommon, &identifier, &type_arguments, &body,
+            ),
+            quote::quote! {
+                impl <'value, Value: Clone, const SIZE: usize> pg_crud_common::default_some_one_element_max_page_size::DefaultSomeOneElementMaxPageSize for domain::TestDefaultValue<'value, Value, SIZE> {
+                    fn default_some_one_element_max_page_size() -> Self { #body }
+                }
+            },
+        ),
+        (
+            crate::generate_impl_pg_crud_default_some_one_element_token_stream::generate_impl_pg_crud_default_some_one_element_token_stream(
+                &identifier, &quote::quote! { <'static> }, &body,
+            ),
+            quote::quote! {
+                impl pg_crud_common::default_some_one_element::DefaultSomeOneElement for domain::TestDefaultValue<'static> {
+                    fn default_some_one_element() -> Self { #body }
+                }
+            },
+        ),
+    ].into_iter().fold((), |(), (generated, expected)| {
+        assert!(syn::parse2::<syn::ItemImpl>(expected).is_ok_and(|expected_implementation| {
+            syn::parse2::<syn::ItemImpl>(proc_macro2::TokenStream::from(generated))
+                .is_ok_and(|actual_implementation| actual_implementation == expected_implementation)
+        }));
+    });
+}
+
+#[test]
+fn test_string_empty_emitter_preserves_supplied_expression_and_typed_result() {
+    [quote::quote! { self.0.is_empty() }, quote::quote! { self.values.iter().all(domain::is_empty) }, quote::quote! { false }]
+        .into_iter().fold((), |(), expression| {
+            let generated = crate::generate_impl_crate_is_string_empty_for_identifier_token_stream::generate_impl_crate_is_string_empty_for_identifier_token_stream(
+                &quote::quote! { domain::TestStringEmptyValue }, &expression,
+            );
+            let expected: syn::ItemImpl = syn::parse_quote! {
+                impl pg_crud_common::is_string_empty::IsStringEmpty for domain::TestStringEmptyValue {
+                    fn is_string_empty(&self) -> pg_crud_common::is_string_empty_result::IsStringEmptyResult {
+                        pg_crud_common::is_string_empty_result::IsStringEmptyResult::from(#expression)
+                    }
+                }
+            };
+            assert!(syn::parse2::<syn::ItemImpl>(proc_macro2::TokenStream::from(generated))
+                .is_ok_and(|actual_implementation| actual_implementation == expected));
+        });
+}
+#[test]
+fn test_sqlx_emitters_preserve_inner_type_encoding_expression_and_decode_errors() {
+    let identifier = quote::quote! { domain::TestSqlxValue };
+    let inner_type = quote::quote! { Option<sqlx::types::Json<domain::Payload>> };
+    let encoded = quote::quote! { self.value.as_ref() };
+    let decoded = quote::quote! { Self::try_from(v).map_err(Into::into) };
+    let expected_type = quote::quote! {
+        impl sqlx::Type<sqlx::Postgres> for domain::TestSqlxValue {
+            fn compatible(type_info: &<sqlx::Postgres as sqlx::Database>::TypeInfo) -> bool {
+                <Option<sqlx::types::Json<domain::Payload>> as sqlx::Type<sqlx::Postgres>>::compatible(type_info)
+            }
+            fn type_info() -> <sqlx::Postgres as sqlx::Database>::TypeInfo {
+                <Option<sqlx::types::Json<domain::Payload>> as sqlx::Type<sqlx::Postgres>>::type_info()
+            }
+        }
+    };
+    let expected_encode = quote::quote! {
+        impl sqlx::Encode<'_, sqlx::Postgres> for domain::TestSqlxValue {
+            fn encode_by_ref(&self, buf: &mut sqlx::postgres::PgArgumentBuffer) -> Result<sqlx::encode::IsNull, Box<dyn std::error::Error + Send + Sync>> {
+                sqlx::Encode::<sqlx::Postgres>::encode_by_ref(&self.value.as_ref(), buf)
+            }
+        }
+    };
+    let expected_decode = quote::quote! {
+        impl sqlx::Decode<'_, sqlx::Postgres> for domain::TestSqlxValue {
+            fn decode(value: sqlx::postgres::PgValueRef<'_>) -> Result<Self, sqlx::error::BoxDynError> {
+                match <Option<sqlx::types::Json<domain::Payload>> as sqlx::Decode<sqlx::Postgres>>::decode(value) {
+                    Ok(v) => Self::try_from(v).map_err(Into::into),
+                    Err(error) => Err(error),
+                }
+            }
+        }
+    };
+    [
+        (crate::generate_impl_sqlx_type_for_identifier_token_stream::generate_impl_sqlx_type_for_identifier_token_stream(&identifier, &inner_type), expected_type.clone()),
+        (crate::generate_impl_sqlx_encode_sqlx_pg_for_identifier_token_stream::generate_impl_sqlx_encode_sqlx_pg_for_identifier_token_stream(&identifier, &encoded), expected_encode.clone()),
+        (crate::generate_impl_sqlx_decode_sqlx_pg_for_identifier_token_stream::generate_impl_sqlx_decode_sqlx_pg_for_identifier_token_stream(&identifier, &inner_type, &decoded), expected_decode),
+        (crate::generate_impl_sqlx_type_and_encode_for_identifier_token_stream::generate_impl_sqlx_type_and_encode_for_identifier_token_stream(&identifier, &inner_type, &encoded), quote::quote! { #expected_type #expected_encode }),
+    ].into_iter().fold((), |(), (generated, expected)| {
+        assert!(syn::parse2::<syn::File>(expected).is_ok_and(|expected_file| {
+            syn::parse2::<syn::File>(proc_macro2::TokenStream::from(generated))
+                .is_ok_and(|actual_file| actual_file == expected_file)
+        }));
+    });
+}
+#[test]
+fn test_nonprimary_emitter_preserves_import_and_associated_type_identity() {
+    [
+        (crate::import::Import::Crate, quote::quote! { crate::pg_type_not_primary_key::PgTypeNotPrimaryKey }),
+        (crate::import::Import::PgCrudCommon, quote::quote! { pg_crud_common::pg_type_not_primary_key::PgTypeNotPrimaryKey }),
+    ].into_iter().fold((), |(), (import, expected_path)| {
+        let generated = crate::generate_impl_pg_type_not_primary_key_for_identifier_token_stream::generate_impl_pg_type_not_primary_key_for_identifier_token_stream(
+            &import, &quote::quote! { TestNonPrimary },
+        );
+        assert!(syn::parse2::<syn::ItemImpl>(proc_macro2::TokenStream::from(generated)).is_ok_and(|implementation| {
+            implementation.trait_.as_ref().is_some_and(|(path, _)| {
+                quote::quote! { #path }.to_string() == expected_path.to_string()
+            }) && {
+                let self_type = &implementation.self_ty;
+                quote::quote! { #self_type }.to_string() == stringify!(TestNonPrimary)
+            } && implementation.items.len() == 2usize
+                && implementation.items.iter().zip([
+                    quote::quote! { type PgType = Self; },
+                    quote::quote! { type Create = TestNonPrimaryCreate; },
+                ]).all(|(actual, expected)| syn::parse2::<syn::ImplItem>(expected)
+                    .is_ok_and(|expected_item| *actual == expected_item))
+        }));
+    });
+}
+
+#[test]
+fn test_common_default_adapters_preserve_paths_and_supplied_expressions() {
+    let identifier = quote::quote! { domain::TestCommonDefault };
+    let body = quote::quote! { Self::First };
+    let variants = quote::quote! { [Self::First, Self::Second] };
+    assert!([
+        (
+            crate::generate_impl_pg_crud_common_default_some_one_element_token_stream::generate_impl_pg_crud_common_default_some_one_element_token_stream(&identifier, &body),
+            quote::quote! {
+                impl pg_crud_common::default_some_one_element::DefaultSomeOneElement for domain::TestCommonDefault {
+                    fn default_some_one_element() -> Self { Self::First }
+                }
+            },
+        ),
+        (
+            crate::generate_impl_pg_crud_common_default_some_one_element_max_page_size_token_stream::generate_impl_pg_crud_common_default_some_one_element_max_page_size_token_stream(&identifier, &body),
+            quote::quote! {
+                impl pg_crud_common::default_some_one_element_max_page_size::DefaultSomeOneElementMaxPageSize for domain::TestCommonDefault {
+                    fn default_some_one_element_max_page_size() -> Self { Self::First }
+                }
+            },
+        ),
+        (
+            crate::generate_impl_pg_crud_common_all_variants_default_some_one_element_token_stream::generate_impl_pg_crud_common_all_variants_default_some_one_element_token_stream(&identifier, &variants),
+            quote::quote! {
+                impl pg_crud_common::all_enum_variants_array_default_some_one_element::AllEnumVariantsArrayDefaultSomeOneElement for domain::TestCommonDefault {
+                    fn all_variants_default_some_one_element() -> pg_crud_common::all_enum_variants::AllEnumVariants<Self> {
+                        ([Self::First, Self::Second]).into()
+                    }
+                }
+            },
+        ),
+    ].into_iter().all(|(generated, expected)| {
+        syn::parse2::<syn::ItemImpl>(proc_macro2::TokenStream::from(generated)).is_ok_and(|implementation| {
+            syn::parse2::<syn::ItemImpl>(expected).is_ok_and(|expected_implementation| implementation == expected_implementation)
+        })
     }));
 }

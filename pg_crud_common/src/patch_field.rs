@@ -106,4 +106,35 @@ mod tests {
             constants_str::VALUE_ABE62BC5
         );
     }
+    #[test]
+    fn test_patch_field_preserves_omitted_serialization_and_rejects_invalid_value_types() {
+        assert!(
+            serde_json::to_value(crate::patch_field::PatchField::<String>::Omitted)
+                .is_ok_and(|wire_value| wire_value.is_null())
+        );
+        assert!(
+            serde_json::from_value::<crate::patch_field::PatchField<String>>(serde_json::json!(
+                constants_str::EMPTY
+            ),)
+            .is_ok_and(|field| {
+                field == crate::patch_field::PatchField::Value(constants_str::EMPTY.to_owned())
+                    && serde_json::to_value(field).is_ok_and(|serialized| {
+                        serialized == serde_json::json!(constants_str::EMPTY)
+                    })
+            })
+        );
+        assert!(
+            [
+                serde_json::json!(1u64),
+                serde_json::json!(false),
+                serde_json::json!([]),
+                serde_json::json!({}),
+            ]
+            .into_iter()
+            .all(|wire_value| {
+                serde_json::from_value::<crate::patch_field::PatchField<String>>(wire_value)
+                    .is_err_and(|error| error.is_data())
+            })
+        );
+    }
 }

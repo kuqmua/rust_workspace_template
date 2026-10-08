@@ -13,3 +13,22 @@ impl From<OptimisticConcurrencyCapability> for bool {
         matches!(value, OptimisticConcurrencyCapability::Enabled)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn test_optimistic_concurrency_conversions_preserve_independent_boolean_and_variant_meanings() {
+        assert!(matches!(
+            super::OptimisticConcurrencyCapability::from(false),
+            super::OptimisticConcurrencyCapability::Disabled
+        ));
+        assert!(matches!(
+            super::OptimisticConcurrencyCapability::from(true),
+            super::OptimisticConcurrencyCapability::Enabled
+        ));
+        assert!(!bool::from(
+            super::OptimisticConcurrencyCapability::Disabled
+        ));
+        assert!(bool::from(super::OptimisticConcurrencyCapability::Enabled));
+    }
+}

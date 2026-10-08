@@ -124,6 +124,53 @@ pub fn parse_timestamp_filter_wire_json(
 #[cfg(test)]
 mod tests {
     #[test]
+    fn test_timestamp_filter_normalizes_zero_variable_width_and_leading_plus_time_fields() {
+        assert!(constants_str::VALUE_2026_07_13T12_30_00.split_once('T').is_some_and(|(date, _time)| {
+            [([0u32, 0u32, 0u32], false), ([1u32, 2u32, 3u32], false), ([1u32, 2u32, 3u32], true)].into_iter().all(|(components, leading_plus)| {
+                let texts = components.map(|component| if leading_plus { format!("+{component}") } else { component.to_string() });
+                let input = format!("{}T{}:{}:{}", date, texts[0usize], texts[1usize], texts[2usize]);
+                [(crate::value_format::ValueFormat::Timestamp, constants_str::PG_CRUD_PG_DATE), (crate::value_format::ValueFormat::TimestampTz, constants_str::DATE_NAIVE)].into_iter().all(|(value_format, date_name)| {
+                    let expected = serde_json::json!({(date_name): date, (constants_str::PG_CRUD_PG_TIME): {(constants_str::HOUR): components[0usize], (constants_str::MIN): components[1usize], (constants_str::SEC): components[2usize], (constants_str::MICRO): 0u32}});
+                    super::parse_timestamp_filter_wire_json(crate::form_value_ref::FormValueRef::from(input.as_str()), value_format).is_ok_and(|wire| serde_json::from_str::<serde_json::Value>(wire.as_ref()).is_ok_and(|actual| actual == expected))
+                })
+            })
+        }));
+    }
+
+    #[test]
+    fn test_timestamp_filter_rejects_non_digit_date_parts_before_integer_parsing() {
+        assert!([0usize, 5usize, 8usize].into_iter().all(|position| {
+            ['x', '+', ' '].into_iter().all(|replacement| {
+                let input = constants_str::VALUE_2026_07_13T12_30_00
+                    .chars()
+                    .enumerate()
+                    .map(|(index, character)| {
+                        if index == position {
+                            replacement
+                        } else {
+                            character
+                        }
+                    })
+                    .collect::<String>();
+                [
+                    crate::value_format::ValueFormat::Timestamp,
+                    crate::value_format::ValueFormat::TimestampTz,
+                ]
+                .into_iter()
+                .all(|value_format| {
+                    super::parse_timestamp_filter_wire_json(
+                        crate::form_value_ref::FormValueRef::from(input.as_str()),
+                        value_format,
+                    )
+                    .is_err_and(|error| {
+                        error.to_string() == constants_str::INVALID_FILTER_SPECIFICATION
+                    })
+                })
+            })
+        }));
+    }
+
+    #[test]
     fn test_timestamp_filter_accepts_last_day_and_last_second_with_exact_wire_values() {
         let input = constants_str::VALUE_2026_07_13T12_30_00
             .chars()

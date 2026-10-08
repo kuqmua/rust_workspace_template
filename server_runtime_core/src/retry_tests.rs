@@ -1,6 +1,33 @@
 #[cfg(test)]
 mod tests {
     #[tokio::test]
+    async fn test_retryable_then_terminal_failure_stops_before_attempt_limit() {
+        let mut calls = 0usize;
+        let classifications = std::cell::Cell::new(0usize);
+        let outcome = crate::run_with_retries::run_with_retries(
+            crate::retry_policy::RetryPolicy::new(
+                crate::retry_attempts_non_zero_usize::RetryAttemptsNonZeroUsize::from(
+                    std::num::NonZeroUsize::MIN.saturating_add(3usize),
+                ),
+                None,
+            ),
+            || {
+                calls += 1usize;
+                std::future::ready(Err::<(), usize>(calls))
+            },
+            |error| {
+                classifications.set(classifications.get() + 1usize);
+                *error == 1usize
+            },
+        )
+        .await;
+        assert_eq!(calls, 2usize);
+        assert_eq!(classifications.get(), 2usize);
+        assert_eq!(outcome.attempts().get(), 2usize);
+        assert_eq!(outcome.into_result(), Err(2usize));
+    }
+
+    #[tokio::test]
     async fn test_retryable_failure_is_retried_until_success() {
         let mut calls = constants_usize::ZERO;
         let outcome = crate::run_with_retries::run_with_retries(
@@ -101,16 +128,18 @@ mod tests {
             ),
             Err(crate::std_retry_attempts_error::StdRetryAttemptsError::Zero)
         );
-        [constants_usize::ONE, constants_usize::THREE]
-            .into_iter()
-            .fold((), |(), attempts| {
-                assert!(
-                    crate::retry_attempts_non_zero_usize::RetryAttemptsNonZeroUsize::try_from(
-                        attempts
-                    )
+        [
+            constants_usize::ONE,
+            constants_usize::THREE,
+            std::num::NonZeroUsize::MAX.get(),
+        ]
+        .into_iter()
+        .fold((), |(), attempts| {
+            assert!(
+                crate::retry_attempts_non_zero_usize::RetryAttemptsNonZeroUsize::try_from(attempts)
                     .is_ok_and(|value| value.get() == attempts)
-                );
-            });
+            );
+        });
     }
 
     #[tokio::test]

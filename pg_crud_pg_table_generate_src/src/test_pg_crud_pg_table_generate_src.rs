@@ -48,6 +48,69 @@ fn test_table_revision_conflicts_roll_back_and_release_only_enabled_idempotency(
 }
 
 #[test]
+fn test_table_facade_parse_errors_preserve_independent_syn_compile_diagnostics() {
+    [
+        quote::quote! {},
+        quote::quote! { struct },
+        quote::quote! { + rejected },
+    ]
+    .into_iter()
+    .fold((), |(), input| {
+        assert!(
+            syn::parse2::<syn::DeriveInput>(input.clone()).is_err_and(|source| {
+                let expected = source.into_compile_error();
+                crate::generate_pg_table::generate_pg_table(
+                    macro_helpers::proc_macro2_token_stream_ref::ProcMacro2TokenStreamRef::from(
+                        &input,
+                    ),
+                )
+                .to_string()
+                    == expected.to_string()
+            })
+        );
+    });
+}
+
+#[test]
+fn test_table_facade_build_and_validation_errors_precede_emission_configuration() {
+    [
+        (
+            quote::quote! { enum TableFacadeEnumRejectionFixture { Value } },
+            constants_str::EXPECTED_A_STRUCT,
+        ),
+        (
+            quote::quote! { union TableFacadeUnionRejectionFixture {
+                value: workspace_macro_helpers::part_index::PartIndex,
+            } },
+            constants_str::EXPECTED_A_STRUCT,
+        ),
+        (
+            quote::quote! { struct TableFacadeUnitValidationFixture; },
+            constants_str::GENERATE_PG_TABLE_REQUIRES_FIELD,
+        ),
+        (
+            quote::quote! { struct TableFacadeNamedValidationFixture {} },
+            constants_str::GENERATE_PG_TABLE_REQUIRES_FIELD,
+        ),
+        (
+            quote::quote! { struct TableFacadeTupleValidationFixture(); },
+            constants_str::GENERATE_PG_TABLE_REQUIRES_FIELD,
+        ),
+    ]
+    .into_iter()
+    .fold((), |(), (input, message)| {
+        let expected = quote::quote! { ::core::compile_error! { #message } };
+        assert_eq!(
+            crate::generate_pg_table::generate_pg_table(
+                macro_helpers::proc_macro2_token_stream_ref::ProcMacro2TokenStreamRef::from(&input),
+            )
+            .to_string(),
+            expected.to_string()
+        );
+    });
+}
+
+#[test]
 fn test_validation_rejects_non_struct_input_without_emitting_source() {
     let input = quote::quote! { enum NotATable { Value } };
     let parsed = crate::parse_generate_pg_table::parse_generate_pg_table(
@@ -58,6 +121,95 @@ fn test_validation_rejects_non_struct_input_without_emitting_source() {
         crate::build_generate_pg_table::build_generate_pg_table(parsed),
         Err(crate::generate_pg_table_pipeline_error::GeneratePgTablePipelineError::Build(_error))
     ));
+}
+
+#[test]
+fn test_table_build_preserves_each_struct_shape_and_complete_input_tokens() {
+    [
+        (
+            quote::quote! { struct EmptyNamedTableBuildFixture {} },
+            0usize,
+        ),
+        (
+            quote::quote! { struct EmptyTupleTableBuildFixture(); },
+            0usize,
+        ),
+        (quote::quote! { struct UnitTableBuildFixture; }, 0usize),
+        (
+            quote::quote! {
+                struct NamedTableBuildFixture {
+                    first: workspace_macro_helpers::part_index::PartIndex,
+                    second: workspace_macro_helpers::macro_bool::MacroBool,
+                    third: Option<workspace_macro_helpers::part_index::PartIndex>,
+                }
+            },
+            3usize,
+        ),
+        (
+            quote::quote! {
+                struct TupleTableBuildFixture(
+                    workspace_macro_helpers::part_index::PartIndex,
+                    workspace_macro_helpers::macro_bool::MacroBool,
+                );
+            },
+            2usize,
+        ),
+        (
+            quote::quote! {
+                #[derive(Clone)]
+                pub(crate) struct GenericTableBuildFixture<'value_lt, Value>
+                where Value: Clone {
+                    value: &'value_lt Value,
+                    index: workspace_macro_helpers::part_index::PartIndex,
+                }
+            },
+            2usize,
+        ),
+    ]
+    .into_iter()
+    .fold((), |(), (tokens, expected_count)| {
+        assert!(
+            crate::parse_generate_pg_table::parse_generate_pg_table(
+                macro_helpers::proc_macro2_token_stream_ref::ProcMacro2TokenStreamRef::from(
+                    &tokens
+                ),
+            )
+            .is_ok_and(|parsed| {
+                crate::build_generate_pg_table::build_generate_pg_table(parsed).is_ok_and(|built| {
+                    let model = built.into_inner();
+                    assert_eq!(usize::from(model.field_count()), expected_count);
+                    let input = syn::DeriveInput::from(model.into_input());
+                    quote::ToTokens::to_token_stream(&input).to_string() == tokens.to_string()
+                })
+            })
+        );
+    });
+}
+
+#[test]
+fn test_table_build_rejections_retain_exact_owned_syn_diagnostics() {
+    let message = constants_str::EXPECTED_A_STRUCT;
+    let expected = quote::quote! { ::core::compile_error! { #message } }.to_string();
+    [
+        quote::quote! { enum EnumTableBuildRejectionFixture { Value } },
+        quote::quote! { union UnionTableBuildRejectionFixture {
+            value: workspace_macro_helpers::part_index::PartIndex,
+        } },
+    ]
+    .into_iter()
+    .fold((), |(), tokens| {
+        assert!(crate::parse_generate_pg_table::parse_generate_pg_table(
+            macro_helpers::proc_macro2_token_stream_ref::ProcMacro2TokenStreamRef::from(&tokens),
+        ).is_ok_and(|parsed| crate::build_generate_pg_table::build_generate_pg_table(parsed)
+            .is_err_and(|error| match error {
+                crate::generate_pg_table_pipeline_error::GeneratePgTablePipelineError::Build(source) => {
+                    assert_eq!(source.to_string(), message);
+                    syn::Error::from(source).into_compile_error().to_string() == expected
+                }
+                crate::generate_pg_table_pipeline_error::GeneratePgTablePipelineError::Parse(_)
+                | crate::generate_pg_table_pipeline_error::GeneratePgTablePipelineError::Validate(_) => false,
+            })));
+    });
 }
 
 #[test]
@@ -74,19 +226,73 @@ fn test_build_stage_exposes_typed_model_without_emitting_source() {
 
 #[test]
 fn test_validation_rejects_empty_table_model_without_emitting_source() {
-    let input = quote::quote! { struct EmptyTable; };
-    let parsed = crate::parse_generate_pg_table::parse_generate_pg_table(
-        macro_helpers::proc_macro2_token_stream_ref::ProcMacro2TokenStreamRef::from(&input),
-    )
-    .expect(constants_str::DIAGNOSTIC_67D029AB);
-    let built = crate::build_generate_pg_table::build_generate_pg_table(parsed)
-        .expect(constants_str::DIAGNOSTIC_C15B8F34);
-    assert!(matches!(
-        crate::validate_generate_pg_table::validate_generate_pg_table(built),
-        Err(
-            crate::generate_pg_table_pipeline_error::GeneratePgTablePipelineError::Validate(_error)
+    let message = constants_str::GENERATE_PG_TABLE_REQUIRES_FIELD;
+    let expected = quote::quote! { ::core::compile_error! { #message } }.to_string();
+    [
+        quote::quote! { struct EmptyTable; },
+        quote::quote! { struct EmptyNamedTableValidationFixture {} },
+        quote::quote! { struct EmptyTupleTableValidationFixture(); },
+    ]
+    .into_iter()
+    .fold((), |(), input| {
+        let parsed = crate::parse_generate_pg_table::parse_generate_pg_table(
+            macro_helpers::proc_macro2_token_stream_ref::ProcMacro2TokenStreamRef::from(&input),
         )
-    ));
+        .expect(constants_str::DIAGNOSTIC_67D029AB);
+        let built = crate::build_generate_pg_table::build_generate_pg_table(parsed)
+            .expect(constants_str::DIAGNOSTIC_C15B8F34);
+        assert!(crate::validate_generate_pg_table::validate_generate_pg_table(built)
+            .is_err_and(|error| match error {
+                crate::generate_pg_table_pipeline_error::GeneratePgTablePipelineError::Validate(source) => {
+                    assert_eq!(source.to_string(), message);
+                    syn::Error::from(source).into_compile_error().to_string() == expected
+                }
+                crate::generate_pg_table_pipeline_error::GeneratePgTablePipelineError::Parse(_)
+                | crate::generate_pg_table_pipeline_error::GeneratePgTablePipelineError::Build(_) => false,
+            }));
+    });
+}
+
+#[test]
+fn test_table_validation_preserves_nonempty_count_and_full_input_tokens() {
+    [
+        (
+            quote::quote! {
+                struct NamedTableValidationFixture {
+                    index: workspace_macro_helpers::part_index::PartIndex,
+                }
+            },
+            1usize,
+        ),
+        (
+            quote::quote! {
+                #[derive(Clone)]
+                pub(crate) struct TupleTableValidationFixture<Value>(
+                    Value,
+                    workspace_macro_helpers::part_index::PartIndex,
+                ) where Value: Clone;
+            },
+            2usize,
+        ),
+    ]
+    .into_iter()
+    .fold((), |(), (tokens, expected_count)| {
+        assert!(
+            crate::parse_generate_pg_table::parse_generate_pg_table(
+                macro_helpers::proc_macro2_token_stream_ref::ProcMacro2TokenStreamRef::from(
+                    &tokens
+                ),
+            )
+            .and_then(crate::build_generate_pg_table::build_generate_pg_table)
+            .and_then(crate::validate_generate_pg_table::validate_generate_pg_table)
+            .is_ok_and(|validated| {
+                let model = validated.into_inner();
+                assert_eq!(usize::from(model.field_count()), expected_count);
+                let input = syn::DeriveInput::from(model.into_input());
+                quote::ToTokens::to_token_stream(&input).to_string() == tokens.to_string()
+            })
+        );
+    });
 }
 
 #[test]

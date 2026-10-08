@@ -27,3 +27,87 @@ mod test_generate_validated_tokens_stops_at_failed_stage {
         assert_eq!(output, constants_str::CODE_STYLE_ERROR_ATTRIBUTE);
     }
 }
+
+#[test]
+fn test_validated_token_pipeline_preserves_callback_order_and_short_circuiting() {
+    #[derive(
+        Clone, Copy, Debug, Eq, PartialEq, proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+    )]
+    enum TestValidatedTokenPhase {
+        Build,
+        Emit,
+        Error,
+        Parse,
+        Validate,
+    }
+    [
+        (
+            None,
+            vec![
+                TestValidatedTokenPhase::Parse,
+                TestValidatedTokenPhase::Build,
+                TestValidatedTokenPhase::Validate,
+                TestValidatedTokenPhase::Emit,
+            ],
+        ),
+        (
+            Some(TestValidatedTokenPhase::Parse),
+            vec![
+                TestValidatedTokenPhase::Parse,
+                TestValidatedTokenPhase::Error,
+            ],
+        ),
+        (
+            Some(TestValidatedTokenPhase::Build),
+            vec![
+                TestValidatedTokenPhase::Parse,
+                TestValidatedTokenPhase::Build,
+                TestValidatedTokenPhase::Error,
+            ],
+        ),
+        (
+            Some(TestValidatedTokenPhase::Validate),
+            vec![
+                TestValidatedTokenPhase::Parse,
+                TestValidatedTokenPhase::Build,
+                TestValidatedTokenPhase::Validate,
+                TestValidatedTokenPhase::Error,
+            ],
+        ),
+    ]
+    .into_iter()
+    .fold((), |(), (failure, expected)| {
+        let phases = std::cell::RefCell::new(Vec::new());
+        let run_phase = |test_validated_token_phase| {
+            phases.borrow_mut().push(test_validated_token_phase);
+            if failure == Some(test_validated_token_phase) {
+                Err(constants_str::CODE_STYLE_ERROR_ATTRIBUTE)
+            } else {
+                Ok(())
+            }
+        };
+        let output = crate::generate_validated_tokens::generate_validated_tokens(
+            (),
+            |()| run_phase(TestValidatedTokenPhase::Parse),
+            |()| run_phase(TestValidatedTokenPhase::Build),
+            |()| run_phase(TestValidatedTokenPhase::Validate),
+            |()| {
+                phases.borrow_mut().push(TestValidatedTokenPhase::Emit);
+                constants_str::OK_ALT
+            },
+            |str| {
+                phases.borrow_mut().push(TestValidatedTokenPhase::Error);
+                str
+            },
+        );
+        assert_eq!(*phases.borrow(), expected);
+        assert_eq!(
+            output,
+            if failure.is_some() {
+                constants_str::CODE_STYLE_ERROR_ATTRIBUTE
+            } else {
+                constants_str::OK_ALT
+            }
+        );
+    });
+}

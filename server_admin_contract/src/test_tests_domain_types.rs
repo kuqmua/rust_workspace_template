@@ -219,6 +219,10 @@ fn test_authentication_route_family_has_valid_coverage() {
             .map(frontend_contract::route_body_limit::RouteBodyLimit::get),
         Some(crate::default_admin_api_body_max_bytes::default_admin_api_body_max_bytes().get())
     );
+    assert_eq!(
+        crate::default_admin_api_body_max_bytes::default_admin_api_body_max_bytes().get(),
+        65_536usize
+    );
 }
 #[test]
 fn test_request_payloads_reject_unknown_fields() {
@@ -1537,5 +1541,46 @@ fn test_administrator_route_path_preserves_exact_byte_bounds_and_reports_overflo
     assert_eq!(
         crate::admin_route_path::AdminRoutePath::default().as_ref(),
         constants_str::EMPTY
+    );
+}
+
+#[test]
+fn test_admin_rule_requirement_preserves_rule_variant_and_independent_wire_text() {
+    assert!([
+        (crate::admin_rule::AdminRule::UsersRead, stringify!(users), stringify!(read)),
+        (crate::admin_rule::AdminRule::UsersUpdate, stringify!(users), stringify!(update)),
+        (crate::admin_rule::AdminRule::RulesRead, stringify!(rules), stringify!(read)),
+    ].into_iter().all(|(admin_rule, resource, action)| {
+        matches!(crate::admin_rule_requirement::admin_rule_requirement(admin_rule),
+            frontend_contract::authentication_requirement::AuthenticationRequirement::Rule(contract_str)
+                if contract_str.as_ref().chars().eq(resource.chars()
+                    .chain(std::iter::once(':')).chain(action.chars())))
+    }));
+}
+
+#[test]
+fn test_admin_api_path_adapter_preserves_validated_text_at_all_byte_boundaries() {
+    assert_eq!(
+        char::MAX.len_utf8() * 2_048usize,
+        constants_usize::VALUE_8_192
+    );
+    assert!(
+        [
+            constants_str::EMPTY.to_owned(),
+            constants_str::ADMIN_USERS_READ.to_owned(),
+            constants_str::X.repeat(constants_usize::VALUE_8_192),
+            char::MAX.to_string().repeat(2_048usize),
+            constants_str::TEST_TEXT_WITH_NUL.to_owned(),
+        ]
+        .into_iter()
+        .all(|text| {
+            frontend_contract::parameterized_route_path::ParameterizedRoutePath::try_from(
+                text.clone(),
+            )
+            .is_ok_and(|parameterized_route_path| {
+                crate::admin_api_route_path::admin_api_route_path(parameterized_route_path)
+                    .is_ok_and(|admin_route_path| admin_route_path.as_ref() == text)
+            })
+        })
     );
 }

@@ -96,4 +96,47 @@ mod tests {
         let attr = crate::find_macro_attribute::find_macro_attribute(&attrs, constants_str::SQLX);
         assert!(attr.is_none());
     }
+
+    #[test]
+    fn test_find_macro_attribute_rejects_prefixes_and_borrows_first_exact_match() {
+        let attrs = [
+            syn::parse_quote!(#[sqlx]),
+            syn::parse_quote!(#[sqlx::type_name::extra]),
+            syn::parse_quote!(#[sqlx::type_name(name = constants_str::X)]),
+            syn::parse_quote!(#[sqlx::type_name(name = constants_str::ABC_ALT_3)]),
+        ];
+        assert!(
+            [
+                constants_str::SQLX_PATH_TYPE_NAME,
+                constants_str::PATH_SQLX_PATH_TYPE_NAME,
+                constants_str::SQLX_PATH_PATH_TYPE_NAME,
+            ]
+            .into_iter()
+            .all(
+                |path| crate::find_macro_attribute::find_macro_attribute(&attrs, path).is_some_and(
+                    |syn_macro_attr_ref| attrs
+                        .get(2usize)
+                        .is_some_and(|attr| std::ptr::eq(syn_macro_attr_ref.attr(), attr))
+                )
+            )
+        );
+    }
+
+    #[test]
+    fn test_macro_attribute_token_lookup_preserves_missing_and_non_list_errors() {
+        let attrs = [
+            syn::parse_quote!(#[allow]),
+            syn::parse_quote!(#[serde = Value]),
+        ];
+        assert!(
+            [
+                (constants_str::VALUE_947920D8, crate::macro_attr_error::MacroAttrError::NoAttr),
+                (constants_str::VALUE_41008373, crate::macro_attr_error::MacroAttrError::AttrNotList),
+                (constants_str::SERDE, crate::macro_attr_error::MacroAttrError::AttrNotList),
+            ]
+            .into_iter()
+            .all(|(path, expected)| crate::try_get_macro_attr_meta_list_token_stream::try_get_macro_attr_meta_list_token_stream(&attrs, path)
+                .is_err_and(|error| error == expected))
+        );
+    }
 }

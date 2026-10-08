@@ -46,6 +46,9 @@ mod tests {
             !constants_str::UPDATE_CONFIG_PROJECTIONS.is_empty(),
             "4b913df2"
         );
+        assert!(is_typed_accessor::<config_lib::service_mode::ServiceMode>(
+            super::NotificationServiceConfig::service_mode
+        ));
         assert!(is_typed_accessor::<config_lib::domain_types::DatabaseUrl>(
             super::NotificationServiceConfig::notification_database_url
         ));

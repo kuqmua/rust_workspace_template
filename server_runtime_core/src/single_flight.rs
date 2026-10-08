@@ -68,6 +68,90 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn test_single_flight_clones_notify_old_waiters_without_releasing_replacement_owner() {
+        let flights = super::SingleFlight::new(
+            crate::single_flight_maximum_non_zero_usize::SingleFlightMaximumNonZeroUsize::from(
+                std::num::NonZeroUsize::MIN,
+            ),
+        );
+        let shared = flights.clone();
+        let acquisitions = (
+            flights.acquire(single_flight_key()),
+            shared.acquire(single_flight_key()),
+            flights.acquire(single_flight_key()),
+        );
+        assert!(matches!(
+            &acquisitions,
+            (
+                crate::single_flight_acquire::SingleFlightAcquire::Owner(_),
+                crate::single_flight_acquire::SingleFlightAcquire::Waiter(_),
+                crate::single_flight_acquire::SingleFlightAcquire::Waiter(_)
+            )
+        ));
+        if let (
+            crate::single_flight_acquire::SingleFlightAcquire::Owner(owner),
+            crate::single_flight_acquire::SingleFlightAcquire::Waiter(first),
+            crate::single_flight_acquire::SingleFlightAcquire::Waiter(second),
+        ) = acquisitions
+        {
+            let mut first_wait = std::pin::pin!(first.wait());
+            let mut second_wait = std::pin::pin!(second.wait());
+            let mut context = std::task::Context::from_waker(std::task::Waker::noop());
+            assert_eq!(
+                Future::poll(first_wait.as_mut(), &mut context),
+                std::task::Poll::Pending
+            );
+            assert_eq!(
+                Future::poll(second_wait.as_mut(), &mut context),
+                std::task::Poll::Pending
+            );
+            drop(owner);
+            let replacement = shared.acquire(single_flight_key());
+            assert!(matches!(
+                &replacement,
+                crate::single_flight_acquire::SingleFlightAcquire::Owner(_)
+            ));
+            let current_acquisition = flights.acquire(single_flight_key());
+            assert!(matches!(
+                &current_acquisition,
+                crate::single_flight_acquire::SingleFlightAcquire::Waiter(_)
+            ));
+            if let crate::single_flight_acquire::SingleFlightAcquire::Waiter(current_waiter) =
+                current_acquisition
+            {
+                let mut current_wait = std::pin::pin!(current_waiter.wait());
+                assert_eq!(
+                    Future::poll(first_wait.as_mut(), &mut context),
+                    std::task::Poll::Ready(
+                        crate::single_flight_wait_outcome::SingleFlightWaitOutcome::Retry
+                    )
+                );
+                assert_eq!(
+                    Future::poll(second_wait.as_mut(), &mut context),
+                    std::task::Poll::Ready(
+                        crate::single_flight_wait_outcome::SingleFlightWaitOutcome::Retry
+                    )
+                );
+                assert_eq!(
+                    Future::poll(current_wait.as_mut(), &mut context),
+                    std::task::Poll::Pending
+                );
+                drop(replacement);
+                assert_eq!(
+                    Future::poll(current_wait.as_mut(), &mut context),
+                    std::task::Poll::Ready(
+                        crate::single_flight_wait_outcome::SingleFlightWaitOutcome::Retry
+                    )
+                );
+            }
+            assert!(matches!(
+                shared.acquire(single_flight_key()),
+                crate::single_flight_acquire::SingleFlightAcquire::Owner(_)
+            ));
+        }
+    }
+
+    #[tokio::test]
     async fn test_one_owner_notifies_waiters_and_releases_key() {
         let flights = super::SingleFlight::new(
             crate::single_flight_maximum_non_zero_usize::SingleFlightMaximumNonZeroUsize::from(

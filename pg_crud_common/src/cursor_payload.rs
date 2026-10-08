@@ -57,4 +57,26 @@ mod tests {
             Err(String::from(constants_str::CURSOR_EXCEEDS_MAXIMUM_LENGTH))
         );
     }
+
+    #[test]
+    fn test_cursor_payload_unicode_limit_counts_bytes_and_preserves_contents() {
+        let character = '\u{00e9}';
+        let character_count = 32_768usize;
+        assert_eq!(
+            character_count.saturating_mul(character.len_utf8()),
+            super::CursorPayload::MAXIMUM_LENGTH
+        );
+        let text = character.to_string().repeat(character_count);
+        assert_eq!(text.len(), super::CursorPayload::MAXIMUM_LENGTH);
+        assert!(
+            super::CursorPayload::try_from(text).is_ok_and(|cursor_payload| cursor_payload
+                .as_ref()
+                .chars()
+                .eq(std::iter::repeat_n(character, character_count)))
+        );
+        assert_eq!(
+            super::CursorPayload::try_from(character.to_string().repeat(character_count + 1usize)),
+            Err(crate::cursor_payload_error::CursorPayloadError::TooLong)
+        );
+    }
 }

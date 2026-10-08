@@ -21,3 +21,24 @@ impl TryFrom<Vec<u8>> for HttpContractBody {
             )
     }
 }
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn test_http_contract_body_preserves_exact_byte_bounds_and_content() {
+        assert!(
+            crate::http_contract_body::HttpContractBody::try_from(Vec::new())
+                .is_ok_and(|body| body.as_slice().is_empty())
+        );
+        let maximum = constants_usize::VALUE_16_777_216;
+        assert!(
+            crate::http_contract_body::HttpContractBody::try_from(vec![255u8; maximum]).is_ok_and(
+                |body| {
+                    body.as_slice().len() == maximum
+                        && body.as_slice().iter().all(|byte| *byte == 255u8)
+                }
+            )
+        );
+        assert_eq!(crate::http_contract_body::HttpContractBody::try_from(vec![255u8; maximum + 1usize]), Err(frontend_contract::frontend_contract_body_error::FrontendContractBodyError::TooLarge));
+    }
+}

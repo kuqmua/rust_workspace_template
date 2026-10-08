@@ -119,6 +119,74 @@ mod tests {
     }
 
     #[test]
+    fn test_path_append_reuses_trailing_slash_and_preserves_query_fragment_suffixes() {
+        [
+            constants_str::EMPTY.to_owned(),
+            format!("?{}={}", constants_str::X, constants_str::X),
+            format!("#{}?{}", constants_str::X, constants_str::X),
+            format!(
+                "?{}={}#{}",
+                constants_str::X,
+                constants_str::X,
+                constants_str::X
+            ),
+        ]
+        .into_iter()
+        .fold((), |(), suffix| {
+            let input = format!("{}/{}", constants_str::TEST_API_URL_BASE, suffix);
+            let expected = format!(
+                "{}/{}{}",
+                constants_str::TEST_API_URL_BASE,
+                constants_str::X,
+                suffix
+            );
+            assert!(
+                crate::api_url_path_segment_ref::ApiUrlPathSegmentRef::try_from(constants_str::X)
+                    .is_ok_and(|segment| {
+                        crate::api_url::ApiUrl::try_from(input).is_ok_and(|mut api_url| {
+                            api_url
+                                .push_path_segment(segment)
+                                .is_ok_and(|()| api_url.as_ref() == expected)
+                        })
+                    })
+            );
+        });
+    }
+
+    #[test]
+    fn test_path_and_query_appends_accept_exact_maximum_length() {
+        [
+            (false, format!("/{}", constants_str::X)),
+            (true, format!("?{}={}", constants_str::X, constants_str::X)),
+        ]
+        .into_iter()
+        .fold((), |(), (append_query, suffix)| {
+            let maximum = constants_usize::VALUE_1_048_576;
+            let original = constants_str::X.repeat(maximum.saturating_sub(suffix.len()));
+            let expected = format!("{original}{suffix}");
+            assert!(
+                crate::api_url::ApiUrl::try_from(original).is_ok_and(|mut api_url| {
+                    let appended = if append_query {
+                        api_url
+                            .push_query_pair(constants_str::X.into(), constants_str::X.into())
+                            .is_ok_and(|()| api_url.as_ref() == expected)
+                    } else {
+                        crate::api_url_path_segment_ref::ApiUrlPathSegmentRef::try_from(
+                            constants_str::X,
+                        )
+                        .is_ok_and(|segment| {
+                            api_url
+                                .push_path_segment(segment)
+                                .is_ok_and(|()| api_url.as_ref() == expected)
+                        })
+                    };
+                    appended && api_url.as_ref().len() == maximum
+                })
+            );
+        });
+    }
+
+    #[test]
     fn test_url_append_length_failures_preserve_original_content() {
         [false, true].into_iter().fold((), |(), append_query| {
             let maximum = constants_usize::VALUE_1_048_576;

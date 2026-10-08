@@ -19,3 +19,23 @@ impl TryFrom<usize> for CursorMaximumLength {
             .ok_or(crate::cursor_codec_build_error::CursorCodecBuildError::ZeroMaximumLength)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn test_cursor_maximum_length_rejects_zero_and_preserves_positive_limits() {
+        assert_eq!(
+            crate::cursor_maximum_length::CursorMaximumLength::try_from(0usize),
+            Err(crate::cursor_codec_build_error::CursorCodecBuildError::ZeroMaximumLength)
+        );
+        assert!(
+            [1usize, 1_024usize, 100_000usize]
+                .into_iter()
+                .all(|length| {
+                    crate::cursor_maximum_length::CursorMaximumLength::try_from(length).is_ok_and(
+                        |cursor_maximum_length| cursor_maximum_length.get_inner().get() == length,
+                    )
+                })
+        );
+    }
+}

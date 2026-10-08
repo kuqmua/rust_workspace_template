@@ -51,4 +51,150 @@ mod tests {
             constants_str::PG_CRUD_COMMON_DOMAIN_TYPES
         );
     }
+    #[test]
+    fn test_emission_switches_preserve_both_exact_token_branches() {
+        assert!([
+            (
+                quote::ToTokens::to_token_stream(&crate::emission_types::AddOperatorUnderscore::False),
+                quote::quote! { add_operator },
+                quote::ToTokens::to_token_stream(&crate::emission_types::AddOperatorUnderscore::True),
+                quote::quote! { _ },
+            ),
+            (
+                quote::ToTokens::to_token_stream(&crate::emission_types::ColumnParameterUnderscore::False),
+                quote::quote! { column },
+                quote::ToTokens::to_token_stream(&crate::emission_types::ColumnParameterUnderscore::True),
+                quote::quote! { _ },
+            ),
+            (
+                quote::ToTokens::to_token_stream(&crate::emission_types::IncrementParameterUnderscore::False),
+                quote::quote! { increment },
+                quote::ToTokens::to_token_stream(&crate::emission_types::IncrementParameterUnderscore::True),
+                quote::quote! { _ },
+            ),
+            (
+                quote::ToTokens::to_token_stream(&crate::emission_types::IsCreateQueryBindMut::False),
+                quote::quote! {  },
+                quote::ToTokens::to_token_stream(&crate::emission_types::IsCreateQueryBindMut::True),
+                quote::quote! { mut },
+            ),
+            (
+                quote::ToTokens::to_token_stream(&crate::emission_types::IsQueryBindMut::False),
+                quote::quote! {  },
+                quote::ToTokens::to_token_stream(&crate::emission_types::IsQueryBindMut::True),
+                quote::quote! { mut },
+            ),
+            (
+                quote::ToTokens::to_token_stream(&crate::emission_types::IsSelectOnlyCreatedIdsQueryBindMut::False),
+                quote::quote! {  },
+                quote::ToTokens::to_token_stream(&crate::emission_types::IsSelectOnlyCreatedIdsQueryBindMut::True),
+                quote::quote! { mut },
+            ),
+            (
+                quote::ToTokens::to_token_stream(&crate::emission_types::IsSelectOnlyUpdatedIdsQueryBindMut::False),
+                quote::quote! {  },
+                quote::ToTokens::to_token_stream(&crate::emission_types::IsSelectOnlyUpdatedIdsQueryBindMut::True),
+                quote::quote! { mut },
+            ),
+            (
+                quote::ToTokens::to_token_stream(&crate::emission_types::IsSelectQueryPartColumnFieldForErrorMessageUsed::False),
+                quote::quote! { _ },
+                quote::ToTokens::to_token_stream(&crate::emission_types::IsSelectQueryPartColumnFieldForErrorMessageUsed::True),
+                quote::quote! { column_field_for_error_message },
+            ),
+            (
+                quote::ToTokens::to_token_stream(&crate::emission_types::IsSelectQueryPartIsPgTypeUsed::False),
+                quote::quote! { _ },
+                quote::ToTokens::to_token_stream(&crate::emission_types::IsSelectQueryPartIsPgTypeUsed::True),
+                quote::quote! { is_pg_type },
+            ),
+            (
+                quote::ToTokens::to_token_stream(&crate::emission_types::IsSelectQueryPartSelfSelectUsed::False),
+                quote::quote! { _ },
+                quote::ToTokens::to_token_stream(&crate::emission_types::IsSelectQueryPartSelfSelectUsed::True),
+                quote::quote! { v },
+            ),
+            (
+                quote::ToTokens::to_token_stream(&crate::emission_types::IsUpdateQueryBindMut::False),
+                quote::quote! {  },
+                quote::ToTokens::to_token_stream(&crate::emission_types::IsUpdateQueryBindMut::True),
+                quote::quote! { mut },
+            ),
+            (
+                quote::ToTokens::to_token_stream(&crate::emission_types::IsUpdateQueryPartSelfUpdateUsed::False),
+                quote::quote! { _ },
+                quote::ToTokens::to_token_stream(&crate::emission_types::IsUpdateQueryPartSelfUpdateUsed::True),
+                quote::quote! { v },
+            ),
+            (
+                quote::ToTokens::to_token_stream(&crate::emission_types::ShouldDSchemarsJsonSchema::False),
+                quote::quote! {  },
+                quote::ToTokens::to_token_stream(&crate::emission_types::ShouldDSchemarsJsonSchema::True),
+                quote::quote! { , schemars::JsonSchema },
+            ),
+            (
+                quote::ToTokens::to_token_stream(&crate::emission_types::ShouldDeriveUtoipaToSchema::False),
+                quote::quote! {  },
+                quote::ToTokens::to_token_stream(&crate::emission_types::ShouldDeriveUtoipaToSchema::True),
+                quote::quote! { , utoipa::ToSchema },
+            ),
+            (
+                quote::ToTokens::to_token_stream(&crate::emission_types::IsPrimaryKeyUnderscore::False),
+                quote::quote! { is_primary_key },
+                quote::ToTokens::to_token_stream(&crate::emission_types::IsPrimaryKeyUnderscore::True),
+                quote::quote! { _ },
+            ),
+            (
+                quote::ToTokens::to_token_stream(&crate::emission_types::CreateQueryBindValueUnderscore::False),
+                quote::quote! { v },
+                quote::ToTokens::to_token_stream(&crate::emission_types::CreateQueryBindValueUnderscore::True),
+                quote::quote! { _ },
+            ),
+            (
+                quote::ToTokens::to_token_stream(&crate::emission_types::CreateQueryPartIncrementUnderscore::False),
+                quote::quote! { increment },
+                quote::ToTokens::to_token_stream(&crate::emission_types::CreateQueryPartIncrementUnderscore::True),
+                quote::quote! { _ },
+            ),
+            (
+                quote::ToTokens::to_token_stream(&crate::emission_types::CreateQueryPartValueUnderscore::False),
+                quote::quote! { v },
+                quote::ToTokens::to_token_stream(&crate::emission_types::CreateQueryPartValueUnderscore::True),
+                quote::quote! { _ },
+            ),
+            (
+                quote::ToTokens::to_token_stream(&crate::emission_types::SelectQueryPartValueUnderscore::False),
+                quote::quote! { v },
+                quote::ToTokens::to_token_stream(&crate::emission_types::SelectQueryPartValueUnderscore::True),
+                quote::quote! { _ },
+            ),
+            (
+                quote::ToTokens::to_token_stream(&crate::emission_types::UpdateQueryPartAccumulatorUnderscore::False),
+                quote::quote! { update_accumulator },
+                quote::ToTokens::to_token_stream(&crate::emission_types::UpdateQueryPartAccumulatorUnderscore::True),
+                quote::quote! { _ },
+            ),
+            (
+                quote::ToTokens::to_token_stream(&crate::emission_types::UpdateQueryPartPathUnderscore::False),
+                quote::quote! { update_path },
+                quote::ToTokens::to_token_stream(&crate::emission_types::UpdateQueryPartPathUnderscore::True),
+                quote::quote! { _ },
+            ),
+            (
+                quote::ToTokens::to_token_stream(&crate::emission_types::UpdateQueryPartTargetUnderscore::False),
+                quote::quote! { update_target },
+                quote::ToTokens::to_token_stream(&crate::emission_types::UpdateQueryPartTargetUnderscore::True),
+                quote::quote! { _ },
+            ),
+            (
+                quote::ToTokens::to_token_stream(&crate::emission_types::UpdateQueryPartValueUnderscore::False),
+                quote::quote! { v },
+                quote::ToTokens::to_token_stream(&crate::emission_types::UpdateQueryPartValueUnderscore::True),
+                quote::quote! { _ },
+            ),
+        ].into_iter().all(|(disabled, expected_disabled, enabled, expected_enabled)| {
+            disabled.to_string() == expected_disabled.to_string()
+                && enabled.to_string() == expected_enabled.to_string()
+        }));
+    }
 }

@@ -199,10 +199,12 @@ mod tests {
         .into_iter()
         .fold((), |(), (tokens, expected, remaining)| {
             let mut iterator = tokens.into_iter();
+            let first_comma_stripped = crate::strip_first_comma::strip_first_comma(&mut iterator);
             assert_eq!(
-                crate::strip_first_comma::strip_first_comma(&mut iterator),
+                first_comma_stripped,
                 crate::first_comma_stripped::FirstCommaStripped::from(expected)
             );
+            assert_eq!(!first_comma_stripped, !expected);
             assert_eq!(
                 iterator.collect::<proc_macro2::TokenStream>().to_string(),
                 remaining.to_string()
@@ -273,6 +275,7 @@ mod tests {
                 proc_macro2::TokenStream::new(),
                 quote::quote! { + rejected },
                 quote::quote! { r#type },
+                quote::quote! { (nested, [grouped]) },
             ]);
         assert!(parts.is_ok());
         if let Ok(proc_macro2_top_level_comma_parts) = parts {
@@ -285,6 +288,7 @@ mod tests {
                 None,
                 None,
                 Some(stringify!(r#type)),
+                None,
                 None,
             ]
             .into_iter()
@@ -301,10 +305,17 @@ mod tests {
                 );
                 assert_eq!(
                     crate::part_at::part_at(&proc_macro2_top_level_comma_parts, part_index)
-                        .is_some(),
-                    index < original.len()
+                        .map(|proc_macro2_macro_tokens| proc_macro2_macro_tokens.to_string()),
+                    original.get(index).cloned()
                 );
             });
+            assert!(
+                crate::part_at::part_at(
+                    &proc_macro2_top_level_comma_parts,
+                    crate::part_index::PartIndex::from(std::num::NonZeroUsize::MAX.get()),
+                )
+                .is_none()
+            );
             assert!(
                 proc_macro2_top_level_comma_parts
                     .iter()
@@ -449,10 +460,39 @@ mod tests {
         );
     }
     #[test]
+    fn test_compile_error_message_preserves_owned_and_borrowed_literal_contents() {
+        [
+            constants_str::EMPTY.to_owned(),
+            constants_str::COMPILE_ERROR_CE_079.to_owned(),
+            constants_str::NON_ASCII_U_E9.to_owned(),
+            constants_str::TEST_TEXT_WITH_NUL.to_owned(),
+            ['"', '\\', '\n', '\r', '\t', char::MAX]
+                .into_iter()
+                .collect::<String>(),
+        ]
+        .into_iter()
+        .fold((), |(), message| {
+            [
+                crate::compile_error_token_stream::compile_error_token_stream(message.as_str()),
+                crate::compile_error_token_stream::compile_error_token_stream(message.clone()),
+            ]
+            .into_iter()
+            .fold((), |(), generated| {
+                let parsed = syn::parse2::<syn::ItemMacro>(generated.into_inner());
+                assert!(parsed.is_ok_and(|item| item.attrs.is_empty()
+                    && item.ident.is_none()
+                    && item.mac.path.is_ident(stringify!(compile_error))
+                    && matches!(item.mac.delimiter, syn::MacroDelimiter::Paren(_))
+                    && item.semi_token.is_some()
+                    && matches!(syn::parse2::<syn::LitStr>(item.mac.tokens), Ok(literal)
+                        if literal.value() == message)));
+            });
+        });
+    }
+    #[test]
     fn test_trait_alias_rejects_invalid_names_without_panicking() {
-        let expected = crate::compile_error_token_stream::compile_error_token_stream(
-            constants_str::COMPILE_ERROR_CE_079,
-        );
+        let message = constants_str::COMPILE_ERROR_CE_079;
+        let expected = quote::quote! { compile_error!(#message); };
         assert!(
             [
                 quote::quote! { Name Extra = std::fmt::Debug },
@@ -694,6 +734,104 @@ mod tests {
                 }
             }
             .into(),
+        );
+    }
+    #[test]
+    fn test_getter_rejections_preserve_exact_single_compile_error() {
+        [
+            (quote::quote! {
+                #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
+                enum GetterExactRejectedEnumFixture { Value }
+            }, constants_str::GETTERS_REQUIRES_STRUCT),
+            (quote::quote! {
+                #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
+                #[getters(copy)]
+                struct GetterExactContainerMetadataFixture { value: crate::part_index::PartIndex }
+            }, constants_str::GETTERS_UNSUPPORTED_ATTRIBUTE),
+            (quote::quote! {
+                #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
+                #[getters(legacy_refs)]
+                struct GetterExactLegacyMetadataFixture { value: crate::part_index::PartIndex }
+            }, constants_str::GETTERS_UNSUPPORTED_ATTRIBUTE),
+            (quote::quote! {
+                #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
+                struct GetterExactFieldMetadataFixture {
+                    #[getters(bare)]
+                    value: crate::part_index::PartIndex
+                }
+            }, constants_str::GETTERS_UNSUPPORTED_ATTRIBUTE),
+            (quote::quote! {
+                #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
+                struct GetterExactTupleArityFixture(crate::part_index::PartIndex, crate::part_index::PartIndex);
+            }, constants_str::GETTERS_REQUIRES_NAMED_OR_SINGLE_FIELD),
+        ].into_iter().fold((), |(), (input, message)| {
+            let generated = crate::generate_private_field_getters::generate_private_field_getters(input.into());
+            let expected = quote::quote! { ::core::compile_error! { #message } };
+            assert_eq!(generated.to_string(), expected.to_string());
+        });
+    }
+
+    #[test]
+    fn test_getter_parse_failure_preserves_exact_parser_diagnostic() {
+        [quote::quote! { struct }, quote::quote! { + rejected }]
+            .into_iter()
+            .fold((), |(), input| {
+                let expected = syn::parse2::<syn::DeriveInput>(input.clone()).err();
+                assert!(expected.is_some());
+                if let Some(error) = expected {
+                    let generated =
+                        crate::generate_private_field_getters::generate_private_field_getters(
+                            input.into(),
+                        );
+                    assert_eq!(
+                        generated.to_string(),
+                        error.into_compile_error().to_string()
+                    );
+                }
+            });
+    }
+    #[test]
+    fn test_getters_preserve_generic_visibility_and_distinct_optional_shapes() {
+        let input = quote::quote! {
+            #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
+            pub(crate) struct GetterExactGenericFixture<Value> where Value: Clone {
+                #[getters(get_mut)]
+                optional: Option<Value>,
+                qualified: std::option::Option<Value>,
+                #[getters(skip)]
+                skipped: Value,
+            }
+        };
+        let generated =
+            crate::generate_private_field_getters::generate_private_field_getters(input.into());
+        let expected: syn::ItemImpl = syn::parse_quote! {
+            impl<Value> GetterExactGenericFixture<Value> where Value: Clone {
+                pub(crate) const fn get_ref_optional(&self) -> Option<&Value> {
+                    self.optional.as_ref()
+                }
+                pub(crate) const fn get_optional(&self) -> Option<&Value> {
+                    self.optional.as_ref()
+                }
+                pub(crate) const fn get_optional_mut(&mut self) -> &mut Option<Value> {
+                    &mut self.optional
+                }
+                pub(crate) const fn get_ref_qualified(&self) -> &std::option::Option<Value> {
+                    &self.qualified
+                }
+                pub(crate) const fn get_qualified(&self) -> &std::option::Option<Value> {
+                    &self.qualified
+                }
+            }
+        };
+        assert!(
+            syn::parse2::<syn::ItemImpl>(generated.into_inner()).is_ok_and(|implementation| {
+                implementation.generics == expected.generics
+                    && implementation.self_ty == expected.self_ty
+                    && implementation.items == expected.items
+                    && implementation.trait_.is_none()
+                    && implementation.unsafety.is_none()
+                    && implementation.modifiers == expected.modifiers
+            })
         );
     }
 }

@@ -26,3 +26,9 @@ mod test_between_query;
 
 #[cfg(test)]
 mod test_unique_filter_vec;
+
+#[cfg(test)]
+mod test_between_wire;
+
+#[cfg(test)]
+mod test_between_bind;

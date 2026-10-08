@@ -156,4 +156,29 @@ mod tests {
             .as_ref()
         }));
     }
+    #[test]
+    fn test_single_or_multiple_rejects_ambiguous_tags_and_wrong_wire_shapes() {
+        [
+            serde_json::Value::Null,
+            serde_json::json!([]),
+            serde_json::json!({}),
+            serde_json::json!(crate::operator::Operator::And),
+            serde_json::json!({
+                (stringify!(Single)): crate::operator::Operator::And,
+                (stringify!(Multiple)): [crate::operator::Operator::And],
+            }),
+            serde_json::json!({(stringify!(single)): crate::operator::Operator::And}),
+            serde_json::json!({(stringify!(Single)): []}),
+            serde_json::json!({(stringify!(Multiple)): crate::operator::Operator::And}),
+        ]
+        .into_iter()
+        .fold((), |(), wire_value| {
+            assert!(
+                serde_json::from_value::<
+                    crate::single_or_multiple::SingleOrMultiple<crate::operator::Operator>,
+                >(wire_value)
+                .is_err_and(|error| error.is_data())
+            );
+        });
+    }
 }

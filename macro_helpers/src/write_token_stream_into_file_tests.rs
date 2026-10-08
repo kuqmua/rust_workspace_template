@@ -1,6 +1,35 @@
 #[cfg(test)]
 mod tests {
     #[test]
+    fn test_optional_token_writer_skips_and_preserves_missing_parent_errors_before_formatting() {
+        let base = crate::test_path::test_path(crate::test_path_stem::TestPathStem::new(
+            stringify!(test_optional_token_writer_skips_and_preserves_missing_parent_errors_before_formatting),
+        ));
+        let destination = base.as_ref().join(constants_str::X);
+        let tokens = quote::quote! { fn };
+        [
+            crate::format_with_cargofmt::FormatWithCargofmt::False,
+            crate::format_with_cargofmt::FormatWithCargofmt::True,
+        ].into_iter().fold((), |(), format_with_cargofmt| {
+            let skipped = crate::try_maybe_write_token_stream_into_file::try_maybe_write_token_stream_into_file(
+                crate::should_write_token_stream_into_file::ShouldWriteTokenStreamIntoFile::False,
+                &destination,
+                crate::proc_macro2_token_stream_ref::ProcMacro2TokenStreamRef::from(&tokens),
+                &format_with_cargofmt,
+            );
+            assert!(matches!(skipped, Ok(())));
+            let written = crate::try_maybe_write_token_stream_into_file::try_maybe_write_token_stream_into_file(
+                crate::should_write_token_stream_into_file::ShouldWriteTokenStreamIntoFile::True,
+                &destination,
+                crate::proc_macro2_token_stream_ref::ProcMacro2TokenStreamRef::from(&tokens),
+                &format_with_cargofmt,
+            );
+            assert!(written.is_err_and(|error| error.kind() == std::io::ErrorKind::NotFound));
+            assert!(std::fs::metadata(&base).is_err_and(|error| error.kind() == std::io::ErrorKind::NotFound));
+        });
+    }
+
+    #[test]
     fn test_try_maybe_write_token_stream_into_file_skips_when_flag_is_false() {
         let base = crate::test_path::test_path(crate::test_path_stem::TestPathStem::new(
             constants_str::MACRO_HELPERS_SKIP,

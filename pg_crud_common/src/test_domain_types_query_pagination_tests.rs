@@ -159,3 +159,70 @@ fn test_validated_pagination_binding_preserves_existing_query_arguments() {
         })
     }));
 }
+
+#[test]
+fn test_pagination_leaf_conversions_preserve_full_signed_integer_range() {
+    assert_eq!(
+        crate::pagination_limit::PaginationLimit::default().get(),
+        0i64
+    );
+    assert_eq!(
+        crate::pagination_offset::PaginationOffset::default().get(),
+        0i64
+    );
+    assert!(
+        [i32::MIN, -1i32, 0i32, 1i32, i32::MAX]
+            .into_iter()
+            .all(|value| {
+                let expanded = i64::from(value);
+                crate::pagination_limit::PaginationLimit::from(value).get() == expanded
+                    && crate::pagination_offset::PaginationOffset::from(value).get() == expanded
+            })
+    );
+    assert!(
+        [
+            i64::MIN,
+            i64::from(i32::MIN),
+            -1i64,
+            0i64,
+            1i64,
+            i64::from(i32::MAX),
+            i64::MAX
+        ]
+        .into_iter()
+        .all(|value| {
+            let limit = crate::pagination_limit::PaginationLimit::from(value);
+            let offset = crate::pagination_offset::PaginationOffset::from(value);
+            let wire_value = serde_json::json!(value);
+            limit.get() == value
+                && offset.get() == value
+                && limit.to_string() == value.to_string()
+                && offset.to_string() == value.to_string()
+                && serde_json::to_value(limit).is_ok_and(|serialized| serialized == wire_value)
+                && serde_json::to_value(offset).is_ok_and(|serialized| serialized == wire_value)
+                && serde_json::from_value::<crate::pagination_limit::PaginationLimit>(
+                    wire_value.clone(),
+                )
+                .is_ok_and(|decoded| decoded == limit)
+                && serde_json::from_value::<crate::pagination_offset::PaginationOffset>(wire_value)
+                    .is_ok_and(|decoded| decoded == offset)
+        })
+    );
+    assert!(
+        [
+            serde_json::Value::Null,
+            serde_json::json!(false),
+            serde_json::json!(1.5f64),
+            serde_json::json!(constants_str::X),
+            serde_json::json!({}),
+            serde_json::json!([]),
+        ]
+        .into_iter()
+        .all(|wire_value| {
+            serde_json::from_value::<crate::pagination_limit::PaginationLimit>(wire_value.clone())
+                .is_err_and(|error| error.is_data())
+                && serde_json::from_value::<crate::pagination_offset::PaginationOffset>(wire_value)
+                    .is_err_and(|error| error.is_data())
+        })
+    );
+}

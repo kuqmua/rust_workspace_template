@@ -152,6 +152,28 @@ mod tests {
         ));
     }
     #[test]
+    fn test_query_builder_validates_exact_final_fragment_length_including_sql_syntax() {
+        let identifier = sql_identifier_fixture(&constants_str::X.repeat(128usize));
+        assert!([109usize, 110usize, 111usize].into_iter().all(|tail_length| {
+            let mut identifiers = vec![identifier.clone(); 8065usize];
+            identifiers.push(sql_identifier_fixture(&constants_str::X.repeat(tail_length)));
+            crate::sql_identifiers::SqlIdentifiers::try_from(identifiers).is_ok_and(|columns| {
+                let expected = format!("{}{}{}{}{}{}", constants_str::SELECT, columns.get_inner().get_inner().as_str(), constants_str::FROM, constants_str::X, constants_str::DOT, constants_str::X);
+                let expected_length = 1_048_466usize + tail_length;
+                if expected.len() != expected_length { return false; }
+                let result = crate::sql_select_builder::SqlSelectBuilder::new(
+                    crate::sql_qualified_identifier::SqlQualifiedIdentifier::new(sql_identifier_fixture(constants_str::X), sql_identifier_fixture(constants_str::X)),
+                    columns,
+                ).build();
+                if tail_length == 111usize {
+                    return result == Err(crate::pg_crud_string_wrapper_try_from_string_error::PgCrudStringWrapperTryFromStringError::TooLong { len: expected_length, max: crate::pg_crud_string_wrapper_max_len::PG_CRUD_STRING_WRAPPER_MAX_LEN });
+                }
+                result.is_ok_and(|query_part_fragment| query_part_fragment.as_ref() == expected)
+            })
+        }));
+    }
+
+    #[test]
     fn test_query_builder_preserves_oversized_query_failure() {
         let identifier = sql_identifier_fixture(&constants_str::X.repeat(128usize));
         let result =

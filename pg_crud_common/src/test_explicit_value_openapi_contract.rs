@@ -6,6 +6,18 @@ fn test_explicit_value_schema_uses_serialized_field_name() {
     assert!(schema_result.is_ok());
     if let Ok(schema) = schema_result {
         assert!(
+            serde_json::to_value(<u8 as utoipa::PartialSchema>::schema()).is_ok_and(
+                |item_schema| {
+                    schema
+                        == serde_json::json!({
+                            (stringify!(type)): constants_str::OBJECT,
+                            (constants_str::PROPERTIES): { (stringify!(value)): item_schema },
+                            (constants_str::REQUIRED): [stringify!(value)],
+                        })
+                }
+            )
+        );
+        assert!(
             schema
                 .get(constants_str::PROPERTIES)
                 .and_then(|properties| properties.get(stringify!(value)))
@@ -44,6 +56,14 @@ fn test_non_primary_key_read_ids_schema_matches_serialized_null_value() {
         );
         assert!(expected_null_schema_result.is_ok());
         if let Ok(expected_null_schema) = expected_null_schema_result {
+            assert_eq!(
+                schema,
+                serde_json::json!({
+                    (stringify!(type)): constants_str::OBJECT,
+                    (constants_str::PROPERTIES): { (stringify!(value)): expected_null_schema },
+                    (constants_str::REQUIRED): [stringify!(value)],
+                })
+            );
             assert_eq!(
                 schema
                     .get(constants_str::PROPERTIES)

@@ -124,13 +124,27 @@ mod tests {
             ))
         };
         let mut missing_creation_arguments = make_command();
+        let mut missing_creation_display = make_command();
+        let _creation_login = missing_creation_display.arg(constants_str::LOCALHOST);
+        let mut missing_creation_password_file = make_command();
+        let _creation_identity =
+            missing_creation_password_file.args([constants_str::LOCALHOST, constants_str::X]);
         let mut missing_reset_arguments = make_command();
         let _configured_command = missing_reset_arguments.arg(constants_str::VALUE_01BE30BB);
-        let (creation, reset) = tokio::join!(
+        let mut missing_reset_password_file = make_command();
+        let _reset_identity = missing_reset_password_file
+            .args([constants_str::VALUE_01BE30BB, constants_str::LOCALHOST]);
+        let (creation, creation_display, creation_password_file, reset, reset_password_file) = tokio::join!(
             missing_creation_arguments.output(),
+            missing_creation_display.output(),
+            missing_creation_password_file.output(),
             missing_reset_arguments.output(),
+            missing_reset_password_file.output(),
         );
         assert!(creation.is_ok_and(|output| output.status.code() == Some(2i32)));
+        assert!(creation_display.is_ok_and(|output| output.status.code() == Some(2i32)));
+        assert!(creation_password_file.is_ok_and(|output| output.status.code() == Some(2i32)));
         assert!(reset.is_ok_and(|output| output.status.code() == Some(2i32)));
+        assert!(reset_password_file.is_ok_and(|output| output.status.code() == Some(2i32)));
     }
 }

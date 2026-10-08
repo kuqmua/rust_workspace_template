@@ -1032,12 +1032,64 @@ mod tests {
     #[test]
     fn test_schema_reference_validation_reports_document_serialization_error() {
         let document = std::collections::BTreeMap::from([([1u8, 2u8], 3u8)]);
+        let expected_diagnostic = serde_json::to_value(&document)
+            .err()
+            .map(|error| error.to_string());
+        assert!(expected_diagnostic.is_some());
         assert!(matches!(
             crate::validate_openapi_schema_references::validate_openapi_schema_references(
                 &document
             ),
-            Err(crate::open_api_validation_error::OpenApiValidationError::DocumentSerialization(_))
+            Err(crate::open_api_validation_error::OpenApiValidationError::DocumentSerialization(source))
+                if Some(source.to_string()) == expected_diagnostic
         ));
+    }
+
+    #[test]
+    fn test_openapi_method_catalog_preserves_case_matching_and_ignored_path_metadata() {
+        let connect = constants_str::CONNECT.to_ascii_uppercase();
+        assert!([
+            frontend_contract::route_method::RouteMethod::Connect,
+            frontend_contract::route_method::RouteMethod::Delete,
+            frontend_contract::route_method::RouteMethod::Get,
+            frontend_contract::route_method::RouteMethod::Head,
+            frontend_contract::route_method::RouteMethod::Options,
+            frontend_contract::route_method::RouteMethod::Patch,
+            frontend_contract::route_method::RouteMethod::Post,
+            frontend_contract::route_method::RouteMethod::Put,
+            frontend_contract::route_method::RouteMethod::Trace,
+        ].into_iter().all(|route_method| {
+            let method = route_method.as_str();
+            [
+                method.as_ref().to_ascii_lowercase(),
+                method.as_ref().to_ascii_uppercase(),
+                method.as_ref().chars().enumerate().map(|(index, character)| if index.is_multiple_of(2usize) { character.to_ascii_lowercase() } else { character.to_ascii_uppercase() }).collect(),
+            ].into_iter().all(|spelling| {
+                let document = serde_json::json!({
+                    constants_str::PATHS: { constants_str::TEST_OPENAPI_PATH: {
+                        spelling: { constants_str::OPERATION_ID_JSON: constants_str::TEST_OPENAPI_OPERATION_ID },
+                        (constants_str::PARAMETERS.to_ascii_lowercase()): null,
+                        constants_str::DESCRIPTION: null,
+                        constants_str::X: null,
+                    } },
+                    constants_str::COMPONENTS: { constants_str::SCHEMAS: {} },
+                });
+                let route = frontend_contract::route_metadata::RouteMetadata::new(
+                    route_method,
+                    constants_str::TEST_OPENAPI_OPERATION_ID.into(),
+                    constants_str::TEST_OPENAPI_PATH.into(),
+                );
+                let result = crate::validate_openapi_contract::validate_openapi_contract(&document, [route].as_slice().into());
+                if route_method == frontend_contract::route_method::RouteMethod::Connect {
+                    result.is_err_and(|error| matches!(error,
+                        crate::open_api_validation_error::OpenApiValidationError::RuntimeRouteMissing(observed_method, path)
+                            if observed_method.as_ref() == connect && path.as_ref() == constants_str::TEST_OPENAPI_PATH
+                    ))
+                } else {
+                    result.is_ok()
+                }
+            })
+        }));
     }
 
     #[test]
@@ -1056,5 +1108,35 @@ mod tests {
             ),
             Ok(())
         ));
+    }
+    #[test]
+    fn test_schema_reference_escape_matrix_preserves_single_pass_decoding_and_nested_names() {
+        assert!([
+            (vec!['~'], vec!['~', '0']),
+            (vec!['/'], vec!['~', '1']),
+            (vec!['~', '1'], vec!['~', '0', '1']),
+            (vec!['\u{00e9}', '~', '/'], vec!['\u{00e9}', '~', '0', '~', '1']),
+            (vec!['~', '0', '~', '1', '/'], vec!['~', '0', '0', '~', '0', '1', '~', '1']),
+        ].into_iter().all(|(name_characters, escaped_characters)| {
+            let name = name_characters.into_iter().collect::<String>();
+            let escaped = escaped_characters.into_iter().collect::<String>();
+            let reference = [constants_str::COMPONENTS_SCHEMAS, escaped.as_str()].concat();
+            let nested_reference = [reference.as_str(), constants_str::SLASH, constants_str::PROPERTIES, constants_str::SLASH, constants_str::X].concat();
+            let document = serde_json::json!({
+                constants_str::COMPONENTS: { constants_str::SCHEMAS: {
+                    (name.as_str()): { constants_str::PROPERTIES: { constants_str::X: {} } }
+                } },
+                constants_str::ITEMS: [
+                    { constants_str::DOLLAR_REF: reference },
+                    { constants_str::DOLLAR_REF: nested_reference },
+                ],
+            });
+            crate::openapi_schema_references::openapi_schema_references(&document).is_ok_and(|references| {
+                references.len() == 1usize
+                    && references.iter().next().is_some_and(|schema_reference| schema_reference.as_ref() == name)
+                    && matches!(references.validate(&document), Ok(()))
+                    && matches!(crate::validate_openapi_schema_references::validate_openapi_schema_references(&document), Ok(()))
+            })
+        }));
     }
 }

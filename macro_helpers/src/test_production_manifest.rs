@@ -127,3 +127,75 @@ fn test_production_manifest_example_rejects_example_and_accepts_exact_ci_substit
         Err(crate::production_manifest_error::ProductionManifestError::Images)
     );
 }
+
+#[test]
+fn test_production_manifest_preserves_error_precedence_with_multiple_failures() {
+    [
+        (
+            constants_str::EMPTY.to_owned(),
+            crate::production_manifest_error::ProductionManifestError::Images,
+        ),
+        (
+            constants_str::PRODUCTION_MANIFEST_EXAMPLE.to_owned(),
+            crate::production_manifest_error::ProductionManifestError::Placeholder,
+        ),
+        (
+            constants_str::PRODUCTION_MANIFEST_PROXY.to_owned(),
+            crate::production_manifest_error::ProductionManifestError::TrustedProxy,
+        ),
+        (
+            [
+                constants_str::PRODUCTION_MANIFEST_PROXY,
+                constants_str::PRODUCTION_MANIFEST_EXAMPLE,
+            ]
+            .concat(),
+            crate::production_manifest_error::ProductionManifestError::Placeholder,
+        ),
+    ]
+    .into_iter()
+    .fold((), |(), (manifest, expected)| {
+        assert_eq!(
+            crate::validate_production_manifest::validate_production_manifest(
+                crate::string_file_content_ref::StringFileContentRef::from(manifest.as_str()),
+            ),
+            Err(expected)
+        );
+    });
+    let requirements = [
+        (
+            constants_str::PRODUCTION_MANIFEST_MODE,
+            crate::production_manifest_error::ProductionManifestError::ProductionMode,
+        ),
+        (
+            constants_str::PRODUCTION_MANIFEST_COOKIE,
+            crate::production_manifest_error::ProductionManifestError::SecureCookie,
+        ),
+        (
+            constants_str::PRODUCTION_MANIFEST_DEPLOYMENT,
+            crate::production_manifest_error::ProductionManifestError::Deployment,
+        ),
+        (
+            constants_str::PRODUCTION_MANIFEST_NETWORK,
+            crate::production_manifest_error::ProductionManifestError::NetworkPolicy,
+        ),
+        (
+            constants_str::PRODUCTION_MANIFEST_BUDGET,
+            crate::production_manifest_error::ProductionManifestError::DisruptionBudget,
+        ),
+    ];
+    requirements
+        .iter()
+        .enumerate()
+        .fold((), |(), (index, (_, expected))| {
+            let manifest = requirements.iter().skip(index).fold(
+                constants_str::PRODUCTION_MANIFEST_VALID_TEST.to_owned(),
+                |remaining, (required, _)| remaining.replace(required, constants_str::EMPTY),
+            );
+            assert_eq!(
+                crate::validate_production_manifest::validate_production_manifest(
+                    crate::string_file_content_ref::StringFileContentRef::from(manifest.as_str()),
+                ),
+                Err(*expected)
+            );
+        });
+}

@@ -22,3 +22,31 @@ impl to_err_string::to_err_string::ToErrString for UnsignedPartOfI32Raw {
             .unwrap_or_else(to_err_string::error_text::ErrorText::from)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn test_raw_integer_diagnostic_text_preserves_full_signed_range() {
+        assert!(
+            [i32::MIN, -1i32, 0i32, 1i32, i32::MAX]
+                .into_iter()
+                .all(|integer| {
+                    let unsigned_part_of_i32_raw =
+                        crate::unsigned_part_of_i32_raw::UnsignedPartOfI32Raw::from(integer);
+                    unsigned_part_of_i32_raw.get() == integer
+                        && unsigned_part_of_i32_raw.to_string() == integer.to_string()
+                        && to_err_string::to_err_string::ToErrString::to_err_string(
+                            &unsigned_part_of_i32_raw,
+                        )
+                        .as_ref()
+                            == integer.to_string()
+                        && serde_json::to_value(unsigned_part_of_i32_raw)
+                            .is_ok_and(|json| json == serde_json::json!(integer))
+                        && serde_json::from_value::<
+                            crate::unsigned_part_of_i32_raw::UnsignedPartOfI32Raw,
+                        >(serde_json::json!(integer))
+                        .is_ok_and(|decoded| decoded == unsigned_part_of_i32_raw)
+                })
+        );
+    }
+}

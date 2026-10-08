@@ -23,80 +23,95 @@ mod tests {
                 crate::api_problem_error::ApiProblemError::InvalidRequest,
                 400u16,
                 crate::api_problem_kind::ApiProblemKind::InvalidRequest,
+                constants_str::INVALID_REQUEST,
             ),
             (
                 crate::api_problem_error::ApiProblemError::Authentication,
                 401u16,
                 crate::api_problem_kind::ApiProblemKind::Authentication,
+                constants_str::AUTHENTICATION_REQUIRED,
             ),
             (
                 crate::api_problem_error::ApiProblemError::Authorization,
                 403u16,
                 crate::api_problem_kind::ApiProblemKind::Authorization,
+                constants_str::AUTHORIZATION_FAILED,
             ),
             (
                 crate::api_problem_error::ApiProblemError::NotFound,
                 404u16,
                 crate::api_problem_kind::ApiProblemKind::NotFound,
+                constants_str::RESOURCE_NOT_FOUND,
             ),
             (
                 crate::api_problem_error::ApiProblemError::MethodNotAllowed,
                 405u16,
                 crate::api_problem_kind::ApiProblemKind::MethodNotAllowed,
+                constants_str::METHOD_NOT_ALLOWED,
             ),
             (
                 crate::api_problem_error::ApiProblemError::Conflict,
                 409u16,
                 crate::api_problem_kind::ApiProblemKind::Conflict,
+                constants_str::RESOURCE_STATE_CONFLICT,
             ),
             (
                 crate::api_problem_error::ApiProblemError::Precondition,
                 412u16,
                 crate::api_problem_kind::ApiProblemKind::Precondition,
+                constants_str::RESOURCE_PRECONDITION_FAILED,
             ),
             (
                 crate::api_problem_error::ApiProblemError::PayloadTooLarge,
                 413u16,
                 crate::api_problem_kind::ApiProblemKind::PayloadTooLarge,
+                constants_str::REQUEST_BODY_IS_TOO_LARGE,
             ),
             (
                 crate::api_problem_error::ApiProblemError::Validation,
                 422u16,
                 crate::api_problem_kind::ApiProblemKind::Validation,
+                constants_str::REQUEST_VALIDATION_FAILED,
             ),
             (
                 crate::api_problem_error::ApiProblemError::InProgress,
                 425u16,
                 crate::api_problem_kind::ApiProblemKind::InProgress,
+                constants_str::MATCHING_REQUEST_IS_STILL_IN_PROGRESS,
             ),
             (
                 crate::api_problem_error::ApiProblemError::PreconditionRequired,
                 428u16,
                 crate::api_problem_kind::ApiProblemKind::PreconditionRequired,
+                constants_str::REQUEST_PRECONDITION_IS_REQUIRED,
             ),
             (
                 crate::api_problem_error::ApiProblemError::RateLimited,
                 429u16,
                 crate::api_problem_kind::ApiProblemKind::RateLimited,
+                constants_str::REQUEST_RATE_LIMIT_EXCEEDED_ALT,
             ),
             (
                 crate::api_problem_error::ApiProblemError::Internal(internal_status),
                 500u16,
                 crate::api_problem_kind::ApiProblemKind::Internal,
+                constants_str::INTERNAL_SERVER_ERROR,
             ),
             (
                 crate::api_problem_error::ApiProblemError::ServiceUnavailable,
                 503u16,
                 crate::api_problem_kind::ApiProblemKind::Internal,
+                constants_str::INTERNAL_SERVER_ERROR,
             ),
             (
                 crate::api_problem_error::ApiProblemError::RequestFailed(request_failed_status),
                 418u16,
                 crate::api_problem_kind::ApiProblemKind::RequestFailed,
+                constants_str::REQUEST_FAILED,
             ),
         ]
         .into_iter()
-        .for_each(|(error, status, kind)| {
+        .for_each(|(error, status, kind, detail)| {
             let response = axum::response::IntoResponse::into_response(error);
             assert_eq!(response.status().as_u16(), status);
             assert_eq!(
@@ -120,6 +135,12 @@ mod tests {
                 .expect(constants_str::DIAGNOSTIC_116DC695);
             assert_eq!(u16::from(problem.status()), status);
             assert_eq!(problem.kind(), kind);
+            assert_eq!(problem.detail().as_ref(), detail);
+            assert!(problem.request_id().is_none());
+            assert_eq!(
+                problem.violations(),
+                &crate::api_problem_violations::ApiProblemViolations::default()
+            );
         });
     }
 

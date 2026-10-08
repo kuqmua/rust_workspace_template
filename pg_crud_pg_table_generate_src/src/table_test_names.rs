@@ -21,6 +21,35 @@ impl<'value_lt> TryFrom<Vec<&'value_lt str>> for TableTestNames<'value_lt> {
 #[cfg(test)]
 mod tests {
     #[test]
+    fn test_table_test_names_preserves_order_duplicates_and_exact_bound_errors() {
+        assert!([0usize, 1, 2, 3, 5, 6, 7, 8].into_iter().all(|length| {
+            let expected = if length < 4usize {
+                bounded_types::bounded_value_error::BoundedValueError::BelowMin {
+                    actual: bounded_types::bounded_len::BoundedLen::from(length),
+                    min: bounded_types::bounded_len::BoundedLen::from(4usize),
+                }
+            } else {
+                bounded_types::bounded_value_error::BoundedValueError::AboveMax {
+                    actual: bounded_types::bounded_len::BoundedLen::from(length),
+                    max: bounded_types::bounded_len::BoundedLen::from(4usize),
+                }
+            };
+            super::TableTestNames::try_from(vec![constants_str::VALUE_8E427AD7; length])
+                .is_err_and(|error| error == expected)
+        }));
+        let expected = [
+            constants_str::VALUE_9AC6D79A,
+            constants_str::VALUE_8E427AD7,
+            constants_str::VALUE_9AC6D79A,
+            constants_str::EB24448C,
+        ];
+        assert!(
+            super::TableTestNames::try_from(expected.to_vec())
+                .is_ok_and(|names| names.into_iter().eq(expected))
+        );
+    }
+
+    #[test]
     fn test_table_test_names_requires_exact_count() {
         assert!(
             super::TableTestNames::try_from(vec![

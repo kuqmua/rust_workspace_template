@@ -39,4 +39,44 @@ mod tests {
             Err(crate::unit_interval_f64_error::UnitIntervalF64Error::NotFinite)
         );
     }
+    #[test]
+    fn test_unit_interval_preserves_float_bits_and_exact_boundary_error_classes() {
+        assert!(
+            [
+                -0.0f64,
+                0.0f64,
+                f64::from_bits(1u64),
+                1.0f64.next_down(),
+                1.0f64,
+            ]
+            .into_iter()
+            .all(|value| {
+                crate::unit_interval_f64::UnitIntervalF64::try_from(value).is_ok_and(
+                    |unit_interval_f64| f64::from(unit_interval_f64).to_bits() == value.to_bits(),
+                )
+            })
+        );
+        assert!(
+            [-f64::from_bits(1u64), -f64::MAX, 1.0f64.next_up(), f64::MAX,]
+                .into_iter()
+                .all(|value| {
+                    crate::unit_interval_f64::UnitIntervalF64::try_from(value)
+                        == Err(crate::unit_interval_f64_error::UnitIntervalF64Error::OutOfRange)
+                })
+        );
+        assert!(
+            [
+                f64::NEG_INFINITY,
+                f64::INFINITY,
+                f64::NAN,
+                f64::from_bits(0x7ff8_0000_0000_0042u64),
+                f64::from_bits(0xfff8_0000_0000_0042u64),
+            ]
+            .into_iter()
+            .all(|value| {
+                crate::unit_interval_f64::UnitIntervalF64::try_from(value)
+                    == Err(crate::unit_interval_f64_error::UnitIntervalF64Error::NotFinite)
+            })
+        );
+    }
 }

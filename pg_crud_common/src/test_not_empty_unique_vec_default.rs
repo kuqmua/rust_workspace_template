@@ -88,3 +88,40 @@ fn test_unique_vector_element_conversion_preserves_length_and_order() {
         })
     }));
 }
+
+#[test]
+fn test_unique_vector_size_rejections_skip_duplicate_callback() {
+    let maximum = crate::not_empty_unique_vec_max_len::NOT_EMPTY_UNIQUE_VEC_MAX_LEN;
+    assert!([(Vec::new(), true), (vec![crate::duplicate_index::DuplicateIndex::from(0usize); maximum + 1usize], false)].into_iter().all(|(values, empty)| {
+        let call_count = std::cell::Cell::new(0usize);
+        let result = crate::try_new_unique_vec::try_new_unique_vec(values.into(), |_duplicate_candidates| {
+            call_count.set(call_count.get() + 1usize);
+            None
+        });
+        let expected_error = match result {
+            Err(crate::not_empty_unique_vec_try_new_error::NotEmptyUniqueVecTryNewError::IsEmpty { .. }) => empty,
+            Err(crate::not_empty_unique_vec_try_new_error::NotEmptyUniqueVecTryNewError::TooLong { .. }) => !empty,
+            _ => false,
+        };
+        expected_error && call_count.get() == 0usize
+    }));
+}
+
+#[test]
+fn test_unique_vector_valid_sizes_invoke_duplicate_callback_once_and_preserve_result() {
+    let first = crate::duplicate_index::DuplicateIndex::from(1usize);
+    let second = crate::duplicate_index::DuplicateIndex::from(2usize);
+    assert!([(vec![first, second], false), (vec![first, second, first], true)].into_iter().all(|(values, duplicated)| {
+        let call_count = std::cell::Cell::new(0usize);
+        let result = crate::try_new_unique_vec::try_new_unique_vec(values.into(), |duplicate_candidates| {
+            call_count.set(call_count.get() + 1usize);
+            crate::take_first_duplicate::take_first_duplicate(duplicate_candidates)
+        });
+        let correct_result = match result {
+            Ok(validated_values) => !duplicated && validated_values == [first, second],
+            Err(crate::not_empty_unique_vec_try_new_error::NotEmptyUniqueVecTryNewError::NotUnique { v, .. }) => duplicated && v == first,
+            _ => false,
+        };
+        correct_result && call_count.get() == 1usize
+    }));
+}

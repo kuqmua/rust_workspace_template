@@ -114,31 +114,44 @@ mod tests {
             crate::json_fixture_ref::JsonFixtureRef::from(constants_str::VALUE_1_ALT),
         )
         .expect(constants_str::DIAGNOSTIC_7557A4B4);
+        let expected_diagnostic = serde_json::from_str::<TestValue>(constants_str::TEXT_ALT_13)
+            .err()
+            .map(|error| error.to_string());
+        assert!(expected_diagnostic.is_some());
         assert!(matches!(
             crate::ensure_json_contract_round_trip::ensure_json_contract_round_trip::<TestValue>(
                 crate::json_fixture_ref::JsonFixtureRef::from(constants_str::TEXT_ALT_13)
             ),
-            Err(crate::contract_error::ContractError::DeserializeFixture(_))
+            Err(crate::contract_error::ContractError::DeserializeFixture(source))
+                if Some(source.to_string()) == expected_diagnostic
         ));
     }
     #[test]
     fn test_serialization_error_phase_is_stable() {
+        let expected_diagnostic = serde_json::to_string(&SerializeFails)
+            .err()
+            .map(|error| error.to_string());
+        assert!(expected_diagnostic.is_some());
         assert!(matches!(
             crate::ensure_json_contract_round_trip::ensure_json_contract_round_trip::<SerializeFails>(
                 crate::json_fixture_ref::JsonFixtureRef::from(constants_str::JSON_NULL)
             ),
-            Err(crate::contract_error::ContractError::Serialize(_))
+            Err(crate::contract_error::ContractError::Serialize(source))
+                if Some(source.to_string()) == expected_diagnostic
         ));
     }
     #[test]
     fn test_round_trip_deserialization_error_phase_is_stable() {
+        let expected_diagnostic = serde_json::from_str::<ReparseFails>(constants_str::VALUE_2)
+            .err()
+            .map(|error| error.to_string());
+        assert!(expected_diagnostic.is_some());
         assert!(matches!(
             crate::ensure_json_contract_round_trip::ensure_json_contract_round_trip::<ReparseFails>(
                 crate::json_fixture_ref::JsonFixtureRef::from(constants_str::VALUE_1)
             ),
-            Err(crate::contract_error::ContractError::DeserializeRoundTrip(
-                _
-            ))
+            Err(crate::contract_error::ContractError::DeserializeRoundTrip(source))
+                if Some(source.to_string()) == expected_diagnostic
         ));
     }
 }

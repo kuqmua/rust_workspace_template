@@ -28,6 +28,40 @@ fn test_malformed_config_is_a_typed_parse_error() {
 }
 
 #[test]
+fn test_type_facade_parse_errors_preserve_complete_context_and_serde_diagnostics() {
+    [
+        quote::quote! {},
+        quote::quote! {{}},
+        quote::quote! {[]},
+        quote::quote! {null},
+        quote::quote! {true},
+        quote::quote! { invalid_config },
+    ]
+    .into_iter()
+    .fold((), |(), input| {
+        assert!(
+            serde_json::from_str::<crate::generate_pg_types_config::GeneratePgTypesConfig>(
+                &input.to_string(),
+            )
+            .is_err_and(|source| {
+                let message = stringify!(failed to parse GeneratePgTypesConfig)
+                    .chars()
+                    .chain([':', ' '])
+                    .chain(source.to_string().chars())
+                    .collect::<String>();
+                crate::generate_pg_types_tokens::generate_pg_types_tokens(
+                    macro_helpers::proc_macro2_token_stream_ref::ProcMacro2TokenStreamRef::from(
+                        &input,
+                    ),
+                )
+                .to_string()
+                    == quote::quote! { compile_error!(#message); }.to_string()
+            })
+        );
+    });
+}
+
+#[test]
 fn test_generated_type_list_deserialization_rejects_too_many_entries() {
     let serialized = serde_json::to_string(
         &[crate::pg_type_catalog_kind::PgTypeCatalogKind::I16AsInt2;
@@ -63,6 +97,7 @@ fn test_checked_pg_initialization_conversion_accepts_exact_supported_catalog() {
                 ) {
                     Ok(initialization) => {
                         supported.contains(&kind)
+                            && format!("{initialization:?}") == kind.to_string()
                             && crate::pg_type_catalog_kind::PgTypeCatalogKind::from(&initialization)
                                 == kind
                     }
@@ -71,6 +106,36 @@ fn test_checked_pg_initialization_conversion_accepts_exact_supported_catalog() {
             }
         )
     );
+}
+
+#[test]
+fn test_pg_deserialization_strategy_preserves_checked_constructor_identity_for_every_kind() {
+    let checked = [
+        crate::pg_type_catalog_kind::PgTypeCatalogKind::StringAsText,
+        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoNaiveTimeAsTime,
+        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesTimeTimeAsTime,
+        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoNaiveDateAsDate,
+        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeI32AsInt4Range,
+        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeI64AsInt8Range,
+    ];
+    let constructed = [
+        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgIntervalAsInterval,
+        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoNaiveDateTimeAsTimestamp,
+        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTz,
+        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateAsDateRange,
+        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeSqlxTypesChronoNaiveDateTimeAsTimestampRange,
+        crate::pg_type_catalog_kind::PgTypeCatalogKind::SqlxPgTypesPgRangeSqlxTypesChronoDateTimeSqlxTypesChronoUtcAsTimestampTzRange,
+    ];
+    assert!(<crate::pg_type_catalog_kind::PgTypeCatalogKind as strum::IntoEnumIterator>::iter()
+        .all(|kind| match crate::pg_type_deserialize::PgTypeDeserialize::from(&kind) {
+            crate::pg_type_deserialize::PgTypeDeserialize::Derive => !checked.contains(&kind)
+                && !constructed.contains(&kind),
+            crate::pg_type_deserialize::PgTypeDeserialize::ImplNewForDeserializeOrTryNewForDeserialize(strategy) => match strategy {
+                crate::pg_type_impl_new_for_deserialize_or_try_new_for_deserialize::PgTypeImplNewForDeserializeOrTryNewForDeserialize::NewForDeserialize => constructed.contains(&kind),
+                crate::pg_type_impl_new_for_deserialize_or_try_new_for_deserialize::PgTypeImplNewForDeserializeOrTryNewForDeserialize::TryNewForDeserialize(constructor) => checked.contains(&kind)
+                    && format!("{constructor:?}") == kind.to_string(),
+            },
+        }));
 }
 
 #[test]
@@ -175,12 +240,10 @@ fn test_pg_record_collections_enforce_length_at_conversion_and_deserialization()
 
 #[test]
 fn test_pg_type_pipeline_counts_all_empty_subset_and_concrete_variants() {
-    let all_count =
-        <crate::pg_type_catalog_kind::PgTypeCatalogKind as strum::IntoEnumIterator>::iter().count();
     let cases = [
         (
             quote::quote! {{ "pg_table_cols_write_into_file": "False", "whole_write_into_file": "False", "variant": "All" }},
-            all_count,
+            27usize,
         ),
         (
             quote::quote! {{ "pg_table_cols_write_into_file": "False", "whole_write_into_file": "False", "variant": {"Subset": []} }},
@@ -205,6 +268,56 @@ fn test_pg_type_pipeline_counts_all_empty_subset_and_concrete_variants() {
         .and_then(crate::build_generate_pg_types::build_generate_pg_types)
         .and_then(crate::validate_generate_pg_types::validate_generate_pg_types)
         .is_ok_and(|validated| usize::from(validated.entry_count()) == expected_count)
+    }));
+}
+
+#[test]
+fn test_pg_type_pipeline_preserves_flags_and_ordered_duplicate_subset_entries() {
+    let columns_key = stringify!(pg_table_cols_write_into_file);
+    let whole_key = stringify!(whole_write_into_file);
+    let secret_key = stringify!(generate_secret_text);
+    let variant_key = constants_str::VARIANT;
+    let subset_key = stringify!(Subset);
+    let text_type = stringify!(StringAsText);
+    let integer_type = stringify!(I16AsInt2);
+    assert!([false, true].into_iter().all(|columns_enabled| {
+        [false, true].into_iter().all(|whole_enabled| {
+            [None, Some(false), Some(true)].into_iter().all(|secret_enabled| {
+                let columns_text = if columns_enabled { stringify!(True) } else { stringify!(False) };
+                let whole_text = if whole_enabled { stringify!(True) } else { stringify!(False) };
+                let secret_tokens = secret_enabled.map_or_else(proc_macro2::TokenStream::new, |enabled| {
+                    quote::quote! { #secret_key: #enabled, }
+                });
+                let input = quote::quote! {{
+                    #columns_key: #columns_text,
+                    #whole_key: #whole_text,
+                    #secret_tokens
+                    #variant_key: { #subset_key: [#text_type, #integer_type, #text_type] }
+                }};
+                crate::parse_generate_pg_types::parse_generate_pg_types(
+                    macro_helpers::proc_macro2_token_stream_ref::ProcMacro2TokenStreamRef::from(&input),
+                )
+                .and_then(crate::build_generate_pg_types::build_generate_pg_types)
+                .and_then(crate::validate_generate_pg_types::validate_generate_pg_types)
+                .is_ok_and(|validated| {
+                    let (config, count) = validated.into_parts();
+                    assert_eq!(usize::from(count), 3usize);
+                    let (variant, columns, whole, secret) = config.into_parts();
+                    assert_eq!(matches!(columns, macro_helpers::should_write_token_stream_into_file::ShouldWriteTokenStreamIntoFile::True), columns_enabled);
+                    assert_eq!(matches!(whole, macro_helpers::should_write_token_stream_into_file::ShouldWriteTokenStreamIntoFile::True), whole_enabled);
+                    assert_eq!(bool::from(secret), secret_enabled.unwrap_or(false));
+                    match variant {
+                        crate::generate_pg_types_config_variant::GeneratePgTypesConfigVariant::Subset(types) => types.iter().copied().eq([
+                            crate::pg_type_catalog_kind::PgTypeCatalogKind::StringAsText,
+                            crate::pg_type_catalog_kind::PgTypeCatalogKind::I16AsInt2,
+                            crate::pg_type_catalog_kind::PgTypeCatalogKind::StringAsText,
+                        ]),
+                        crate::generate_pg_types_config_variant::GeneratePgTypesConfigVariant::All
+                        | crate::generate_pg_types_config_variant::GeneratePgTypesConfigVariant::Concrete(_) => false,
+                    }
+                })
+            })
+        })
     }));
 }
 

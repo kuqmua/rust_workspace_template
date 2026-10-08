@@ -171,6 +171,66 @@ mod tests {
     }
 
     #[test]
+    fn test_nonzero_integer_conversions_preserve_values_and_nested_error_sources() {
+        assert!(
+            [1i32, i32::from(u16::MAX), i32::MAX]
+                .into_iter()
+                .all(|integer| {
+                    std::num::NonZeroI32::new(integer).is_some_and(|non_zero_i32| {
+                        crate::not_zero_unsigned_part_of_i32::NotZeroUnsignedPartOfI32::try_from(
+                            non_zero_i32,
+                        )
+                        .is_ok_and(|not_zero_unsigned_part_of_i32| {
+                            crate::unsigned_part_of_i32::UnsignedPartOfI32::try_from(integer)
+                                .is_ok_and(|unsigned_part_of_i32| {
+                                    not_zero_unsigned_part_of_i32.get() == unsigned_part_of_i32
+                                        && crate::unsigned_part_of_i32::UnsignedPartOfI32::from(
+                                            not_zero_unsigned_part_of_i32,
+                                        ) == unsigned_part_of_i32
+                                        && unsigned_part_of_i32.get() == unsigned_part_of_i32
+                                })
+                        })
+                    })
+                })
+        );
+        assert!(
+            [std::num::NonZeroU16::MIN, std::num::NonZeroU16::MAX]
+                .into_iter()
+                .all(|non_zero_u16| {
+                    let not_zero_unsigned_part_of_i32 =
+                        crate::not_zero_unsigned_part_of_i32::NotZeroUnsignedPartOfI32::from(
+                            non_zero_u16,
+                        );
+                    *not_zero_unsigned_part_of_i32.get_inner()
+                        == std::num::NonZeroI32::from(non_zero_u16)
+                })
+        );
+        assert!([-1i32, i32::MIN].into_iter().all(|integer| {
+            let preserves_source = |result| {
+                matches!(result,
+                    Err(crate::not_zero_unsigned_part_of_i32_try_from_i32_error::NotZeroUnsignedPartOfI32TryFromI32Error::UnsignedPartOfI32TryFromI32Error {
+                        v: crate::unsigned_part_of_i32_try_from_i32_error::UnsignedPartOfI32TryFromI32Error::LessThanZero {
+                            v: unsigned_part_of_i32_raw, ..
+                        }, ..
+                    }) if unsigned_part_of_i32_raw == crate::unsigned_part_of_i32_raw::UnsignedPartOfI32Raw::from(integer)
+                )
+            };
+            preserves_source(crate::not_zero_unsigned_part_of_i32::NotZeroUnsignedPartOfI32::try_from(integer))
+                && std::num::NonZeroI32::new(integer).is_some_and(|non_zero_i32| {
+                    preserves_source(crate::not_zero_unsigned_part_of_i32::NotZeroUnsignedPartOfI32::try_from(non_zero_i32))
+                })
+        }));
+        assert_eq!(
+            <crate::not_zero_unsigned_part_of_i32::NotZeroUnsignedPartOfI32 as crate::default_some_one_element::DefaultSomeOneElement>::default_some_one_element(),
+            crate::not_zero_unsigned_part_of_i32::NotZeroUnsignedPartOfI32::default(),
+        );
+        assert_eq!(
+            <crate::unsigned_part_of_i32::UnsignedPartOfI32 as crate::default_some_one_element::DefaultSomeOneElement>::default_some_one_element(),
+            crate::unsigned_part_of_i32::UnsignedPartOfI32::from(0u16),
+        );
+    }
+
+    #[test]
     fn test_nonzero_database_value_rejects_zero() {
         assert!(matches!(
             crate::not_zero_unsigned_part_of_i32::NotZeroUnsignedPartOfI32::try_from(constants_i32::ZERO),

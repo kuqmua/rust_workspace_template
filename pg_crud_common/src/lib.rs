@@ -307,3 +307,6 @@ mod test_run_list_total_source_matrix;
 
 #[cfg(test)]
 mod test_schema_text_collections;
+
+#[cfg(test)]
+mod test_classify_pg_error;

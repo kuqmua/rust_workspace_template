@@ -51,6 +51,29 @@ impl std::io::Write for ToolOutputTail {
 #[cfg(test)]
 mod tests {
     #[test]
+    fn test_output_tail_replaces_existing_content_at_and_above_limit() {
+        [
+            ([4u8, 5u8, 6u8].as_slice(), [4u8, 5u8, 6u8]),
+            ([3u8, 4u8, 5u8, 6u8].as_slice(), [4u8, 5u8, 6u8]),
+        ]
+        .into_iter()
+        .fold((), |(), (replacement, expected)| {
+            let mut tail = crate::tool_output_tail::ToolOutputTail::new(
+                crate::tool_output_limit::ToolOutputLimit::from(3usize),
+            );
+            assert!(matches!(
+                std::io::Write::write(&mut tail, &[1u8, 2u8]),
+                Ok(2usize)
+            ));
+            assert!(
+                std::io::Write::write(&mut tail, replacement)
+                    .is_ok_and(|written| written == replacement.len())
+            );
+            assert_eq!(tail.into_bytes(), expected);
+        });
+    }
+
+    #[test]
     fn test_output_tail_retains_latest_bytes_across_writes() {
         let mut tail =
             super::ToolOutputTail::new(crate::tool_output_limit::ToolOutputLimit::from(5usize));

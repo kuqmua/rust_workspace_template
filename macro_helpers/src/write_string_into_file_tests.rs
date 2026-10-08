@@ -398,6 +398,13 @@ mod tests {
                 .downcast_ref::<String>()
                 .is_some_and(|message| message == &expected)
         }));
+        assert!(matches!(
+            std::panic::catch_unwind(|| cleanup(base.as_ref())),
+            Ok(())
+        ));
+        assert!(std::fs::metadata(&base).is_err_and(
+            |missing_path_error| missing_path_error.kind() == std::io::ErrorKind::NotFound
+        ));
     }
     #[test]
     fn test_atomic_file_writer_propagates_missing_parent_error_without_creating_directory() {
@@ -464,5 +471,39 @@ mod tests {
         );
         assert_content_and_cleanup(marker.as_path(), constants_str::ABC_ALT_3);
         assert!(matches!(std::fs::remove_dir(&path), Ok(())));
+    }
+    #[test]
+    fn test_file_content_assertion_rejects_read_failures_and_content_mismatch() {
+        let path = txt_path(stringify!(
+            test_file_content_assertion_rejects_read_failures_and_content_mismatch
+        ));
+        let invalid_utf8 = [u8::MAX];
+        [
+            (None, constants_str::X, true),
+            (Some(constants_str::XYZ.as_bytes()), constants_str::X, true),
+            (Some(invalid_utf8.as_slice()), constants_str::X, true),
+            (Some(constants_str::X.as_bytes()), constants_str::A, false),
+        ]
+        .into_iter()
+        .fold((), |(), (content, expected, read_failure)| {
+            cleanup(path.as_path());
+            if let Some(bytes) = content {
+                assert!(std::fs::write(&path, bytes).is_ok_and(|()| true));
+            }
+            let observed = std::panic::catch_unwind(|| {
+                crate::assert_file_content::assert_file_content(
+                    crate::std_assert_file_path::StdAssertFilePath::new(path.as_path()),
+                    crate::expected_file_content::ExpectedFileContent::new(expected),
+                );
+            });
+            assert!(observed.is_err_and(|payload| {
+                !read_failure
+                    || payload.downcast_ref::<String>().is_some_and(|message| {
+                        message.starts_with(constants_str::DIAGNOSTIC_D5EC6712)
+                    })
+            }));
+        });
+        assert!(std::fs::write(&path, constants_str::ABC_ALT_3).is_ok_and(|()| true));
+        assert_content_and_cleanup(path.as_path(), constants_str::ABC_ALT_3);
     }
 }

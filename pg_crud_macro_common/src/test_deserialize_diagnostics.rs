@@ -64,7 +64,30 @@ fn test_field_deserializer_applies_type_mapping_in_declaration_order() {
         let Some(syn::Item::Struct(raw)) = file.items.first() else {
             return false;
         };
+        let error_format = syn::LitStr::new(
+            &format!("{{{}:?}}", stringify!(error)),
+            proc_macro2::Span::call_site(),
+        );
+        let expected_body: syn::Block = syn::parse_quote! {
+            {
+                let raw = <TestMappedDeserializerRaw as _serde::Deserialize>::deserialize(__deserializer)?;
+                Self::try_new(raw.first, raw.second)
+                    .map_err(|error| _serde::de::Error::custom(format!(#error_format)))
+            }
+        };
+        let has_expected_deserializer = file.items.iter().any(|item| {
+            let syn::Item::Const(item_const) = item else { return false; };
+            let syn::Expr::Block(block) = item_const.expr.as_ref() else { return false; };
+            block.block.stmts.iter().any(|statement| {
+                let syn::Stmt::Item(syn::Item::Impl(item_impl)) = statement else { return false; };
+                item_impl.items.iter().any(|implementation_item| {
+                    matches!(implementation_item, syn::ImplItem::Fn(method)
+                        if method.sig.ident == stringify!(deserialize) && method.block == expected_body)
+                })
+            })
+        });
         raw.ident == stringify!(TestMappedDeserializerRaw)
+            && has_expected_deserializer
             && raw.fields.len() == 2usize
             && raw.fields.iter().zip([
                 (stringify!(first), quote::quote! { Option<(i64, first)> }),

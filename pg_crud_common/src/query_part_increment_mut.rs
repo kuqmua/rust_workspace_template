@@ -35,11 +35,22 @@ mod tests {
 
     #[test]
     fn test_checked_add_one_has_same_behavior_for_legacy_counter() {
-        let mut counter = 4u64;
-        assert_eq!(
-            crate::query_part_increment_mut::QueryPartIncrementMut::checked_add_one(&mut counter),
-            Some(crate::query_part_increment::QueryPartIncrement::from(5))
-        );
-        assert_eq!(counter, 5);
+        [
+            (0u64, Some(1u64), 1u64),
+            (4u64, Some(5u64), 5u64),
+            (u64::MAX - 1u64, Some(u64::MAX), u64::MAX),
+            (u64::MAX, None, u64::MAX),
+        ]
+        .into_iter()
+        .fold((), |(), (value, expected, final_value)| {
+            let mut counter = value;
+            assert_eq!(
+                crate::query_part_increment_mut::QueryPartIncrementMut::checked_add_one(
+                    &mut counter,
+                ),
+                expected.map(crate::query_part_increment::QueryPartIncrement::from),
+            );
+            assert_eq!(counter, final_value);
+        });
     }
 }

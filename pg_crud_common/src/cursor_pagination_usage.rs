@@ -54,4 +54,41 @@ mod tests {
             crate::cursor_pagination_usage::CursorPaginationUsage::CursorOnly
         );
     }
+
+    #[test]
+    fn test_all_cursor_and_offset_presence_combinations_have_distinct_usage() {
+        assert!(
+            [
+                (
+                    crate::offset_pagination_presence::OffsetPaginationPresence::Absent,
+                    crate::signed_cursor_presence::SignedCursorPresence::Absent,
+                    crate::cursor_pagination_usage::CursorPaginationUsage::NoOffsetNoCursor
+                ),
+                (
+                    crate::offset_pagination_presence::OffsetPaginationPresence::Absent,
+                    crate::signed_cursor_presence::SignedCursorPresence::Present,
+                    crate::cursor_pagination_usage::CursorPaginationUsage::CursorOnly
+                ),
+                (
+                    crate::offset_pagination_presence::OffsetPaginationPresence::Present,
+                    crate::signed_cursor_presence::SignedCursorPresence::Absent,
+                    crate::cursor_pagination_usage::CursorPaginationUsage::OffsetOnly
+                ),
+                (
+                    crate::offset_pagination_presence::OffsetPaginationPresence::Present,
+                    crate::signed_cursor_presence::SignedCursorPresence::Present,
+                    crate::cursor_pagination_usage::CursorPaginationUsage::OffsetAndCursor
+                ),
+            ]
+            .into_iter()
+            .all(
+                |(offset_pagination_presence, signed_cursor_presence, expected)| {
+                    crate::cursor_pagination_usage::CursorPaginationUsage::from_presence(
+                        offset_pagination_presence,
+                        signed_cursor_presence,
+                    ) == expected
+                }
+            )
+        );
+    }
 }

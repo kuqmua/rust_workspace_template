@@ -1,6 +1,75 @@
 #[cfg(test)]
 mod tests {
     #[test]
+    fn test_server_exit_code_report_preserves_every_byte_exit_status() {
+        assert!((u8::MIN..=u8::MAX).all(|value| {
+            std::process::Termination::report(crate::server_exit_code::ServerExitCode::from(
+                std::process::ExitCode::from(value),
+            )) == std::process::ExitCode::from(value)
+        }));
+    }
+
+    #[test]
+    fn test_server_startup_errors_preserve_operation_context_and_inner_messages() {
+        let server_io_error = crate::server_io_error::ServerIoError::from(std::io::Error::from(
+            std::io::ErrorKind::PermissionDenied,
+        ));
+        let io_message = server_io_error.to_string();
+        let sqlx_server_pg_connect_error =
+            crate::sqlx_server_pg_connect_error::SqlxServerPgConnectError::from(
+                sqlx::Error::RowNotFound,
+            );
+        let database_message = sqlx_server_pg_connect_error.to_string();
+        let std_run_interval_try_from_duration_error =
+            server_runtime_http::std_run_interval_try_from_duration_error::StdRunIntervalTryFromDurationError::Zero;
+        let interval_message = std_run_interval_try_from_duration_error.to_string();
+        let std_request_timeout_try_from_duration_error =
+            server_runtime_http::std_request_timeout_try_from_duration_error::StdRequestTimeoutTryFromDurationError::Zero;
+        let timeout_message = std_request_timeout_try_from_duration_error.to_string();
+        assert!(
+            [
+                (
+                    crate::run_server_error::RunServerError::BuildRuntime(server_io_error),
+                    stringify!(failed to build tokio runtime),
+                    io_message,
+                ),
+                (
+                    crate::run_server_error::RunServerError::PgConnect(
+                        sqlx_server_pg_connect_error
+                    ),
+                    stringify!(failed to connect to postgres),
+                    database_message,
+                ),
+                (
+                    crate::run_server_error::RunServerError::RuntimeInterval(
+                        std_run_interval_try_from_duration_error,
+                    ),
+                    stringify!(invalid server runtime interval),
+                    interval_message,
+                ),
+                (
+                    crate::run_server_error::RunServerError::RuntimeTimeout(
+                        std_request_timeout_try_from_duration_error,
+                    ),
+                    stringify!(invalid server runtime timeout),
+                    timeout_message,
+                ),
+            ]
+            .into_iter()
+            .all(|(error, context, source_message)| error.to_string()
+                == context
+                    .chars()
+                    .chain([':', ' '])
+                    .chain(source_message.chars())
+                    .collect::<String>())
+        );
+        assert_eq!(
+            crate::run_server_error::RunServerError::PgPoolConfiguration.to_string(),
+            stringify!(postgres minimum connections must not exceed maximum connections)
+        );
+    }
+
+    #[test]
     fn test_bind_service_socket_error_reports_address_and_preserves_source() {
         assert!([
             std::net::SocketAddr::from((std::net::Ipv4Addr::LOCALHOST, 8080u16)),
@@ -73,6 +142,66 @@ mod tests {
                 .expect(constants_str::DIAGNOSTIC_1A1131EA)
                 .len()
                 > 1_000usize
+        );
+    }
+
+    #[tokio::test]
+    async fn test_api_body_limit_accepts_exact_boundary_and_preserves_operational_routes() {
+        let check_limit = async |http_body_maximum_bytes: crate::http_body_maximum_bytes::HttpBodyMaximumBytes| {
+            let limit = http_body_maximum_bytes.get();
+            let operational_path = common_routes::common_route::CommonRoute::HealthLive.path();
+            let body_handler = async |bytes| {
+                (
+                    axum::http::StatusCode::OK,
+                    axum::body::Bytes::len(&bytes).to_string(),
+                )
+            };
+            let router = axum::Router::from(crate::mount_service_routes::mount_service_routes(
+                server_runtime_http::axum_router::AxumRouter::from(
+                    axum::Router::new()
+                        .route(operational_path.as_ref(), axum::routing::post(body_handler)),
+                ),
+                crate::axum_api_routes::AxumApiRoutes::from(axum::Router::new().route(
+                    constants_str::VALUE_87D0B7F8,
+                    axum::routing::post(body_handler),
+                )),
+                http_body_maximum_bytes,
+            ));
+            let send_body = async |path, length, expected_status| {
+                let request_result = axum::http::Request::post(path)
+                    .body(axum::body::Body::from(vec![0u8; length]));
+                assert!(request_result.as_ref().is_ok_and(|request| request.method() == axum::http::Method::POST));
+                let Ok(request) = request_result else {
+                    return;
+                };
+                let response_result = tower::ServiceExt::oneshot(router.clone(), request).await;
+                assert!(response_result.as_ref().is_ok_and(|response| response.status() == expected_status));
+                let Ok(response) = response_result;
+                if expected_status == axum::http::StatusCode::OK {
+                    let body = axum::body::to_bytes(response.into_body(), 1_024usize).await;
+                    assert!(body.is_ok_and(|bytes| bytes.as_ref() == length.to_string().as_bytes()));
+                }
+            };
+            tokio::join!(
+                send_body(constants_str::VALUE_87D0B7F8, limit.saturating_sub(1usize), axum::http::StatusCode::OK),
+                send_body(constants_str::VALUE_87D0B7F8, limit, axum::http::StatusCode::OK),
+                send_body(constants_str::VALUE_87D0B7F8, limit + 1usize, axum::http::StatusCode::PAYLOAD_TOO_LARGE),
+                send_body(operational_path.as_ref(), limit + 1usize, axum::http::StatusCode::OK),
+            );
+        };
+        tokio::join!(
+            check_limit(crate::http_body_maximum_bytes::HttpBodyMaximumBytes::from(
+                0usize
+            )),
+            check_limit(crate::http_body_maximum_bytes::HttpBodyMaximumBytes::from(
+                1usize
+            )),
+            check_limit(crate::http_body_maximum_bytes::HttpBodyMaximumBytes::from(
+                4usize
+            )),
+            check_limit(crate::http_body_maximum_bytes::HttpBodyMaximumBytes::from(
+                1_024usize
+            )),
         );
     }
 

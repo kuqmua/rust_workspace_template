@@ -225,6 +225,10 @@ mod tests {
             crate::lease_heartbeat::LeaseHeartbeat::Missing
         );
         assert_eq!(
+            registry.stale(timeout).await.as_ref(),
+            std::slice::from_ref(&lease_id)
+        );
+        assert_eq!(
             registry.release(&lease_id).await,
             crate::lease_heartbeat::LeaseHeartbeat::Accepted
         );

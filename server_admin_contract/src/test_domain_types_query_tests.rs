@@ -198,3 +198,54 @@ fn test_pagination_malformed_string_and_numeric_overflows_preserve_sources() {
             })
     );
 }
+
+#[test]
+fn test_pagination_integer_deserializers_preserve_exact_conversion_and_domain_errors() {
+    assert!([i128::MIN, -1i128, i128::from(u64::MAX) + 1i128, i128::MAX]
+        .into_iter().all(|integer| {
+            u64::try_from(integer).err().is_some_and(|source| {
+                let expected = source.to_string();
+                <crate::admin_page_limit::AdminPageLimit as serde::Deserialize>::deserialize(
+                    serde::de::value::I128Deserializer::<serde::de::value::Error>::new(integer),
+                ).is_err_and(|error| error.to_string() == expected)
+                    && <crate::admin_page_offset::AdminPageOffset as serde::Deserialize>::deserialize(
+                        serde::de::value::I128Deserializer::<serde::de::value::Error>::new(integer),
+                    ).is_err_and(|error| error.to_string() == expected)
+            })
+        }));
+    assert!([u128::from(u64::MAX) + 1u128, u128::MAX]
+        .into_iter().all(|integer| {
+            u64::try_from(integer).err().is_some_and(|source| {
+                let expected = source.to_string();
+                <crate::admin_page_limit::AdminPageLimit as serde::Deserialize>::deserialize(
+                    serde::de::value::U128Deserializer::<serde::de::value::Error>::new(integer),
+                ).is_err_and(|error| error.to_string() == expected)
+                    && <crate::admin_page_offset::AdminPageOffset as serde::Deserialize>::deserialize(
+                        serde::de::value::U128Deserializer::<serde::de::value::Error>::new(integer),
+                    ).is_err_and(|error| error.to_string() == expected)
+            })
+        }));
+    assert!([u64::from(u32::MAX) + 1u64, u64::MAX]
+        .into_iter().all(|integer| {
+            u16::try_from(integer).err().zip(u32::try_from(integer).err())
+                .is_some_and(|(limit_source, offset_source)| {
+                    <crate::admin_page_limit::AdminPageLimit as serde::Deserialize>::deserialize(
+                        serde::de::value::U64Deserializer::<serde::de::value::Error>::new(integer),
+                    ).is_err_and(|error| error.to_string() == limit_source.to_string())
+                        && <crate::admin_page_offset::AdminPageOffset as serde::Deserialize>::deserialize(
+                            serde::de::value::U64Deserializer::<serde::de::value::Error>::new(integer),
+                        ).is_err_and(|error| error.to_string() == offset_source.to_string())
+                })
+        }));
+    let expected = crate::admin_page_limit_error::AdminPageLimitError::OutOfRange.to_string();
+    assert!(
+        [0u64, 101u64, u64::from(u16::MAX)]
+            .into_iter()
+            .all(|integer| {
+                <crate::admin_page_limit::AdminPageLimit as serde::Deserialize>::deserialize(
+                    serde::de::value::U64Deserializer::<serde::de::value::Error>::new(integer),
+                )
+                .is_err_and(|error| error.to_string() == expected)
+            })
+    );
+}

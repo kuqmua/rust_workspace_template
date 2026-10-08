@@ -35,4 +35,25 @@ mod tests {
             Ok(1.5f64)
         );
     }
+
+    #[test]
+    fn test_finite_values_preserve_extremes_signed_zero_and_subnormal_bits() {
+        assert!(
+            [
+                f64::MIN,
+                f64::MAX,
+                f64::MIN_POSITIVE,
+                -f64::MIN_POSITIVE,
+                0.0f64,
+                -0.0f64,
+                f64::from_bits(1u64),
+                -f64::from_bits(1u64),
+            ]
+            .into_iter()
+            .all(|value| {
+                crate::finite_f64::FiniteF64::try_from(value)
+                    .is_ok_and(|finite_f64| f64::from(finite_f64).to_bits() == value.to_bits())
+            })
+        );
+    }
 }

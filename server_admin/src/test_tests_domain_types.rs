@@ -451,16 +451,77 @@ fn test_access_token_round_trip_checks_issuer_and_audience() {
             .expect(constants_str::DIAGNOSTIC_5B88F22A)
     );
     assert_eq!(decoded.session_id(), claims.session_id());
-    drop(
-        crate::decode_access_token::decode_access_token(
-            &token,
-            &secret,
-            &issuer,
-            &config_lib::admin_token_audience::AdminTokenAudience::try_from(
-                constants_str::WRONG_AUDIENCE.to_owned(),
-            )
-            .expect(constants_str::DIAGNOSTIC_92F9C5EC),
+    assert_eq!(decoded, claims);
+    let rejected = |result, error_kind| {
+        matches!(result, Err(crate::admin_access_token_error::AdminAccessTokenError::Token(source))
+            if source.get_inner().kind() == &error_kind)
+    };
+    assert!(
+        config_lib::admin_token_audience::AdminTokenAudience::try_from(
+            constants_str::WRONG_AUDIENCE.to_owned()
         )
-        .expect_err(constants_str::A82438CC),
+        .is_ok_and(|wrong_audience| rejected(
+            crate::decode_access_token::decode_access_token(
+                &token,
+                &secret,
+                &issuer,
+                &wrong_audience
+            ),
+            jsonwebtoken::errors::ErrorKind::InvalidAudience
+        ))
+    );
+    assert!(
+        config_lib::admin_token_issuer::AdminTokenIssuer::try_from(
+            constants_str::TEST_AUDIENCE.to_owned()
+        )
+        .is_ok_and(|wrong_issuer| rejected(
+            crate::decode_access_token::decode_access_token(
+                &token,
+                &secret,
+                &wrong_issuer,
+                &audience
+            ),
+            jsonwebtoken::errors::ErrorKind::InvalidIssuer
+        ))
+    );
+    let wrong_secret = crate::runtime_admin_jwt_secret::RuntimeAdminJwtSecret::new(admin_secret(
+        constants_str::FIXED_TEST_TOKEN,
+    ));
+    assert!(rejected(
+        crate::decode_access_token::decode_access_token(&token, &wrong_secret, &issuer, &audience),
+        jsonwebtoken::errors::ErrorKind::InvalidSignature
+    ));
+    assert!(
+        crate::std_admin_access_token::StdAdminAccessToken::try_from(constants_str::X.to_owned())
+            .is_ok_and(|malformed_token| rejected(
+                crate::decode_access_token::decode_access_token(
+                    &malformed_token,
+                    &secret,
+                    &issuer,
+                    &audience
+                ),
+                jsonwebtoken::errors::ErrorKind::InvalidToken
+            ))
+    );
+    assert!(
+        jsonwebtoken::encode(
+            &jsonwebtoken::Header::new(jsonwebtoken::Algorithm::HS512),
+            &claims,
+            &jsonwebtoken::EncodingKey::from_secret(
+                secrecy::ExposeSecret::expose_secret(secret.get_inner().as_ref()).as_bytes()
+            )
+        )
+        .is_ok_and(
+            |encoded| crate::std_admin_access_token::StdAdminAccessToken::try_from(encoded)
+                .is_ok_and(|disallowed_token| rejected(
+                    crate::decode_access_token::decode_access_token(
+                        &disallowed_token,
+                        &secret,
+                        &issuer,
+                        &audience
+                    ),
+                    jsonwebtoken::errors::ErrorKind::InvalidAlgorithm
+                ))
+        )
     );
 }

@@ -235,4 +235,85 @@ mod tests {
             Err(crate::date_sql_filter_error::DateSqlFilterError::BindIndexOverflow)
         );
     }
+
+    #[test]
+    fn test_sparse_date_bounds_preserve_sql_and_bind_value_order() {
+        assert!(
+            chrono::DateTime::<chrono::Utc>::from_timestamp(1i64, 0u32).is_some_and(|last| {
+                let dates = [
+                    chrono::DateTime::<chrono::Utc>::MIN_UTC,
+                    chrono::DateTime::<chrono::Utc>::UNIX_EPOCH,
+                    chrono::DateTime::<chrono::Utc>::MAX_UTC,
+                    last,
+                ];
+                crate::sql_identifier::SqlIdentifier::try_from(constants_str::X.to_owned())
+                    .is_ok_and(|identifier| {
+                        (0u8..16u8).all(|mask| {
+                            let enabled = std::array::from_fn::<_, 4usize, _>(|index| {
+                                mask & (1u8 << index) != 0u8
+                            });
+                            [None, Some(&identifier)].into_iter().all(|alias| {
+                                let prefix = alias.map_or_else(String::new, |table_alias| {
+                                    format!("{}.", table_alias.as_ref())
+                                });
+                                let terms = [
+                                    (
+                                        constants_str::CREATED_AT,
+                                        constants_str::GREATER_OR_EQUAL,
+                                        enabled[0],
+                                    ),
+                                    (
+                                        constants_str::CREATED_AT,
+                                        constants_str::LESS_OR_EQUAL,
+                                        enabled[1],
+                                    ),
+                                    (
+                                        constants_str::UPDATED_AT,
+                                        constants_str::GREATER_OR_EQUAL,
+                                        enabled[2],
+                                    ),
+                                    (
+                                        constants_str::UPDATED_AT,
+                                        constants_str::LESS_OR_EQUAL,
+                                        enabled[3],
+                                    ),
+                                ];
+                                let expected_sql = terms
+                                    .into_iter()
+                                    .filter(|(_, _, active)| *active)
+                                    .zip(1usize..)
+                                    .map(|((column, comparator, _), bind)| {
+                                        format!(
+                                            "{prefix}{column} {comparator}{}{bind}",
+                                            constants_str::DOLLAR_SIGN
+                                        )
+                                    })
+                                    .collect::<Vec<_>>()
+                                    .join(constants_str::AND);
+                                let expected_values = dates
+                                    .iter()
+                                    .zip(enabled)
+                                    .filter(|(_, active)| *active)
+                                    .map(|(date, _)| *date)
+                                    .collect::<Vec<_>>();
+                                crate::build_date_sql_filter::build_date_sql_filter(
+                                    alias,
+                                    crate::date_filter_bounds::DateFilterBounds::new(
+                                        enabled[0].then(|| (&dates[0]).into()),
+                                        enabled[1].then(|| (&dates[1]).into()),
+                                        enabled[2].then(|| (&dates[2]).into()),
+                                        enabled[3].then(|| (&dates[3]).into()),
+                                    ),
+                                    std::num::NonZeroU32::MIN.into(),
+                                )
+                                .is_ok_and(|filter| {
+                                    filter.get_fragment().as_ref() == expected_sql
+                                        && filter.get_values().as_ref() == expected_values
+                                })
+                            })
+                        })
+                    })
+            })
+        );
+    }
 }

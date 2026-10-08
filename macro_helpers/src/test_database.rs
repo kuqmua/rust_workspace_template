@@ -1,6 +1,50 @@
 #[cfg(test)]
 mod tests {
     #[test]
+    fn test_database_url_preserves_exact_sanitized_targets_and_error_precedence() {
+        [constants_str::POSTGRES, constants_str::POSTGRESQL]
+            .into_iter()
+            .fold((), |(), scheme| {
+                [
+                    (constants_str::LOCALHOST, constants_str::TEST_ALT_3, 0u8),
+                    (constants_str::PATH_1, constants_str::TEST_ALT_3, 0u8),
+                    (constants_str::X, constants_str::POSTGRES, 1u8),
+                    (constants_str::LOCALHOST, constants_str::POSTGRES, 2u8),
+                ]
+                .into_iter()
+                .fold((), |(), (host, database, expected_variant)| {
+                    let authority_host = if host == constants_str::PATH_1 {
+                        format!("[{host}]")
+                    } else {
+                        host.to_owned()
+                    };
+                    let url = format!(
+                        "{scheme}{}{}:{}@{authority_host}:5432/{database}?{}={}#{}",
+                        constants_str::TEXT_ALT_10,
+                        constants_str::ADMIN_ALT,
+                        constants_str::PRODUCTION_SECRET,
+                        constants_str::X,
+                        constants_str::X,
+                        constants_str::X,
+                    );
+                    let expected_target =
+                        format!("{scheme}{}{host}/{database}", constants_str::TEXT_ALT_10);
+                    let result = crate::validate_test_database_url::validate_test_database_url(
+                        crate::url_ref::UrlRef::from(url.as_str()),
+                    );
+                    assert!(match (expected_variant, result) {
+                        (0u8, Ok(target))
+                        | (1u8, Err(crate::url_error::UrlError::NonLoopback { target }))
+                        | (2u8, Err(crate::url_error::UrlError::AmbiguousDatabase { target })) => {
+                            target.to_string() == expected_target
+                        }
+                        _ => false,
+                    });
+                });
+            });
+    }
+
+    #[test]
     fn test_database_url_rejects_case_insensitive_and_bare_query_overrides() {
         let base = constants_str::POSTGRES_USER_SECRET_LOCALHOST_TEST;
         [

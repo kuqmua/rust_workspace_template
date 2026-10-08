@@ -153,3 +153,111 @@ fn test_transport_request_header_updates_preserve_payload_and_other_headers() {
     assert_eq!(replaced_headers.path().as_ref(), constants_str::SLASH);
     assert_eq!(replaced_headers.route(), route);
 }
+
+#[test]
+fn test_transport_retry_after_validates_exact_byte_limits_and_preserves_utf8() {
+    assert!(matches!(
+        crate::transport_retry_after::TransportRetryAfter::try_from(
+            constants_str::EMPTY.to_owned()
+        ),
+        Err(
+            crate::transport_retry_after::TransportRetryAfterTryFromStringError::TooShort {
+                len: 0usize,
+                min: 1usize
+            }
+        )
+    ));
+    [
+        constants_str::X.to_owned(),
+        constants_str::X.repeat(128usize),
+        '\u{e9}'.to_string().repeat(64usize),
+    ]
+    .into_iter()
+    .fold((), |(), value| {
+        assert!(
+            crate::transport_retry_after::TransportRetryAfter::try_from(value.clone())
+                .is_ok_and(|header| header.as_ref() == value)
+        );
+    });
+    [constants_str::X.repeat(129usize), '\u{e9}'.to_string().repeat(65usize)].into_iter().fold((), |(), value| {
+        let length = value.len();
+        assert!(matches!(crate::transport_retry_after::TransportRetryAfter::try_from(value), Err(crate::transport_retry_after::TransportRetryAfterTryFromStringError::TooLong { len, max: 128usize }) if len == length));
+    });
+}
+
+#[test]
+fn test_transport_path_validates_exact_byte_limits_and_preserves_empty_and_utf8() {
+    assert_eq!(
+        crate::transport_path::TransportPath::default().as_ref(),
+        constants_str::EMPTY
+    );
+    [
+        constants_str::EMPTY.to_owned(),
+        constants_str::X.to_owned(),
+        constants_str::X.repeat(8192usize),
+        '\u{e9}'.to_string().repeat(4096usize),
+    ]
+    .into_iter()
+    .fold((), |(), value| {
+        assert!(
+            crate::transport_path::TransportPath::try_from(value.clone())
+                .is_ok_and(|path| path.as_ref() == value)
+        );
+    });
+    [constants_str::X.repeat(8193usize), '\u{e9}'.to_string().repeat(4097usize)].into_iter().fold((), |(), value| {
+        let length = value.len();
+        assert!(matches!(crate::transport_path::TransportPath::try_from(value), Err(crate::transport_path::TransportPathTryFromStringError::TooLong { len, max: 8192usize }) if len == length));
+    });
+}
+
+#[test]
+fn test_transport_error_text_preserves_empty_and_exact_byte_bounds() {
+    let maximum = constants_usize::VALUE_1_048_576;
+    assert!(
+        crate::transport_error::TransportError::try_from(String::new()).is_ok_and(|error| error
+            == crate::transport_error::TransportError::default()
+            && error.to_string().is_empty())
+    );
+    assert!(
+        crate::transport_error::TransportError::try_from(constants_str::X.repeat(maximum))
+            .is_ok_and(|error| error
+                .to_string()
+                .chars()
+                .eq(constants_str::X.chars().cycle().take(maximum)))
+    );
+    assert_eq!(
+        crate::transport_error::TransportError::try_from(constants_str::X.repeat(maximum + 1usize)),
+        Err(
+            to_err_string::error_text::ErrorTextTryFromStringError::TooLong {
+                len: maximum + 1usize,
+                max: maximum
+            }
+        )
+    );
+    let character = '\u{00e9}';
+    let character_count = 524_288usize;
+    assert_eq!(
+        character_count.saturating_mul(character.len_utf8()),
+        maximum
+    );
+    assert!(
+        crate::transport_error::TransportError::try_from(
+            character.to_string().repeat(character_count)
+        )
+        .is_ok_and(|error| error
+            .to_string()
+            .chars()
+            .eq(std::iter::repeat_n(character, character_count)))
+    );
+    assert_eq!(
+        crate::transport_error::TransportError::try_from(
+            character.to_string().repeat(character_count + 1usize)
+        ),
+        Err(
+            to_err_string::error_text::ErrorTextTryFromStringError::TooLong {
+                len: maximum + character.len_utf8(),
+                max: maximum
+            }
+        )
+    );
+}

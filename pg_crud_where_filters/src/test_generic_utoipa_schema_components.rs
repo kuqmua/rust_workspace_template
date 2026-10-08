@@ -37,3 +37,18 @@ fn test_pg_type_not_empty_unique_vec_schema_registers_item_component() {
             .any(|(name, _schema)| { name == <u8 as utoipa::ToSchema>::name().as_ref() })
     );
 }
+
+#[test]
+fn test_between_openapi_schema_requires_exactly_both_typed_bounds() {
+    let schema = <crate::between::Between<i32> as utoipa::PartialSchema>::schema();
+    assert!(matches!(schema,
+        utoipa::openapi::RefOr::T(utoipa::openapi::schema::Schema::Object(object))
+            if object.schema_type == utoipa::openapi::schema::SchemaType::new(utoipa::openapi::schema::Type::Object)
+                && object.properties.len() == 2usize
+                && object.properties.get(constants_str::PG_CRUD_START_FIELD) == Some(&<i32 as utoipa::PartialSchema>::schema())
+                && object.properties.get(constants_str::PG_CRUD_END_FIELD) == Some(&<i32 as utoipa::PartialSchema>::schema())
+                && object.required.iter().map(String::as_str).eq([
+                    constants_str::PG_CRUD_START_FIELD, constants_str::PG_CRUD_END_FIELD,
+                ])
+    ));
+}

@@ -152,7 +152,7 @@ mod tests {
     fn test_try_from_enforces_inclusive_bounds() {
         assert!(matches!(
             crate::pg_bounded_vec::PgBoundedVec::<u8, 1, 2>::try_from(Vec::new()),
-            Err(crate::bounded_vec_error::BoundedVecError::BelowMin { .. })
+            Err(crate::bounded_vec_error::BoundedVecError::BelowMin { actual, min }) if actual == crate::pg_bounded_vec_len::PgBoundedVecLen::from(0usize) && min == crate::pg_bounded_vec_len::PgBoundedVecLen::from(1usize)
         ));
         assert_eq!(
             crate::pg_bounded_vec::PgBoundedVec::<u8, 1, 2>::try_from(vec![1u8])
@@ -168,14 +168,14 @@ mod tests {
         );
         assert!(matches!(
             crate::pg_bounded_vec::PgBoundedVec::<u8, 1, 2>::try_from(vec![1u8, 2u8, 3u8]),
-            Err(crate::bounded_vec_error::BoundedVecError::AboveMax { .. })
+            Err(crate::bounded_vec_error::BoundedVecError::AboveMax { actual, max }) if actual == crate::pg_bounded_vec_len::PgBoundedVecLen::from(3usize) && max == crate::pg_bounded_vec_len::PgBoundedVecLen::from(2usize)
         ));
     }
     #[test]
     fn test_invalid_bounds_are_rejected() {
         assert!(matches!(
             crate::pg_bounded_vec::PgBoundedVec::<u8, 2, 1>::try_from(vec![1u8]),
-            Err(crate::bounded_vec_error::BoundedVecError::InvalidBounds { .. })
+            Err(crate::bounded_vec_error::BoundedVecError::InvalidBounds { min, max }) if min == crate::pg_bounded_vec_len::PgBoundedVecLen::from(2usize) && max == crate::pg_bounded_vec_len::PgBoundedVecLen::from(1usize)
         ));
     }
     #[test]

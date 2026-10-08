@@ -36,6 +36,75 @@ impl<Report: Clone + Send + Sync + 'static> BackgroundJob<Report> {
 #[cfg(test)]
 mod tests {
     #[tokio::test]
+    async fn test_terminal_failure_is_recorded_once_and_shared_history_evicts_it() {
+        let maximum_result = crate::async_run_history_maximum_len_non_zero_usize::AsyncRunHistoryMaximumLenNonZeroUsize::try_from(1usize);
+        assert_eq!(
+            maximum_result.as_ref().map(|maximum| maximum.get()),
+            Ok(1usize)
+        );
+        if let Ok(maximum) = maximum_result {
+            let job = super::BackgroundJob::new(
+                crate::async_run_history::AsyncRunHistory::new(maximum),
+                crate::retry_policy::RetryPolicy::new(
+                    crate::retry_attempts_non_zero_usize::RetryAttemptsNonZeroUsize::from(
+                        std::num::NonZeroUsize::MIN.saturating_add(2usize),
+                    ),
+                    None,
+                ),
+            );
+            let shared = job.clone();
+            let calls = std::cell::Cell::new(0usize);
+            let classifications = std::cell::Cell::new(0usize);
+            let mappings = std::cell::Cell::new(0usize);
+            let report = job
+                .run_once(
+                    || {
+                        calls.set(calls.get() + 1usize);
+                        std::future::ready(Err::<usize, usize>(7usize))
+                    },
+                    |_| {
+                        classifications.set(classifications.get() + 1usize);
+                        false
+                    },
+                    |outcome| {
+                        mappings.set(mappings.get() + 1usize);
+                        (outcome.attempts().get(), outcome.into_result())
+                    },
+                )
+                .await;
+            assert_eq!(report, (1usize, Err(7usize)));
+            assert_eq!(calls.get(), 1usize);
+            assert_eq!(classifications.get(), 1usize);
+            assert_eq!(mappings.get(), 1usize);
+            let failure_snapshot = shared.snapshot().await;
+            assert_eq!(failure_snapshot.latest_report(), Some(&report));
+            assert_eq!(
+                failure_snapshot.report_count(),
+                crate::std_async_run_history_report_count::StdAsyncRunHistoryReportCount::from(
+                    1usize
+                )
+            );
+            let success = shared
+                .run_once(
+                    || std::future::ready(Ok::<usize, usize>(9usize)),
+                    |_| true,
+                    |outcome| (outcome.attempts().get(), outcome.into_result()),
+                )
+                .await;
+            assert_eq!(success, (1usize, Ok(9usize)));
+            let latest_snapshot = job.snapshot().await;
+            assert_eq!(latest_snapshot.latest_report(), Some(&success));
+            assert_eq!(
+                latest_snapshot.report_count(),
+                crate::std_async_run_history_report_count::StdAsyncRunHistoryReportCount::from(
+                    1usize
+                )
+            );
+            assert_eq!(failure_snapshot.latest_report(), Some(&report));
+        }
+    }
+
+    #[tokio::test]
     async fn test_run_records_retry_outcome_in_bounded_history() {
         let history = crate::async_run_history::AsyncRunHistory::new(
             crate::async_run_history_maximum_len_non_zero_usize::AsyncRunHistoryMaximumLenNonZeroUsize::try_from(constants_usize::ONE).expect(constants_str::DIAGNOSTIC_5DC81FA2),

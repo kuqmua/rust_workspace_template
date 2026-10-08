@@ -246,3 +246,68 @@ fn test_sign_in_request_into_parts_preserves_login_and_password_ownership() {
         crate::admin_sign_in_request::AdminSignInRequest::new(admin_login, admin_password);
     assert!(serde_json::to_value(rebuilt_request).is_ok_and(|wire| wire == expected));
 }
+
+#[test]
+fn test_user_summary_accepts_every_plain_and_selected_field_combination() {
+    let expected = serde_json::json!({
+        (stringify!(display_name)): constants_str::ADMIN,
+        (stringify!(id)): 7i64,
+        (stringify!(is_banned)): true,
+        (stringify!(login)): constants_str::LOGIN,
+        (stringify!(role_ids)): [],
+    });
+    assert!((0u8..16u8).all(|mask| {
+        let fields = [
+            (
+                stringify!(display_name),
+                serde_json::json!(constants_str::ADMIN),
+            ),
+            (stringify!(id), serde_json::json!(7i64)),
+            (stringify!(is_banned), serde_json::json!(true)),
+            (stringify!(login), serde_json::json!(constants_str::LOGIN)),
+        ]
+        .into_iter()
+        .enumerate()
+        .map(|(index, (name, field))| {
+            let value = if mask & (1u8 << index) == 0u8 {
+                field
+            } else {
+                serde_json::json!({(stringify!(value)): field})
+            };
+            (name.to_owned(), value)
+        })
+        .collect::<serde_json::Map<String, serde_json::Value>>();
+        serde_json::from_value::<crate::admin_user_summary::AdminUserSummary>(
+            serde_json::Value::Object(fields),
+        )
+        .is_ok_and(|admin_user_summary| {
+            serde_json::to_value(admin_user_summary).is_ok_and(|actual| actual == expected)
+        })
+    }));
+}
+
+#[test]
+fn test_user_summary_rejects_malformed_selected_field_values() {
+    assert!([
+        (stringify!(display_name), serde_json::json!({})),
+        (stringify!(display_name), serde_json::json!({(stringify!(value)): constants_str::EMPTY})),
+        (stringify!(id), serde_json::json!({(stringify!(value)): 0i64})),
+        (stringify!(id), serde_json::json!({(stringify!(value)): null})),
+        (stringify!(is_banned), serde_json::json!({(stringify!(value)): 1u8})),
+        (stringify!(login), serde_json::json!({(stringify!(value)): constants_str::ADMIN})),
+        (stringify!(login), serde_json::json!({(stringify!(value)): {(stringify!(value)): constants_str::LOGIN}})),
+    ].into_iter().all(|(name, field)| {
+        let mut input = serde_json::json!({
+            (stringify!(display_name)): constants_str::ADMIN,
+            (stringify!(id)): 7i64,
+            (stringify!(is_banned)): true,
+            (stringify!(login)): constants_str::LOGIN,
+        });
+        let Some(value) = input.get_mut(name) else {
+            return false;
+        };
+        *value = field;
+        serde_json::from_value::<crate::admin_user_summary::AdminUserSummary>(input)
+            .is_err_and(|error| error.is_data())
+    }));
+}

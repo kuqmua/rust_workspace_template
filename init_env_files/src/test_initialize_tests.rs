@@ -1,10 +1,12 @@
-fn fixture() -> std::path::PathBuf {
-    let root = std::env::temp_dir().join(format!(
-        "rust-workspace-template-environment-{}",
-        uuid::Uuid::new_v4()
-    ));
-    std::fs::create_dir_all(root.join(constants_str::SERVICE))
-        .expect(constants_str::DIAGNOSTIC_FDBF7411);
+fn fixture(init_path_ref: crate::init_path_ref::InitPathRef<'_>) -> std::path::PathBuf {
+    let root = std::env::temp_dir().join(init_path_ref.get());
+    (if root.exists() {
+        std::fs::remove_dir_all(&root)
+    } else {
+        Ok(())
+    })
+    .and_then(|()| std::fs::create_dir_all(root.join(constants_str::SERVICE)))
+    .expect(constants_str::DIAGNOSTIC_FDBF7411);
     std::fs::write(
         root.join(constants_str::CARGO_TOML),
         constants_str::WORKSPACE_NEWLINE_MEMBERS_SERVICE_NEWLINE,
@@ -43,7 +45,11 @@ fn test_environment_write_failure_preserves_typed_io_source() {
 
 #[test]
 fn test_dry_run_apply_and_repeat_are_safe_and_idempotent() {
-    let root = fixture();
+    let root = fixture(crate::init_path_ref::InitPathRef::from(
+        std::path::Path::new(stringify!(
+            test_dry_run_apply_and_repeat_are_safe_and_idempotent
+        )),
+    ));
     let dry = crate::initialize::initialize(
         crate::workspace_root_path_ref::WorkspaceRootPathRef::from(root.as_path()),
         crate::run_mode::RunMode::DryRun,
@@ -75,6 +81,21 @@ fn test_dry_run_apply_and_repeat_are_safe_and_idempotent() {
         constants_str::SECRET_CUSTOM_NEWLINE,
     )
     .expect(constants_str::DIAGNOSTIC_2D67B058);
+    let dry_update = crate::initialize::initialize(
+        crate::workspace_root_path_ref::WorkspaceRootPathRef::from(root.as_path()),
+        crate::run_mode::RunMode::DryRun,
+    );
+    assert!(
+        dry_update.is_ok_and(|entries| entries.as_ref().first().is_some_and(|entry| {
+            entry.status() == crate::initialization_status::InitializationStatus::WouldUpdate
+                && entry.member().as_ref() == constants_str::SERVICE
+                && entry.keys().as_ref().len().get() == 2usize
+        }))
+    );
+    assert!(
+        std::fs::read_to_string(root.join(constants_str::SERVICE_ENV))
+            .is_ok_and(|content| content == constants_str::SECRET_CUSTOM_NEWLINE)
+    );
     let updated = crate::initialize::initialize(
         crate::workspace_root_path_ref::WorkspaceRootPathRef::from(root.as_path()),
         crate::run_mode::RunMode::Apply,
@@ -105,11 +126,79 @@ fn test_dry_run_apply_and_repeat_are_safe_and_idempotent() {
             .status(),
         crate::initialization_status::InitializationStatus::SkippedExisting
     );
+    assert!(
+        std::fs::remove_file(root.join(constants_str::SERVICE_ENV_EXAMPLE)).is_ok_and(|()| true)
+    );
+    assert!(
+        crate::initialize::initialize(
+            crate::workspace_root_path_ref::WorkspaceRootPathRef::from(root.as_path()),
+            crate::run_mode::RunMode::DryRun,
+        )
+        .is_ok_and(|entries| entries.as_ref().is_empty())
+    );
+    assert!(
+        std::fs::read_to_string(root.join(constants_str::SERVICE_ENV))
+            .is_ok_and(|content| content == updated_content)
+    );
     std::fs::remove_dir_all(root).expect(constants_str::DIAGNOSTIC_BD9180CA);
+}
+
+#[test]
+fn test_initialization_manifest_failures_preserve_distinct_error_stages() {
+    let root = fixture(crate::init_path_ref::InitPathRef::from(
+        std::path::Path::new(stringify!(
+            test_initialization_manifest_failures_preserve_distinct_error_stages
+        )),
+    ));
+    let manifest_path = root.join(constants_str::CARGO_TOML);
+    assert!(std::fs::remove_file(&manifest_path).is_ok_and(|()| true));
+    let result = crate::initialize::initialize(
+        crate::workspace_root_path_ref::WorkspaceRootPathRef::from(root.as_path()),
+        crate::run_mode::RunMode::DryRun,
+    );
+    assert!(result.is_err_and(|error| matches!(
+        &error,
+        crate::initialize_error::InitializeError::ReadManifest { .. }
+    ) && std::error::Error::source(&error).is_some_and(
+        <dyn std::error::Error>::is::<server_runtime_http::bounded_read_error::BoundedReadError>
+    )));
+    let invalid_manifest = '['.to_string();
+    let expected_diagnostic = toml::from_str::<toml::Value>(&invalid_manifest)
+        .err()
+        .map(|error| error.to_string());
+    assert!(expected_diagnostic.is_some());
+    assert!(std::fs::write(&manifest_path, &invalid_manifest).is_ok_and(|()| true));
+    let parse_result = crate::initialize::initialize(
+        crate::workspace_root_path_ref::WorkspaceRootPathRef::from(root.as_path()),
+        crate::run_mode::RunMode::DryRun,
+    );
+    assert!(parse_result.is_err_and(
+        |error| matches!(error, crate::initialize_error::InitializeError::ManifestParse { source }
+        if Some(source.to_string()) == expected_diagnostic)
+    ));
+    [
+        constants_str::EMPTY.to_owned(),
+        constants_str::WORKSPACE_NEWLINE_MEMBERS_SERVICE_NEWLINE
+            .replace(constants_str::MEMBERS, constants_str::X),
+    ]
+    .into_iter()
+    .fold((), |(), manifest| {
+        assert!(std::fs::write(&manifest_path, manifest).is_ok_and(|()| true));
+        assert!(matches!(
+            crate::initialize::initialize(
+                crate::workspace_root_path_ref::WorkspaceRootPathRef::from(root.as_path()),
+                crate::run_mode::RunMode::DryRun,
+            ),
+            Err(crate::initialize_error::InitializeError::MembersMissing)
+        ));
+    });
+    assert!(std::fs::remove_dir_all(root).is_ok_and(|()| true));
 }
 #[test]
 fn test_escaping_member_is_rejected() {
-    let root = fixture();
+    let root = fixture(crate::init_path_ref::InitPathRef::from(
+        std::path::Path::new(stringify!(test_escaping_member_is_rejected)),
+    ));
     std::fs::write(
         root.join(constants_str::CARGO_TOML),
         constants_str::WORKSPACE_NEWLINE_MEMBERS_OUTSIDE_NEWLINE,
@@ -126,7 +215,9 @@ fn test_escaping_member_is_rejected() {
 }
 #[test]
 fn test_oversized_environment_example_is_rejected() {
-    let root = fixture();
+    let root = fixture(crate::init_path_ref::InitPathRef::from(
+        std::path::Path::new(stringify!(test_oversized_environment_example_is_rejected)),
+    ));
     std::fs::write(
         root.join(constants_str::SERVICE_ENV_EXAMPLE),
         constants_str::A_ALT
@@ -304,4 +395,111 @@ fn test_workspace_member_text_and_toml_path_boundaries() {
                 .is_some_and(|text| workspace_member.as_ref() == text)
         })
     );
+}
+
+#[test]
+fn test_environment_merge_preserves_existing_values_and_normalizes_missing_newline() {
+    let root = fixture(crate::init_path_ref::InitPathRef::from(
+        std::path::Path::new(stringify!(
+            test_environment_merge_preserves_existing_values_and_normalizes_missing_newline
+        )),
+    ));
+    let public_line = constants_str::PUBLIC_VALUE_NEWLINE_SECRET_CHANGE_ME_NEWLINE
+        .lines()
+        .take(1usize)
+        .flat_map(|line| line.chars().chain(std::iter::once('\n')))
+        .collect::<String>();
+    let expected_updated = [constants_str::SECRET_CUSTOM_NEWLINE, public_line.as_str()].concat();
+    [
+        (
+            constants_str::EMPTY,
+            constants_str::PUBLIC_VALUE_NEWLINE_SECRET_CHANGE_ME_NEWLINE,
+        ),
+        (
+            constants_str::SECRET_CUSTOM_NEWLINE.trim_end_matches('\n'),
+            expected_updated.as_str(),
+        ),
+        (
+            constants_str::SECRET_CUSTOM_NEWLINE,
+            expected_updated.as_str(),
+        ),
+    ]
+    .into_iter()
+    .fold((), |(), (current, expected)| {
+        assert!(
+            std::fs::write(root.join(constants_str::SERVICE_ENV), current).is_ok_and(|()| true)
+        );
+        assert!(
+            crate::initialize::initialize(
+                crate::workspace_root_path_ref::WorkspaceRootPathRef::from(root.as_path()),
+                crate::run_mode::RunMode::Apply,
+            )
+            .is_ok_and(|entries| entries.as_ref().first().is_some_and(|entry| {
+                entry.status() == crate::initialization_status::InitializationStatus::Updated
+                    && entry.member().as_ref() == constants_str::SERVICE
+                    && entry.keys().as_ref().len().get() == 2usize
+            }))
+        );
+        assert!(
+            std::fs::read_to_string(root.join(constants_str::SERVICE_ENV))
+                .is_ok_and(|content| content == expected)
+        );
+        assert!(
+            crate::initialize::initialize(
+                crate::workspace_root_path_ref::WorkspaceRootPathRef::from(root.as_path()),
+                crate::run_mode::RunMode::Apply,
+            )
+            .is_ok_and(|entries| entries.as_ref().first().is_some_and(|entry| {
+                entry.status()
+                    == crate::initialization_status::InitializationStatus::SkippedExisting
+            }))
+        );
+        assert!(
+            std::fs::read_to_string(root.join(constants_str::SERVICE_ENV))
+                .is_ok_and(|content| content == expected)
+        );
+    });
+    assert!(std::fs::remove_dir_all(root).is_ok_and(|()| true));
+}
+
+#[test]
+fn test_environment_initializer_rejects_invalid_utf8_in_example_and_existing_content() {
+    let root = fixture(crate::init_path_ref::InitPathRef::from(
+        std::path::Path::new(stringify!(
+            test_environment_initializer_rejects_invalid_utf8_in_example_and_existing_content
+        )),
+    ));
+    [
+        constants_str::SERVICE_ENV_EXAMPLE,
+        constants_str::SERVICE_ENV,
+    ]
+    .into_iter()
+    .fold((), |(), relative_path| {
+        assert!(
+            std::fs::write(
+                root.join(constants_str::SERVICE_ENV_EXAMPLE),
+                constants_str::PUBLIC_VALUE_NEWLINE_SECRET_CHANGE_ME_NEWLINE
+            )
+            .is_ok_and(|()| true)
+        );
+        assert!(
+            std::fs::write(
+                root.join(constants_str::SERVICE_ENV),
+                constants_str::SECRET_CUSTOM_NEWLINE
+            )
+            .is_ok_and(|()| true)
+        );
+        assert!(std::fs::write(root.join(relative_path), [u8::MAX]).is_ok_and(|()| true));
+        assert!(matches!(
+            crate::initialize::initialize(
+                crate::workspace_root_path_ref::WorkspaceRootPathRef::from(root.as_path()),
+                crate::run_mode::RunMode::Apply,
+            ),
+            Err(crate::initialize_error::InitializeError::ReadExample {
+                source: server_runtime_http::bounded_read_error::BoundedReadError::Utf8 { .. }
+            })
+        ));
+        assert!(std::fs::read(root.join(relative_path)).is_ok_and(|content| content == [u8::MAX]));
+    });
+    assert!(std::fs::remove_dir_all(root).is_ok_and(|()| true));
 }

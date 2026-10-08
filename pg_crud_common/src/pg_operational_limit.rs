@@ -21,3 +21,18 @@ impl TryFrom<u64> for PgOperationalLimit {
             .ok_or(crate::pg_operational_limit_error::PgOperationalLimitError::ZeroLimit)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn test_operational_limit_rejects_zero_and_preserves_nonzero_boundaries() {
+        assert_eq!(
+            super::PgOperationalLimit::try_from(0u64),
+            Err(crate::pg_operational_limit_error::PgOperationalLimitError::ZeroLimit)
+        );
+        assert!([1u64, u64::MAX].into_iter().all(|value| {
+            super::PgOperationalLimit::try_from(value)
+                .is_ok_and(|limit| limit.get_inner().get() == value)
+        }));
+    }
+}

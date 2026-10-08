@@ -117,4 +117,16 @@ mod tests {
         .expect(constants_str::DIAGNOSTIC_298B587F);
         assert_eq!(value.get().len(), constants_usize::ONE);
     }
+
+    #[test]
+    fn test_postgres_bounded_map_duplicate_keys_preserve_wire_entry_limit() {
+        let input = || {
+            serde::de::value::MapDeserializer::<_, serde::de::value::Error>::new(
+                [(1u8, 2u8), (1u8, 3u8)].into_iter(),
+            )
+        };
+        assert!(<crate::pg_bounded_b_tree_map::PgBoundedBTreeMap<u8, u8, 2> as serde::Deserialize>::deserialize(input())
+            .is_ok_and(|values| values.get().len() == 1usize && values.get().get(&1u8) == Some(&3u8)));
+        assert!(<crate::pg_bounded_b_tree_map::PgBoundedBTreeMap<u8, u8, 1> as serde::Deserialize>::deserialize(input()).is_err_and(|error| error.to_string() == bounded_types::bounded_value_error::BoundedValueError::AboveMax { actual: bounded_types::bounded_len::BoundedLen::from(2usize), max: bounded_types::bounded_len::BoundedLen::from(1usize) }.to_string()));
+    }
 }

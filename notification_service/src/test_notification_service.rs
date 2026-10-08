@@ -45,7 +45,16 @@ async fn test_boundary_adapters_preserve_status_state_and_exit_code() {
         AsRef::<str>::as_ref(extracted.get()),
         AsRef::<str>::as_ref(&state)
     );
-    let _pool = app_state::sqlx_pg_pool_provider::SqlxPgPoolProvider::sqlx_pg_pool(&state);
+    let pool = app_state::sqlx_pg_pool_provider::SqlxPgPoolProvider::sqlx_pg_pool(&state);
+    assert!(std::ptr::eq(pool.as_ref(), state.get_pool().as_ref()));
+    assert_eq!(
+        std::process::Termination::report(
+            crate::notification_exit_code::NotificationExitCode::from(
+                std::process::ExitCode::FAILURE
+            )
+        ),
+        std::process::ExitCode::FAILURE
+    );
 }
 
 #[tokio::test]
@@ -78,6 +87,22 @@ async fn test_default_service_routes_return_success_statuses() {
     .await
     .expect(constants_str::DIAGNOSTIC_717FB1F4);
     assert_eq!(liveness_response.status(), http::StatusCode::OK);
+    assert_eq!(
+        liveness_response.headers().get(http::header::CONTENT_TYPE),
+        Some(&http::HeaderValue::from_static(
+            constants_str::APPLICATION_JSON
+        ))
+    );
+    assert!(
+        axum::body::to_bytes(liveness_response.into_body(), 16_384usize)
+            .await
+            .is_ok_and(|bytes| {
+                serde_json::from_slice::<common_routes::health_report::HealthReport>(&bytes)
+                    .is_ok_and(|report| {
+                        report == common_routes::health_report::HealthReport::liveness()
+                    })
+            })
+    );
     let open_api_response = tower::ServiceExt::oneshot(
         router.clone(),
         http::Request::builder()
@@ -88,6 +113,23 @@ async fn test_default_service_routes_return_success_statuses() {
     .await
     .expect(constants_str::DIAGNOSTIC_2D37FBD2);
     assert_eq!(open_api_response.status(), http::StatusCode::OK);
+    assert_eq!(
+        open_api_response.headers().get(http::header::CONTENT_TYPE),
+        Some(&http::HeaderValue::from_static(
+            constants_str::APPLICATION_JSON
+        ))
+    );
+    let mut expected_document = crate::open_api_document::open_api_document();
+    expected_document.merge(utoipa::openapi::OpenApi::from(
+        common_routes::common_routes_open_api::CommonRoutesOpenApi::open_api(),
+    ));
+    assert!(
+        axum::body::to_bytes(open_api_response.into_body(), 1_048_576usize)
+            .await
+            .is_ok_and(|bytes| serde_json::from_slice::<serde_json::Value>(&bytes)
+                .is_ok_and(|document| serde_json::to_value(&expected_document)
+                    .is_ok_and(|expected| document == expected)))
+    );
     let metrics_response = tower::ServiceExt::oneshot(
         router.clone(),
         http::Request::builder()
@@ -103,10 +145,22 @@ async fn test_default_service_routes_return_success_statuses() {
     .await
     .expect(constants_str::DIAGNOSTIC_81C4E6A2);
     assert_eq!(metrics_response.status(), http::StatusCode::OK);
+    let empty_text_response = axum::response::IntoResponse::into_response(constants_str::EMPTY);
+    assert_eq!(
+        metrics_response.headers().get(http::header::CONTENT_TYPE),
+        empty_text_response
+            .headers()
+            .get(http::header::CONTENT_TYPE)
+    );
+    assert!(
+        axum::body::to_bytes(metrics_response.into_body(), 16_384usize)
+            .await
+            .is_ok_and(|bytes| bytes.is_empty())
+    );
 
     let create_metadata = <notification_service_contract::create_notification_route::CreateNotificationRoute as frontend_contract::typed_route::TypedRoute>::metadata();
     let invalid_request = tower::ServiceExt::oneshot(
-        router,
+        router.clone(),
         http::Request::builder()
             .method(create_metadata.method().as_ref())
             .uri(create_metadata.path().as_ref())
@@ -126,6 +180,70 @@ async fn test_default_service_routes_return_success_statuses() {
             .get::<server_runtime_http::http_error_telemetry::HttpErrorTelemetry>()
             .is_some()
     );
+    let rejects_request =
+        async |form_value: Result<
+            frontend_contract::form_value::FormValue,
+            frontend_contract::form_value::FormValueTryFromStringError,
+        >,
+               content_type: Option<frontend_contract::contract_str::ContractStr>| {
+            let Ok(body) = form_value else {
+                return false;
+            };
+            let request_builder = http::Request::builder()
+                .method(create_metadata.method().as_ref())
+                .uri(create_metadata.path().as_ref());
+            let typed_request_builder = match content_type {
+                Some(contract_str) => {
+                    request_builder.header(http::header::CONTENT_TYPE, contract_str.as_ref())
+                }
+                None => request_builder,
+            };
+            let Ok(request) =
+                typed_request_builder.body(axum::body::Body::from(body.as_ref().to_owned()))
+            else {
+                return false;
+            };
+            let Ok(response) = tower::ServiceExt::oneshot(router.clone(), request).await;
+            if response.status() != http::StatusCode::UNPROCESSABLE_ENTITY
+                || !response
+                    .extensions()
+                    .get::<server_runtime_http::http_error_telemetry::HttpErrorTelemetry>()
+                    .is_some_and(|telemetry| {
+                        telemetry.error_code().to_string()
+                            == constants_str::NOTIFICATION_OBSERVED_ERROR_VALIDATION
+                    })
+                || response
+                    .extensions()
+                    .get::<server_runtime_http::http_error_diagnostic::HttpErrorDiagnostic>()
+                    .is_some()
+            {
+                return false;
+            }
+            axum::body::to_bytes(response.into_body(), 16_384usize)
+                .await
+                .is_ok_and(|bytes| {
+                    serde_json::from_slice::<frontend_contract::api_problem::ApiProblem>(&bytes)
+                        .is_ok_and(|problem| {
+                            problem
+                            == frontend_contract::api_problem::ApiProblem::from_error(
+                                frontend_contract::api_problem_error::ApiProblemError::Validation,
+                            )
+                        })
+                })
+        };
+    let json_content_type = Some(frontend_contract::contract_str::ContractStr::from(
+        constants_str::APPLICATION_JSON,
+    ));
+    assert_eq!(tokio::join!(
+        rejects_request(frontend_contract::form_value::FormValue::try_from(serde_json::json!({ (stringify!(message)): constants_str::X }).to_string()), None),
+        rejects_request(frontend_contract::form_value::FormValue::try_from(serde_json::json!({ (stringify!(message)): constants_str::X }).to_string()), Some(frontend_contract::contract_str::ContractStr::from(constants_str::TEXT_PLAIN))),
+        rejects_request(frontend_contract::form_value::FormValue::try_from(serde_json::json!({ (stringify!(message)): constants_str::EMPTY }).to_string()), json_content_type),
+        rejects_request(frontend_contract::form_value::FormValue::try_from(serde_json::json!({ (stringify!(message)): constants_str::X.repeat(4097usize) }).to_string()), json_content_type),
+        rejects_request(frontend_contract::form_value::FormValue::try_from(serde_json::json!({}).to_string()), json_content_type),
+        rejects_request(frontend_contract::form_value::FormValue::try_from(serde_json::json!({ (stringify!(message)): 1u8 }).to_string()), json_content_type),
+        rejects_request(frontend_contract::form_value::FormValue::try_from(serde_json::json!({ (stringify!(message)): constants_str::X, (stringify!(unknown)): constants_str::X }).to_string()), json_content_type),
+        rejects_request(frontend_contract::form_value::FormValue::try_from(' '.to_string().repeat(notification_service_contract::notification_api_body_max_bytes::NOTIFICATION_API_BODY_MAX_BYTES + 1usize)), json_content_type),
+    ), (true, true, true, true, true, true, true, true));
 }
 
 #[test]
@@ -175,8 +293,8 @@ fn test_open_api_operation_and_statuses_come_from_the_typed_route() {
     assert_eq!(observed_statuses, expected_statuses);
 }
 
-#[test]
-fn test_api_problem_preserves_server_diagnostic_but_keeps_validation_expected() {
+#[tokio::test]
+async fn test_api_problem_preserves_server_diagnostic_but_keeps_validation_expected() {
     let server_response = axum::response::IntoResponse::into_response(
         crate::create_notification_error::CreateNotificationError::Persistence(
             server_observability::observed_error::ObservedError::capture(
@@ -237,6 +355,54 @@ fn test_api_problem_preserves_server_diagnostic_but_keeps_validation_expected() 
             .extensions()
             .get::<server_runtime_http::http_error_diagnostic::HttpErrorDiagnostic>()
             .is_some()
+    );
+    let response_matches = async |axum_notification_response: crate::axum_notification_response::AxumNotificationResponse, api_problem: frontend_contract::api_problem::ApiProblem, http_error_code: server_runtime_http::http_error_code::HttpErrorCode| {
+        let response = axum::response::IntoResponse::into_response(axum_notification_response);
+        let telemetry = response.extensions().get::<server_runtime_http::http_error_telemetry::HttpErrorTelemetry>().copied().or_else(|| response.extensions().get::<server_runtime_http::http_error_diagnostic::HttpErrorDiagnostic>().map(|diagnostic| *diagnostic.telemetry()));
+        if !telemetry.is_some_and(|observed| observed.error_code().to_string() == http_error_code.to_string() && observed.error_type().to_string() == constants_str::NOTIFICATION_API_ERROR_TYPE)
+            || response.headers().get(http::header::CONTENT_TYPE) != Some(&http::HeaderValue::from_static(constants_str::APPLICATION_PROBLEM_PLUS_JSON)) {
+            return false;
+        }
+        axum::body::to_bytes(response.into_body(), 16_384usize).await.is_ok_and(|bytes| serde_json::from_slice::<frontend_contract::api_problem::ApiProblem>(&bytes).is_ok_and(|decoded| decoded == api_problem))
+    };
+    let internal_problem = || {
+        frontend_contract::api_problem::ApiProblem::from_error(
+            frontend_contract::api_problem_error::ApiProblemError::Internal(
+                frontend_contract::api_problem_status::ApiProblemStatus::from(
+                    frontend_contract::known_http_status::KnownHttpStatus::InternalServerError,
+                ),
+            ),
+        )
+    };
+    assert_eq!(
+        tokio::join!(
+            response_matches(
+                crate::axum_notification_response::AxumNotificationResponse::from(server_response),
+                internal_problem(),
+                server_runtime_http::http_error_code::HttpErrorCode::from(
+                    constants_str::NOTIFICATION_OBSERVED_ERROR_PERSISTENCE
+                )
+            ),
+            response_matches(
+                crate::axum_notification_response::AxumNotificationResponse::from(
+                    validation_response
+                ),
+                frontend_contract::api_problem::ApiProblem::from_error(
+                    frontend_contract::api_problem_error::ApiProblemError::Validation
+                ),
+                server_runtime_http::http_error_code::HttpErrorCode::from(
+                    constants_str::NOTIFICATION_OBSERVED_ERROR_VALIDATION
+                )
+            ),
+            response_matches(
+                crate::axum_notification_response::AxumNotificationResponse::from(metrics_response),
+                internal_problem(),
+                server_runtime_http::http_error_code::HttpErrorCode::from(
+                    constants_str::NOTIFICATION_OBSERVED_ERROR_METRICS_RENDER
+                )
+            )
+        ),
+        (true, true, true)
     );
 }
 
@@ -457,4 +623,67 @@ async fn test_create_notification_persists_through_http_route() {
         ),
     );
     assert_eq!(closed_responses, (true, true, true, true));
+}
+
+#[test]
+fn test_notification_error_codes_preserve_exact_operation_identity() {
+    assert!(
+        [
+            (
+                crate::notification_error_code::NotificationErrorCode::MetricsRender,
+                constants_str::NOTIFICATION_OBSERVED_ERROR_METRICS_RENDER
+            ),
+            (
+                crate::notification_error_code::NotificationErrorCode::Persistence,
+                constants_str::NOTIFICATION_OBSERVED_ERROR_PERSISTENCE
+            ),
+            (
+                crate::notification_error_code::NotificationErrorCode::Validation,
+                constants_str::NOTIFICATION_OBSERVED_ERROR_VALIDATION
+            ),
+        ]
+        .into_iter()
+        .all(|(notification_error_code, expected)| notification_error_code.get() == expected)
+    );
+}
+
+#[test]
+fn test_notification_response_and_id_preserve_deterministic_uuid_json_round_trips() {
+    assert!([uuid::Uuid::nil(), uuid::Uuid::from_u128(1u128), uuid::Uuid::from_u128(u128::MAX)].into_iter().all(|uuid| {
+        let uuid_notification_id = notification_service_contract::uuid_notification_id::UuidNotificationId::from(uuid);
+        let response = notification_service_contract::create_notification_response::CreateNotificationResponse::new(uuid_notification_id);
+        response.id() == uuid_notification_id
+            && uuid::Uuid::from(uuid_notification_id) == uuid
+            && serde_json::to_value(uuid_notification_id).is_ok_and(|encoded| {
+                encoded == serde_json::json!(uuid.to_string())
+                    && serde_json::from_value::<notification_service_contract::uuid_notification_id::UuidNotificationId>(encoded).is_ok_and(|decoded| decoded == uuid_notification_id)
+            })
+            && serde_json::to_value(response).is_ok_and(|encoded| {
+                encoded == serde_json::json!({ (stringify!(id)): uuid.to_string() })
+                    && serde_json::from_value::<notification_service_contract::create_notification_response::CreateNotificationResponse>(encoded).is_ok_and(|decoded| decoded == response)
+            })
+    }));
+}
+
+#[test]
+fn test_notification_response_and_id_reject_invalid_uuid_json_values() {
+    assert!([
+        serde_json::json!(constants_str::EMPTY),
+        serde_json::json!(constants_str::X),
+        serde_json::json!(null),
+        serde_json::json!(1u8),
+        serde_json::json!(true),
+        serde_json::json!([]),
+        serde_json::json!({}),
+    ].into_iter().all(|value| {
+        let response_value = serde_json::json!({ (stringify!(id)): value });
+        serde_json::from_value::<notification_service_contract::uuid_notification_id::UuidNotificationId>(value).is_err_and(|error| error.is_data())
+            && serde_json::from_value::<notification_service_contract::create_notification_response::CreateNotificationResponse>(response_value).is_err_and(|error| error.is_data())
+    }));
+    assert!(
+        serde_json::from_value::<
+            notification_service_contract::create_notification_response::CreateNotificationResponse,
+        >(serde_json::json!({}))
+        .is_err_and(|error| error.is_data())
+    );
 }

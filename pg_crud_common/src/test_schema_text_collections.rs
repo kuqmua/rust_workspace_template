@@ -82,3 +82,64 @@ fn test_schema_text_collection_preserves_first_oversized_error() {
         matches!((expected, observed), (Err(expected_error), Err(crate::db_schema_conformance_error::DbSchemaConformanceError::SchemaTextTooLong(observed_error))) if expected_error == observed_error)
     );
 }
+
+#[test]
+#[allow(
+    clippy::large_stack_arrays,
+    reason = "inline const references promote byte arrays to read-only static test fixtures without stack or leaked heap allocations"
+)]
+fn test_static_schema_text_preserves_exact_limit_and_overflow_error() {
+    assert!(
+        std::str::from_utf8(const { &[b'x'; constants_usize::VALUE_1_048_576] }).is_ok_and(
+            |input| {
+                crate::static_schema_text::static_schema_text(
+                    crate::db_static_schema_text::DbStaticSchemaText::from(input),
+                )
+                .is_ok_and(|text| text.as_ref() == input)
+            }
+        )
+    );
+    assert!(std::str::from_utf8(const { &[b'x'; constants_usize::VALUE_1_048_576 + constants_usize::ONE] })
+        .is_ok_and(|input| {
+            let expected = crate::db_schema_text::DbSchemaText::try_from(input.to_owned());
+            let observed = crate::static_schema_text::static_schema_text(
+                crate::db_static_schema_text::DbStaticSchemaText::from(input),
+            );
+            matches!((expected, observed),
+                (Err(expected_error), Err(crate::db_schema_conformance_error::DbSchemaConformanceError::SchemaTextTooLong(observed_error)))
+                if expected_error == observed_error)
+        }));
+}
+
+#[test]
+#[allow(
+    clippy::large_stack_arrays,
+    reason = "inline const references promote byte arrays to read-only static test fixtures without stack or leaked heap allocations"
+)]
+fn test_static_schema_text_collection_preserves_overflow_position_and_first_error() {
+    assert!(std::str::from_utf8(const { &[b'x'; constants_usize::VALUE_1_048_576 + constants_usize::ONE] })
+        .is_ok_and(|first| {
+            std::str::from_utf8(const { &[b'x'; constants_usize::VALUE_1_048_576 + constants_usize::TWO] })
+                .is_ok_and(|second| {
+                    let preserves_error = |db_static_schema_texts: crate::db_static_schema_texts::DbStaticSchemaTexts| {
+                        let expected = crate::db_schema_text::DbSchemaText::try_from(first.to_owned());
+                        let observed = crate::static_schema_texts::static_schema_texts(db_static_schema_texts);
+                        matches!((expected, observed),
+                            (Err(expected_error), Err(crate::db_schema_conformance_error::DbSchemaConformanceError::SchemaTextTooLong(observed_error)))
+                            if expected_error == observed_error)
+                    };
+                    [0usize, 1usize, 2usize].into_iter().all(|oversized_position| {
+                        let values = (0usize..3usize).map(|position| {
+                            crate::db_static_schema_text::DbStaticSchemaText::from(
+                                if position == oversized_position { first } else { constants_str::TEST_DB_COLUMN_ID },
+                            )
+                        }).collect::<Vec<_>>().into();
+                        preserves_error(values)
+                    }) && preserves_error(vec![
+                        crate::db_static_schema_text::DbStaticSchemaText::from(constants_str::TEST_DB_COLUMN_ID),
+                        crate::db_static_schema_text::DbStaticSchemaText::from(first),
+                        crate::db_static_schema_text::DbStaticSchemaText::from(second),
+                    ].into())
+                })
+        }));
+}

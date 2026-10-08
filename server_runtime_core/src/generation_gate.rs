@@ -41,6 +41,36 @@ impl GenerationGate {
 #[cfg(test)]
 mod tests {
     #[test]
+    fn test_generation_final_success_and_repeated_overflow_preserve_classification() {
+        let previous = crate::generation::Generation::from(u64::MAX - 1u64);
+        let final_generation = crate::generation::Generation::from(u64::MAX);
+        let gate = super::GenerationGate {
+            current: crate::generation_atomic_u64::GenerationAtomicU64::from(
+                std::sync::atomic::AtomicU64::new(u64::MAX - 1u64),
+            ),
+        };
+        assert_eq!(
+            gate.classify(previous),
+            crate::generation_commit::GenerationCommit::Current
+        );
+        assert_eq!(
+            gate.classify(final_generation),
+            crate::generation_commit::GenerationCommit::Stale
+        );
+        assert_eq!(gate.begin(), Ok(final_generation));
+        assert!((0usize..3usize).all(|_| {
+            gate.begin()
+                == Err(
+                    crate::generation_begin_error::GenerationBeginError::Overflow(final_generation),
+                )
+                && gate.classify(final_generation)
+                    == crate::generation_commit::GenerationCommit::Current
+                && gate.classify(previous) == crate::generation_commit::GenerationCommit::Stale
+                && gate.current.load(std::sync::atomic::Ordering::Acquire) == u64::MAX
+        }));
+    }
+
+    #[test]
     fn test_only_latest_generation_can_commit() {
         let gate = super::GenerationGate::default();
         let first = gate.begin().expect(constants_str::DIAGNOSTIC_7DE09116);

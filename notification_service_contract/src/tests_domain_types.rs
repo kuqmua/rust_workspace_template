@@ -196,4 +196,23 @@ mod tests {
             ].into_iter()),
         ).is_err_and(|error| error.to_string().contains(stringify!(unexpected))));
     }
+    #[test]
+    fn test_notification_operational_registration_preserves_public_read_contracts() {
+        [
+            (crate::notification_operational_route::NotificationOperationalRoute::Metrics, constants_str::METRICS_READ),
+            (crate::notification_operational_route::NotificationOperationalRoute::OpenApi, constants_str::OPENAPI_JSON_READ),
+        ]
+        .into_iter()
+        .fold((), |(), (route, expected_path)| {
+            assert_eq!(frontend_contract::route_registration_contract::RouteRegistrationContract::registration_method(route),
+                frontend_contract::route_method::RouteMethod::Get);
+            assert_eq!(frontend_contract::route_registration_contract::RouteRegistrationContract::registration_path(route).as_ref(), expected_path);
+            let contract = route.contract();
+            assert_eq!(contract.path().as_ref(), expected_path);
+            assert_eq!(contract.method(), frontend_contract::route_method::RouteMethod::Get);
+            assert_eq!(contract.authentication(), frontend_contract::authentication_requirement::AuthenticationRequirement::Public);
+            assert_eq!(contract.mutation(), frontend_contract::mutation_kind::MutationKind::ReadOnly);
+            assert_eq!(contract.success_status(), frontend_contract::success_status::SuccessStatus::Code200);
+        });
+    }
 }

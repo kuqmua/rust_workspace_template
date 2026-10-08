@@ -28,6 +28,39 @@ pub fn reconcile_pg_counter(
 mod tests {
     #[test]
     fn test_counter_reconciliation_reports_direction_and_distance() {
+        assert!(
+            [
+                (
+                    0u64,
+                    u64::MAX,
+                    crate::pg_counter_reconciliation::PgCounterReconciliation::ActualAhead(
+                        u64::MAX.into()
+                    )
+                ),
+                (
+                    u64::MAX,
+                    0u64,
+                    crate::pg_counter_reconciliation::PgCounterReconciliation::TrackedAhead(
+                        u64::MAX.into()
+                    )
+                ),
+                (
+                    0u64,
+                    0u64,
+                    crate::pg_counter_reconciliation::PgCounterReconciliation::InSync
+                ),
+                (
+                    u64::MAX,
+                    u64::MAX,
+                    crate::pg_counter_reconciliation::PgCounterReconciliation::InSync
+                ),
+            ]
+            .into_iter()
+            .all(|(tracked, actual, expected)| {
+                crate::reconcile_pg_counter::reconcile_pg_counter(tracked.into(), actual.into())
+                    == expected
+            })
+        );
         assert_eq!(
             crate::reconcile_pg_counter::reconcile_pg_counter(7u64.into(), 10u64.into()),
             crate::pg_counter_reconciliation::PgCounterReconciliation::ActualAhead(3u64.into())

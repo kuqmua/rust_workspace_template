@@ -46,6 +46,12 @@ mod tests {
     #[test]
     fn test_bind_plan_preserves_cross_type_order() {
         let mut plan = crate::filter_bind_plan::FilterBindPlan::new();
+        assert!(plan.values().is_empty());
+        assert!(
+            crate::filter_bind_plan::FilterBindPlan::default()
+                .values()
+                .is_empty()
+        );
         plan.push_text(
             crate::pg_filter_text::PgFilterText::try_from(String::from(
                 constants_str::TEST_FILTER_TEXT,
@@ -57,10 +63,12 @@ mod tests {
         assert!(matches!(
             plan.values(),
             [
-                crate::pg_filter_bind_value::PgFilterBindValue::Text(_),
-                crate::pg_filter_bind_value::PgFilterBindValue::I64(_),
-                crate::pg_filter_bind_value::PgFilterBindValue::Bool(_)
-            ]
+                crate::pg_filter_bind_value::PgFilterBindValue::Text(text),
+                crate::pg_filter_bind_value::PgFilterBindValue::I64(integer),
+                crate::pg_filter_bind_value::PgFilterBindValue::Bool(boolean)
+            ] if crate::pg_filter_text::PgFilterText::try_from(constants_str::TEST_FILTER_TEXT.to_owned()).as_ref().ok() == Some(text)
+                && *integer == crate::pg_filter_i64::PgFilterI64::from(7i64)
+                && *boolean == crate::pg_filter_bool::PgFilterBool::from(true)
         ));
     }
 }

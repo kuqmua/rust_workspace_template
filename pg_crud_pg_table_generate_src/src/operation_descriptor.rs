@@ -55,5 +55,14 @@ mod tests {
             constants_str::ADMIN_FIXTURE_AUDIT_ACTION
         );
         assert_eq!(*spec.get_success_status_code(), 200u16);
+        assert_eq!(
+            crate::route_http_method::route_http_method(&spec),
+            constants_str::PATCH
+        );
+        assert_eq!(
+            crate::route_success_status::route_success_status(&spec),
+            200u16
+        );
+        assert_eq!(crate::success_status::success_status(&spec), 200u16);
     }
 }

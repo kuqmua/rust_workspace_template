@@ -412,4 +412,44 @@ mod tests {
             assert_eq!(generated.to_string(), quote::quote!(Example { compile_error!(#message); }).to_string());
         });
     }
+    #[test]
+    fn test_serde_variant_generation_preserves_empty_and_mixed_valid_field_outputs() {
+        let empty_variant: syn::Variant = syn::parse_quote!(Example {});
+        let empty_generated = crate::generate_serde_version_of_named_syn_variant::generate_serde_version_of_named_syn_variant(
+            crate::syn_variant_ref::SynVariantRef::from(&empty_variant),
+        );
+        assert_eq!(
+            empty_generated.to_string(),
+            quote::quote!(Example {}).to_string()
+        );
+        let variant: syn::Variant = syn::parse_quote!(Example {
+            #[error_field_to_err_string]
+            first: ErrorValue,
+            invalid: ErrorValue,
+            #[error_field_location(unexpected)]
+            location: OriginalLocation,
+            #[error_field_to_err_string_serde]
+            last: ErrorValue,
+        });
+        let generated = crate::generate_serde_version_of_named_syn_variant::generate_serde_version_of_named_syn_variant(
+            crate::syn_variant_ref::SynVariantRef::from(&variant),
+        );
+        let message = syn::LitStr::new(
+            &constants_str::COMPILE_ERROR_CE_010.replace(
+                constants_str::COMPILE_ERROR_ERROR_PLACEHOLDER,
+                constants_str::OPT_ATTR_IS_NONE,
+            ),
+            proc_macro2::Span::call_site(),
+        );
+        assert_eq!(
+            generated.to_string(),
+            quote::quote!(Example {
+                first: String,
+                compile_error!(#message);
+                location: location_lib::location::Location,
+                last: ErrorValue,
+            })
+            .to_string()
+        );
+    }
 }

@@ -66,10 +66,14 @@ mod tests {
                 crate::route_coverage_obligation::RouteCoverageObligation::PayloadValidation,
             ]),
         );
-        assert!(matches!(
+        assert_eq!(
             crate::validate_route_coverage::validate_route_coverage(&[descriptor, descriptor]),
-            Err(crate::route_coverage_error::RouteCoverageError::DuplicateRoute { .. })
-        ));
+            Err(
+                crate::route_coverage_error::RouteCoverageError::DuplicateRoute {
+                    metadata: *descriptor.get_metadata()
+                }
+            )
+        );
     }
 
     #[test]
@@ -90,10 +94,14 @@ mod tests {
             constants_str::ROUTE.into(),
             constants_str::ROUTE.into(),
         ));
-        assert!(matches!(
+        assert_eq!(
             crate::validate_route_coverage::validate_route_coverage(&[first, second]),
-            Err(crate::route_coverage_error::RouteCoverageError::DuplicateRoute { .. })
-        ));
+            Err(
+                crate::route_coverage_error::RouteCoverageError::DuplicateRoute {
+                    metadata: *second.get_metadata()
+                }
+            )
+        );
         let different_method = descriptor(crate::route_metadata::RouteMetadata::new(
             crate::route_method::RouteMethod::Get,
             constants_str::ROUTE.into(),
@@ -102,6 +110,71 @@ mod tests {
         assert_eq!(
             crate::validate_route_coverage::validate_route_coverage(&[first, different_method]),
             Ok(())
+        );
+    }
+
+    #[test]
+    fn test_route_coverage_preserves_descriptor_order_and_duplicate_error_precedence() {
+        let descriptor = |route_metadata: crate::route_metadata::RouteMetadata, route_coverage_evidence: crate::route_coverage_evidence::RouteCoverageEvidence| {
+            crate::route_coverage_descriptor::RouteCoverageDescriptor::new(route_metadata, crate::route_access::RouteAccess::Public, crate::route_mutation::RouteMutation::ReadOnly, route_coverage_evidence)
+        };
+        let first_metadata = route_coverage_metadata();
+        let distinct_metadata = crate::route_metadata::RouteMetadata::new(
+            crate::route_method::RouteMethod::Post,
+            constants_str::X.into(),
+            constants_str::X.into(),
+        );
+        let duplicate_metadata = crate::route_metadata::RouteMetadata::new(
+            crate::route_method::RouteMethod::Post,
+            constants_str::FIELD.into(),
+            constants_str::ROUTE.into(),
+        );
+        let complete = crate::route_coverage_evidence::RouteCoverageEvidence::new(
+            crate::route_coverage_obligation::PUBLIC_READ_ROUTE_COVERAGE_OBLIGATIONS,
+        );
+        let empty = crate::route_coverage_evidence::RouteCoverageEvidence::new(&[]);
+        let first = descriptor(first_metadata, complete);
+        let distinct = descriptor(distinct_metadata, complete);
+        let duplicate = descriptor(duplicate_metadata, empty);
+        assert_eq!(
+            crate::validate_route_coverage::validate_route_coverage(&[]),
+            Ok(())
+        );
+        assert_eq!(
+            crate::validate_route_coverage::validate_route_coverage(&[first, distinct]),
+            Ok(())
+        );
+        assert_eq!(
+            crate::validate_route_coverage::validate_route_coverage(&[first, distinct, duplicate]),
+            Err(
+                crate::route_coverage_error::RouteCoverageError::DuplicateRoute {
+                    metadata: duplicate_metadata
+                }
+            )
+        );
+        assert_eq!(
+            crate::validate_route_coverage::validate_route_coverage(&[
+                descriptor(first_metadata, empty),
+                distinct,
+                duplicate
+            ]),
+            Err(crate::route_coverage_error::RouteCoverageError::Missing {
+                metadata: first_metadata,
+                obligation:
+                    crate::route_coverage_obligation::RouteCoverageObligation::IntegrationFixture
+            })
+        );
+        assert_eq!(
+            crate::validate_route_coverage::validate_route_coverage(&[
+                first,
+                descriptor(distinct_metadata, empty),
+                duplicate
+            ]),
+            Err(crate::route_coverage_error::RouteCoverageError::Missing {
+                metadata: distinct_metadata,
+                obligation:
+                    crate::route_coverage_obligation::RouteCoverageObligation::IntegrationFixture
+            })
         );
     }
 

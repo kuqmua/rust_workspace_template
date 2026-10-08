@@ -13,3 +13,20 @@ impl From<IdempotencyCapability> for bool {
         matches!(value, IdempotencyCapability::Enabled)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn test_idempotency_conversions_preserve_independent_boolean_and_variant_meanings() {
+        assert!(matches!(
+            super::IdempotencyCapability::from(false),
+            super::IdempotencyCapability::Disabled
+        ));
+        assert!(matches!(
+            super::IdempotencyCapability::from(true),
+            super::IdempotencyCapability::Enabled
+        ));
+        assert!(!bool::from(super::IdempotencyCapability::Disabled));
+        assert!(bool::from(super::IdempotencyCapability::Enabled));
+    }
+}

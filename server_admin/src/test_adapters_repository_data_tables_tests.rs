@@ -31,6 +31,172 @@ fn filter_query(
 }
 
 #[test]
+fn test_generic_table_sql_filter_only_preserves_predicate_and_pagination_positions() {
+    assert!(
+        pg_crud_common::query_part_fragment::QueryPartFragment::try_from(
+            constants_str::VALUE_F7A09FE1.to_owned()
+        )
+        .is_ok_and(
+            |fragment| crate::data_table_query_sql::data_table_query_sql(
+                server_admin_contract::admin_data_table::AdminDataTable::Users,
+                &server_admin_contract::admin_table_query::AdminTableQuery::default(),
+                Some(&fragment),
+                pg_crud_common::query_part_increment::QueryPartIncrement::from(1u64),
+            )
+            .is_ok_and(|(count_sql, data_sql)| count_sql
+                .as_ref()
+                .contains(fragment.as_ref())
+                && data_sql.as_ref().contains(fragment.as_ref())
+                && data_sql.as_ref().ends_with(constants_str::VALUE_51920234))
+        )
+    );
+}
+
+#[test]
+fn test_generic_table_sql_explicit_sort_direction_and_identifier_tie_policy() {
+    let cases = [
+        (
+            constants_str::SQL_NAMES_ID,
+            server_admin_contract::admin_sort_direction::AdminSortDirection::Ascending,
+            [
+                constants_str::SQL_NAMES_ID,
+                constants_str::SERVER_ADMIN_DATA_SORT_ASC,
+            ]
+            .concat(),
+        ),
+        (
+            constants_str::SQL_NAMES_ID,
+            server_admin_contract::admin_sort_direction::AdminSortDirection::Descending,
+            [
+                constants_str::SQL_NAMES_ID,
+                constants_str::SERVER_ADMIN_DATA_SORT_DESC,
+            ]
+            .concat(),
+        ),
+        (
+            constants_str::LOGIN,
+            server_admin_contract::admin_sort_direction::AdminSortDirection::Ascending,
+            [
+                constants_str::LOGIN,
+                constants_str::SERVER_ADMIN_DATA_SORT_ASC,
+                constants_str::SERVER_ADMIN_DATA_SORT_TIE_SEPARATOR,
+                constants_str::SERVER_ADMIN_DATA_SORT_ASC,
+            ]
+            .concat(),
+        ),
+        (
+            constants_str::LOGIN,
+            server_admin_contract::admin_sort_direction::AdminSortDirection::Descending,
+            [
+                constants_str::LOGIN,
+                constants_str::SERVER_ADMIN_DATA_SORT_DESC,
+                constants_str::SERVER_ADMIN_DATA_SORT_TIE_SEPARATOR,
+                constants_str::SERVER_ADMIN_DATA_SORT_DESC,
+            ]
+            .concat(),
+        ),
+    ];
+    assert!(cases.into_iter().all(|(sort, direction, expected_order)| {
+        serde_json::from_value::<server_admin_contract::admin_table_query::AdminTableQuery>(
+            serde_json::json!({
+                (stringify!(sort)): sort, (stringify!(direction)): direction,
+            }),
+        )
+        .is_ok_and(|query| {
+            crate::data_table_query_sql::data_table_query_sql(
+                server_admin_contract::admin_data_table::AdminDataTable::Users,
+                &query,
+                None,
+                pg_crud_common::query_part_increment::QueryPartIncrement::from(0u64),
+            )
+            .is_ok_and(|(count_sql, data_sql)| {
+                let expected_suffix = format!(
+                    "{expected_order}{}{}{}{}",
+                    constants_str::SERVER_ADMIN_FILTER_LIMIT_PREFIX,
+                    1u64,
+                    constants_str::SERVER_ADMIN_FILTER_OFFSET_PREFIX,
+                    2u64
+                );
+                count_sql.as_ref().as_str()
+                    == [
+                        constants_str::SERVER_ADMIN_DATA_COUNT_PREFIX,
+                        server_admin_contract::admin_data_table::AdminDataTable::Users
+                            .as_str()
+                            .get(),
+                    ]
+                    .concat()
+                    && data_sql
+                        .as_ref()
+                        .rsplit_once(constants_str::SERVER_ADMIN_FILTER_ORDER_BY_SEPARATOR)
+                        .is_some_and(|(_, suffix)| suffix == expected_suffix)
+            })
+        })
+    }));
+}
+
+#[test]
+fn test_generic_table_sql_rejects_descending_without_sort_for_every_table() {
+    assert!(serde_json::from_value::<server_admin_contract::admin_table_query::AdminTableQuery>(serde_json::json!({
+        (stringify!(direction)): server_admin_contract::admin_sort_direction::AdminSortDirection::Descending,
+    })).is_ok_and(|query| server_admin_contract::admin_data_table::AdminDataTable::PG_ORDER.into_iter().all(|table| {
+        matches!(crate::data_table_query_sql::data_table_query_sql(table, &query, None,
+            pg_crud_common::query_part_increment::QueryPartIncrement::from(0u64)),
+            Err(crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue))
+    })));
+}
+
+#[test]
+fn test_generic_table_sql_placeholder_counter_exact_maximum_and_overflow() {
+    let cases = [
+        (
+            false,
+            u64::MAX - 3u64,
+            Some((u64::MAX - 2u64, u64::MAX - 1u64)),
+            None,
+        ),
+        (
+            false,
+            u64::MAX - 2u64,
+            Some((u64::MAX - 1u64, u64::MAX)),
+            None,
+        ),
+        (false, u64::MAX - 1u64, None, None),
+        (false, u64::MAX, None, None),
+        (
+            true,
+            u64::MAX - 3u64,
+            Some((u64::MAX - 1u64, u64::MAX)),
+            Some(u64::MAX - 2u64),
+        ),
+        (true, u64::MAX - 2u64, None, None),
+        (true, u64::MAX - 1u64, None, None),
+        (true, u64::MAX, None, None),
+    ];
+    assert!(cases.into_iter().all(|(search_present, counter, expected_indices, expected_search)| {
+        serde_json::from_value::<server_admin_contract::admin_table_query::AdminTableQuery>(serde_json::json!({
+            (stringify!(search)): if search_present { constants_str::ADMIN } else { constants_str::EMPTY },
+        })).is_ok_and(|query| {
+            let result = crate::data_table_query_sql::data_table_query_sql(server_admin_contract::admin_data_table::AdminDataTable::Users,
+                &query, None, pg_crud_common::query_part_increment::QueryPartIncrement::from(counter));
+            if let Some((limit, offset)) = expected_indices {
+                result.is_ok_and(|(count_sql, data_sql)| {
+                    let suffix = format!("{}{}{}{}", constants_str::SERVER_ADMIN_FILTER_LIMIT_PREFIX, limit,
+                        constants_str::SERVER_ADMIN_FILTER_OFFSET_PREFIX, offset);
+                    data_sql.as_ref().ends_with(&suffix) && expected_search.map_or_else(
+                        || count_sql.as_ref().as_str() == [constants_str::SERVER_ADMIN_DATA_COUNT_PREFIX,
+                            server_admin_contract::admin_data_table::AdminDataTable::Users.as_str().get()].concat(),
+                        |search_index| count_sql.as_ref().contains(&[constants_str::SERVER_ADMIN_DATA_SEARCH_MATCH_PREFIX,
+                            search_index.to_string().as_str(), constants_str::SERVER_ADMIN_DATA_SEARCH_MATCH_SUFFIX].concat()),
+                    )
+                })
+            } else {
+                matches!(result, Err(crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue))
+            }
+        })
+    }));
+}
+
+#[test]
 fn test_generic_table_sql_uses_search_and_whitelisted_sort() {
     let query = serde_json::json!({
         (stringify!(search)): constants_str::ADMIN,
@@ -721,8 +887,21 @@ fn test_every_read_table_filter_column_and_operation_builds_a_typed_predicate() 
                                 let fragment = filter
                                     .query_part(&mut increment)
                                     .map_err(|error| error.to_string())?;
+                                let expected_arguments = usize::try_from(expected_increment)
+                                    .map_err(|error| error.to_string())? + 1usize;
+                                let bound = filter.query_bind(
+                                    pg_crud_common::sqlx_postgres_query::SqlxPostgresQuery::from(
+                                        sqlx::query(constants_str::X).bind(7i64),
+                                    ),
+                                ).map_err(|error| error.to_string())?;
+                                let mut bound_query = bound.into_inner();
+                                let arguments = sqlx::Execute::take_arguments(&mut bound_query)
+                                    .map_err(|error| error.to_string())?;
+                                let sql_preserved = sqlx::Execute::sql(bound_query).as_str() == constants_str::X;
                                 if fragment.as_ref().contains(column)
                                     && increment.get() == expected_increment
+                                    && sql_preserved
+                                    && arguments.is_some_and(|arguments| sqlx::Arguments::len(&arguments) == expected_arguments)
                                 {
                                     Ok(())
                                 } else {

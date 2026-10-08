@@ -14,3 +14,31 @@ impl PgTypeGreaterThanVariant {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn test_greater_than_variants_preserve_boolean_operator_mapping() {
+        assert!(
+            [
+                (
+                    crate::pg_type_greater_than_variant::PgTypeGreaterThanVariant::GreaterThan,
+                    crate::operator::Operator::Or
+                ),
+                (
+                    crate::pg_type_greater_than_variant::PgTypeGreaterThanVariant::NotGreaterThan,
+                    crate::operator::Operator::OrNot
+                ),
+                (
+                    crate::pg_type_greater_than_variant::PgTypeGreaterThanVariant::EqNotGreaterThan,
+                    crate::operator::Operator::OrNot
+                ),
+            ]
+            .into_iter()
+            .all(
+                |(pg_type_greater_than_variant, expected)| pg_type_greater_than_variant.operator()
+                    == expected
+            )
+        );
+    }
+}

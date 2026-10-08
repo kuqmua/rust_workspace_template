@@ -596,4 +596,36 @@ mod tests {
         );
         assert!(tokens.to_string().contains(constants_str::VALUE_2EDAC0BF));
     }
+    #[test]
+    fn test_parameterized_case_methods_and_tokens_preserve_standalone_names() {
+        let standalone_type = syn::parse_quote!(TableExample);
+        assert!(
+            [
+                crate::parameter::SelfPayloadUpperCamelCase::from_display(
+                    &constants_str::VALUE_BCB2F337
+                ),
+                crate::parameter::SelfPayloadUpperCamelCase::from_tokens(&quote::quote!(
+                    TableExample
+                )),
+                crate::parameter::SelfPayloadUpperCamelCase::from_type_last_segment(
+                    &standalone_type
+                ),
+            ]
+            .into_iter()
+            .all(|name| name.to_string() == constants_str::VALUE_8437C316
+                && quote::quote!(#name).to_string() == constants_str::VALUE_8437C316)
+        );
+        assert!(
+            [
+                crate::parameter::SelfPayloadSnakeCase::from_display(
+                    &constants_str::VALUE_BCB2F337
+                ),
+                crate::parameter::SelfPayloadSnakeCase::from_tokens(&quote::quote!(TableExample)),
+                crate::parameter::SelfPayloadSnakeCase::from_type_last_segment(&standalone_type),
+            ]
+            .into_iter()
+            .all(|name| name.to_string() == constants_str::VALUE_479ED234
+                && quote::quote!(#name).to_string() == constants_str::VALUE_479ED234)
+        );
+    }
 }

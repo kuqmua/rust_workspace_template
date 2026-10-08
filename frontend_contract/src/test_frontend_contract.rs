@@ -190,6 +190,72 @@ fn test_route_contract_keeps_transport_policy_together() {
     );
     assert_eq!(route.method(), crate::route_method::RouteMethod::Patch);
     assert_eq!(route.path().as_ref(), constants_str::USERS_ID);
+    assert_eq!(
+        route.authentication(),
+        crate::authentication_requirement::AuthenticationRequirement::Rule(
+            crate::contract_str::ContractStr::from(constants_str::RULE),
+        )
+    );
+    assert_eq!(
+        route.success_status(),
+        crate::success_status::SuccessStatus::Code204
+    );
+}
+
+#[test]
+fn test_route_error_status_registries_preserve_exact_ordered_http_codes() {
+    let authentication_statuses = [401u16, 413u16, 429u16, 500u16];
+    let authorization_statuses = [401u16, 403u16, 413u16, 429u16, 500u16];
+    assert!(
+        [
+            (
+                crate::route_contract::PUBLIC_AUTH_ROUTE_ERROR_STATUSES,
+                authentication_statuses.as_slice()
+            ),
+            (
+                crate::route_contract::PUBLIC_READ_ROUTE_ERROR_STATUSES,
+                [500u16, 413u16, 429u16].as_slice()
+            ),
+            (
+                crate::route_contract::PUBLIC_MUTATING_ROUTE_ERROR_STATUSES,
+                [413u16, 422u16, 429u16, 500u16].as_slice()
+            ),
+            (
+                crate::route_contract::PUBLIC_REFRESH_ROUTE_ERROR_STATUSES,
+                authentication_statuses.as_slice()
+            ),
+            (
+                crate::route_contract::AUTHENTICATED_READ_ROUTE_ERROR_STATUSES,
+                authentication_statuses.as_slice()
+            ),
+            (
+                crate::route_contract::AUTHORIZED_READ_ROUTE_ERROR_STATUSES,
+                authorization_statuses.as_slice()
+            ),
+            (
+                crate::route_contract::AUTHORIZED_VALIDATED_READ_ROUTE_ERROR_STATUSES,
+                [401u16, 403u16, 413u16, 422u16, 429u16, 500u16].as_slice()
+            ),
+            (
+                crate::route_contract::AUTHENTICATED_MUTATING_ROUTE_ERROR_STATUSES,
+                authorization_statuses.as_slice()
+            ),
+            (
+                crate::route_contract::AUTHORIZED_MUTATING_ROUTE_ERROR_STATUSES,
+                [401u16, 403u16, 409u16, 413u16, 422u16, 429u16, 500u16].as_slice()
+            ),
+            (
+                crate::route_contract::AUTHORIZED_DELETE_ROUTE_ERROR_STATUSES,
+                [401u16, 403u16, 409u16, 413u16, 429u16, 500u16].as_slice()
+            ),
+        ]
+        .into_iter()
+        .all(|(statuses, expected)| statuses
+            .iter()
+            .copied()
+            .map(|status| u16::from(status.transport_status()))
+            .eq(expected.iter().copied()))
+    );
 }
 #[test]
 fn test_route_error_policy_derives_statuses_from_access_and_mutation() {
@@ -230,6 +296,34 @@ fn test_route_error_policy_derives_statuses_from_access_and_mutation() {
             .statuses(rule, crate::route_mutation::RouteMutation::ReadOnly),
         crate::route_contract::AUTHORIZED_VALIDATED_READ_ROUTE_ERROR_STATUSES
     );
+    [
+        (
+            crate::authentication_requirement::AuthenticationRequirement::Public,
+            crate::route_mutation::RouteMutation::Mutating,
+            crate::route_contract::PUBLIC_MUTATING_ROUTE_ERROR_STATUSES,
+        ),
+        (
+            crate::authentication_requirement::AuthenticationRequirement::Authenticated,
+            crate::route_mutation::RouteMutation::ReadOnly,
+            crate::route_contract::AUTHENTICATED_READ_ROUTE_ERROR_STATUSES,
+        ),
+        (
+            rule,
+            crate::route_mutation::RouteMutation::ReadOnly,
+            crate::route_contract::AUTHORIZED_READ_ROUTE_ERROR_STATUSES,
+        ),
+    ]
+    .into_iter()
+    .fold(
+        (),
+        |(), (authentication_requirement, route_mutation, expected)| {
+            assert_eq!(
+                crate::route_error_policy::RouteErrorPolicy::Default
+                    .statuses(authentication_requirement, route_mutation),
+                expected
+            );
+        },
+    );
 }
 #[test]
 fn test_response_interpretation_uses_shared_success_and_problem_contract() {
@@ -268,16 +362,43 @@ fn test_transport_response_preserves_retry_after() {
             .expect(constants_str::DIAGNOSTIC_DA32DC29),
         crate::transport_status::TransportStatus::try_from(429u16)
             .expect(constants_str::DIAGNOSTIC_7A783A69),
-    )
-    .with_retry_after(Some(
+    );
+    assert!(response.retry_after().is_none());
+    let throttled = response.with_retry_after(Some(
         crate::transport_retry_after::TransportRetryAfter::try_from(
             constants_str::TEST_VALUE_30.to_owned(),
         )
         .expect(constants_str::DIAGNOSTIC_9B6750D4),
     ));
     assert_eq!(
-        response.retry_after().map(AsRef::as_ref),
+        throttled.retry_after().map(AsRef::as_ref),
         Some(constants_str::TEST_VALUE_30)
+    );
+    assert_eq!(u16::from(throttled.status()), 429u16);
+    assert!(throttled.body().as_ref().is_empty());
+    assert!(
+        throttled
+            .success_body(throttled.status())
+            .is_ok_and(|body| std::ptr::eq(body, throttled.body()))
+    );
+    assert!(
+        crate::transport_retry_after::TransportRetryAfter::try_from(
+            constants_str::VALUE_60.to_owned()
+        )
+        .is_ok_and(|retry_after| {
+            let updated = throttled.with_retry_after(Some(retry_after));
+            assert_eq!(
+                updated.retry_after().map(AsRef::as_ref),
+                Some(constants_str::VALUE_60)
+            );
+            assert_eq!(u16::from(updated.status()), 429u16);
+            assert!(updated.body().as_ref().is_empty());
+            let cleared = updated.with_retry_after(None);
+            assert!(cleared.retry_after().is_none());
+            assert_eq!(u16::from(cleared.status()), 429u16);
+            assert!(cleared.body().as_ref().is_empty());
+            true
+        })
     );
 }
 #[test]
@@ -929,4 +1050,851 @@ fn test_parameterized_route_path_preserves_exact_byte_limits_and_owned_content()
         crate::parameterized_route_path::ParameterizedRoutePath::try_from(input),
         Err(crate::parameterized_route_path_try_from_string_error::ParameterizedRoutePathTryFromStringError::TooLong)
     )));
+}
+
+#[test]
+fn test_problem_error_status_classification_preserves_fallback_boundaries_and_service_unavailable()
+{
+    [
+        (100u16, false),
+        (499u16, false),
+        (500u16, true),
+        (501u16, true),
+        (502u16, true),
+        (504u16, true),
+        (599u16, true),
+        (600u16, false),
+        (999u16, false),
+    ]
+    .into_iter()
+    .fold((), |(), (value, internal)| {
+        assert!(
+            crate::api_problem_status::ApiProblemStatus::try_from(value).is_ok_and(
+                |api_problem_status| {
+                    let expected = if internal {
+                        crate::api_problem_error::ApiProblemError::Internal(api_problem_status)
+                    } else {
+                        crate::api_problem_error::ApiProblemError::RequestFailed(api_problem_status)
+                    };
+                    let actual =
+                        crate::api_problem_error::ApiProblemError::from_status(api_problem_status);
+                    actual == expected && actual.status() == api_problem_status
+                }
+            )
+        );
+    });
+    assert!(
+        crate::api_problem_status::ApiProblemStatus::try_from(503u16).is_ok_and(
+            |api_problem_status| {
+                let actual =
+                    crate::api_problem_error::ApiProblemError::from_status(api_problem_status);
+                actual == crate::api_problem_error::ApiProblemError::ServiceUnavailable
+                    && actual.status() == api_problem_status
+            }
+        )
+    );
+}
+
+#[test]
+fn test_route_metadata_defaults_preserve_every_http_method() {
+    let connect = constants_str::CONNECT.to_ascii_uppercase();
+    [
+        (crate::route_method::RouteMethod::Connect, connect.as_str()),
+        (
+            crate::route_method::RouteMethod::Delete,
+            constants_str::DELETE,
+        ),
+        (crate::route_method::RouteMethod::Get, constants_str::GET),
+        (crate::route_method::RouteMethod::Head, constants_str::HEAD),
+        (
+            crate::route_method::RouteMethod::Options,
+            constants_str::OPTIONS,
+        ),
+        (
+            crate::route_method::RouteMethod::Patch,
+            constants_str::PATCH,
+        ),
+        (crate::route_method::RouteMethod::Post, constants_str::POST),
+        (
+            crate::route_method::RouteMethod::Put,
+            constants_str::HTTP_METHOD_PUT_LABEL,
+        ),
+        (
+            crate::route_method::RouteMethod::Trace,
+            constants_str::TRACE,
+        ),
+    ]
+    .into_iter()
+    .fold((), |(), (route_method, method)| {
+        let operation = crate::contract_str::ContractStr::from(constants_str::ROUTE_READ);
+        let path = crate::contract_str::ContractStr::from(constants_str::SLASH);
+        let metadata = crate::route_metadata::RouteMetadata::new(route_method, operation, path);
+        assert_eq!(metadata.route_method(), route_method);
+        assert_eq!(metadata.method().as_ref(), method);
+        assert_eq!(metadata.openapi_operation_id(), operation);
+        assert_eq!(metadata.path(), path);
+        assert_eq!(
+            metadata.authentication(),
+            crate::authentication_requirement::AuthenticationRequirement::Public
+        );
+        assert!(metadata.error_statuses().is_empty());
+        assert_eq!(
+            metadata.mutation(),
+            crate::route_mutation::RouteMutation::ReadOnly
+        );
+        assert_eq!(
+            metadata.success_status(),
+            crate::success_status::SuccessStatus::Code200
+        );
+        assert_eq!(metadata.access(), crate::route_access::RouteAccess::Public);
+        assert_eq!(
+            metadata.contract(),
+            crate::route_contract::RouteContract::new(
+                crate::authentication_requirement::AuthenticationRequirement::Public,
+                route_method,
+                crate::mutation_kind::MutationKind::ReadOnly,
+                path,
+                crate::success_status::SuccessStatus::Code200,
+            )
+        );
+    });
+}
+
+#[test]
+fn test_route_metadata_policy_projects_access_and_contract_for_every_authentication_mutation_status()
+ {
+    [
+        (
+            crate::authentication_requirement::AuthenticationRequirement::Public,
+            crate::route_access::RouteAccess::Public,
+        ),
+        (
+            crate::authentication_requirement::AuthenticationRequirement::Authenticated,
+            crate::route_access::RouteAccess::Authenticated,
+        ),
+        (
+            crate::authentication_requirement::AuthenticationRequirement::Rule(
+                crate::contract_str::ContractStr::from(constants_str::X),
+            ),
+            crate::route_access::RouteAccess::Authenticated,
+        ),
+    ]
+    .into_iter()
+    .fold((), |(), (authentication_requirement, access)| {
+        [
+            (
+                crate::route_mutation::RouteMutation::ReadOnly,
+                crate::mutation_kind::MutationKind::ReadOnly,
+            ),
+            (
+                crate::route_mutation::RouteMutation::Mutating,
+                crate::mutation_kind::MutationKind::Mutating,
+            ),
+        ]
+        .into_iter()
+        .fold((), |(), (route_mutation, mutation_kind)| {
+            [
+                crate::success_status::SuccessStatus::Code200,
+                crate::success_status::SuccessStatus::Code201,
+                crate::success_status::SuccessStatus::Code204,
+            ]
+            .into_iter()
+            .fold((), |(), success_status| {
+                let operation = crate::contract_str::ContractStr::from(constants_str::ROUTE_READ);
+                let path = crate::contract_str::ContractStr::from(constants_str::ROUTE);
+                let metadata = crate::route_metadata::RouteMetadata::new_with_policy(
+                    authentication_requirement,
+                    crate::route_contract::PUBLIC_AUTH_ROUTE_ERROR_STATUSES,
+                    crate::route_method::RouteMethod::Patch,
+                    route_mutation,
+                    operation,
+                    path,
+                    success_status,
+                );
+                assert_eq!(metadata.authentication(), authentication_requirement);
+                assert_eq!(
+                    metadata.error_statuses(),
+                    crate::route_contract::PUBLIC_AUTH_ROUTE_ERROR_STATUSES
+                );
+                assert_eq!(metadata.openapi_operation_id(), operation);
+                assert_eq!(metadata.path(), path);
+                assert_eq!(
+                    metadata.route_method(),
+                    crate::route_method::RouteMethod::Patch
+                );
+                assert_eq!(metadata.method().as_ref(), constants_str::PATCH);
+                assert_eq!(metadata.mutation(), route_mutation);
+                assert_eq!(metadata.success_status(), success_status);
+                assert_eq!(metadata.access(), access);
+                assert_eq!(
+                    metadata.contract(),
+                    crate::route_contract::RouteContract::new(
+                        authentication_requirement,
+                        crate::route_method::RouteMethod::Patch,
+                        mutation_kind,
+                        path,
+                        success_status
+                    )
+                );
+            });
+        });
+    });
+}
+
+#[test]
+fn test_route_error_status_variants_have_independent_numeric_http_codes() {
+    [
+        (
+            crate::route_error_status::RouteErrorStatus::Authentication,
+            401u16,
+        ),
+        (
+            crate::route_error_status::RouteErrorStatus::Authorization,
+            403u16,
+        ),
+        (
+            crate::route_error_status::RouteErrorStatus::Conflict,
+            409u16,
+        ),
+        (
+            crate::route_error_status::RouteErrorStatus::Internal,
+            500u16,
+        ),
+        (
+            crate::route_error_status::RouteErrorStatus::MethodNotAllowed,
+            405u16,
+        ),
+        (
+            crate::route_error_status::RouteErrorStatus::PayloadTooLarge,
+            413u16,
+        ),
+        (
+            crate::route_error_status::RouteErrorStatus::RateLimited,
+            429u16,
+        ),
+        (
+            crate::route_error_status::RouteErrorStatus::ServiceUnavailable,
+            503u16,
+        ),
+        (
+            crate::route_error_status::RouteErrorStatus::Validation,
+            422u16,
+        ),
+    ]
+    .into_iter()
+    .fold((), |(), (route_error_status, expected)| {
+        assert_eq!(u16::from(route_error_status.transport_status()), expected);
+    });
+}
+
+#[test]
+fn test_success_status_variants_have_independent_numeric_http_codes() {
+    [
+        (crate::success_status::SuccessStatus::Code200, 200u16),
+        (crate::success_status::SuccessStatus::Code201, 201u16),
+        (crate::success_status::SuccessStatus::Code204, 204u16),
+    ]
+    .into_iter()
+    .fold((), |(), (success_status, expected)| {
+        assert_eq!(u16::from(success_status.transport_status()), expected);
+    });
+}
+
+#[test]
+fn test_matching_transport_status_returns_problem_shaped_body_as_borrowed_success() {
+    let problem = crate::api_problem::ApiProblem::from_error(
+        crate::api_problem_error::ApiProblemError::Authentication,
+    );
+    assert!(serde_json::to_vec(&problem).is_ok_and(|bytes| {
+        crate::transport_body::TransportBody::try_from(bytes).is_ok_and(|body| {
+            let status = crate::transport_status::TransportStatus::from(
+                crate::known_http_status::KnownHttpStatus::Ok,
+            );
+            let response = crate::transport_response::TransportResponse::new(body, status);
+            crate::decode_api_problem::decode_api_problem(response.body())
+                .is_some_and(|decoded| decoded == problem)
+                && response
+                    .success_body(status)
+                    .is_ok_and(|borrowed| std::ptr::eq(borrowed, response.body()))
+        })
+    }));
+}
+
+#[test]
+fn test_form_value_preserves_empty_ascii_and_utf8_at_exact_byte_limit() {
+    let maximum = constants_usize::VALUE_1_048_576;
+    assert_eq!(
+        crate::form_value::FormValue::default().as_ref(),
+        constants_str::EMPTY
+    );
+    [
+        (constants_str::EMPTY.to_owned(), 'x'),
+        (constants_str::X.to_owned(), 'x'),
+        (constants_str::X.repeat(maximum), 'x'),
+        (
+            '\u{e9}'.to_string().repeat(maximum.div_euclid(2usize)),
+            '\u{e9}',
+        ),
+    ]
+    .into_iter()
+    .fold((), |(), (value, expected_character)| {
+        let length = value.len();
+        assert!(
+            crate::form_value::FormValue::try_from(value).is_ok_and(|form_value| {
+                let text = form_value.as_ref();
+                text.len() == length
+                    && text
+                        .chars()
+                        .all(|character| character == expected_character)
+            })
+        );
+    });
+    [
+        constants_str::X.repeat(maximum.saturating_add(1usize)),
+        '\u{e9}'.to_string().repeat(maximum.div_euclid(2usize).saturating_add(1usize)),
+    ].into_iter().fold((), |(), value| {
+        let length = value.len();
+        assert!(matches!(crate::form_value::FormValue::try_from(value), Err(crate::form_value::FormValueTryFromStringError::TooLong { len, max }) if len == length && max == maximum));
+    });
+}
+
+fn field_contract_builder_fixture() -> crate::field_contract::FieldContract {
+    crate::field_contract::FieldContract::new(
+        crate::field_name::FieldName::from(crate::contract_str::ContractStr::from(
+            constants_str::X,
+        )),
+        crate::field_label::FieldLabel::from(crate::contract_str::ContractStr::from(
+            constants_str::FIELD,
+        )),
+        crate::type_contract::TypeContract::new(
+            crate::input_kind::InputKind::Text,
+            crate::value_format::ValueFormat::Text,
+            crate::nullability::Nullability::Nullable,
+        ),
+    )
+}
+
+#[test]
+fn test_field_contract_defaults_and_independent_capability_builders() {
+    let original = field_contract_builder_fixture();
+    let enabled = crate::field_capability::FieldCapability::Enabled;
+    let disabled = crate::field_capability::FieldCapability::Disabled;
+    let flags = |field_contract: crate::field_contract::FieldContract| {
+        [
+            field_contract.creatable(),
+            field_contract.filterable(),
+            field_contract.readable(),
+            field_contract.sortable(),
+            field_contract.updatable(),
+        ]
+    };
+    assert_eq!(flags(original), [disabled; 5usize]);
+    assert!(original.filters().is_empty());
+    assert_eq!(
+        original.order(),
+        crate::field_order::FieldOrder::from(0usize)
+    );
+    assert_eq!(
+        original.placeholder(),
+        crate::field_placeholder::FieldPlaceholder::None
+    );
+    assert_eq!(
+        original.primary_key(),
+        crate::primary_key_kind::PrimaryKeyKind::NonPrimary
+    );
+    assert_eq!(
+        original.visibility(),
+        crate::field_visibility::FieldVisibility::Visible
+    );
+    [
+        (
+            original.with_creatable(enabled),
+            [enabled, disabled, disabled, disabled, disabled],
+        ),
+        (
+            original.with_filterable(enabled),
+            [disabled, enabled, disabled, disabled, disabled],
+        ),
+        (
+            original.with_readable(enabled),
+            [disabled, disabled, enabled, disabled, disabled],
+        ),
+        (
+            original.with_sortable(enabled),
+            [disabled, disabled, disabled, enabled, disabled],
+        ),
+        (
+            original.with_updatable(enabled),
+            [disabled, disabled, disabled, disabled, enabled],
+        ),
+    ]
+    .into_iter()
+    .fold((), |(), (changed, expected)| {
+        assert_eq!(flags(changed), expected);
+        assert_eq!(changed.name(), original.name());
+        assert_eq!(changed.label(), original.label());
+        assert_eq!(changed.type_contract(), original.type_contract());
+        assert_eq!(changed.filters(), original.filters());
+        assert_eq!(changed.order(), original.order());
+        assert_eq!(changed.placeholder(), original.placeholder());
+        assert_eq!(changed.primary_key(), original.primary_key());
+        assert_eq!(changed.visibility(), original.visibility());
+        assert_eq!(
+            changed
+                .with_creatable(disabled)
+                .with_filterable(disabled)
+                .with_readable(disabled)
+                .with_sortable(disabled)
+                .with_updatable(disabled),
+            original
+        );
+    });
+}
+
+#[test]
+fn test_field_contract_optional_metadata_builders_preserve_fields_and_restore_defaults() {
+    let original = field_contract_builder_fixture();
+    let filters = crate::filter_contracts::FilterContracts::from(
+        &[
+            crate::filter_operation::FilterOperation::Eq,
+            crate::filter_operation::FilterOperation::Regex,
+        ][..],
+    );
+    let order = crate::field_order::FieldOrder::from(7usize);
+    let placeholder = crate::field_placeholder::FieldPlaceholder::Value(
+        crate::contract_str::ContractStr::from(constants_str::X),
+    );
+    [
+        (
+            original.with_filters(filters),
+            filters,
+            original.order(),
+            original.placeholder(),
+            original.primary_key(),
+            original.visibility(),
+        ),
+        (
+            original.with_order(order),
+            crate::filter_contracts::FilterContracts::from(
+                crate::empty_filter_contracts::EMPTY_FILTER_CONTRACTS,
+            ),
+            order,
+            original.placeholder(),
+            original.primary_key(),
+            original.visibility(),
+        ),
+        (
+            original.with_placeholder(placeholder),
+            crate::filter_contracts::FilterContracts::from(
+                crate::empty_filter_contracts::EMPTY_FILTER_CONTRACTS,
+            ),
+            original.order(),
+            placeholder,
+            original.primary_key(),
+            original.visibility(),
+        ),
+        (
+            original.with_primary_key(crate::primary_key_kind::PrimaryKeyKind::Primary),
+            crate::filter_contracts::FilterContracts::from(
+                crate::empty_filter_contracts::EMPTY_FILTER_CONTRACTS,
+            ),
+            original.order(),
+            original.placeholder(),
+            crate::primary_key_kind::PrimaryKeyKind::Primary,
+            original.visibility(),
+        ),
+        (
+            original.with_visibility(crate::field_visibility::FieldVisibility::Hidden),
+            crate::filter_contracts::FilterContracts::from(
+                crate::empty_filter_contracts::EMPTY_FILTER_CONTRACTS,
+            ),
+            original.order(),
+            original.placeholder(),
+            original.primary_key(),
+            crate::field_visibility::FieldVisibility::Hidden,
+        ),
+    ]
+    .into_iter()
+    .fold(
+        (),
+        |(),
+         (
+            field,
+            expected_filters,
+            expected_order,
+            expected_placeholder,
+            expected_primary_key,
+            expected_visibility,
+        )| {
+            assert_eq!(field.filters(), expected_filters.as_ref());
+            assert_eq!(field.order(), expected_order);
+            assert_eq!(field.placeholder(), expected_placeholder);
+            assert_eq!(field.primary_key(), expected_primary_key);
+            assert_eq!(field.visibility(), expected_visibility);
+            assert_eq!(field.name(), original.name());
+            assert_eq!(field.label(), original.label());
+            assert_eq!(field.type_contract(), original.type_contract());
+            assert_eq!(
+                [
+                    field.creatable(),
+                    field.filterable(),
+                    field.readable(),
+                    field.sortable(),
+                    field.updatable()
+                ],
+                [crate::field_capability::FieldCapability::Disabled; 5usize]
+            );
+        },
+    );
+    let changed = original
+        .with_filters(filters)
+        .with_order(order)
+        .with_placeholder(placeholder)
+        .with_primary_key(crate::primary_key_kind::PrimaryKeyKind::Primary)
+        .with_visibility(crate::field_visibility::FieldVisibility::Hidden);
+    assert_eq!(changed.filters(), filters.as_ref());
+    assert_eq!(changed.order(), order);
+    assert_eq!(changed.placeholder(), placeholder);
+    assert_eq!(
+        changed.primary_key(),
+        crate::primary_key_kind::PrimaryKeyKind::Primary
+    );
+    assert_eq!(
+        changed.visibility(),
+        crate::field_visibility::FieldVisibility::Hidden
+    );
+    assert_eq!(changed.name(), original.name());
+    assert_eq!(changed.label(), original.label());
+    assert_eq!(changed.type_contract(), original.type_contract());
+    assert_eq!(
+        [
+            changed.creatable(),
+            changed.filterable(),
+            changed.readable(),
+            changed.sortable(),
+            changed.updatable()
+        ],
+        [crate::field_capability::FieldCapability::Disabled; 5usize]
+    );
+    assert_eq!(
+        changed
+            .with_filters(crate::filter_contracts::FilterContracts::from(
+                crate::empty_filter_contracts::EMPTY_FILTER_CONTRACTS
+            ))
+            .with_order(original.order())
+            .with_placeholder(original.placeholder())
+            .with_primary_key(original.primary_key())
+            .with_visibility(original.visibility()),
+        original
+    );
+}
+
+#[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
+struct DefaultMetadataProjectionContractRouteFamily;
+impl crate::route_family::RouteFamily for DefaultMetadataProjectionContractRouteFamily {
+    const ROUTE_COUNT: usize = 2usize;
+    fn coverage_descriptors() -> crate::route_coverage_descriptors::RouteCoverageDescriptors {
+        crate::route_coverage_descriptors::RouteCoverageDescriptors::from_max_iter([
+            (crate::route_method::RouteMethod::Post, constants_str::X),
+            (crate::route_method::RouteMethod::Get, constants_str::ROUTE_READ),
+        ].into_iter().map(|(route_method, operation)| {
+            crate::route_coverage_descriptor::RouteCoverageDescriptor::new(
+                crate::route_metadata::RouteMetadata::new(route_method, crate::contract_str::ContractStr::from(operation), crate::contract_str::ContractStr::from(constants_str::ROUTE)),
+                crate::route_access::RouteAccess::Public,
+                crate::route_mutation::RouteMutation::ReadOnly,
+                crate::route_coverage_evidence::RouteCoverageEvidence::new(&[crate::route_coverage_obligation::RouteCoverageObligation::IntegrationFixture, crate::route_coverage_obligation::RouteCoverageObligation::OpenApiOperation, crate::route_coverage_obligation::RouteCoverageObligation::PayloadValidation]),
+            )
+        }))
+    }
+}
+
+#[test]
+fn test_route_family_default_metadata_projects_nonempty_descriptors_in_order() {
+    let descriptors = <DefaultMetadataProjectionContractRouteFamily as crate::route_family::RouteFamily>::coverage_descriptors();
+    let metadata = <DefaultMetadataProjectionContractRouteFamily as crate::route_family::RouteFamily>::route_metadata();
+    assert_eq!(metadata.as_ref().len(), 2usize);
+    assert_eq!(metadata.as_ref().len(), descriptors.as_ref().len());
+    assert!(
+        metadata
+            .as_ref()
+            .iter()
+            .zip(descriptors.as_ref())
+            .all(|(actual, descriptor)| actual == descriptor.get_metadata())
+    );
+    assert_eq!(
+        metadata.as_ref().first().map(|route| route.route_method()),
+        Some(crate::route_method::RouteMethod::Post)
+    );
+    assert_eq!(
+        metadata.as_ref().last().map(|route| route.route_method()),
+        Some(crate::route_method::RouteMethod::Get)
+    );
+    assert_eq!(
+        crate::validate_route_coverage::validate_route_coverage(descriptors.as_ref()),
+        Ok(())
+    );
+}
+
+#[test]
+fn test_filter_operation_value_shapes_match_independent_contract_matrix() {
+    let cases = [
+        (
+            crate::filter_operation::FilterOperation::Between,
+            crate::filter_value_shape::FilterValueShape::Range,
+        ),
+        (
+            crate::filter_operation::FilterOperation::CurrentDate,
+            crate::filter_value_shape::FilterValueShape::None,
+        ),
+        (
+            crate::filter_operation::FilterOperation::CurrentTime,
+            crate::filter_value_shape::FilterValueShape::None,
+        ),
+        (
+            crate::filter_operation::FilterOperation::CurrentTimestamp,
+            crate::filter_value_shape::FilterValueShape::None,
+        ),
+        (
+            crate::filter_operation::FilterOperation::GreaterThanCurrentDate,
+            crate::filter_value_shape::FilterValueShape::None,
+        ),
+        (
+            crate::filter_operation::FilterOperation::GreaterThanCurrentTime,
+            crate::filter_value_shape::FilterValueShape::None,
+        ),
+        (
+            crate::filter_operation::FilterOperation::GreaterThanCurrentTimestamp,
+            crate::filter_value_shape::FilterValueShape::None,
+        ),
+        (
+            crate::filter_operation::FilterOperation::EqToEncodedStringRepresentation,
+            crate::filter_value_shape::FilterValueShape::EncodedText,
+        ),
+        (
+            crate::filter_operation::FilterOperation::In,
+            crate::filter_value_shape::FilterValueShape::List,
+        ),
+        (
+            crate::filter_operation::FilterOperation::Regex,
+            crate::filter_value_shape::FilterValueShape::Regex,
+        ),
+        (
+            crate::filter_operation::FilterOperation::AdjacentWithRange,
+            crate::filter_value_shape::FilterValueShape::Scalar,
+        ),
+        (
+            crate::filter_operation::FilterOperation::Before,
+            crate::filter_value_shape::FilterValueShape::Scalar,
+        ),
+        (
+            crate::filter_operation::FilterOperation::Eq,
+            crate::filter_value_shape::FilterValueShape::Scalar,
+        ),
+        (
+            crate::filter_operation::FilterOperation::ExcludedUpperBound,
+            crate::filter_value_shape::FilterValueShape::Scalar,
+        ),
+        (
+            crate::filter_operation::FilterOperation::FindRangesThatFullyContainTheGivenRange,
+            crate::filter_value_shape::FilterValueShape::Scalar,
+        ),
+        (
+            crate::filter_operation::FilterOperation::FindRangesWithinGivenRange,
+            crate::filter_value_shape::FilterValueShape::Scalar,
+        ),
+        (
+            crate::filter_operation::FilterOperation::GreaterThan,
+            crate::filter_value_shape::FilterValueShape::Scalar,
+        ),
+        (
+            crate::filter_operation::FilterOperation::GreaterThanExcludedUpperBound,
+            crate::filter_value_shape::FilterValueShape::Scalar,
+        ),
+        (
+            crate::filter_operation::FilterOperation::GreaterThanIncludedLowerBound,
+            crate::filter_value_shape::FilterValueShape::Scalar,
+        ),
+        (
+            crate::filter_operation::FilterOperation::IncludedLowerBound,
+            crate::filter_value_shape::FilterValueShape::Scalar,
+        ),
+        (
+            crate::filter_operation::FilterOperation::OverlapWithRange,
+            crate::filter_value_shape::FilterValueShape::Scalar,
+        ),
+        (
+            crate::filter_operation::FilterOperation::RangeLen,
+            crate::filter_value_shape::FilterValueShape::Scalar,
+        ),
+        (
+            crate::filter_operation::FilterOperation::StrictlyToLeftOfRange,
+            crate::filter_value_shape::FilterValueShape::Scalar,
+        ),
+        (
+            crate::filter_operation::FilterOperation::StrictlyToRightOfRange,
+            crate::filter_value_shape::FilterValueShape::Scalar,
+        ),
+    ];
+    assert!(
+        cases
+            .into_iter()
+            .all(
+                |(filter_operation, filter_value_shape)| filter_operation.value_shape()
+                    == filter_value_shape
+            )
+    );
+}
+
+#[test]
+fn test_required_route_categories_cover_every_capability_combination_in_order() {
+    let cases = [
+        (
+            crate::route_test_capabilities::RouteTestCapabilities::new(
+                crate::route_database_usage::RouteDatabaseUsage::None,
+                crate::route_json_body_usage::RouteJsonBodyUsage::None,
+                crate::route_response_kind::RouteResponseKind::Buffered,
+            ),
+            &[
+                crate::route_test_category::RouteTestCategory::FixtureHook,
+                crate::route_test_category::RouteTestCategory::Metadata,
+            ][..],
+        ),
+        (
+            crate::route_test_capabilities::RouteTestCapabilities::new(
+                crate::route_database_usage::RouteDatabaseUsage::None,
+                crate::route_json_body_usage::RouteJsonBodyUsage::None,
+                crate::route_response_kind::RouteResponseKind::Streaming,
+            ),
+            &[
+                crate::route_test_category::RouteTestCategory::FixtureHook,
+                crate::route_test_category::RouteTestCategory::Metadata,
+                crate::route_test_category::RouteTestCategory::StreamingResponse,
+            ][..],
+        ),
+        (
+            crate::route_test_capabilities::RouteTestCapabilities::new(
+                crate::route_database_usage::RouteDatabaseUsage::None,
+                crate::route_json_body_usage::RouteJsonBodyUsage::JsonBody,
+                crate::route_response_kind::RouteResponseKind::Buffered,
+            ),
+            &[
+                crate::route_test_category::RouteTestCategory::FixtureHook,
+                crate::route_test_category::RouteTestCategory::Metadata,
+                crate::route_test_category::RouteTestCategory::JsonRoundTrip,
+            ][..],
+        ),
+        (
+            crate::route_test_capabilities::RouteTestCapabilities::new(
+                crate::route_database_usage::RouteDatabaseUsage::None,
+                crate::route_json_body_usage::RouteJsonBodyUsage::JsonBody,
+                crate::route_response_kind::RouteResponseKind::Streaming,
+            ),
+            &[
+                crate::route_test_category::RouteTestCategory::FixtureHook,
+                crate::route_test_category::RouteTestCategory::Metadata,
+                crate::route_test_category::RouteTestCategory::JsonRoundTrip,
+                crate::route_test_category::RouteTestCategory::StreamingResponse,
+            ][..],
+        ),
+        (
+            crate::route_test_capabilities::RouteTestCapabilities::new(
+                crate::route_database_usage::RouteDatabaseUsage::Database,
+                crate::route_json_body_usage::RouteJsonBodyUsage::None,
+                crate::route_response_kind::RouteResponseKind::Buffered,
+            ),
+            &[
+                crate::route_test_category::RouteTestCategory::FixtureHook,
+                crate::route_test_category::RouteTestCategory::Metadata,
+                crate::route_test_category::RouteTestCategory::DatabaseFixture,
+            ][..],
+        ),
+        (
+            crate::route_test_capabilities::RouteTestCapabilities::new(
+                crate::route_database_usage::RouteDatabaseUsage::Database,
+                crate::route_json_body_usage::RouteJsonBodyUsage::None,
+                crate::route_response_kind::RouteResponseKind::Streaming,
+            ),
+            &[
+                crate::route_test_category::RouteTestCategory::FixtureHook,
+                crate::route_test_category::RouteTestCategory::Metadata,
+                crate::route_test_category::RouteTestCategory::DatabaseFixture,
+                crate::route_test_category::RouteTestCategory::StreamingResponse,
+            ][..],
+        ),
+        (
+            crate::route_test_capabilities::RouteTestCapabilities::new(
+                crate::route_database_usage::RouteDatabaseUsage::Database,
+                crate::route_json_body_usage::RouteJsonBodyUsage::JsonBody,
+                crate::route_response_kind::RouteResponseKind::Buffered,
+            ),
+            &[
+                crate::route_test_category::RouteTestCategory::FixtureHook,
+                crate::route_test_category::RouteTestCategory::Metadata,
+                crate::route_test_category::RouteTestCategory::DatabaseFixture,
+                crate::route_test_category::RouteTestCategory::JsonRoundTrip,
+            ][..],
+        ),
+        (
+            crate::route_test_capabilities::RouteTestCapabilities::new(
+                crate::route_database_usage::RouteDatabaseUsage::Database,
+                crate::route_json_body_usage::RouteJsonBodyUsage::JsonBody,
+                crate::route_response_kind::RouteResponseKind::Streaming,
+            ),
+            &[
+                crate::route_test_category::RouteTestCategory::FixtureHook,
+                crate::route_test_category::RouteTestCategory::Metadata,
+                crate::route_test_category::RouteTestCategory::DatabaseFixture,
+                crate::route_test_category::RouteTestCategory::JsonRoundTrip,
+                crate::route_test_category::RouteTestCategory::StreamingResponse,
+            ][..],
+        ),
+    ];
+    assert!(
+        cases
+            .into_iter()
+            .all(|(route_test_capabilities, expected_categories)| {
+                bounded_types::bounded_vec::BoundedVec::from(
+                    crate::required_test_categories::required_test_categories(
+                        route_test_capabilities,
+                    ),
+                )
+                .into_inner()
+                    == expected_categories
+            })
+    );
+}
+
+#[test]
+fn test_field_collections_preserve_nonempty_order_duplicates_and_empty_iterators() {
+    let values = [
+        field_contract_builder_fixture().with_order(crate::field_order::FieldOrder::from(2usize)),
+        field_contract_builder_fixture().with_order(crate::field_order::FieldOrder::from(1usize)),
+        field_contract_builder_fixture().with_order(crate::field_order::FieldOrder::from(2usize)),
+    ];
+    let checked = crate::field_contracts::FieldContracts::try_from(values.to_vec());
+    assert!(checked.is_ok_and(|field_contracts| {
+        let iterated =
+            crate::field_contracts::FieldContracts::from_max_iter(values.iter().copied());
+        field_contracts.as_ref() == values && iterated.as_ref() == values
+    }));
+    assert!(
+        crate::field_contracts::FieldContracts::from_max_iter(std::iter::empty())
+            .as_ref()
+            .is_empty()
+    );
+}
+
+#[test]
+fn test_contract_static_text_preserves_borrowed_display_and_owned_content() {
+    assert!(
+        [constants_str::EMPTY, constants_str::X, constants_str::ROUTE]
+            .into_iter()
+            .all(|text| {
+                let contract_str = crate::contract_str::ContractStr::from(text);
+                assert!(std::ptr::eq(contract_str.as_ref().as_ptr(), text.as_ptr()));
+                contract_str.as_ref() == text
+                    && contract_str.to_string() == text
+                    && String::from(contract_str) == text
+            })
+    );
 }

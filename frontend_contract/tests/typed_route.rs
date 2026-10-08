@@ -171,6 +171,23 @@ mod tests {
     }
 
     #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
+    struct ErrorSchemaAbsentContractTestRoute;
+    impl frontend_contract::typed_route::TypedRoute for ErrorSchemaAbsentContractTestRoute {
+        type Request = TestRequest;
+        type Response = TestResponse;
+        type Transport = frontend_contract::public_transport::PublicTransport;
+        fn metadata() -> frontend_contract::route_metadata::RouteMetadata {
+            <TestRoute as frontend_contract::typed_route::TypedRoute>::metadata()
+        }
+        fn openapi_error_response_schema(
+            route_error_status: frontend_contract::route_error_status::RouteErrorStatus,
+        ) -> Option<frontend_contract::utoipa_open_api_route_schema::UtoipaOpenApiRouteSchema>
+        {
+            None
+        }
+    }
+
+    #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
     struct CreatedContractTestRoute;
     impl frontend_contract::typed_route::TypedRoute for CreatedContractTestRoute {
         type Request = TestRequest;
@@ -204,6 +221,48 @@ mod tests {
         {
             <TestRoute as frontend_contract::typed_route::TypedRoute>::openapi_response_schema()
         }
+    }
+
+    #[test]
+    fn test_schema_contract_preserves_absent_hooks_and_metadata() {
+        let route_schema_contract =
+            frontend_contract::route_schema_contract::RouteSchemaContract::from_typed_route::<
+                TestDefaultHooksRoute,
+            >();
+        assert_eq!(
+            route_schema_contract.metadata(),
+            <TestDefaultHooksRoute as frontend_contract::typed_route::TypedRoute>::metadata()
+        );
+        assert!(route_schema_contract.request_schema().is_none());
+        assert!(route_schema_contract.response_schema().is_none());
+    }
+
+    #[test]
+    fn test_schema_contract_forwards_exact_schemas_and_independent_optional_hooks() {
+        let cases = [
+            (frontend_contract::route_schema_contract::RouteSchemaContract::from_typed_route::<TestRoute>(), <TestRoute as frontend_contract::typed_route::TypedRoute>::metadata(), Some(<TestRequest as utoipa::PartialSchema>::schema())),
+            (frontend_contract::route_schema_contract::RouteSchemaContract::from_typed_route::<CreatedContractTestRoute>(), <CreatedContractTestRoute as frontend_contract::typed_route::TypedRoute>::metadata(), None),
+            (frontend_contract::route_schema_contract::RouteSchemaContract::from_typed_route::<NoContentContractTestRoute>(), <NoContentContractTestRoute as frontend_contract::typed_route::TypedRoute>::metadata(), None),
+        ];
+        assert!(cases.into_iter().all(
+            |(route_schema_contract, route_metadata, request_schema)| {
+                route_schema_contract.metadata() == route_metadata
+                    && route_schema_contract
+                        .request_schema()
+                        .cloned()
+                        .map(utoipa::openapi::RefOr::<utoipa::openapi::Schema>::from)
+                        == request_schema
+                    && route_schema_contract
+                        .response_schema()
+                        .cloned()
+                        .map(utoipa::openapi::RefOr::<utoipa::openapi::Schema>::from)
+                        == Some(<TestResponse as utoipa::PartialSchema>::schema())
+                    && route_schema_contract
+                        .response_schema()
+                        .zip(route_schema_contract.response_schema())
+                        .is_some_and(|(first, second)| std::ptr::eq(first, second))
+            }
+        ));
     }
 
     #[test]
@@ -267,6 +326,10 @@ mod tests {
             frontend_contract::contract_str::ContractStr::from(constants_str::ROUTE)
         );
         assert_eq!(
+            frontend_contract::typed_route_path::typed_route_path::<TestRoute>(),
+            frontend_contract::contract_str::ContractStr::from(constants_str::ROUTE)
+        );
+        assert_eq!(
             size_of_val(&test_client::<TestTransport>),
             constants_usize::ZERO
         );
@@ -281,6 +344,10 @@ mod tests {
                 error
                     == frontend_contract::parameterized_route_path_try_from_string_error::ParameterizedRoutePathTryFromStringError::TooLong
             }));
+            assert_eq!(
+                frontend_contract::typed_parameterized_route_path::typed_parameterized_route_path::<TestLongParameterizedRoute>(&parameter),
+                Err(frontend_contract::parameterized_route_path_try_from_string_error::ParameterizedRoutePathTryFromStringError::TooLong)
+            );
             let client = frontend_contract::typed_client::TypedClient::new(
                 TestTransport,
                 frontend_contract::transport_path::TransportPath::default(),
@@ -299,6 +366,12 @@ mod tests {
         let parameter_result = TestLongRouteParameter::try_from(constants_str::X.to_owned());
         assert!(parameter_result.is_ok());
         if let Ok(parameter) = parameter_result {
+            assert_eq!(
+                frontend_contract::typed_parameterized_route_path::typed_parameterized_route_path::<
+                    TestLongParameterizedRoute,
+                >(&parameter),
+                test_long_parameterized_route(&parameter)
+            );
             assert!(
                 test_long_parameterized_route(&parameter)
                     .is_ok_and(|route_path| String::from(route_path).ends_with(constants_str::X))
@@ -338,6 +411,184 @@ mod tests {
     }
 
     #[test]
+    fn test_route_schema_registration_initializes_shared_schemas_without_route_hooks() {
+        let mut document = utoipa::openapi::OpenApi::default();
+        assert!(document.components.is_none());
+        frontend_contract::register_openapi_route_schemas::register_openapi_route_schemas::<
+            TestDefaultHooksRoute,
+        >(
+            &mut frontend_contract::utoipa_open_api_ref_mut::UtoipaOpenApiRefMut::from(
+                &mut document,
+            ),
+        );
+        let expected_schemas = [
+            (<frontend_contract::api_problem::ApiProblem as utoipa::ToSchema>::name(), <frontend_contract::api_problem::ApiProblem as utoipa::PartialSchema>::schema()),
+            (<frontend_contract::api_problem_detail::ApiProblemDetail as utoipa::ToSchema>::name(), <frontend_contract::api_problem_detail::ApiProblemDetail as utoipa::PartialSchema>::schema()),
+            (<frontend_contract::api_problem_field::ApiProblemField as utoipa::ToSchema>::name(), <frontend_contract::api_problem_field::ApiProblemField as utoipa::PartialSchema>::schema()),
+            (<frontend_contract::api_problem_kind::ApiProblemKind as utoipa::ToSchema>::name(), <frontend_contract::api_problem_kind::ApiProblemKind as utoipa::PartialSchema>::schema()),
+            (<frontend_contract::api_problem_request_id::ApiProblemRequestId as utoipa::ToSchema>::name(), <frontend_contract::api_problem_request_id::ApiProblemRequestId as utoipa::PartialSchema>::schema()),
+            (<frontend_contract::api_problem_status::ApiProblemStatus as utoipa::ToSchema>::name(), <frontend_contract::api_problem_status::ApiProblemStatus as utoipa::PartialSchema>::schema()),
+            (<frontend_contract::api_problem_violation::ApiProblemViolation as utoipa::ToSchema>::name(), <frontend_contract::api_problem_violation::ApiProblemViolation as utoipa::PartialSchema>::schema()),
+            (<frontend_contract::filter_operation::FilterOperation as utoipa::ToSchema>::name(), <frontend_contract::filter_operation::FilterOperation as utoipa::PartialSchema>::schema()),
+            (<frontend_contract::filter_value_shape::FilterValueShape as utoipa::ToSchema>::name(), <frontend_contract::filter_value_shape::FilterValueShape as utoipa::PartialSchema>::schema()),
+        ];
+        assert!(document.components.as_ref().is_some_and(|components| {
+            expected_schemas
+                .into_iter()
+                .all(|(name, schema)| components.schemas.get(name.as_ref()) == Some(&schema))
+                && !components
+                    .schemas
+                    .contains_key(<TestRequest as utoipa::ToSchema>::name().as_ref())
+                && !components
+                    .schemas
+                    .contains_key(<TestResponse as utoipa::ToSchema>::name().as_ref())
+        }));
+    }
+
+    #[test]
+    fn test_route_schema_registration_preserves_existing_components_and_is_idempotent() {
+        let mut document = utoipa::openapi::OpenApi::default();
+        let mut components = utoipa::openapi::schema::Components::default();
+        let unrelated_schema = <TestRequest as utoipa::PartialSchema>::schema();
+        let _previous = components
+            .schemas
+            .insert(constants_str::ROUTE.to_owned(), unrelated_schema.clone());
+        document.components = Some(components);
+        frontend_contract::register_openapi_route_schemas::register_openapi_route_schemas::<
+            TestRoute,
+        >(
+            &mut frontend_contract::utoipa_open_api_ref_mut::UtoipaOpenApiRefMut::from(
+                &mut document,
+            ),
+        );
+        assert!(
+            document
+                .components
+                .as_ref()
+                .is_some_and(|registered| registered.schemas.get(constants_str::ROUTE)
+                    == Some(&unrelated_schema))
+        );
+        let first_registration = document.clone();
+        frontend_contract::register_openapi_route_schemas::register_openapi_route_schemas::<
+            TestRoute,
+        >(
+            &mut frontend_contract::utoipa_open_api_ref_mut::UtoipaOpenApiRefMut::from(
+                &mut document,
+            ),
+        );
+        assert!(document == first_registration);
+    }
+
+    #[test]
+    fn test_schema_collections_preserve_nonempty_order_and_duplicates() {
+        let values = [
+            frontend_contract::route_schema_contract::RouteSchemaContract::from_typed_route::<
+                CreatedContractTestRoute,
+            >(),
+            frontend_contract::route_schema_contract::RouteSchemaContract::from_typed_route::<
+                TestRoute,
+            >(),
+            frontend_contract::route_schema_contract::RouteSchemaContract::from_typed_route::<
+                CreatedContractTestRoute,
+            >(),
+        ];
+        let checked = frontend_contract::route_schema_contracts::RouteSchemaContracts::try_from(
+            values.to_vec(),
+        );
+        let statuses = |route_schema_contracts: &frontend_contract::route_schema_contracts::RouteSchemaContracts| {
+            route_schema_contracts.as_ref().iter().map(|schema| schema.metadata().success_status()).collect::<Vec<_>>()
+        };
+        assert!(checked.is_ok_and(|route_schema_contracts| {
+            let iterated =
+                frontend_contract::route_schema_contracts::RouteSchemaContracts::from_max_iter(
+                    values,
+                );
+            let expected = [
+                frontend_contract::success_status::SuccessStatus::Code201,
+                frontend_contract::success_status::SuccessStatus::Code200,
+                frontend_contract::success_status::SuccessStatus::Code201,
+            ];
+            statuses(&route_schema_contracts) == expected
+                && statuses(&iterated) == expected
+                && iterated
+                    .as_ref()
+                    .iter()
+                    .all(|schema| schema.response_schema().is_some())
+        }));
+    }
+
+    fn assert_error_contract_replaces_stale_errors_and_retains_other_responses<Route>()
+    where
+        Route: frontend_contract::typed_route::TypedRoute,
+    {
+        let mut stale =
+            utoipa::openapi::response::Response::new(constants_str::NEVER_PRINT_THIS_VALUE);
+        let _previous_header = stale.headers.insert(
+            constants_str::RETRY_AFTER.to_owned(),
+            utoipa::openapi::header::Header::default(),
+        );
+        let mut operation = utoipa::openapi::path::Operation::default();
+        operation.responses.responses = [200u16, 307u16, 401u16, 418u16, 429u16, 500u16, 599u16]
+            .into_iter()
+            .map(|status| (status.to_string(), utoipa::openapi::RefOr::T(stale.clone())))
+            .collect();
+        frontend_contract::apply_openapi_error_contract::apply_openapi_error_contract::<Route>(
+            &mut operation,
+        );
+        let metadata = Route::metadata();
+        assert_eq!(
+            Some(operation.responses.responses.len()),
+            metadata.error_statuses().len().checked_add(2usize)
+        );
+        [200u16, 307u16].into_iter().fold((), |(), status| {
+            assert!(
+                operation
+                    .responses
+                    .responses
+                    .get(&status.to_string())
+                    .is_some_and(|response_ref| {
+                        serde_json::to_value(response_ref).is_ok_and(|actual| {
+                            serde_json::to_value(&stale).is_ok_and(|expected| actual == expected)
+                        })
+                    })
+            );
+        });
+        metadata.error_statuses().iter().copied().fold((), |(), error_status| {
+            let status = error_status.transport_status().to_string();
+            assert!(operation.responses.responses.get(&status).is_some_and(|response_ref| {
+                match response_ref {
+                    utoipa::openapi::RefOr::T(response) => {
+                        let schema_matches = Route::openapi_error_response_schema(error_status).map_or_else(
+                            || response.content.is_empty(),
+                            |schema| response.content.len() == 1usize && response.content.get(constants_str::APPLICATION_JSON).is_some_and(|content| {
+                                let expected_schema = utoipa::openapi::RefOr::<utoipa::openapi::Schema>::from(schema);
+                                content.schema.as_ref().is_some_and(|actual_schema| serde_json::to_value(actual_schema).is_ok_and(|actual| serde_json::to_value(&expected_schema).is_ok_and(|expected| actual == expected)))
+                            }),
+                        );
+                        let rate_limited = error_status == frontend_contract::route_error_status::RouteErrorStatus::RateLimited;
+                        response.description == status && schema_matches
+                            && response.headers.len() == usize::from(rate_limited)
+                            && response.headers.contains_key(constants_str::RETRY_AFTER) == rate_limited
+                    }
+                    utoipa::openapi::RefOr::Ref(_) => false,
+                }
+            }));
+        });
+    }
+
+    #[test]
+    fn test_error_contract_replaces_stale_errors_preserves_other_responses_and_respects_schema_headers()
+     {
+        assert_error_contract_replaces_stale_errors_and_retains_other_responses::<TestRoute>();
+        assert_error_contract_replaces_stale_errors_and_retains_other_responses::<
+            ErrorSchemaAbsentContractTestRoute,
+        >();
+        assert_error_contract_replaces_stale_errors_and_retains_other_responses::<
+            TestDefaultHooksRoute,
+        >();
+    }
+
+    #[test]
     fn test_typed_route_applies_declared_error_response_schema() {
         let mut operation = utoipa::openapi::path::Operation::default();
         frontend_contract::apply_openapi_error_contract::apply_openapi_error_contract::<TestRoute>(
@@ -350,6 +601,25 @@ mod tests {
                     .contains_key(constants_str::APPLICATION_JSON),
                 utoipa::openapi::RefOr::Ref(_reference) => false,
             }
+        }));
+    }
+
+    #[test]
+    fn test_path_parameter_helper_preserves_absent_route_state_and_appends_declared_parameter() {
+        let optional_parameter = <TestLongParameterizedRoute as frontend_contract::typed_route::TypedRoute>::openapi_path_parameter();
+        assert!(optional_parameter.is_some_and(|parameter| {
+            let expected_parameter = utoipa::openapi::path::Parameter::from(parameter);
+            [None, Some(Vec::new()), Some(vec![utoipa::openapi::path::ParameterBuilder::new().name(constants_str::X).build()])].into_iter().fold((), |(), original_parameters| {
+                let mut operation = utoipa::openapi::path::Operation::default();
+                operation.parameters = original_parameters.clone();
+                frontend_contract::apply_openapi_path_parameter_contract::apply_openapi_path_parameter_contract::<TestRoute>(&mut operation);
+                assert!(serde_json::to_value(&operation.parameters).is_ok_and(|actual| serde_json::to_value(&original_parameters).is_ok_and(|expected| actual == expected)));
+                let mut expected = original_parameters.unwrap_or_default();
+                expected.push(expected_parameter.clone());
+                frontend_contract::apply_openapi_path_parameter_contract::apply_openapi_path_parameter_contract::<TestLongParameterizedRoute>(&mut operation);
+                assert!(serde_json::to_value(&operation.parameters).is_ok_and(|actual| serde_json::to_value(Some(&expected)).is_ok_and(|expected_json| actual == expected_json)));
+            });
+            true
         }));
     }
 

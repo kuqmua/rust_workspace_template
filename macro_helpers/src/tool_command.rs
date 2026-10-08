@@ -112,6 +112,34 @@ impl ToolCommand {
 #[cfg(test)]
 mod tests {
     #[test]
+    fn test_bounded_command_output_preserves_stderr_tail_and_failed_exit_status() {
+        let invalid_format = '%'.to_string();
+        let make_command = || {
+            let mut tool_command = crate::tool_command::ToolCommand::new(
+                crate::tool_program_ref::ToolProgramRef::from(constants_str::PRINTF),
+            );
+            let _argument = tool_command.arg(crate::tool_arg_ref::ToolArgRef::from(
+                invalid_format.as_str(),
+            ));
+            tool_command
+        };
+        let unbounded = make_command().output();
+        let bounded =
+            make_command().bounded_output(crate::tool_output_limit::ToolOutputLimit::from(3usize));
+        assert!(unbounded.is_ok_and(|expected| {
+            !expected.status.success()
+                && expected.stdout.is_empty()
+                && expected.stderr.len() > 3usize
+                && bounded.is_ok_and(|actual| {
+                    actual.status.code() == expected.status.code()
+                        && actual.stdout.is_empty()
+                        && expected.stderr.get(expected.stderr.len() - 3usize..)
+                            == Some(actual.stderr.as_slice())
+                })
+        }));
+    }
+
+    #[test]
     fn test_bounded_output_retains_recent_process_bytes() {
         let mut command = super::ToolCommand::new(crate::tool_program_ref::ToolProgramRef::from(
             constants_str::PRINTF,

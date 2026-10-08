@@ -12,12 +12,24 @@ impl<'query_lt> crate::pg_type_where_filter::PgTypeWhereFilter<'query_lt>
 {
     fn query_bind(
         self,
-        sqlx_postgres_query: crate::sqlx_postgres_query::SqlxPostgresQuery<'query_lt>,
+        mut sqlx_postgres_query: crate::sqlx_postgres_query::SqlxPostgresQuery<'query_lt>,
     ) -> Result<
         crate::sqlx_postgres_query::SqlxPostgresQuery<'query_lt>,
         crate::sqlx_postgres_query_bind_error::SqlxPostgresQueryBindError,
     > {
-        Ok(sqlx_postgres_query)
+        match self {
+            Self::Accepted(query_part_increment) => {
+                let value = i64::try_from(query_part_increment.get())
+                    .map_err(crate::make_query_bind_error::make_query_bind_error)?;
+                sqlx_postgres_query.as_mut().try_bind(value).map_err(
+                    crate::sqlx_postgres_query_bind_error::SqlxPostgresQueryBindError::from,
+                )?;
+                Ok(sqlx_postgres_query)
+            }
+            Self::Rejected(_) => Err(crate::make_query_bind_error::make_query_bind_error(
+                std::io::Error::from(std::io::ErrorKind::InvalidData),
+            )),
+        }
     }
 
     fn query_part(
@@ -335,6 +347,30 @@ fn test_nullable_json_obj_filter_rejects_fragment_overflow() {
 }
 
 #[test]
+fn test_query_part_error_conversion_preserves_exact_length_details() {
+    [(1usize, 0usize), (65_535usize, 4096usize), (1_048_577usize, 1usize)]
+        .into_iter()
+        .fold((), |(), (len, max)| {
+            let source = crate::pg_crud_string_wrapper_try_from_string_error::PgCrudStringWrapperTryFromStringError::TooLong { len, max };
+            let query_part_error = crate::query_part_error::QueryPartError::from(source);
+            assert!(matches!(
+                &query_part_error,
+                crate::query_part_error::QueryPartError::StringWrapperTryFromString {
+                    error: crate::pg_crud_string_wrapper_try_from_string_error::PgCrudStringWrapperTryFromStringError::TooLong {
+                        len: actual_length,
+                        max: maximum_length,
+                    },
+                    ..
+                } if *actual_length == len && *maximum_length == max
+            ));
+            assert_eq!(
+                to_err_string::to_err_string::ToErrString::to_err_string(&query_part_error).as_ref(),
+                query_part_error.to_string(),
+            );
+        });
+}
+
+#[test]
 fn test_query_part_error_formats_as_error_text() {
     let error = crate::query_part_error::QueryPartError::CheckedAdd {
         location: proc_macro_location_bang::location!(),
@@ -453,4 +489,156 @@ fn test_nullable_json_obj_default_variants_preserve_non_null_values_and_diagnost
         >::from(None);
     let null_diagnostic = to_err_string::to_err_string::ToErrString::to_err_string(&null_filter);
     assert_eq!(null_diagnostic.as_ref(), format!("{null_filter:#?}"));
+}
+
+#[test]
+fn test_nullable_json_object_success_delegates_sql_progress_and_appended_arguments() {
+    assert!(crate::not_empty_unique_vec::NotEmptyUniqueVec::try_new(
+        crate::duplicate_candidates::DuplicateCandidates::from(vec![
+            TestFallibleWhereValue::Accepted(crate::query_part_increment::QueryPartIncrement::from(1u64)),
+            TestFallibleWhereValue::Accepted(crate::query_part_increment::QueryPartIncrement::from(2u64)),
+        ]),
+    ).is_ok_and(|values| {
+        let filter = crate::nullable_json_obj_pg_type_where_filter::NullableJsonObjPgTypeWhereFilter::from(Some(values));
+        assert!([false, true].into_iter().all(|operator| {
+            let mut increment = crate::query_part_increment::QueryPartIncrement::from(7u64);
+            let expected = format!("{}{}{}{}", if operator { constants_str::AND_ALT } else { constants_str::EMPTY }, constants_str::X, constants_str::AND_ALT, constants_str::X);
+            crate::pg_type_where_filter::PgTypeWhereFilter::query_part(
+                &filter, &mut increment,
+                crate::sql_column_ref::SqlColumnRef::from(&constants_str::SQL_NAMES_ID),
+                crate::add_operator::AddOperator::from(operator),
+            ).is_ok_and(|fragment| fragment.as_ref() == expected && increment.get() == 9u64)
+        }));
+        let query = crate::sqlx_postgres_query::SqlxPostgresQuery::from(sqlx::query(constants_str::TEST_READ_QUERY_BASE).bind(17i64));
+        crate::pg_type_where_filter::PgTypeWhereFilter::query_bind(filter, query).is_ok_and(|bound| {
+            let mut sqlx_query = bound.into_inner();
+            let arguments_result = sqlx::Execute::take_arguments(&mut sqlx_query);
+            assert_eq!(sqlx::Execute::sql(sqlx_query).as_str(), constants_str::TEST_READ_QUERY_BASE);
+            arguments_result.is_ok_and(|arguments| arguments.is_some_and(|bound_arguments| sqlx::Arguments::len(&bound_arguments) == 3usize))
+        })
+    }));
+}
+
+#[test]
+fn test_nullable_json_object_binding_rejections_preserve_error_source() {
+    assert!([
+        vec![TestFallibleWhereValue::Rejected(crate::query_part_increment::QueryPartIncrement::from(1u64))],
+        vec![TestFallibleWhereValue::Accepted(crate::query_part_increment::QueryPartIncrement::from(1u64)), TestFallibleWhereValue::Rejected(crate::query_part_increment::QueryPartIncrement::from(2u64))],
+    ].into_iter().all(|candidates| {
+        crate::not_empty_unique_vec::NotEmptyUniqueVec::try_new(crate::duplicate_candidates::DuplicateCandidates::from(candidates)).is_ok_and(|values| {
+            let filter = crate::nullable_json_obj_pg_type_where_filter::NullableJsonObjPgTypeWhereFilter::from(Some(values));
+            let query = crate::sqlx_postgres_query::SqlxPostgresQuery::from(sqlx::query(constants_str::EMPTY).bind(17i64));
+            crate::pg_type_where_filter::PgTypeWhereFilter::query_bind(filter, query).is_err_and(|error| {
+                std::error::Error::source(&error).and_then(std::error::Error::source)
+                    .and_then(|source| source.downcast_ref::<std::io::Error>())
+                    .is_some_and(|source| source.kind() == std::io::ErrorKind::InvalidData)
+            })
+        })
+    }));
+}
+
+#[derive(
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    serde::Serialize,
+    serde::Deserialize,
+    proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+    proc_macro_newtype_from_inner::FromInner,
+)]
+#[serde(from = "crate::pagination_base::PaginationBase")]
+struct TestSerializablePaginationFilter(crate::pagination_base::PaginationBase);
+
+impl<'query_lt> crate::pg_type_where_filter::PgTypeWhereFilter<'query_lt>
+    for TestSerializablePaginationFilter
+{
+    fn query_bind(
+        self,
+        sqlx_postgres_query: crate::sqlx_postgres_query::SqlxPostgresQuery<'query_lt>,
+    ) -> Result<
+        crate::sqlx_postgres_query::SqlxPostgresQuery<'query_lt>,
+        crate::sqlx_postgres_query_bind_error::SqlxPostgresQueryBindError,
+    > {
+        crate::pg_type_where_filter::PgTypeWhereFilter::query_bind(self.0, sqlx_postgres_query)
+    }
+    fn query_part(
+        &self,
+        increment: &mut dyn crate::query_part_increment_mut::QueryPartIncrementMut,
+        sql_column_ref: crate::sql_column_ref::SqlColumnRef<'_>,
+        add_operator: crate::add_operator::AddOperator,
+    ) -> Result<
+        crate::query_part_fragment::QueryPartFragment,
+        crate::query_part_error::QueryPartError,
+    > {
+        crate::pg_type_where_filter::PgTypeWhereFilter::query_part(
+            &self.0,
+            increment,
+            sql_column_ref,
+            add_operator,
+        )
+    }
+}
+impl crate::all_enum_variants_array_default_some_one_element::AllEnumVariantsArrayDefaultSomeOneElement for TestSerializablePaginationFilter {
+    fn all_variants_default_some_one_element() -> crate::all_enum_variants::AllEnumVariants<Self> {
+        vec![Self::from(crate::pagination_base::PaginationBase::default())].into()
+    }
+}
+
+#[test]
+fn test_nullable_json_filter_serialization_preserves_null_and_ordered_values() {
+    let null_filter =
+        crate::nullable_json_obj_pg_type_where_filter::NullableJsonObjPgTypeWhereFilter::<
+            TestSerializablePaginationFilter,
+        >::from(None);
+    assert_eq!(
+        serde_json::to_value(&null_filter).ok(),
+        Some(serde_json::Value::Null)
+    );
+    assert!(
+        serde_json::from_value::<
+            crate::nullable_json_obj_pg_type_where_filter::NullableJsonObjPgTypeWhereFilter<
+                TestSerializablePaginationFilter,
+            >,
+        >(serde_json::Value::Null)
+        .is_ok_and(|filter| filter.as_ref().is_none())
+    );
+    let first = crate::pagination_base::PaginationBase::default();
+    let second = crate::pagination_base::PaginationBase::new_unchecked(2i32, 3i32);
+    let expected_values = [
+        TestSerializablePaginationFilter::from(first),
+        TestSerializablePaginationFilter::from(second),
+    ];
+    assert!(crate::not_empty_unique_vec::NotEmptyUniqueVec::try_new(crate::duplicate_candidates::DuplicateCandidates::from(expected_values.to_vec())).is_ok_and(|values| {
+        let filter = crate::nullable_json_obj_pg_type_where_filter::NullableJsonObjPgTypeWhereFilter::from(Some(values));
+        let expected_json = serde_json::json!([first, second]);
+        assert_eq!(serde_json::to_value(&filter).ok().as_ref(), Some(&expected_json));
+        serde_json::from_value::<crate::nullable_json_obj_pg_type_where_filter::NullableJsonObjPgTypeWhereFilter<TestSerializablePaginationFilter>>(expected_json)
+            .is_ok_and(|decoded| decoded.into_option().is_some_and(|decoded_values| decoded_values.as_slice() == expected_values))
+    }));
+}
+
+#[test]
+fn test_nullable_json_filter_deserialization_rejects_invalid_non_null_values() {
+    let value = crate::pagination_base::PaginationBase::default();
+    assert!(
+        [
+            serde_json::json!([]),
+            serde_json::json!([value, value]),
+            serde_json::json!([null]),
+            serde_json::json!([true]),
+            serde_json::json!({}),
+            serde_json::json!(constants_str::X),
+        ]
+        .into_iter()
+        .all(|json| {
+            serde_json::from_value::<
+                crate::nullable_json_obj_pg_type_where_filter::NullableJsonObjPgTypeWhereFilter<
+                    TestSerializablePaginationFilter,
+                >,
+            >(json)
+            .is_err_and(|error| error.is_data())
+        })
+    );
 }

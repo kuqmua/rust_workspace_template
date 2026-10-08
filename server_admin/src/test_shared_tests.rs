@@ -43,11 +43,47 @@ mod tests {
         );
     }
 
-    #[test]
-    fn test_json_response_wraps_serializable_values() {
+    #[tokio::test]
+    async fn test_json_response_wraps_serializable_values() {
         let response =
             crate::json_response::json_response(server_admin_contract::admin_no_body::AdminNoBody);
         assert_eq!(response.get_inner().status(), http::StatusCode::OK);
+        assert!(
+            response
+                .get_inner()
+                .headers()
+                .get(http::header::CONTENT_TYPE)
+                .is_some_and(|content_type| content_type == constants_str::APPLICATION_JSON)
+        );
+        let response = axum::response::IntoResponse::into_response(response);
+        let body = axum::body::to_bytes(response.into_body(), 1_024usize).await;
+        assert!(body.is_ok_and(|bytes| bytes.as_ref() == stringify!(null).as_bytes()));
+    }
+
+    #[tokio::test]
+    async fn test_json_response_preserves_serialization_failure_status_and_message() {
+        let value = std::collections::BTreeMap::from([((1u8, 2u8), 3u8)]);
+        assert!(
+            serde_json::to_vec(&value)
+                .is_err_and(|error| error.to_string() == stringify!(key must be a string))
+        );
+        let response =
+            axum::response::IntoResponse::into_response(crate::json_response::json_response(value));
+        assert_eq!(response.status(), http::StatusCode::INTERNAL_SERVER_ERROR);
+        assert!(
+            response
+                .headers()
+                .get(http::header::CONTENT_TYPE)
+                .is_some_and(|content_type| content_type
+                    .to_str()
+                    .is_ok_and(|text| text.strip_prefix(constants_str::TEXT_PLAIN)
+                        == constants_str::TEST_JSON_CONTENT_TYPE_WITH_CHARSET
+                            .strip_prefix(constants_str::APPLICATION_JSON)))
+        );
+        let body = axum::body::to_bytes(response.into_body(), 1_024usize).await;
+        assert!(
+            body.is_ok_and(|bytes| bytes.as_ref() == stringify!(key must be a string).as_bytes())
+        );
     }
 
     #[test]
