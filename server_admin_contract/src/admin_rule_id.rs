@@ -84,4 +84,38 @@ mod tests {
             .is_none()
         );
     }
+    #[test]
+    fn test_rule_identifier_accepts_registered_detail_paths_and_rejects_invalid_ids() {
+        [
+            crate::admin_frontend_path::AdminFrontendPath::RuleRead,
+            crate::admin_frontend_path::AdminFrontendPath::RulesRead,
+            crate::admin_frontend_path::AdminFrontendPath::RuleRecordRead,
+        ]
+        .into_iter()
+        .fold((), |(), admin_frontend_path| {
+            [1i64, i64::MAX, 0i64, -1i64, i64::MIN]
+                .into_iter()
+                .fold((), |(), value| {
+                    let path = admin_frontend_path.get().replace(
+                        constants_str::ADMIN_RULE_ID_PLACEHOLDER,
+                        value.to_string().as_str(),
+                    );
+                    assert_eq!(
+                        super::AdminRuleId::from_frontend_path(
+                            crate::admin_page_path_ref::AdminPagePathRef::from(path.as_str()),
+                        ),
+                        super::AdminRuleId::try_from(value).ok(),
+                    );
+                });
+            let malformed_path = admin_frontend_path
+                .get()
+                .replace(constants_str::ADMIN_RULE_ID_PLACEHOLDER, constants_str::X);
+            assert!(
+                super::AdminRuleId::from_frontend_path(
+                    crate::admin_page_path_ref::AdminPagePathRef::from(malformed_path.as_str()),
+                )
+                .is_none()
+            );
+        });
+    }
 }

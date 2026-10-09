@@ -233,3 +233,47 @@ fn test_single_filter_minus_one_does_not_increment() {
     ));
     assert_eq!(increment.get(), u64::MAX);
 }
+
+#[test]
+fn test_filter_vector_domain_default_preserves_exact_length_and_element_default() {
+    #[derive(
+        Clone,
+        Default,
+        proc_macro_optimal_memory_layout::OptimalMemoryLayout,
+        proc_macro_newtype_from_inner::FromInner,
+        proc_macro_newtype_get_inner::GetInner,
+    )]
+    #[borrow]
+    struct FilterVectorCustomDefaultFixture(crate::encode_format::EncodeFormat);
+
+    impl pg_crud_common::default_some_one_element::DefaultSomeOneElement
+        for FilterVectorCustomDefaultFixture
+    {
+        fn default_some_one_element() -> Self {
+            Self::from(crate::encode_format::EncodeFormat::Hex)
+        }
+    }
+
+    assert_eq!(
+        *FilterVectorCustomDefaultFixture::default().get(),
+        crate::encode_format::EncodeFormat::Base64
+    );
+    let empty = <crate::pg_filter_vec::PgFilterVec<FilterVectorCustomDefaultFixture, 0usize> as pg_crud_common::default_some_one_element::DefaultSomeOneElement>::default_some_one_element();
+    assert!(empty.as_slice().is_empty());
+    let single = <crate::pg_filter_vec::PgFilterVec<FilterVectorCustomDefaultFixture, 1usize> as pg_crud_common::default_some_one_element::DefaultSomeOneElement>::default_some_one_element();
+    assert_eq!(single.as_slice().len(), 1usize);
+    assert!(
+        single
+            .as_slice()
+            .iter()
+            .all(|element| *element.get() == crate::encode_format::EncodeFormat::Hex)
+    );
+    let multiple = <crate::pg_filter_vec::PgFilterVec<FilterVectorCustomDefaultFixture, 3usize> as pg_crud_common::default_some_one_element::DefaultSomeOneElement>::default_some_one_element();
+    assert_eq!(multiple.as_slice().len(), 3usize);
+    assert!(
+        multiple
+            .as_slice()
+            .iter()
+            .all(|element| *element.get() == crate::encode_format::EncodeFormat::Hex)
+    );
+}

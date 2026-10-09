@@ -221,6 +221,14 @@ fn test_session_context_hash_is_bound_to_peer_and_user_agent() {
             first_peer,
         )
         .expect(constants_str::DIAGNOSTIC_14F0AA2D);
+    assert_eq!(
+        same_context_hash.expose().as_ref(),
+        base16ct::lower::encode_string(&[
+            0x35u8, 0xc1, 0xa3, 0xcf, 0x97, 0xd0, 0x95, 0x1e, 0x28, 0x64, 0x6d, 0x73, 0x8d, 0x43,
+            0xcb, 0x69, 0xb7, 0x4c, 0xcf, 0x28, 0xbe, 0xcb, 0xa9, 0x76, 0x2e, 0x41, 0xe5, 0x8a,
+            0x8e, 0x46, 0x69, 0x6c,
+        ]),
+    );
     let repeated_context_hash =
         crate::authorization_session_context_hash::authorization_session_context_hash(
             crate::http_admin_header_map_ref::HttpAdminHeaderMapRef::from(&first_headers),
@@ -244,6 +252,14 @@ fn test_session_context_hash_is_bound_to_peer_and_user_agent() {
             other_peer,
         )
         .expect(constants_str::DIAGNOSTIC_0803469A);
+    assert_eq!(
+        other_peer_hash.expose().as_ref(),
+        base16ct::lower::encode_string(&[
+            0x41u8, 0x15, 0x4b, 0x18, 0x12, 0x60, 0x1d, 0xfa, 0x34, 0xd5, 0x86, 0x06, 0x38, 0xa5,
+            0x2a, 0x01, 0x50, 0x72, 0xe1, 0x3d, 0x8e, 0xe8, 0x04, 0x9a, 0x48, 0x8b, 0x00, 0x3b,
+            0xf5, 0x95, 0x94, 0x1f,
+        ]),
+    );
     assert_ne!(
         same_context_hash.expose().as_ref(),
         other_peer_hash.expose().as_ref(),
@@ -259,6 +275,14 @@ fn test_session_context_hash_is_bound_to_peer_and_user_agent() {
             first_peer,
         )
         .expect(constants_str::DIAGNOSTIC_90CE47EE);
+    assert_eq!(
+        other_user_agent_hash.expose().as_ref(),
+        base16ct::lower::encode_string(&[
+            0x29u8, 0xe5, 0x6c, 0x60, 0xe4, 0xa9, 0xb4, 0x4b, 0xba, 0x02, 0x55, 0xd7, 0x2c, 0x07,
+            0x57, 0x4e, 0xcc, 0x64, 0x9f, 0xe9, 0x06, 0xd2, 0xa0, 0x29, 0x57, 0x14, 0xdb, 0x3c,
+            0xfa, 0x35, 0xec, 0xcc,
+        ]),
+    );
     assert_ne!(
         same_context_hash.expose().as_ref(),
         other_user_agent_hash.expose().as_ref(),

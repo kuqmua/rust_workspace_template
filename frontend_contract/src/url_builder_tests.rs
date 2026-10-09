@@ -223,4 +223,26 @@ mod tests {
             );
         });
     }
+    #[test]
+    fn test_query_component_encoding_preserves_exact_ascii_escape_policy() {
+        (0u8..=127u8).fold((), |(), byte| {
+            let component = char::from(byte).to_string();
+            let encoded = if byte.is_ascii_alphanumeric()
+                || matches!(byte, b'-' | b'.' | b',' | b'_' | b'~')
+            {
+                component.clone()
+            } else {
+                format!("{}{byte:02X}", constants_str::VALUE_PERCENT)
+            };
+            let expected = format!("{}?{encoded}={encoded}", constants_str::TEST_API_URL_BASE);
+            assert!(
+                crate::api_url::ApiUrl::try_from(constants_str::TEST_API_URL_BASE.to_owned())
+                    .is_ok_and(|mut api_url| {
+                        api_url
+                            .push_query_pair(component.as_str().into(), component.as_str().into())
+                            .is_ok_and(|()| api_url.as_ref() == expected)
+                    })
+            );
+        });
+    }
 }

@@ -4604,6 +4604,7 @@ mod test_html {
             crate::env::<config_lib::admin_session_limit::AdminSessionLimit>(
                 crate::StdAdminApiTestStrRef::from(constants_str::VALUE_20),
             ),
+            None,
         )
         .await;
         let users_response = crate::admin_html_response(
@@ -6507,6 +6508,7 @@ mod test_migrated_api {
             crate::env::<config_lib::admin_session_limit::AdminSessionLimit>(
                 crate::StdAdminApiTestStrRef::from(constants_str::VALUE_2),
             ),
+            None,
         )
         .await;
         let sign_in_body = format!(
@@ -8614,8 +8616,23 @@ mod test_session_current_filter {
         };
         assert!(check_user_filter(server_admin_contract::admin_bool::AdminBool::from(true)).await);
         assert!(check_user_filter(server_admin_contract::admin_bool::AdminBool::from(false)).await);
-        let check_filter = async |admin_bool: server_admin_contract::admin_bool::AdminBool| {
-            let query = format!(
+        let expected_session_rows_result =
+            sqlx::query(constants_str::SERVER_ADMIN_LIST_ACTIVE_SESSIONS_SQL)
+                .bind(user_id)
+                .bind(2i64)
+                .bind(0i64)
+                .fetch_all(&fixture.pool.0)
+                .await;
+        assert!(expected_session_rows_result.as_ref().err().is_none());
+        let Ok(expected_session_rows) = expected_session_rows_result else {
+            return;
+        };
+        assert_eq!(expected_session_rows.len(), 2usize);
+        let check_filter = async |
+            admin_bool: server_admin_contract::admin_bool::AdminBool,
+            admin_page_offset: server_admin_contract::admin_page_offset::AdminPageOffset,
+        | {
+            let mut query = format!(
                 "{}={}&{}={}&{}={}",
                 stringify!(filter_field),
                 constants_str::CURRENT,
@@ -8624,6 +8641,17 @@ mod test_session_current_filter {
                 stringify!(filter_value),
                 bool::from(admin_bool)
             );
+            [
+                (stringify!(limit), 1u32),
+                (stringify!(offset), u32::from(admin_page_offset)),
+            ]
+            .into_iter()
+            .fold((), |(), (field, value)| {
+                query.push('&');
+                query.push_str(field);
+                query.push('=');
+                query.push_str(&value.to_string());
+            });
             let response =
                 response_for_filter(crate::StdAdminApiTestStrRef::from(query.as_str())).await;
             assert_eq!(response.status(), http::StatusCode::OK);
@@ -8633,15 +8661,50 @@ mod test_session_current_filter {
             )
             .is_ok_and(|page| {
                 u64::from(page.total()) == 1u64
-                    && page.items().len() == 1usize
+                    && page.items().len() == usize::from(u32::from(admin_page_offset) == 0u32)
                     && page
                         .items()
                         .iter()
-                        .all(|session| session.is_current() == admin_bool)
+                        .all(|session| {
+                            session.is_current() == admin_bool
+                                && uuid::Uuid::parse_str(&session.id().to_string()).is_ok_and(|session_id| {
+                                    (session_id == uuid::Uuid::from_u128(2u128)) != bool::from(admin_bool)
+                                        && expected_session_rows.iter().any(|row| {
+                                            sqlx::Row::try_get::<uuid::Uuid, _>(row, constants_str::SQL_NAMES_ID).is_ok_and(|stored_session_id| {
+                                                stored_session_id == session_id
+                                                    && sqlx::Row::try_get::<String, _>(row, constants_str::CREATED_AT).is_ok_and(|created_at| created_at == session.created_at().to_string())
+                                                    && sqlx::Row::try_get::<String, _>(row, constants_str::EXPIRES_AT).is_ok_and(|expires_at| expires_at == session.expires_at().to_string())
+                                            })
+                                        })
+                                })
+                        })
             })
         };
-        assert!(check_filter(server_admin_contract::admin_bool::AdminBool::from(true)).await);
-        assert!(check_filter(server_admin_contract::admin_bool::AdminBool::from(false)).await);
+        let check_current_filter_pages =
+            async |admin_page_offset: server_admin_contract::admin_page_offset::AdminPageOffset| {
+                assert!(
+                    check_filter(
+                        server_admin_contract::admin_bool::AdminBool::from(true),
+                        admin_page_offset
+                    )
+                    .await
+                );
+                assert!(
+                    check_filter(
+                        server_admin_contract::admin_bool::AdminBool::from(false),
+                        admin_page_offset
+                    )
+                    .await
+                );
+            };
+        check_current_filter_pages(
+            server_admin_contract::admin_page_offset::AdminPageOffset::from(0u32),
+        )
+        .await;
+        check_current_filter_pages(
+            server_admin_contract::admin_page_offset::AdminPageOffset::from(1u32),
+        )
+        .await;
         let reject_filter = async |std_admin_api_test_str_ref: crate::StdAdminApiTestStrRef<'_>| {
             response_for_filter(std_admin_api_test_str_ref)
                 .await
@@ -8711,6 +8774,47 @@ mod test_session_current_filter {
             [true; 5usize]
         );
         assert!(matches!(fixture.lock.0.rollback().await, Ok(())));
+    }
+}
+
+mod test_html_swagger_forwarding {
+    #[tokio::test]
+    #[ignore = "requires PostgreSQL; run through workspace_test_runner database"]
+    async fn test_html_router_with_swagger_preserves_flag_and_common_pages() {
+        let verify = async |admin_html_swagger_enabled: server_admin::admin_html_swagger_enabled::AdminHtmlSwaggerEnabled| {
+            let enabled = *admin_html_swagger_enabled.get_inner();
+            let fixture = crate::admin_html_test_fixture_with_password_change(
+                server_admin_contract::admin_bool::AdminBool::from(false),
+                crate::env::<config_lib::admin_session_limit::AdminSessionLimit>(crate::StdAdminApiTestStrRef::from(constants_str::VALUE_20)),
+                Some(admin_html_swagger_enabled),
+            ).await;
+            let response = crate::admin_html_response(
+                &fixture,
+                crate::HttpAdminApiTestMethod::from(http::Method::GET),
+                crate::StdAdminApiTestStrRef::from(server_admin_contract::admin_frontend_path::AdminFrontendPath::OpenApi.get()),
+                crate::StdAdminApiTestStrRef::from(constants_str::EMPTY),
+            ).await;
+            assert_eq!(response.status(), if enabled { http::StatusCode::OK } else { http::StatusCode::UNPROCESSABLE_ENTITY });
+            if enabled {
+                assert!(axum::body::to_bytes(response.0.into_body(), constants_usize::VALUE_16_777_216)
+                    .await
+                    .is_ok_and(|bytes| std::str::from_utf8(&bytes)
+                        .is_ok_and(|text| text.contains(constants_str::ADMIN_OPENAPI_PAGE_CLASS_PREFIX_FIXTURE))));
+            } else {
+                assert!(!crate::admin_html_body(response).await.0.contains(constants_str::ADMIN_OPENAPI_PAGE_CLASS_PREFIX_FIXTURE));
+            }
+            let profile = crate::admin_html_response(
+                &fixture,
+                crate::HttpAdminApiTestMethod::from(http::Method::GET),
+                crate::StdAdminApiTestStrRef::from(server_admin_contract::admin_frontend_path::AdminFrontendPath::Profile.get()),
+                crate::StdAdminApiTestStrRef::from(constants_str::EMPTY),
+            ).await;
+            assert_eq!(profile.status(), http::StatusCode::OK);
+            assert!(matches!(fixture.lock.0.rollback().await, Ok(())));
+        };
+        verify(server_admin::admin_html_swagger_enabled::AdminHtmlSwaggerEnabled::from(true)).await;
+        verify(server_admin::admin_html_swagger_enabled::AdminHtmlSwaggerEnabled::from(false))
+            .await;
     }
 }
 
@@ -9166,6 +9270,9 @@ fn assert_admin_csr_shell(admin_html_test_body: &AdminHtmlTestBody) {
 async fn admin_html_test_fixture_with_password_change(
     admin_bool: server_admin_contract::admin_bool::AdminBool,
     admin_session_limit: config_lib::admin_session_limit::AdminSessionLimit,
+    admin_html_swagger_enabled: Option<
+        server_admin::admin_html_swagger_enabled::AdminHtmlSwaggerEnabled,
+    >,
 ) -> AdminHtmlTestFixture {
     let database_url = std::env::var(constants_str::ENV_NAMES_DATABASE_URL)
         .expect(constants_str::DIAGNOSTIC_FBE54D19);
@@ -9268,11 +9375,19 @@ async fn admin_html_test_fixture_with_password_change(
         .expect(constants_str::DIAGNOSTIC_4BFC42C7),
     )
     .expect(constants_str::DIAGNOSTIC_EC39B61D);
-    let router = AxumAdminApiTestRouter::from(axum::Router::from(
-        server_admin::admin_auth_html_routes::admin_auth_html_routes(
-            server_admin::shared_admin_auth_service_state_arc::SharedAdminAuthServiceStateArc::from_state(state),
+    let shared_admin_auth_service_state_arc = server_admin::shared_admin_auth_service_state_arc::SharedAdminAuthServiceStateArc::from_state(state);
+    let html_routes = match admin_html_swagger_enabled {
+        Some(explicit_admin_html_swagger_enabled) => {
+            server_admin::html_routes_with_swagger::html_routes_with_swagger(
+                shared_admin_auth_service_state_arc,
+                explicit_admin_html_swagger_enabled,
+            )
+        }
+        None => server_admin::admin_auth_html_routes::admin_auth_html_routes(
+            shared_admin_auth_service_state_arc,
         ),
-    ));
+    };
+    let router = AxumAdminApiTestRouter::from(axum::Router::from(html_routes));
     let correct_password = serde_json::from_str::<String>(constants_str::CORRECT_PASSWORD)
         .expect(constants_str::DIAGNOSTIC_825E50C7);
     let sign_in_body = AdminHtmlTestFormBody::try_from(format!(
@@ -9327,6 +9442,7 @@ async fn admin_html_test_fixture() -> AdminHtmlTestFixture {
         env::<config_lib::admin_session_limit::AdminSessionLimit>(StdAdminApiTestStrRef::from(
             constants_str::VALUE_20,
         )),
+        None,
     )
     .await
 }

@@ -1207,3 +1207,26 @@ fn test_source_path_classification_accepts_canonical_test_prefix() {
         .get()
     );
 }
+
+#[test]
+fn test_module_owner_name_conversion_preserves_acronym_and_digit_boundaries() {
+    let unicode_initial = '\u{c9}'.to_string();
+    let unicode_source = [unicode_initial.as_str(), stringify!(clairValue)].concat();
+    let unicode_expected = [unicode_initial.as_str(), stringify!(clair_value)].concat();
+    let cases = [
+        (stringify!(HTTP), stringify!(http)),
+        (stringify!(HTTPServer), stringify!(http_server)),
+        (stringify!(HttpServer), stringify!(http_server)),
+        (stringify!(Http2Server), stringify!(http2_server)),
+        (stringify!(XMLHTTPParser), stringify!(xmlhttp_parser)),
+        (stringify!(A), stringify!(a)),
+        (stringify!(ABc), stringify!(a_bc)),
+        (stringify!(aB), stringify!(a_b)),
+        (stringify!(snake_case), stringify!(snake_case)),
+        (unicode_source.as_str(), unicode_expected.as_str()),
+    ];
+    assert!(cases.into_iter().all(|(source, expected)| {
+        identifier_snake_case(&syn::Ident::new(source, proc_macro2::Span::call_site())).as_ref()
+            == expected
+    }));
+}

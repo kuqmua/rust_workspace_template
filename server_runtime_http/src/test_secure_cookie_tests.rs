@@ -44,6 +44,22 @@ mod tests {
     }
 
     #[test]
+    fn test_cookie_wrappers_reject_non_ascii_characters() {
+        assert!(
+            (128u8..=255u8)
+                .map(char::from)
+                .chain(['\u{800}', '\u{10000}', '\u{10ffff}'])
+                .all(|character| {
+                    let text = character.to_string();
+                    crate::http_cookie_name::HttpCookieName::try_from(text.clone())
+                    == Err(crate::http_secure_cookie_error::HttpSecureCookieError::InvalidName)
+                    && crate::http_cookie_value::HttpCookieValue::try_from(text)
+                        == Err(crate::http_secure_cookie_error::HttpSecureCookieError::InvalidValue)
+                })
+        );
+    }
+
+    #[test]
     fn test_cookie_wrapper_empty_and_exact_size_limits() {
         assert!([0usize, 1usize, 8191usize, 8192usize, 8193usize].into_iter().all(|length| {
             let text = constants_str::X.repeat(length);

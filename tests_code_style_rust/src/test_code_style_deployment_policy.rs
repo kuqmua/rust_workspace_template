@@ -416,3 +416,39 @@ fn test_dockerfile_base_image_policy_rejects_latest_and_allows_named_stages() {
         .is_empty()
     );
 }
+
+#[test]
+fn test_dockerfile_digest_policy_checks_length_characters_and_image_name() {
+    let cases = [
+        (constants_str::X, 'a', 63usize, false),
+        (constants_str::X, 'a', 64usize, true),
+        (constants_str::X, 'a', 65usize, false),
+        (constants_str::X, '0', 64usize, true),
+        (constants_str::X, 'f', 64usize, true),
+        (constants_str::X, 'A', 64usize, false),
+        (constants_str::X, 'g', 64usize, false),
+        (constants_str::EMPTY, 'a', 64usize, false),
+    ];
+    assert!(
+        cases
+            .into_iter()
+            .all(|(image_name, character, length, valid)| {
+                let digest = std::iter::repeat_n(character, length).collect::<String>();
+                let image = [image_name, constants_str::VALUE_6FBFA0EC, digest.as_str()].concat();
+                let source = [
+                    constants_str::VALUE_F4383C66,
+                    constants_str::SPACE,
+                    image.as_str(),
+                ]
+                .concat();
+                let violations = unpinned_dockerfile_base_images(
+                    crate::source_text_ref::SourceTextRef::from(source.as_str()),
+                );
+                if valid {
+                    violations.is_empty()
+                } else {
+                    violations.as_slice() == std::slice::from_ref(&image)
+                }
+            })
+    );
+}

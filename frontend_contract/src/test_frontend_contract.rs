@@ -1898,3 +1898,239 @@ fn test_contract_static_text_preserves_borrowed_display_and_owned_content() {
             })
     );
 }
+
+#[test]
+fn test_problem_violation_lists_preserve_order_at_valid_count_boundaries() {
+    [0usize, 1usize, 128usize]
+        .into_iter()
+        .fold((), |(), count| {
+            let payload = serde_json::Value::Array(
+                (0usize..count)
+                    .map(|index| {
+                        serde_json::json!({
+                            (stringify!(detail)): format!("{}{index}", constants_str::X),
+                            (stringify!(field)): index.to_string(),
+                        })
+                    })
+                    .collect(),
+            );
+            assert!(serde_json::to_vec(&payload).is_ok_and(|bytes| {
+                serde_json::from_slice::<crate::api_problem_violations::ApiProblemViolations>(
+                    &bytes,
+                )
+                .is_ok_and(|violations| {
+                    serde_json::to_value(violations).is_ok_and(|encoded| encoded == payload)
+                })
+            }));
+        });
+}
+
+#[test]
+fn test_problem_violation_text_preserves_exact_utf8_limits_and_rejects_overflow() {
+    [
+        (
+            constants_str::X.repeat(1_024usize),
+            constants_str::X.repeat(128usize),
+        ),
+        (
+            char::MAX.to_string().repeat(256usize),
+            char::MAX.to_string().repeat(32usize),
+        ),
+    ]
+    .into_iter()
+    .fold((), |(), (detail, field)| {
+        let oversized_detail = format!("{detail}{}", constants_str::X);
+        let oversized_field = format!("{field}{}", constants_str::X);
+        let payload = |detail_text, field_text| {
+            serde_json::json!({
+                (stringify!(detail)): detail_text,
+                (stringify!(field)): field_text,
+            })
+        };
+        let valid = payload(&detail, &field);
+        assert!(serde_json::to_vec(&valid).is_ok_and(|bytes| {
+            serde_json::from_slice::<crate::api_problem_violation::ApiProblemViolation>(&bytes)
+                .is_ok_and(|violation| {
+                    serde_json::to_value(violation).is_ok_and(|encoded| encoded == valid)
+                })
+        }));
+        [
+            payload(&oversized_detail, &field),
+            payload(&detail, &oversized_field),
+        ]
+        .into_iter()
+        .fold((), |(), invalid| {
+            assert!(
+                serde_json::from_value::<crate::api_problem_violation::ApiProblemViolation>(
+                    invalid
+                )
+                .is_err_and(|error| error.is_data())
+            );
+        });
+    });
+}
+
+#[test]
+fn test_problem_decoder_preserves_optional_request_ids_at_utf8_boundaries() {
+    let original = crate::api_problem::ApiProblem::from_error(
+        crate::api_problem_error::ApiProblemError::Authentication,
+    );
+    [
+        serde_json::Value::Null,
+        serde_json::Value::from(constants_str::EMPTY),
+        serde_json::Value::from(constants_str::X.repeat(128usize)),
+        serde_json::Value::from(char::MAX.to_string().repeat(32usize)),
+    ]
+    .into_iter()
+    .fold((), |(), request_id| {
+        assert!(serde_json::to_value(&original).is_ok_and(|mut payload| {
+            let Some(request_id_value) = payload.get_mut(stringify!(request_id)) else {
+                return false;
+            };
+            *request_id_value = request_id;
+            serde_json::to_vec(&payload).is_ok_and(|bytes| {
+                crate::transport_body::TransportBody::try_from(bytes).is_ok_and(|transport_body| {
+                    crate::decode_api_problem::decode_api_problem(&transport_body).is_some_and(
+                        |problem| {
+                            serde_json::to_value(problem).is_ok_and(|encoded| encoded == payload)
+                        },
+                    )
+                })
+            })
+        }));
+    });
+    [
+        serde_json::Value::from(constants_str::X.repeat(129usize)),
+        serde_json::Value::from(1u64),
+    ]
+    .into_iter()
+    .fold((), |(), invalid_request_id| {
+        assert!(serde_json::to_value(&original).is_ok_and(|mut payload| {
+            let Some(request_id_value) = payload.get_mut(stringify!(request_id)) else {
+                return false;
+            };
+            *request_id_value = invalid_request_id;
+            serde_json::to_vec(&payload).is_ok_and(|bytes| {
+                crate::transport_body::TransportBody::try_from(bytes).is_ok_and(|transport_body| {
+                    crate::decode_api_problem::decode_api_problem(&transport_body).is_none()
+                })
+            })
+        }));
+    });
+}
+
+#[test]
+fn test_filter_wire_json_preserves_exact_encoded_text_limit_and_rejects_overflow() {
+    let maximum = constants_usize::VALUE_1_048_576;
+    [
+        constants_str::X.repeat(maximum.saturating_sub(2usize)),
+        format!(
+            "{}{}",
+            char::MAX.to_string().repeat(262_143usize),
+            constants_str::X.repeat(2usize)
+        ),
+    ]
+    .into_iter()
+    .fold((), |(), text| {
+        assert!(serde_json::to_string(&text).is_ok_and(|encoded| {
+            assert_eq!(encoded.len(), maximum);
+            crate::filter_wire_json::FilterWireJson::try_from(encoded).is_ok_and(
+                |filter_wire_json| {
+                    serde_json::from_str::<String>(filter_wire_json.as_ref())
+                        .is_ok_and(|decoded| decoded == text)
+                },
+            )
+        }));
+    });
+    assert!(serde_json::to_string(&constants_str::X.repeat(maximum.saturating_sub(1usize))).is_ok_and(|encoded| {
+        matches!(crate::filter_wire_json::FilterWireJson::try_from(encoded), Err(crate::filter_wire_json::FilterWireJsonTryFromStringError::TooLong { len, max }) if len == maximum + 1usize && max == maximum)
+    }));
+}
+
+#[test]
+fn test_page_contract_preserves_collections_and_distinct_path_title_fields() {
+    let route_contract = crate::route_contract::RouteContract::new(
+        crate::authentication_requirement::AuthenticationRequirement::Public,
+        crate::route_method::RouteMethod::Get,
+        crate::mutation_kind::MutationKind::ReadOnly,
+        crate::contract_str::ContractStr::from(constants_str::X),
+        crate::success_status::SuccessStatus::Code200,
+    );
+    let action_contract = crate::action_contract::ActionContract::new(
+        crate::operation_kind::OperationKind::Read,
+        route_contract,
+    );
+    let field_contract = field_contract_builder_fixture();
+    let path = crate::contract_str::ContractStr::from(constants_str::PATH_ALT_5);
+    let title = crate::contract_str::ContractStr::from(constants_str::NAME);
+    let page_contract = crate::page_contract::PageContract::new(
+        crate::action_contracts::ActionContracts::from_max_iter([action_contract]),
+        crate::field_contracts::FieldContracts::from_max_iter([field_contract]),
+        path,
+        crate::route_contracts::RouteContracts::from_max_iter([route_contract]),
+        title,
+    );
+    assert_eq!(page_contract.actions().as_ref(), [action_contract]);
+    assert_eq!(page_contract.fields().as_ref(), [field_contract]);
+    assert_eq!(page_contract.routes().as_ref(), [route_contract]);
+    assert_eq!(page_contract.path(), path);
+    assert_eq!(page_contract.title(), title);
+}
+
+#[test]
+fn test_input_kind_and_filter_shape_wire_values_preserve_every_variant() {
+    [
+        (crate::input_kind::InputKind::Checkbox, stringify!(checkbox)),
+        (crate::input_kind::InputKind::Date, stringify!(date)),
+        (
+            crate::input_kind::InputKind::DateTime,
+            stringify!(date_time),
+        ),
+        (crate::input_kind::InputKind::Number, stringify!(number)),
+        (crate::input_kind::InputKind::Text, stringify!(text)),
+        (crate::input_kind::InputKind::Time, stringify!(time)),
+        (crate::input_kind::InputKind::Uuid, stringify!(uuid)),
+    ]
+    .into_iter()
+    .fold((), |(), (input_kind, expected)| {
+        assert!(serde_json::to_value(input_kind).is_ok_and(|json| {
+            json == expected
+                && serde_json::from_value::<crate::input_kind::InputKind>(json)
+                    .is_ok_and(|decoded| decoded == input_kind)
+        }));
+    });
+    [
+        (
+            crate::filter_value_shape::FilterValueShape::EncodedText,
+            stringify!(encoded_text),
+        ),
+        (
+            crate::filter_value_shape::FilterValueShape::List,
+            stringify!(list),
+        ),
+        (
+            crate::filter_value_shape::FilterValueShape::None,
+            stringify!(none),
+        ),
+        (
+            crate::filter_value_shape::FilterValueShape::Range,
+            stringify!(range),
+        ),
+        (
+            crate::filter_value_shape::FilterValueShape::Regex,
+            stringify!(regex),
+        ),
+        (
+            crate::filter_value_shape::FilterValueShape::Scalar,
+            stringify!(scalar),
+        ),
+    ]
+    .into_iter()
+    .fold((), |(), (filter_value_shape, expected)| {
+        assert!(serde_json::to_value(filter_value_shape).is_ok_and(|json| {
+            json == expected
+                && serde_json::from_value::<crate::filter_value_shape::FilterValueShape>(json)
+                    .is_ok_and(|decoded| decoded == filter_value_shape)
+        }));
+    });
+}

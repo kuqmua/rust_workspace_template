@@ -109,6 +109,8 @@ mod tests {
         assert!(maybe_footer.is_some_and(|footer| {
             footer.get_program_text().get() == constants_str::X
                 && footer.get_peak_rss_kb().get() == constants_str::VALUE_2
+                && footer.get_minor_page_faults().get() == constants_str::VALUE_4
+                && footer.get_major_page_faults().get() == constants_str::VALUE_1
         }));
     }
 

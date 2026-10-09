@@ -6,6 +6,7 @@
     Eq,
     PartialEq,
     PartialOrd,
+    utoipa::ToSchema,
 )]
 enum BetweenBindingValueFixture {
     FirstFailure,
@@ -112,6 +113,76 @@ fn test_between_binding_success_preserves_query_and_exact_parameter_count() {
                         && sqlx::Execute::sql(bound_query).as_str()
                             == constants_str::TEST_READ_QUERY_BASE
                 })
+        })
+    );
+}
+
+#[test]
+fn test_generated_range_bound_binding_appends_values_and_preserves_encoder_errors() {
+    assert!(
+        [
+            (BetweenBindingValueFixture::FirstSuccess, true),
+            (BetweenBindingValueFixture::FirstFailure, false),
+        ]
+        .into_iter()
+        .all(|(between_binding_value_fixture, succeeds)| {
+            let query = || {
+                pg_crud_common::sqlx_postgres_query::SqlxPostgresQuery::from(
+                    sqlx::query(constants_str::TEST_READ_QUERY_BASE).bind(5i32),
+                )
+            };
+            [
+                pg_crud_common::pg_type_where_filter::PgTypeWhereFilter::query_bind(
+                    crate::domain_types::PgTypeWhereIncludedLowerBound::new(
+                        pg_crud_common::operator::Operator::And,
+                        between_binding_value_fixture,
+                    ),
+                    query(),
+                ),
+                pg_crud_common::pg_type_where_filter::PgTypeWhereFilter::query_bind(
+                    crate::domain_types::PgTypeWhereExcludedUpperBound::new(
+                        pg_crud_common::operator::Operator::And,
+                        between_binding_value_fixture,
+                    ),
+                    query(),
+                ),
+                pg_crud_common::pg_type_where_filter::PgTypeWhereFilter::query_bind(
+                    crate::domain_types::PgTypeWhereGreaterThanIncludedLowerBound::new(
+                        pg_crud_common::operator::Operator::And,
+                        between_binding_value_fixture,
+                    ),
+                    query(),
+                ),
+                pg_crud_common::pg_type_where_filter::PgTypeWhereFilter::query_bind(
+                    crate::domain_types::PgTypeWhereGreaterThanExcludedUpperBound::new(
+                        pg_crud_common::operator::Operator::And,
+                        between_binding_value_fixture,
+                    ),
+                    query(),
+                ),
+            ]
+            .into_iter()
+            .all(|result| {
+                if succeeds {
+                    result.is_ok_and(|sqlx_postgres_query| {
+                        let mut bound_query = sqlx_postgres_query.into_inner();
+                        sqlx::Execute::take_arguments(&mut bound_query).is_ok_and(|arguments| {
+                            arguments.is_some_and(|pg_arguments| {
+                                sqlx::Arguments::len(&pg_arguments) == 2usize
+                            })
+                        }) && sqlx::Execute::take_arguments(&mut bound_query)
+                            .is_ok_and(|arguments| arguments.is_none())
+                            && sqlx::Execute::sql(bound_query).as_str()
+                                == constants_str::TEST_READ_QUERY_BASE
+                    })
+                } else {
+                    result.is_err_and(|error| {
+                        std::error::Error::source(&error)
+                            .and_then(std::error::Error::source)
+                            .is_some_and(<dyn std::error::Error>::is::<std::fmt::Error>)
+                    })
+                }
+            })
         })
     );
 }

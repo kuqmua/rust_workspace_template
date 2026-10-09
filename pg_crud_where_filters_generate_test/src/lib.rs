@@ -275,82 +275,95 @@ mod tests {
         assert_eq!(parameter_index, 4u64);
     }
     #[test]
-    fn test_range_bound_filters_check_inclusivity() {
+    fn test_range_bound_filters_preserve_exact_sql_and_counter_boundaries() {
         let column = constants_str::DISPLAY_NAME.to_owned();
-        let lower = where_filters::domain_types::PgTypeWhereIncludedLowerBound::<i32>::new(
-            pg_crud_common::operator::Operator::And,
-            1i32,
-        );
-        let upper = where_filters::domain_types::PgTypeWhereExcludedUpperBound::<i32>::new(
-            pg_crud_common::operator::Operator::And,
-            1i32,
-        );
-        let mut lower_parameter_index = 0u64;
-        let mut upper_parameter_index = 0u64;
-        let lower_fragment = <where_filters::domain_types::PgTypeWhereIncludedLowerBound<i32> as pg_crud_common::pg_type_where_filter::PgTypeWhereFilter>::query_part(
-            &lower,
-            &mut lower_parameter_index,
-            pg_crud_common::sql_column_ref::SqlColumnRef::from(&column),
-            pg_crud_common::add_operator::AddOperator::from(true),
-        );
-        let upper_fragment = <where_filters::domain_types::PgTypeWhereExcludedUpperBound<i32> as pg_crud_common::pg_type_where_filter::PgTypeWhereFilter>::query_part(
-            &upper,
-            &mut upper_parameter_index,
-            pg_crud_common::sql_column_ref::SqlColumnRef::from(&column),
-            pg_crud_common::add_operator::AddOperator::from(true),
-        );
-        assert!(
-            lower_fragment
-                .is_ok_and(|fragment| fragment.as_ref().contains(constants_str::LOWER_INC))
-        );
-        assert!(
-            upper_fragment
-                .is_ok_and(|fragment| fragment.as_ref().contains(constants_str::NOT_UPPER_INC))
-        );
-        assert_eq!(lower_parameter_index, 1u64);
-        assert_eq!(upper_parameter_index, 1u64);
-    }
-    #[test]
-    fn test_greater_than_range_bound_filters_check_inclusivity() {
-        let column = constants_str::DISPLAY_NAME.to_owned();
-        let lower =
-            where_filters::domain_types::PgTypeWhereGreaterThanIncludedLowerBound::<i32>::new(
-                pg_crud_common::operator::Operator::And,
-                1i32,
-            );
-        let upper =
-            where_filters::domain_types::PgTypeWhereGreaterThanExcludedUpperBound::<i32>::new(
-                pg_crud_common::operator::Operator::And,
-                1i32,
-            );
-        let mut lower_parameter_index = 0u64;
-        let mut upper_parameter_index = 0u64;
-        let lower_fragment = <where_filters::domain_types::PgTypeWhereGreaterThanIncludedLowerBound<
-            i32,
-        > as pg_crud_common::pg_type_where_filter::PgTypeWhereFilter>::query_part(
-            &lower,
-            &mut lower_parameter_index,
-            pg_crud_common::sql_column_ref::SqlColumnRef::from(&column),
-            pg_crud_common::add_operator::AddOperator::from(true),
-        );
-        let upper_fragment = <where_filters::domain_types::PgTypeWhereGreaterThanExcludedUpperBound<
-            i32,
-        > as pg_crud_common::pg_type_where_filter::PgTypeWhereFilter>::query_part(
-            &upper,
-            &mut upper_parameter_index,
-            pg_crud_common::sql_column_ref::SqlColumnRef::from(&column),
-            pg_crud_common::add_operator::AddOperator::from(true),
-        );
-        assert!(lower_fragment.is_ok_and(|fragment| {
-            fragment.as_ref().contains(constants_str::LOWER_INC)
-                && fragment.as_ref().contains(constants_str::TEXT_ALT_11)
+        let conjunction = constants_str::AND.trim().to_ascii_uppercase();
+        assert!([
+            (pg_crud_common::operator::Operator::And, constants_str::AND_ALT, constants_str::EMPTY),
+            (pg_crud_common::operator::Operator::AndNot, constants_str::AND_NOT, constants_str::NOT),
+            (pg_crud_common::operator::Operator::Or, constants_str::OR, constants_str::EMPTY),
+            (pg_crud_common::operator::Operator::OrNot, constants_str::OR_NOT, constants_str::NOT),
+        ].into_iter().all(|(operator, enabled_prefix, disabled_prefix)| {
+            [false, true].into_iter().all(|add_operator| {
+                [0u64, 4u64, u64::MAX].into_iter().all(|initial_index| {
+                    let mut increments = [initial_index; 4].map(pg_crud_common::query_part_increment::QueryPartIncrement::from);
+                    let cases = [
+                        (
+                            pg_crud_common::pg_type_where_filter::PgTypeWhereFilter::query_part(
+                                &where_filters::domain_types::PgTypeWhereIncludedLowerBound::<i32>::new(operator, 1i32),
+                                &mut increments[0],
+                                pg_crud_common::sql_column_ref::SqlColumnRef::from(&column),
+                                pg_crud_common::add_operator::AddOperator::from(add_operator),
+                            ),
+                            constants_str::LOWER_INC,
+                            constants_str::LOWER,
+                            constants_str::PG_CRUD_EQUALITY_SQL_OPERATOR,
+                        ),
+                        (
+                            pg_crud_common::pg_type_where_filter::PgTypeWhereFilter::query_part(
+                                &where_filters::domain_types::PgTypeWhereExcludedUpperBound::<i32>::new(operator, 1i32),
+                                &mut increments[1],
+                                pg_crud_common::sql_column_ref::SqlColumnRef::from(&column),
+                                pg_crud_common::add_operator::AddOperator::from(add_operator),
+                            ),
+                            constants_str::NOT_UPPER_INC,
+                            constants_str::UPPER,
+                            constants_str::PG_CRUD_EQUALITY_SQL_OPERATOR,
+                        ),
+                        (
+                            pg_crud_common::pg_type_where_filter::PgTypeWhereFilter::query_part(
+                                &where_filters::domain_types::PgTypeWhereGreaterThanIncludedLowerBound::<i32>::new(operator, 1i32),
+                                &mut increments[2],
+                                pg_crud_common::sql_column_ref::SqlColumnRef::from(&column),
+                                pg_crud_common::add_operator::AddOperator::from(add_operator),
+                            ),
+                            constants_str::LOWER_INC,
+                            constants_str::LOWER,
+                            constants_str::TEXT_ALT_11,
+                        ),
+                        (
+                            pg_crud_common::pg_type_where_filter::PgTypeWhereFilter::query_part(
+                                &where_filters::domain_types::PgTypeWhereGreaterThanExcludedUpperBound::<i32>::new(operator, 1i32),
+                                &mut increments[3],
+                                pg_crud_common::sql_column_ref::SqlColumnRef::from(&column),
+                                pg_crud_common::add_operator::AddOperator::from(add_operator),
+                            ),
+                            constants_str::NOT_UPPER_INC,
+                            constants_str::UPPER,
+                            constants_str::TEXT_ALT_11,
+                        ),
+                    ];
+                    cases.into_iter().zip(increments).all(|((result, inclusivity, bound, comparison), increment)| {
+                        match initial_index.checked_add(1u64) {
+                            Some(expected_index) => increment.get() == expected_index && result.is_ok_and(|query_part_fragment| {
+                                let mut expected = if add_operator { enabled_prefix } else { disabled_prefix }.to_owned();
+                                expected.push('(');
+                                expected.push_str(inclusivity);
+                                expected.push('(');
+                                expected.push_str(column.as_str());
+                                expected.push(')');
+                                expected.push(' ');
+                                expected.push_str(conjunction.as_str());
+                                expected.push(' ');
+                                expected.push_str(bound);
+                                expected.push('(');
+                                expected.push_str(column.as_str());
+                                expected.push(')');
+                                expected.push(' ');
+                                expected.push_str(comparison);
+                                expected.push(' ');
+                                expected.push('$');
+                                expected.push_str(expected_index.to_string().as_str());
+                                expected.push(')');
+                                assert_eq!(query_part_fragment.as_ref(), expected);
+                                true
+                            }),
+                            None => increment.get() == initial_index && matches!(result, Err(pg_crud_common::query_part_error::QueryPartError::CheckedAdd { .. })),
+                        }
+                    })
+                })
+            })
         }));
-        assert!(upper_fragment.is_ok_and(|fragment| {
-            fragment.as_ref().contains(constants_str::NOT_UPPER_INC)
-                && fragment.as_ref().contains(constants_str::TEXT_ALT_11)
-        }));
-        assert_eq!(lower_parameter_index, 1u64);
-        assert_eq!(upper_parameter_index, 1u64);
     }
     #[test]
     fn test_range_length_accepts_integer_and_interval_value_types() {
@@ -649,6 +662,117 @@ mod tests {
         );
         assert_eq!(current_parameter_index, 0u64);
         assert_eq!(greater_parameter_index, 0u64);
+    }
+    #[test]
+    fn test_generated_text_search_escapes_every_reserved_symbol_in_all_modes() {
+        assert!(
+            [
+                where_filters::domain_types::TextSearchMode::Contains,
+                where_filters::domain_types::TextSearchMode::StartsWith,
+                where_filters::domain_types::TextSearchMode::EndsWith,
+            ]
+            .into_iter()
+            .all(|mode| {
+                ['\\', '%', '_'].into_iter().all(|symbol| {
+                    let input = symbol.to_string();
+                    let mut expected = String::new();
+                    if matches!(
+                        mode,
+                        where_filters::domain_types::TextSearchMode::Contains
+                            | where_filters::domain_types::TextSearchMode::EndsWith
+                    ) {
+                        expected.push('%');
+                    }
+                    expected.push('\\');
+                    expected.push(symbol);
+                    if matches!(
+                        mode,
+                        where_filters::domain_types::TextSearchMode::Contains
+                            | where_filters::domain_types::TextSearchMode::StartsWith
+                    ) {
+                        expected.push('%');
+                    }
+                    where_filters::domain_types::build_text_search_pattern(input.as_str(), mode)
+                        .is_ok_and(|pattern| pattern.as_ref() == expected)
+                })
+            })
+        );
+    }
+    #[test]
+    fn test_generated_text_search_preserves_exact_utf8_input_and_escaped_output_limits() {
+        let maximum = usize::from(
+            where_filters::domain_types::TextSearchPolicy::DEFAULT.maximum_input_bytes(),
+        );
+        assert_eq!(maximum, 1_024usize);
+        let escaped_input = char::from(92u8).to_string().repeat(maximum);
+        let escaped_pattern_result = where_filters::domain_types::build_text_search_pattern(
+            escaped_input.as_str(),
+            where_filters::domain_types::TextSearchMode::Contains,
+        );
+        assert!(escaped_pattern_result.is_ok_and(|pattern| {
+            let escaped_text = pattern.as_ref();
+            escaped_text.len() == 2usize * maximum + 2usize
+                && escaped_text
+                    .strip_prefix('%')
+                    .and_then(|text| text.strip_suffix('%'))
+                    .is_some_and(|text| text.bytes().all(|byte| byte == 92u8))
+        }));
+        let utf8_input = '\u{e9}'.to_string().repeat(512usize);
+        assert_eq!(utf8_input.len(), maximum);
+        assert!(
+            where_filters::domain_types::build_text_search_pattern(
+                utf8_input.as_str(),
+                where_filters::domain_types::TextSearchMode::Contains
+            )
+            .is_ok_and(|pattern| {
+                pattern
+                    .as_ref()
+                    .strip_prefix('%')
+                    .and_then(|text| text.strip_suffix('%'))
+                    == Some(utf8_input.as_str())
+            })
+        );
+        let oversized = format!("{utf8_input}{}", constants_str::X);
+        assert_eq!(
+            where_filters::domain_types::build_text_search_pattern(
+                oversized.as_str(),
+                where_filters::domain_types::TextSearchMode::Contains
+            ),
+            Err(where_filters::domain_types::TextSearchValueError::TooLong {
+                actual_bytes: maximum + 1usize,
+                maximum_bytes: maximum
+            })
+        );
+    }
+    #[test]
+    fn test_generated_text_search_pattern_validates_utf8_byte_storage_bounds() {
+        assert_eq!(
+            where_filters::domain_types::TextSearchPattern::try_from(String::new()),
+            Err(where_filters::domain_types::TextSearchValueError::Empty),
+        );
+        assert!([('a', 2_050usize), ('\u{e9}', 1_025usize)].into_iter().all(
+            |(symbol, maximum_characters)| {
+                [1usize, maximum_characters].into_iter().all(|length| {
+                    where_filters::domain_types::TextSearchPattern::try_from(
+                        symbol.to_string().repeat(length),
+                    )
+                    .is_ok_and(|pattern| {
+                        pattern.as_ref().len() == length * symbol.len_utf8()
+                            && pattern
+                                .as_ref()
+                                .chars()
+                                .all(|character| character == symbol)
+                    })
+                }) && where_filters::domain_types::TextSearchPattern::try_from(format!(
+                    "{}{}",
+                    symbol.to_string().repeat(maximum_characters),
+                    constants_str::X
+                )) == Err(where_filters::domain_types::TextSearchValueError::TooLong {
+                    actual_bytes: 2_051usize,
+                    maximum_bytes: 2_050usize,
+                })
+            }
+        ));
     }
     #[test]
     #[cfg_attr(

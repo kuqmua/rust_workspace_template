@@ -126,6 +126,11 @@ fn test_pagination_deserialization_enforces_unsigned_128_bit_boundaries() {
 fn test_pagination_wrong_json_types_preserve_expected_value_diagnostics() {
     assert!(
         [
+            serde_json::json!(-1.0f64),
+            serde_json::json!(0.0f64),
+            serde_json::json!(1.0f64),
+            serde_json::json!(1.5f64),
+            serde_json::json!(100.0f64),
             serde_json::json!(true),
             serde_json::Value::Null,
             serde_json::json!([]),

@@ -166,3 +166,41 @@ fn test_inherent_naming_generators_reject_non_enum_input() {
         }))
     );
 }
+
+#[test]
+fn test_trait_naming_generators_preserve_distinct_malformed_input_diagnostics() {
+    assert!(
+        [
+            (
+                std::panic::catch_unwind(|| {
+                    crate::as_ref_str_enum_with_unit_fields_to_snake_case_str(
+                        quote::quote! { enum },
+                    )
+                }),
+                constants_str::DIAGNOSTIC_DEA5CBCF,
+            ),
+            (
+                std::panic::catch_unwind(|| {
+                    crate::as_ref_str_enum_with_unit_fields_to_upper_camel_case_str(
+                        quote::quote! { enum },
+                    )
+                }),
+                constants_str::DIAGNOSTIC_A8F22481,
+            ),
+            (
+                std::panic::catch_unwind(|| {
+                    crate::as_ref_str_enum_with_unit_fields_to_upper_snake_case_str(
+                        quote::quote! { enum },
+                    )
+                }),
+                constants_str::DIAGNOSTIC_EDABBC24,
+            ),
+        ]
+        .into_iter()
+        .all(|(result, diagnostic)| result.is_err_and(|payload| {
+            payload
+                .downcast_ref::<String>()
+                .is_some_and(|message| message.starts_with(diagnostic))
+        }))
+    );
+}

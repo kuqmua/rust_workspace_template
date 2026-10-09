@@ -156,6 +156,34 @@ fn test_cleanup_row_addition_preserves_values_and_saturates() {
 }
 
 #[test]
+fn test_cleanup_configuration_preserves_distinct_retention_fields() {
+    let retention = |value| {
+        crate::admin_cleanup_retention_seconds::AdminCleanupRetentionSeconds::try_from(value)
+    };
+    assert!(match (
+        crate::admin_cleanup_batch_size::AdminCleanupBatchSize::try_from(1i64),
+        retention(2i64),
+        retention(3i64),
+        retention(4i64),
+        retention(5i64),
+        retention(6i64),
+    ) {
+        (Ok(batch_size), Ok(auth), Ok(audit), Ok(rate_limit), Ok(completed), Ok(pending)) => {
+            let configuration = crate::admin_cleanup_configuration::AdminCleanupConfiguration::new(
+                batch_size, auth, audit, rate_limit, completed, pending,
+            );
+            *configuration.batch_size().get_inner() == 1i64
+                && configuration.auth_retention().get() == 2i64
+                && configuration.audit_retention().get() == 3i64
+                && configuration.rate_limit_retention().get() == 4i64
+                && configuration.idempotency_completed_retention().get() == 5i64
+                && configuration.idempotency_pending_retention().get() == 6i64
+        }
+        _ => false,
+    });
+}
+
+#[test]
 fn test_cleanup_configuration_enforces_positive_bounded_values() {
     assert_eq!(
         crate::admin_cleanup_batch_size::AdminCleanupBatchSize::try_from(constants_i64::ZERO),
@@ -732,4 +760,998 @@ fn test_admin_access_token_preserves_byte_bounds_content_and_exact_redaction() {
                 && format!("{access_token:?}") == constants_str::REDACTED_ALT_3
         })
     );
+}
+
+#[test]
+fn test_cleared_admin_cookies_empty_values_and_expire_every_kind_with_security_attributes() {
+    assert!(
+        [
+            (
+                crate::admin_cookie_kind::AdminCookieKind::Access,
+                constants_str::SERVER_ADMIN_ACCESS_COOKIE_NAME,
+                true
+            ),
+            (
+                crate::admin_cookie_kind::AdminCookieKind::Refresh,
+                constants_str::ADMIN_REFRESH_TOKEN,
+                true
+            ),
+            (
+                crate::admin_cookie_kind::AdminCookieKind::Csrf,
+                constants_str::ADMIN_CSRF_TOKEN,
+                false
+            ),
+        ]
+        .into_iter()
+        .all(|(admin_cookie_kind, expected_name, http_only)| {
+            [false, true].into_iter().all(|secure| {
+                crate::clear_admin_cookie::clear_admin_cookie(
+                    admin_cookie_kind,
+                    crate::runtime_admin_cookie_secure::RuntimeAdminCookieSecure::from(secure),
+                )
+                .is_ok_and(|std_admin_cookie| {
+                    let mut parts = std_admin_cookie.as_ref().split(';').map(str::trim);
+                    let value_matches = parts.next().is_some_and(|part| {
+                        part.split_once('=')
+                            .is_some_and(|(name, value)| name == expected_name && value.is_empty())
+                    });
+                    let attributes = parts.collect::<Vec<_>>();
+                    value_matches
+                        && attributes.len() == 3usize + usize::from(http_only) + usize::from(secure)
+                        && attributes.iter().any(|attribute| {
+                            attribute.split_once('=').is_some_and(|(name, value)| {
+                                name.eq_ignore_ascii_case(constants_str::PATH_ALT_5)
+                                    && value == constants_str::SLASH
+                            })
+                        })
+                        && constants_str::MAX_AGE_31536000_INCLUDESUBDOMAINS
+                            .split_once('=')
+                            .is_some_and(|(age_name, _)| {
+                                attributes.iter().any(|attribute| {
+                                    attribute.split_once('=').is_some_and(|(name, value)| {
+                                        name.eq_ignore_ascii_case(age_name)
+                                            && value.chars().eq(std::iter::once('0'))
+                                    })
+                                })
+                            })
+                        && attributes.contains(&constants_str::VALUE_DD7C3F04)
+                        && attributes.contains(&constants_str::VALUE_A0820391) == http_only
+                        && attributes.contains(&constants_str::VALUE_1BCED1D0) == secure
+                })
+            })
+        })
+    );
+}
+
+#[test]
+fn test_admin_sign_in_row_conversion_preserves_fields_and_secret_redaction() {
+    assert!([1i64, i64::MAX].into_iter().all(|identifier| {
+        [false, true].into_iter().all(|banned| {
+            [constants_str::EMPTY, constants_str::FIXED_TEST_TOKEN]
+                .into_iter()
+                .all(|text| {
+                    crate::admin_sign_in_user::AdminSignInUser::try_from((
+                        identifier,
+                        text.to_owned(),
+                        banned,
+                    ))
+                    .is_ok_and(|admin_sign_in_user| {
+                        let redacted = !format!("{admin_sign_in_user:?}")
+                            .contains(constants_str::FIXED_TEST_TOKEN);
+                        let (admin_user_record_id, admin_password_hash, std_admin_bool) =
+                            <(
+                                server_admin_core::admin_user_record_id::AdminUserRecordId,
+                                crate::admin_password_hash::AdminPasswordHash,
+                                server_admin_core::std_admin_bool::StdAdminBool,
+                            )>::from(admin_sign_in_user);
+                        redacted
+                            && admin_user_record_id.get() == identifier
+                            && admin_password_hash.expose().as_ref() == text
+                            && std_admin_bool.get() == banned
+                    })
+                })
+        })
+    }));
+}
+
+#[test]
+fn test_admin_sign_in_row_conversion_preserves_validation_sources_and_error_priority() {
+    assert!([0i64, -1i64, i64::MIN].into_iter().all(|identifier| {
+        crate::admin_sign_in_user::AdminSignInUser::try_from((identifier, String::new(), false))
+            .is_err_and(|error| matches!(error.into_inner(), sqlx::Error::Decode(source)
+                if source.downcast_ref::<server_admin_core::admin_entity_id_try_from_i64_error::AdminEntityIdTryFromI64Error>()
+                    == Some(&server_admin_core::admin_entity_id_try_from_i64_error::AdminEntityIdTryFromI64Error::Invalid)))
+    }));
+    let maximum = constants_usize::VALUE_1_048_576;
+    assert!([0i64, 1i64].into_iter().all(|identifier| {
+        crate::admin_sign_in_user::AdminSignInUser::try_from((identifier, constants_str::X.repeat(maximum + 1usize), false))
+            .is_err_and(|error| {
+                let sqlx::Error::Decode(source) = error.into_inner() else { return false; };
+                if identifier == 0i64 {
+                    source.downcast_ref::<server_admin_core::admin_entity_id_try_from_i64_error::AdminEntityIdTryFromI64Error>()
+                        == Some(&server_admin_core::admin_entity_id_try_from_i64_error::AdminEntityIdTryFromI64Error::Invalid)
+                } else {
+                    source.downcast_ref::<bounded_types::bounded_string_error::BoundedStringError>().is_some_and(|bounded_string_error| {
+                        matches!(bounded_string_error, bounded_types::bounded_string_error::BoundedStringError::AboveMaximum { actual_length, maximum_length }
+                            if *actual_length == bounded_types::bounded_len::BoundedLen::from(maximum + 1usize)
+                                && *maximum_length == bounded_types::bounded_len::BoundedLen::from(maximum))
+                    })
+                }
+            })
+    }));
+}
+
+#[test]
+fn test_settings_form_deserialization_preserves_fields_and_rejects_invalid_shapes() {
+    let payload = || {
+        serde_json::json!({
+            (stringify!(default_admin_route)): server_admin_contract::admin_page::AdminPage::Profile.path().as_ref(),
+            (stringify!(main_logo)): constants_str::LOGIN,
+            (stringify!(organization_contacts)): constants_str::DISPLAY_NAME,
+            (stringify!(organization_name)): constants_str::HELLOWORLD,
+            (stringify!(primary_color)): constants_str::X,
+            (stringify!(site_name)): constants_str::ERROR,
+            (stringify!(support_url)): constants_str::HTTPS_EXAMPLE_COM,
+            (stringify!(tab_title)): constants_str::JSON,
+        })
+    };
+    assert!(
+        serde_json::from_value::<crate::settings_form::SettingsForm>(payload()).is_ok_and(
+            |settings_form| {
+                let (
+                    default_admin_route,
+                    main_logo,
+                    organization_contacts,
+                    organization_name,
+                    primary_color,
+                    site_name,
+                    support_url,
+                    tab_title,
+                ) = settings_form.into_parts();
+                default_admin_route.as_ref()
+                    == server_admin_contract::admin_page::AdminPage::Profile
+                        .path()
+                        .as_ref()
+                    && main_logo.as_str() == constants_str::LOGIN
+                    && organization_contacts.as_str() == constants_str::DISPLAY_NAME
+                    && organization_name.as_str() == constants_str::HELLOWORLD
+                    && primary_color.as_str() == constants_str::X
+                    && site_name.as_ref() == constants_str::ERROR
+                    && support_url.as_str() == constants_str::HTTPS_EXAMPLE_COM
+                    && tab_title.as_str() == constants_str::JSON
+            }
+        )
+    );
+    assert!(
+        [
+            stringify!(default_admin_route),
+            stringify!(main_logo),
+            stringify!(organization_contacts),
+            stringify!(organization_name),
+            stringify!(primary_color),
+            stringify!(site_name),
+            stringify!(support_url),
+            stringify!(tab_title),
+        ]
+        .into_iter()
+        .all(|field| {
+            [false, true].into_iter().all(|missing| {
+                let mut body = payload();
+                let Some(object) = body.as_object_mut() else {
+                    return false;
+                };
+                if missing {
+                    let _removed = object.remove(field);
+                } else {
+                    let _previous = object.insert(field.to_owned(), serde_json::Value::Null);
+                }
+                serde_json::from_value::<crate::settings_form::SettingsForm>(body)
+                    .is_err_and(|error| error.is_data())
+            })
+        })
+    );
+    let mut body = payload();
+    let inserted = body.as_object_mut().is_some_and(|object| {
+        object
+            .insert(
+                stringify!(unexpected).to_owned(),
+                serde_json::Value::Bool(true),
+            )
+            .is_none()
+    });
+    assert!(inserted);
+    assert!(
+        serde_json::from_value::<crate::settings_form::SettingsForm>(body)
+            .is_err_and(|error| error.is_data())
+    );
+}
+
+#[test]
+fn test_refresh_token_exposure_preserves_secret_and_debug_remains_redacted() {
+    assert!(
+        [
+            constants_str::FIXED_TEST_TOKEN,
+            constants_str::TEST_ONLY_ADMIN_JWT_SECRET_WITH_32_BYTES,
+        ]
+        .into_iter()
+        .all(|text| {
+            let admin_refresh_token = crate::admin_refresh_token::AdminRefreshToken::new(
+                crate::admin_opaque_token::AdminOpaqueToken::new(admin_secret(text)),
+            );
+            let debug = format!("{admin_refresh_token:?}");
+            admin_refresh_token.expose().as_ref() == text
+                && debug.contains(constants_str::REDACTED_ALT_3)
+                && !debug.contains(text)
+        })
+    );
+}
+
+fn test_admin_form_rejects_invalid_fields<Form, const FIELD_COUNT: usize>(
+    serde_json_value: &serde_json::Value,
+    fields: [&str; FIELD_COUNT],
+) where
+    Form: serde::de::DeserializeOwned,
+{
+    assert!(fields.into_iter().all(|field| {
+        let wrong_type = if serde_json_value
+            .get(field)
+            .is_some_and(serde_json::Value::is_boolean)
+        {
+            serde_json::json!(1i64)
+        } else {
+            serde_json::Value::Bool(true)
+        };
+        [
+            None,
+            Some(serde_json::Value::Null),
+            Some(wrong_type),
+            Some(serde_json::Value::String(String::new())),
+        ]
+        .into_iter()
+        .all(|replacement| {
+            let mut body = serde_json_value.clone();
+            let Some(object) = body.as_object_mut() else {
+                return false;
+            };
+            if let Some(value) = replacement {
+                let _previous = object.insert(field.to_owned(), value);
+            } else {
+                let _removed = object.remove(field);
+            }
+            serde_json::from_value::<Form>(body).is_err_and(|error| error.is_data())
+        })
+    }));
+    let mut body = serde_json_value.clone();
+    assert!(body.as_object_mut().is_some_and(|object| {
+        object
+            .insert(
+                stringify!(unexpected).to_owned(),
+                serde_json::Value::Bool(true),
+            )
+            .is_none()
+    }));
+    assert!(serde_json::from_value::<Form>(body).is_err_and(|error| error.is_data()));
+}
+
+#[test]
+fn test_create_role_form_preserves_name_and_rejects_invalid_fields() {
+    let body = serde_json::json!({ (stringify!(name)): constants_str::ROOT });
+    assert!(
+        serde_json::from_value::<crate::create_role_form::CreateRoleForm>(body.clone())
+            .is_ok_and(|form| form.get_name().as_ref() == constants_str::ROOT)
+    );
+    test_admin_form_rejects_invalid_fields::<crate::create_role_form::CreateRoleForm, 1usize>(
+        &body,
+        [stringify!(name)],
+    );
+}
+
+#[test]
+fn test_create_user_form_preserves_fields_and_rejects_invalid_fields() {
+    assert!(server_admin_contract::admin_new_password::AdminNewPassword::try_from(
+        server_admin_contract::admin_password_entropy::AdminPasswordEntropy::from([0u8; 32usize])
+    ).is_ok_and(|password| {
+        let body = serde_json::json!({
+            (stringify!(display_name)): constants_str::ADMIN,
+            (stringify!(login)): constants_str::ROOT,
+            (stringify!(password)): password.as_ref(),
+        });
+        let preserved = serde_json::from_value::<crate::create_user_form::CreateUserForm>(body.clone())
+            .is_ok_and(|form| form.get_display_name().as_ref() == constants_str::ADMIN
+                && form.get_login().as_ref() == constants_str::ROOT
+                && form.get_password().as_ref() == password.as_ref());
+        test_admin_form_rejects_invalid_fields::<crate::create_user_form::CreateUserForm, 3usize>(
+            &body, [stringify!(display_name), stringify!(login), stringify!(password)]);
+        preserved
+    }));
+}
+
+#[test]
+fn test_change_password_form_preserves_fields_and_rejects_invalid_fields() {
+    assert!(
+        server_admin_contract::admin_new_password::AdminNewPassword::try_from(
+            server_admin_contract::admin_password_entropy::AdminPasswordEntropy::from(
+                [0u8; 32usize]
+            )
+        )
+        .is_ok_and(|password| {
+            let body = serde_json::json!({
+                (stringify!(current_password)): constants_str::X,
+                (stringify!(new_password)): password.as_ref(),
+            });
+            let preserved =
+                serde_json::from_value::<crate::change_password_form::ChangePasswordForm>(
+                    body.clone(),
+                )
+                .is_ok_and(|form| {
+                    form.get_current_password().as_ref() == constants_str::X
+                        && form.get_new_password().as_ref() == password.as_ref()
+                });
+            test_admin_form_rejects_invalid_fields::<
+                crate::change_password_form::ChangePasswordForm,
+                2usize,
+            >(
+                &body,
+                [stringify!(current_password), stringify!(new_password)],
+            );
+            preserved
+        })
+    );
+}
+
+#[test]
+fn test_sign_in_form_preserves_fields_and_rejects_invalid_fields() {
+    let body = serde_json::json!({
+        (stringify!(login)): constants_str::ROOT,
+        (stringify!(password)): constants_str::X,
+    });
+    assert!(
+        serde_json::from_value::<crate::sign_in_form::SignInForm>(body.clone())
+            .is_ok_and(|form| form.get_login().as_ref() == constants_str::ROOT
+                && form.get_password().as_ref() == constants_str::X)
+    );
+    test_admin_form_rejects_invalid_fields::<crate::sign_in_form::SignInForm, 2usize>(
+        &body,
+        [stringify!(login), stringify!(password)],
+    );
+}
+
+#[test]
+fn test_role_id_form_preserves_both_confirmation_values_and_rejects_invalid_fields() {
+    [false, true].into_iter().fold((), |(), confirmation| {
+        [1i64, i64::MAX].into_iter().fold((), |(), role_id| {
+            let body = serde_json::json!({ (stringify!(role_id)): role_id, (stringify!(confirmation)): confirmation });
+            assert!(serde_json::from_value::<crate::role_id_form::RoleIdForm>(body.clone())
+                .is_ok_and(|form| i64::from(*form.get_role_id()) == role_id
+                    && bool::from(*form.get_confirmation()) == confirmation));
+            test_admin_form_rejects_invalid_fields::<crate::role_id_form::RoleIdForm, 2usize>(
+                &body, [stringify!(role_id), stringify!(confirmation)]);
+        });
+        assert!([i64::MIN, -1i64, 0i64].into_iter().all(|role_id| {
+            serde_json::from_value::<crate::role_id_form::RoleIdForm>(serde_json::json!({
+                (stringify!(role_id)): role_id, (stringify!(confirmation)): confirmation,
+            })).is_err_and(|error| error.is_data())
+        }));
+    });
+}
+
+#[test]
+fn test_revoke_session_form_preserves_text_bounds_and_both_confirmation_values() {
+    [false, true].into_iter().fold((), |(), confirmation| {
+        [constants_str::EMPTY.to_owned(), constants_str::TEST_ACCESS_SESSION_ID.to_owned(), constants_str::X.repeat(64usize)]
+            .into_iter().fold((), |(), session_id| {
+                let body = serde_json::json!({ (stringify!(session_id)): session_id, (stringify!(confirmation)): confirmation });
+                assert!(serde_json::from_value::<crate::revoke_session_form::RevokeSessionForm>(body.clone())
+                    .is_ok_and(|form| form.get_session_id().to_string() == session_id
+                        && bool::from(*form.get_confirmation()) == confirmation));
+                test_admin_form_rejects_invalid_fields::<crate::revoke_session_form::RevokeSessionForm, 1usize>(
+                    &body, [stringify!(confirmation)]);
+            });
+        assert!([
+            None,
+            Some(serde_json::Value::Null),
+            Some(serde_json::Value::Bool(true)),
+            Some(serde_json::Value::String(constants_str::X.repeat(65usize))),
+        ].into_iter().all(|session_id| {
+            let mut body = serde_json::json!({ (stringify!(confirmation)): confirmation });
+            if let Some(value) = session_id {
+                let Some(object) = body.as_object_mut() else { return false; };
+                let _previous = object.insert(stringify!(session_id).to_owned(), value);
+            }
+            serde_json::from_value::<crate::revoke_session_form::RevokeSessionForm>(body)
+                .is_err_and(|error| error.is_data())
+        }));
+    });
+}
+
+#[test]
+fn test_user_id_form_preserves_both_confirmation_values_and_rejects_invalid_fields() {
+    [false, true].into_iter().fold((), |(), confirmation| {
+        [1i64, i64::MAX].into_iter().fold((), |(), user_id| {
+            let body = serde_json::json!({ (stringify!(user_id)): user_id, (stringify!(confirmation)): confirmation });
+            assert!(serde_json::from_value::<crate::user_id_form::UserIdForm>(body.clone())
+                .is_ok_and(|form| i64::from(*form.get_user_id()) == user_id
+                    && bool::from(*form.get_confirmation()) == confirmation));
+            test_admin_form_rejects_invalid_fields::<crate::user_id_form::UserIdForm, 2usize>(
+                &body, [stringify!(user_id), stringify!(confirmation)]);
+        });
+        assert!([i64::MIN, -1i64, 0i64].into_iter().all(|user_id| {
+            serde_json::from_value::<crate::user_id_form::UserIdForm>(serde_json::json!({
+                (stringify!(user_id)): user_id, (stringify!(confirmation)): confirmation,
+            })).is_err_and(|error| error.is_data())
+        }));
+    });
+}
+
+#[test]
+fn test_user_password_form_preserves_fields_and_rejects_invalid_fields() {
+    assert!(
+        server_admin_contract::admin_new_password::AdminNewPassword::try_from(
+            server_admin_contract::admin_password_entropy::AdminPasswordEntropy::from(
+                [0u8; 32usize]
+            )
+        )
+        .is_ok_and(|password| {
+            [1i64, i64::MAX].into_iter().fold((), |(), user_id| {
+                let body = serde_json::json!({
+                    (stringify!(password)): password.as_ref(), (stringify!(user_id)): user_id,
+                });
+                assert!(
+                    serde_json::from_value::<crate::user_password_form::UserPasswordForm>(
+                        body.clone()
+                    )
+                    .is_ok_and(|form| form.get_password().as_ref() == password.as_ref()
+                        && i64::from(*form.get_user_id()) == user_id)
+                );
+                test_admin_form_rejects_invalid_fields::<
+                    crate::user_password_form::UserPasswordForm,
+                    2usize,
+                >(&body, [stringify!(password), stringify!(user_id)]);
+            });
+            [i64::MIN, -1i64, 0i64].into_iter().all(|user_id| {
+                serde_json::from_value::<crate::user_password_form::UserPasswordForm>(
+                    serde_json::json!({
+                        (stringify!(password)): password.as_ref(), (stringify!(user_id)): user_id,
+                    }),
+                )
+                .is_err_and(|error| error.is_data())
+            })
+        })
+    );
+}
+
+#[test]
+fn test_update_role_form_preserves_fields_and_rejects_invalid_fields() {
+    [1i64, i64::MAX].into_iter().fold((), |(), role_id| {
+        let body = serde_json::json!({ (stringify!(name)): constants_str::ROOT, (stringify!(role_id)): role_id });
+        assert!(serde_json::from_value::<crate::update_role_form::UpdateRoleForm>(body.clone())
+            .is_ok_and(|form| form.get_name().as_ref() == constants_str::ROOT
+                && i64::from(*form.get_role_id()) == role_id));
+        test_admin_form_rejects_invalid_fields::<crate::update_role_form::UpdateRoleForm, 2usize>(
+            &body, [stringify!(name), stringify!(role_id)]);
+    });
+    assert!([i64::MIN, -1i64, 0i64].into_iter().all(|role_id| {
+        serde_json::from_value::<crate::update_role_form::UpdateRoleForm>(serde_json::json!({
+            (stringify!(name)): constants_str::ROOT, (stringify!(role_id)): role_id,
+        }))
+        .is_err_and(|error| error.is_data())
+    }));
+}
+
+#[test]
+fn test_update_user_form_preserves_fields_and_rejects_invalid_fields() {
+    [1i64, i64::MAX].into_iter().fold((), |(), user_id| {
+        let body = serde_json::json!({
+            (stringify!(display_name)): constants_str::ADMIN,
+            (stringify!(login)): constants_str::ROOT, (stringify!(user_id)): user_id,
+        });
+        assert!(
+            serde_json::from_value::<crate::update_user_form::UpdateUserForm>(body.clone())
+                .is_ok_and(
+                    |form| form.get_display_name().as_ref() == constants_str::ADMIN
+                        && form.get_login().as_ref() == constants_str::ROOT
+                        && i64::from(*form.get_user_id()) == user_id
+                )
+        );
+        test_admin_form_rejects_invalid_fields::<crate::update_user_form::UpdateUserForm, 3usize>(
+            &body,
+            [
+                stringify!(display_name),
+                stringify!(login),
+                stringify!(user_id),
+            ],
+        );
+    });
+    assert!([i64::MIN, -1i64, 0i64].into_iter().all(|user_id| {
+        serde_json::from_value::<crate::update_user_form::UpdateUserForm>(serde_json::json!({
+            (stringify!(display_name)): constants_str::ADMIN,
+            (stringify!(login)): constants_str::ROOT, (stringify!(user_id)): user_id,
+        }))
+        .is_err_and(|error| error.is_data())
+    }));
+}
+
+#[test]
+fn test_user_ban_form_preserves_both_ban_values_and_rejects_invalid_fields() {
+    [false, true].into_iter().fold((), |(), is_banned| {
+        [1i64, i64::MAX].into_iter().fold((), |(), user_id| {
+            let body = serde_json::json!({ (stringify!(user_id)): user_id, (stringify!(is_banned)): is_banned });
+            assert!(serde_json::from_value::<crate::user_ban_form::UserBanForm>(body.clone())
+                .is_ok_and(|form| i64::from(*form.get_user_id()) == user_id
+                    && bool::from(*form.get_is_banned()) == is_banned));
+            test_admin_form_rejects_invalid_fields::<crate::user_ban_form::UserBanForm, 2usize>(
+                &body, [stringify!(user_id), stringify!(is_banned)]);
+        });
+        assert!([i64::MIN, -1i64, 0i64].into_iter().all(|user_id| {
+            serde_json::from_value::<crate::user_ban_form::UserBanForm>(serde_json::json!({
+                (stringify!(user_id)): user_id, (stringify!(is_banned)): is_banned,
+            })).is_err_and(|error| error.is_data())
+        }));
+    });
+}
+
+#[test]
+fn test_role_rules_form_preserves_flattened_fields_and_rejects_invalid_values() {
+    [constants_str::EMPTY.to_owned(), constants_str::ROOT.to_owned(), constants_str::X.repeat(8_192usize)]
+        .into_iter().fold((), |(), expected_rule_ids| {
+            [1i64, i64::MAX].into_iter().fold((), |(), role_id| {
+                let body = serde_json::json!({
+                    (stringify!(role_id)): role_id, (stringify!(expected_rule_ids)): expected_rule_ids,
+                    (constants_str::ADMIN): constants_str::X, (constants_str::ROOT): constants_str::EMPTY,
+                });
+                assert!(serde_json::from_value::<crate::role_rules_form::RoleRulesForm>(body)
+                    .is_ok_and(|form| i64::from(*form.get_role_id()) == role_id
+                        && form.get_expected_rule_ids().as_str() == expected_rule_ids
+                        && form.get_selected().len().get() == 2usize
+                        && form.get_selected().iter().all(|(key, text)| {
+                            match key.get_inner().as_str() {
+                                constants_str::ADMIN => text.as_str() == constants_str::X,
+                                constants_str::ROOT => text.as_str() == constants_str::EMPTY,
+                                _ => false,
+                            }
+                        })));
+            });
+        });
+    let valid = serde_json::json!({ (stringify!(role_id)): 1i64, (stringify!(expected_rule_ids)): constants_str::EMPTY });
+    assert!(
+        serde_json::from_value::<crate::role_rules_form::RoleRulesForm>(valid)
+            .is_ok_and(|form| form.get_selected().len().get() == 0usize)
+    );
+    assert!([
+        serde_json::json!({ (stringify!(expected_rule_ids)): constants_str::EMPTY }),
+        serde_json::json!({ (stringify!(role_id)): 1i64 }),
+        serde_json::json!({ (stringify!(role_id)): 0i64, (stringify!(expected_rule_ids)): constants_str::EMPTY }),
+        serde_json::json!({ (stringify!(role_id)): 1i64, (stringify!(expected_rule_ids)): null }),
+        serde_json::json!({ (stringify!(role_id)): 1i64, (stringify!(expected_rule_ids)): true }),
+        serde_json::json!({ (stringify!(role_id)): 1i64, (stringify!(expected_rule_ids)): constants_str::X.repeat(8_193usize) }),
+        serde_json::json!({ (stringify!(role_id)): 1i64, (stringify!(expected_rule_ids)): constants_str::EMPTY, (constants_str::ADMIN): null }),
+        serde_json::json!({ (stringify!(role_id)): 1i64, (stringify!(expected_rule_ids)): constants_str::EMPTY, (constants_str::ADMIN): true }),
+    ].into_iter().all(|body| serde_json::from_value::<crate::role_rules_form::RoleRulesForm>(body)
+        .is_err_and(|error| error.is_data())));
+}
+
+#[test]
+fn test_admin_audit_action_serde_and_case_insensitive_parse_contract() {
+    [
+        (
+            crate::admin_audit_action::AdminAuditAction::Create,
+            constants_str::PG_CRUD_CREATE_RULE_ACTION,
+        ),
+        (
+            crate::admin_audit_action::AdminAuditAction::Delete,
+            constants_str::PG_CRUD_DELETE_RULE_ACTION,
+        ),
+        (
+            crate::admin_audit_action::AdminAuditAction::Refresh,
+            constants_str::REFRESH,
+        ),
+        (
+            crate::admin_audit_action::AdminAuditAction::SignIn,
+            constants_str::SIGN_IN,
+        ),
+        (
+            crate::admin_audit_action::AdminAuditAction::SignOut,
+            constants_str::SIGN_OUT,
+        ),
+        (
+            crate::admin_audit_action::AdminAuditAction::Update,
+            constants_str::PG_CRUD_UPDATE_RULE_ACTION,
+        ),
+    ]
+    .into_iter()
+    .fold((), |(), (variant, name)| {
+        assert_eq!(
+            serde_json::to_value(variant).ok(),
+            Some(serde_json::Value::String(name.to_owned()))
+        );
+        assert_eq!(
+            serde_json::from_value::<crate::admin_audit_action::AdminAuditAction>(
+                serde_json::Value::String(name.to_owned())
+            )
+            .ok(),
+            Some(variant)
+        );
+        assert!(
+            [name.to_owned(), name.to_ascii_uppercase()]
+                .into_iter()
+                .all(|text| text
+                    .parse::<crate::admin_audit_action::AdminAuditAction>()
+                    .is_ok_and(|parsed| parsed == variant))
+        );
+        assert!(
+            serde_json::from_value::<crate::admin_audit_action::AdminAuditAction>(
+                serde_json::Value::String(name.to_ascii_uppercase())
+            )
+            .is_err_and(|error| error.is_data())
+        );
+    });
+    assert!(
+        [constants_str::EMPTY, constants_str::X, constants_str::SPACE]
+            .into_iter()
+            .all(|text| text
+                .parse::<crate::admin_audit_action::AdminAuditAction>()
+                .is_err())
+    );
+    assert!(
+        [
+            serde_json::Value::Null,
+            serde_json::Value::Bool(true),
+            serde_json::Value::String(constants_str::X.to_owned())
+        ]
+        .into_iter()
+        .all(
+            |wire| serde_json::from_value::<crate::admin_audit_action::AdminAuditAction>(wire)
+                .is_err_and(|error| error.is_data())
+        )
+    );
+}
+
+#[test]
+fn test_admin_audit_resource_serde_and_case_insensitive_parse_contract() {
+    [
+        (
+            crate::admin_audit_resource::AdminAuditResource::AuditLog,
+            constants_str::AUDIT_LOG_ALT,
+        ),
+        (
+            crate::admin_audit_resource::AdminAuditResource::Rule,
+            constants_str::RULE,
+        ),
+        (
+            crate::admin_audit_resource::AdminAuditResource::Role,
+            constants_str::ROLE,
+        ),
+        (
+            crate::admin_audit_resource::AdminAuditResource::Session,
+            constants_str::SESSION,
+        ),
+        (
+            crate::admin_audit_resource::AdminAuditResource::SystemSettings,
+            constants_str::SYSTEM_SETTINGS,
+        ),
+        (
+            crate::admin_audit_resource::AdminAuditResource::User,
+            constants_str::USER,
+        ),
+    ]
+    .into_iter()
+    .fold((), |(), (variant, name)| {
+        assert_eq!(
+            serde_json::to_value(variant).ok(),
+            Some(serde_json::Value::String(name.to_owned()))
+        );
+        assert_eq!(
+            serde_json::from_value::<crate::admin_audit_resource::AdminAuditResource>(
+                serde_json::Value::String(name.to_owned())
+            )
+            .ok(),
+            Some(variant)
+        );
+        assert!(
+            [name.to_owned(), name.to_ascii_uppercase()]
+                .into_iter()
+                .all(|text| text
+                    .parse::<crate::admin_audit_resource::AdminAuditResource>()
+                    .is_ok_and(|parsed| parsed == variant))
+        );
+        assert!(
+            serde_json::from_value::<crate::admin_audit_resource::AdminAuditResource>(
+                serde_json::Value::String(name.to_ascii_uppercase())
+            )
+            .is_err_and(|error| error.is_data())
+        );
+    });
+    assert!(
+        [constants_str::EMPTY, constants_str::X, constants_str::SPACE]
+            .into_iter()
+            .all(|text| text
+                .parse::<crate::admin_audit_resource::AdminAuditResource>()
+                .is_err())
+    );
+    assert!(
+        [
+            serde_json::Value::Null,
+            serde_json::Value::Bool(true),
+            serde_json::Value::String(constants_str::X.to_owned())
+        ]
+        .into_iter()
+        .all(|wire| serde_json::from_value::<
+            crate::admin_audit_resource::AdminAuditResource,
+        >(wire)
+        .is_err_and(|error| error.is_data()))
+    );
+}
+
+#[test]
+fn test_runtime_authenticated_admin_preserves_distinct_fields_and_copy_accessors() {
+    assert!([7i64, i64::MAX].into_iter().all(|identifier| {
+        [false, true].into_iter().all(|required| {
+            let fields = (
+                server_admin_contract::admin_display_name::AdminDisplayName::try_from(constants_str::ADMIN.to_owned()),
+                server_admin_core::admin_user_record_id::AdminUserRecordId::try_from(identifier),
+                server_admin_contract::admin_login::AdminLogin::try_from(constants_str::LOGIN.to_owned()),
+                crate::admin_auth_rules::AdminAuthRules::try_from(vec![server_admin_contract::admin_rule::AdminRule::UsersRead, server_admin_contract::admin_rule::AdminRule::MetricsRead]),
+                server_admin_contract::admin_role_name::AdminRoleName::try_from(constants_str::ROOT.to_owned()),
+                server_admin_contract::admin_role_name::AdminRoleName::try_from(constants_str::USER.to_owned()),
+            );
+            let (Ok(display_name), Ok(id), Ok(login), Ok(rules), Ok(first_role), Ok(second_role)) = fields else {
+                return false;
+            };
+            crate::runtime_admin_role_names::RuntimeAdminRoleNames::try_from(vec![first_role, second_role]).is_ok_and(|roles| {
+                let session_id = crate::admin_session_id::AdminSessionId::from(server_admin_core::uuid_admin_value::UuidAdminValue::from(uuid::Uuid::from_u128(17u128)));
+                let password_change_required = crate::admin_password_change_required::AdminPasswordChangeRequired::from(required);
+                let administrator = crate::runtime_authenticated_admin::RuntimeAuthenticatedAdmin::new(display_name, id, login, rules, roles, session_id, password_change_required);
+                let expected = serde_json::json!({
+                    (stringify!(display_name)): constants_str::ADMIN,
+                    (stringify!(id)): identifier,
+                    (stringify!(login)): constants_str::LOGIN,
+                    (stringify!(rules)): [server_admin_contract::admin_rule::AdminRule::UsersRead, server_admin_contract::admin_rule::AdminRule::MetricsRead],
+                    (stringify!(roles)): [constants_str::ROOT, constants_str::USER],
+                    (stringify!(session_id)): session_id,
+                    (stringify!(password_change_required)): required,
+                });
+                let getters = serde_json::json!({
+                    (stringify!(display_name)): administrator.get_display_name(),
+                    (stringify!(id)): administrator.id(),
+                    (stringify!(login)): administrator.get_login(),
+                    (stringify!(rules)): administrator.get_rules(),
+                    (stringify!(roles)): administrator.get_roles(),
+                    (stringify!(session_id)): administrator.get_session_id(),
+                    (stringify!(password_change_required)): administrator.password_change_required(),
+                });
+                getters == expected
+                    && *administrator.get_id() == id
+                    && *administrator.get_password_change_required() == password_change_required
+                    && administrator.id() == id
+                    && administrator.password_change_required() == password_change_required
+                    && serde_json::to_value(administrator).is_ok_and(|wire| wire == expected)
+            })
+        })
+    }));
+}
+
+#[test]
+fn test_optional_settings_preserve_nonblank_values_clear_whitespace_and_reject_invalid_values() {
+    fn optional_setting_matches<Value>(
+        std_admin_str_ref: server_admin_core::std_admin_str_ref::StdAdminStrRef<'_>,
+        std_admin_bool: server_admin_core::std_admin_bool::StdAdminBool,
+    ) -> server_admin_core::std_admin_bool::StdAdminBool
+    where
+        Value: TryFrom<String> + AsRef<str>,
+    {
+        server_admin_core::std_admin_bool::StdAdminBool::from(
+            crate::admin_html_form_text::AdminHtmlFormText::try_from(
+                std_admin_str_ref.get().to_owned(),
+            )
+            .is_ok_and(|admin_html_form_text| {
+                match (
+                    crate::optional_setting_impl::optional_setting_impl::<Value, _>(
+                        admin_html_form_text,
+                    ),
+                    std_admin_bool.get(),
+                ) {
+                    (Ok(None), false) => true,
+                    (Ok(Some(value)), true) => value.as_ref() == std_admin_str_ref.get(),
+                    _ => false,
+                }
+            }),
+        )
+    }
+    let whitespace = [char::from(9u8), char::from(160u8), char::from(10u8)]
+        .into_iter()
+        .collect::<String>();
+    assert!([constants_str::EMPTY, constants_str::SPACE, whitespace.as_str()].into_iter().all(|text| {
+        let reference = server_admin_core::std_admin_str_ref::StdAdminStrRef::from(text);
+        let presence = server_admin_core::std_admin_bool::StdAdminBool::from(false);
+        optional_setting_matches::<server_admin_contract::admin_main_logo::AdminMainLogo>(reference, presence).get()
+            && optional_setting_matches::<server_admin_contract::admin_organization_contacts::AdminOrganizationContacts>(reference, presence).get()
+            && optional_setting_matches::<server_admin_contract::admin_organization_name::AdminOrganizationName>(reference, presence).get()
+            && optional_setting_matches::<server_admin_contract::admin_primary_color::AdminPrimaryColor>(reference, presence).get()
+            && optional_setting_matches::<server_admin_contract::admin_support_url::AdminSupportUrl>(reference, presence).get()
+            && optional_setting_matches::<server_admin_contract::admin_tab_title::AdminTabTitle>(reference, presence).get()
+    }));
+    let nonblank = format!(" {} ", constants_str::ADMIN_ALT);
+    let text = server_admin_core::std_admin_str_ref::StdAdminStrRef::from(nonblank.as_str());
+    let present = server_admin_core::std_admin_bool::StdAdminBool::from(true);
+    assert!(
+        optional_setting_matches::<
+            server_admin_contract::admin_organization_contacts::AdminOrganizationContacts,
+        >(text, present)
+        .get()
+    );
+    assert!(
+        optional_setting_matches::<
+            server_admin_contract::admin_organization_name::AdminOrganizationName,
+        >(text, present)
+        .get()
+    );
+    assert!(
+        optional_setting_matches::<server_admin_contract::admin_tab_title::AdminTabTitle>(
+            text, present
+        )
+        .get()
+    );
+    let url = server_admin_core::std_admin_str_ref::StdAdminStrRef::from(
+        constants_str::HTTPS_EXAMPLE_COM,
+    );
+    assert!(
+        optional_setting_matches::<server_admin_contract::admin_main_logo::AdminMainLogo>(
+            url, present
+        )
+        .get()
+    );
+    assert!(
+        optional_setting_matches::<server_admin_contract::admin_support_url::AdminSupportUrl>(
+            url, present
+        )
+        .get()
+    );
+    assert!(
+        optional_setting_matches::<server_admin_contract::admin_primary_color::AdminPrimaryColor>(
+            server_admin_core::std_admin_str_ref::StdAdminStrRef::from(
+                constants_str::PRIMARY_COLOR_DEFAULT
+            ),
+            present,
+        )
+        .get()
+    );
+    assert!(
+        crate::admin_html_form_text::AdminHtmlFormText::try_from(constants_str::X.to_owned())
+            .is_ok_and(|form| {
+                matches!(
+                    crate::optional_setting_impl::optional_setting_impl::<
+                        server_admin_contract::admin_support_url::AdminSupportUrl,
+                        _,
+                    >(form),
+                    Err(crate::admin_error::AdminError::Validation)
+                )
+            })
+    );
+    assert!(
+        crate::admin_html_form_text::AdminHtmlFormText::try_from(constants_str::X.to_owned())
+            .is_ok_and(|form| {
+                matches!(
+                    crate::optional_setting_impl::optional_setting_impl::<
+                        server_admin_contract::admin_primary_color::AdminPrimaryColor,
+                        _,
+                    >(form),
+                    Err(crate::admin_error::AdminError::Validation)
+                )
+            })
+    );
+}
+
+#[test]
+fn test_refresh_token_context_hash_preserves_concatenation_order_and_secret_bounds() {
+    let abc = [
+        0xbau8, 0x78, 0x16, 0xbf, 0x8f, 0x01, 0xcf, 0xea, 0x41, 0x41, 0x40, 0xde, 0x5d, 0xae, 0x22,
+        0x23, 0xb0, 0x03, 0x61, 0xa3, 0x96, 0x17, 0x7a, 0x9c, 0xb4, 0x10, 0xff, 0x61, 0xf2, 0x00,
+        0x15, 0xad,
+    ];
+    let cab = [
+        0x65u8, 0x48, 0xd9, 0x55, 0x79, 0x0a, 0x22, 0x92, 0x5c, 0x1e, 0x23, 0x50, 0x8e, 0xc4, 0xe2,
+        0xbf, 0xfb, 0x8e, 0x45, 0xd8, 0x02, 0x61, 0xb4, 0xb2, 0xc1, 0xf9, 0xd8, 0xc9, 0xb0, 0xd1,
+        0x52, 0xb6,
+    ];
+    let empty = [
+        0xe3u8, 0xb0, 0xc4, 0x42, 0x98, 0xfc, 0x1c, 0x14, 0x9a, 0xfb, 0xf4, 0xc8, 0x99, 0x6f, 0xb9,
+        0x24, 0x27, 0xae, 0x41, 0xe4, 0x64, 0x9b, 0x93, 0x4c, 0xa4, 0x95, 0x99, 0x1b, 0x78, 0x52,
+        0xb8, 0x55,
+    ];
+    let bounded = [
+        0xddu8, 0x4e, 0x67, 0x30, 0x52, 0x09, 0x32, 0x76, 0x7e, 0xc0, 0xa9, 0xe3, 0x3f, 0xe1, 0x9c,
+        0x4c, 0xe2, 0x43, 0x99, 0xd6, 0xeb, 0xa4, 0xff, 0x62, 0xf1, 0x30, 0x13, 0xc9, 0xed, 0x30,
+        0xef, 0x87,
+    ];
+    let cases = [
+        (constants_str::AB.to_owned(), stringify!(c).to_owned(), abc),
+        (stringify!(c).to_owned(), constants_str::AB.to_owned(), cab),
+        (constants_str::ABC_ALT_3.to_owned(), String::new(), abc),
+        (String::new(), constants_str::ABC_ALT_3.to_owned(), abc),
+        (String::new(), String::new(), empty),
+        (
+            constants_str::A_ALT.repeat(8191usize),
+            constants_str::A_ALT.to_owned(),
+            bounded,
+        ),
+    ];
+    assert!(cases.into_iter().all(|(token_text, context_text, expected)| {
+        let converted = (
+            server_admin_core::secrecy_admin_string::SecrecyAdminString::try_from(token_text),
+            server_admin_core::secrecy_admin_string::SecrecyAdminString::try_from(context_text),
+        );
+        let (Ok(token_secret), Ok(context_secret)) = converted else { return false; };
+        let token = crate::admin_opaque_token::AdminOpaqueToken::new(token_secret);
+        let context = crate::admin_token_hash::AdminTokenHash::new(context_secret);
+        crate::authorization_hash_refresh_token_with_context::authorization_hash_refresh_token_with_context(&token, &context)
+            .is_ok_and(|hash| hash.expose().as_ref() == base16ct::lower::encode_string(&expected))
+    }));
+    let overflowing_token = server_admin_core::secrecy_admin_string::SecrecyAdminString::try_from(
+        constants_str::A_ALT.repeat(8192usize),
+    );
+    let overflowing_context = server_admin_core::secrecy_admin_string::SecrecyAdminString::try_from(
+        constants_str::A_ALT.to_owned(),
+    );
+    assert!(overflowing_token.is_ok_and(|token_secret| overflowing_context.is_ok_and(|context_secret| {
+        matches!(
+            crate::authorization_hash_refresh_token_with_context::authorization_hash_refresh_token_with_context(
+                &crate::admin_opaque_token::AdminOpaqueToken::new(token_secret),
+                &crate::admin_token_hash::AdminTokenHash::new(context_secret),
+            ),
+            Err(crate::admin_secret_text_error::AdminSecretTextError::TooLong)
+        )
+    })));
+}
+
+#[tokio::test]
+async fn test_html_response_preserves_content_type_and_exact_bounded_html_body() {
+    let unicode = char::from(233u8).to_string();
+    let checks = [
+        constants_str::EMPTY,
+        constants_str::ADMIN_DOCUMENT_UNSAFE_TITLE_FIXTURE,
+        unicode.as_str(),
+    ]
+    .into_iter()
+    .map(async |text| {
+        let Ok(html) = frontend_admin::admin_ssr_html::AdminSsrHtml::try_from(text.to_owned())
+        else {
+            return false;
+        };
+        let response = crate::html_response_impl::html_response_impl(html);
+        let expected_type = format!(
+            "{}/{}; {}={}-{}",
+            stringify!(text),
+            stringify!(html),
+            stringify!(charset),
+            stringify!(utf),
+            8u8
+        );
+        let headers_match = response.status() == http::StatusCode::OK
+            && response
+                .headers()
+                .get(http::header::CONTENT_TYPE)
+                .is_some_and(|header| header == expected_type.as_str());
+        headers_match
+            && axum::body::to_bytes(response.into_body(), 1024usize)
+                .await
+                .is_ok_and(|body| body.as_ref() == text.as_bytes())
+    });
+    assert!(
+        futures::future::join_all(checks)
+            .await
+            .into_iter()
+            .all(std::convert::identity)
+    );
+}
+
+#[test]
+fn test_user_path_conversion_preserves_positive_identifiers() {
+    assert!([1i64, 7i64, i64::MAX].into_iter().all(|identifier| {
+        server_admin_contract::admin_user_id::AdminUserId::try_from(identifier).is_ok_and(
+            |admin_user_id| {
+                let record = crate::user_path_impl::user_path_impl(admin_user_id);
+                record.get() == identifier && record.value() == admin_user_id.value()
+            },
+        )
+    }));
 }

@@ -550,3 +550,98 @@ fn test_admin_where_many_schema_and_malformed_deserialization() {
             })
     );
 }
+
+#[test]
+fn test_admin_membership_preserves_typed_values_and_rejects_invalid_entries() {
+    assert!(constants_str::VALUE_2026_07_13T12_30_00.split_once('T').is_some_and(|(date, _time)| {
+        let expected_timestamps = [0u32, 30u32, 0u32].map(|second| serde_json::json!({
+            (constants_str::DATE_NAIVE): date,
+            (constants_str::PG_CRUD_PG_TIME): {
+                (constants_str::HOUR): 12u32,
+                (constants_str::MIN): 30u32,
+                (constants_str::SEC): second,
+                (constants_str::MICRO): 0u32,
+            }
+        }));
+        [
+        (
+            frontend_contract::input_kind::InputKind::Number,
+            constants_str::SQL_NAMES_ID,
+            [constants_str::VALUE_1, constants_str::VALUE_2, constants_str::VALUE_1],
+            serde_json::json!([1i64, 2i64, 1i64]),
+        ),
+        (
+            frontend_contract::input_kind::InputKind::Checkbox,
+            constants_str::IS_BANNED,
+            [constants_str::TRUE, constants_str::FALSE, constants_str::TRUE],
+            serde_json::json!([true, false, true]),
+        ),
+        (
+            frontend_contract::input_kind::InputKind::DateTime,
+            constants_str::CREATED_AT,
+            [constants_str::VALUE_2026_07_13T12_30_00, constants_str::VALUE_2026_07_13T12_30_30, constants_str::VALUE_2026_07_13T12_30_00],
+            serde_json::json!(expected_timestamps),
+        ),
+    ].into_iter().all(|(input_kind, field_name, raw_values, expected_values)| {
+        crate::admin_filter_field::AdminFilterField::try_from(field_name.to_owned())
+            .is_ok_and(|admin_filter_field| {
+                let build_query = |admin_filter_value: crate::admin_filter_value::AdminFilterValue| {
+                    crate::admin_data_table_filter_query::AdminDataTableFilterQuery::new(
+                        Some(admin_filter_field.clone()),
+                        Some(frontend_contract::filter_operation::FilterOperation::In),
+                        Some(admin_filter_value),
+                        None,
+                    )
+                };
+                let padded = raw_values.into_iter().map(|raw_value| {
+                    [constants_str::SPACE, raw_value, constants_str::SPACE].concat()
+                }).collect::<Vec<_>>().join(constants_str::TEXT_ALT_7);
+                let valid = crate::admin_filter_value::AdminFilterValue::try_from(padded)
+                    .is_ok_and(|admin_filter_value| {
+                        crate::admin_where_many::AdminWhereMany::try_from_filter(
+                            &build_query(admin_filter_value), input_kind,
+                        ).is_ok_and(|filter| filter.is_some_and(|admin_where_many| {
+                            serde_json::from_str::<serde_json::Value>(admin_where_many.as_ref())
+                                .is_ok_and(|wire| {
+                                    wire.get(field_name)
+                                        .and_then(|field| field.get(constants_str::PG_CRUD_VALUES_FIELD))
+                                        .and_then(|predicates| predicates.get(0usize))
+                                        .and_then(|predicate| predicate.get(stringify!(In)))
+                                        .and_then(|body| body.get(constants_str::PG_CRUD_VALUES_FIELD))
+                                        == Some(&expected_values)
+                                })
+                        }))
+                    });
+                valid && (0usize..3usize).all(|invalid_position| {
+                    [constants_str::X, constants_str::EMPTY, constants_str::SPACE]
+                        .into_iter().all(|invalid| {
+                            let raw_value = raw_values.into_iter().enumerate()
+                                .map(|(position, raw_value)| {
+                                    if position == invalid_position { invalid } else { raw_value }
+                                }).collect::<Vec<_>>().join(constants_str::TEXT_ALT_7);
+                            crate::admin_filter_value::AdminFilterValue::try_from(raw_value)
+                                .is_ok_and(|admin_filter_value| {
+                                    crate::admin_where_many::AdminWhereMany::try_from_filter(
+                                        &build_query(admin_filter_value), input_kind,
+                                    ).is_err_and(|admin_identifier_filter_error| {
+                                        if input_kind == frontend_contract::input_kind::InputKind::DateTime {
+                                            frontend_contract::parse_timestamp_filter_wire_json::parse_timestamp_filter_wire_json(
+                                                frontend_contract::form_value_ref::FormValueRef::from(invalid.trim()),
+                                                frontend_contract::value_format::ValueFormat::TimestampTz,
+                                            ).is_err_and(|expected_source| matches!(
+                                                admin_identifier_filter_error,
+                                                crate::admin_identifier_filter_error::AdminIdentifierFilterError::InvalidTimestampValue(source)
+                                                    if source == expected_source
+                                            ))
+                                        } else {
+                                            matches!(admin_identifier_filter_error,
+                                                crate::admin_identifier_filter_error::AdminIdentifierFilterError::InvalidValue)
+                                        }
+                                    })
+                                })
+                        })
+                })
+            })
+    })
+    }));
+}

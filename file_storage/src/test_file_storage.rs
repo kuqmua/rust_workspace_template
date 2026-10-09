@@ -441,6 +441,7 @@ async fn test_staged_upload_delete_and_rollback_preserve_transaction_boundaries(
     .expect(constants_str::DIAGNOSTIC_85ED3042);
     let bytes = crate::std_file_bytes::StdFileBytes::try_from(vec![1u8, 2u8, 3u8])
         .expect(constants_str::DIAGNOSTIC_D7DF0F1C);
+    let missing_file = tokio::fs::metadata(root_path.join(relative_path.as_ref())).await;
     assert!(
         [
             storage.commit_upload(&operation_id, &relative_path).await,
@@ -450,10 +451,24 @@ async fn test_staged_upload_delete_and_rollback_preserve_transaction_boundaries(
             storage.stage_delete(&operation_id, &relative_path).await,
         ]
         .into_iter()
-        .all(|result| matches!(
-            result,
-            Err(crate::file_storage_error::FileStorageError::Io(_))
-        ))
+        .all(|result| result.is_err_and(|error| {
+            match &error {
+                crate::file_storage_error::FileStorageError::Io(source) => {
+                    missing_file.as_ref().err().is_some_and(|expected| {
+                        expected.kind() == std::io::ErrorKind::NotFound
+                            && source.to_string() == expected.to_string()
+                    }) && std::error::Error::source(&error).is_some_and(|observed| {
+                        observed.is::<crate::file_storage_io_error::FileStorageIoError>()
+                            && observed.to_string() == source.to_string()
+                    })
+                }
+                crate::file_storage_error::FileStorageError::AtomicReplaceAndCleanup { .. }
+                | crate::file_storage_error::FileStorageError::DestinationExists
+                | crate::file_storage_error::FileStorageError::SourceNotRegular
+                | crate::file_storage_error::FileStorageError::StagingEntryExists
+                | crate::file_storage_error::FileStorageError::Symlink => false,
+            }
+        }))
     );
     assert!(!root_path.join(relative_path.as_ref()).exists());
     assert!(
@@ -1230,4 +1245,37 @@ fn test_staging_cleanup_report_preserves_independent_counts_and_saturation() {
     saturated_report.record_scanned();
     assert_eq!(usize::from(saturated_report.removed()), maximum);
     assert_eq!(usize::from(saturated_report.scanned()), 2usize);
+}
+
+#[test]
+fn test_stale_cleanup_configuration_preserves_distinct_scan_and_removal_limits() {
+    [(1usize, 10_000usize), (10_000usize, 1usize)]
+        .into_iter()
+        .fold((), |(), (scanned, removed)| {
+            assert!(crate::std_stale_staging_entry_limit::StdStaleStagingEntryLimit::try_from(scanned).is_ok_and(|maximum_scanned| {
+                crate::std_stale_staging_entry_limit::StdStaleStagingEntryLimit::try_from(removed).is_ok_and(|maximum_removed| {
+                    let stale_before = crate::stale_before_system_time::StaleBeforeSystemTime::from(std::time::UNIX_EPOCH);
+                    let configuration = crate::stale_staging_cleanup_configuration::StaleStagingCleanupConfiguration::new(stale_before, maximum_scanned, maximum_removed);
+                    configuration.stale_before() == stale_before
+                        && configuration.maximum_scanned().get() == scanned
+                        && configuration.maximum_removed().get() == removed
+                })
+            }));
+        });
+}
+
+#[test]
+fn test_storage_operation_identifiers_enforce_ascii_token_characters() {
+    assert!((0u8..=u8::MAX)
+        .map(char::from)
+        .chain(['\u{800}', '\u{10000}', '\u{10ffff}'])
+        .all(|character| {
+            let text = character.to_string();
+            let result = crate::std_storage_operation_id::StdStorageOperationId::try_from(text.clone());
+            if character.is_ascii_alphanumeric() || character == '-' || character == '_' {
+                result.is_ok_and(|std_storage_operation_id| std_storage_operation_id.as_ref() == text)
+            } else {
+                result == Err(crate::file_storage_path_error::FileStoragePathError::OperationIdInvalid)
+            }
+        }));
 }

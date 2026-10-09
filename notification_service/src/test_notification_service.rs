@@ -452,13 +452,13 @@ async fn test_create_notification_persists_through_http_route() {
             constants_str::INTEGRATION_NOTIFICATION_MESSAGE.to_owned(),
         )
         .expect(constants_str::DIAGNOSTIC_F9605432);
-    let body = serde_json::to_vec(
-        &notification_service_contract::create_notification_request::CreateNotificationRequest::new(
+    let request_payload =
+        notification_service_contract::create_notification_request::CreateNotificationRequest::new(
             message,
-        ),
-    )
-    .expect(constants_str::DIAGNOSTIC_3DAA1AB0);
-    let request = http::Request::builder()
+        );
+    let body = serde_json::to_vec(&request_payload).expect(constants_str::DIAGNOSTIC_3DAA1AB0);
+    let request = || {
+        http::Request::builder()
         .method(http::Method::POST)
         .uri(
             frontend_contract::typed_route_path::typed_route_path::<
@@ -470,8 +470,9 @@ async fn test_create_notification_persists_through_http_route() {
             http::header::CONTENT_TYPE,
             constants_str::HTTP_APPLICATION_JSON,
         )
-        .body(axum::body::Body::from(body))
-        .expect(constants_str::DIAGNOSTIC_F8D2AB0B);
+        .body(axum::body::Body::from(body.clone()))
+    };
+    let success_request = request().expect(constants_str::DIAGNOSTIC_F8D2AB0B);
     let response = tower::ServiceExt::oneshot(
         crate::build_notification_router::build_notification_router(
             state(pool.clone()),
@@ -480,7 +481,7 @@ async fn test_create_notification_persists_through_http_route() {
             ),
         )
         .into_inner(),
-        request,
+        success_request,
     )
     .await
     .expect(constants_str::DIAGNOSTIC_C46BF92A);
@@ -623,6 +624,46 @@ async fn test_create_notification_persists_through_http_route() {
         ),
     );
     assert_eq!(closed_responses, (true, true, true, true));
+    let failure_request_result = request();
+    assert!(failure_request_result.as_ref().err().is_none());
+    if let Ok(failure_request) = failure_request_result {
+        let Ok(failure_response) =
+            tower::ServiceExt::oneshot(health_router.clone(), failure_request).await;
+        assert_eq!(
+            failure_response.status(),
+            http::StatusCode::INTERNAL_SERVER_ERROR
+        );
+        assert_eq!(
+            failure_response.headers().get(http::header::CONTENT_TYPE),
+            Some(&http::HeaderValue::from_static(
+                constants_str::APPLICATION_PROBLEM_PLUS_JSON
+            ))
+        );
+        assert!(
+            failure_response
+                .extensions()
+                .get::<server_runtime_http::http_error_diagnostic::HttpErrorDiagnostic>()
+                .is_some_and(|diagnostic| diagnostic.telemetry().error_code().to_string()
+                    == constants_str::NOTIFICATION_OBSERVED_ERROR_PERSISTENCE
+                    && diagnostic.telemetry().error_type().to_string()
+                        == constants_str::NOTIFICATION_API_ERROR_TYPE)
+        );
+        assert!(axum::body::to_bytes(failure_response.into_body(), 16_384usize).await
+            .is_ok_and(|bytes| serde_json::from_slice::<frontend_contract::api_problem::ApiProblem>(&bytes)
+                .is_ok_and(|problem| problem == frontend_contract::api_problem::ApiProblem::from_error(
+                    frontend_contract::api_problem_error::ApiProblemError::Internal(
+                        frontend_contract::api_problem_status::ApiProblemStatus::from(frontend_contract::known_http_status::KnownHttpStatus::InternalServerError))))));
+    }
+    let direct_failure = crate::create_notification::create_notification(
+        crate::notification_axum_state::NotificationAxumState::from(state(pool.clone())),
+        crate::notification_axum_json::NotificationAxumJson::from(request_payload),
+    )
+    .await;
+    assert!(
+        matches!(direct_failure, Err(crate::create_notification_error::CreateNotificationError::Persistence(observed))
+        if observed.error_code().to_string() == constants_str::NOTIFICATION_OBSERVED_ERROR_PERSISTENCE
+            && observed.source_ref().to_string() == sqlx::Error::PoolClosed.to_string())
+    );
 }
 
 #[test]

@@ -164,6 +164,21 @@ mod tests {
     }
 
     #[test]
+    fn test_numeric_range_length_defaults_preserve_single_element_value() {
+        let minimum =
+            crate::pg_numeric_range_length::PgNumericRangeLength::from(std::num::NonZeroU16::MIN);
+        [
+            crate::pg_numeric_range_length::PgNumericRangeLength::default(),
+            <crate::pg_numeric_range_length::PgNumericRangeLength as crate::default_some_one_element::DefaultSomeOneElement>::default_some_one_element(),
+        ]
+        .into_iter()
+        .fold((), |(), length| {
+            assert_eq!(length, minimum);
+            assert!(serde_json::to_value(length).is_ok_and(|json| json == 1u64));
+        });
+    }
+
+    #[test]
     fn test_full_u64_range_length_validation() {
         assert!(matches!(
             crate::pg_numeric_range_length::PgNumericRangeLength::try_from(0u64),

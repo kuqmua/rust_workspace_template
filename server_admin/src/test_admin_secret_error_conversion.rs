@@ -108,7 +108,17 @@ fn test_admin_access_token_error_conversion_preserves_validation_category() {
         ),
     ];
     assert!(cases.into_iter().all(|(source, expected)| {
-        crate::admin_secret_text_error::AdminSecretTextError::from(source) == expected
+        let validation_diagnostic = source.to_string();
+        let access_token_error = crate::admin_access_token_error::AdminAccessTokenError::from(source);
+        let diagnostic_matches = access_token_error.to_string() == format!(
+            "{}: {}",
+            constants_str::ADMIN_DIAGNOSTIC_ADMINISTRATOR_ACCESS_TOKEN_HAS_INVALID_BOUNDS,
+            validation_diagnostic,
+        );
+        matches!(access_token_error, crate::admin_access_token_error::AdminAccessTokenError::Bounds(validation_error)
+            if validation_error.to_string() == validation_diagnostic
+                && crate::admin_secret_text_error::AdminSecretTextError::from(validation_error) == expected)
+            && diagnostic_matches
     }));
 }
 #[test]

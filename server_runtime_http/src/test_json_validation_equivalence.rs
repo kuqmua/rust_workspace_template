@@ -1,4 +1,35 @@
 #[test]
+fn test_json_formatting_preserves_last_duplicate_key_value_without_mutating_original_text() {
+    let first = serde_json::json!({(constants_str::X): 1u64}).to_string();
+    let expected = serde_json::json!({(constants_str::X): 2u64}).to_string();
+    let input = first
+        .chars()
+        .take(first.len() - 1usize)
+        .chain(std::iter::once(','))
+        .chain(expected.chars().skip(1usize))
+        .collect::<String>();
+    assert!(
+        crate::bounded_json_text::BoundedJsonText::try_from(input.clone()).is_ok_and(|original| {
+            let compact = original.compact();
+            let pretty = original.pretty();
+            original.as_ref() == input
+                && compact.is_ok_and(|formatted| {
+                    formatted.as_ref() == expected
+                        && formatted
+                            .compact()
+                            .is_ok_and(|repeated| repeated == formatted)
+                })
+                && pretty.is_ok_and(|formatted| {
+                    formatted.as_ref().contains('\n')
+                        && formatted
+                            .compact()
+                            .is_ok_and(|compacted| compacted.as_ref() == expected)
+                })
+        })
+    );
+}
+
+#[test]
 fn test_json_validation_preserves_parser_results_and_diagnostics() {
     let excessive_depth = std::iter::repeat_n('[', 129usize)
         .chain(std::iter::once('0'))
@@ -112,4 +143,22 @@ fn test_json_container_boundaries_preserve_success_and_exact_parser_errors() {
             expected.is_ok() == valid && actual == expected
         })
     );
+}
+
+#[test]
+fn test_json_value_deserialization_rejects_byte_values_with_json_expectation() {
+    let deserializer =
+        serde::de::value::BorrowedBytesDeserializer::<serde::de::value::Error>::new(&[0u8, 1u8]);
+    let result =
+        <crate::validated_json_value::ValidatedJsonValue as serde::Deserialize>::deserialize(
+            deserializer,
+        );
+    let expected = format!(
+        "{}: {}, {} {}",
+        stringify!(invalid type),
+        stringify!(byte array),
+        stringify!(expected),
+        constants_str::JSON,
+    );
+    assert!(result.is_err_and(|error| error.to_string() == expected));
 }

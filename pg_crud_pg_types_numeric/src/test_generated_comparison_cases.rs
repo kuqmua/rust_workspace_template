@@ -86,3 +86,36 @@ fn test_generated_nullable_comparison_with_null_threshold_returns_no_filter() {
             .is_ok_and(|threshold| <crate::generate_pg_types_mod::OptionalI16AsNullableInt2 as pg_crud_common::pg_type_test_cases::PgTypeTestCases>::read_ids_and_table_type_into_pg_type_optional_where_greater_than(variant, pg_crud_common::non_primary_key_pg_type_read_ids::NonPrimaryKeyPgTypeReadIds::default(), threshold).is_none())
     }));
 }
+
+#[test]
+fn test_boolean_case_providers_omit_unsupported_array_and_ordering_hooks() {
+    fn assert_boolean_provider_omits_unsupported_hooks<GeneratedPgType>()
+    where
+        GeneratedPgType: pg_crud_common::pg_type::PgType<
+                ReadIds = pg_crud_common::non_primary_key_pg_type_read_ids::NonPrimaryKeyPgTypeReadIds,
+            > + pg_crud_common::pg_type_test_cases::PgTypeTestCases<PgType = GeneratedPgType>,
+    {
+        let read_ids = || {
+            pg_crud_common::non_primary_key_pg_type_read_ids::NonPrimaryKeyPgTypeReadIds::default()
+        };
+        let create = || {
+            <<GeneratedPgType as pg_crud_common::pg_type::PgType>::Create as pg_crud_common::default_some_one_element::DefaultSomeOneElement>::default_some_one_element()
+        };
+        assert!(<GeneratedPgType as pg_crud_common::pg_type_test_cases::PgTypeTestCases>::read_ids_and_create_into_optional_vec_where_eq_to_field(read_ids(), create()).is_none());
+        assert!(<GeneratedPgType as pg_crud_common::pg_type_test_cases::PgTypeTestCases>::create_into_pg_type_optional_vec_where_dimension_one_eq(create()).is_none());
+        assert!(<GeneratedPgType as pg_crud_common::pg_type_test_cases::PgTypeTestCases>::pg_type_optional_vec_where_greater_than_test().is_none());
+        assert!([
+            pg_crud_common::pg_type_greater_than_variant::PgTypeGreaterThanVariant::GreaterThan,
+            pg_crud_common::pg_type_greater_than_variant::PgTypeGreaterThanVariant::NotGreaterThan,
+            pg_crud_common::pg_type_greater_than_variant::PgTypeGreaterThanVariant::EqNotGreaterThan,
+        ].into_iter().all(|variant| <GeneratedPgType as pg_crud_common::pg_type_test_cases::PgTypeTestCases>::read_ids_and_table_type_into_pg_type_optional_where_greater_than(
+            variant, read_ids(), <<GeneratedPgType as pg_crud_common::pg_type::PgType>::TableType as pg_crud_common::default_some_one_element::DefaultSomeOneElement>::default_some_one_element(),
+        ).is_none()));
+    }
+    assert_boolean_provider_omits_unsupported_hooks::<
+        crate::generate_pg_types_mod::BoolAsNonNullBool,
+    >();
+    assert_boolean_provider_omits_unsupported_hooks::<
+        crate::generate_pg_types_mod::OptionalBoolAsNullableBool,
+    >();
+}

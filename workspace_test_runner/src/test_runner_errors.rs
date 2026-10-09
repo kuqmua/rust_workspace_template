@@ -224,6 +224,23 @@ fn test_runner_fixture_conversion_retains_input_and_domain_validation_errors() {
             .err()
             .is_some_and(|error| std::error::Error::source(error).is_some())
     );
+    assert!(
+        crate::admin_fixture_string::AdminFixtureString::try_from(
+            constants_str::X.repeat(constants_usize::VALUE_1_048_576 + constants_usize::ONE),
+        )
+        .is_err_and(|source| {
+            let original = source.to_string();
+            let converted =
+                crate::admin_fixture_conversion_error::AdminFixtureConversionError::from(source);
+            matches!(
+                &converted,
+                crate::admin_fixture_conversion_error::AdminFixtureConversionError::Input(_)
+            ) && converted.to_string()
+                == constants_str::WORKSPACE_TEST_RUNNER_ADMIN_FIXTURE_STRING_INVALID
+                && std::error::Error::source(&converted)
+                    .is_some_and(|retained| retained.to_string() == original)
+        })
+    );
 }
 
 #[test]
@@ -440,4 +457,106 @@ fn test_fixture_conversion_separates_unicode_character_errors_from_input_byte_er
                 )) if len == bytes && max == maximum));
             }
         });
+}
+
+#[cfg(unix)]
+#[test]
+fn test_measurement_exit_errors_preserve_context_status_and_absent_sources() {
+    let measurement_name = crate::measurement_name::MeasurementName::from(constants_str::STATIC);
+    let process_exit_status = macro_helpers::process_exit_status::ProcessExitStatus::from(
+        <std::process::ExitStatus as std::os::unix::process::ExitStatusExt>::from_raw(256i32),
+    );
+    let cargo_error = crate::cargo_measurement_error::CargoMeasurementError::Exit {
+        measurement_name,
+        process_exit_status,
+    };
+    assert_eq!(
+        cargo_error.to_string(),
+        format!(
+            "{}{} {}{}",
+            constants_str::RUNNER_MEASUREMENT_PREFIX,
+            measurement_name,
+            constants_str::RUNNER_MEASUREMENT_EXIT_PREFIX,
+            process_exit_status
+        )
+    );
+    assert!(std::error::Error::source(&cargo_error).is_none());
+    let memory_error = crate::memusage_measurement_error::MemusageMeasurementError::Exit {
+        measurement_name,
+        process_exit_status,
+    };
+    assert_eq!(
+        memory_error.to_string(),
+        format!(
+            "{}{}{} {}{}",
+            constants_str::RUNNER_MEASUREMENT_PREFIX,
+            measurement_name,
+            constants_str::RUNNER_ALLOCATION_SUFFIX,
+            constants_str::RUNNER_MEASUREMENT_EXIT_PREFIX,
+            process_exit_status
+        )
+    );
+    assert!(std::error::Error::source(&memory_error).is_none());
+}
+
+#[cfg(unix)]
+#[test]
+fn test_measurement_output_errors_preserve_console_and_original_io_sources() {
+    fn measurement_write_failure_matches<MeasurementError>(
+        measurement_error: MeasurementError,
+    ) -> server_admin_contract::admin_bool::AdminBool
+    where
+        MeasurementError: std::error::Error,
+    {
+        let expected = format!(
+            "{}: {}",
+            constants_str::TOOL_STDOUT_WRITE_FAILED,
+            std::io::Error::from(std::io::ErrorKind::BrokenPipe)
+        );
+        server_admin_contract::admin_bool::AdminBool::from(measurement_error.to_string() == expected && std::error::Error::source(&measurement_error)
+            .and_then(|source| source.downcast_ref::<macro_helpers::tool_console_write_error::ToolConsoleWriteError>())
+            .and_then(|console| std::error::Error::source(console))
+            .and_then(|source| source.downcast_ref::<macro_helpers::std_tool_io_error::StdToolIoError>())
+            .is_some_and(|source| source.kind() == std::io::ErrorKind::BrokenPipe))
+    }
+    let write_error = || {
+        macro_helpers::tool_console_write_error::ToolConsoleWriteError::StandardOutput(
+            macro_helpers::std_tool_io_error::StdToolIoError::from(std::io::Error::from(
+                std::io::ErrorKind::BrokenPipe,
+            )),
+        )
+    };
+    let measurement_name = crate::measurement_name::MeasurementName::from(constants_str::STATIC);
+    let process_exit_status = macro_helpers::process_exit_status::ProcessExitStatus::from(
+        <std::process::ExitStatus as std::os::unix::process::ExitStatusExt>::from_raw(256i32),
+    );
+    assert_eq!(
+        measurement_write_failure_matches(
+            crate::cargo_measurement_error::CargoMeasurementError::WriteOutput {
+                measurement_name,
+                tool_console_write_error: write_error(),
+                process_exit_status
+            }
+        ),
+        server_admin_contract::admin_bool::AdminBool::from(true)
+    );
+    assert_eq!(
+        measurement_write_failure_matches(
+            crate::memusage_measurement_error::MemusageMeasurementError::WriteOutput {
+                measurement_name,
+                tool_console_write_error: write_error(),
+                process_exit_status
+            }
+        ),
+        server_admin_contract::admin_bool::AdminBool::from(true)
+    );
+    assert_eq!(
+        measurement_write_failure_matches(
+            crate::memusage_measurement_error::MemusageMeasurementError::WriteUnavailable {
+                measurement_name,
+                tool_console_write_error: write_error()
+            }
+        ),
+        server_admin_contract::admin_bool::AdminBool::from(true)
+    );
 }

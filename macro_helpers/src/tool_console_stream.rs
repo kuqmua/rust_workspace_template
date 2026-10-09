@@ -129,4 +129,35 @@ mod tests {
         verify(super::ToolConsoleStream::StandardError);
         verify(super::ToolConsoleStream::StandardOutput);
     }
+
+    #[derive(proc_macro_optimal_memory_layout::OptimalMemoryLayout)]
+    struct TestConsoleWriteZero;
+
+    impl std::io::Write for TestConsoleWriteZero {
+        fn write(&mut self, _buffer: &[u8]) -> std::io::Result<usize> {
+            Ok(constants_usize::ZERO)
+        }
+
+        fn flush(&mut self) -> std::io::Result<()> {
+            Ok(())
+        }
+    }
+
+    #[test]
+    fn test_console_writer_preserves_stream_and_write_zero_error() {
+        [super::ToolConsoleStream::StandardError, super::ToolConsoleStream::StandardOutput]
+            .into_iter()
+            .fold((), |(), tool_console_stream| {
+                let result = tool_console_stream.write_to(
+                    crate::std_io_write_ref::StdIoWriteRef::from(&mut TestConsoleWriteZero),
+                    crate::std_fmt_arguments::StdFmtArguments::from(format_args!("{}", constants_str::ERROR)),
+                );
+                assert!(matches!(
+                    (tool_console_stream, result),
+                    (super::ToolConsoleStream::StandardError, Err(crate::tool_console_write_error::ToolConsoleWriteError::StandardError(source)))
+                    | (super::ToolConsoleStream::StandardOutput, Err(crate::tool_console_write_error::ToolConsoleWriteError::StandardOutput(source)))
+                        if source.kind() == std::io::ErrorKind::WriteZero
+                ));
+            });
+    }
 }

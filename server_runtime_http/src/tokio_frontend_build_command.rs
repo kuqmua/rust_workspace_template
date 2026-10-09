@@ -123,6 +123,42 @@ mod tests {
             make_output_command(&long_text).node_version().await,
             Err(crate::frontend_preparation_error::FrontendPreparationError::NodeVersion)
         ));
+        let unicode_text_result = crate::bounded_text::BoundedText::try_from(
+            [
+                char::from(u8::MAX).to_string().repeat(63usize),
+                constants_str::X.to_owned(),
+            ]
+            .concat(),
+        );
+        assert!(
+            unicode_text_result
+                .as_ref()
+                .is_ok_and(|bounded_text| bounded_text.as_ref().len() == 127usize)
+        );
+        let Ok(unicode_text) = unicode_text_result else {
+            return;
+        };
+        assert!(
+            make_output_command(&unicode_text)
+                .node_version()
+                .await
+                .is_ok_and(|bounded_text| bounded_text == unicode_text)
+        );
+        let unicode_limit_result = crate::bounded_text::BoundedText::try_from(
+            char::from(u8::MAX).to_string().repeat(64usize),
+        );
+        assert!(
+            unicode_limit_result
+                .as_ref()
+                .is_ok_and(|bounded_text| bounded_text.as_ref().len() == 128usize)
+        );
+        let Ok(unicode_limit) = unicode_limit_result else {
+            return;
+        };
+        assert!(matches!(
+            make_output_command(&unicode_limit).node_version().await,
+            Err(crate::frontend_preparation_error::FrontendPreparationError::NodeVersion)
+        ));
         let success = crate::tokio_frontend_build_command::TokioFrontendBuildCommand::from(
             tokio::process::Command::new(constants_str::TRUE),
         )

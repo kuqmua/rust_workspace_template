@@ -64,6 +64,39 @@ impl ResourceBudget {
 #[cfg(test)]
 mod tests {
     #[test]
+    fn test_budget_reservation_survives_original_handle_and_releases_to_remaining_clone() {
+        let budget = super::ResourceBudget::new(
+            crate::resource_budget_maximum::ResourceBudgetMaximum::from(
+                std::num::NonZeroUsize::MIN,
+            ),
+        );
+        let remaining = budget.clone();
+        let reservation = budget.reserve(
+            crate::resource_budget_amount::ResourceBudgetAmount::from(constants_usize::ONE),
+        );
+        assert!(reservation.is_ok());
+        drop(budget);
+        assert_eq!(*remaining.reserved(), constants_usize::ONE);
+        assert!(
+            remaining
+                .reserve(crate::resource_budget_amount::ResourceBudgetAmount::from(
+                    constants_usize::ONE
+                ),)
+                .is_err_and(|error| error
+                    == crate::resource_budget_reserve_error::ResourceBudgetReserveError::Exhausted)
+        );
+        drop(reservation);
+        assert_eq!(*remaining.reserved(), constants_usize::ZERO);
+        let recovered = remaining.reserve(
+            crate::resource_budget_amount::ResourceBudgetAmount::from(constants_usize::ONE),
+        );
+        assert!(recovered.is_ok());
+        assert_eq!(*remaining.reserved(), constants_usize::ONE);
+        drop(recovered);
+        assert_eq!(*remaining.reserved(), constants_usize::ZERO);
+    }
+
+    #[test]
     fn test_budget_shares_reservations_and_recovers_capacity_after_drop() {
         let budget = super::ResourceBudget::new(
             crate::resource_budget_maximum::ResourceBudgetMaximum::from(

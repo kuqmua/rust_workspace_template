@@ -363,6 +363,222 @@ mod tests {
         );
     }
 
+    #[tokio::test]
+    async fn test_postgresql_pool_rejects_inverted_limits_before_client_construction() {
+        fn server_pool_fixture_env_value<T>(
+            std_env_var_ok_ref: config_lib::std_env_var_ok_ref::StdEnvVarOkRef<'_>,
+        ) -> Result<T, crate::server_io_error::ServerIoError>
+        where
+            T: config_lib::try_from_std_env_var_ok::TryFromStdEnvVarOk,
+            T::Error: std::error::Error + Send + Sync + 'static,
+        {
+            let std_env_var_ok = config_lib::std_env_var_ok::StdEnvVarOk::try_from(
+                std_env_var_ok_ref.as_ref().to_owned(),
+            )
+            .map_err(std::io::Error::other)
+            .map_err(crate::server_io_error::ServerIoError::from)?;
+            T::try_from_std_env_var_ok(std_env_var_ok)
+                .map_err(std::io::Error::other)
+                .map_err(crate::server_io_error::ServerIoError::from)
+        }
+        let outcome = async {
+            let mut server_config = server_config::server_config::ServerConfig::new(
+            server_pool_fixture_env_value(config_lib::std_env_var_ok_ref::StdEnvVarOkRef::from(
+                constants_str::ASTERISK,
+            ))?,
+            server_pool_fixture_env_value(config_lib::std_env_var_ok_ref::StdEnvVarOkRef::from(
+                constants_str::TEST_CONTENT_SECURITY_POLICY,
+            ))?,
+            server_pool_fixture_env_value(config_lib::std_env_var_ok_ref::StdEnvVarOkRef::from(
+                constants_str::POSTGRES_DB,
+            ))?,
+            server_pool_fixture_env_value(config_lib::std_env_var_ok_ref::StdEnvVarOkRef::from(
+                constants_str::TEST_ONLY_ADMIN_JWT_SECRET_WITH_32_BYTES,
+            ))?,
+            server_pool_fixture_env_value(config_lib::std_env_var_ok_ref::StdEnvVarOkRef::from(
+                constants_str::TEST_AUDIENCE,
+            ))?,
+            server_pool_fixture_env_value(config_lib::std_env_var_ok_ref::StdEnvVarOkRef::from(
+                constants_str::TEST_ISSUER,
+            ))?,
+            server_pool_fixture_env_value(config_lib::std_env_var_ok_ref::StdEnvVarOkRef::from(
+                constants_str::VALUE_127_0_0_1_32_PATH_1_128,
+            ))?,
+            server_pool_fixture_env_value(config_lib::std_env_var_ok_ref::StdEnvVarOkRef::from(
+                constants_str::VALUE_900,
+            ))?,
+            server_pool_fixture_env_value(config_lib::std_env_var_ok_ref::StdEnvVarOkRef::from(
+                constants_str::VALUE_4,
+            ))?,
+            server_pool_fixture_env_value(config_lib::std_env_var_ok_ref::StdEnvVarOkRef::from(
+                constants_str::VALUE_10,
+            ))?,
+            server_pool_fixture_env_value(config_lib::std_env_var_ok_ref::StdEnvVarOkRef::from(
+                constants_str::VALUE_2592000,
+            ))?,
+            server_pool_fixture_env_value(config_lib::std_env_var_ok_ref::StdEnvVarOkRef::from(
+                constants_str::VALUE_20,
+            ))?,
+            server_pool_fixture_env_value(config_lib::std_env_var_ok_ref::StdEnvVarOkRef::from(
+                constants_str::VALUE_10,
+            ))?,
+            server_pool_fixture_env_value(config_lib::std_env_var_ok_ref::StdEnvVarOkRef::from(
+                constants_str::TEST_VALUE_30,
+            ))?,
+            server_pool_fixture_env_value(config_lib::std_env_var_ok_ref::StdEnvVarOkRef::from(
+                constants_str::TEST_VALUE_30,
+            ))?,
+            server_pool_fixture_env_value(config_lib::std_env_var_ok_ref::StdEnvVarOkRef::from(
+                constants_str::TEST_VALUE_30,
+            ))?,
+            server_pool_fixture_env_value(config_lib::std_env_var_ok_ref::StdEnvVarOkRef::from(
+                constants_str::TEST_VALUE_30,
+            ))?,
+            config_lib::maximum_size_of_http_body_in_bytes::MaximumSizeOfHttpBodyInBytes::try_from(
+                16_384usize,
+            )
+            .map_err(std::io::Error::other)
+            .map_err(crate::server_io_error::ServerIoError::from)?,
+            server_pool_fixture_env_value(config_lib::std_env_var_ok_ref::StdEnvVarOkRef::from(
+                constants_str::VALUE_127_0_0_1_8080,
+            ))?,
+            server_pool_fixture_env_value(config_lib::std_env_var_ok_ref::StdEnvVarOkRef::from(
+                constants_str::VALUE_1,
+            ))?,
+            config_lib::pg_pool_min_connections::PgPoolMinConnections::from(2u32),
+            server_pool_fixture_env_value(config_lib::std_env_var_ok_ref::StdEnvVarOkRef::from(
+                constants_str::VALUE_0,
+            ))?,
+            server_pool_fixture_env_value(config_lib::std_env_var_ok_ref::StdEnvVarOkRef::from(
+                constants_str::GITHUB_ALT,
+            ))?,
+            server_pool_fixture_env_value(config_lib::std_env_var_ok_ref::StdEnvVarOkRef::from(
+                constants_str::CONFIG_TRACING_INFO,
+            ))?,
+            config_lib::tracing_format::TracingFormat::Text,
+            server_pool_fixture_env_value(config_lib::std_env_var_ok_ref::StdEnvVarOkRef::from(
+                constants_str::TRUE,
+            ))?,
+            config_lib::admin_cookie_secure::AdminCookieSecure::from(false),
+            config_lib::admin_swagger_enabled::AdminSwaggerEnabled::from(true),
+            config_lib::http_gzip_enabled::HttpGzipEnabled::from(true),
+            config_lib::production_mode::ProductionMode::from(false),
+            config_lib::service_mode::ServiceMode::Serve,
+        );
+            assert!(matches!(
+                crate::make_postgresql_pool::make_postgresql_pool(&server_config).await,
+                Err(crate::run_server_error::RunServerError::PgPoolConfiguration)
+            ));
+            *server_config.get_pg_pool_min_connections_mut() =
+                config_lib::pg_pool_min_connections::PgPoolMinConnections::from(u32::MAX);
+            *server_config.get_pg_pool_max_connections_mut() =
+                config_lib::pg_pool_max_connections::PgPoolMaxConnections::try_from(
+                    u32::MAX - 1u32,
+                )
+                .map_err(std::io::Error::other)
+                .map_err(crate::server_io_error::ServerIoError::from)?;
+            assert!(matches!(
+                crate::make_postgresql_pool::make_postgresql_pool(&server_config).await,
+                Err(crate::run_server_error::RunServerError::PgPoolConfiguration)
+            ));
+            Ok::<(), crate::server_io_error::ServerIoError>(())
+        }
+        .await;
+        assert!(matches!(outcome, Ok(())));
+    }
+
+    #[tokio::test]
+    async fn test_admin_metrics_handlers_preserve_empty_renderer_text_and_html_responses() {
+        let metrics_exporter_prometheus_renderer =
+            crate::metrics_exporter_prometheus_renderer::MetricsExporterPrometheusRenderer::from(
+                metrics_exporter_prometheus::PrometheusBuilder::new()
+                    .build_recorder()
+                    .handle(),
+            );
+        let expected_text = metrics_exporter_prometheus::PrometheusHandle::from(
+            metrics_exporter_prometheus_renderer.clone(),
+        )
+        .render();
+        assert!(expected_text.is_empty());
+        let (mut parts, ()) = axum::http::Request::new(()).into_parts();
+        let extracted_result = <crate::axum_metrics_exporter_prometheus_renderer::AxumMetricsExporterPrometheusRenderer as axum::extract::FromRequestParts<crate::metrics_exporter_prometheus_renderer::MetricsExporterPrometheusRenderer>>::from_request_parts(
+            &mut parts,
+            &metrics_exporter_prometheus_renderer,
+        ).await;
+        assert!(extracted_result.is_ok());
+        let Ok(extracted) = extracted_result;
+        assert_eq!(parts.method, axum::http::Method::GET);
+        assert_eq!(parts.uri.path(), constants_str::SLASH);
+        assert!(parts.headers.is_empty());
+        let metrics_result = crate::admin_metrics::admin_metrics(extracted).await;
+        assert!(metrics_result.is_ok());
+        let Ok(metrics_response) = metrics_result else {
+            return;
+        };
+        assert_eq!(metrics_response.status(), axum::http::StatusCode::OK);
+        assert!(
+            metrics_response
+                .headers()
+                .get(axum::http::header::CONTENT_TYPE)
+                .is_some_and(|header| header
+                    == format!(
+                        "{}/{}; {}={}-{}",
+                        stringify!(text),
+                        stringify!(plain),
+                        stringify!(charset),
+                        stringify!(utf),
+                        8u8
+                    )
+                    .as_str())
+        );
+        assert!(
+            axum::body::to_bytes(metrics_response.into_body(), 1usize)
+                .await
+                .is_ok_and(|body| body.as_ref() == expected_text.as_bytes())
+        );
+        let title_result = frontend_admin::admin_ssr_text::AdminSsrText::try_from(
+            constants_str::METRICS_ALT.to_owned(),
+        );
+        let text_result = frontend_admin::admin_ssr_text::AdminSsrText::try_from(expected_text);
+        assert!(title_result.is_ok());
+        assert!(text_result.is_ok());
+        let (Ok(title), Ok(text)) = (title_result, text_result) else {
+            return;
+        };
+        let expected_html = String::from(frontend_admin::render_text_page::render_text_page(
+            server_admin_contract::admin_page::AdminPage::Metrics,
+            title,
+            text,
+        ));
+        let html_response = crate::admin_metrics_page::admin_metrics_page(
+            crate::axum_metrics_exporter_prometheus_renderer::AxumMetricsExporterPrometheusRenderer::from(
+                metrics_exporter_prometheus_renderer,
+            ),
+        )
+        .await;
+        assert_eq!(html_response.status(), axum::http::StatusCode::OK);
+        assert!(
+            html_response
+                .headers()
+                .get(axum::http::header::CONTENT_TYPE)
+                .is_some_and(|header| header
+                    == format!(
+                        "{}/{}; {}={}-{}",
+                        stringify!(text),
+                        stringify!(html),
+                        stringify!(charset),
+                        stringify!(utf),
+                        8u8
+                    )
+                    .as_str())
+        );
+        assert!(
+            axum::body::to_bytes(html_response.into_body(), constants_usize::VALUE_8_388_608)
+                .await
+                .is_ok_and(|body| !body.is_empty() && body.as_ref() == expected_html.as_bytes())
+        );
+    }
+
     #[test]
     fn test_admin_metrics_render_error_returns_empty_internal_server_error() {
         let response = axum::response::IntoResponse::into_response(

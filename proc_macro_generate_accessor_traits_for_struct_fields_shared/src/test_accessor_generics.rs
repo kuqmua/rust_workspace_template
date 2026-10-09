@@ -94,6 +94,44 @@ fn test_provider_declaration_and_reference_forwarding_preserve_accessor_body() {
 }
 
 #[test]
+fn test_multiple_field_providers_preserve_exact_types_accessors_and_owner_generics() {
+    let generated = crate::generate_accessor_traits_for_struct_fields(quote::quote! {
+        struct MultiFieldProviderFixture<'value, T, const SIZE: usize>
+        where T: Copy {
+            items: FixtureCollection<T, SIZE>,
+            name: &'value FixtureName,
+        }
+    });
+    let expected = quote::quote! {
+        impl<'value, T, const SIZE: usize> app_state::ItemsProvider
+            for MultiFieldProviderFixture<'value, T, SIZE> where T: Copy {
+            fn items(&self) -> &FixtureCollection<T, SIZE> {
+                &self.items
+            }
+        }
+        impl<'value, T, const SIZE: usize> app_state::ItemsProvider
+            for &MultiFieldProviderFixture<'value, T, SIZE> where T: Copy {
+            fn items(&self) -> &FixtureCollection<T, SIZE> {
+                &self.items
+            }
+        }
+        impl<'value, T, const SIZE: usize> app_state::NameProvider
+            for MultiFieldProviderFixture<'value, T, SIZE> where T: Copy {
+            fn name(&self) -> & &'value FixtureName {
+                &self.name
+            }
+        }
+        impl<'value, T, const SIZE: usize> app_state::NameProvider
+            for &MultiFieldProviderFixture<'value, T, SIZE> where T: Copy {
+            fn name(&self) -> & &'value FixtureName {
+                &self.name
+            }
+        }
+    };
+    assert_eq!(generated.to_string(), expected.to_string());
+}
+
+#[test]
 fn test_accessor_provider_rejects_nonstruct_and_nontuple_shapes() {
     assert!(
         [

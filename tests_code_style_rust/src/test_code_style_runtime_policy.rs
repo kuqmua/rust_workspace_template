@@ -236,3 +236,148 @@ fn test_external_service_policy_requires_a_reason_for_ignored_integration_tests(
     );
     assert_eq!(visitor.get_errors().len(), constants_usize::ONE, "31fd7ca0");
 }
+
+#[test]
+fn test_runtime_panic_policy_rejects_calls_and_skips_test_only_items() {
+    let ast: syn::File = syn::parse_quote! {
+        fn production_calls() {
+            value.expect(message);
+            value.unwrap();
+            panic!(message);
+            std::panic!(message);
+            assert!(condition);
+        }
+        #[cfg(test)]
+        fn excluded_calls() {
+            value.expect(message);
+            value.unwrap();
+            panic!(message);
+        }
+        #[cfg(test)]
+        mod excluded_module {
+            fn excluded_nested_calls() {
+                value.unwrap();
+                std::panic!(message);
+            }
+        }
+    };
+    let visitor = crate::code_style::visit_syn_file(
+        crate::syn_file_ref::SynFileRef::from(&ast),
+        super::runtime_analysis::RuntimePanicExpectUnwrapVisitor::new(
+            crate::diagnostic_messages::DiagnosticMessages::default(),
+        ),
+    );
+    assert_eq!(
+        visitor.get_errors().as_slice(),
+        [
+            constants_str::EXPECT_CALL,
+            constants_str::UNWRAP_CALL,
+            constants_str::PANIC_CALL,
+            constants_str::PANIC_CALL,
+        ]
+    );
+}
+
+#[test]
+fn test_runtime_mutex_policy_counts_nested_types_and_skips_test_only_items() {
+    let ast: syn::File = syn::parse_quote! {
+        struct RuntimeState {
+            direct: Mutex<Value>,
+            nested: Option<std::sync::Mutex<Value>>,
+            unrelated: OtherMutex<Value>,
+        }
+        #[cfg(test)]
+        struct ExcludedState {
+            excluded: std::sync::Mutex<Value>,
+        }
+        #[cfg(test)]
+        mod excluded_module {
+            struct NestedExcludedState {
+                excluded: Mutex<Value>,
+            }
+        }
+    };
+    let visitor = crate::code_style::visit_syn_file(
+        crate::syn_file_ref::SynFileRef::from(&ast),
+        super::runtime_analysis::RuntimeMutexVisitor::new(
+            crate::analyzer_count::AnalyzerCount::default(),
+        ),
+    );
+    assert_eq!(visitor.get_found_count().get(), constants_usize::TWO);
+}
+
+#[test]
+fn test_runtime_arc_policy_requires_permission_and_skips_test_only_items() {
+    let ast: syn::File = syn::parse_quote! {
+        fn production_construction() {
+            Arc::new(value);
+            std::sync::Arc::new(value);
+            OtherArc::new(value);
+            Arc::clone(value);
+        }
+        #[cfg(test)]
+        fn excluded_construction() {
+            Arc::new(value);
+        }
+        #[cfg(test)]
+        mod excluded_module {
+            fn excluded_nested_construction() {
+                std::sync::Arc::new(value);
+            }
+        }
+    };
+    [false, true].into_iter().fold((), |(), allowed| {
+        let visitor = crate::code_style::visit_syn_file(
+            crate::syn_file_ref::SynFileRef::from(&ast),
+            super::runtime_analysis::RuntimeArcVisitor::new(
+                crate::diagnostic_messages::DiagnosticMessages::default(),
+                crate::analyzer_bool::AnalyzerBool::from(allowed),
+            ),
+        );
+        let expected = if allowed {
+            Vec::new()
+        } else {
+            vec![
+                constants_str::ARC_PATH_NEW_OUTSIDE_APPROVED_CROSS_THREAD_STATE_CONSTRUCTION,
+                constants_str::ARC_PATH_NEW_OUTSIDE_APPROVED_CROSS_THREAD_STATE_CONSTRUCTION,
+            ]
+        };
+        assert_eq!(visitor.get_errors().as_slice(), expected);
+    });
+}
+
+#[test]
+fn test_runtime_arc_alias_policy_requires_shared_names_independently_of_construction_permission() {
+    let ast: syn::File = syn::parse_quote! {
+        type UnreviewedState = Arc<Value>;
+        type UnreviewedQualifiedState = std::sync::Arc<Value>;
+        type SharedRuntimeState = Arc<Value>;
+        type RuntimeDynArcState = std::sync::Arc<Value>;
+        type UnrelatedState = OtherArc<Value>;
+        type PlainState = Value;
+        #[cfg(test)]
+        type ExcludedAlias = Arc<Value>;
+        #[cfg(test)]
+        mod excluded_aliases {
+            type NestedExcludedAlias = std::sync::Arc<Value>;
+        }
+    };
+    assert!([false, true].into_iter().all(|allowed| {
+        let visitor = crate::code_style::visit_syn_file(
+            crate::syn_file_ref::SynFileRef::from(&ast),
+            super::runtime_analysis::RuntimeArcVisitor::new(
+                crate::diagnostic_messages::DiagnosticMessages::default(),
+                crate::analyzer_bool::AnalyzerBool::from(allowed),
+            ),
+        );
+        visitor.get_errors().len() == constants_usize::TWO
+            && visitor
+                .get_errors()
+                .iter()
+                .zip([
+                    stringify!(UnreviewedState),
+                    stringify!(UnreviewedQualifiedState),
+                ])
+                .all(|(error, name)| error.contains(name))
+    }));
+}

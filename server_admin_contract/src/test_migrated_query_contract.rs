@@ -232,3 +232,75 @@ fn test_table_query_path_predicate_rejects_unknown_and_adjacent_paths() {
                 });
         });
 }
+
+#[test]
+fn test_combined_data_table_query_rejects_duplicate_filter_and_page_fields() {
+    assert!(serde_json::to_value(frontend_contract::filter_operation::FilterOperation::Eq)
+        .is_ok_and(|operation_wire| operation_wire.as_str().is_some_and(|operation| {
+            [
+                (stringify!(filter_field), constants_str::LOGIN),
+                (stringify!(filter_value), constants_str::AB),
+                (stringify!(filter_end), constants_str::X),
+                (stringify!(filter_operation), operation),
+                (stringify!(search), constants_str::ADMIN),
+                (stringify!(sort), constants_str::LOGIN),
+                (stringify!(limit), constants_str::VALUE_1),
+                (stringify!(offset), constants_str::VALUE_1),
+                (stringify!(direction), crate::admin_sort_direction::AdminSortDirection::Ascending.as_ref()),
+            ].into_iter().all(|(key, value)| {
+                let valid = <crate::admin_data_table_query::AdminDataTableQuery as serde::Deserialize>::deserialize(
+                    serde::de::value::MapDeserializer::<_, serde_json::Error>::new([(key, value)].into_iter()),
+                ).is_ok_and(|query| serde_json::to_value(query).is_ok_and(|wire| wire.get(key).is_some()));
+                valid && <crate::admin_data_table_query::AdminDataTableQuery as serde::Deserialize>::deserialize(
+                    serde::de::value::MapDeserializer::<_, serde_json::Error>::new([(key, value), (key, value)].into_iter()),
+                ).is_err_and(|error| error.is_data() && error.to_string().contains(key))
+            })
+        })));
+}
+
+#[test]
+fn test_default_routes_preserve_registered_paths_and_reject_adjacent_values() {
+    assert!(
+        crate::admin_page::AdminPage::specs()
+            .iter()
+            .map(|spec| spec.frontend_path().get().to_owned())
+            .chain(
+                crate::admin_data_table::AdminDataTable::ALL
+                    .into_iter()
+                    .map(|table| table.frontend_path().to_string())
+            )
+            .all(|path| {
+                let accepted =
+                    crate::admin_default_route::AdminDefaultRoute::try_from(path.clone())
+                        .is_ok_and(|admin_default_route| {
+                            admin_default_route.as_ref() == path
+                                && serde_json::to_value(admin_default_route).is_ok_and(|wire| {
+                                    wire.as_str() == Some(path.as_str())
+                                        && serde_json::from_value::<
+                                            crate::admin_default_route::AdminDefaultRoute,
+                                        >(wire)
+                                        .is_ok_and(|decoded| decoded.as_ref() == path)
+                                })
+                        });
+                accepted
+                    && [
+                        format!("{path}{}", constants_str::SLASH),
+                        format!("{path}{}", constants_str::X),
+                        format!("{path}?{}", constants_str::X),
+                        format!("{path}#{}", constants_str::X),
+                        format!("{}{path}{}", constants_str::SPACE, constants_str::SPACE),
+                    ]
+                    .into_iter()
+                    .all(|invalid| {
+                        serde_json::to_value(&invalid).is_ok_and(|wire| {
+                            crate::admin_default_route::AdminDefaultRoute::try_from(invalid)
+                                .is_err()
+                                && serde_json::from_value::<
+                                    crate::admin_default_route::AdminDefaultRoute,
+                                >(wire)
+                                .is_err_and(|error| error.is_data())
+                        })
+                    })
+            })
+    );
+}

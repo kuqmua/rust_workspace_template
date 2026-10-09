@@ -885,3 +885,39 @@ fn test_password_hash_concurrency_preserves_positive_values_and_parse_diagnostic
         })
     }));
 }
+
+#[test]
+fn test_integer_configuration_parsers_preserve_native_invalid_input_diagnostics() {
+    let mut positive_overflow = u64::MAX.to_string();
+    positive_overflow.push('0');
+    let mut negative_overflow = i64::MIN.to_string();
+    negative_overflow.push('0');
+    [
+        constants_str::EMPTY.to_owned(),
+        constants_str::X.to_owned(),
+        [' ', '1'].into_iter().collect::<String>(),
+        positive_overflow,
+        negative_overflow,
+    ]
+    .into_iter()
+    .fold((), |(), text| {
+        assert!(text.parse::<i32>().is_err_and(|native| {
+            parse_env::<crate::chrono_timezone::ChronoTimezone>(&text).is_err_and(|error| {
+                let crate::try_from_std_env_var_ok_timezone_error::TryFromStdEnvVarOkTimezoneError::I32Parsing { i32_parsing } = error else { return false; };
+                format!("{i32_parsing:?}") == format!("{native:?}")
+            })
+        }));
+        assert!(text.parse::<usize>().is_err_and(|native| {
+            parse_env::<crate::maximum_size_of_http_body_in_bytes::MaximumSizeOfHttpBodyInBytes>(&text).is_err_and(|error| {
+                let crate::try_from_std_env_var_ok_maximum_size_of_http_body_in_bytes_error::TryFromStdEnvVarOkMaximumSizeOfHttpBodyInBytesError::UsizeParsing { usize_parsing } = error else { return false; };
+                format!("{usize_parsing:?}") == format!("{native:?}")
+            })
+        }));
+        assert!(text.parse::<u64>().is_err_and(|native| {
+            parse_env::<crate::admin_access_token_ttl_seconds::AdminAccessTokenTtlSeconds>(&text).is_err_and(|error| {
+                let crate::try_from_std_env_var_ok_admin_positive_u64_error::TryFromStdEnvVarOkAdminPositiveU64Error::Parse { admin_positive_u64_parsing } = error else { return false; };
+                format!("{admin_positive_u64_parsing:?}") == format!("{native:?}")
+            })
+        }));
+    });
+}

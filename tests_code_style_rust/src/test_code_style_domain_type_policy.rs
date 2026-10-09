@@ -1251,3 +1251,124 @@ fn test_domain_type_collector_recognizes_generated_table_read_types() {
     assert!(!visitor.get_names().contains(stringify!(UnrelatedTableRead)));
     assert!(!visitor.get_names().contains(stringify!(PlainTableRead)));
 }
+
+#[test]
+fn test_declared_domain_type_collector_preserves_names_and_excludes_test_items() {
+    let ast: syn::File = syn::parse_quote! {
+        struct DeclaredStruct;
+        enum DeclaredEnum { Value }
+        trait DeclaredTrait { fn call(&self); }
+        union DeclaredUnion { value: u32 }
+        #[cfg(test)]
+        struct ExcludedStruct;
+        #[cfg(test)]
+        mod excluded_module {
+            enum ExcludedEnum { Value }
+            trait ExcludedTrait { fn call(&self); }
+            union ExcludedUnion { value: u32 }
+        }
+    };
+    let visitor = crate::code_style::visit_syn_file(
+        crate::syn_file_ref::SynFileRef::from(&ast),
+        super::domain_analysis::DeclaredDomainTypeVisitor::new(
+            crate::source_text_b_tree_set::SourceTextBTreeSet::default(),
+        ),
+    );
+    assert_eq!(
+        visitor.get_names().as_ref(),
+        &std::collections::BTreeSet::from([
+            String::from(stringify!(DeclaredStruct)),
+            String::from(stringify!(DeclaredEnum)),
+            String::from(stringify!(DeclaredTrait)),
+            String::from(stringify!(DeclaredUnion)),
+        ])
+    );
+}
+
+#[test]
+fn test_domain_type_policy_restores_generic_scope_between_functions() {
+    let ast: syn::File = syn::parse_quote! {
+        fn scoped_generic<T>(value: T) -> T { value }
+        fn unbound_type(value: T) { consume(value); }
+    };
+    let repo_crates = std::collections::BTreeSet::new();
+    let repo_types = std::collections::BTreeSet::new();
+    let visitor = crate::code_style::visit_syn_file(
+        crate::syn_file_ref::SynFileRef::from(&ast),
+        super::domain_analysis::DomainTypePolicyVisitor::new(
+            crate::analyzer_bool::AnalyzerBool::from(true),
+            crate::analyzer_count::AnalyzerCount::default(),
+            crate::diagnostic_messages::DiagnosticMessages::default(),
+            Vec::new(),
+            crate::source_text_b_tree_set_ref::SourceTextBTreeSetRef::from(&repo_crates),
+            crate::source_text_b_tree_set_ref::SourceTextBTreeSetRef::from(&repo_types),
+        ),
+    );
+    assert_eq!(visitor.get_errors().len(), constants_usize::ONE);
+    assert!(
+        visitor
+            .get_errors()
+            .first()
+            .is_some_and(|error| { error.contains(stringify!(unbound_type)) })
+    );
+}
+
+#[test]
+fn test_external_leaf_wrapper_names_traverse_nested_types_and_preserve_exclusions() {
+    let ast: syn::File = syn::parse_quote! {
+        struct ProcMacro2NestedTokens(Option<&'static [proc_macro2::TokenStream; 1]>);
+        struct NestedTokens(Option<&'static [proc_macro2::TokenStream; 1]>);
+        struct DurationOwner((std::time::Duration,));
+        struct WrongOwner((std::time::Duration,));
+        struct NonZeroOwner(std::num::NonZeroU32);
+        #[cfg(test)]
+        struct ExcludedWrongOwner(proc_macro2::TokenStream);
+    };
+    let repo_crates = std::collections::BTreeSet::new();
+    let visitor = crate::code_style::visit_syn_file(
+        crate::syn_file_ref::SynFileRef::from(&ast),
+        super::domain_analysis::ExternalLeafWrapperNameVisitor::new(
+            crate::diagnostic_messages::DiagnosticMessages::default(),
+            crate::source_text_b_tree_set_ref::SourceTextBTreeSetRef::from(&repo_crates),
+        ),
+    );
+    assert_eq!(visitor.get_errors().len(), constants_usize::TWO);
+    assert!(
+        visitor
+            .get_errors()
+            .iter()
+            .zip([stringify!(NestedTokens), stringify!(WrongOwner),])
+            .all(|(error, wrapper_name)| error.contains(wrapper_name))
+    );
+}
+#[test]
+fn test_single_angle_type_argument_counts_only_type_arguments() {
+    let expected: syn::Type = syn::parse_quote!(RepositoryValue);
+    let accepted: [syn::PathArguments; 4] = [
+        syn::PathArguments::AngleBracketed(syn::parse_quote!(<RepositoryValue>)),
+        syn::PathArguments::AngleBracketed(syn::parse_quote!(<'static, RepositoryValue>)),
+        syn::PathArguments::AngleBracketed(syn::parse_quote!(<RepositoryValue, 4>)),
+        syn::PathArguments::AngleBracketed(
+            syn::parse_quote!(<RepositoryValue, Item = OtherValue, LIMIT = 4, Bound: Copy>),
+        ),
+    ];
+    assert!(accepted.iter().all(|path_arguments| {
+        crate::code_style::single_angle_type_arg(
+            crate::syn_path_arguments_ref::SynPathArgumentsRef::from(path_arguments),
+        )
+        .is_some_and(|syn_type_ref| syn_type_ref.as_ref() == &expected)
+    }));
+    let rejected: [syn::PathArguments; 5] = [
+        syn::PathArguments::None,
+        syn::PathArguments::AngleBracketed(syn::parse_quote!(<>)),
+        syn::PathArguments::AngleBracketed(syn::parse_quote!(<'static, 4, Item = RepositoryValue>)),
+        syn::PathArguments::AngleBracketed(syn::parse_quote!(<RepositoryValue, OtherValue>)),
+        syn::PathArguments::Parenthesized(syn::parse_quote!((RepositoryValue) -> OtherValue)),
+    ];
+    assert!(rejected.iter().all(|path_arguments| {
+        crate::code_style::single_angle_type_arg(
+            crate::syn_path_arguments_ref::SynPathArgumentsRef::from(path_arguments),
+        )
+        .is_none()
+    }));
+}

@@ -188,6 +188,34 @@ mod tests {
                 super::AdminTableSortField::try_from_key(options, crate::admin_table_sort_key_ref::AdminTableSortKeyRef::from(field.key().as_ref())) == Ok(*field)
             }) && super::AdminTableSortField::try_from_key(options, crate::admin_table_sort_key_ref::AdminTableSortKeyRef::from(constants_str::X)) == Err(crate::admin_table_sort_field_try_from_key_error::AdminTableSortFieldTryFromKeyError::Unknown)
         }));
+        assert!(
+            [
+                [
+                    super::AdminTableSortField::RuleId,
+                    super::AdminTableSortField::RoleId,
+                    super::AdminTableSortField::UserId
+                ],
+                [
+                    super::AdminTableSortField::RoleId,
+                    super::AdminTableSortField::UserId,
+                    super::AdminTableSortField::RuleId
+                ],
+                [
+                    super::AdminTableSortField::UserId,
+                    super::AdminTableSortField::RuleId,
+                    super::AdminTableSortField::RoleId
+                ],
+            ]
+            .into_iter()
+            .all(|options| options.first().is_some_and(|first| {
+                super::AdminTableSortField::try_from_key(
+                    &options,
+                    crate::admin_table_sort_key_ref::AdminTableSortKeyRef::from(
+                        constants_str::SQL_NAMES_ID,
+                    ),
+                ) == Ok(*first)
+            }))
+        );
         assert_eq!(super::AdminTableSortField::try_from_key(&[], crate::admin_table_sort_key_ref::AdminTableSortKeyRef::from(constants_str::LOGIN)), Err(crate::admin_table_sort_field_try_from_key_error::AdminTableSortFieldTryFromKeyError::Unknown));
     }
 }

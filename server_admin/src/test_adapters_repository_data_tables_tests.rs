@@ -279,19 +279,50 @@ fn test_generic_table_sql_searches_every_catalog_table() {
                             ),
                         )
                         .is_ok_and(|(count_sql, data_sql)| {
-                            count_sql
+                            let count_predicate = count_sql
                                 .as_ref()
-                                .contains(constants_str::SERVER_ADMIN_DATA_SEARCH_MATCH_PREFIX)
-                                && data_sql.as_ref().contains(
-                                    table
-                                        .spec()
-                                        .columns()
-                                        .get()
-                                        .split(',')
-                                        .next()
-                                        .unwrap_or_default(),
-                                )
-                                && data_sql.as_ref().ends_with(constants_str::DOLLAR_3)
+                                .split_once(constants_str::WHERE)
+                                .map(|(_prefix, predicate)| predicate);
+                            let data_predicate = data_sql
+                                .as_ref()
+                                .split_once(constants_str::WHERE)
+                                .and_then(|(_prefix, suffix)| {
+                                    suffix
+                                        .split_once(
+                                            constants_str::SERVER_ADMIN_FILTER_ORDER_BY_SEPARATOR,
+                                        )
+                                        .map(|(predicate, _order)| predicate)
+                                });
+                            count_predicate.is_some_and(|predicate| {
+                                Some(predicate) == data_predicate
+                                    && predicate
+                                        .matches(
+                                            constants_str::SERVER_ADMIN_DATA_SEARCH_MATCH_PREFIX,
+                                        )
+                                        .count()
+                                        == table.spec().columns().get().split(',').count()
+                                    && predicate
+                                        .matches(
+                                            constants_str::SERVER_ADMIN_DATA_SEARCH_OR_SEPARATOR,
+                                        )
+                                        .count()
+                                        == table
+                                            .spec()
+                                            .columns()
+                                            .get()
+                                            .split(',')
+                                            .count()
+                                            .saturating_sub(1usize)
+                                    && table.spec().columns().get().split(',').all(|column| {
+                                        let expected = format!(
+                                            "({column}{}{}{}",
+                                            constants_str::SERVER_ADMIN_DATA_SEARCH_MATCH_PREFIX,
+                                            constants_str::VALUE_1,
+                                            constants_str::SERVER_ADMIN_DATA_SEARCH_MATCH_SUFFIX,
+                                        );
+                                        predicate.matches(expected.as_str()).count() == 1usize
+                                    })
+                            }) && data_sql.as_ref().ends_with(constants_str::DOLLAR_3)
                         })
                     })
             })
@@ -913,6 +944,33 @@ fn test_every_read_table_filter_column_and_operation_builds_a_typed_predicate() 
                                 Ok(()),
                                 "{admin_data_table:?}.{column}.{operation:?}"
                             );
+                            let invalid_values = match operation.value_shape() {
+                                frontend_contract::filter_value_shape::FilterValueShape::None => [
+                                    (Some(constants_str::X), None),
+                                    (None, Some(constants_str::X)),
+                                    (Some(constants_str::X), Some(constants_str::X)),
+                                ],
+                                frontend_contract::filter_value_shape::FilterValueShape::Range => [
+                                    (None, end),
+                                    (value, None),
+                                    (None, None),
+                                ],
+                                frontend_contract::filter_value_shape::FilterValueShape::List
+                                | frontend_contract::filter_value_shape::FilterValueShape::EncodedText
+                                | frontend_contract::filter_value_shape::FilterValueShape::Regex
+                                | frontend_contract::filter_value_shape::FilterValueShape::Scalar => [
+                                    (None, None),
+                                    (None, Some(constants_str::X)),
+                                    (value, Some(constants_str::X)),
+                                ],
+                            };
+                            invalid_values.into_iter().for_each(|(invalid_value, invalid_end)| {
+                                let invalid_query = filter_query(column, operation, invalid_value, invalid_end);
+                                assert!(matches!(
+                                    crate::data_filter::data_filter(admin_data_table, invalid_query.filter()),
+                                    Err(crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue)
+                                ));
+                            });
                         });
                 });
         });

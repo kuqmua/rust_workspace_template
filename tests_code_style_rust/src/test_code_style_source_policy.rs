@@ -4317,3 +4317,213 @@ fn test_name_policy_rejects_redundant_declarations_and_orphan_file() {
     )));
     assert_eq!(visitor.get_errors().len(), constants_usize::ONE);
 }
+
+#[test]
+fn test_opaque_serde_renames_reject_all_short_names_in_each_direction() {
+    [
+        stringify!(asc),
+        stringify!(aud),
+        stringify!(desc),
+        stringify!(exp),
+        stringify!(iat),
+        stringify!(iss),
+        stringify!(jti),
+        stringify!(sub),
+        stringify!(v),
+    ]
+    .into_iter()
+    .fold((), |(), identifier| {
+        let rejected = syn::LitStr::new(identifier, proc_macro2::Span::call_site());
+        let allowed = syn::LitStr::new(stringify!(meaningful_name), proc_macro2::Span::call_site());
+        let ast: syn::File = syn::parse_quote! {
+            #[serde(rename = #rejected)]
+            struct DirectRename;
+            #[serde(rename(serialize = #rejected, deserialize = #allowed))]
+            struct SerializeRename;
+            #[serde(rename(serialize = #allowed, deserialize = #rejected))]
+            struct DeserializeRename;
+            #[serde(rename = #allowed)]
+            struct AllowedRename;
+            #[serde(rename_all = #rejected)]
+            struct DifferentOption;
+            #[other(rename = #rejected)]
+            struct DifferentAttribute;
+        };
+        let visitor = crate::code_style::visit_syn_file(
+            crate::syn_file_ref::SynFileRef::from(&ast),
+            super::source_analysis::OpaqueSerdeRenameVisitor::new(
+                crate::diagnostic_messages::DiagnosticMessages::default(),
+            ),
+        );
+        assert_eq!(
+            visitor.get_identifiers().as_slice(),
+            [identifier, identifier, identifier]
+        );
+    });
+}
+
+#[test]
+fn test_opaque_serde_rename_parser_reports_malformed_attributes() {
+    let ast: syn::File = syn::parse_quote! {
+        #[serde(rename =)]
+        struct MalformedDirectRename;
+        #[serde(rename(serialize =))]
+        struct MalformedSplitRename;
+    };
+    let visitor = crate::code_style::visit_syn_file(
+        crate::syn_file_ref::SynFileRef::from(&ast),
+        super::source_analysis::OpaqueSerdeRenameVisitor::new(
+            crate::diagnostic_messages::DiagnosticMessages::default(),
+        ),
+    );
+    assert_eq!(visitor.get_identifiers().len(), constants_usize::TWO);
+    assert!(
+        visitor
+            .get_identifiers()
+            .iter()
+            .all(|diagnostic| !diagnostic.trim().is_empty())
+    );
+}
+
+#[test]
+fn test_rust_comment_scanner_preserves_literal_variants_and_byte_offsets() {
+    let line_comment = ['/', '/'].into_iter().collect::<String>();
+    let block_comment = ['/', '*'].into_iter().collect::<String>();
+    let check_literal = |source_text_result: Result<
+        crate::source_text::SourceText,
+        crate::source_text_try_from_string_error::SourceTextTryFromStringError,
+    >| {
+        assert!(source_text_result.is_ok_and(|source_text| {
+            let literal = source_text.as_ref();
+            assert_eq!(crate::source_analysis::rust_comment_position(literal), None);
+            let expected_position = literal.len() + 2usize;
+            [line_comment.as_str(), block_comment.as_str()]
+                .into_iter()
+                .fold((), |(), comment| {
+                    let source = format!("{literal}; {comment}");
+                    assert_eq!(
+                        crate::source_analysis::rust_comment_position(source.as_str()),
+                        Some(expected_position)
+                    );
+                });
+            true
+        }));
+    };
+    [constants_str::EMPTY, stringify!(b), stringify!(c)]
+        .into_iter()
+        .fold((), |(), prefix| {
+            check_literal(crate::source_text::SourceText::try_from(format!(
+                "{prefix}\"{line_comment}\\\"{block_comment}\""
+            )));
+        });
+    [stringify!(r), stringify!(br), stringify!(cr)]
+        .into_iter()
+        .fold((), |(), prefix| {
+            [0usize, 1usize, 3usize].into_iter().fold((), |(), count| {
+                let hashes = char::from(35u8).to_string().repeat(count);
+                check_literal(crate::source_text::SourceText::try_from(format!(
+                    "{prefix}{hashes}\"{line_comment}{block_comment}\"{hashes}"
+                )));
+            });
+        });
+    ['/', '\u{e9}'].into_iter().fold((), |(), character| {
+        check_literal(crate::source_text::SourceText::try_from(format!(
+            "'{character}'"
+        )));
+    });
+    check_literal(crate::source_text::SourceText::try_from(format!(
+        "{}'{}'",
+        stringify!(b),
+        char::from(47u8)
+    )));
+    check_literal(crate::source_text::SourceText::try_from(format!(
+        "'{}{}'",
+        char::from(92u8),
+        stringify!(x2f)
+    )));
+    check_literal(crate::source_text::SourceText::try_from(format!(
+        "'{}{}{{2f}}'",
+        char::from(92u8),
+        stringify!(u)
+    )));
+    check_literal(crate::source_text::SourceText::try_from(format!(
+        "&'{} {}",
+        stringify!(static),
+        stringify!(str)
+    )));
+}
+#[test]
+fn test_sensitive_identifier_metadata_exclusions_preserve_explicit_secret_markers() {
+    [
+        (stringify!(PASSWORD), true),
+        (stringify!(SecretValue), true),
+        (stringify!(Credential), true),
+        (stringify!(ApiKey), true),
+        (stringify!(CookieValue), true),
+        (stringify!(AccessToken), true),
+        (stringify!(TokenAudience), false),
+        (stringify!(TokenIssuer), false),
+        (stringify!(TokenPart), false),
+        (stringify!(TokenAudienceSecret), true),
+        (stringify!(TokenIssuerPassword), true),
+        (stringify!(TokenPartCredential), true),
+        (stringify!(PublicIdentifier), false),
+    ]
+    .into_iter()
+    .fold((), |(), (identifier, expected)| {
+        assert_eq!(
+            crate::code_style::sensitive_text_wrapper_identifier(
+                crate::source_text_ref::SourceTextRef::from(identifier),
+            )
+            .get(),
+            expected,
+        );
+    });
+}
+#[test]
+fn test_sensitive_storage_type_recursion_preserves_supported_leaf_shapes() {
+    [
+        (syn::parse_quote!(String), true),
+        (syn::parse_quote!(std::string::String), true),
+        (syn::parse_quote!(str), true),
+        (syn::parse_quote!(SecretBox<BoundedString>), true),
+        (syn::parse_quote!(Vec<u8>), true),
+        (syn::parse_quote!([u8; 32]), true),
+        (syn::parse_quote!([u8]), true),
+        (syn::parse_quote!(&'static mut str), true),
+        (syn::parse_quote!(&Vec<u8>), true),
+        (syn::parse_quote!((String)), true),
+        (
+            syn::Type::Group(syn::TypeGroup {
+                attrs: Vec::new(),
+                group_token: syn::token::Group::default(),
+                elem: Box::new(syn::parse_quote!(String)),
+            }),
+            true,
+        ),
+        (syn::parse_quote!(Vec<u16>), false),
+        (syn::parse_quote!([u16; 32]), false),
+        (syn::parse_quote!([u16]), false),
+        (syn::parse_quote!(BoundedString), false),
+        (syn::parse_quote!((String, u8)), false),
+        (
+            syn::Type::Ptr(syn::TypePtr {
+                attrs: Vec::new(),
+                star_token: syn::token::Star::default(),
+                mutability: syn::PointerMutability::Const(syn::token::Const::default()),
+                elem: Box::new(syn::parse_quote!(str)),
+            }),
+            false,
+        ),
+        (syn::parse_quote!(fn() -> String), false),
+        (syn::parse_quote!(_), false),
+        (syn::parse_quote!(!), false),
+    ]
+    .into_iter()
+    .fold((), |(), (storage_type, expected)| {
+        assert_eq!(
+            crate::code_style::type_contains_sensitive_text_or_bytes(&storage_type),
+            expected,
+        );
+    });
+}

@@ -159,3 +159,22 @@ fn test_repository_secret_boxes_use_bounded_string_types() {
         );
     });
 }
+
+#[test]
+fn test_secret_box_argument_parser_ignores_unrelated_and_non_path_arguments() {
+    let cases = [
+        syn::parse_quote!(bool),
+        syn::parse_quote!(String),
+        syn::parse_quote!(Option<String>),
+        syn::parse_quote!(SecretBox),
+        syn::parse_quote!(SecretBox<'static>),
+        syn::parse_quote!(SecretBox<3usize>),
+        syn::parse_quote!(SecretBox<&'static str>),
+        syn::parse_quote!(&SecretBox<BoundedString>),
+        syn::parse_quote!((SecretBox<BoundedString>,)),
+        syn::parse_quote!([SecretBox<BoundedString>; 2usize]),
+    ];
+    assert!(cases.iter().all(|ty| {
+        type_secret_box_argument_identifier(ty).is_none() && !type_is_secret_box_string(ty)
+    }));
+}

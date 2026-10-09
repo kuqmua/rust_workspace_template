@@ -180,13 +180,21 @@ fn test_generated_table_rejects_non_object_rows_and_malformed_value_envelopes() 
             let columns_result = if explicit_columns { test_generated_table_id_columns().map(Some) } else { Ok(None) };
             assert!(columns_result.as_ref().err().is_none());
             if let Ok(columns) = columns_result {
-                let result = crate::generated_data_table_view::generated_data_table_view::<_, crate::admin_role_rules_read_page_error::AdminRoleRulesReadPageError>(
-                    pg_crud_common::list_items::ListItems::from(vec![&item]),
-                    pg_crud_common::list_total::ListTotal::from(1u32),
-                    server_admin_contract::admin_data_table::AdminDataTable::RoleRules,
-                    columns,
-                );
-                assert!(matches!(result, Err(crate::admin_role_rules_read_page_error::AdminRoleRulesReadPageError::StoredValue)));
+                let valid = serde_json::json!({
+                    (constants_str::SQL_NAMES_ID): {(stringify!(value)): 1i64}
+                });
+                (0usize..3usize).fold((), |(), position| {
+                    let items = std::array::from_fn::<_, 3usize, _>(|index| {
+                        if index == position { &item } else { &valid }
+                    });
+                    let result = crate::generated_data_table_view::generated_data_table_view::<_, crate::admin_role_rules_read_page_error::AdminRoleRulesReadPageError>(
+                        pg_crud_common::list_items::ListItems::from(items.into_iter().collect::<Vec<_>>()),
+                        pg_crud_common::list_total::ListTotal::from(3u32),
+                        server_admin_contract::admin_data_table::AdminDataTable::RoleRules,
+                        columns.clone(),
+                    );
+                    assert!(matches!(result, Err(crate::admin_role_rules_read_page_error::AdminRoleRulesReadPageError::StoredValue)));
+                });
             }
         });
     });
@@ -328,5 +336,46 @@ fn test_generated_table_derives_columns_from_first_row_in_catalog_order() {
                     constants_str::RULE_ID,
                     constants_str::CREATED_AT,
                 ])
+    }));
+}
+
+#[test]
+fn test_generated_table_preserves_explicit_column_order_duplicates_and_empty_page_metadata() {
+    let column_wire = serde_json::json!([
+        {(stringify!(filters)): [], (stringify!(label)): constants_str::AB, (stringify!(name)): constants_str::ROLE_ID, (stringify!(input_kind)): frontend_contract::input_kind::InputKind::Number},
+        {(stringify!(filters)): [], (stringify!(label)): constants_str::X, (stringify!(name)): constants_str::SQL_NAMES_ID, (stringify!(input_kind)): frontend_contract::input_kind::InputKind::Text},
+        {(stringify!(filters)): [], (stringify!(label)): constants_str::LOGIN, (stringify!(name)): constants_str::SQL_NAMES_ID, (stringify!(input_kind)): frontend_contract::input_kind::InputKind::Number},
+    ]);
+    assert!(serde_json::from_value::<server_admin_contract::admin_data_columns::AdminDataColumns>(column_wire.clone()).is_ok_and(|columns| {
+        [false, true].into_iter().all(|empty| {
+            let items = if empty {
+                Vec::new()
+            } else {
+                vec![
+                    serde_json::json!({(constants_str::SQL_NAMES_ID): {(stringify!(value)): 1i64}, (constants_str::ROLE_ID): {(stringify!(value)): 2i64}, (constants_str::CREATED_AT): {(stringify!(value)): constants_str::X}}),
+                    serde_json::json!({(constants_str::SQL_NAMES_ID): {(stringify!(value)): 3i64}, (constants_str::ROLE_ID): {(stringify!(value)): 4i64}}),
+                ]
+            };
+            crate::generated_data_table_view::generated_data_table_view::<_, crate::admin_role_rules_read_page_error::AdminRoleRulesReadPageError>(
+                pg_crud_common::list_items::ListItems::from(items),
+                pg_crud_common::list_total::ListTotal::from(9u32),
+                server_admin_contract::admin_data_table::AdminDataTable::RoleRules,
+                Some(columns.clone()),
+            ).is_ok_and(|view| {
+                view.table() == server_admin_contract::admin_data_table::AdminDataTable::RoleRules
+                    && u64::from(view.total()) == 9u64
+                    && serde_json::to_value(view.columns()).is_ok_and(|wire| wire == column_wire)
+                    && serde_json::to_value(view.items()).is_ok_and(|wire| {
+                        wire == if empty {
+                            serde_json::json!([])
+                        } else {
+                            serde_json::json!([
+                                {(stringify!(values)): [2i64.to_string(), 1i64.to_string(), 1i64.to_string()]},
+                                {(stringify!(values)): [4i64.to_string(), 3i64.to_string(), 3i64.to_string()]},
+                            ])
+                        }
+                    })
+            })
+        })
     }));
 }

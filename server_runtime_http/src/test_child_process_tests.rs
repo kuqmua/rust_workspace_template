@@ -128,6 +128,47 @@ mod tests {
     }
 
     #[tokio::test(start_paused = true)]
+    async fn test_cancelled_diagnostic_wait_can_resume_and_preserve_completed_payload() {
+        let diagnostic = crate::child_diagnostic::ChildDiagnostic::from(
+            bounded_types::bounded_vec::BoundedVec::from_max_iter(
+                constants_str::X.as_bytes().iter().copied(),
+            ),
+        );
+        let (sender, receiver) = tokio::sync::oneshot::channel();
+        let mut diagnostic_task =
+            crate::tokio_child_diagnostic_task::TokioChildDiagnosticTask::from(tokio::spawn(
+                async move {
+                    receiver
+                        .await
+                        .map_err(std::io::Error::other)
+                        .map_err(crate::child_process_io_error::ChildProcessIoError::from)
+                        .map_err(crate::child_process_error::ChildProcessError::DiagnosticIo)
+                },
+            ));
+        async {
+            let mut diagnostic_join = std::pin::pin!(crate::join_diagnostic::join_diagnostic(
+                Some(&mut diagnostic_task),
+                diagnostic_join_timeout_fixture(),
+            ));
+            std::future::poll_fn(|context| {
+                assert!(diagnostic_join.as_mut().poll(context).is_pending());
+                std::task::Poll::Ready(())
+            })
+            .await;
+        }
+        .await;
+        assert!(matches!(sender.send(diagnostic.clone()), Ok(())));
+        assert!(
+            crate::join_diagnostic::join_diagnostic(
+                Some(&mut diagnostic_task),
+                diagnostic_join_timeout_fixture(),
+            )
+            .await
+            .is_ok_and(|payload| payload == diagnostic)
+        );
+    }
+
+    #[tokio::test(start_paused = true)]
     async fn test_diagnostic_join_has_a_deadline_and_retains_ownership() {
         let mut diagnostic_task =
             crate::tokio_child_diagnostic_task::TokioChildDiagnosticTask::from(tokio::spawn(
@@ -166,12 +207,11 @@ mod tests {
             crate::child_diagnostic_maximum_non_zero_usize::ChildDiagnosticMaximumNonZeroUsize::from(std::num::NonZeroUsize::MIN),
         )
         .await;
-        assert!(matches!(
-            result,
-            Err(crate::child_process_error::ChildProcessError::DiagnosticIo(
-                _
-            ))
-        ));
+        assert!(result.is_err_and(|child_process_error| matches!(
+            child_process_error,
+            crate::child_process_error::ChildProcessError::DiagnosticIo(child_process_io_error)
+                if child_process_io_error.to_string() == constants_str::VALUE_0DEDD057
+        )));
     }
 
     #[tokio::test]
@@ -302,5 +342,33 @@ mod tests {
             result.is_ok_and(|diagnostic| { Some(diagnostic.as_ref()) == input.get(..4097usize) })
         );
         assert!(reader.is_empty());
+    }
+    #[cfg(unix)]
+    #[test]
+    fn test_child_report_preserves_diagnostic_status_and_completion() {
+        assert!([
+            (0i32, crate::child_process_succeeded::ChildProcessSucceeded::Yes),
+            (256i32, crate::child_process_succeeded::ChildProcessSucceeded::No),
+        ].into_iter().all(|(raw_status, expected)| {
+            [
+                crate::child_process_completion::ChildProcessCompletion::Exited,
+                crate::child_process_completion::ChildProcessCompletion::KilledAfterTimeout,
+            ].into_iter().all(|completion| {
+                let report = crate::child_process_report::ChildProcessReport::new(
+                    crate::child_diagnostic::ChildDiagnostic::from(
+                        bounded_types::bounded_vec::BoundedVec::from_max_iter(
+                            constants_str::ABC_ALT_3.as_bytes().iter().copied(),
+                        ),
+                    ),
+                    crate::child_exit_status::ChildExitStatus::from(
+                        <std::process::ExitStatus as std::os::unix::process::ExitStatusExt>::from_raw(raw_status),
+                    ),
+                    completion,
+                );
+                report.diagnostic().as_ref() == constants_str::ABC_ALT_3.as_bytes()
+                    && report.status().succeeded() == expected
+                    && report.completion() == completion
+            })
+        }));
     }
 }

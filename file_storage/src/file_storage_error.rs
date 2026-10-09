@@ -88,4 +88,40 @@ mod tests {
             assert!(std::error::Error::source(&combined).is_some());
         });
     }
+    #[test]
+    fn test_failed_cleanup_retains_previously_combined_error_and_original_source() {
+        let original = super::FileStorageError::AtomicReplaceAndCleanup {
+            replace: crate::file_storage_io_error::FileStorageIoError::from(std::io::Error::from(
+                std::io::ErrorKind::BrokenPipe,
+            )),
+            cleanup: crate::file_storage_io_error::FileStorageIoError::from(std::io::Error::from(
+                std::io::ErrorKind::PermissionDenied,
+            )),
+        };
+        let original_debug = format!("{original:?}");
+        let combined =
+            original.with_failed_cleanup(crate::file_storage_io_error::FileStorageIoError::from(
+                std::io::Error::from(std::io::ErrorKind::NotFound),
+            ));
+        let combined_debug = format!("{combined:?}");
+        assert!(
+            matches!(&combined, super::FileStorageError::AtomicReplaceAndCleanup { cleanup, .. }
+            if cleanup.to_string() == std::io::Error::from(std::io::ErrorKind::NotFound).to_string()
+                && combined_debug.contains(&original_debug))
+        );
+        assert!(
+            std::error::Error::source(&combined).is_some_and(|replacement| {
+                replacement
+                    .downcast_ref::<crate::file_storage_io_error::FileStorageIoError>()
+                    .is_some()
+                    && std::error::Error::source(replacement).is_some_and(|original_source| {
+                        original_source
+                            .downcast_ref::<crate::file_storage_io_error::FileStorageIoError>()
+                            .is_some()
+                            && original_source.to_string()
+                                == std::io::Error::from(std::io::ErrorKind::BrokenPipe).to_string()
+                    })
+            })
+        );
+    }
 }

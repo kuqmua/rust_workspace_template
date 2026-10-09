@@ -314,3 +314,44 @@ fn test_workflow_policy_ignores_commented_commands_and_actions() {
     assert!(source.as_ref().contains(constants_str::VALUE_3B4E324D));
     assert!(source.as_ref().contains(constants_str::VALUE_769E5F7B));
 }
+
+#[test]
+fn test_workflow_comment_parser_handles_escapes_and_unicode_offsets() {
+    let cases = [
+        (
+            ['"', '\\', '"', '#', '"', ' ', '#', 'x']
+                .into_iter()
+                .collect::<String>(),
+            ['"', '\\', '"', '#', '"', ' ']
+                .into_iter()
+                .collect::<String>(),
+        ),
+        (
+            ['"', '\\', '\\', '"', ' ', '#', 'x']
+                .into_iter()
+                .collect::<String>(),
+            ['"', '\\', '\\', '"', ' '].into_iter().collect::<String>(),
+        ),
+        (
+            ['\'', '\\', '\'', '#', 'x'].into_iter().collect::<String>(),
+            ['\'', '\\', '\''].into_iter().collect::<String>(),
+        ),
+        (
+            ['\u{e9}', '#', 'x'].into_iter().collect::<String>(),
+            std::iter::once('\u{e9}').collect::<String>(),
+        ),
+        (
+            ['"', '\u{e9}', '#', '"', '\n', '#', 'x']
+                .into_iter()
+                .collect::<String>(),
+            ['"', '\u{e9}', '#', '"', '\n']
+                .into_iter()
+                .collect::<String>(),
+        ),
+    ];
+    assert!(cases.iter().all(|(source, expected)| {
+        active_workflow_source(crate::source_text_ref::SourceTextRef::from(source.as_str()))
+            .as_ref()
+            == expected
+    }));
+}

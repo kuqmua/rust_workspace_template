@@ -2184,3 +2184,30 @@ fn test_route_path_policy_rejects_api_prefix() {
         "5caaea72"
     );
 }
+
+#[test]
+fn test_lock_acquisition_parser_handles_wrappers_and_excludes_other_calls() {
+    let cases = [
+        (syn::parse_quote!(state.lock()), true),
+        (syn::parse_quote!(state.lock_owned()), true),
+        (syn::parse_quote!(state.read()), true),
+        (syn::parse_quote!(state.read_owned()), true),
+        (syn::parse_quote!(state.write()), true),
+        (syn::parse_quote!(state.write_owned()), true),
+        (syn::parse_quote!((state.lock())), true),
+        (syn::parse_quote!(state.lock()?), true),
+        (syn::parse_quote!(state.lock().await), true),
+        (syn::parse_quote!((state.read_owned().await)?), true),
+        (syn::parse_quote!(state.lock(1usize)), false),
+        (syn::parse_quote!(state.try_lock()), false),
+        (syn::parse_quote!(state.lock().clone()), false),
+        (syn::parse_quote!(lock()), false),
+        (syn::parse_quote!(state), false),
+        (syn::parse_quote!(1usize), false),
+    ];
+    assert!(
+        cases
+            .iter()
+            .all(|(expr, expected)| { expression_acquires_lock(expr) == *expected })
+    );
+}

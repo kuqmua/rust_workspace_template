@@ -144,3 +144,71 @@ async fn test_admin_error_response_statuses_preserve_public_bodies_with_internal
     )
     .await;
 }
+
+#[tokio::test]
+async fn test_created_json_response_preserves_created_status_content_type_and_typed_body() {
+    let admin_user_id = server_admin_contract::admin_user_id::AdminUserId::from(
+        server_admin_contract::positive_non_zero_i64::PositiveNonZeroI64::from(
+            std::num::NonZeroI64::from(std::num::NonZeroU8::MIN),
+        ),
+    );
+    let response = axum::response::IntoResponse::into_response(
+        crate::created_json_response::created_json_response(admin_user_id),
+    );
+    assert_eq!(response.status(), http::StatusCode::CREATED);
+    assert_eq!(
+        response
+            .headers()
+            .get(http::header::CONTENT_TYPE)
+            .and_then(|header| header.to_str().ok()),
+        Some(constants_str::APPLICATION_JSON),
+    );
+    assert!(
+        axum::body::to_bytes(response.into_body(), 16usize)
+            .await
+            .is_ok_and(|body| {
+                serde_json::from_slice::<server_admin_contract::admin_user_id::AdminUserId>(&body)
+                    .is_ok_and(|decoded| decoded == admin_user_id)
+            })
+    );
+}
+
+#[test]
+fn test_unique_violation_mapping_preserves_non_conflict_database_sources_and_diagnostics() {
+    assert!(
+        [
+            sqlx::Error::RowNotFound,
+            sqlx::Error::PoolClosed,
+            sqlx::Error::PoolTimedOut,
+            sqlx::Error::Protocol(constants_str::X.to_owned()),
+            sqlx::Error::Io(std::io::Error::from(std::io::ErrorKind::BrokenPipe)),
+            sqlx::Error::Decode(Box::new(std::io::Error::from(
+                std::io::ErrorKind::InvalidData
+            ))),
+        ]
+        .into_iter()
+        .all(|error| {
+            let original = error.to_string();
+            let mapped = crate::map_unique_violation::map_unique_violation(
+                crate::sqlx_admin_error::SqlxAdminError::from(error).into_inner(),
+            );
+            let crate::admin_error::AdminError::Pg(observed) = &mapped else {
+                return false;
+            };
+            observed.source_ref().get_inner().to_string() == original
+                && observed.error_code()
+                    == server_observability::observed_error_code::ObservedErrorCode::from(
+                        constants_str::ADMIN_OBSERVED_ERROR_DATABASE,
+                    )
+                && std::error::Error::source(&mapped).is_some_and(|source| {
+                    source.is::<server_observability::observed_error::ObservedError<
+                        crate::sqlx_admin_error::SqlxAdminError,
+                    >>() && source.to_string() == original
+                })
+                && std::error::Error::source(observed).is_some_and(|source| {
+                    source.is::<crate::sqlx_admin_error::SqlxAdminError>()
+                        && source.to_string() == original
+                })
+        })
+    );
+}

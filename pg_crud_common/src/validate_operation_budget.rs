@@ -25,12 +25,23 @@ mod tests {
             ),
             Ok(())
         );
-        assert!(
+        assert!([0usize, 1usize, 9usize].into_iter().all(|operation_count| {
             crate::validate_operation_budget::validate_operation_budget(
-                11usize.into(),
-                10usize.into()
+                crate::operation_count::OperationCount::from(operation_count),
+                crate::operation_budget::OperationBudget::from(10usize),
+            ) == Ok(())
+        }));
+        assert_eq!(
+            crate::validate_operation_budget::validate_operation_budget(
+                crate::operation_count::OperationCount::from(11usize),
+                crate::operation_budget::OperationBudget::from(10usize),
+            ),
+            Err(
+                crate::operation_budget_exceeded::OperationBudgetExceeded::Exceeded {
+                    actual: crate::operation_count::OperationCount::from(11usize),
+                    budget: crate::operation_budget::OperationBudget::from(10usize),
+                }
             )
-            .is_err()
         );
     }
     #[test]

@@ -168,9 +168,23 @@ fn assert_rejects_unknown_field<Value>(str: &str)
 where
     Value: serde::de::DeserializeOwned,
 {
-    let Err(_error) = serde_json::from_str::<Value>(str) else {
+    let Err(serde_json_error) = serde_json::from_str::<Value>(str) else {
         std::panic::panic_any(constants_str::PANIC_30BBF690);
     };
+    assert!(serde_json_error.is_data());
+    assert!(serde_json_error.to_string().contains(stringify!(unknown)));
+    assert!(
+        serde_json::from_str::<serde_json::Value>(str).is_ok_and(|mut payload| {
+            let Some(fields) = payload.as_object_mut() else {
+                return false;
+            };
+            assert_eq!(
+                fields.remove(stringify!(unknown)),
+                Some(serde_json::Value::Bool(true)),
+            );
+            matches!(serde_json::from_value::<Value>(payload).map(drop), Ok(()))
+        })
+    );
 }
 #[test]
 fn test_administrator_collections_enforce_item_limit_for_construction_and_deserialization() {
@@ -230,13 +244,15 @@ fn test_request_payloads_reject_unknown_fields() {
         constants_str::LOGIN_ADMIN_PASSWORD_SECRET_UNKNOWN_TRUE,
     );
     assert_rejects_unknown_field::<crate::admin_create_user_request::AdminCreateUserRequest>(
-        constants_str::DISPLAY_NAME_ADMIN_LOGIN_ADMIN_PASSWORD_SECRET_UNKNOWN_TRUE,
+        &constants_str::DISPLAY_NAME_ADMIN_LOGIN_ADMIN_PASSWORD_SECRET_UNKNOWN_TRUE
+            .replace(constants_str::SECRET, constants_str::TEST_STRONG_PASSWORD),
     );
     assert_rejects_unknown_field::<crate::admin_update_user_request::AdminUpdateUserRequest>(
         constants_str::DISPLAY_NAME_ADMIN_UNKNOWN_TRUE,
     );
     assert_rejects_unknown_field::<crate::admin_update_user_request::AdminUpdateUserRequest>(
-        constants_str::PASSWORD_SECRET_UNKNOWN_TRUE,
+        &constants_str::PASSWORD_SECRET_UNKNOWN_TRUE
+            .replace(constants_str::SECRET, constants_str::TEST_STRONG_PASSWORD),
     );
     assert_rejects_unknown_field::<crate::admin_update_user_request::AdminUpdateUserRequest>(
         constants_str::IS_BANNED_TRUE_UNKNOWN_TRUE,
@@ -251,10 +267,20 @@ fn test_request_payloads_reject_unknown_fields() {
         constants_str::ROLE_IDS_1_UNKNOWN_TRUE,
     );
     assert_rejects_unknown_field::<crate::admin_set_role_rules_request::AdminSetRoleRulesRequest>(
-        constants_str::RULE_IDS_1_UNKNOWN_TRUE,
+        &serde_json::json!({
+            (stringify!(expected_rule_ids)): [1i64],
+            (stringify!(rule_ids)): [1i64],
+            (stringify!(unknown)): true,
+        })
+        .to_string(),
     );
     assert_rejects_unknown_field::<crate::admin_update_settings_request::AdminUpdateSettingsRequest>(
-        constants_str::SITE_NAME_ADMIN_UNKNOWN_TRUE,
+        &serde_json::json!({
+            (stringify!(clear)): [],
+            (stringify!(site_name)): constants_str::ADMIN,
+            (stringify!(unknown)): true,
+        })
+        .to_string(),
     );
 }
 #[test]
@@ -1871,4 +1897,130 @@ fn test_audit_details_validate_serialized_utf8_and_escaped_byte_boundaries() {
             );
         }
     });
+}
+
+#[test]
+fn test_admin_route_registration_preserves_every_catalog_method_and_path() {
+    crate::admin_route::AdminRoute::ALL
+        .into_iter()
+        .fold((), |(), admin_route| {
+            let route_contract = admin_route.contract();
+            assert_eq!(
+                frontend_contract::route_registration_contract::RouteRegistrationContract::registration_method(admin_route),
+                route_contract.method(),
+            );
+            assert_eq!(
+                frontend_contract::route_registration_contract::RouteRegistrationContract::registration_path(admin_route),
+                route_contract.path(),
+            );
+            assert!(admin_route.path().is_ok_and(|admin_route_path| {
+                admin_route_path.as_ref() == route_contract.path().as_ref()
+            }));
+        });
+}
+
+#[test]
+fn test_primary_color_preserves_hex_case_and_rejects_invalid_wire_values() {
+    [
+        constants_str::PRIMARY_COLOR_DEFAULT.to_owned(),
+        constants_str::PRIMARY_COLOR_DEFAULT.to_ascii_uppercase(),
+    ]
+    .into_iter()
+    .fold((), |(), text| {
+        assert!(
+            crate::admin_primary_color::AdminPrimaryColor::try_from(text.clone()).is_ok_and(
+                |color| color.as_ref() == text
+                    && serde_json::to_value(&color)
+                        .is_ok_and(|wire| wire == serde_json::Value::String(text.clone()))
+            )
+        );
+        assert!(
+            serde_json::from_value::<crate::admin_primary_color::AdminPrimaryColor>(
+                serde_json::Value::String(text.clone())
+            )
+            .is_ok_and(|color| color.as_ref() == text)
+        );
+    });
+    [
+        constants_str::EMPTY.to_owned(),
+        constants_str::PRIMARY_COLOR_DEFAULT
+            .chars()
+            .skip(1usize)
+            .collect::<String>(),
+        constants_str::PRIMARY_COLOR_DEFAULT.replacen('#', constants_str::X, 1usize),
+        constants_str::PRIMARY_COLOR_DEFAULT.replacen('5', constants_str::X, 1usize),
+        [constants_str::PRIMARY_COLOR_DEFAULT, constants_str::X].concat(),
+        [constants_str::SPACE, constants_str::PRIMARY_COLOR_DEFAULT].concat(),
+        constants_str::X.repeat(8_193usize),
+    ]
+    .into_iter()
+    .fold((), |(), text| {
+        assert!(
+            crate::admin_primary_color::AdminPrimaryColor::try_from(text.clone())
+                .is_err_and(|error| !error.to_string().is_empty())
+        );
+        assert!(
+            serde_json::from_value::<crate::admin_primary_color::AdminPrimaryColor>(
+                serde_json::Value::String(text)
+            )
+            .is_err_and(|error| error.is_data())
+        );
+    });
+    assert!(
+        [
+            serde_json::Value::Null,
+            serde_json::Value::Bool(true),
+            serde_json::json!(1i64)
+        ]
+        .into_iter()
+        .all(|wire| {
+            serde_json::from_value::<crate::admin_primary_color::AdminPrimaryColor>(wire)
+                .is_err_and(|error| error.is_data())
+        })
+    );
+}
+
+#[test]
+fn test_set_role_rules_request_preserves_distinct_lists_and_rejects_invalid_fields() {
+    let wire = serde_json::json!({ (stringify!(expected_rule_ids)): [1i64, 2i64], (stringify!(rule_ids)): [3i64] });
+    assert!(
+        serde_json::from_value::<crate::admin_set_role_rules_request::AdminSetRoleRulesRequest>(
+            wire.clone()
+        )
+        .is_ok_and(|request| {
+            assert_eq!(
+                serde_json::to_value(request.expected_rule_ids()).ok(),
+                Some(serde_json::json!([1i64, 2i64]))
+            );
+            assert_eq!(
+                serde_json::to_value(request.rule_ids()).ok(),
+                Some(serde_json::json!([3i64]))
+            );
+            let (expected_rule_ids, rule_ids) = request.into_parts();
+            let rebuilt = crate::admin_set_role_rules_request::AdminSetRoleRulesRequest::new(
+                expected_rule_ids,
+                rule_ids,
+            );
+            serde_json::to_value(rebuilt).is_ok_and(|actual| actual == wire)
+        })
+    );
+    assert!(
+        serde_json::from_value::<crate::admin_set_role_rules_request::AdminSetRoleRulesRequest>(
+            serde_json::json!({
+                (stringify!(expected_rule_ids)): [], (stringify!(rule_ids)): [],
+            })
+        )
+        .is_ok_and(|request| request.expected_rule_ids().as_ref().is_empty()
+            && request.rule_ids().as_ref().is_empty())
+    );
+    assert!([
+        serde_json::json!({ (stringify!(rule_ids)): [] }),
+        serde_json::json!({ (stringify!(expected_rule_ids)): [] }),
+        serde_json::json!({ (stringify!(expected_rule_ids)): null, (stringify!(rule_ids)): [] }),
+        serde_json::json!({ (stringify!(expected_rule_ids)): [], (stringify!(rule_ids)): true }),
+        serde_json::json!({ (stringify!(expected_rule_ids)): [0i64], (stringify!(rule_ids)): [] }),
+        serde_json::json!({ (stringify!(expected_rule_ids)): [], (stringify!(rule_ids)): [-1i64] }),
+        serde_json::json!({ (stringify!(expected_rule_ids)): [], (stringify!(rule_ids)): [], (stringify!(unknown)): true }),
+    ].into_iter().all(|body| serde_json::from_value::<crate::admin_set_role_rules_request::AdminSetRoleRulesRequest>(body)
+        .is_err_and(|error| error.is_data())));
 }

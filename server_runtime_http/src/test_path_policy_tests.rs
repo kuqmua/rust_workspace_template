@@ -33,6 +33,41 @@ mod tests {
     }
 
     #[test]
+    fn test_proxy_path_multibyte_limits_apply_to_owned_and_borrowed_text() {
+        assert!(
+            [
+                (8191usize, 4095usize, true),
+                (8192usize, 4096usize, false),
+                (8193usize, 4096usize, true)
+            ]
+            .into_iter()
+            .all(|(length, characters, append_ascii)| {
+                let mut text = char::from(u8::MAX).to_string().repeat(characters);
+                if append_ascii {
+                    text.push_str(constants_str::X);
+                }
+                let owned = crate::http_proxy_path::HttpProxyPath::try_from(text.clone());
+                let borrowed = crate::http_proxy_path::HttpProxyPath::try_from(
+                    crate::http_proxy_path_ref::HttpProxyPathRef::from(text.as_str()),
+                );
+                [owned, borrowed].into_iter().all(|result| {
+                    if length <= 8192usize {
+                        result.is_ok_and(|http_proxy_path| {
+                            http_proxy_path.as_ref() == text
+                                && http_proxy_path.as_ref().len() == length
+                        })
+                    } else {
+                        result
+                            == Err(
+                                crate::http_proxy_path_error::HttpProxyPathError::ForbiddenSyntax,
+                            )
+                    }
+                })
+            })
+        );
+    }
+
+    #[test]
     fn test_proxy_path_rejects_encoded_delimiters_and_invalid_segments() {
         assert!(
             [

@@ -97,6 +97,78 @@ mod tests {
         assert_eq!(limiter.into_inner().available_permits(), 1usize);
     }
 
+    #[tokio::test]
+    #[ignore = "provisions a local HTTP listener and client to verify active body read cancellation"]
+    async fn test_cancelled_active_response_read_releases_owned_permit() {
+        let outcome = async {
+        let listener = create_test_http_listener().await?.into_inner();
+        let address = listener
+            .local_addr()
+            .map_err(server_runtime_http::serve_io_error::ServeIoError::from)?;
+        let client = reqwest::Client::builder()
+            .no_proxy()
+            .build()
+            .map_err(|source| {
+                server_runtime_http::serve_io_error::ServeIoError::from(std::io::Error::other(
+                    source,
+                ))
+            })?;
+        let mut url = reqwest::Url::parse(constants_str::HTTP_LOCALHOST).map_err(|source| {
+            server_runtime_http::serve_io_error::ServeIoError::from(std::io::Error::other(source))
+        })?;
+        let port_set = url.set_port(Some(address.port())) == Ok(());
+        let (release_sender, release_receiver) = tokio::sync::oneshot::channel();
+        let server = tokio::spawn(async move {
+            let (mut connection, _) = listener
+                .accept()
+                .await
+                .map_err(server_runtime_http::serve_io_error::ServeIoError::from)?;
+            tokio::io::AsyncWriteExt::write_all(
+                &mut connection,
+                constants_str::TEST_TRUNCATED_HTTP_RESPONSE.as_bytes(),
+            )
+            .await
+            .map_err(server_runtime_http::serve_io_error::ServeIoError::from)?;
+            release_receiver.await.map_err(|source| {
+                server_runtime_http::serve_io_error::ServeIoError::from(std::io::Error::other(
+                    source,
+                ))
+            })
+        });
+        let response_result = client.get(url).send().await;
+        let limiter = server_runtime_http::bounded_read_concurrency_arc_semaphore::BoundedReadConcurrencyArcSemaphore::new(
+            server_runtime_http::bounded_read_concurrency_maximum_non_zero_usize::BoundedReadConcurrencyMaximumNonZeroUsize::from(std::num::NonZeroUsize::MIN));
+        let pending = if let Ok(response) = response_result {
+            let mut read = Box::pin(
+                server_runtime_http::read_bounded_http_response::read_bounded_http_response(
+                    server_runtime_http::reqwest_response::ReqwestResponse::from(response),
+                    server_runtime_http::bounded_read_maximum_bytes::BoundedReadMaximumBytes::from(
+                        4usize,
+                    ),
+                    limiter.clone(),
+                ),
+            );
+            let read_pending = std::future::poll_fn(|context| {
+                std::task::Poll::Ready(read.as_mut().poll(context).is_pending())
+            })
+            .await;
+            let permit_owned = limiter.clone().into_inner().available_permits() == 0usize;
+            drop(read);
+            read_pending && permit_owned
+        } else {
+            false
+        };
+        let permits_after_drop = limiter.into_inner().available_permits();
+        let released = release_sender.send(());
+        let server_result = server.await;
+        Ok::<_, server_runtime_http::serve_io_error::ServeIoError>(
+            port_set && matches!(released, Ok(())) && matches!(server_result, Ok(Ok(())))
+                && pending && permits_after_drop == 1usize,
+        )
+        }.await;
+        assert!(outcome.is_ok_and(std::convert::identity));
+    }
+
     #[tokio::test(start_paused = true)]
     #[ignore = "provisions a local TCP listener; verifies idle graceful shutdown without external services"]
     async fn test_graceful_shutdown_without_connections_completes_successfully() {
@@ -365,6 +437,68 @@ mod tests {
     }
 
     #[test]
+    #[ignore = "constructs an HTTP client to validate request builder conversion without sending; requires native TLS initialization"]
+    fn test_request_builder_conversion_preserves_request_and_invalid_header_source() {
+        let client_result = reqwest::Client::builder().no_proxy().build();
+        assert!(client_result.is_ok());
+        let Ok(client) = client_result else {
+            return;
+        };
+        let built = server_runtime_http::reqwest_request::ReqwestRequest::try_from(
+            server_runtime_http::reqwest_request_builder::ReqwestRequestBuilder::from(
+                client
+                    .post(constants_str::HTTPS_EXAMPLE_COM)
+                    .header(
+                        reqwest::header::CONTENT_TYPE,
+                        constants_str::APPLICATION_JSON,
+                    )
+                    .body(constants_str::INTEGRATION_NOTIFICATION_MESSAGE),
+            ),
+        );
+        assert!(built.is_ok_and(|request| {
+            let inner = request.into_inner();
+            inner.method() == reqwest::Method::POST
+                && reqwest::Url::parse(constants_str::HTTPS_EXAMPLE_COM)
+                    .is_ok_and(|url| inner.url() == &url)
+                && inner
+                    .headers()
+                    .get(reqwest::header::CONTENT_TYPE)
+                    .is_some_and(|value| {
+                        value.as_bytes() == constants_str::APPLICATION_JSON.as_bytes()
+                    })
+                && inner.body().and_then(reqwest::Body::as_bytes)
+                    == Some(constants_str::INTEGRATION_NOTIFICATION_MESSAGE.as_bytes())
+        }));
+        let original = client
+            .get(constants_str::HTTPS_EXAMPLE_COM)
+            .header(reqwest::header::CONTENT_TYPE, constants_str::NEWLINE)
+            .build();
+        assert!(original.is_err_and(|original_error| {
+            let converted = server_runtime_http::reqwest_request::ReqwestRequest::try_from(
+                server_runtime_http::reqwest_request_builder::ReqwestRequestBuilder::from(
+                    client
+                        .get(constants_str::HTTPS_EXAMPLE_COM)
+                        .header(reqwest::header::CONTENT_TYPE, constants_str::NEWLINE),
+                ),
+            );
+            assert!(original_error.is_builder());
+            converted.is_err_and(|converted_error| {
+                assert_eq!(converted_error.to_string(), original_error.to_string());
+                std::error::Error::source(&original_error).is_some_and(|original_source| {
+                    std::error::Error::source(&converted_error).is_some_and(|converted_source| {
+                        assert_eq!(converted_source.to_string(), original_source.to_string());
+                        converted_source
+                            .downcast_ref::<http::Error>()
+                            .is_some_and(|http_error| {
+                                http_error.is::<http::header::InvalidHeaderValue>()
+                            })
+                    })
+                })
+            })
+        }));
+    }
+
+    #[test]
     #[ignore = "constructs an HTTP client; run through workspace_test_runner database"]
     #[cfg_attr(
         miri,
@@ -431,6 +565,55 @@ mod tests {
                     include_request_id.then_some(constants_str::REQUEST_ID_TEST_VALUE.as_bytes()),
                 );
             });
+        let populated_builder: reqwest::RequestBuilder =
+            server_runtime_http::outbound_trace_context::OutboundTraceContext::new(
+                trace_parent.clone(),
+                Some(trace_state),
+                Some(request_id),
+            )
+            .apply(
+                reqwest_client
+                    .get(constants_str::HTTPS_EXAMPLE_COM)
+                    .header(
+                        constants_str::TRACEPARENT,
+                        constants_str::TRACEPARENT_TEST_VALUE,
+                    )
+                    .header(
+                        constants_str::TRACESTATE,
+                        constants_str::TRACESTATE_TEST_VALUE,
+                    )
+                    .header(
+                        constants_str::X_REQUEST_ID,
+                        constants_str::REQUEST_ID_TEST_VALUE,
+                    )
+                    .into(),
+            )
+            .into();
+        assert!(populated_builder.build().is_ok_and(|request| {
+            [
+                (
+                    constants_str::TRACEPARENT,
+                    constants_str::TRACEPARENT_TEST_VALUE,
+                ),
+                (
+                    constants_str::TRACESTATE,
+                    constants_str::TRACESTATE_TEST_VALUE,
+                ),
+                (
+                    constants_str::X_REQUEST_ID,
+                    constants_str::REQUEST_ID_TEST_VALUE,
+                ),
+            ]
+            .into_iter()
+            .all(|(header_name, expected)| {
+                request
+                    .headers()
+                    .get_all(header_name)
+                    .iter()
+                    .map(reqwest::header::HeaderValue::as_bytes)
+                    .eq(std::iter::repeat_n(expected.as_bytes(), 2usize))
+            })
+        }));
         let preserved_builder: reqwest::RequestBuilder =
             server_runtime_http::outbound_trace_context::OutboundTraceContext::new(
                 trace_parent,

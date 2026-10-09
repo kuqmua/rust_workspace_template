@@ -789,10 +789,10 @@ mod tests {
                         std::os::unix::fs::symlink(&fixture_path, directory.join(program))
                             .map_err(macro_helpers::std_tool_io_error::StdToolIoError::from)
                     })?;
-                    if failure_diagnostic.is_none()
+                    let memory_fixture = failure_diagnostic.is_none()
                         && std::path::Path::new(constants_str::WORKSPACE_TEST_RUNNER_MEMUSAGE_PATH)
-                            .is_file()
-                    {
+                            .is_file();
+                    if memory_fixture {
                         let cargo = directory.join(constants_str::WORKSPACE_TEST_RUNNER_CARGO);
                         std::fs::remove_file(&cargo)
                             .map_err(macro_helpers::std_tool_io_error::StdToolIoError::from)?;
@@ -813,6 +813,13 @@ mod tests {
                             constants_str::SPACE, 12usize, constants_str::NEWLINE,
                             constants_str::FREE, 13usize, constants_str::SPACE, 14usize,
                         );
+                        let program_stderr = format!(
+                            "{}{}{}{}",
+                            constants_str::X,
+                            constants_str::NEWLINE,
+                            constants_str::NEWLINE,
+                            constants_str::AB,
+                        );
                         let script = format!(
                             "{}{}{}{}{}{}{}{}{}{}{}",
                             constants_str::RUNNER_MEMORY_FIXTURE_SHELL_PREFIX,
@@ -820,7 +827,7 @@ mod tests {
                             constants_str::RUNNER_MEMORY_FIXTURE_FIRST_ARGUMENT,
                             constants_str::NEWLINE,
                             constants_str::RUNNER_MEMORY_FIXTURE_PRINTF_PREFIX,
-                            constants_str::RUNNER_MEMORY_FIXTURE_QUOTE, constants_str::X, constants_str::NEWLINE,
+                            constants_str::RUNNER_MEMORY_FIXTURE_QUOTE, program_stderr, constants_str::NEWLINE,
                             summary, constants_str::RUNNER_MEMORY_FIXTURE_QUOTE,
                             constants_str::RUNNER_MEMORY_FIXTURE_STDERR_SUFFIX,
                         );
@@ -932,6 +939,12 @@ mod tests {
                     let forwarded_stderr =
                         std::str::from_utf8(output.stderr.as_slice()).is_ok_and(|stderr| {
                             !stderr.is_empty()
+                                && (!memory_fixture
+                                    || (stderr
+                                        .lines()
+                                        .filter(|line| *line == constants_str::X || *line == constants_str::AB)
+                                        .eq([constants_str::X, constants_str::AB].into_iter().cycle().take(6usize))
+                                        && stderr.lines().filter(|line| line.trim().is_empty()).count() == 2usize))
                                 && [
                                     constants_str::WORKSPACE_TEST_RUNNER_PEAK_RSS_PREFIX,
                                     constants_str::WORKSPACE_TEST_RUNNER_MINOR_PAGE_FAULTS_PREFIX,
