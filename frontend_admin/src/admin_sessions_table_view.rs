@@ -7,7 +7,7 @@ pub(crate) fn admin_sessions_table_view(
     let columns = [
         (
             constants_str::SQL_NAMES_ID,
-            frontend_contract::input_kind::InputKind::Uuid,
+            frontend_contract::input_kind::InputKind::Number,
             vec![
                 frontend_contract::filter_operation::FilterOperation::Eq,
                 frontend_contract::filter_operation::FilterOperation::In,

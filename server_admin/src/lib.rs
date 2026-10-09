@@ -306,6 +306,7 @@ pub mod runtime_admin_password;
 pub mod runtime_admin_password_hash_concurrency;
 pub mod runtime_admin_role_names;
 pub mod runtime_authenticated_admin;
+pub mod session_read_page;
 pub mod sessions;
 pub mod sessions_revoke_all_sessions;
 pub mod sessions_revoke_session;

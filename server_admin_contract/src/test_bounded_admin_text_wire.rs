@@ -49,152 +49,36 @@ fn test_bounded_administrator_text_deserialization_preserves_unicode_limits_and_
         administrator_text_wire_matches::<crate::admin_organization_contacts::AdminOrganizationContacts, 8192usize>(),
         administrator_text_wire_matches::<crate::admin_session_timestamp::AdminSessionTimestamp, 64usize>(),
         administrator_text_wire_matches::<crate::admin_table_sort_key::AdminTableSortKey, 32usize>(),
-        administrator_text_wire_matches::<crate::admin_session_identifier::AdminSessionIdentifier, 64usize>(),
         administrator_text_wire_matches::<crate::admin_table_search::AdminTableSearch, 128usize>(),
         administrator_text_wire_matches::<crate::admin_rule_value::AdminRuleValue, 128usize>(),
     ].into_iter().all(bool::from));
 }
 
 #[test]
-fn test_access_and_refresh_identifiers_share_validated_uuid_wire_grammar() {
-    fn identifier_uuid_wire_matches<Identifier>() -> crate::admin_bool::AdminBool
-    where
-        Identifier: TryFrom<String>
-            + AsRef<str>
-            + PartialEq
-            + serde::Serialize
-            + serde::de::DeserializeOwned,
-    {
-        let valid = [
-            constants_str::TEST_ACCESS_SESSION_ID.to_owned(),
-            constants_str::TEST_ACCESS_SESSION_ID.to_ascii_uppercase(),
-            constants_str::TEST_ACCESS_SESSION_ID
-                .bytes()
-                .map(|byte| char::from(if byte == b'-' { byte } else { b'a' }))
-                .collect::<String>(),
+fn test_refresh_identifier_requires_positive_integer_wire_values() {
+    assert!([1i64, i64::MAX].into_iter().all(|value| {
+        serde_json::from_value::<crate::admin_refresh_token_id::AdminRefreshTokenId>(
+            serde_json::json!(value),
+        )
+        .is_ok_and(|identifier| {
+            i64::from(identifier) == value
+                && serde_json::to_value(identifier)
+                    .is_ok_and(|wire| wire == serde_json::json!(value))
+        })
+    }));
+    assert!(
+        [
+            serde_json::json!(0i64),
+            serde_json::json!(-1i64),
+            serde_json::json!(constants_str::TEST_REFRESH_TOKEN_ID),
+            serde_json::Value::Null
         ]
         .into_iter()
-        .all(|text| {
-            Identifier::try_from(text.clone()).is_ok_and(|identifier| {
-                identifier.as_ref() == text.as_str()
-                    && serde_json::to_value(&identifier)
-                        .is_ok_and(|wire| wire == serde_json::json!(text))
-                    && serde_json::from_value::<Identifier>(serde_json::json!(text))
-                        .is_ok_and(|decoded| decoded == identifier)
-            })
-        });
-        let invalid_positions = (0usize..36usize).all(|invalid_position| {
-            let text = constants_str::TEST_ACCESS_SESSION_ID
-                .bytes()
-                .enumerate()
-                .map(|(position, byte)| {
-                    char::from(if position == invalid_position {
-                        b'_'
-                    } else {
-                        byte
-                    })
-                })
-                .collect::<String>();
-            Identifier::try_from(text.clone()).is_err()
-                && serde_json::from_value::<Identifier>(serde_json::json!(text))
-                    .is_err_and(|error| error.is_data())
-        });
-        let invalid_lengths_and_unicode = [
-            String::new(),
-            constants_str::TEST_ACCESS_SESSION_ID
-                .chars()
-                .take(35usize)
-                .collect::<String>(),
-            format!(
-                "{}{}",
-                constants_str::TEST_ACCESS_SESSION_ID,
-                constants_str::A_ALT
-            ),
-            '\u{00e9}'.to_string().repeat(36usize),
-        ]
-        .into_iter()
-        .all(|text| {
-            Identifier::try_from(text.clone()).is_err()
-                && serde_json::from_value::<Identifier>(serde_json::json!(text))
-                    .is_err_and(|error| error.is_data())
-        });
-        let invalid_types = [
-            serde_json::Value::Null,
-            serde_json::json!(1i64),
-            serde_json::json!(true),
-            serde_json::json!([]),
-            serde_json::json!({}),
-        ]
-        .into_iter()
-        .all(|value| {
-            serde_json::from_value::<Identifier>(value).is_err_and(|error| error.is_data())
-        });
-        crate::admin_bool::AdminBool::from(
-            valid && invalid_positions && invalid_lengths_and_unicode && invalid_types,
-        )
-    }
-    assert_eq!(
-        identifier_uuid_wire_matches::<crate::admin_access_session_id::AdminAccessSessionId>(),
-        crate::admin_bool::AdminBool::from(true)
+        .all(|wire| serde_json::from_value::<
+            crate::admin_refresh_token_id::AdminRefreshTokenId,
+        >(wire)
+        .is_err())
     );
-    assert_eq!(
-        identifier_uuid_wire_matches::<crate::admin_refresh_token_id::AdminRefreshTokenId>(),
-        crate::admin_bool::AdminBool::from(true)
-    );
-    let short = constants_str::TEST_ACCESS_SESSION_ID
-        .chars()
-        .take(35usize)
-        .collect::<String>();
-    assert!(matches!(
-        crate::admin_access_session_id::AdminAccessSessionId::try_from(short.clone()),
-        Err(
-            crate::admin_access_session_id::AdminAccessSessionIdTryFromStringError::TooShort {
-                len: 35usize,
-                min: 36usize
-            }
-        )
-    ));
-    assert!(matches!(
-        crate::admin_refresh_token_id::AdminRefreshTokenId::try_from(short),
-        Err(
-            crate::admin_refresh_token_id::AdminRefreshTokenIdTryFromStringError::TooShort {
-                len: 35usize,
-                min: 36usize
-            }
-        )
-    ));
-    let long = format!(
-        "{}{}",
-        constants_str::TEST_ACCESS_SESSION_ID,
-        constants_str::A_ALT
-    );
-    assert!(matches!(
-        crate::admin_access_session_id::AdminAccessSessionId::try_from(long.clone()),
-        Err(
-            crate::admin_access_session_id::AdminAccessSessionIdTryFromStringError::TooLong {
-                len: 37usize,
-                max: 36usize
-            }
-        )
-    ));
-    assert!(matches!(
-        crate::admin_refresh_token_id::AdminRefreshTokenId::try_from(long),
-        Err(
-            crate::admin_refresh_token_id::AdminRefreshTokenIdTryFromStringError::TooLong {
-                len: 37usize,
-                max: 36usize
-            }
-        )
-    ));
-    let invalid_value = constants_str::X.repeat(36usize);
-    assert!(matches!(
-        crate::admin_access_session_id::AdminAccessSessionId::try_from(invalid_value.clone()),
-        Err(crate::admin_access_session_id::AdminAccessSessionIdTryFromStringError::InvalidValue)
-    ));
-    assert!(matches!(
-        crate::admin_refresh_token_id::AdminRefreshTokenId::try_from(invalid_value),
-        Err(crate::admin_refresh_token_id::AdminRefreshTokenIdTryFromStringError::InvalidValue)
-    ));
 }
 
 #[test]

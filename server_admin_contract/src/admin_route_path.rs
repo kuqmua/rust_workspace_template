@@ -20,6 +20,14 @@ impl TryFrom<String> for AdminRoutePath {
     }
 }
 
+impl From<crate::admin_session_identifier::AdminSessionIdentifier> for AdminRoutePath {
+    fn from(value: crate::admin_session_identifier::AdminSessionIdentifier) -> Self {
+        Self::from(crate::admin_session_read_path::AdminSessionReadPath::Own(
+            value,
+        ))
+    }
+}
+
 impl From<crate::admin_access_session_id::AdminAccessSessionId> for AdminRoutePath {
     fn from(value: crate::admin_access_session_id::AdminAccessSessionId) -> Self {
         Self::from(crate::admin_session_read_path::AdminSessionReadPath::Access(value))
@@ -127,25 +135,32 @@ impl From<crate::admin_refresh_token_id::AdminRefreshTokenId> for AdminRoutePath
 impl From<crate::admin_session_read_path::AdminSessionReadPath> for AdminRoutePath {
     fn from(value: crate::admin_session_read_path::AdminSessionReadPath) -> Self {
         let (admin_frontend_path, placeholder, identifier) = match &value {
+            crate::admin_session_read_path::AdminSessionReadPath::Own(admin_session_identifier) => {
+                (
+                    crate::admin_frontend_path::AdminFrontendPath::SessionRead,
+                    constants_str::ADMIN_SESSION_ID_PLACEHOLDER,
+                    admin_session_identifier.to_string(),
+                )
+            }
             crate::admin_session_read_path::AdminSessionReadPath::Access(
                 admin_access_session_id,
             ) => (
                 crate::admin_frontend_path::AdminFrontendPath::AccessSessionsRead,
                 constants_str::ADMIN_ACCESS_SESSION_ID_PLACEHOLDER,
-                admin_access_session_id.as_ref(),
+                admin_access_session_id.to_string(),
             ),
             crate::admin_session_read_path::AdminSessionReadPath::Refresh(
                 admin_refresh_token_id,
             ) => (
                 crate::admin_frontend_path::AdminFrontendPath::RefreshTokensRead,
                 constants_str::ADMIN_REFRESH_TOKEN_ID_PLACEHOLDER,
-                admin_refresh_token_id.as_ref(),
+                admin_refresh_token_id.to_string(),
             ),
         };
         Self(
             admin_frontend_path
                 .get()
-                .replace(placeholder, identifier)
+                .replace(placeholder, &identifier)
                 .into_boxed_str(),
         )
     }

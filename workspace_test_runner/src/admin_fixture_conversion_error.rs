@@ -26,8 +26,7 @@ pub(crate) enum AdminFixtureConversionError {
     RuleValue(#[source] server_admin_contract::admin_rule_value::AdminRuleValueTryFromStringError),
     #[error("{0}")]
     SessionIdentifier(
-        #[source]
-        server_admin_contract::admin_session_identifier::AdminSessionIdentifierTryFromStringError,
+        #[source] server_admin_contract::admin_id_try_from_i64_error::AdminIdTryFromI64Error,
     ),
     #[error("{0}")]
     SessionTimestamp(
@@ -104,11 +103,11 @@ impl From<server_admin_contract::admin_role_timestamp::AdminRoleTimestampTryFrom
     }
 }
 
-impl From<server_admin_contract::admin_session_identifier::AdminSessionIdentifierTryFromStringError>
+impl From<server_admin_contract::admin_id_try_from_i64_error::AdminIdTryFromI64Error>
     for AdminFixtureConversionError
 {
     fn from(
-        value: server_admin_contract::admin_session_identifier::AdminSessionIdentifierTryFromStringError,
+        value: server_admin_contract::admin_id_try_from_i64_error::AdminIdTryFromI64Error,
     ) -> Self {
         Self::SessionIdentifier(value)
     }

@@ -44,6 +44,7 @@ proc_macro_frontend_contract_route_registry::route_registry! {
     (server_admin_contract::admin_frontend_path::AdminFrontendPath::RulesRead, crate::rule_read_page::rule_read_page),
     (server_admin_contract::admin_frontend_path::AdminFrontendPath::RuleRecordRead, crate::rule_read_page::rule_read_page),
     (server_admin_contract::admin_frontend_path::AdminFrontendPath::Rules, crate::rules::rules),
+    (server_admin_contract::admin_frontend_path::AdminFrontendPath::SessionRead, crate::session_read_page::session_read_page),
     (server_admin_contract::admin_frontend_path::AdminFrontendPath::Sessions, crate::admin_html_sessions_page::admin_html_sessions_page),
     (server_admin_contract::admin_frontend_path::AdminFrontendPath::Profile, crate::profile::profile),
     (server_admin_contract::admin_frontend_path::AdminFrontendPath::RateLimitRead, crate::rate_limit_read_page::rate_limit_read_page),

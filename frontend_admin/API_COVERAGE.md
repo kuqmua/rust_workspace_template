@@ -23,8 +23,8 @@ below covers user-visible workflows and direct API behavior.
 | POST `/auth/sign_out` | Navigation sign-out action |
 | POST `/auth/refresh` | CSR reads and mutations recover expired access/CSRF cookies with one refresh and one retry; full-page requests preserve the server sign-in redirect |
 | GET `/auth/me/read` | Authenticated shell rules and profile |
-| POST `/auth/password` | Profile password form and mandatory initial password replacement |
-| GET `/auth/sessions` | Sessions page |
+| POST `/auth/password` | Profile password form for voluntary password changes |
+| GET `/auth/sessions/read` | Sessions list and `/admin/sessions/{session_id}/read`; record pages filter by positive integer ID within the authenticated account |
 | DELETE `/auth/sessions/{session_id}` | Per-session confirmation dialog |
 | DELETE `/auth/sessions` | Revoke-all confirmation dialog; includes the current session |
 | DELETE `/access_sessions/delete` | Administrative filtered session revocation; soft-deletes matching active sessions |

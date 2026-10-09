@@ -28,7 +28,8 @@ pub(crate) fn AdminReadAction(
     };
     let admin_page_path_ref =
         server_admin_contract::admin_page_path_ref::AdminPagePathRef::from(read_path.as_ref());
-    if server_admin_contract::admin_cleanup_status_id::AdminCleanupStatusId::from_frontend_path(admin_page_path_ref).is_some()
+    if server_admin_contract::admin_session_identifier::AdminSessionIdentifier::from_frontend_path(admin_page_path_ref).is_some()
+        || server_admin_contract::admin_cleanup_status_id::AdminCleanupStatusId::from_frontend_path(admin_page_path_ref).is_some()
         || server_admin_contract::admin_rate_limit_id::AdminRateLimitId::from_frontend_path(admin_page_path_ref).is_some()
         || server_admin_contract::admin_system_setting_id::AdminSystemSettingId::from_frontend_path(admin_page_path_ref).is_some()
         || server_admin_contract::admin_audit_log_id::AdminAuditLogId::from_frontend_path(admin_page_path_ref).is_some()

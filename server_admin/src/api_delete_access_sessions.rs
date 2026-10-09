@@ -24,18 +24,8 @@ pub(crate) async fn api_delete_access_sessions(
         {
             return Err(crate::admin_error::AdminError::Validation);
         }
-        let session_id = match admin_access_session_filter.session_id() {
-            Some(value) => match uuid::Uuid::parse_str(value.to_string().as_str()) {
-                Ok(admin_session_uuid) => Some(admin_session_uuid),
-                Err(..) => {
-                    return Err(crate::map_repository_error::map_repository_error(
-                        crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue,
-                    ));
-                }
-            },
-            None => None,
-        };
-        let matches = sqlx::query_scalar::<_, uuid::Uuid>(
+        let session_id = admin_access_session_filter.session_id().copied().map(i64::from);
+        let matches = sqlx::query_scalar::<_, i64>(
             constants_str::SERVER_ADMIN_SELECT_FILTERED_ACCESS_SESSIONS_SQL,
         )
         .bind(session_id)
@@ -57,9 +47,10 @@ pub(crate) async fn api_delete_access_sessions(
         Ok(pg_crud_common::list_items::ListItems::from(
             matches
                 .into_iter()
-                .map(server_admin_core::uuid_admin_value::UuidAdminValue::from)
-                .map(crate::admin_session_id::AdminSessionId::from)
-                .collect::<Vec<_>>(),
+                .map(crate::admin_session_id::AdminSessionId::try_from)
+                .collect::<Result<Vec<_>, _>>()
+                .map_err(crate::sqlx_admin_error::SqlxAdminError::from)
+                .map_err(crate::admin_error::AdminError::from)?,
         ))
     };
     let actor = crate::authorize_custom::authorize_custom(

@@ -8,6 +8,8 @@
 #[getters(bare)]
 #[derive(proc_macro_new::New)]
 pub(crate) struct AdminCsrQuery {
+    session_identifier:
+        Option<server_admin_contract::admin_session_identifier::AdminSessionIdentifier>,
     access_session_id: Option<server_admin_contract::admin_access_session_id::AdminAccessSessionId>,
     #[getters(copy)]
     cleanup_status_id: Option<server_admin_contract::admin_cleanup_status_id::AdminCleanupStatusId>,
@@ -224,6 +226,7 @@ impl AdminCsrQuery {
                 })
             });
         Ok(Self::new(
+            server_admin_contract::admin_session_identifier::AdminSessionIdentifier::from_frontend_path(admin_page_path_ref),
             access_session_id,
             cleanup_status_id,
             audit_log_id,

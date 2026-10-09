@@ -257,7 +257,7 @@ DbTableSnapshot {
                     DbSchemaText(
                         BoundedString {
                             value: BoundedStringStorage {
-                                value: "true",
+                                value: "false",
                             },
                         },
                     ),
@@ -439,6 +439,23 @@ DbTableSnapshot {
                     BoundedString {
                         value: BoundedStringStorage {
                             value: "users_login_format",
+                        },
+                    },
+                ),
+                kind: Check,
+            },
+            DbObjectSnapshot {
+                definition: DbSchemaText(
+                    BoundedString {
+                        value: BoundedStringStorage {
+                            value: "CHECK ((NOT must_change_password))",
+                        },
+                    },
+                ),
+                name: DbSchemaText(
+                    BoundedString {
+                        value: BoundedStringStorage {
+                            value: "users_password_change_disabled",
                         },
                     },
                 ),
@@ -2055,6 +2072,26 @@ DbTableSnapshot {
                 name: DbSchemaText(
                     BoundedString {
                         value: BoundedStringStorage {
+                            value: "session_id",
+                        },
+                    },
+                ),
+                nullable: DbColumnNullable(
+                    true,
+                ),
+            },
+            DbColumnSnapshot {
+                data_type: DbSchemaText(
+                    BoundedString {
+                        value: BoundedStringStorage {
+                            value: "bigint",
+                        },
+                    },
+                ),
+                default: None,
+                name: DbSchemaText(
+                    BoundedString {
+                        value: BoundedStringStorage {
                             value: "user_id",
                         },
                     },
@@ -2169,26 +2206,6 @@ DbTableSnapshot {
                 ),
                 nullable: DbColumnNullable(
                     false,
-                ),
-            },
-            DbColumnSnapshot {
-                data_type: DbSchemaText(
-                    BoundedString {
-                        value: BoundedStringStorage {
-                            value: "uuid",
-                        },
-                    },
-                ),
-                default: None,
-                name: DbSchemaText(
-                    BoundedString {
-                        value: BoundedStringStorage {
-                            value: "session_id",
-                        },
-                    },
-                ),
-                nullable: DbColumnNullable(
-                    true,
                 ),
             },
         ],
@@ -2402,6 +2419,26 @@ DbTableSnapshot {
                 name: DbSchemaText(
                     BoundedString {
                         value: BoundedStringStorage {
+                            value: "id",
+                        },
+                    },
+                ),
+                nullable: DbColumnNullable(
+                    false,
+                ),
+            },
+            DbColumnSnapshot {
+                data_type: DbSchemaText(
+                    BoundedString {
+                        value: BoundedStringStorage {
+                            value: "bigint",
+                        },
+                    },
+                ),
+                default: None,
+                name: DbSchemaText(
+                    BoundedString {
+                        value: BoundedStringStorage {
                             value: "user_id",
                         },
                     },
@@ -2531,34 +2568,6 @@ DbTableSnapshot {
                     BoundedString {
                         value: BoundedStringStorage {
                             value: "created_at",
-                        },
-                    },
-                ),
-                nullable: DbColumnNullable(
-                    false,
-                ),
-            },
-            DbColumnSnapshot {
-                data_type: DbSchemaText(
-                    BoundedString {
-                        value: BoundedStringStorage {
-                            value: "uuid",
-                        },
-                    },
-                ),
-                default: Some(
-                    DbSchemaText(
-                        BoundedString {
-                            value: BoundedStringStorage {
-                                value: "gen_random_uuid()",
-                            },
-                        },
-                    ),
-                ),
-                name: DbSchemaText(
-                    BoundedString {
-                        value: BoundedStringStorage {
-                            value: "id",
                         },
                     },
                 ),

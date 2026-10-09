@@ -196,7 +196,7 @@ fn test_static_pages() {
                 )
                 .expect(constants_str::VALUE_87F569B4),
                 server_admin_contract::admin_session_identifier::AdminSessionIdentifier::try_from(
-                    String::from(constants_str::VALUE_84097828),
+                    2i64,
                 )
                 .expect(constants_str::VALUE_B8C5ABEC),
                 server_admin_contract::admin_bool::AdminBool::from(true),
@@ -230,17 +230,13 @@ fn test_static_pages() {
     );
 
     let valid_session_id_result =
-        server_admin_contract::admin_session_identifier::AdminSessionIdentifier::try_from(
-            String::from(constants_str::TEST_ACCESS_SESSION_ID),
-        );
+        server_admin_contract::admin_session_identifier::AdminSessionIdentifier::try_from(1i64);
     assert_eq!(valid_session_id_result.as_ref().err(), None);
     let Ok(valid_session_id) = valid_session_id_result else {
         return;
     };
     let read_session_id_result =
-        server_admin_contract::admin_access_session_id::AdminAccessSessionId::try_from(
-            String::from(constants_str::TEST_ACCESS_SESSION_ID),
-        );
+        server_admin_contract::admin_session_identifier::AdminSessionIdentifier::try_from(1i64);
     assert_eq!(read_session_id_result.as_ref().err(), None);
     let Ok(read_session_id) = read_session_id_result else {
         return;
@@ -275,11 +271,6 @@ fn test_static_pages() {
         &branding,
     );
     assert!(valid_sessions_html.as_ref().contains(read_path.as_ref()));
-    assert!(
-        valid_sessions_html
-            .as_ref()
-            .contains(constants_str::TEST_ACCESS_SESSION_ID)
-    );
     assert_eq!(
         valid_sessions_html
             .as_ref()

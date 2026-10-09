@@ -17,16 +17,12 @@ impl
         parts: &mut http::request::Parts,
         shared_admin_auth_service_state_arc: &crate::shared_admin_auth_service_state_arc::SharedAdminAuthServiceStateArc,
     ) -> Result<Self, Self::Rejection> {
-        axum::extract::Path::<uuid::Uuid>::from_request_parts(
+        axum::extract::Path::<crate::admin_session_id::AdminSessionId>::from_request_parts(
             parts,
             shared_admin_auth_service_state_arc,
         )
         .await
-        .map(|axum::extract::Path(value)| {
-            Self::from(crate::admin_session_id::AdminSessionId::from(
-                server_admin_core::uuid_admin_value::UuidAdminValue::from(value),
-            ))
-        })
+        .map(|axum::extract::Path(value)| Self::from(value))
         .map_err(|_error| crate::admin_error::AdminError::Validation)
     }
 }

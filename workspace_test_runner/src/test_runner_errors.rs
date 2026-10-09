@@ -383,9 +383,11 @@ fn test_fixture_admin_rule_value_conversion_preserves_domain_error_source() {
 #[test]
 fn test_fixture_admin_session_identifier_conversion_preserves_domain_error_source() {
     assert!(matches!(
-        fixture_domain_conversion_error::<
-            server_admin_contract::admin_session_identifier::AdminSessionIdentifier,
-        >(),
+        server_admin_contract::admin_session_identifier::AdminSessionIdentifier::try_from(
+            constants_i64::ZERO
+        )
+        .err()
+        .map(crate::admin_fixture_conversion_error::AdminFixtureConversionError::from),
         Some(
             crate::admin_fixture_conversion_error::AdminFixtureConversionError::SessionIdentifier(
                 _

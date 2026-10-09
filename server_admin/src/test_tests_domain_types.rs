@@ -418,12 +418,8 @@ fn test_access_token_round_trip_checks_issuer_and_audience() {
     let claims = crate::admin_access_claims::AdminAccessClaims::new(
         server_admin_core::admin_user_record_id::AdminUserRecordId::try_from(7)
             .expect(constants_str::DIAGNOSTIC_D6D3DA8A),
-        crate::admin_session_id::AdminSessionId::from(
-            server_admin_core::uuid_admin_value::UuidAdminValue::from(
-                uuid::Uuid::parse_str(constants_str::B871BD8F_7810_4D4B_94A1_5458D3016907)
-                    .expect(constants_str::DIAGNOSTIC_05562DA0),
-            ),
-        ),
+        crate::admin_session_id::AdminSessionId::try_from(1i64)
+            .expect(constants_str::DIAGNOSTIC_05562DA0),
         crate::admin_unix_token_stream::AdminUnixTokenStream::from(1),
         crate::admin_unix_token_stream::AdminUnixTokenStream::from(4_102_444_800),
         config_lib::admin_token_issuer::AdminTokenIssuer::try_from(
@@ -1136,13 +1132,13 @@ fn test_role_id_form_preserves_both_confirmation_values_and_rejects_invalid_fiel
 }
 
 #[test]
-fn test_revoke_session_form_preserves_text_bounds_and_both_confirmation_values() {
+fn test_revoke_session_form_preserves_positive_integer_and_both_confirmation_values() {
     [false, true].into_iter().fold((), |(), confirmation| {
-        [constants_str::EMPTY.to_owned(), constants_str::TEST_ACCESS_SESSION_ID.to_owned(), constants_str::X.repeat(64usize)]
+        [1i64, i64::MAX]
             .into_iter().fold((), |(), session_id| {
                 let body = serde_json::json!({ (stringify!(session_id)): session_id, (stringify!(confirmation)): confirmation });
                 assert!(serde_json::from_value::<crate::revoke_session_form::RevokeSessionForm>(body.clone())
-                    .is_ok_and(|form| form.get_session_id().to_string() == session_id
+                    .is_ok_and(|form| i64::from(*form.get_session_id()) == session_id
                         && bool::from(*form.get_confirmation()) == confirmation));
                 test_admin_form_rejects_invalid_fields::<crate::revoke_session_form::RevokeSessionForm, 1usize>(
                     &body, [stringify!(confirmation)]);
@@ -1498,7 +1494,7 @@ fn test_runtime_authenticated_admin_preserves_distinct_fields_and_copy_accessors
                 return false;
             };
             crate::runtime_admin_role_names::RuntimeAdminRoleNames::try_from(vec![first_role, second_role]).is_ok_and(|roles| {
-                let session_id = crate::admin_session_id::AdminSessionId::from(server_admin_core::uuid_admin_value::UuidAdminValue::from(uuid::Uuid::from_u128(17u128)));
+                let session_id = crate::admin_session_id::AdminSessionId::from(id.value());
                 let password_change_required = crate::admin_password_change_required::AdminPasswordChangeRequired::from(required);
                 let administrator = crate::runtime_authenticated_admin::RuntimeAuthenticatedAdmin::new(display_name, id, login, rules, roles, session_id, password_change_required);
                 let expected = serde_json::json!({

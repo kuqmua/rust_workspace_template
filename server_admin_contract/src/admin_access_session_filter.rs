@@ -3,6 +3,7 @@
     proc_macro_new::New,
     proc_macro_getters::Getters,
     Clone,
+    Copy,
     Debug,
     serde::Serialize,
     serde::Deserialize,

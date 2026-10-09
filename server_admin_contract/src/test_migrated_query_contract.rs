@@ -140,17 +140,7 @@ fn test_migrated_detail_page_catalog_ignores_list_queries_in_both_route_forms() 
             let (_, suffix) = parameter_tail
                 .split_once('}')
                 .expect(constants_str::DIAGNOSTIC_7ACFDFAA);
-            let identifier = if matches!(
-                admin_frontend_path,
-                crate::admin_frontend_path::AdminFrontendPath::AccessSessionRead
-                    | crate::admin_frontend_path::AdminFrontendPath::AccessSessionsRead
-                    | crate::admin_frontend_path::AdminFrontendPath::RefreshTokenRead
-                    | crate::admin_frontend_path::AdminFrontendPath::RefreshTokensRead
-            ) {
-                constants_str::TEST_REFRESH_TOKEN_ID
-            } else {
-                constants_str::VALUE_1
-            };
+            let identifier = constants_str::VALUE_1;
             let path = format!("{prefix}{identifier}{suffix}");
             assert!(
                 !bool::from(

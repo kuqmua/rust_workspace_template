@@ -22,11 +22,9 @@ pub fn render_admin_sessions_page(
         let current_text = item.is_current().to_string();
         let confirm_form_id = form_id.clone();
         let action_dialog_id = dialog_id.clone();
-        let read_path = server_admin_contract::admin_access_session_id::AdminAccessSessionId::try_from(
-            item.id().to_string(),
-        )
-        .ok()
-        .map(server_admin_contract::admin_route_path::AdminRoutePath::from);
+        let read_path = Some(server_admin_contract::admin_route_path::AdminRoutePath::from(
+            *item.id(),
+        ));
         let read_session_id = session_id.clone();
         let read_created_at = created_at.clone();
         let read_expires_at = expires_at.clone();

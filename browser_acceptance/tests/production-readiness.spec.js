@@ -64,8 +64,8 @@ async function readPermissionRuleIds(page) {
   return new Map(table.items.map(item => [Number(item.values[actionIndex]), Number(item.values[idIndex])]));
 }
 
-async function changeRequiredPassword(page, currentPassword, newPassword) {
-  await expect(page).toHaveURL(/\/admin\/profile$/);
+async function changeProfilePassword(page, currentPassword, newPassword) {
+  await page.goto("/admin/profile");
   await changePassword(page, currentPassword, newPassword);
 }
 
@@ -174,7 +174,7 @@ test("administrator password reset invalidates the old session and credentials",
     "password_lifecycle_user",
     "Lifecycle-password1!"
   );
-  await changeRequiredPassword(
+  await changeProfilePassword(
     userPage,
     "Lifecycle-password1!",
     "Lifecycle-password2!"
@@ -207,7 +207,9 @@ test("administrator password reset invalidates the old session and credentials",
     "password_lifecycle_user",
     "Lifecycle-password3!"
   );
-  await expect(resetPage).toHaveURL(/\/admin\/profile$/);
+  await expect(resetPage).toHaveURL(/\/admin\/users$/);
+  await resetPage.goto("/admin/profile");
+  await expect(resetPage.getByText("change_your_initial_password_to_unlock_administrator_navigation", { exact: true })).toHaveCount(0);
   await resetContext.close();
   await deleteUser(page, userId);
 });
@@ -226,7 +228,7 @@ test("banning blocks browser sign-in and unbanning restores access", async ({
   const userContext = await browser.newContext({ baseURL: adminOrigin });
   const userPage = await userContext.newPage();
   await signIn(userPage, "ban_lifecycle_user", "Ban-password1!");
-  await expect(userPage).toHaveURL(/\/admin\/profile$/);
+  await expect(userPage).toHaveURL(/\/admin\/users$/);
 
   const banned = await page.request.patch("/users/update", {
     data: { updates: [{ filter: { user_id: userId }, changes: { is_banned: true } }] },
@@ -243,7 +245,7 @@ test("banning blocks browser sign-in and unbanning restores access", async ({
   });
   expect(unbanned.status()).toBe(204);
   await signIn(userPage, "ban_lifecycle_user", "Ban-password1!");
-  await expect(userPage).toHaveURL(/\/admin\/profile$/);
+  await expect(userPage).toHaveURL(/\/admin\/users$/);
   await userContext.close();
   await deleteUser(page, userId);
 });
@@ -334,7 +336,8 @@ test("a read-only administrator sees only authorized navigation and mutations fa
   const context = await browser.newContext({ baseURL: adminOrigin });
   const reader = await context.newPage();
   await signIn(reader, "production_reader", "Reader-password4!");
-  await expect(reader).toHaveURL(/\/admin\/profile$/);
+  await expect(reader).toHaveURL(/\/admin\/users$/);
+  await reader.goto("/admin/profile");
   await reader.getByLabel("current_password").fill("Reader-password4!");
   await reader.getByLabel("new_password").fill("Reader-password5!");
   const passwordChanged = reader.waitForResponse(

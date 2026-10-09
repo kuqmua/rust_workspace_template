@@ -7,14 +7,14 @@
 - Login: `admin`
 - Password: `Dev-admin-2026-Ready!`
 
-The current local development administrator account was created on 2026-09-30.
-The mandatory Profile password step was completed on 2026-10-01.
+The local development database and administrator account were recreated on 2026-10-09
+through the initial migrations and administrator initialization command.
 The documented login and password remain unchanged.
 
-Creating an initial administrator or resetting its password sets
-`must_change_password=true`. After signing in, complete the password form on
-`/admin/profile` to unlock administrator navigation. Recreating the database
-requires this same step after initializing the administrator.
+Creating an initial administrator or resetting its password keeps
+`must_change_password=false`. Administrator navigation is available immediately after signing in.
+The initial schema defaults the flag to `false` and PostgreSQL rejects attempts to set it to `true`.
+The password form on `/admin/profile` remains available for voluntary password changes.
 
 Run the login check against the running local server:
 

@@ -1207,7 +1207,7 @@ mod test_data_tables {
                 .await
                 .expect(constants_str::DIAGNOSTIC_177888D3);
                 assert_ne!(replaced_password.0, password_hash);
-                assert!(replaced_password.1);
+                assert!(!replaced_password.1);
                 let revoked_sessions = sqlx::query_scalar::<_, i64>(
                     constants_str::SERVER_ADMIN_COUNT_ACTIVE_SESSIONS_SQL,
                 )
@@ -2559,7 +2559,7 @@ mod test_flow {
         .fetch_one(&pool.0)
         .await
         .expect(constants_str::DIAGNOSTIC_81F3C9D2);
-        assert!(password_change_required);
+        assert!(!password_change_required);
         let original_password_hash = sqlx::query_scalar::<_, String>(
             constants_str::SELECT_PASSWORD_HASH_FROM_ADMIN_USERS_WHERE_LOGIN_ADMIN,
         )
@@ -2854,23 +2854,6 @@ mod test_flow {
         assert_eq!(
             limited_response.status(),
             http::StatusCode::TOO_MANY_REQUESTS
-        );
-        let password_change_gate_response = tower::ServiceExt::oneshot(
-        crate::router_with_pool(&pool).0,
-        crate::request_with_peer(
-            super::HttpAdminApiTestMethod::from(http::Method::POST),
-            super::StdAdminApiTestStrRef::from(frontend_contract::typed_route_path::typed_route_path::<server_admin_contract::admin_create_user_route::AdminCreateUserRoute>().as_ref()),
-            super::StdAdminApiTestStrRef::from(constants_str::LOGIN_LIMITED_USER_DISPLAY_NAME_LIMITED_USER_PASSWORD_LIMITED_PASSWORD_ARRAY),
-            Some(super::StdAdminApiTestStrRef::from(active_cookie.as_str())),
-            Some(super::StdAdminApiTestStrRef::from(refreshed_csrf.0.as_str())),
-        )
-        .0,
-    )
-    .await
-    .expect(constants_str::DIAGNOSTIC_D78B315C);
-        assert_eq!(
-            password_change_gate_response.status(),
-            http::StatusCode::FORBIDDEN
         );
         let change_password_response = tower::ServiceExt::oneshot(
             crate::router_with_pool(&pool).0,
@@ -4598,15 +4581,25 @@ mod test_html {
     }
     #[tokio::test]
     #[ignore = "requires PostgreSQL; run through workspace_test_runner database"]
-    async fn test_postgresql_initial_administrator_password_must_change_before_admin_access() {
-        let fixture = crate::admin_html_test_fixture_with_password_change(
-            server_admin_contract::admin_bool::AdminBool::from(true),
+    async fn test_postgresql_initial_administrator_password_allows_immediate_admin_access() {
+        let fixture = crate::admin_html_test_fixture_with_configuration(
             crate::env::<config_lib::admin_session_limit::AdminSessionLimit>(
                 crate::StdAdminApiTestStrRef::from(constants_str::VALUE_20),
             ),
             None,
         )
         .await;
+        assert!(
+            sqlx::query(constants_str::ADMIN_TEST_ENABLE_PASSWORD_CHANGE_SQL)
+                .execute(&fixture.pool.0)
+                .await
+                .is_err_and(
+                    |error| error.as_database_error().is_some_and(|database_error| {
+                        database_error.constraint()
+                            == Some(constants_str::ADMIN_PASSWORD_CHANGE_DISABLED_CONSTRAINT)
+                    })
+                )
+        );
         let users_response = crate::admin_html_response(
             &fixture,
             super::HttpAdminApiTestMethod::from(http::Method::GET),
@@ -4616,13 +4609,7 @@ mod test_html {
             super::StdAdminApiTestStrRef::from(constants_str::PG_CRUD_EMPTY_SQL_SUFFIX),
         )
         .await;
-        assert_eq!(users_response.status(), http::StatusCode::SEE_OTHER);
-        assert_eq!(
-            users_response.headers().get(http::header::LOCATION),
-            Some(&http::HeaderValue::from_static(
-                server_admin_contract::admin_frontend_path::AdminFrontendPath::Profile.get(),
-            ))
-        );
+        assert_eq!(users_response.status(), http::StatusCode::OK);
         let profile_response = crate::admin_html_response(
             &fixture,
             super::HttpAdminApiTestMethod::from(http::Method::GET),
@@ -4701,11 +4688,11 @@ mod test_html {
         .await
         .expect(constants_str::DIAGNOSTIC_C09B5E4E);
         let (current_session_id, user_id) =
-            sqlx::query_as::<_, (uuid::Uuid, i64)>(constants_str::VALUE_9605FF41)
+            sqlx::query_as::<_, (i64, i64)>(constants_str::VALUE_9605FF41)
                 .fetch_one(&fixture.pool.0)
                 .await
                 .expect(constants_str::DIAGNOSTIC_AE46B7C1);
-        let other_session_id = uuid::Uuid::from_u128(2u128);
+        let other_session_id = 1_000_000i64;
         let _inserted_other_session = sqlx::query(constants_str::VALUE_324717BB)
             .bind(other_session_id)
             .bind(user_id)
@@ -4713,7 +4700,7 @@ mod test_html {
             .await
             .expect(constants_str::DIAGNOSTIC_3E216ECD);
         let _inserted_other_refresh_token = sqlx::query(constants_str::VALUE_0FCC992D)
-            .bind(uuid::Uuid::from_u128(3u128))
+            .bind(1_000_000i64)
             .bind(user_id)
             .bind(other_session_id)
             .execute(&fixture.pool.0)
@@ -4800,16 +4787,14 @@ mod test_html {
         .fetch_one(&fixture.pool.0)
         .await
         .expect(constants_str::DIAGNOSTIC_16A59A42);
-        let session_id = uuid::Uuid::from_u128(2u128);
+        let session_id = 1_000_000i64;
         let _inserted = sqlx::query(constants_str::VALUE_324717BB)
             .bind(session_id)
             .bind(user_id)
             .execute(&fixture.pool.0)
             .await
             .expect(constants_str::DIAGNOSTIC_3538E3FC);
-        let refresh_token_id = uuid::Uuid::from_u128(3u128);
         let inserted_refresh = sqlx::query(constants_str::SERVER_ADMIN_INSERT_REFRESH_TOKEN_SQL)
-            .bind(refresh_token_id)
             .bind(user_id)
             .bind(session_id)
             .bind(constants_str::FIXED_TEST_TOKEN)
@@ -4870,16 +4855,15 @@ mod test_html {
         .fetch_one(&fixture.pool.0)
         .await
         .expect(constants_str::DIAGNOSTIC_7F0A7C64);
-        let (session_id, _created_at, _expires_at) =
-            sqlx::query_as::<_, (uuid::Uuid, String, String)>(
-                constants_str::SERVER_ADMIN_LIST_ACTIVE_SESSIONS_SQL,
-            )
-            .bind(admin_id)
-            .bind(100i64)
-            .bind(constants_i64::ZERO)
-            .fetch_one(&fixture.pool.0)
-            .await
-            .expect(constants_str::DIAGNOSTIC_32E44A86);
+        let (session_id, _created_at, _expires_at) = sqlx::query_as::<_, (i64, String, String)>(
+            constants_str::SERVER_ADMIN_LIST_ACTIVE_SESSIONS_SQL,
+        )
+        .bind(admin_id)
+        .bind(100i64)
+        .bind(constants_i64::ZERO)
+        .fetch_one(&fixture.pool.0)
+        .await
+        .expect(constants_str::DIAGNOSTIC_32E44A86);
         let sessions_response = crate::admin_html_response(
             &fixture,
             super::HttpAdminApiTestMethod::from(http::Method::GET),
@@ -6061,26 +6045,12 @@ mod test_migrated_api {
                 let (_, suffix) = parameter
                     .split_once('}')
                     .expect(constants_str::DIAGNOSTIC_C57D5164);
-                let uuid_identifier = matches!(path,
-                server_admin_contract::admin_frontend_path::AdminFrontendPath::AccessSessionRead
-                | server_admin_contract::admin_frontend_path::AdminFrontendPath::AccessSessionsRead
-                | server_admin_contract::admin_frontend_path::AdminFrontendPath::RefreshTokenRead
-                | server_admin_contract::admin_frontend_path::AdminFrontendPath::RefreshTokensRead);
-                let identifiers = if uuid_identifier {
-                    [
-                        constants_str::VALUE_1,
-                        constants_str::VALUE_F1234D75,
-                        constants_str::MIGRATION_8A132833,
-                        constants_str::VALUE_0,
-                    ]
-                } else {
-                    [
-                        constants_str::VALUE_0,
-                        constants_str::MIGRATION_1BAD6B8C,
-                        constants_str::VALUE_F1234D75,
-                        constants_str::MIGRATION_C5C29AF0,
-                    ]
-                };
+                let identifiers = [
+                    constants_str::VALUE_0,
+                    constants_str::MIGRATION_1BAD6B8C,
+                    constants_str::VALUE_F1234D75,
+                    constants_str::MIGRATION_C5C29AF0,
+                ];
                 futures::StreamExt::fold(
                     futures::stream::iter(identifiers),
                     (),
@@ -6111,11 +6081,7 @@ mod test_migrated_api {
                     },
                 )
                 .await;
-                let identifier = if uuid_identifier {
-                    constants_str::TEST_REFRESH_TOKEN_ID
-                } else {
-                    constants_str::VALUE_1
-                };
+                let identifier = constants_str::VALUE_1;
                 let uri = format!("{prefix}{identifier}{suffix}");
                 let response = tower::ServiceExt::oneshot(
                     fixture.router.0.clone(),
@@ -6503,8 +6469,7 @@ mod test_migrated_api {
     #[tokio::test]
     #[ignore = "requires PostgreSQL; run through workspace_test_runner database"]
     async fn test_postgresql_session_limit_evicts_only_oldest_session() {
-        let fixture = crate::admin_html_test_fixture_with_password_change(
-            server_admin_contract::admin_bool::AdminBool::from(false),
+        let fixture = crate::admin_html_test_fixture_with_configuration(
             crate::env::<config_lib::admin_session_limit::AdminSessionLimit>(
                 crate::StdAdminApiTestStrRef::from(constants_str::VALUE_2),
             ),
@@ -7721,7 +7686,7 @@ mod test_typed_session_revocation {
         let Ok(user_id) = user_result else {
             return;
         };
-        let session_id = uuid::Uuid::from_u128(2u128);
+        let session_id = 1_000_000i64;
         let inserted = sqlx::query(constants_str::VALUE_324717BB)
             .bind(session_id)
             .bind(user_id)
@@ -7729,7 +7694,6 @@ mod test_typed_session_revocation {
             .await;
         assert!(inserted.is_ok_and(|result| result.rows_affected() == 1u64));
         let refresh_inserted = sqlx::query(constants_str::SERVER_ADMIN_INSERT_REFRESH_TOKEN_SQL)
-            .bind(uuid::Uuid::from_u128(3u128))
             .bind(user_id)
             .bind(session_id)
             .bind(constants_str::FIXED_TEST_TOKEN)
@@ -7746,7 +7710,7 @@ mod test_typed_session_revocation {
         );
         let invalid_path = template.as_ref().replace(
             constants_str::ADMIN_SESSION_ID_PLACEHOLDER,
-            constants_str::VALUE_1,
+            constants_str::VALUE_0,
         );
         let delete_session =
             async |std_admin_api_test_str_ref: crate::StdAdminApiTestStrRef<'_>,
@@ -8382,7 +8346,7 @@ mod test_administrator_password_reset {
             )
             .fetch_one(&fixture.pool.0)
             .await
-            .is_ok_and(|required| required)
+            .is_ok_and(|required| !required)
         );
         assert!(
             sqlx::query_scalar::<_, i64>(constants_str::SERVER_ADMIN_COUNT_ACTIVE_SESSIONS_SQL)
@@ -8508,7 +8472,7 @@ mod test_session_current_filter {
             return;
         };
         let inserted = sqlx::query(constants_str::VALUE_324717BB)
-            .bind(uuid::Uuid::from_u128(2u128))
+            .bind(1_000_000i64)
             .bind(user_id)
             .execute(&fixture.pool.0)
             .await;
@@ -8666,17 +8630,18 @@ mod test_session_current_filter {
                         .items()
                         .iter()
                         .all(|session| {
+                            let session_id = i64::from(*session.id());
                             session.is_current() == admin_bool
-                                && uuid::Uuid::parse_str(&session.id().to_string()).is_ok_and(|session_id| {
-                                    (session_id == uuid::Uuid::from_u128(2u128)) != bool::from(admin_bool)
+                                && {
+                                    (session_id == 1_000_000i64) != bool::from(admin_bool)
                                         && expected_session_rows.iter().any(|row| {
-                                            sqlx::Row::try_get::<uuid::Uuid, _>(row, constants_str::SQL_NAMES_ID).is_ok_and(|stored_session_id| {
+                                            sqlx::Row::try_get::<i64, _>(row, constants_str::SQL_NAMES_ID).is_ok_and(|stored_session_id| {
                                                 stored_session_id == session_id
                                                     && sqlx::Row::try_get::<String, _>(row, constants_str::CREATED_AT).is_ok_and(|created_at| created_at == session.created_at().to_string())
                                                     && sqlx::Row::try_get::<String, _>(row, constants_str::EXPIRES_AT).is_ok_and(|expires_at| expires_at == session.expires_at().to_string())
                                             })
                                         })
-                                })
+                                }
                         })
             })
         };
@@ -8783,8 +8748,7 @@ mod test_html_swagger_forwarding {
     async fn test_html_router_with_swagger_preserves_flag_and_common_pages() {
         let verify = async |admin_html_swagger_enabled: server_admin::admin_html_swagger_enabled::AdminHtmlSwaggerEnabled| {
             let enabled = *admin_html_swagger_enabled.get_inner();
-            let fixture = crate::admin_html_test_fixture_with_password_change(
-                server_admin_contract::admin_bool::AdminBool::from(false),
+            let fixture = crate::admin_html_test_fixture_with_configuration(
                 crate::env::<config_lib::admin_session_limit::AdminSessionLimit>(crate::StdAdminApiTestStrRef::from(constants_str::VALUE_20)),
                 Some(admin_html_swagger_enabled),
             ).await;
@@ -9267,8 +9231,7 @@ fn assert_admin_csr_shell(admin_html_test_body: &AdminHtmlTestBody) {
     clippy::missing_assert_message,
     reason = "the asserted status identifies the failed fixture stage"
 )]
-async fn admin_html_test_fixture_with_password_change(
-    admin_bool: server_admin_contract::admin_bool::AdminBool,
+async fn admin_html_test_fixture_with_configuration(
     admin_session_limit: config_lib::admin_session_limit::AdminSessionLimit,
     admin_html_swagger_enabled: Option<
         server_admin::admin_html_swagger_enabled::AdminHtmlSwaggerEnabled,
@@ -9332,13 +9295,6 @@ async fn admin_html_test_fixture_with_password_change(
         )
         .await
         .expect(constants_str::DIAGNOSTIC_1E29C87F);
-    if !bool::from(admin_bool) {
-        let _updated =
-            sqlx::query(constants_str::UPDATE_ADMIN_USERS_SET_MUST_CHANGE_PASSWORD_FALSE)
-                .execute(&pool.0)
-                .await
-                .expect(constants_str::DIAGNOSTIC_A37042F1);
-    }
     let state = server_admin::admin_auth_service_state::AdminAuthServiceState::try_new(
         app_state::sqlx_pg_pool::SqlxPgPool::from(pool.0.clone()),
         &env::<config_lib::admin_jwt_secret::AdminJwtSecret>(StdAdminApiTestStrRef::from(
@@ -9437,8 +9393,7 @@ async fn admin_html_test_fixture_with_password_change(
     }
 }
 async fn admin_html_test_fixture() -> AdminHtmlTestFixture {
-    admin_html_test_fixture_with_password_change(
-        server_admin_contract::admin_bool::AdminBool::from(false),
+    admin_html_test_fixture_with_configuration(
         env::<config_lib::admin_session_limit::AdminSessionLimit>(StdAdminApiTestStrRef::from(
             constants_str::VALUE_20,
         )),

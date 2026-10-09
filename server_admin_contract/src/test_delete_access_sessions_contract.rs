@@ -4,7 +4,7 @@ fn test_delete_access_sessions_request_preserves_filter() {
         crate::admin_delete_access_sessions_request::AdminDeleteAccessSessionsRequest,
     >(serde_json::json!({
         (stringify!(filter)): {
-            (stringify!(session_id)): constants_str::VALUE_4943E43B,
+            (stringify!(session_id)): 1i64,
             (stringify!(user_id)): 1i64,
         }
     }));
@@ -41,7 +41,7 @@ fn test_delete_access_sessions_request_rejects_invalid_filter_fields() {
         [
             serde_json::json!({(stringify!(filter)): {(stringify!(user_id)): 0i64}}),
             serde_json::json!({(stringify!(filter)): {(stringify!(unknown)): constants_str::VALUE_4943E43B}}),
-            serde_json::json!({(stringify!(session_id)): constants_str::VALUE_4943E43B}),
+            serde_json::json!({(stringify!(session_id)): 1i64}),
         ]
         .into_iter()
         .all(|request| serde_json::from_value::<

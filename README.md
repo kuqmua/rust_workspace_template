@@ -83,6 +83,16 @@ repository and remove it after the command succeeds. The administrator command a
 migrations, creates the first account, and assigns the system administrator role. Run it once for
 a fresh database; subsequent server starts use the normal `cargo run` command.
 
+Administrator passwords do not require a mandatory change after account creation or a password
+reset. The initial schema sets `must_change_password` to `false` and enforces that value in
+PostgreSQL. Administrators can still change their own passwords in the profile.
+
+Session IDs use PostgreSQL-generated positive `BIGINT` values from the initial schema.
+Refresh-token session references use the same numeric type; refresh-token IDs and token secrets
+retain their existing formats. The two migrations create the schema and seed the permission
+catalog directly. Databases created with the previous migration history must be recreated before
+running the administrator initialization command and starting the server.
+
 `cargo run` prepares the browser assets before starting the server. It requires
 Node.js 22 or newer and Trunk; see [frontend setup](frontend_admin/README.md). Rust startup code uses
 incremental build caches, refreshes npm dependencies when needed, and stops if frontend

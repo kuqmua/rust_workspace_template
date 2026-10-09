@@ -295,9 +295,10 @@ pub(crate) fn run_admin_fixture_cli() -> crate::runner_cli_outcome::RunnerCliOut
                     constants_str::ADMIN_FIXTURE_SESSION_EXPIRES_AT,
                 ))
                 .map_err(render_admin_fixture_conversion_error)?,
-                crate::create_admin_fixture_string::create_admin_fixture_string::<
-                    server_admin_contract::admin_session_identifier::AdminSessionIdentifier,
-                >(String::from(constants_str::ADMIN_FIXTURE_SESSION_ID))
+                server_admin_contract::admin_session_identifier::AdminSessionIdentifier::try_from(
+                    constants_i64::ONE,
+                )
+                .map_err(crate::admin_fixture_conversion_error::AdminFixtureConversionError::from)
                 .map_err(render_admin_fixture_conversion_error)?,
                 server_admin_contract::admin_bool::AdminBool::from(true),
             ),
@@ -314,9 +315,10 @@ pub(crate) fn run_admin_fixture_cli() -> crate::runner_cli_outcome::RunnerCliOut
                     constants_str::ADMIN_FIXTURE_SESSION_EXPIRES_AT,
                 ))
                 .map_err(render_admin_fixture_conversion_error)?,
-                crate::create_admin_fixture_string::create_admin_fixture_string::<
-                    server_admin_contract::admin_session_identifier::AdminSessionIdentifier,
-                >(String::from(constants_str::ADMIN_FIXTURE_SECOND_SESSION_ID))
+                server_admin_contract::admin_session_identifier::AdminSessionIdentifier::try_from(
+                    2i64,
+                )
+                .map_err(crate::admin_fixture_conversion_error::AdminFixtureConversionError::from)
                 .map_err(render_admin_fixture_conversion_error)?,
                 server_admin_contract::admin_bool::AdminBool::from(false),
             ),

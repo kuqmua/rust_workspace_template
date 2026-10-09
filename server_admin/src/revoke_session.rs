@@ -14,17 +14,8 @@ pub(crate) async fn revoke_session(
             crate::admin_error::AdminError::Validation,
         );
     }
-    let session_id = axum_admin_form
-        .get_session_id()
-        .to_string()
-        .parse::<uuid::Uuid>()
-        .map(server_admin_core::uuid_admin_value::UuidAdminValue::from)
-        .map(crate::admin_session_id::AdminSessionId::from);
-    let Ok(session_id) = session_id else {
-        return axum::response::IntoResponse::into_response(
-            crate::admin_error::AdminError::Validation,
-        );
-    };
+    let session_id =
+        crate::admin_session_id::AdminSessionId::from(axum_admin_form.get_session_id().value());
     match crate::form_auth_impl::form_auth_impl(admin_auth_request) {
         Ok(auth) => {
             match crate::sessions_revoke_session::sessions_revoke_session(

@@ -3,10 +3,11 @@ CREATE TABLE users (
     login TEXT NOT NULL,
     display_name TEXT NOT NULL,
     password_hash TEXT NOT NULL,
-    must_change_password BOOLEAN NOT NULL DEFAULT TRUE,
+    must_change_password BOOLEAN NOT NULL DEFAULT FALSE,
     is_banned BOOLEAN NOT NULL DEFAULT FALSE,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    CONSTRAINT users_password_change_disabled CHECK (NOT must_change_password),
     CONSTRAINT users_login_length CHECK (char_length(login) BETWEEN 3 AND 128),
     CONSTRAINT users_login_format CHECK (login = lower(login) AND login ~ '^[a-z0-9_.-]+$'),
     CONSTRAINT users_display_name_length CHECK (char_length(display_name) BETWEEN 1 AND 256),
@@ -174,13 +175,13 @@ CREATE TABLE role_rules (
 );
 CREATE INDEX role_rules_rule_id_idx ON role_rules (rule_id);
 CREATE TABLE refresh_tokens (
-    id UUID PRIMARY KEY,
+    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     token_hash TEXT NOT NULL UNIQUE,
     expires_at TIMESTAMPTZ NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     revoked_at TIMESTAMPTZ,
-    session_id UUID,
+    session_id BIGINT,
     CONSTRAINT refresh_tokens_hash_not_empty CHECK (char_length(token_hash) > 0),
     CONSTRAINT refresh_tokens_expires_after_created CHECK (expires_at > created_at),
     CONSTRAINT refresh_tokens_revoked_after_created CHECK (revoked_at IS NULL OR revoked_at >= created_at),
@@ -190,7 +191,7 @@ CREATE INDEX refresh_tokens_user_expiry_idx ON refresh_tokens (user_id, expires_
 CREATE INDEX refresh_tokens_active_session_idx ON refresh_tokens (session_id)
     WHERE revoked_at IS NULL;
 CREATE TABLE access_sessions (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     token_identifier_hash TEXT NOT NULL UNIQUE,
     csrf_token_hash TEXT NOT NULL,

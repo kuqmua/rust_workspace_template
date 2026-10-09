@@ -466,10 +466,8 @@ fn test_page_pagination_accepts_nonnegative_signed_integer_deserializers() {
 }
 #[test]
 fn test_parameterized_admin_route_path_uses_typed_route_metadata() {
-    let session_id = crate::admin_session_identifier::AdminSessionIdentifier::try_from(
-        String::from(constants_str::VALUE_4943E43B),
-    )
-    .expect(constants_str::DIAGNOSTIC_84D51132);
+    let session_id = crate::admin_session_identifier::AdminSessionIdentifier::try_from(1i64)
+        .expect(constants_str::DIAGNOSTIC_84D51132);
     let admin_path_result = crate::admin_parameterized_route_path::admin_parameterized_route_path::<
         crate::admin_revoke_session_route::AdminRevokeSessionRoute,
     >(&session_id);

@@ -157,13 +157,7 @@ fn test_every_generated_table_identifier_filter_preserves_wire_type_and_parse_er
         crate::admin_generated_table::AdminGeneratedTable::ALL
             .iter()
             .all(|table| {
-                let uuid_identifier =
-                    *table == crate::admin_generated_table::AdminGeneratedTable::AccessSessions;
-                let value = if uuid_identifier {
-                    constants_str::VALUE_550E8400_E29B_41D4_A716_446655440000
-                } else {
-                    stringify!(7)
-                };
+                let value = stringify!(7);
                 table
                     .field_contracts()
                     .as_ref()
@@ -178,15 +172,8 @@ fn test_every_generated_table_identifier_filter_preserves_wire_type_and_parse_er
                         )
                         .is_some_and(|wire| {
                             wire.is_ok_and(|wire| {
-                                serde_json::from_str::<serde_json::Value>(wire.as_ref()).is_ok_and(
-                                    |json| {
-                                        if uuid_identifier {
-                                            json.as_str() == Some(value)
-                                        } else {
-                                            json.as_i64() == Some(7i64)
-                                        }
-                                    },
-                                )
+                                serde_json::from_str::<serde_json::Value>(wire.as_ref())
+                                    .is_ok_and(|json| json.as_i64() == Some(7i64))
                             })
                         })
                     && matches!(

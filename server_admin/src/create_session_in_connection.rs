@@ -13,10 +13,7 @@ pub(crate) async fn create_session_in_connection(
             crate::admin_unix_token_stream::AdminUnixTokenStream::from(duration.as_secs())
         })
         .map_err(|_error| crate::admin_session_error::AdminSessionError::SystemClock)?;
-    let session_uuid = uuid::Uuid::new_v4();
-    let session_id = crate::admin_session_id::AdminSessionId::from(
-        server_admin_core::uuid_admin_value::UuidAdminValue::from(session_uuid),
-    );
+    let token_identifier_uuid = uuid::Uuid::new_v4();
     let refresh_generated = crate::admin_generated_token::AdminGeneratedToken::generate()
         .map_err(crate::admin_session_error::AdminSessionError::SecretText)?;
     let refresh_hash =
@@ -31,7 +28,7 @@ pub(crate) async fn create_session_in_connection(
     let csrf_generated = crate::admin_generated_token::AdminGeneratedToken::generate()
         .map_err(crate::admin_session_error::AdminSessionError::SecretText)?;
     let token_identifier = server_admin_core::secrecy_admin_string::SecrecyAdminString::try_from(
-        server_admin_core::uuid_admin_value::UuidAdminValue::from(session_uuid)
+        server_admin_core::uuid_admin_value::UuidAdminValue::from(token_identifier_uuid)
             .get()
             .to_string(),
     )
@@ -44,27 +41,6 @@ pub(crate) async fn create_session_in_connection(
         now.get()
             .saturating_add(admin_auth_service_state.get_access_ttl().get()),
     );
-    let claims = crate::admin_access_claims::AdminAccessClaims::new(
-        admin_user_record_id,
-        session_id,
-        now,
-        expires_at,
-        admin_auth_service_state.get_issuer().clone(),
-        admin_auth_service_state.get_audience().clone(),
-    );
-    let access_token = jsonwebtoken::encode(
-        &jsonwebtoken::Header::new(jsonwebtoken::Algorithm::HS256),
-        &claims,
-        admin_auth_service_state.get_encoding_key().get_inner(),
-    )
-    .map_err(crate::jsonwebtoken_admin_error::JsonwebtokenAdminError::from)
-    .map_err(crate::admin_access_token_error::AdminAccessTokenError::from)
-    .map_err(crate::admin_session_error::AdminSessionError::AccessToken)
-    .and_then(|value| {
-        crate::std_admin_access_token::StdAdminAccessToken::try_from(value)
-            .map_err(crate::admin_secret_text_error::AdminSecretTextError::from)
-            .map_err(crate::admin_session_error::AdminSessionError::SecretText)
-    })?;
     let session_offset = i64::try_from(
         admin_auth_service_state
             .get_session_limit()
@@ -86,20 +62,46 @@ pub(crate) async fn create_session_in_connection(
         .await
         .map_err(crate::sqlx_admin_error::SqlxAdminError::from)
         .map_err(crate::admin_session_error::AdminSessionError::Pg)?;
-    sqlx::query(constants_str::SERVER_ADMIN_INSERT_ACCESS_SESSION_SQL)
-        .bind(session_id.get().get())
-        .bind(admin_user_record_id.get())
-        .bind(token_identifier_hash.expose().as_ref())
-        .bind(admin_token_hash.expose().as_ref())
-        .bind(csrf_generated.hash().expose().as_ref())
-        .bind(i64::try_from(admin_auth_service_state.get_access_ttl().get()).unwrap_or(i64::MAX))
-        .execute(sqlx_admin_repository_connection_mut_ref.as_mut())
-        .await
-        .map_err(crate::sqlx_admin_error::SqlxAdminError::from)
-        .map_err(crate::admin_session_error::AdminSessionError::Pg)
-        .map(drop)?;
+    let session_id =
+        sqlx::query_scalar::<_, i64>(constants_str::SERVER_ADMIN_INSERT_ACCESS_SESSION_SQL)
+            .bind(admin_user_record_id.get())
+            .bind(token_identifier_hash.expose().as_ref())
+            .bind(admin_token_hash.expose().as_ref())
+            .bind(csrf_generated.hash().expose().as_ref())
+            .bind(
+                i64::try_from(admin_auth_service_state.get_access_ttl().get()).unwrap_or(i64::MAX),
+            )
+            .fetch_one(sqlx_admin_repository_connection_mut_ref.as_mut())
+            .await
+            .map_err(crate::sqlx_admin_error::SqlxAdminError::from)
+            .map_err(crate::admin_session_error::AdminSessionError::Pg)
+            .and_then(|value| {
+                crate::admin_session_id::AdminSessionId::try_from(value)
+                    .map_err(crate::sqlx_admin_error::SqlxAdminError::from)
+                    .map_err(crate::admin_session_error::AdminSessionError::Pg)
+            })?;
+    let claims = crate::admin_access_claims::AdminAccessClaims::new(
+        admin_user_record_id,
+        session_id,
+        now,
+        expires_at,
+        admin_auth_service_state.get_issuer().clone(),
+        admin_auth_service_state.get_audience().clone(),
+    );
+    let access_token = jsonwebtoken::encode(
+        &jsonwebtoken::Header::new(jsonwebtoken::Algorithm::HS256),
+        &claims,
+        admin_auth_service_state.get_encoding_key().get_inner(),
+    )
+    .map_err(crate::jsonwebtoken_admin_error::JsonwebtokenAdminError::from)
+    .map_err(crate::admin_access_token_error::AdminAccessTokenError::from)
+    .map_err(crate::admin_session_error::AdminSessionError::AccessToken)
+    .and_then(|value| {
+        crate::std_admin_access_token::StdAdminAccessToken::try_from(value)
+            .map_err(crate::admin_secret_text_error::AdminSecretTextError::from)
+            .map_err(crate::admin_session_error::AdminSessionError::SecretText)
+    })?;
     sqlx::query(constants_str::SERVER_ADMIN_INSERT_REFRESH_TOKEN_SQL)
-        .bind(server_admin_core::uuid_admin_value::UuidAdminValue::from(uuid::Uuid::new_v4()).get())
         .bind(admin_user_record_id.get())
         .bind(session_id.get().get())
         .bind(refresh_hash.expose().as_ref())

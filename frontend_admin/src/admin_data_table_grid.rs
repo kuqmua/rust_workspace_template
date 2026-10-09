@@ -87,14 +87,16 @@ pub(crate) fn admin_data_table_grid(
                     .and_then(|value| server_admin_contract::admin_role_rule_id::AdminRoleRuleId::try_from(value).ok())
                     .map(server_admin_contract::admin_route_path::AdminRoutePath::from),
                 server_admin_contract::admin_data_table::AdminDataTable::RefreshTokens => row_identifier
-                    .map(str::to_owned)
-                    .map(server_admin_contract::admin_refresh_token_id::AdminRefreshTokenId::try_from)
-                    .and_then(Result::ok)
+                    .and_then(|value| value.parse::<i64>().ok())
+                    .and_then(|value| server_admin_contract::admin_refresh_token_id::AdminRefreshTokenId::try_from(value).ok())
+                    .map(server_admin_contract::admin_route_path::AdminRoutePath::from),
+                server_admin_contract::admin_data_table::AdminDataTable::AccessSessions if is_sessions => row_identifier
+                    .and_then(|value| value.parse::<i64>().ok())
+                    .and_then(|value| server_admin_contract::admin_session_identifier::AdminSessionIdentifier::try_from(value).ok())
                     .map(server_admin_contract::admin_route_path::AdminRoutePath::from),
                 server_admin_contract::admin_data_table::AdminDataTable::AccessSessions => row_identifier
-                    .map(str::to_owned)
-                    .map(server_admin_contract::admin_access_session_id::AdminAccessSessionId::try_from)
-                    .and_then(Result::ok)
+                    .and_then(|value| value.parse::<i64>().ok())
+                    .and_then(|value| server_admin_contract::admin_access_session_id::AdminAccessSessionId::try_from(value).ok())
                     .map(server_admin_contract::admin_route_path::AdminRoutePath::from),
                 server_admin_contract::admin_data_table::AdminDataTable::LoginAttempts => row_identifier
                     .and_then(|value| value.parse::<i64>().ok())
@@ -192,7 +194,7 @@ pub(crate) fn admin_data_table_grid(
                 #[cfg(target_arch = "wasm32")]
                 let actions = if is_sessions {
                     let session_identifier = row_identifier
-                        .and_then(|value| server_admin_contract::admin_session_identifier::AdminSessionIdentifier::try_from(value.to_owned()).ok());
+                        .and_then(|value| server_admin_contract::admin_session_identifier::AdminSessionIdentifier::try_from(value.parse::<i64>().ok()?).ok());
                     if let Some(revoke_session_id) = session_identifier {
                         let dialog_id = format!("revoke-session-{revoke_session_id}");
                         leptos::prelude::IntoAny::into_any(leptos::view! {

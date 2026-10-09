@@ -228,7 +228,7 @@ pub(crate) async fn sessions(
         .map_err(crate::admin_error::AdminError::from)?
         .into_iter()
         .map(|row| {
-            let id = sqlx::Row::try_get::<uuid::Uuid, _>(&row, constants_usize::ZERO)
+            let id = sqlx::Row::try_get::<i64, _>(&row, constants_usize::ZERO)
                 .map_err(crate::sqlx_admin_error::SqlxAdminError::from)
                 .map_err(crate::admin_repository_error::AdminRepositoryError::from)?;
             let created_at = sqlx::Row::try_get::<String, _>(&row, constants_usize::ONE)
@@ -252,7 +252,7 @@ pub(crate) async fn sessions(
                     crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue
                 })?,
                 server_admin_contract::admin_session_identifier::AdminSessionIdentifier::try_from(
-                    id.to_string(),
+                    id,
                 )
                 .map_err(|_error| {
                     crate::admin_repository_error::AdminRepositoryError::InvalidStoredValue

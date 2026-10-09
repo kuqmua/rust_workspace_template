@@ -10,6 +10,14 @@
     utoipa::ToSchema,
     proc_macro_newtype_from_inner::FromInner,
 )]
-#[serde(from = "server_admin_core::uuid_admin_value::UuidAdminValue")]
+#[serde(try_from = "i64")]
 #[derive(proc_macro_getters::Getters)]
-pub struct AdminSessionId(#[getters(copy)] server_admin_core::uuid_admin_value::UuidAdminValue);
+pub struct AdminSessionId(
+    #[getters(copy)] server_admin_contract::positive_non_zero_i64::PositiveNonZeroI64,
+);
+impl TryFrom<i64> for AdminSessionId {
+    type Error = server_admin_contract::admin_id_try_from_i64_error::AdminIdTryFromI64Error;
+    fn try_from(value: i64) -> Result<Self, Self::Error> {
+        server_admin_contract::positive_non_zero_i64::PositiveNonZeroI64::try_from(value).map(Self)
+    }
+}

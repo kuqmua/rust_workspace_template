@@ -63,7 +63,7 @@ pub async fn reset_admin_password(
         ),
         user_id,
         &password_hash,
-        crate::admin_password_change_required::AdminPasswordChangeRequired::from(true),
+        crate::admin_password_change_required::AdminPasswordChangeRequired::from(false),
     )
     .await
     .map_err(crate::admin_password_reset_error::AdminPasswordResetError::Pg)?

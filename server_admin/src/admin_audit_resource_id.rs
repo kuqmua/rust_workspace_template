@@ -20,7 +20,7 @@ impl AdminAuditResourceId {
                 )
             }
             Self::Session(value) => {
-                server_admin_core::std_admin_string::StdAdminString::from_uuid(value.get())
+                server_admin_core::std_admin_string::StdAdminString::from_positive_i64(value.get())
             }
             Self::SystemSettings => {
                 server_admin_core::std_admin_string::StdAdminString::system_settings_resource()

@@ -1154,7 +1154,7 @@ fn test_active_sessions_filter_appends_typed_predicate_after_owner_parameter() {
     let query = filter_query(
         constants_str::SQL_NAMES_ID,
         frontend_contract::filter_operation::FilterOperation::Eq,
-        Some(constants_str::VALUE_550E8400_E29B_41D4_A716_446655440000),
+        Some(constants_str::VALUE_42),
         None,
     );
     let filter = crate::data_filter::data_filter(

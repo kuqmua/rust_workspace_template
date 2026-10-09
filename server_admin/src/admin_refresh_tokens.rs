@@ -27,10 +27,10 @@
 #[derive(proc_macro_getters::Getters)]
 pub struct AdminRefreshTokens {
     #[generate_pg_table_primary_key]
-    id: pg_types_text_misc::generate_pg_types_mod::SqlxTypesUuidUuidAsNonNullUuidV4InitializationByPg,
+    id: pg_types_numeric::generate_pg_types_mod::I64AsNonNullBigSerialInitializationByPg,
     user_id: pg_types_numeric::generate_pg_types_mod::I64AsNonNullInt8,
     session_id:
-        pg_types_text_misc::generate_pg_types_mod::OptionalSqlxTypesUuidUuidAsNullableUuidInitializationByClient,
+        pg_types_numeric::generate_pg_types_mod::OptionalI64AsNullableInt8,
     token_hash: pg_types_text_misc::generate_pg_types_mod::StringAsNonNullText,
     expires_at:
         pg_types_chrono_net::generate_pg_types_mod::SqlxTypesChronoDateTimeSqlxTypesChronoUtcAsNonNullTimestampTz,

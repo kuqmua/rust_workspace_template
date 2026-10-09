@@ -8,6 +8,7 @@ test("test_access_session_read_opens_matching_detail_page", async ({ page }) => 
   const cells = row.locator("td");
   await expect(cells).toHaveCount(6);
   const values = await cells.allTextContents();
+  expect(values[0].trim()).toMatch(/^[1-9][0-9]*$/);
   const path = `/admin/access_sessions/${values[0].trim()}/read`;
   const read = row.getByRole("link", { name: "read", exact: true });
   await expect(read).toHaveAttribute("href", path);
@@ -24,7 +25,7 @@ test("test_access_session_read_opens_matching_detail_page", async ({ page }) => 
   await expect(detail.locator(".health-result")).toHaveText(values.slice(0, 5));
   await page.goto(`${path}?search=missing&offset=999`);
   await expect(detail.locator(".health-result")).toHaveText(values.slice(0, 5));
-  await page.goto("/admin/access_sessions/ffffffff-ffff-4fff-bfff-ffffffffffff/read");
+  await page.goto("/admin/access_sessions/9223372036854775807/read");
   await expect(detail).toContainText("resource not found");
 });
 

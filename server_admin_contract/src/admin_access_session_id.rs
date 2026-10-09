@@ -1,47 +1,54 @@
 #[derive(
     proc_macro_optimal_memory_layout::OptimalMemoryLayout,
     Clone,
+    Copy,
     Debug,
+    Hash,
     PartialEq,
     Eq,
-    proc_macro_newtype_bounded_string_wrapper::BoundedStringWrapper,
-    proc_macro_newtype_as_ref_str::AsRefStr,
+    serde::Serialize,
+    serde::Deserialize,
+    utoipa::ToSchema,
     proc_macro_newtype_display::Display,
+    proc_macro_newtype_from_inner::FromInner,
 )]
-#[bounded_string(
-    max = 36usize,
-    min = 36usize,
-    chars,
-    serde,
-    utoipa,
-    validator = |value: &String| value.bytes().enumerate().all(|(index, byte)| if matches!(index, 8usize | 13usize | 18usize | 23usize) { byte == b'-' } else { byte.is_ascii_hexdigit() }),
-    description = "administrator access session identifier"
-)]
-pub struct AdminAccessSessionId(bounded_types::bounded_string::BoundedString<36usize, 36, true>);
+#[serde(try_from = "i64")]
+#[schema(value_type = i64)]
+pub struct AdminAccessSessionId(crate::positive_non_zero_i64::PositiveNonZeroI64);
+impl TryFrom<i64> for AdminAccessSessionId {
+    type Error = super::admin_id_try_from_i64_error::AdminIdTryFromI64Error;
+    fn try_from(value: i64) -> Result<Self, Self::Error> {
+        crate::positive_non_zero_i64::PositiveNonZeroI64::try_from(value).map(Self)
+    }
+}
+impl From<AdminAccessSessionId> for i64 {
+    fn from(value: AdminAccessSessionId) -> Self {
+        value.0.get()
+    }
+}
 impl AdminAccessSessionId {
+    #[must_use]
+    pub const fn value(self) -> crate::positive_non_zero_i64::PositiveNonZeroI64 {
+        self.0
+    }
+
     #[must_use]
     pub fn from_frontend_path(
         admin_page_path_ref: crate::admin_page_path_ref::AdminPagePathRef<'_>,
     ) -> Option<Self> {
-        let identifier = admin_page_path_ref
-            .record_identifier(crate::admin_data_table::AdminDataTable::AccessSessions)?;
-        Self::try_from(
-            identifier
-                .strip_suffix(constants_str::READ_ROUTE_SUFFIX)
-                .unwrap_or(identifier)
-                .to_owned(),
-        )
-        .ok()
+        admin_page_path_ref
+            .record_read_id(
+                crate::admin_data_table::AdminDataTable::AccessSessions,
+                crate::admin_frontend_path::AdminFrontendPath::AccessSessionsRead,
+            )
+            .map(Self::from)
     }
 }
-
 #[cfg(test)]
 mod tests {
     #[test]
     fn test_access_session_identifier_parses_from_detail_frontend_path() {
-        let expected_identifier_result = super::AdminAccessSessionId::try_from(String::from(
-            constants_str::TEST_ACCESS_SESSION_ID,
-        ));
+        let expected_identifier_result = super::AdminAccessSessionId::try_from(constants_i64::ONE);
         assert_eq!(
             expected_identifier_result.iter().count(),
             constants_usize::ONE
@@ -50,8 +57,7 @@ mod tests {
             .ok()
             .into_iter()
             .for_each(|expected_identifier| {
-                let route_path =
-                    crate::admin_route_path::AdminRoutePath::from(expected_identifier.clone());
+                let route_path = crate::admin_route_path::AdminRoutePath::from(expected_identifier);
                 let identifier = super::AdminAccessSessionId::from_frontend_path(
                     crate::admin_page_path_ref::AdminPagePathRef::from(route_path.as_ref()),
                 );

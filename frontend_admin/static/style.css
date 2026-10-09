@@ -976,6 +976,74 @@ form.security-card {
   padding: 0;
 }
 
+@layer interface-controls {
+  .page-frame:has(.profile-grid) {
+    justify-content: safe center;
+  }
+
+  .page-frame:has(.profile-grid) > .ui-alert {
+    text-align: center;
+    margin: 0;
+  }
+
+  .profile-fields,
+  .profile-fields .ui-field,
+  .profile-fields .security-card {
+    gap: 0 !important;
+  }
+
+  .profile-fields .security-card {
+    border: 0 !important;
+    text-align: center;
+  }
+
+  .profile-fields [data-name="Label"] > span,
+  .profile-fields [data-name="Input"],
+  .profile-fields .password-policy,
+  .profile-fields .field-error,
+  .profile-fields button {
+    width: 100% !important;
+    min-height: 32px !important;
+    margin: 0 !important;
+    padding-block: 0 !important;
+    text-align: center !important;
+    overflow-wrap: anywhere;
+  }
+
+  .profile-fields .password-policy {
+    display: grid;
+    place-items: center;
+  }
+
+  .profile-fields button {
+    height: 32px !important;
+  }
+
+  .profile-fields .password-input {
+    position: relative;
+    display: block !important;
+  }
+
+  .profile-fields .password-input input {
+    padding-inline: 36px !important;
+  }
+
+  .profile-fields .password-input .password-visibility {
+    position: absolute;
+    inset: 0 0 auto auto;
+    display: grid;
+    place-items: center;
+    width: 32px !important;
+    height: 32px !important;
+    padding: 0 !important;
+  }
+
+  .profile-fields .password-visibility svg {
+    width: 20px;
+    height: 20px;
+  }
+}
+
 .profile-card h2,
 .profile-grid > .security-card h2 {
   margin: 0 0 18px;

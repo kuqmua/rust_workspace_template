@@ -35,7 +35,8 @@ export async function changePassword(page, currentPassword, newPassword) {
 
 export async function createInitialAdministrator(page) {
   await signIn(page, "administrator", initialAdminPassword);
-  await expect(page).toHaveURL(/\/admin\/profile$/);
+  await expect(page).toHaveURL(/\/admin\/users$/);
+  await page.goto("/admin/profile");
   await changePassword(page, initialAdminPassword, changedAdminPassword);
 }
 
@@ -93,7 +94,7 @@ export async function signInAdministratorWithPasswordReset(page) {
   await signIn(page);
   if (page.url().endsWith("/admin/actions/sign_in")) {
     await signIn(page, "administrator", initialAdminPassword);
-    await expect(page).toHaveURL(/\/admin\/profile$/);
+    await expect(page).toHaveURL(/\/admin\/users$/);
     const password = await page.request.post("/auth/password", {
       data: { current_password: initialAdminPassword, new_password: changedAdminPassword },
       headers: await adminHeaders(page.context())

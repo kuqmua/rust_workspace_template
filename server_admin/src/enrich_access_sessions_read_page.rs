@@ -7,7 +7,7 @@ pub async fn enrich_access_sessions_read_page(
         crate::admin_access_sessions::AdminAccessSessionsRead,
     >,
     _list_items_primary_keys: pg_crud_common::list_items::ListItems<
-        <pg_types_text_misc::generate_pg_types_mod::SqlxTypesUuidUuidAsNonNullUuidV4InitializationByPg as pg_crud_common::pg_type::PgType>::Read,
+        <pg_types_numeric::generate_pg_types_mod::I64AsNonNullBigSerialInitializationByPg as pg_crud_common::pg_type::PgType>::Read,
     >,
     list_total: pg_crud_common::list_total::ListTotal,
     _sqlx_pg_pool_ref: app_state::sqlx_pg_pool_ref::SqlxPgPoolRef<'_>,

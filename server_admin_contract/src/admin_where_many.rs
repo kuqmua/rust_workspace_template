@@ -255,10 +255,18 @@ impl AdminWhereMany {
                 );
             }
             let parse_uuid = |admin_filter_value: &crate::admin_filter_value::AdminFilterValue| {
-                if crate::admin_access_session_id::AdminAccessSessionId::try_from(
-                    admin_filter_value.as_ref().to_owned(),
-                )
-                .is_ok()
+                if admin_filter_value.as_ref().len() == 36usize
+                    && admin_filter_value
+                        .as_ref()
+                        .bytes()
+                        .enumerate()
+                        .all(|(index, byte)| {
+                            if matches!(index, 8usize | 13usize | 18usize | 23usize) {
+                                byte == b'-'
+                            } else {
+                                byte.is_ascii_hexdigit()
+                            }
+                        })
                 {
                     Ok(serde_json::Value::String(
                         admin_filter_value.as_ref().to_owned(),

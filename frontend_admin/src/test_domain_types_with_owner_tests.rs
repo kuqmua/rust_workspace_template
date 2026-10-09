@@ -639,3 +639,19 @@ fn test_read_action_selects_record_link_or_fallback_dialog() {
                 })
         }));
 }
+
+#[test]
+fn test_own_session_read_action_renders_record_link() {
+    assert!(server_admin_contract::admin_session_identifier::AdminSessionIdentifier::try_from(
+        1i64,
+    ).is_ok_and(|admin_session_identifier| {
+        let read_path = server_admin_contract::admin_route_path::AdminRoutePath::from(admin_session_identifier);
+        let expected_path = read_path.to_string();
+        let html = render_owned_view(leptos::view! {
+            <crate::admin_read_action::AdminReadAction read_path=read_path><span>{constants_str::X}</span></crate::admin_read_action::AdminReadAction>
+        });
+        html.contains(expected_path.as_str())
+            && html.contains(concat!('<', stringify!(a), ' '))
+            && !html.contains(concat!('<', stringify!(dialog), ' '))
+    }));
+}

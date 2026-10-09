@@ -115,11 +115,7 @@ mod tests {
                         login,
                         runtime_rules,
                         runtime_roles,
-                        crate::admin_session_id::AdminSessionId::from(
-                            server_admin_core::uuid_admin_value::UuidAdminValue::from(
-                                uuid::Uuid::nil(),
-                            ),
-                        ),
+                        crate::admin_session_id::AdminSessionId::from(identifier.value()),
                         crate::admin_password_change_required::AdminPasswordChangeRequired::from(
                             true,
                         ),

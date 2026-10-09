@@ -160,7 +160,26 @@ pub(crate) fn AdminApp() -> impl leptos::prelude::IntoView {
                 return Err(crate::admin_table_load_error::AdminTableLoadError::Query);
             }
         };
-        let suffix = if bool::from(admin_page.uses_table_query()) {
+        let suffix = if let Some(admin_session_identifier) = admin_csr_query.session_identifier() {
+            let params = web_sys::UrlSearchParams::new()
+                .map_err(crate::wasm_bindgen_admin_read_error::WasmBindgenAdminReadError::from)?;
+            params.set(
+                constants_str::ADMIN_FILTER_FIELD_QUERY_KEY,
+                constants_str::SQL_NAMES_ID,
+            );
+            params.set(
+                constants_str::ADMIN_FILTER_OPERATION_QUERY_KEY,
+                constants_str::ADMIN_FILTER_OPERATION_EQ,
+            );
+            params.set(
+                constants_str::ADMIN_FILTER_VALUE_QUERY_KEY,
+                &admin_session_identifier.to_string(),
+            );
+            let mut suffix = String::new();
+            suffix.push('?');
+            suffix.push_str(&String::from(params.to_string()));
+            suffix
+        } else if bool::from(admin_page.uses_table_query()) {
             search
         } else {
             String::new()
@@ -253,6 +272,9 @@ pub(crate) fn AdminApp() -> impl leptos::prelude::IntoView {
                 .is_some() =>
             {
                 server_admin_contract::admin_page::AdminPage::Tables
+            }
+            None if server_admin_contract::admin_session_identifier::AdminSessionIdentifier::from_frontend_path(path).is_some() => {
+                server_admin_contract::admin_page::AdminPage::Sessions
             }
             None if server_admin_contract::admin_user_id::AdminUserId::from_frontend_path(path)
                 .is_some() =>
@@ -354,6 +376,7 @@ pub(crate) fn AdminApp() -> impl leptos::prelude::IntoView {
                 },
                 crate::admin_load_state::AdminLoadState::Profile(admin) => leptos::prelude::IntoAny::into_any(leptos::view! { <super::admin_profile_view::AdminProfileView authenticated_admin=admin /> }),
                 crate::admin_load_state::AdminLoadState::Roles(_admin, page) => leptos::prelude::IntoAny::into_any(leptos::view! { <super::admin_role_view::AdminRoleView admin_roles_page=page /> }),
+                crate::admin_load_state::AdminLoadState::Sessions(_admin, view) if query.session_identifier().is_some() => leptos::prelude::IntoAny::into_any(leptos::view! { <crate::admin_record_view::AdminRecordView admin_data_table_view=view admin_record_read_page=crate::admin_record_read_page::AdminRecordReadPage::Session /> }),
                 crate::admin_load_state::AdminLoadState::Sessions(admin, view) => leptos::prelude::IntoAny::into_any(leptos::view! { <super::admin_data_grid::AdminDataGrid authenticated_admin=admin admin_data_table_view=view admin_csr_query=query.clone() admin_frontend_path=Some(server_admin_contract::admin_frontend_path::AdminFrontendPath::Sessions) /> }),
                 crate::admin_load_state::AdminLoadState::Settings(admin, page) => leptos::prelude::IntoAny::into_any(leptos::view! { <super::admin_settings_view::AdminSettingsView authenticated_admin=admin admin_settings_view=page /> }),
                 crate::admin_load_state::AdminLoadState::Table(admin, view) => if query.user_role_id().is_some() {

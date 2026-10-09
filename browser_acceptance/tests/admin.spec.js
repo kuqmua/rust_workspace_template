@@ -23,7 +23,7 @@ async function firstCellStyle(page) {
   });
 }
 
-test("initial administrator sign-in forces a password change before administrator access", async ({
+test("initial administrator can access administration immediately and optionally change password", async ({
   page
 }) => {
   const signInResponse = await page.goto("/admin/sign_in");
@@ -68,16 +68,16 @@ test("initial administrator sign-in forces a password change before administrato
     "HttpOnly"
   );
 
-  await expect(page).toHaveURL(/\/admin\/profile$/);
+  await expect(page).toHaveURL(/\/admin\/users$/);
+  await expect(page.locator('header a[href="/admin/users"]')).toBeVisible();
+  await page.goto("/admin/profile");
   await expect(page.locator(".password-policy")).toContainText(
     "uppercase, lowercase, digit, and special characters"
   );
-  await expect(page.getByRole("alert")).toContainText(
-    "change_your_initial_password_to_unlock_administrator_navigation"
-  );
-  await expect(page.locator('header a[href="/admin/users"]')).toHaveCount(0);
+  await expect(page.getByText("change_your_initial_password_to_unlock_administrator_navigation", { exact: true })).toHaveCount(0);
   await page.goto("/admin/users");
-  await expect(page).toHaveURL(/\/admin\/profile$/);
+  await expect(page).toHaveURL(/\/admin\/users$/);
+  await page.goto("/admin/profile");
 
   await page.getByLabel("current_password").fill(initialAdminPassword);
   await page.getByLabel("new_password").fill("admin");

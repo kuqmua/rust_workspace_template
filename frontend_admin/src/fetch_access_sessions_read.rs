@@ -14,7 +14,7 @@ pub(crate) async fn fetch_access_sessions_read(
     let input_kind = match filter_query.field() {
         None => frontend_contract::input_kind::InputKind::Number,
         Some(field) if field.as_ref() == constants_str::SQL_NAMES_ID => {
-            frontend_contract::input_kind::InputKind::Uuid
+            frontend_contract::input_kind::InputKind::Number
         }
         Some(field) if field.as_ref() == constants_str::USER_ID => {
             frontend_contract::input_kind::InputKind::Number

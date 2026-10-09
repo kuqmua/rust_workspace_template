@@ -367,7 +367,7 @@ fn test_admin_grid_requires_valid_identifier_and_permission_for_actions() {
         server_admin_contract::admin_data_table::AdminDataTable::PG_ORDER
             .into_iter()
             .all(|table| {
-                let valid_identifier = if table == server_admin_contract::admin_data_table::AdminDataTable::AccessSessions { constants_str::TEST_ACCESS_SESSION_ID } else if table == server_admin_contract::admin_data_table::AdminDataTable::RefreshTokens { constants_str::TEST_REFRESH_TOKEN_ID } else { constants_str::VALUE_42 };
+                let valid_identifier = constants_str::VALUE_42;
                 [
                     (valid_identifier, true, true, true),
                     (valid_identifier, true, false, false),

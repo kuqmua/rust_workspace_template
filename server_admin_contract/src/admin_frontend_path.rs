@@ -86,6 +86,8 @@ pub enum AdminFrontendPath {
     RoleRulesRead,
     #[strum(serialize = "/admin/sessions")]
     Sessions,
+    #[strum(serialize = "/admin/sessions/{session_id}/read")]
+    SessionRead,
     #[strum(serialize = "/admin")]
     Root,
     #[strum(serialize = "/admin/sign_in")]

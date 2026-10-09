@@ -54,7 +54,7 @@ pub(crate) async fn user_mutations_update_filtered(
             crate::sqlx_admin_repository_connection_mut_ref::SqlxAdminRepositoryConnectionMutRef::from(&mut **sqlx_admin_repository_connection_mut_ref),
             admin_user_record_id,
             &password_hash,
-            crate::admin_password_change_required::AdminPasswordChangeRequired::from(true),
+            crate::admin_password_change_required::AdminPasswordChangeRequired::from(false),
         ).await?.get().then_some(()).ok_or(crate::admin_error::AdminError::Conflict)?;
     }
     if let Some(admin_role_ids) = admin_update_user_request.role_ids() {
